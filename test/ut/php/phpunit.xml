@@ -1,7 +1,7 @@
 <phpunit>
     <testsuites>
         <testsuite name="Unit Tests">
-            <directory>test/ut/php</directory>
+            <directory>test/ut/php/</directory>
         </testsuite>
     </testsuites>
     <filter>

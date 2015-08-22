@@ -1,5 +1,4 @@
 <?php
-error_log(getcwd());
 require_once '../../../include/config.php';
 require_once BASE_DIR . '/include/db.php';
 
