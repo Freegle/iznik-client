@@ -1,0 +1,15 @@
+<phpunit>
+    <testsuites>
+        <testsuite name="Unit Tests">
+            <directory>test/ut/php</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist addUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">/include</directory>
+            <exclude>
+                <directory suffix=".php">composer</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+</phpunit>
