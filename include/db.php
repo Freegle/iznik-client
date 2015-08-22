@@ -9,6 +9,9 @@ require_once('config.php');
 #    are inside a transaction - then we throw an exception which will cause us to retry the whole API
 #    call from scratch.
 # 2) Logging.  We keep a log of all SQL operations for debugging purposes.
+#
+# We use aggregation rather than extension because otherwise we hit issues with PHPUnit, which finds
+# it hard to mock PDOs.
 
 $dbconfig = array (
     'host' => 'localhost',
@@ -21,8 +24,9 @@ class DBException extends Exception
 {
 }
 
-class LoggedPDO extends PDO {
+class LoggedPDO {
 
+    protected $_db;
     private $log = '';
     private $tries = 10;
     private $lastLogInsert = NULL;
@@ -31,14 +35,24 @@ class LoggedPDO extends PDO {
     private $dbwaittime = 0;
     private $pheanstalk = NULL;
 
+    /**
+     * @param null $pheanstalk
+     */
+    public function setPheanstalk($pheanstalk)
+    {
+        $this->pheanstalk = $pheanstalk;
+    }
+
     public function __construct($dsn, $username, $password, $options, $readonly = FALSE, LoggedPDO $readconn = NULL)
     {
         $start = microtime(true);
-        parent::__construct($dsn, $username, $password);
+        $this->_db = new PDO($dsn, $username, $password);
         $this->dbwaittime += microtime(true) - $start;
 
         $this->readonly = $readonly;
         $this->readconn = $readconn;
+
+        return $this;
     }
 
     public function getWaitTime() {
@@ -59,6 +73,10 @@ class LoggedPDO extends PDO {
         }
     }
 
+    public function parentExec($sql) {
+        return($this->_db->exec($sql));
+    }
+
     function retryExec($sql) {
         $try = 0;
         $ret = NULL;
@@ -68,12 +86,13 @@ class LoggedPDO extends PDO {
 
         do {
             try {
-                $ret = parent::exec($sql);
+                $ret = $this->parentExec($sql);
                 $worked = true;
             } catch (Exception $e) {
                 if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
                     # It's a Percona deadlock - retry.
                     $try++;
+                    $msg = $e->getMessage();
                 } else {
                     $msg = "Non-deadlock DB Exception $sql " . $e->getMessage();
                     $try = $this->tries;
@@ -83,17 +102,19 @@ class LoggedPDO extends PDO {
 
         if ($worked && $try > 0) {
             error_log("retryExec succeeded after $try for $sql");
-        } else if (!$worked) {
-            error_log("retryExec $msg");
+        } else if (!$worked)
             $this->giveUp($msg);
-        }
 
         $this->dbwaittime += microtime(true) - $start;
 
         return($ret);
     }
 
-    function retryQuery($sql) {
+    public function parentQuery($sql) {
+        return($this->_db->query($sql));
+    }
+
+    public function retryQuery($sql) {
         $try = 0;
         $ret = NULL;
         $worked = false;
@@ -102,25 +123,24 @@ class LoggedPDO extends PDO {
 
         do {
             try {
-                $ret = parent::query($sql);
+                $ret = $this->parentQuery($sql);
                 $worked = true;
             } catch (Exception $e) {
                 if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
                     # Retry.
                     $try++;
+                    $msg = $e->getMessage();
                 } else {
-                    $msg = "Non-deadlock DB Exception $sql " . var_export($e, true);
-                    $try = 10;
+                    $msg = "Non-deadlock DB Exception $sql " . $e->getMessage();
+                    $try = $this->tries;
                 }
             }
-        } while (!$worked && $try < 10);
+        } while (!$worked && $try < $this->tries);
 
         if ($worked && $try > 0) {
             error_log("retryQuery succeeded after $try");
-        } else if (!$worked) {
-            error_log("retryQuery $msg");
-            $this->giveUp($msg);
-        }
+        } else if (!$worked)
+            $this->giveUp($msg); // No brace because of coverage oddity
 
         #error_log("Query took " . (microtime(true) - $start) . " $sql" );
         $this->dbwaittime += microtime(true) - $start;
@@ -149,9 +169,17 @@ class LoggedPDO extends PDO {
         }
     }
 
-    function beginTransaction() {
+    public function inTransaction() {
+        return($this->_db->inTransaction()) ;
+    }
+
+    public function quote($str) {
+        return($this->_db->quote($str));
+    }
+
+    public function beginTransaction() {
         $this->transactionStart = microtime(true);
-        $ret = parent::beginTransaction ();
+        $ret = $this->_db->beginTransaction ();
 
         $this->maybeLog("START TRANSACTION;", $ret, microtime(true) - $this->transactionStart);
         $this->dbwaittime += microtime(true) - $this->transactionStart;
@@ -174,7 +202,7 @@ class LoggedPDO extends PDO {
         $this->log = '';
 
         $time = microtime(true);
-        parent::commit();
+        $this->_db->commit();
         $this->dbwaittime += microtime(true) - $time;
 
         # Now check whether this log exists.  If it did, we know for sure that the commit
@@ -199,7 +227,7 @@ class LoggedPDO extends PDO {
     public function exec ($sql, $log = true)    {
         $time = microtime(true);
         $ret = $this->retryExec($sql);
-        $this->lastInsert = parent::lastInsertId();
+        $this->lastInsert = $this->_db->lastInsertId();
 
         if ($log) {
             $this->maybeLog($sql, $ret, microtime(true) - $time);
@@ -241,7 +269,7 @@ class LoggedPDO extends PDO {
                 'ttr' => 300
             )));
         } catch (Exception $e) {
-            error_log("Beanstalk exception " . var_export($e, true));
+            error_log("Beanstalk exception " . $e->getMessage());
             $rc = 0;
         }
 
@@ -251,6 +279,7 @@ class LoggedPDO extends PDO {
     }
 
     private function giveUp($msg) {
+        error_log("DB: give up $msg");
         throw new DBException("Unexpected database error $msg", 999);
     }
 }

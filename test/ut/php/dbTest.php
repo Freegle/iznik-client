@@ -39,7 +39,7 @@ class dbTest extends IznikTest {
     public function testBasic() {
         error_log(__METHOD__);
 
-        $tables = $this->dbhm->query('SHOW COLUMNS FROM test;')->fetchAll();
+        $tables = $this->dbhm->retryQuery('SHOW COLUMNS FROM test;')->fetchAll();
         assertEquals('id', $tables[0]['Field']);
         assertGreaterThan(0, $this->dbhm->getWaitTime());
 
@@ -69,8 +69,153 @@ class dbTest extends IznikTest {
         assertEquals(1, $rc);
         assertGreaterThan(0, $this->dbhm->lastInsertId());
 
+        $tables = $this->dbhm->query('SHOW COLUMNS FROM test;')->fetchAll();
+        assertEquals('id', $tables[0]['Field']);
+
         $rc = $this->dbhm->commit();
         assertTrue($rc);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testBackground() {
+        error_log(__METHOD__);
+
+        # Test creation of the Pheanstalk.
+        $this->dbhm->background('INSERT INTO test VALUES ();');
+
+        # Mock the put to work.
+        $mock = $this->getMockBuilder('Pheanstalk\Pheanstalk')
+            ->disableOriginalConstructor()
+            ->setMethods(array('put'))
+            ->getMock();
+        $mock->method('put')->willReturn(true);
+        $this->dbhm->setPheanstalk($mock);
+        $this->dbhm->background('INSERT INTO test VALUES ();');
+
+        # Mock the put to fail.
+        $mock->method('put')->will($this->throwException(new Exception()));
+        $this->dbhm->background('INSERT INTO test VALUES ();');
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function exceptionUntil() {
+        error_log("exceptionUntil count " . $this->count);
+        $this->count--;
+        if ($this->count > 0) {
+            error_log("Exception");
+            throw new Exception('Faked deadlock exception');
+        } else {
+            error_log("No exception");
+            return false;
+        }
+    }
+
+    public function testQueryRetries() {
+        error_log(__METHOD__);
+
+        # We mock up the query to throw an exception, to test retries.
+        #
+        # First a non-deadlock exception
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->disableOriginalConstructor()
+            ->setMethods(array('parentQuery'))
+            ->getMock();
+        $mock->method('parentQuery')->will($this->throwException(new Exception()));
+
+        $worked = false;
+
+        try {
+            $mock->retryQuery('SHOW COLUMNS FROM test;');
+        } catch (DBException $e) {
+            $worked = true;
+            assertContains('Non-deadlock', $e->getMessage());
+        }
+        assertTrue($worked);
+
+        # Now a deadlock that never gets resolved
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->disableOriginalConstructor()
+            ->setMethods(array('parentQuery'))
+            ->getMock();
+        $mock->method('parentQuery')->will($this->throwException(new Exception('Faked deadlock exception')));
+        $worked = false;
+
+        try {
+            $mock->retryQuery('SHOW COLUMNS FROM test;');
+        } catch (DBException $e) {
+            $worked = true;
+            assertEquals('Unexpected database error Faked deadlock exception', $e->getMessage());
+        }
+        assertTrue($worked);
+
+        # Now a deadlock that gets resolved
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->disableOriginalConstructor()
+            ->setMethods(array('parentQuery'))
+            ->getMock();
+        $this->count = 5;
+        $mock->method('parentQuery')->will($this->returnCallback(function() {
+            return($this->exceptionUntil());
+        }));
+        $worked = false;
+
+        $mock->retryQuery('SHOW COLUMNS FROM test;');
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testExecRetries() {
+        error_log(__METHOD__);
+
+        # We mock up the query to throw an exception, to test retries.
+        #
+        # First a non-deadlock exception
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->disableOriginalConstructor()
+            ->setMethods(array('parentExec'))
+            ->getMock();
+        $mock->method('parentExec')->will($this->throwException(new Exception()));
+
+        $worked = false;
+
+        try {
+            $mock->retryExec('INSERT INTO test VALUES ();');
+        } catch (DBException $e) {
+            $worked = true;
+            assertContains('Non-deadlock', $e->getMessage());
+        }
+        assertTrue($worked);
+
+        # Now a deadlock that never gets resolved
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->disableOriginalConstructor()
+            ->setMethods(array('parentExec'))
+            ->getMock();
+        $mock->method('parentExec')->will($this->throwException(new Exception('Faked deadlock exception')));
+        $worked = false;
+
+        try {
+            $mock->retryExec('INSERT INTO test VALUES ();');
+        } catch (DBException $e) {
+            $worked = true;
+            assertEquals('Unexpected database error Faked deadlock exception', $e->getMessage());
+        }
+        assertTrue($worked);
+
+        # Now a deadlock that gets resolved
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->disableOriginalConstructor()
+            ->setMethods(array('parentExec'))
+            ->getMock();
+        $this->count = 5;
+        $mock->method('parentExec')->will($this->returnCallback(function() {
+            return($this->exceptionUntil());
+        }));
+        $worked = false;
+
+        $mock->retryExec('INSERT INTO test VALUES ();');
 
         error_log(__METHOD__ . " end");
     }
