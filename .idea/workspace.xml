@@ -7,6 +7,7 @@
   <component name="ChangeListManager">
     <list default="true" id="ad33963c-59c0-443a-b9ff-87c88f0943ef" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/composer/vendor/php-mime-mail-parser/php-mime-mail-parser" afterPath="$PROJECT_DIR$/composer/vendor/php-mime-mail-parser/php-mime-mail-parser" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="iznik.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -63,8 +64,8 @@
       <file leaf-file-name="IncomingMessageTest.php" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.9793578" vertical-offset="559" max-vertical-offset="1275">
-              <caret line="58" column="12" selection-start-line="58" selection-start-column="8" selection-end-line="58" selection-end-column="13" />
+            <state vertical-scroll-proportion="0.8215103" vertical-offset="559" max-vertical-offset="1275">
+              <caret line="54" column="0" selection-start-line="54" selection-start-column="0" selection-end-line="54" selection-end-column="0" />
               <folding>
                 <marker date="1440249880646" expanded="true" signature="1072:1690" placeholder="..." />
                 <marker date="1440249880646" expanded="true" signature="1078:1665" placeholder="..." />
@@ -535,7 +536,7 @@
     <editor active="false" />
     <layout>
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32885906" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
-      <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32751676" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
+      <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3261745" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32885906" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.17449665" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -926,8 +927,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.9793578" vertical-offset="559" max-vertical-offset="1275">
-          <caret line="58" column="12" selection-start-line="58" selection-start-column="8" selection-end-line="58" selection-end-column="13" />
+        <state vertical-scroll-proportion="0.8215103" vertical-offset="559" max-vertical-offset="1275">
+          <caret line="54" column="0" selection-start-line="54" selection-start-column="0" selection-end-line="54" selection-end-column="0" />
           <folding>
             <marker date="1440249880646" expanded="true" signature="1072:1690" placeholder="..." />
             <marker date="1440249880646" expanded="true" signature="1078:1665" placeholder="..." />
