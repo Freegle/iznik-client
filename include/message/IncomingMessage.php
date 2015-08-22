@@ -10,6 +10,12 @@ class IncomingMessage
     private $dbhm;
     private $msg, $text, $html, $subject, $from, $to;
 
+    function __construct($dbhr, $dbhm)
+    {
+        $this->dbhr = $dbhr;
+        $this->dbhm = $dbhm;
+    }
+
     /**
      * @return mixed
      */
@@ -58,12 +64,6 @@ class IncomingMessage
     public function getAttachments()
     {
         return $this->attachments;
-    }
-
-    function __construct($dbhr, $dbhm)
-    {
-        $this->dbhr = $dbhr;
-        $this->dbhm = $dbhm;
     }
 
     public function parse($msg)

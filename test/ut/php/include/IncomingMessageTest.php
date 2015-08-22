@@ -1,6 +1,6 @@
 <?php
 
-require_once 'IznikTest.php';
+require_once '../IznikTest.php';
 require_once BASE_DIR . '/include/message/IncomingMessage.php';
 
 /**

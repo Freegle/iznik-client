@@ -20,3 +20,16 @@ function rrmdir($dir) {
         rmdir($dir);
     }
 }
+
+function pres($key, $arr) {
+    return($arr && array_key_exists($key, $arr) && $arr[$key]);
+}
+
+function presdef($key, $arr, $def) {
+    if ($arr && array_key_exists($key, $arr) && $arr[$key]) {
+        return($arr[$key]);
+    } else {
+        return($def);
+    }
+}
+

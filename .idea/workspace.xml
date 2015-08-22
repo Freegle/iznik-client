@@ -5,8 +5,72 @@
     <option name="CUSTOM_SCOPE_NAME" value="Iznik" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ad33963c-59c0-443a-b9ff-87c88f0943ef" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/composer/vendor/php-mime-mail-parser/php-mime-mail-parser" afterPath="$PROJECT_DIR$/composer/vendor/php-mime-mail-parser/php-mime-mail-parser" />
+    <list default="true" id="ad33963c-59c0-443a-b9ff-87c88f0943ef" name="Default" comment="Add DB class">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/dataSources.ids" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/.gitattributes" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/.gitignore" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/AbstractCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Response/ArrayResponse.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/BuryCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ClientException.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/CommandException.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Connection.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ConnectionException.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/DeleteCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/include/group/Group.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/IgnoreCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Job.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/KickCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/KickJobCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/LICENCE" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/ListTubeUsedCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/ListTubesCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/ListTubesWatchedCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Socket/NativeSocket.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/PauseTubeCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/PeekCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Pheanstalk.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/PheanstalkInterface.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/PutCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/README.md" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/ReleaseCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/ReserveCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Response.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/ResponseParser.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ServerBadFormatException.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ServerDrainingException.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ServerException.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ServerInternalErrorException.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ServerOutOfMemoryException.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ServerUnknownCommandException.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Socket.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/SocketException.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/StatsCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/StatsJobCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/StatsTubeCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Socket/StreamFunctions.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/TouchCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/UseCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/WatchCommand.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Socket/WriteHistory.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/YamlResponseParser.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/scripts/build_phar.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/composer.json" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/ut/php/dbTest.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/install/iznik.conf.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" />
+      <change type="MOVED" beforePath="C:\Users\Edward\PhpstormProjects\iznik\test\ut\php\include\IznikTest.php" afterPath="$PROJECT_DIR$/test/ut/php/IznikTest.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/message/IncomingMessage.php" afterPath="$PROJECT_DIR$/include/message/IncomingMessage.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php" afterPath="$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/scopes/Iznik.xml" afterPath="$PROJECT_DIR$/.idea/scopes/Iznik.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/composer/composer.json" afterPath="$PROJECT_DIR$/composer/composer.json" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/composer/composer.lock" afterPath="$PROJECT_DIR$/composer/composer.lock" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/config.php" afterPath="$PROJECT_DIR$/include/config.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/db.php" afterPath="$PROJECT_DIR$/include/db.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/utils.php" afterPath="$PROJECT_DIR$/include/utils.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="iznik.iws" />
@@ -26,14 +90,28 @@
     <phpPath>C:\php\php.exe</phpPath>
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/iznik$IncomingMessageTest.coverage" NAME="IncomingMessageTest Coverage Results" MODIFIED="1440250170338" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="PhpCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/iznik$messageTest.coverage" NAME="messageTest Coverage Results" MODIFIED="1440240542554" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="PhpCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/iznik$dbTest.coverage" NAME="dbTest Coverage Results" MODIFIED="1440258103637" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="PhpCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+  </component>
+  <component name="CoverageOptionsProvider">
+    <option name="myAddOrReplace" value="1" />
   </component>
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
   </component>
   <component name="DaemonCodeAnalyzer">
     <disable_hints />
+  </component>
+  <component name="DatabaseView">
+    <option name="FLATTEN" value="false" />
+    <option name="GROUP_BY_TYPE" value="true" />
+    <option name="SORT_CHILDREN" value="false" />
+    <option name="SHOW_TABLE_CONSTRAINTS" value="true" />
+    <PATH>
+      <PATH_ELEMENT>
+        <option name="myItemId" />
+        <option name="myItemType" value="com.intellij.database.view.DbRootNodeDescriptor" />
+      </PATH_ELEMENT>
+    </PATH>
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FavoritesManager">
@@ -44,8 +122,8 @@
       <file leaf-file-name="IncomingMessage.php" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/include/message/IncomingMessage.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="816" max-vertical-offset="1700">
-              <caret line="55" column="45" selection-start-line="55" selection-start-column="45" selection-end-line="55" selection-end-column="45" />
+            <state vertical-scroll-proportion="-11.769231" vertical-offset="0" max-vertical-offset="1700">
+              <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -54,52 +132,91 @@
       <file leaf-file-name="config.php" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/include/config.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="51" max-vertical-offset="153">
-              <caret line="3" column="57" selection-start-line="3" selection-start-column="57" selection-end-line="3" selection-end-column="57" />
+            <state vertical-scroll-proportion="-3.2692308" vertical-offset="0" max-vertical-offset="238">
+              <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="IncomingMessageTest.php" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php">
+      <file leaf-file-name="db.php" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/include/db.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.8215103" vertical-offset="559" max-vertical-offset="1275">
-              <caret line="54" column="0" selection-start-line="54" selection-start-column="0" selection-end-line="54" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.26086956" vertical-offset="3847" max-vertical-offset="4692">
+              <caret line="233" column="51" selection-start-line="233" selection-start-column="51" selection-end-line="233" selection-end-column="51" />
               <folding>
-                <marker date="1440249880646" expanded="true" signature="1072:1690" placeholder="..." />
-                <marker date="1440249880646" expanded="true" signature="1078:1665" placeholder="..." />
-                <marker date="1440249880646" expanded="true" signature="1101:1657" placeholder="..." />
+                <marker date="1440258564751" expanded="true" signature="4375:4497" placeholder="INSERT INTO ..." />
+                <marker date="1440258564751" expanded="true" signature="6587:6622" placeholder="SELECT id FR..logs_sql..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="autoload.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/composer/vendor/autoload.php">
+      <file leaf-file-name="Pheanstalk.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Pheanstalk.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="34" max-vertical-offset="221">
-              <caret line="2" column="3" selection-start-line="2" selection-start-column="3" selection-end-line="2" selection-end-column="3" />
+            <state vertical-scroll-proportion="-5.230769" vertical-offset="340" max-vertical-offset="7310">
+              <caret line="28" column="20" selection-start-line="28" selection-start-column="20" selection-end-line="28" selection-end-column="20" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Parser.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/composer/vendor/php-mime-mail-parser/php-mime-mail-parser/src/Parser.php">
+      <file leaf-file-name="iznik.conf.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/install/iznik.conf.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="51" max-vertical-offset="8806">
-              <caret line="3" column="0" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
+            <state vertical-scroll-proportion="-4.576923" vertical-offset="0" max-vertical-offset="255">
+              <caret line="7" column="23" selection-start-line="7" selection-start-column="23" selection-end-line="7" selection-end-column="23" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Attachment.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/composer/vendor/php-mime-mail-parser/php-mime-mail-parser/src/Attachment.php">
+      <file leaf-file-name="dbTest.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/ut/php/dbTest.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="765" max-vertical-offset="2380">
-              <caret line="45" column="20" selection-start-line="45" selection-start-column="20" selection-end-line="45" selection-end-column="20" />
+            <state vertical-scroll-proportion="-8.307693" vertical-offset="515" max-vertical-offset="1428">
+              <caret line="43" column="57" selection-start-line="43" selection-start-column="57" selection-end-line="43" selection-end-column="57" />
+              <folding>
+                <marker date="1440258166130" expanded="true" signature="530:643" placeholder="CREATE TABLE..test..." />
+                <marker date="1440258166130" expanded="true" signature="754:769" placeholder="DROP TABLE t..." />
+                <marker date="1440258166130" expanded="true" signature="1282:1308" placeholder="INSERT INTO ..." />
+                <marker date="1440258166130" expanded="true" signature="1420:1446" placeholder="INSERT INTO ..." />
+                <marker date="1440258166130" expanded="true" signature="1765:1791" placeholder="INSERT INTO ..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="MySQL - iznik@localhost" pinned="false" current-in-tab="false">
+        <entry file="dbDummy://db-console:/5ca85f96/98b6feb7-f9f8-469b-a6ad-efb4e5913d93/">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-0.0" vertical-offset="0" max-vertical-offset="102">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="IncomingMessageTest.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="1.5" vertical-offset="73" max-vertical-offset="1275">
+              <caret line="2" column="17" selection-start-line="2" selection-start-column="17" selection-end-line="2" selection-end-column="17" />
+              <folding>
+                <marker date="1440256039282" expanded="true" signature="1075:1693" placeholder="..." />
+                <marker date="1440256039282" expanded="true" signature="1081:1668" placeholder="..." />
+                <marker date="1440256039282" expanded="true" signature="1104:1660" placeholder="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Group.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/include/group/Group.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-9.807693" vertical-offset="0" max-vertical-offset="408">
+              <caret line="15" column="20" selection-start-line="15" selection-start-column="20" selection-end-line="15" selection-end-column="20" />
               <folding />
             </state>
           </provider>
@@ -108,38 +225,8 @@
       <file leaf-file-name="utils.php" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/include/utils.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="357" max-vertical-offset="459">
-              <caret line="21" column="1" selection-start-line="21" selection-start-column="1" selection-end-line="21" selection-end-column="1" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="attachment" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/ut/php/msgs/attachment">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="6154" max-vertical-offset="6256">
-              <caret line="362" column="0" selection-start-line="362" selection-start-column="0" selection-end-line="362" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="basic" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/ut/php/msgs/basic">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="1122" max-vertical-offset="1751">
-              <caret line="66" column="5" selection-start-line="66" selection-start-column="0" selection-end-line="66" selection-end-column="5" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="IznikTest.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/ut/php/include/IznikTest.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="204" max-vertical-offset="629">
-              <caret line="12" column="7" selection-start-line="12" selection-start-column="7" selection-end-line="12" selection-end-column="7" />
+            <state vertical-scroll-proportion="-15.038462" vertical-offset="17" max-vertical-offset="697">
+              <caret line="24" column="0" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -164,15 +251,20 @@
         <option value="$PROJECT_DIR$/test/ut/php/include/messageTest.php" />
         <option value="$PROJECT_DIR$/composer.json" />
         <option value="$PROJECT_DIR$/composer/composer.json" />
-        <option value="$PROJECT_DIR$/include/utils.php" />
         <option value="$PROJECT_DIR$/include/message.php" />
         <option value="$PROJECT_DIR$/test/ut/php/include/IznikTest.php" />
         <option value="$PROJECT_DIR$/include/IncomingMessage.php" />
         <option value="$PROJECT_DIR$/test/ut/php/msgs/attachment" />
         <option value="$PROJECT_DIR$/composer/vendor/php-mime-mail-parser/php-mime-mail-parser/src/Parser.php" />
-        <option value="$PROJECT_DIR$/include/config.php" />
-        <option value="$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php" />
         <option value="$PROJECT_DIR$/include/message/IncomingMessage.php" />
+        <option value="$PROJECT_DIR$/include/group/Group.php" />
+        <option value="$PROJECT_DIR$/include/utils.php" />
+        <option value="$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php" />
+        <option value="$PROJECT_DIR$/install/iznik.conf" />
+        <option value="$PROJECT_DIR$/test/ut/php/dbTest.php" />
+        <option value="$PROJECT_DIR$/include/db.php" />
+        <option value="$PROJECT_DIR$/include/config.php" />
+        <option value="$PROJECT_DIR$/install/iznik.conf.php" />
       </list>
     </option>
   </component>
@@ -216,6 +308,81 @@
           <State>
             <id />
           </State>
+          <State>
+            <id>Assignment issuesJavaScript</id>
+          </State>
+          <State>
+            <id>Bitwise operation issuesJavaScript</id>
+          </State>
+          <State>
+            <id>Code StylePHP</id>
+          </State>
+          <State>
+            <id>Code quality toolsJavaScript</id>
+          </State>
+          <State>
+            <id>Code style issuesJavaScript</id>
+          </State>
+          <State>
+            <id>CoffeeScript</id>
+          </State>
+          <State>
+            <id>Control flow issuesJavaScript</id>
+          </State>
+          <State>
+            <id>Data flow issuesJavaScript</id>
+          </State>
+          <State>
+            <id>Error handlingJavaScript</id>
+          </State>
+          <State>
+            <id>General</id>
+          </State>
+          <State>
+            <id>GeneralJavaScript</id>
+          </State>
+          <State>
+            <id>GeneralPHP</id>
+          </State>
+          <State>
+            <id>JavaScript</id>
+          </State>
+          <State>
+            <id>JavaScript function metricsJavaScript</id>
+          </State>
+          <State>
+            <id>JavaScript validity issuesJavaScript</id>
+          </State>
+          <State>
+            <id>PHP</id>
+          </State>
+          <State>
+            <id>PHPDocPHP</id>
+          </State>
+          <State>
+            <id>Portability issues</id>
+          </State>
+          <State>
+            <id>Potentially confusing code constructsJavaScript</id>
+          </State>
+          <State>
+            <id>Probable bugsCoffeeScript</id>
+          </State>
+          <State>
+            <id>Probable bugsJavaScript</id>
+          </State>
+          <State>
+            <id>Probable bugsPHP</id>
+          </State>
+          <State>
+            <id>Spelling</id>
+          </State>
+          <State>
+            <id>UndefinedPHP</id>
+          </State>
+          <State>
+            <id>XPath</id>
+          </State>
         </expanded-state>
         <selected-state>
           <State>
@@ -248,7 +415,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -351,6 +517,20 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="install" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="iznik" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="iznik" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="include" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -383,19 +563,56 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="include" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="group" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="iznik" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="iznik" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="composer" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="iznik" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="iznik" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="composer" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="vendor" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php" />
     <property name="recentsLimit" value="5" />
-    <property name="options.lastSelected" value="reference.webide.settings.project.settings.php.composer" />
+    <property name="options.lastSelected" value="project.scopes" />
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="options.splitter.details.proportions" value="0.2" />
     <property name="restartRequiresConfirmation" value="true" />
@@ -406,20 +623,30 @@
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
     <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
+    <property name="dynamic.classpath" value="false" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Edward\PhpstormProjects\iznik\http\images" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Edward\PhpstormProjects\iznik\test\ut\php" />
       <recent name="C:\Users\Edward\PhpstormProjects\iznik\include\message" />
       <recent name="C:\Users\Edward\PhpstormProjects\iznik\composer" />
       <recent name="C:\Users\Edward\PhpstormProjects\iznik" />
     </key>
   </component>
-  <component name="RunManager" selected="PHPUnit.IncomingMessageTest">
+  <component name="RunManager" selected="PHPUnit.dbTest">
     <configuration default="false" name="IncomingMessageTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
       <TestRunner class="IncomingMessageTest" configuration_file="$PROJECT_DIR$/test/ut/php/phpunit.xml" file="$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php" scope="Class" use_alternative_configuration_file="true" />
+      <RunnerSettings RunnerId="PhpRunner" />
+      <RunnerSettings RunnerId="PhpUnitCoverageRunner" />
+      <ConfigurationWrapper RunnerId="PhpRunner" />
+      <ConfigurationWrapper RunnerId="PhpUnitCoverageRunner" />
+      <method />
+    </configuration>
+    <configuration default="false" name="dbTest" type="PHPUnitRunConfigurationType" factoryName="PHPUnit" temporary="true">
+      <TestRunner class="dbTest" file="$PROJECT_DIR$/test/ut/php/dbTest.php" scope="Class" />
       <RunnerSettings RunnerId="PhpRunner" />
       <RunnerSettings RunnerId="PhpUnitCoverageRunner" />
       <ConfigurationWrapper RunnerId="PhpRunner" />
@@ -431,6 +658,12 @@
       <method />
     </configuration>
     <configuration default="true" type="PhpLocalRunConfigurationType" factoryName="PHP Console">
+      <method />
+    </configuration>
+    <configuration default="true" type="com.intellij.database.run.ConsoleRunConfigurationType" factoryName="Query Language Console">
+      <option name="VM_PARAMETERS" value="" />
+      <option name="USER_CFG_CLASS" />
+      <option name="CONTEXT_PROVIDER" />
       <method />
     </configuration>
     <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug">
@@ -452,12 +685,14 @@
     <configuration default="true" type="PhpUnitRemoteRunConfigurationType" factoryName="PHPUnit on Server" server_id="c1de4e4d-8682-47ec-bb89-529463992e3f" server_name="iznik - DEV">
       <method />
     </configuration>
-    <list size="1">
+    <list size="2">
       <item index="0" class="java.lang.String" itemvalue="PHPUnit.IncomingMessageTest" />
+      <item index="1" class="java.lang.String" itemvalue="PHPUnit.dbTest" />
     </list>
     <recent_temporary>
-      <list size="1">
-        <item index="0" class="java.lang.String" itemvalue="PHPUnit.IncomingMessageTest" />
+      <list size="2">
+        <item index="0" class="java.lang.String" itemvalue="PHPUnit.dbTest" />
+        <item index="1" class="java.lang.String" itemvalue="PHPUnit.IncomingMessageTest" />
       </list>
     </recent_temporary>
   </component>
@@ -535,29 +770,29 @@
     <frame x="-8" y="-8" width="1616" height="876" extended-state="6" />
     <editor active="false" />
     <layout>
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32885906" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
+      <window_info id="File Transfer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3261745" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3261745" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32885906" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32885906" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32991013" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.15853658" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.17449665" sideWeight="0.5" order="9" side_tool="true" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32885906" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
+      <window_info id="Coverage" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32991013" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.17449665" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
-      <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32991013" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25930682" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.17449665" sideWeight="0.5" order="9" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="File Transfer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32751676" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21208054" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32885906" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Coverage" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32991013" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="3" side_tool="false" content_ui="combo" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3261745" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -578,7 +813,8 @@
     <MESSAGE value="Basic project and first test" />
     <MESSAGE value="Start work on incoming messages" />
     <MESSAGE value="Test incoming attachments" />
-    <option name="LAST_COMMIT_MESSAGE" value="Test incoming attachments" />
+    <MESSAGE value="Add DB class" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add DB class" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -606,9 +842,9 @@
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1275">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <marker date="1440249880646" expanded="true" signature="1072:1690" placeholder="..." />
-            <marker date="1440249880646" expanded="true" signature="1078:1665" placeholder="..." />
-            <marker date="1440249880646" expanded="true" signature="1101:1657" placeholder="..." />
+            <marker date="1440256039282" expanded="true" signature="1075:1693" placeholder="..." />
+            <marker date="1440256039282" expanded="true" signature="1081:1668" placeholder="..." />
+            <marker date="1440256039282" expanded="true" signature="1104:1660" placeholder="..." />
           </folding>
         </state>
       </provider>
@@ -661,7 +897,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/ut/php/include/IznikTest.php">
+    <entry file="file://$PROJECT_DIR$/test/ut/php/IznikTest.php">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="204" max-vertical-offset="629">
           <caret line="12" column="7" selection-start-line="12" selection-start-column="7" selection-end-line="12" selection-end-column="7" />
@@ -682,9 +918,9 @@
         <state vertical-scroll-proportion="0.0" vertical-offset="38" max-vertical-offset="731">
           <caret line="5" column="26" selection-start-line="5" selection-start-column="26" selection-end-line="5" selection-end-column="26" />
           <folding>
-            <marker date="1440249880646" expanded="true" signature="1072:1690" placeholder="..." />
-            <marker date="1440249880646" expanded="true" signature="1078:1665" placeholder="..." />
-            <marker date="1440249880646" expanded="true" signature="1101:1657" placeholder="..." />
+            <marker date="1440256039282" expanded="true" signature="1075:1693" placeholder="..." />
+            <marker date="1440256039282" expanded="true" signature="1081:1668" placeholder="..." />
+            <marker date="1440256039282" expanded="true" signature="1104:1660" placeholder="..." />
           </folding>
         </state>
       </provider>
@@ -705,7 +941,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/ut/php/include/IznikTest.php">
+    <entry file="file://$PROJECT_DIR$/test/ut/php/IznikTest.php">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="77" max-vertical-offset="629">
           <caret line="12" column="24" selection-start-line="12" selection-start-column="24" selection-end-line="12" selection-end-column="24" />
@@ -724,6 +960,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="102" max-vertical-offset="221">
           <caret line="6" column="50" selection-start-line="6" selection-start-column="50" selection-end-line="6" selection-end-column="50" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -731,6 +968,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="17" max-vertical-offset="119">
           <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
       <provider editor-type-id="MultiMarkdownHtmlEditor">
@@ -758,14 +996,14 @@
         <state vertical-scroll-proportion="0.0" vertical-offset="119" max-vertical-offset="646">
           <caret line="7" column="37" selection-start-line="7" selection-start-column="37" selection-end-line="7" selection-end-column="37" />
           <folding>
-            <marker date="1440249880646" expanded="true" signature="1072:1690" placeholder="..." />
-            <marker date="1440249880646" expanded="true" signature="1078:1665" placeholder="..." />
-            <marker date="1440249880646" expanded="true" signature="1101:1657" placeholder="..." />
+            <marker date="1440256039282" expanded="true" signature="1075:1693" placeholder="..." />
+            <marker date="1440256039282" expanded="true" signature="1081:1668" placeholder="..." />
+            <marker date="1440256039282" expanded="true" signature="1104:1660" placeholder="..." />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/ut/php/include/IznikTest.php">
+    <entry file="file://$PROJECT_DIR$/test/ut/php/IznikTest.php">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="17" max-vertical-offset="612">
           <caret line="1" column="25" selection-start-line="1" selection-start-column="25" selection-end-line="1" selection-end-column="25" />
@@ -777,6 +1015,10 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="102">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <marker date="1440258564751" expanded="true" signature="4375:4497" placeholder="INSERT INTO ..." />
+            <marker date="1440258564751" expanded="true" signature="6587:6622" placeholder="SELECT id FR..logs_sql..." />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -788,17 +1030,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/include/db.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="719">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/LICENSE">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="102" max-vertical-offset="221">
           <caret line="6" column="50" selection-start-line="6" selection-start-column="50" selection-end-line="6" selection-end-column="50" />
+          <folding />
         </state>
       </provider>
       <provider editor-type-id="com.intellij.database.editor.CsvTableFileEditorProvider">
@@ -809,6 +1045,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="119">
           <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
       <provider editor-type-id="MultiMarkdownHtmlEditor">
@@ -846,14 +1083,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/include/utils.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="357" max-vertical-offset="459">
-          <caret line="21" column="1" selection-start-line="21" selection-start-column="1" selection-end-line="21" selection-end-column="1" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/composer/vendor/php-mime-mail-parser/php-mime-mail-parser/tests/mails/m0006">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="976769">
@@ -869,7 +1098,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/ut/php/include/IznikTest.php">
+    <entry file="file://$PROJECT_DIR$/test/ut/php/IznikTest.php">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="204" max-vertical-offset="629">
           <caret line="12" column="7" selection-start-line="12" selection-start-column="7" selection-end-line="12" selection-end-column="7" />
@@ -909,30 +1138,95 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/include/config.php">
+    <entry file="file://$PROJECT_DIR$/include/message/IncomingMessage.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="51" max-vertical-offset="153">
-          <caret line="3" column="57" selection-start-line="3" selection-start-column="57" selection-end-line="3" selection-end-column="57" />
+        <state vertical-scroll-proportion="-11.769231" vertical-offset="0" max-vertical-offset="1700">
+          <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/include/message/IncomingMessage.php">
+    <entry file="file://$PROJECT_DIR$/include/group/Group.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="816" max-vertical-offset="1700">
-          <caret line="55" column="45" selection-start-line="55" selection-start-column="45" selection-end-line="55" selection-end-column="45" />
+        <state vertical-scroll-proportion="-9.807693" vertical-offset="0" max-vertical-offset="408">
+          <caret line="15" column="20" selection-start-line="15" selection-start-column="20" selection-end-line="15" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="dbDummy://db-console:/5ca85f96/98b6feb7-f9f8-469b-a6ad-efb4e5913d93/">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="719">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/utils.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-15.038462" vertical-offset="17" max-vertical-offset="697">
+          <caret line="24" column="0" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.8215103" vertical-offset="559" max-vertical-offset="1275">
-          <caret line="54" column="0" selection-start-line="54" selection-start-column="0" selection-end-line="54" selection-end-column="0" />
+        <state vertical-scroll-proportion="1.5" vertical-offset="73" max-vertical-offset="1275">
+          <caret line="2" column="17" selection-start-line="2" selection-start-column="17" selection-end-line="2" selection-end-column="17" />
           <folding>
-            <marker date="1440249880646" expanded="true" signature="1072:1690" placeholder="..." />
-            <marker date="1440249880646" expanded="true" signature="1078:1665" placeholder="..." />
-            <marker date="1440249880646" expanded="true" signature="1101:1657" placeholder="..." />
+            <marker date="1440256039282" expanded="true" signature="1075:1693" placeholder="..." />
+            <marker date="1440256039282" expanded="true" signature="1081:1668" placeholder="..." />
+            <marker date="1440256039282" expanded="true" signature="1104:1660" placeholder="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ut/php/dbTest.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-8.307693" vertical-offset="515" max-vertical-offset="1428">
+          <caret line="43" column="57" selection-start-line="43" selection-start-column="57" selection-end-line="43" selection-end-column="57" />
+          <folding>
+            <marker date="1440258166130" expanded="true" signature="530:643" placeholder="CREATE TABLE..test..." />
+            <marker date="1440258166130" expanded="true" signature="754:769" placeholder="DROP TABLE t..." />
+            <marker date="1440258166130" expanded="true" signature="1282:1308" placeholder="INSERT INTO ..." />
+            <marker date="1440258166130" expanded="true" signature="1420:1446" placeholder="INSERT INTO ..." />
+            <marker date="1440258166130" expanded="true" signature="1765:1791" placeholder="INSERT INTO ..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Pheanstalk.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-5.230769" vertical-offset="340" max-vertical-offset="7310">
+          <caret line="28" column="20" selection-start-line="28" selection-start-column="20" selection-end-line="28" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/config.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-3.2692308" vertical-offset="0" max-vertical-offset="238">
+          <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/install/iznik.conf.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-4.576923" vertical-offset="0" max-vertical-offset="255">
+          <caret line="7" column="23" selection-start-line="7" selection-start-column="23" selection-end-line="7" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/db.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.26086956" vertical-offset="3847" max-vertical-offset="4692">
+          <caret line="233" column="51" selection-start-line="233" selection-start-column="51" selection-end-line="233" selection-end-column="51" />
+          <folding>
+            <marker date="1440258564751" expanded="true" signature="4375:4497" placeholder="INSERT INTO ..." />
+            <marker date="1440258564751" expanded="true" signature="6587:6622" placeholder="SELECT id FR..logs_sql..." />
           </folding>
         </state>
       </provider>

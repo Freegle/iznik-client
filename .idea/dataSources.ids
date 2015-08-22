@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="dataSourceStorage">
+  <data-source name="MySQL - iznik@localhost" uuid="98b6feb7-f9f8-469b-a6ad-efb4e5913d93">
+    <database-info product="MySQL" version="5.6.25-73.1" jdbc-version="4.0" driver-name="MySQL Connector Java" driver-version="mysql-connector-java-5.1.31 ( Revision: alexander.soklakov@oracle.com-20140520065950-groqzzbvxprqdmnz )">
+      <extra-name-characters>#@</extra-name-characters>
+      <identifier-quote-string>`</identifier-quote-string>
+    </database-info>
+    <case-sensitivity plain-identifiers="exact" quoted-identifiers="exact"/>
+    <schema name="" catalog="iznik"/>
+    <table name="groups" schema="" catalog="iznik" type="TABLE">
+      <column name="id" sqlType="BIGINT UNSIGNED" precision="20" scale="0" nullable="false" jdbcType="-5" remarks="VW5pcXVlIElEIG9mIGdyb3Vw" autoIncrement="true"/>
+      <column name="nameshort" sqlType="VARCHAR" precision="80" scale="0" nullable="true" jdbcType="12" remarks="QSBzaG9ydCBuYW1lIGZvciB0aGUgZ3JvdXA="/>
+      <column name="namefull" sqlType="VARCHAR" precision="255" scale="0" nullable="true" jdbcType="12" remarks="QSBsb25nZXIgbmFtZSBmb3IgdGhlIGdyb3Vw"/>
+      <column name="nameabbr" sqlType="VARCHAR" precision="5" scale="0" nullable="true" jdbcType="12" remarks="QW4gYWJicmV2aWF0ZWQgbmFtZSBmb3IgdGhlIGdyb3Vw"/>
+      <column name="settings" sqlType="TEXT" precision="65535" scale="0" nullable="false" jdbcType="-1" remarks="SlNPTi1lbmNvZGVkIHNldHRpbmdzIGZvciBncm91cA=="/>
+      <column name="type" sqlType="SET" precision="13" scale="0" nullable="true" jdbcType="1" remarks="SGlnaC1sZXZlbCBjaGFyYWN0ZXJpc3RpY3Mgb2YgdGhlIGdyb3Vw"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <index name="id" unique="true" columns="id"/>
+      <index name="nameshort" unique="false" columns="nameshort"/>
+    </table>
+    <table name="logs_sql" schema="" catalog="iznik" type="TABLE">
+      <column name="id" sqlType="BIGINT UNSIGNED" precision="20" scale="0" nullable="false" jdbcType="-5" remarks="VW5pcXVlIElE" autoIncrement="true"/>
+      <column name="result" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12" remarks="VGhlIHJlc3VsdCBvZiB0aGUgb3A="/>
+      <column name="duration" sqlType="BIGINT UNSIGNED" precision="20" scale="0" nullable="false" jdbcType="-5" remarks="SG93IGxvbmcgaW4gbXMgaXQgdG9vaw=="/>
+      <column name="statement" sqlType="LONGTEXT" precision="2147483647" scale="0" nullable="false" jdbcType="-1" remarks="VGhlIGFjdHVhbCBTUUwgc3RhdGVtZW50"/>
+      <column name="user" sqlType="BIGINT UNSIGNED" precision="20" scale="0" nullable="true" jdbcType="-5" remarks="QW55IHVzZXIgdGhhdCB0aGlzIGxvZyBpcyBmb3I="/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="logs_sql_ibfk_1" columns="user" ref-table="users" ref-schema="" ref-catalog="iznik" ref-columns="id" update-rule="3" delete-rule="0" deferrability="2"/>
+      <index name="id" unique="true" columns="id"/>
+    </table>
+    <table name="messages_incoming" schema="" catalog="iznik" type="TABLE">
+      <column name="id" sqlType="BIGINT UNSIGNED" precision="20" scale="0" nullable="false" jdbcType="-5" remarks="VW5pcXVlIGlE" autoIncrement="true"/>
+      <column name="source" sqlType="ENUM" precision="6" scale="0" nullable="false" jdbcType="1" remarks="U291cmNlIG9mIGluY29taW5nIG1lc3NhZ2U="/>
+      <column name="message" sqlType="LONGTEXT" precision="2147483647" scale="0" nullable="false" jdbcType="-1" remarks="VGhlIHVucGFyc2VkIG1lc3NhZ2U="/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <index name="id" unique="true" columns="id"/>
+    </table>
+    <table name="users" schema="" catalog="iznik" type="TABLE">
+      <column name="id" sqlType="BIGINT UNSIGNED" precision="20" scale="0" nullable="false" jdbcType="-5" autoIncrement="true"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="logs_sql_ibfk_1" table="logs_sql" schema="" catalog="iznik" columns="user"/>
+      <index name="id" unique="true" columns="id"/>
+    </table>
+  </data-source>
+</component>
