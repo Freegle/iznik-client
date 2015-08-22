@@ -1,7 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="WEB_MODULE" version="4">
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/composer" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/doctrine/instantiator" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/php-mime-mail-parser/php-mime-mail-parser" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/phpdocumentor/reflection-docblock" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/phpspec/prophecy" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/phpunit/php-code-coverage" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/phpunit/php-file-iterator" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/phpunit/php-text-template" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/phpunit/php-timer" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/phpunit/php-token-stream" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/phpunit/phpunit" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/phpunit/phpunit-mock-objects" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/sebastian/comparator" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/sebastian/diff" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/sebastian/environment" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/sebastian/exporter" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/sebastian/global-state" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/sebastian/recursion-context" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/sebastian/version" />
+      <excludeFolder url="file://$MODULE_DIR$/composer/vendor/symfony/yaml" />
+    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
@@ -13,6 +34,54 @@
         <SOURCES>
           <root url="phar://$MODULE_DIR$/phpunit.phar" />
           <root url="phar://$MODULE_DIR$/composer/composer.phar" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="PHP">
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/composer/vendor/sebastian/comparator" />
+          <root url="file://$MODULE_DIR$/composer/vendor/sebastian/version" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpunit/php-text-template" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpspec/prophecy" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpunit/php-file-iterator" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpunit/php-code-coverage" />
+          <root url="file://$MODULE_DIR$/composer/vendor/sebastian/environment" />
+          <root url="file://$MODULE_DIR$/composer/vendor/sebastian/global-state" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpunit/php-token-stream" />
+          <root url="file://$MODULE_DIR$/composer/vendor/php-mime-mail-parser/php-mime-mail-parser" />
+          <root url="file://$MODULE_DIR$/composer/vendor/sebastian/recursion-context" />
+          <root url="file://$MODULE_DIR$/composer/vendor/sebastian/diff" />
+          <root url="file://$MODULE_DIR$/composer/vendor/composer" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpunit/phpunit-mock-objects" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpunit/phpunit" />
+          <root url="file://$MODULE_DIR$/composer/vendor/sebastian/exporter" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpunit/php-timer" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpdocumentor/reflection-docblock" />
+          <root url="file://$MODULE_DIR$/composer/vendor/symfony/yaml" />
+          <root url="file://$MODULE_DIR$/composer/vendor/doctrine/instantiator" />
+        </CLASSES>
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/composer/vendor/sebastian/comparator" />
+          <root url="file://$MODULE_DIR$/composer/vendor/sebastian/version" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpunit/php-text-template" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpspec/prophecy" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpunit/php-file-iterator" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpunit/php-code-coverage" />
+          <root url="file://$MODULE_DIR$/composer/vendor/sebastian/environment" />
+          <root url="file://$MODULE_DIR$/composer/vendor/sebastian/global-state" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpunit/php-token-stream" />
+          <root url="file://$MODULE_DIR$/composer/vendor/php-mime-mail-parser/php-mime-mail-parser" />
+          <root url="file://$MODULE_DIR$/composer/vendor/sebastian/recursion-context" />
+          <root url="file://$MODULE_DIR$/composer/vendor/sebastian/diff" />
+          <root url="file://$MODULE_DIR$/composer/vendor/composer" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpunit/phpunit-mock-objects" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpunit/phpunit" />
+          <root url="file://$MODULE_DIR$/composer/vendor/sebastian/exporter" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpunit/php-timer" />
+          <root url="file://$MODULE_DIR$/composer/vendor/phpdocumentor/reflection-docblock" />
+          <root url="file://$MODULE_DIR$/composer/vendor/symfony/yaml" />
+          <root url="file://$MODULE_DIR$/composer/vendor/doctrine/instantiator" />
         </SOURCES>
       </library>
     </orderEntry>

@@ -1,12 +1,16 @@
 <?php
-require_once 'iznikTest.php';
-require_once BASE_DIR . '/include/message.php';
+error_log(getcwd());
+require_once '../../../include/config.php';
+require_once BASE_DIR . '/include/db.php';
+
+require_once BASE_DIR . '/composer/vendor/phpunit/phpunit/src/Framework/TestCase.php';
+require_once BASE_DIR . '/composer/vendor/phpunit/phpunit/src/Framework/Assert/Functions.php';
 
 /**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class messageTest extends iznikTest {
+class IznikTest extends PHPUnit_Framework_TestCase {
     private $dbhr, $dbhm;
 
     protected function setUp() {
@@ -22,14 +26,6 @@ class messageTest extends iznikTest {
     }
 
     public function __construct() {
-    }
-
-    public function testCreateBasic() {
-        error_log(__METHOD__);
-
-        $m = new Message(null, null);
-
-        error_log(__METHOD__ . " end");
     }
 }
 
