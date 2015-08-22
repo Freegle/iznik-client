@@ -34,6 +34,15 @@ class LoggedPDO {
     private $transactionStart = NULL;
     private $dbwaittime = 0;
     private $pheanstalk = NULL;
+    private $readconn;
+
+    /**
+     * @param LoggedPDO $readconn
+     */
+    public function setReadconn($readconn)
+    {
+        $this->readconn = $readconn;
+    }
 
     /**
      * @param null $pheanstalk
@@ -59,7 +68,7 @@ class LoggedPDO {
         return $this->dbwaittime;
     }
 
-    function maybeLog($sql, $ret, $duration) {
+    private function maybeLog($sql, $ret, $duration) {
         $t = microtime(true);
         $micro = sprintf("%06d",($t - floor($t)) * 1000000);
         $d = new DateTime( date('Y-m-d H:i:s.'.$micro, $t) );
@@ -67,7 +76,8 @@ class LoggedPDO {
 
         if ($this->inTransaction()) {
             # Batch it up - we'll log after the commit/rollback.
-            $this->log .= $timestamp . " " . number_format($duration, 6) . " $ret $sql\n";
+            $str = $timestamp . " " . number_format($duration, 6) . " " . var_export($ret, true) . " $sql\n";
+            $this->log .= $str;
         } else {
             # We don't log outside a transaction - it's not important enough for the perf hit.
         }
@@ -148,7 +158,7 @@ class LoggedPDO {
         return($ret);
     }
 
-    function reallyLog($sql, $ret, $duration) {
+    private function reallyLog($sql, $ret, $duration) {
         # This actually logs our SQL.  For now we log into a table in SQL itself, though later we might
         # move to a better logging system.  If we do, remember that we're also using this as a way
         # of checking that the commit worked - see below.
@@ -157,15 +167,14 @@ class LoggedPDO {
         $sql2 = "INSERT INTO logs_sql (`result`, `duration`, `statement`, `user`) VALUES ($ret, $duration, " . $this->quote($sql) . ", $id);";
         $ret = $this->retryExec($sql2);
 
-        if (!$ret) {
-            error_log("FAILED TO LOG SQL $sql2 " . var_export($this->errorInfo()));
-        } else {
-            # We can't use PHP's lastInsertId because it doesn't work well if used multiple times within a transaction.
-            $sql = "SELECT LAST_INSERT_ID() as lastid;";
-            $lasts = $this->retryQuery($sql);
-            foreach ($lasts as $last) {
-                $this->lastLogInsert = $last['lastid'];
-            }
+        if (!$ret)
+            throw new DBException('Failed to log SQL'); // No brace because of coverage oddity
+
+        # We can't use PHP's lastInsertId because it doesn't work well if used multiple times within a transaction.
+        $sql = "SELECT LAST_INSERT_ID() as lastid;";
+        $lasts = $this->retryQuery($sql);
+        foreach ($lasts as $last) {
+            $this->lastLogInsert = $last['lastid'];
         }
     }
 
@@ -175,6 +184,10 @@ class LoggedPDO {
 
     public function quote($str) {
         return($this->_db->quote($str));
+    }
+
+    public function errorInfo() {
+        return($this->_db->errorInfo());
     }
 
     public function beginTransaction() {
@@ -250,7 +263,7 @@ class LoggedPDO {
         return($ret);
     }
 
-    public function lastInsertId($seqname = NULL) {
+    public function lastInsertId() {
         return($this->lastInsert);
     }
 

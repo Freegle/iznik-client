@@ -112,6 +112,17 @@ class dbTest extends IznikTest {
         }
     }
 
+    public function falseAfter() {
+        error_log("falseAfter count " . $this->count);
+        if ($this->count == 0) {
+            error_log("false");
+            return(false);
+        } else {
+            $this->count--;
+            return 1;
+        }
+    }
+
     public function testQueryRetries() {
         error_log(__METHOD__);
 
@@ -216,6 +227,92 @@ class dbTest extends IznikTest {
         $worked = false;
 
         $mock->retryExec('INSERT INTO test VALUES ();');
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testTransactionFailed() {
+        error_log(__METHOD__);
+
+        # Now fake a failure to find the log we use to judge if the commit worked
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->disableOriginalConstructor()
+            ->setMethods(array('retryQuery'))
+            ->getMock();
+        $mock->method('retryQuery')->willReturn(array());
+
+        $rc = $this->dbhm->beginTransaction();
+
+        $rc = $this->dbhm->exec('INSERT INTO test VALUES ();');
+        assertEquals(1, $rc);
+
+        $this->dbhm->setReadconn($mock);
+
+        $worked = false;
+        try {
+            $rc = $this->dbhm->commit();
+        } catch (DBException $e) {
+            $worked = true;
+        }
+
+        assertTrue($worked);
+        $this->dbhm->setReadconn($this->dbhr);
+
+        # Now fake a failure to record the log we use to judge if the commit worked
+        $dbconfig = array (
+            'host' => 'localhost',
+            'user' => SQLUSER,
+            'pass' => SQLPASSWORD,
+            'database' => SQLDB
+        );
+
+        $dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8";
+
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+            ), TRUE))
+            ->setMethods(array('retryExec'))
+            ->getMock();
+        $this->count = 1;
+        $mock->method('retryExec')->will($this->returnCallback(function() {
+            return($this->falseAfter());
+        }));
+        
+        $rc = $mock->beginTransaction();
+        $rc = $mock->exec('INSERT INTO test VALUES ();');
+        assertEquals(1, $rc);
+
+        $worked = false;
+        try {
+            $rc = $mock->commit();
+        } catch (DBException $e) {
+            $worked = true;
+        }
+
+        assertTrue($worked);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    # Oddly, the constructor doesn't get covered, so call it again.
+    public function testConstruct() {
+        error_log(__METHOD__);
+
+        $dbconfig = array (
+            'host' => 'localhost',
+            'user' => SQLUSER,
+            'pass' => SQLPASSWORD,
+            'database' => SQLDB
+        );
+
+        $dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8";
+
+        assertNotNull($this->dbhm->__construct($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        ), TRUE));
+
+        assertEquals(3, count($this->dbhm->errorInfo()));
 
         error_log(__METHOD__ . " end");
     }
