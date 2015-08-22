@@ -53,7 +53,7 @@ class IncomingMessage
     private $attachments, $attach_dir;
 
     /**
-     * @return
+     * @return PhpMimeMailParser\Attachment[]
      */
     public function getAttachments()
     {
