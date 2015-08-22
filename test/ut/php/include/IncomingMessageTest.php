@@ -1,5 +1,5 @@
 <?php
-require_once '2IznikTest.php';
+require_once 'IznikTest.php';
 require_once BASE_DIR . '/include/IncomingMessage.php';
 
 /**
