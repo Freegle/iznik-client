@@ -316,5 +316,100 @@ class dbTest extends IznikTest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testPrex() {
+        error_log(__METHOD__);
+
+        $rc = $this->dbhm->preExec('INSERT INTO test VALUES ();');
+        assertEquals(1, $rc);
+        $ids = $this->dbhm->preQuery('SELECT * FROM test WHERE id > ?;', array(0));
+        assertEquals(1, count($ids));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function prepareUntil() {
+        error_log("parepareUntil count " . $this->count);
+        $this->count--;
+        if ($this->count > 0) {
+            error_log("Exception");
+            throw new Exception('Faked deadlock exception');
+        } else {
+            error_log("No exception");
+            return $this->dbhm->parentPrepare($this->sql);
+        }
+    }
+
+    public function testPrexRetries() {
+        error_log(__METHOD__);
+
+        $dbconfig = array (
+            'host' => 'localhost',
+            'user' => SQLUSER,
+            'pass' => SQLPASSWORD,
+            'database' => SQLDB
+        );
+
+        $dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8";
+
+        # We mock up the query to throw an exception, to test retries.
+        #
+        # First a non-deadlock exception
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_EMULATE_PREPARES => FALSE
+            ), TRUE))
+            ->setMethods(array('parentPrepare'))
+            ->getMock();
+        $mock->method('parentPrepare')->will($this->throwException(new Exception()));
+
+        $worked = false;
+
+        try {
+            $mock->preQuery('SHOW COLUMNS FROM test;');
+        } catch (DBException $e) {
+            $worked = true;
+            assertContains('Non-deadlock', $e->getMessage());
+        }
+        assertTrue($worked);
+
+        # Now a deadlock that never gets resolved
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_EMULATE_PREPARES => FALSE
+            ), TRUE))
+            ->setMethods(array('parentPrepare'))
+            ->getMock();
+        $mock->method('parentPrepare')->will($this->throwException(new Exception('Faked deadlock exception')));
+        $worked = false;
+
+        try {
+            $mock->preQuery('SHOW COLUMNS FROM test;');
+        } catch (DBException $e) {
+            $worked = true;
+            assertEquals('Unexpected database error Faked deadlock exception', $e->getMessage());
+        }
+        assertTrue($worked);
+
+        # Now a deadlock that gets resolved
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_EMULATE_PREPARES => FALSE
+            ), TRUE))
+            ->setMethods(array('parentPrepare'))
+            ->getMock();
+        $this->count = 5;
+        $this->sql = 'SHOW COLUMNS FROM test;';
+        $mock->method('parentPrepare')->will($this->returnCallback(function() {
+            return($this->prepareUntil());
+        }));
+
+        $mock->preQuery($this->sql);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

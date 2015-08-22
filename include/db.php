@@ -83,6 +83,65 @@ class LoggedPDO {
         }
     }
 
+    # Our most commonly used method is a combine prepare and execute, wrapped in
+    # a retry.  This is SQL injection safe and handles Percona failures.
+    public function preExec($sql, $params = NULL, $log = TRUE) {
+        return($this->prex($sql, $params, FALSE, $log));
+    }
+
+    public function preQuery($sql, $params = NULL, $log = TRUE) {
+        return($this->prex($sql, $params, TRUE, $log));
+    }
+
+    public function parentPrepare($sql) {
+        return($this->_db->prepare($sql));
+    }
+
+    private function prex($sql, $params = NULL, $select, $log) {
+        $try = 0;
+        $ret = NULL;
+        $msg = '';
+        $worked = false;
+        $start = microtime(true);
+
+        do {
+            try {
+                $sth = $this->parentPrepare($sql);
+                $rc = $sth->execute($params);
+
+                if ($rc) {
+                    # For selects we return all the rows found; for updates we return the return value.
+                    $ret = $select ? $sth->fetchAll() : $rc;
+                    $worked = true;
+
+                    if ($log) {
+                        $duration = microtime(true) - $start;
+                        $this->maybeLog($sql, NULL, $duration);
+                    }
+
+                }
+            } catch (Exception $e) {
+                if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
+                    # It's a Percona deadlock - retry.
+                    $try++;
+                    $msg = $e->getMessage();
+                } else {
+                    $msg = "Non-deadlock DB Exception $sql " . $e->getMessage();
+                    $try = $this->tries;
+                }
+            }
+        } while (!$worked && $try < $this->tries);
+
+        if ($worked && $try > 0) {
+            error_log("prex succeeded after $try for $sql");
+        } else if (!$worked)
+            $this->giveUp($msg);
+
+        $this->dbwaittime += microtime(true) - $start;
+
+        return($ret);
+    }
+
     public function parentExec($sql) {
         return($this->_db->exec($sql));
     }
@@ -303,10 +362,12 @@ $dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=ut
 
 $dbhr = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     // PDO::ATTR_PERSISTENT => true, // Persistent connections seem to result in a leak - show status like 'Threads%'; shows an increasing number
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_EMULATE_PREPARES => FALSE
 ), TRUE);
 
 $dbhm = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     // PDO::ATTR_PERSISTENT => true,
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_EMULATE_PREPARES => FALSE
 ), FALSE, $dbhr);
