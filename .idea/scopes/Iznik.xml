@@ -1,3 +1,0 @@
-<component name="DependencyValidationManager">
-  <scope name="Iznik" pattern="!file[iznik]:composer/*&amp;&amp;!file[iznik]:composer//*&amp;&amp;!file[iznik]:.idea//*" />
-</component>
