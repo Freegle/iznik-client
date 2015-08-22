@@ -50,7 +50,15 @@ class IncomingMessage
         return $this->subject;
     }
 
-    private $attachments = NULL, $attach_dir;
+    private $attachments, $attach_dir;
+
+    /**
+     * @return
+     */
+    public function getAttachments()
+    {
+        return $this->attachments;
+    }
 
     function __construct($dbhr, $dbhm)
     {
@@ -78,14 +86,6 @@ class IncomingMessage
         $Parser->saveAttachments($this->attach_dir);
 
         $this->attachments = $Parser->getAttachments();
-        if (count($this->attachments) > 0) {
-            foreach ($this->attachments as $attachment) {
-                /* @var $attachment \PhpMimeMailParser\Attachment */
-                echo 'Filename : ' . $attachment->getFilename() . '<br />'; // logo.jpg
-                echo 'Filesize : ' . filesize($this->attach_dir . $attachment->getFilename()) . '<br />'; // 1000
-                echo 'Filetype : ' . $attachment->getContentType() . '<br />'; // image/jpeg
-            }
-        }
     }
 
     function __destruct()
