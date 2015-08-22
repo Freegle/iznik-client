@@ -5,72 +5,7 @@
     <option name="CUSTOM_SCOPE_NAME" value="Iznik" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ad33963c-59c0-443a-b9ff-87c88f0943ef" name="Default" comment="Add DB class">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/dataSources.ids" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/.gitattributes" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/.gitignore" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/AbstractCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Response/ArrayResponse.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/BuryCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ClientException.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/CommandException.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Connection.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ConnectionException.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/DeleteCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/include/group/Group.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/IgnoreCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Job.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/KickCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/KickJobCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/LICENCE" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/ListTubeUsedCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/ListTubesCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/ListTubesWatchedCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Socket/NativeSocket.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/PauseTubeCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/PeekCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Pheanstalk.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/PheanstalkInterface.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/PutCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/README.md" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/ReleaseCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/ReserveCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Response.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/ResponseParser.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ServerBadFormatException.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ServerDrainingException.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ServerException.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ServerInternalErrorException.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ServerOutOfMemoryException.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/ServerUnknownCommandException.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Socket.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Exception/SocketException.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/StatsCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/StatsJobCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/StatsTubeCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Socket/StreamFunctions.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/TouchCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/UseCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Command/WatchCommand.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/Socket/WriteHistory.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/src/YamlResponseParser.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/scripts/build_phar.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/composer/vendor/pda/pheanstalk/composer.json" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/ut/php/dbTest.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/install/iznik.conf.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" />
-      <change type="MOVED" beforePath="C:\Users\Edward\PhpstormProjects\iznik\test\ut\php\include\IznikTest.php" afterPath="$PROJECT_DIR$/test/ut/php/IznikTest.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/message/IncomingMessage.php" afterPath="$PROJECT_DIR$/include/message/IncomingMessage.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php" afterPath="$PROJECT_DIR$/test/ut/php/include/IncomingMessageTest.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/scopes/Iznik.xml" afterPath="$PROJECT_DIR$/.idea/scopes/Iznik.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/composer/composer.json" afterPath="$PROJECT_DIR$/composer/composer.json" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/composer/composer.lock" afterPath="$PROJECT_DIR$/composer/composer.lock" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/config.php" afterPath="$PROJECT_DIR$/include/config.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/db.php" afterPath="$PROJECT_DIR$/include/db.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/include/utils.php" afterPath="$PROJECT_DIR$/include/utils.php" />
+    <list default="true" id="ad33963c-59c0-443a-b9ff-87c88f0943ef" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="iznik.iws" />
@@ -743,7 +678,13 @@
       <option name="project" value="LOCAL" />
       <updated>1440250441679</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Add DB class">
+      <created>1440258673227</created>
+      <option name="number" value="00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1440258673227</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TodoView" selected-index="2">
