@@ -37,6 +37,7 @@ class groupTest extends IznikTest {
         assertEquals('testgroup', $atts['nameshort']);
         assertEquals($atts['id'], $g->getPrivate('id'));
         assertNull($g->getPrivate('invalidid'));
+        assertGreaterThan(0 ,$g->delete());
 
         error_log(__METHOD__ . " end");
     }

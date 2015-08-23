@@ -6,7 +6,7 @@ require_once(BASE_DIR . '/include/Entity.php');
 class Group extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    private $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'settings');
+    var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'settings');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
@@ -19,11 +19,15 @@ class Group extends Entity
     public function create($shortname, $type) {
         $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type) VALUES (?, ?)", [$shortname, $type]);
         $id = $this->dbhm->lastInsertId();
-        error_log("Last insert id $id");
 
         if ($rc) {
             $this->fetch($this->dbhr, $this->dbhm, $id, 'groups', 'group', $this->publicatts);
         }
+        return($rc);
+    }
+
+    public function delete() {
+        $rc = $this->dbhm->preExec("DELETE FROM groups WHERE id = ?;", [$this->id]);
         return($rc);
     }
 }

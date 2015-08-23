@@ -111,7 +111,6 @@ class LoggedPDO {
 
                 if (!$select) {
                     $this->lastInsert = $this->_db->lastInsertId();
-                    error_log("prex last insert" . $this->lastInsertId());
                 }
 
                 if ($rc) {
@@ -123,8 +122,9 @@ class LoggedPDO {
                         $duration = microtime(true) - $start;
                         $this->maybeLog($sql, NULL, $duration);
                     }
-
                 }
+
+                $try++;
             } catch (Exception $e) {
                 if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
                     # It's a Percona deadlock - retry.
