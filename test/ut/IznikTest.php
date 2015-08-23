@@ -1,5 +1,5 @@
 <?php
-require_once '../../../include/config.php';
+require_once dirname(__FILE__) . '/../../include/config.php';
 require_once BASE_DIR . '/include/db.php';
 
 require_once BASE_DIR . '/composer/vendor/phpunit/phpunit/src/Framework/TestCase.php';

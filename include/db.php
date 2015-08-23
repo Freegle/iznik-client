@@ -109,6 +109,11 @@ class LoggedPDO {
                 $sth = $this->parentPrepare($sql);
                 $rc = $sth->execute($params);
 
+                if (!$select) {
+                    $this->lastInsert = $this->_db->lastInsertId();
+                    error_log("prex last insert" . $this->lastInsertId());
+                }
+
                 if ($rc) {
                     # For selects we return all the rows found; for updates we return the return value.
                     $ret = $select ? $sth->fetchAll() : $rc;
