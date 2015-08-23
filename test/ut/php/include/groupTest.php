@@ -19,6 +19,8 @@ class groupTest extends IznikTest {
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+
+        $this->dbhm->exec("DELETE FROM groups WHERE nameshort = 'testgroup';");
     }
 
     protected function tearDown() {

@@ -140,7 +140,7 @@ class LoggedPDO {
         if ($worked && $try > 0) {
             error_log("prex succeeded after $try for $sql");
         } else if (!$worked)
-            $this->giveUp($msg);
+            $this->giveUp($msg . " for $sql " . var_export($params, true) . " " . var_export($this->_db->errorInfo(), true));
 
         $this->dbwaittime += microtime(true) - $start;
 
