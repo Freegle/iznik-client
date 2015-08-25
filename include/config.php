@@ -1,7 +1,7 @@
 <?php
 
-define('BASE_DIR', dirname(__FILE__) . '/..');
-require_once(BASE_DIR . '/composer/vendor/autoload.php');
+define('IZNIK_BASE', dirname(__FILE__) . '/..');
+require_once(IZNIK_BASE . '/composer/vendor/autoload.php');
 
 # Per-machine config or overrides
 require_once('/etc/iznik.conf');

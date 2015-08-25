@@ -1,7 +1,7 @@
 <?php
 
-require_once(BASE_DIR . '/include/utils.php');
-require_once(BASE_DIR . '/include/Log.php');
+require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/Log.php');
 
 # This class represents an incoming message, i.e. one we have received (usually by email).  It is used to parse
 # a message and store it in the incoming DB table.
@@ -12,7 +12,11 @@ class IncomingMessage
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
     private $id;
-    private $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto, $messageid, $retrycount, $retrylastfailure;
+    private $source, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto, $messageid, $retrycount, $retrylastfailure;
+
+    const EMAIL = 'Email';
+    const YAHOO_APPROVED = 'Yahoo Approved';
+    const YAHOO_PENDING = 'Yahoo Pending';
 
     /**
      * @return null
@@ -140,13 +144,31 @@ class IncomingMessage
     }
 
     # Parse a raw SMTP message.
-    public function parse($envelopefrom, $envelopeto, $msg)
+    public function parse($source, $envelopefrom, $envelopeto, $msg)
     {
         $this->message = $msg;
 
         $Parser = new PhpMimeMailParser\Parser();
         $Parser->setText($msg);
 
+        # We save the attachments to a temp directory.  This is tidied up on destruction or save.
+        $this->attach_dir = tmpdir();
+        $Parser->saveAttachments($this->attach_dir);
+        $this->attachments = $Parser->getAttachments();
+
+        if ($source == IncomingMessage::YAHOO_PENDING) {
+            # This is an APPROVE mail; we need to extract the included copy of the original message.
+            $atts = $this->getAttachments();
+            if (count($atts) >= 1 && $atts[0]->contentType == 'message/rfc822') {
+                error_log("Found attached message " . var_export($atts, true));
+                $attachedmsg = $atts[0]->getContent();
+                $Parser->setText($attachedmsg);
+                $Parser->saveAttachments($this->attach_dir);
+                $this->attachments = $Parser->getAttachments();
+            }
+        }
+
+        $this->source = $source;
         $this->envelopefrom = $envelopefrom;
         $this->envelopeto = $envelopeto;
 
@@ -160,18 +182,13 @@ class IncomingMessage
 
         $this->textbody = $Parser->getMessageBody('text');
         $this->htmlbody = $Parser->getMessageBody('html');
-
-        # We save the attachments to a temp directory.  This is tidied up on destruction or save.
-        $this->attach_dir = tmpdir();
-        $Parser->saveAttachments($this->attach_dir);
-
-        $this->attachments = $Parser->getAttachments();
     }
 
     # Save a parsed message to the DB
     public function save() {
-        $sql = "INSERT INTO messages_incoming (message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, textbody, htmlbody) VALUES(?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages_incoming (source, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, textbody, htmlbody) VALUES(?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
+            $this->source,
             $this->message,
             $this->envelopefrom,
             $this->envelopeto,
@@ -182,6 +199,7 @@ class IncomingMessage
             $this->textbody,
             $this->htmlbody
         ]);
+        error_log($sql);
 
         $id = NULL;
         if ($rc) {

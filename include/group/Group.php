@@ -1,7 +1,7 @@
 <?php
 
-require_once(BASE_DIR . '/include/utils.php');
-require_once(BASE_DIR . '/include/Entity.php');
+require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/Entity.php');
 
 class Group extends Entity
 {

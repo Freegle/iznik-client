@@ -1,7 +1,7 @@
 <?php
 
-require_once(BASE_DIR . '/include/utils.php');
-require_once(BASE_DIR . '/include/Log.php');
+require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/Log.php');
 
 # Base class used for groups, users, messages, with some basic fetching and attribute manipulation.
 class Entity

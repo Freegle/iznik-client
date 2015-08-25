@@ -1,9 +1,9 @@
 <?php
 
-require_once(BASE_DIR . '/include/utils.php');
-require_once(BASE_DIR . '/include/message/IncomingMessage.php');
-require_once(BASE_DIR . '/include/Log.php');
-require_once(BASE_DIR . '/lib/spamc.php');
+require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/message/IncomingMessage.php');
+require_once(IZNIK_BASE . '/include/Log.php');
+require_once(IZNIK_BASE . '/lib/spamc.php');
 
 # This class routes an incoming message
 class MailRouter
@@ -50,10 +50,10 @@ class MailRouter
         }
     }
 
-    public function received($from, $to, $msg) {
+    public function received($source, $from, $to, $msg) {
         # We parse it and save it to the DB.  Then it will get picked up by background
         # processing.
-        $this->msg->parse($from, $to, $msg);
+        $this->msg->parse($source, $from, $to, $msg);
         $this->msg->save();
     }
 
@@ -116,10 +116,10 @@ class MailRouter
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       textbody, htmlbody AS reason FROM messages_incoming WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $this->msg->getID() ]);
+            error_log("Returned $rc $sql");
 
             if ($rc) {
                 $rc = $this->msg->delete();
-                error_log("Delete returned $rc");
 
                 if ($rc) {
                     $rc = $this->dbhm->commit();
@@ -163,6 +163,7 @@ class MailRouter
                 if ($this->markAsSpam("SpamAssassin flagged this as likely spam; score $spamscore (high is bad)")) {
                     $ret = MailRouter::INCOMING_SPAM;
                 } else {
+                    $this->msg->recordFailure('Failed to mark spam');
                     $ret = MailRouter::FAILURE;
                 }
             } else {
@@ -170,6 +171,7 @@ class MailRouter
                 if ($this->markApproved()) {
                     $ret = MailRouter::TO_GROUP;
                 } else {
+                    $this->msg->recordFailure('Failed to mark approved');
                     $ret = MailRouter::FAILURE;
                 }
             }

@@ -1,9 +1,9 @@
 #!/usr/bin/env php
 <?php
 
-define('BASE_DIR', realpath(__DIR__ . '/..'));
+define('IZNIK_BASE', realpath(__DIR__ . '/..'));
 define('PHAR_FILENAME', 'pheanstalk.phar');
-define('PHAR_FULLPATH', BASE_DIR . '/' . PHAR_FILENAME);
+define('PHAR_FULLPATH', IZNIK_BASE . '/' . PHAR_FILENAME);
 
 // ----------------------------------------
 
@@ -42,9 +42,9 @@ function delete_existing_pheanstalk_phar()
 
 function build_pheanstalk_phar()
 {
-    printf("- Building %s from %s\n", PHAR_FILENAME, BASE_DIR);
+    printf("- Building %s from %s\n", PHAR_FILENAME, IZNIK_BASE);
     $phar = new Phar(PHAR_FULLPATH);
-    $phar->buildFromDirectory(BASE_DIR);
+    $phar->buildFromDirectory(IZNIK_BASE);
     $phar->setStub(
         $phar->createDefaultStub("vendor/autoload.php")
     );

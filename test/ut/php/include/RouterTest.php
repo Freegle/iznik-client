@@ -4,7 +4,7 @@ if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
 require_once UT_DIR . '/IznikTest.php';
-require_once BASE_DIR . '/include/mail/MailRouter.php';
+require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 
 /**
  * @backupGlobals disabled
@@ -33,7 +33,7 @@ class RouterTest extends IznikTest {
 
         $msg = file_get_contents('msgs/spam');
         $m = new IncomingMessage($this->dbhr, $this->dbhm);
-        $m->parse('from@test.com', 'to@test.com', $msg);
+        $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $id = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
@@ -47,7 +47,7 @@ class RouterTest extends IznikTest {
 
         $msg = file_get_contents('msgs/basic');
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $r->received('from@test.com', 'to@test.com', $msg);
+        $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_GROUP, $rc);
 
@@ -68,7 +68,7 @@ class RouterTest extends IznikTest {
         $mock->method('delete')->willReturn(false);
         $r->setMsg($mock);
 
-        $r->received('from@test.com', 'to@test.com', $msg);
+        $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::FAILURE, $rc);
 
@@ -81,7 +81,7 @@ class RouterTest extends IznikTest {
         $mock->method('filter')->willReturn(false);
         $r->setSpam($mock);
 
-        $r->received('from@test.com', 'to@test.com', $msg);
+        $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::FAILURE, $rc);
 
@@ -102,7 +102,7 @@ class RouterTest extends IznikTest {
         $mock->method('delete')->willReturn(false);
         $r->setMsg($mock);
 
-        $r->received('from@test.com', 'to@test.com', $msg);
+        $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::FAILURE, $rc);
 
@@ -115,7 +115,7 @@ class RouterTest extends IznikTest {
         $mock->method('filter')->willReturn(false);
         $r->setSpam($mock);
 
-        $r->received('from@test.com', 'to@test.com', $msg);
+        $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::FAILURE, $rc);
 

@@ -1,9 +1,9 @@
 <?php
 require_once dirname(__FILE__) . '/../../include/config.php';
-require_once BASE_DIR . '/include/db.php';
+require_once IZNIK_BASE . '/include/db.php';
 
-require_once BASE_DIR . '/composer/vendor/phpunit/phpunit/src/Framework/TestCase.php';
-require_once BASE_DIR . '/composer/vendor/phpunit/phpunit/src/Framework/Assert/Functions.php';
+require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/TestCase.php';
+require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/Assert/Functions.php';
 
 /**
  * @backupGlobals disabled

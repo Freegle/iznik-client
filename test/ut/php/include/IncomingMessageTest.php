@@ -4,7 +4,7 @@ if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
 require_once UT_DIR . '/IznikTest.php';
-require_once BASE_DIR . '/include/message/IncomingMessage.php';
+require_once IZNIK_BASE . '/include/message/IncomingMessage.php';
 
 /**
  * @backupGlobals disabled
@@ -33,7 +33,7 @@ class IncomingMessageTest extends IznikTest {
 
         $msg = file_get_contents('msgs/basic');
         $m = new IncomingMessage($this->dbhr, $this->dbhm);
-        $m->parse('from@test.com', 'to@test.com', $msg);
+        $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals('Basic test', $m->getSubject());
         assertEquals('Edward Hibbert', $m->getFromname());
         assertEquals('edward@ehibbert.org.uk', $m->getFromaddr());
@@ -84,7 +84,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 
         $msg = file_get_contents('msgs/attachment');
         $m = new IncomingMessage($this->dbhr, $this->dbhm);
-        $m->parse('from@test.com', 'to@test.com', $msg);
+        $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $atts = $m->getAttachments();
         assertEquals(2, count($atts));
         assertEquals('g4g220x194.png', $atts[0]->getFilename());
@@ -95,6 +95,25 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         # Save it
         $id = $m->save();
         assertNotNull($id);
+
+        $m->delete();
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testPending() {
+        error_log(__METHOD__);
+
+        $msg = file_get_contents('msgs/approve');
+        $m = new IncomingMessage($this->dbhr, $this->dbhm);
+        $m->parse(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+
+        assertEquals('Test pending', $m->getSubject());
+        assertEquals('Edward Hibbert', $m->getFromname());
+        assertEquals('edward@ehibbert.org.uk', $m->getFromaddr());
+        assertEquals('Test', $m->getTextbody());
+        assertEquals('from@test.com', $m->getEnvelopefrom());
+        assertEquals('to@test.com', $m->getEnvelopeto());
 
         $m->delete();
 

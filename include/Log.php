@@ -1,6 +1,6 @@
 <?php
 
-require_once(BASE_DIR . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/utils.php');
 
 # Logging.  This is not guaranteed against loss in the event of serious failure.  logs_sql is, though.
 class Log
