@@ -17,6 +17,8 @@ class Log
     const SUBTYPE_CREATED = 'Created';
     const SUBTYPE_DELETED = 'Deleted';
     const SUBTYPE_RECEIVED = 'Received';
+    const SUBTYPE_FAILURE = 'Failure';
+    const SUBTYPE_CLASSIFIED_SPAM = 'ClassifiedSpam';
     const SUBTYPE_SENT = 'Sent';
 
     function __construct($dbhr, $dbhm)
@@ -39,10 +41,8 @@ class Log
 
         $sql = "INSERT INTO logs (`$atts`) VALUES (" .
             implode(',', $p) . ");";
-        error_log($sql . var_export($params, true));
 
         # No need to check return code - if it doesn't work, nobody dies.
         $this->dbhm->preExec($sql, $params);
-        error_log(var_export($this->dbhm->errorInfo(), true));
     }
 }

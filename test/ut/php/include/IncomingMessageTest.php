@@ -38,6 +38,8 @@ class IncomingMessageTest extends IznikTest {
         assertEquals('Edward Hibbert', $m->getFromname());
         assertEquals('edward@ehibbert.org.uk', $m->getFromaddr());
         assertEquals('Hey.', $m->getTextbody());
+        assertEquals('from@test.com', $m->getEnvelopefrom());
+        assertEquals('to@test.com', $m->getEnvelopeto());
         assertEquals("<HTML><HEAD>
 <STYLE id=eMClientCss>
 blockquote.cite { margin-left: 5px; margin-right: 0px; padding-left: 10px; padding-right:0px; border-left: 1px solid #cccccc }
@@ -60,6 +62,9 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         assertEquals('Edward Hibbert', $m->getFromname());
         assertEquals('edward@ehibbert.org.uk', $m->getFromaddr());
         assertEquals('Hey.', $m->getTextbody());
+        assertEquals('from@test.com', $m->getEnvelopefrom());
+        assertEquals('to@test.com', $m->getEnvelopeto());
+        assertEquals('emff7a66f1-e0ed-4792-b493-17a75d806a30@edward-x1', $m->getMessageID());
         assertEquals("<HTML><HEAD>
 <STYLE id=eMClientCss>
 blockquote.cite { margin-left: 5px; margin-right: 0px; padding-left: 10px; padding-right:0px; border-left: 1px solid #cccccc }
@@ -91,9 +96,6 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         $id = $m->save();
         assertNotNull($id);
 
-        # Read it back
-        unset($m);
-        $m = new IncomingMessage($this->dbhr, $this->dbhm, $id);
         $m->delete();
 
         error_log(__METHOD__ . " end");

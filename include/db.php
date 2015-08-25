@@ -254,6 +254,10 @@ class LoggedPDO {
         return($this->_db->errorInfo());
     }
 
+    public function rollBack() {
+        return($this->_db->rollBack());
+    }
+
     public function beginTransaction() {
         $this->transactionStart = microtime(true);
         $ret = $this->_db->beginTransaction ();

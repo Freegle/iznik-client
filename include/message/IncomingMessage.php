@@ -12,7 +12,47 @@ class IncomingMessage
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
     private $id;
-    private $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto;
+    private $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto, $messageid, $retrycount, $retrylastfailure;
+
+    /**
+     * @return null
+     */
+    public function getID()
+    {
+        return $this->id;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRetrycount()
+    {
+        return $this->retrycount;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRetrylastfailure()
+    {
+        return $this->retrylastfailure;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getMessageID()
+    {
+        return $this->messageid;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getMessage()
+    {
+        return $this->message;
+    }
 
     /**
      * @return mixed
@@ -41,7 +81,8 @@ class IncomingMessage
             $msgs = $dbhr->preQuery("SELECT * FROM messages_incoming WHERE id = ?;", [$id]);
             foreach ($msgs as $msg) {
                 foreach (['message', 'source', 'envelopefrom', 'fromname', 'fromaddr',
-                        'envelopeto', 'subject', 'textbody', 'htmlbody', 'subject'] as $attr) {
+                        'envelopeto', 'subject', 'textbody', 'htmlbody', 'subject',
+                         'messageid','retrycount', 'retrylastfailure'] as $attr) {
                     $this->$attr = $msg[$attr];
                 }
             }
@@ -113,6 +154,9 @@ class IncomingMessage
         $this->fromname = $from[0]['display'];
         $this->fromaddr = $from[0]['address'];
         $this->subject = $Parser->getHeader('subject');
+        $this->messageid = $Parser->getHeader('message-id');
+        $this->messageid = str_replace('<', '', $this->messageid);
+        $this->messageid = str_replace('>', '', $this->messageid);
 
         $this->textbody = $Parser->getMessageBody('text');
         $this->htmlbody = $Parser->getMessageBody('html');
@@ -126,7 +170,7 @@ class IncomingMessage
 
     # Save a parsed message to the DB
     public function save() {
-        $sql = "INSERT INTO messages_incoming (message, envelopefrom, envelopeto, fromname, fromaddr, subject, textbody, htmlbody) VALUES(?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages_incoming (message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, textbody, htmlbody) VALUES(?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->message,
             $this->envelopefrom,
@@ -134,6 +178,7 @@ class IncomingMessage
             $this->fromname,
             $this->fromaddr,
             $this->subject,
+            $this->messageid,
             $this->textbody,
             $this->htmlbody
         ]);
@@ -148,22 +193,41 @@ class IncomingMessage
                 'type' => Log::TYPE_MESSAGE,
                 'subtype' => Log::SUBTYPE_RECEIVED,
                 'message_incoming' => $id,
+                'text' => $this->messageid
             ]);
         }
 
         return($id);
     }
 
+    function recordFailure($reason) {
+        $rc = $this->dbhm->preExec("UPDATE messages_incoming SET retrycount = LAST_INSERT_ID(retrycount),
+          retrylastfailure = NOW() WHERE id = ?;", [$this->id]);
+        $count = $this->dbhm->lastInsertId();
+
+        $l = new Log($this->dbhr, $this->dbhm);
+        $l->log([
+            'type' => Log::TYPE_MESSAGE,
+            'subtype' => Log::SUBTYPE_FAILURE,
+            'message_incoming' => $this->id,
+            'text' => $reason
+        ]);
+
+        return($count);
+    }
+
     function delete()
     {
+        $rc = true;
+
         if ($this->attach_dir) {
             rrmdir($this->attach_dir);
         }
 
-        error_log("Destructor for {$this->id}");
-
         if ($this->id) {
-            $this->dbhm->preExec("DELETE FROM messages_incoming WHERE id = ?;", [$this->id]);
+            $rc = $this->dbhm->preExec("DELETE FROM messages_incoming WHERE id = ?;", [$this->id]);
         }
+
+        return($rc);
     }
 }
