@@ -1,51 +1,83 @@
 <?php
 
 require_once(BASE_DIR . '/include/utils.php');
+require_once(BASE_DIR . '/include/Log.php');
 
 # This class represents an incoming message, i.e. one we have received (usually by email).  It is used to parse
 # a message and store it in the incoming DB table.
 class IncomingMessage
 {
+    /** @var  $dbhr LoggedPDO */
     private $dbhr;
+    /** @var  $dbhm LoggedPDO */
     private $dbhm;
-    private $msg, $text, $html, $subject, $from, $to;
+    private $id;
+    private $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto;
 
-    function __construct($dbhr, $dbhm)
+    /**
+     * @return mixed
+     */
+    public function getEnvelopefrom()
+    {
+        return $this->envelopefrom;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getEnvelopeto()
+    {
+        return $this->envelopeto;
+    }
+
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+
+        if ($id) {
+            $this->id = $id;
+
+            $msgs = $dbhr->preQuery("SELECT * FROM messages_incoming WHERE id = ?;", [$id]);
+            foreach ($msgs as $msg) {
+                foreach (['message', 'source', 'envelopefrom', 'fromname', 'fromaddr',
+                        'envelopeto', 'subject', 'textbody', 'htmlbody', 'subject'] as $attr) {
+                    $this->$attr = $msg[$attr];
+                }
+            }
+        }
     }
 
     /**
      * @return mixed
      */
-    public function getFrom()
+    public function getFromname()
     {
-        return $this->from;
+        return $this->fromname;
     }
 
     /**
      * @return mixed
      */
-    public function getTo()
+    public function getFromaddr()
     {
-        return $this->to;
+        return $this->fromaddr;
     }
 
     /**
      * @return mixed
      */
-    public function getText()
+    public function getTextbody()
     {
-        return $this->text;
+        return $this->textbody;
     }
 
     /**
      * @return mixed
      */
-    public function getHtml()
+    public function getHtmlbody()
     {
-        return $this->html;
+        return $this->htmlbody;
     }
 
     /**
@@ -66,30 +98,72 @@ class IncomingMessage
         return $this->attachments;
     }
 
-    public function parse($msg)
+    # Parse a raw SMTP message.
+    public function parse($envelopefrom, $envelopeto, $msg)
     {
-        $this->msg = $msg;
+        $this->message = $msg;
 
-        # Parse it
         $Parser = new PhpMimeMailParser\Parser();
         $Parser->setText($msg);
 
-        $this->to = mailparse_rfc822_parse_addresses($Parser->getHeader('to'));
-        $this->from = mailparse_rfc822_parse_addresses($Parser->getHeader('from'));
+        $this->envelopefrom = $envelopefrom;
+        $this->envelopeto = $envelopeto;
+
+        $from = mailparse_rfc822_parse_addresses($Parser->getHeader('from'));
+        $this->fromname = $from[0]['display'];
+        $this->fromaddr = $from[0]['address'];
         $this->subject = $Parser->getHeader('subject');
 
-        $this->text = $Parser->getMessageBody('text');
-        $this->html = $Parser->getMessageBody('html');
+        $this->textbody = $Parser->getMessageBody('text');
+        $this->htmlbody = $Parser->getMessageBody('html');
 
-        # We save the attachments to a temp directory.  This is tidied up on destruction.
+        # We save the attachments to a temp directory.  This is tidied up on destruction or save.
         $this->attach_dir = tmpdir();
         $Parser->saveAttachments($this->attach_dir);
 
         $this->attachments = $Parser->getAttachments();
     }
 
-    function __destruct()
+    # Save a parsed message to the DB
+    public function save() {
+        $sql = "INSERT INTO messages_incoming (message, envelopefrom, envelopeto, fromname, fromaddr, subject, textbody, htmlbody) VALUES(?,?,?,?,?,?,?,?);";
+        $rc = $this->dbhm->preExec($sql, [
+            $this->message,
+            $this->envelopefrom,
+            $this->envelopeto,
+            $this->fromname,
+            $this->fromaddr,
+            $this->subject,
+            $this->textbody,
+            $this->htmlbody
+        ]);
+
+        $id = NULL;
+        if ($rc) {
+            $id = $this->dbhm->lastInsertId();
+            $this->id = $id;
+
+            $l = new Log($this->dbhr, $this->dbhm);
+            $l->log([
+                'type' => Log::TYPE_MESSAGE,
+                'subtype' => Log::SUBTYPE_RECEIVED,
+                'message_incoming' => $id,
+            ]);
+        }
+
+        return($id);
+    }
+
+    function delete()
     {
-        rrmdir($this->attach_dir);
+        if ($this->attach_dir) {
+            rrmdir($this->attach_dir);
+        }
+
+        error_log("Destructor for {$this->id}");
+
+        if ($this->id) {
+            $this->dbhm->preExec("DELETE FROM messages_incoming WHERE id = ?;", [$this->id]);
+        }
     }
 }

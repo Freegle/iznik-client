@@ -12,8 +12,12 @@ class Log
 
     # Log types must match the enumeration in the logs table.
     const TYPE_GROUP = 'Group';
+    const TYPE_MESSAGE = 'Message';
+
     const SUBTYPE_CREATED = 'Created';
     const SUBTYPE_DELETED = 'Deleted';
+    const SUBTYPE_RECEIVED = 'Received';
+    const SUBTYPE_SENT = 'Sent';
 
     function __construct($dbhr, $dbhm)
     {

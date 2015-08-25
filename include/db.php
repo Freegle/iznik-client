@@ -137,7 +137,7 @@ class LoggedPDO {
             }
         } while (!$worked && $try < $this->tries);
 
-        if ($worked && $try > 0) {
+        if ($worked && $try > 1) {
             error_log("prex succeeded after $try for $sql");
         } else if (!$worked)
             $this->giveUp($msg . " for $sql " . var_export($params, true) . " " . var_export($this->_db->errorInfo(), true));
