@@ -392,7 +392,7 @@ class dbTest extends IznikTest {
             $mock->preQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
             $worked = true;
-            assertEquals('Unexpected database error Faked deadlock exception', $e->getMessage());
+            assertContains('Unexpected database error Faked deadlock exception', $e->getMessage());
         }
         assertTrue($worked);
 
