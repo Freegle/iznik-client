@@ -43,5 +43,21 @@ class groupTest extends IznikTest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testErrors() {
+        error_log(__METHOD__);
+
+        # Create duplicate group
+        $g = new Group($this->dbhr, $this->dbhm);
+        $id = $g->create('testgroup', Group::GROUP_REUSE);
+        assertNotNull($id);
+        $id = $g->create('testgroup', Group::GROUP_REUSE);
+        assertNull($id);
+
+        $id = $g->findByShortName('zzzz');
+        assertNull($id);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

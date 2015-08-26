@@ -10,6 +10,7 @@ class Group extends Entity
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
+    const GROUP_OTHER = 'Other';
 
     /** @var  $log Log */
     private $log;
@@ -21,8 +22,13 @@ class Group extends Entity
     }
 
     public function create($shortname, $type) {
-        $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type) VALUES (?, ?)", [$shortname, $type]);
-        $id = $this->dbhm->lastInsertId();
+        try {
+            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type) VALUES (?, ?)", [$shortname, $type]);
+            $id = $this->dbhm->lastInsertId();
+        } catch (Exception $e) {
+            $id = NULL;
+            $rc = 0;
+        }
 
         if ($rc && $id) {
             $this->fetch($this->dbhr, $this->dbhm, $id, 'groups', 'group', $this->publicatts);
@@ -32,8 +38,11 @@ class Group extends Entity
                 'group' => $id,
                 'text' => $shortname
             ]);
+
+            return($id);
+        } else {
+            return(NULL);
         }
-        return($rc);
     }
 
     public function delete() {
@@ -47,5 +56,16 @@ class Group extends Entity
         }
 
         return($rc);
+    }
+
+    public function findByShortName($name) {
+        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE nameshort LIKE ?;",
+            [$name]);
+        foreach ($groups as $group) {
+            error_log("Found hosted group $name");
+            return($group['id']);
+        }
+
+        return(NULL);
     }
 }

@@ -59,6 +59,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         unset($m);
         $m = new IncomingMessage($this->dbhr, $this->dbhm, $id);
         assertEquals('Basic test', $m->getSubject());
+        assertEquals('Basic test', $m->getHeader('subject'));
         assertEquals('Edward Hibbert', $m->getFromname());
         assertEquals('edward@ehibbert.org.uk', $m->getFromaddr());
         assertEquals('Hey.', $m->getTextbody());

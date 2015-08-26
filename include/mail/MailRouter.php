@@ -3,6 +3,7 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/message/IncomingMessage.php');
 require_once(IZNIK_BASE . '/include/Log.php');
+require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/lib/spamc.php');
 
 # This class routes an incoming message
@@ -116,7 +117,6 @@ class MailRouter
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       textbody, htmlbody AS reason FROM messages_incoming WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $this->msg->getID() ]);
-            error_log("Returned $rc $sql");
 
             if ($rc) {
                 $rc = $this->msg->delete();
@@ -144,8 +144,8 @@ class MailRouter
         # - to a group
         # - to a user
         # - to a spam queue
-        #
-        # First, check if we think this is just plain spam.
+
+        # Now check if we think this is just plain spam.
         $this->spam->command = 'CHECK';
 
         if ($this->spam->filter($this->msg->getMessage())) {
@@ -157,7 +157,8 @@ class MailRouter
                     'type' => Log::TYPE_MESSAGE,
                     'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
                     'message_incoming' => $this->msg->getID(),
-                    'text' => "SpamAssassin score $spamscore"
+                    'text' => "SpamAssassin score $spamscore",
+                    'group' => $this->msg->getGroupID()
                 ]);
 
                 if ($this->markAsSpam("SpamAssassin flagged this as likely spam; score $spamscore (high is bad)")) {

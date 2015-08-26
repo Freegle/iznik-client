@@ -12,11 +12,28 @@ class IncomingMessage
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
     private $id;
-    private $source, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto, $messageid, $retrycount, $retrylastfailure;
+    private $source, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto,
+        $messageid, $retrycount, $retrylastfailure, $parser, $groupid;
 
     const EMAIL = 'Email';
     const YAHOO_APPROVED = 'Yahoo Approved';
     const YAHOO_PENDING = 'Yahoo Pending';
+
+    /**
+     * @return mixed
+     */
+    public function getGroupID()
+    {
+        return $this->groupid;
+    }
+
+    /**
+     * @param mixed $groupid
+     */
+    public function setGroupID($groupid)
+    {
+        $this->groupid = $groupid;
+    }
 
     /**
      * @return null
@@ -24,22 +41,6 @@ class IncomingMessage
     public function getID()
     {
         return $this->id;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getRetrycount()
-    {
-        return $this->retrycount;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getRetrylastfailure()
-    {
-        return $this->retrylastfailure;
     }
 
     /**
@@ -86,10 +87,13 @@ class IncomingMessage
             foreach ($msgs as $msg) {
                 foreach (['message', 'source', 'envelopefrom', 'fromname', 'fromaddr',
                         'envelopeto', 'subject', 'textbody', 'htmlbody', 'subject',
-                         'messageid','retrycount', 'retrylastfailure'] as $attr) {
+                         'messageid','retrycount', 'retrylastfailure', 'groupid'] as $attr) {
                     $this->$attr = $msg[$attr];
                 }
             }
+
+            $this->parser = new PhpMimeMailParser\Parser();
+            $this->parser->setText($this->message);
         }
     }
 
@@ -149,6 +153,7 @@ class IncomingMessage
         $this->message = $msg;
 
         $Parser = new PhpMimeMailParser\Parser();
+        $this->parser = $Parser;
         $Parser->setText($msg);
 
         # We save the attachments to a temp directory.  This is tidied up on destruction or save.
@@ -160,7 +165,6 @@ class IncomingMessage
             # This is an APPROVE mail; we need to extract the included copy of the original message.
             $atts = $this->getAttachments();
             if (count($atts) >= 1 && $atts[0]->contentType == 'message/rfc822') {
-                error_log("Found attached message " . var_export($atts, true));
                 $attachedmsg = $atts[0]->getContent();
                 $Parser->setText($attachedmsg);
                 $Parser->saveAttachments($this->attach_dir);
@@ -182,12 +186,36 @@ class IncomingMessage
 
         $this->textbody = $Parser->getMessageBody('text');
         $this->htmlbody = $Parser->getMessageBody('html');
+
+        # See if we can find a group this is intended for.
+        $groupname = NULL;
+        $to = $this->getTo();
+        foreach ($to as $t) {
+            if (preg_match('/(.*)@yahoogroups\.co.*/', $t['address'], $matches)) {
+                $groupname = $matches[1];
+            }
+        }
+
+        if ($groupname) {
+            # Check if it's a group we host.
+            $g = new Group($this->dbhr, $this->dbhm);
+            $this->setGroupID($g->findByShortName($groupname));
+        }
+    }
+
+    public function getHeader($hdr) {
+        return($this->parser->getHeader($hdr));
+    }
+
+    public function getTo() {
+        return(mailparse_rfc822_parse_addresses($this->parser->getHeader('to')));
     }
 
     # Save a parsed message to the DB
     public function save() {
-        $sql = "INSERT INTO messages_incoming (source, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, textbody, htmlbody) VALUES(?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages_incoming (groupid, source, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, textbody, htmlbody) VALUES(?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
+            $this->groupid,
             $this->source,
             $this->message,
             $this->envelopefrom,
@@ -219,7 +247,7 @@ class IncomingMessage
     }
 
     function recordFailure($reason) {
-        $rc = $this->dbhm->preExec("UPDATE messages_incoming SET retrycount = LAST_INSERT_ID(retrycount),
+        $this->dbhm->preExec("UPDATE messages_incoming SET retrycount = LAST_INSERT_ID(retrycount),
           retrylastfailure = NOW() WHERE id = ?;", [$this->id]);
         $count = $this->dbhm->lastInsertId();
 
