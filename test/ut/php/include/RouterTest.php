@@ -54,6 +54,28 @@ class RouterTest extends IznikTest {
         error_log(__METHOD__ . " end");
     }
 
+    public function testSpamIP() {
+        error_log(__METHOD__);
+
+        # Sorry, Cameroon folk.
+        $msg = file_get_contents('msgs/cameroon');
+
+        $m = new IncomingMessage($this->dbhr, $this->dbhm);
+        $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
+
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+
+        # This should have stored the IP in the message.
+        error_log("Message ID $id");
+        $m = new IncomingMessage($this->dbhm, $this->dbhm, $id);
+        assertEquals('41.205.16.153', $m->getFromIP());
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testFailSpam() {
         error_log(__METHOD__);
 

@@ -4,6 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/message/IncomingMessage.php');
 require_once(IZNIK_BASE . '/include/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/spam/SpamIP.php');
 require_once(IZNIK_BASE . '/lib/spamc.php');
 
 # This class routes an incoming message
@@ -70,10 +71,10 @@ class MailRouter
             # Copy the relevant fields in the row to the table, and add the reason.
             $rc = $this->dbhm->preExec("INSERT INTO messages_spam (arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                      textbody, htmlbody, reason)
+                      textbody, htmlbody, fromip, reason)
                       SELECT arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                      textbody, htmlbody, " . $this->dbhm->quote($reason) .
+                      textbody, htmlbody, fromip, " . $this->dbhm->quote($reason) .
                     " AS reason FROM messages_incoming WHERE id = ?;",
                 [
                     $this->msg->getID()
@@ -112,10 +113,10 @@ class MailRouter
             # Copy the relevant fields in the row to the table, and add the reason.
             $sql = "INSERT INTO messages_approved (arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                      textbody, htmlbody)
+                      textbody, htmlbody, fromip)
                       SELECT arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                      textbody, htmlbody AS reason FROM messages_incoming WHERE id = ?;";
+                      textbody, htmlbody, fromip FROM messages_incoming WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $this->msg->getID() ]);
 
             if ($rc) {
@@ -145,41 +146,55 @@ class MailRouter
         # - to a user
         # - to a spam queue
 
-        # Now check if we think this is just plain spam.
-        $this->spam->command = 'CHECK';
+        # First check if this message is from an IP that we are blocking.
+        $ip = new SpamIP($this->dbhr, $this->dbhm);
+        $rc = $ip->check($this->msg);
+        if ($rc) {
+            $this->log->log([
+                'type' => Log::TYPE_MESSAGE,
+                'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
+                'message_incoming' => $this->msg->getID(),
+                'text' => "Spam IP check failed",
+                'group' => $this->msg->getGroupID()
+            ]);
+            $ret = MailRouter::INCOMING_SPAM;
+        } else {
+            # Now check if we think this is just plain spam.
+            $this->spam->command = 'CHECK';
 
-        if ($this->spam->filter($this->msg->getMessage())) {
-            $spamscore = $this->spam->result['SCORE'];
+            if ($this->spam->filter($this->msg->getMessage())) {
+                $spamscore = $this->spam->result['SCORE'];
 
-            if ($spamscore >= 5) {
-                # This might be spam.  We'll mark it as such, then it will get reviewed.
-                $this->log->log([
-                    'type' => Log::TYPE_MESSAGE,
-                    'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
-                    'message_incoming' => $this->msg->getID(),
-                    'text' => "SpamAssassin score $spamscore",
-                    'group' => $this->msg->getGroupID()
-                ]);
+                if ($spamscore >= 5) {
+                    # This might be spam.  We'll mark it as such, then it will get reviewed.
+                    $this->log->log([
+                        'type' => Log::TYPE_MESSAGE,
+                        'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
+                        'message_incoming' => $this->msg->getID(),
+                        'text' => "SpamAssassin score $spamscore",
+                        'group' => $this->msg->getGroupID()
+                    ]);
 
-                if ($this->markAsSpam("SpamAssassin flagged this as likely spam; score $spamscore (high is bad)")) {
-                    $ret = MailRouter::INCOMING_SPAM;
+                    if ($this->markAsSpam("SpamAssassin flagged this as likely spam; score $spamscore (high is bad)")) {
+                        $ret = MailRouter::INCOMING_SPAM;
+                    } else {
+                        $this->msg->recordFailure('Failed to mark spam');
+                        $ret = MailRouter::FAILURE;
+                    }
                 } else {
-                    $this->msg->recordFailure('Failed to mark spam');
-                    $ret = MailRouter::FAILURE;
+                    # Not obviously spam.
+                    if ($this->markApproved()) {
+                        $ret = MailRouter::TO_GROUP;
+                    } else {
+                        $this->msg->recordFailure('Failed to mark approved');
+                        $ret = MailRouter::FAILURE;
+                    }
                 }
             } else {
-                # Not obviously spam.
-                if ($this->markApproved()) {
-                    $ret = MailRouter::TO_GROUP;
-                } else {
-                    $this->msg->recordFailure('Failed to mark approved');
-                    $ret = MailRouter::FAILURE;
-                }
+                # We have failed to check that this is spam.  Record the failure.
+                $this->msg->recordFailure('Spam Assassin check failed');
+                $ret = MailRouter::FAILURE;
             }
-        } else {
-            # We have failed to check that this is spam.  Record the failure.
-            $this->msg->recordFailure('Spam Assassin check failed');
-            $ret = MailRouter::FAILURE;
         }
 
         return($ret);

@@ -13,7 +13,24 @@ class IncomingMessage
     private $dbhm;
     private $id;
     private $source, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto,
-        $messageid, $retrycount, $retrylastfailure, $parser, $groupid;
+        $messageid, $retrycount, $retrylastfailure, $parser, $groupid, $fromip;
+
+    /**
+     * @return mixed
+     */
+    public function getFromIP()
+    {
+        return $this->fromip;
+    }
+
+    /**
+     * @param mixed $fromip
+     */
+    public function setFromIP($fromip)
+    {
+        $this->fromip = $fromip;
+        $this->dbhm->preExec("UPDATE messages_incoming SET fromip = ? WHERE id = ?;", [$fromip, $this->id]);
+    }
 
     const EMAIL = 'Email';
     const YAHOO_APPROVED = 'Yahoo Approved';
@@ -87,8 +104,10 @@ class IncomingMessage
             foreach ($msgs as $msg) {
                 foreach (['message', 'source', 'envelopefrom', 'fromname', 'fromaddr',
                         'envelopeto', 'subject', 'textbody', 'htmlbody', 'subject',
-                         'messageid','retrycount', 'retrylastfailure', 'groupid'] as $attr) {
-                    $this->$attr = $msg[$attr];
+                         'messageid','retrycount', 'retrylastfailure', 'groupid', 'fromip'] as $attr) {
+                    if (pres($attr, $msg)) {
+                        $this->$attr = $msg[$attr];
+                    }
                 }
             }
 
