@@ -91,8 +91,6 @@ class MailRouter
                         $rollback = false;
                     }
                 }
-            } else {
-                error_log("Failed to mark spam $sql");
             }
 
             if ($rollback) {
@@ -132,8 +130,6 @@ class MailRouter
                         $rollback = false;
                     }
                 }
-            } else {
-                error_log("Failed to mark approved $sql");
             }
 
             if ($rollback) {

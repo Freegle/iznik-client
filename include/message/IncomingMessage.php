@@ -218,7 +218,7 @@ class IncomingMessage
 
         # Yahoo posts messages from the group address, but with a header showing the
         # original from address.
-        $originalfrom = $Parser->getHeader('X-Original-From');
+        $originalfrom = $Parser->getHeader('x-original-from');
 
         if ($originalfrom) {
             $from = mailparse_rfc822_parse_addresses($originalfrom);

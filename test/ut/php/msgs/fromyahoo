@@ -65,6 +65,7 @@ Content-Type: multipart/alternative;
  boundary="------=_MB3F4E24FD-EFD6-48C1-97A3-F6120856B490"
 X-Originating-IP: 98.139.170.166
 From: "Test User" <test@test.com>
+X-Original-From: Test User <test@test.com>
 X-Original-Reply-To: "Test User" <test@test.com>
 Subject: Basic test
 X-Yahoo-Group-Post: member; u=420816296; y=mx4v3GOU1iipX-Uq-c7XCMxv50NewPPf7k0eZ9VGOna3
