@@ -56,6 +56,12 @@ class RouterTest extends IznikTest {
         $rc = $r->route();
         assertEquals(MailRouter::TO_GROUP, $rc);
 
+        $msg = file_get_contents('msgs/fromyahoo');
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_GROUP, $rc);
+
         error_log(__METHOD__ . " end");
     }
 

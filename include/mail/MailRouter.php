@@ -155,6 +155,7 @@ class MailRouter
         $ip = new Spam($this->dbhr, $this->dbhm);
         $rc = $ip->check($this->msg);
         if ($rc) {
+            error_log("Message is spam: " . var_export($rc, true));
             $this->log->log([
                 'type' => Log::TYPE_MESSAGE,
                 'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,

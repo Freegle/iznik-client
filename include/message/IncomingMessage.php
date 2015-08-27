@@ -13,7 +13,7 @@ class IncomingMessage
     private $dbhm;
     private $id;
     private $source, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto,
-        $messageid, $retrycount, $retrylastfailure, $parser, $groupid, $fromip;
+        $messageid, $retrycount, $retrylastfailure, $parser, $groupid, $fromip, $fromhost;
 
     /**
      * @return mixed
@@ -29,12 +29,28 @@ class IncomingMessage
     public function setFromIP($fromip)
     {
         $this->fromip = $fromip;
-        $this->dbhm->preExec("UPDATE messages_incoming SET fromip = ? WHERE id = ?;", [$fromip, $this->id]);
+        $name = NULL;
 
-        $name = gethostbyaddr($fromip);
-        $name = ($name == $fromip) ? NULL : $name;
+        if ($fromip) {
+            # If the call returns a hostname which is the same as the IP, then it's
+            # not resolvable.
+            $name = gethostbyaddr($fromip);
+            $name = ($name == $fromip) ? NULL : $name;
+            $this->fromhost = $name;
+        }
+
+        $this->dbhm->preExec("UPDATE messages_incoming SET fromip = ? WHERE id = ?;",
+            [$fromip, $this->id]);
         $this->dbhm->preExec("UPDATE messages_history SET fromip = ?, fromhost = ? WHERE incomingid = ?;",
             [$fromip, $name, $this->id]);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getFromhost()
+    {
+        return $this->fromhost;
     }
 
     const EMAIL = 'Email';
@@ -109,7 +125,7 @@ class IncomingMessage
             foreach ($msgs as $msg) {
                 foreach (['message', 'source', 'envelopefrom', 'fromname', 'fromaddr',
                         'envelopeto', 'subject', 'textbody', 'htmlbody', 'subject',
-                         'messageid','retrycount', 'retrylastfailure', 'groupid', 'fromip'] as $attr) {
+                         'messageid','retrycount', 'retrylastfailure', 'groupid', 'fromip', 'fromname'] as $attr) {
                     if (pres($attr, $msg)) {
                         $this->$attr = $msg[$attr];
                     }

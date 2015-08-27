@@ -9,6 +9,12 @@ class Spam {
     CONST USER_THRESHOLD = 4;
     CONST GROUP_THRESHOLD = 20;
 
+    /** @var  $dbhr LoggedPDO */
+    private $dbhr;
+    /** @var  $dbhm LoggedPDO */
+    private $dbhm;
+
+
     function __construct($dbhr, $dbhm, $id = NULL)
     {
         $this->dbhr = $dbhr;
@@ -20,17 +26,22 @@ class Spam {
         $ip = $ip ? $ip : $msg->getHeader('x-originating-ip');
         $ip = $ip ? $ip : $msg->getHeader('x-yahoo-post-ip');
 
-        if (preg_match('/mta.*groups\.mail.*yahoo\.com/', $ip)) {
-            # Posts submitted by email to Yahoo show up with an X-Originating-IP of one of Yahoo's MTAs.  We don't
-            # want to consider those as spammers.
-            $ip = NULL;
-        }
-
         if ($ip) {
             $ip = str_replace('[', '', $ip);
             $ip = str_replace(']', '', $ip);
             $msg->setFromIP($ip);
 
+            $host = $msg->getFromhost();
+            error_log("$ip has host $host");
+            if (preg_match('/mta.*groups\.mail.*yahoo\.com/', $host)) {
+                # Posts submitted by email to Yahoo show up with an X-Originating-IP of one of Yahoo's MTAs.  We don't
+                # want to consider those as spammers.
+                $ip = NULL;
+                $msg->setFromIP($ip);
+            }
+        }
+
+        if ($ip) {
             # We have an IP, we reckon.  It's unlikely that someone would fake an IP which gave a spammer match, so
             # we don't have to worry too much about false positives.
             $reader = new Reader('/usr/local/share/GeoIP/GeoLite2-Country.mmdb');
@@ -48,10 +59,8 @@ class Spam {
             # Now see if this IP has been used for too many different users.  That is likely to
             # be someone masquerading to fool people.
             $sql = "SELECT COUNT(*) AS count, fromaddr FROM messages_history WHERE fromip = ? GROUP BY fromaddr;";
-            error_log($sql);
             $counts = $this->dbhr->preQuery($sql, [$ip]);
             $numusers = count($counts);
-            error_log("Used for $numusers addresses");
 
             if ($numusers > Spam::USER_THRESHOLD) {
                 return(array(true, "$ip used for $numusers different users"));
@@ -62,7 +71,6 @@ class Spam {
             $sql = "SELECT COUNT(*) AS count, groupid FROM messages_history WHERE fromip = ? GROUP BY groupid;";
             $counts = $this->dbhr->preQuery($sql, [$ip]);
             $numgroups = count($counts);
-            error_log("Used for $numgroups groups");
 
             if ($numgroups > Spam::GROUP_THRESHOLD) {
                 return(array(true, "$ip used for $numgroups different groups"));

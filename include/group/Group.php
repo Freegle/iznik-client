@@ -59,11 +59,9 @@ class Group extends Entity
     }
 
     public function findByShortName($name) {
-        error_log("Find group $name");
         $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE nameshort LIKE ?;",
             [$name]);
         foreach ($groups as $group) {
-            error_log("Found {$group['id']}");
             return($group['id']);
         }
 
