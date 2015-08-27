@@ -5,7 +5,7 @@ X-Received: (qmail 30001 invoked by uid 102); 22 Aug 2015 10:46:02 -0000
 X-Received: from unknown (HELO mtaq6.grp.bf1.yahoo.com) (10.193.84.37)
   by m3.grp.bf1.yahoo.com with SMTP; 22 Aug 2015 10:46:02 -0000
 X-Received: (qmail 24559 invoked from network); 22 Aug 2015 10:46:02 -0000
-X-Received: from unknown (HELO mta1003.groups.mail.bf1.yahoo.com) (98.139.170.167)
+X-Received: from unknown (HELO mta1003.groups.mail.bf1.yahoo.com) (1.2.3.4)
   by mtaq6.grp.bf1.yahoo.com with SMTP; 22 Aug 2015 10:46:02 -0000
 X-Original-Return-Path: <edward@ehibbert.org.uk>
 X-Received-SPF: none (domain of ehibbert.org.uk does not designate permitted sender hosts)
@@ -63,9 +63,9 @@ User-Agent: eM_Client/6.0.22344.0
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
  boundary="------=_MB3F4E24FD-EFD6-48C1-97A3-F6120856B490"
-X-Originating-IP: 98.139.170.167
-From: "Edward Hibbert" <edward@ehibbert.org.uk>
-X-Original-Reply-To: "Edward Hibbert" <edward@ehibbert.org.uk>
+X-Originating-IP: 1.2.3.4
+From: "Test User" <test@test.com>
+X-Original-Reply-To: "Test User" <test@test.com>
 Subject: Basic test
 X-Yahoo-Group-Post: member; u=420816296; y=mx4v3GOU1iipX-Uq-c7XCMxv50NewPPf7k0eZ9VGOna3
 X-Yahoo-Profile: edwhuk

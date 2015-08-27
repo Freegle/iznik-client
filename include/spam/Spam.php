@@ -5,7 +5,10 @@ require_once(IZNIK_BASE . '/include/Entity.php');
 
 use GeoIp2\Database\Reader;
 
-class SpamIP {
+class Spam {
+    CONST USER_THRESHOLD = 4;
+    CONST GROUP_THRESHOLD = 20;
+
     function __construct($dbhr, $dbhm, $id = NULL)
     {
         $this->dbhr = $dbhr;
@@ -39,11 +42,34 @@ class SpamIP {
             $countries = $this->dbhr->preQuery("SELECT * FROM spam_countries WHERE country LIKE ?;", [$country]);
             foreach ($countries as $country) {
                 # Gotcha.
-                return(true);
+                return(array(true, "Blocking all mails from {$country['country']}"));
+            }
+
+            # Now see if this IP has been used for too many different users.  That is likely to
+            # be someone masquerading to fool people.
+            $sql = "SELECT COUNT(*) AS count, fromaddr FROM messages_history WHERE fromip = ? GROUP BY fromaddr;";
+            error_log($sql);
+            $counts = $this->dbhr->preQuery($sql, [$ip]);
+            $numusers = count($counts);
+            error_log("Used for $numusers addresses");
+
+            if ($numusers > Spam::USER_THRESHOLD) {
+                return(array(true, "$ip used for $numusers different users"));
+            }
+
+            # Now see if this IP has been used for too many different groups.  That's likely to
+            # be someone spamming.
+            $sql = "SELECT COUNT(*) AS count, groupid FROM messages_history WHERE fromip = ? GROUP BY groupid;";
+            $counts = $this->dbhr->preQuery($sql, [$ip]);
+            $numgroups = count($counts);
+            error_log("Used for $numgroups groups");
+
+            if ($numgroups > Spam::GROUP_THRESHOLD) {
+                return(array(true, "$ip used for $numgroups different groups"));
             }
         }
 
         # It's fine.  So far as we know.
-        return(false);
+        return(NULL);
     }
 }

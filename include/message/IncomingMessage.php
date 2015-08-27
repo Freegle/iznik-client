@@ -200,7 +200,16 @@ class IncomingMessage
         $this->envelopefrom = $envelopefrom;
         $this->envelopeto = $envelopeto;
 
-        $from = mailparse_rfc822_parse_addresses($Parser->getHeader('from'));
+        # Yahoo posts messages from the group address, but with a header showing the
+        # original from address.
+        $originalfrom = $Parser->getHeader('X-Original-From');
+
+        if ($originalfrom) {
+            $from = mailparse_rfc822_parse_addresses($originalfrom);
+        } else {
+            $from = mailparse_rfc822_parse_addresses($Parser->getHeader('from'));
+        }
+
         $this->fromname = $from[0]['display'];
         $this->fromaddr = $from[0]['address'];
         $this->subject = $Parser->getHeader('subject');

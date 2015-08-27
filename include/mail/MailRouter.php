@@ -4,7 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/message/IncomingMessage.php');
 require_once(IZNIK_BASE . '/include/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once(IZNIK_BASE . '/include/spam/SpamIP.php');
+require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/lib/spamc.php');
 
 # This class routes an incoming message
@@ -151,17 +151,18 @@ class MailRouter
         # - to a user
         # - to a spam queue
 
-        # First check if this message is from an IP that we are blocking.
-        $ip = new SpamIP($this->dbhr, $this->dbhm);
+        # First check if this message is spam based on our own checks.
+        $ip = new Spam($this->dbhr, $this->dbhm);
         $rc = $ip->check($this->msg);
         if ($rc) {
             $this->log->log([
                 'type' => Log::TYPE_MESSAGE,
                 'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
                 'message_incoming' => $this->msg->getID(),
-                'text' => "Spam IP check failed",
+                'text' => "Spam check failed: {$rc[1]}",
                 'group' => $this->msg->getGroupID()
             ]);
+
             $ret = MailRouter::INCOMING_SPAM;
         } else {
             # Now check if we think this is just plain spam.

@@ -20,7 +20,7 @@ MIME-Version: 1.0
 From: Yahoo Groups Notification <ehtest-accept-ow3u5p5maxnf4tpmee4hjnr0wsla@yahoogroups.com>
 Reply-To: ehtest-accept-ow3u5p5maxnf4tpmee4hjnr0wsla@yahoogroups.com
 To: ehtest-owner@yahoogroups.com
-Subject: MODERATE -- edward@ehibbert.org.uk posted to ehtest
+Subject: MODERATE -- test@test.com posted to ehtest
 Content-Type: multipart/mixed;
   boundary="-----001332284900914303980079918661"
 Sender: ehtest-owner@yahoogroups.com
@@ -35,7 +35,7 @@ Hello,
 
 A message has been sent to the ehtest group from
 
-  edward@ehibbert.org.uk
+  test@test.com
 
 A complete copy of this message has been attached for your convenience.
 
@@ -70,8 +70,8 @@ Your use of Yahoo Groups is subject to https://info.yahoo.com/legal/us/yahoo/uto
 -------001332284900914303980079918661
 Content-Type: message/rfc822
 
-Return-Path: <edward@ehibbert.org.uk>
-X-Sender: edward@ehibbert.org.uk
+Return-Path: <test@test.com>
+X-Sender: test@test.com
 X-Apparently-To: ehtest@yahoogroups.com
 X-Received: (qmail 24532 invoked by uid 102); 25 Aug 2015 19:36:06 -0000
 X-Received: from unknown (HELO mtaq5.grp.bf1.yahoo.com) (10.193.84.36)
@@ -79,7 +79,7 @@ X-Received: from unknown (HELO mtaq5.grp.bf1.yahoo.com) (10.193.84.36)
 X-Received: (qmail 29957 invoked from network); 25 Aug 2015 19:36:06 -0000
 X-Received: from unknown (HELO mta1002.groups.mail.bf1.yahoo.com) (98.139.170.166)
   by mtaq5.grp.bf1.yahoo.com with SMTP; 25 Aug 2015 19:36:06 -0000
-X-Original-Return-Path: <edward@ehibbert.org.uk>
+X-Original-Return-Path: <test@test.com>
 X-Received-SPF: none (domain of ehibbert.org.uk does not designate permitted sender hosts)
 X-YMailISG: r0vgGxEWLDtj_CZD2mR1yzMPoRyhXoM__500IUvt5Tuyw.j4
  vp9l.d5i3kMhDPWczGcf8Tq64zjfx7sKiFWbeo2WijPtuSj.T6co951LibFP
@@ -122,7 +122,7 @@ X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
 X-Gm-Message-State: ALoCoQn9rxlsYP66Z9A+wRra3NkHvEdIJiTt9NlqCTo4oiGzReAPCphZLZJ59BHSvur5POqt67Ms
 X-Received: by 10.194.90.225 with SMTP id bz1mr51026355wjb.110.1440531365371;
         Tue, 25 Aug 2015 12:36:05 -0700 (PDT)
-X-Original-Return-Path: <edward@ehibbert.org.uk>
+X-Original-Return-Path: <test@test.com>
 X-Received: from [192.168.1.70] (host31-53-222-71.range31-53.btcentralplus.com. [31.53.222.71])
         by smtp.gmail.com with ESMTPSA id r19sm4078475wib.7.2015.08.25.12.36.03
         for <ehtest@yahoogroups.com>
@@ -136,8 +136,8 @@ Mime-Version: 1.0
 Content-Type: multipart/alternative;
  boundary="------=_MB0AC90A78-BA09-4BBA-AFC1-EA87017E0DD7"
 X-Originating-IP: 98.139.170.166
-From: "Edward Hibbert" <edward@ehibbert.org.uk>
-X-Original-Reply-To: "Edward Hibbert" <edward@ehibbert.org.uk>
+From: "Test User" <test@test.com>
+X-Original-Reply-To: "Test User" <test@test.com>
 Subject: Test pending
 X-Yahoo-Group-Post: member; u=420816296; y=FO2YrxXJpWXhxi0j5wFp2w48NSdsVrYU67YDq8S2-lZa
 X-Yahoo-Profile: edwhuk

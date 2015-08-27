@@ -19,6 +19,11 @@ class RouterTest extends IznikTest {
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+
+        # Tidy up any old test messages.
+        $this->dbhm->preExec("DELETE FROM messages_incoming WHERE fromaddr = ? OR fromip = ?;", ['from@test.com', '1.2.3.4']);
+        $this->dbhm->preExec("DELETE FROM messages_approved WHERE fromaddr = ? OR fromip = ?;", ['from@test.com', '1.2.3.4']);
+        $this->dbhm->preExec("DELETE FROM messages_history WHERE fromaddr = ? OR fromip = ?;", ['from@test.com', '1.2.3.4']);
     }
 
     protected function tearDown() {
@@ -140,6 +145,59 @@ class RouterTest extends IznikTest {
         $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::FAILURE, $rc);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testMultipleUsers() {
+        error_log(__METHOD__);
+
+        for ($i = 0; $i < Spam::USER_THRESHOLD + 2; $i++) {
+            error_log("User $i");
+
+            $msg = file_get_contents('msgs/basic');
+            $msg = str_replace(
+                'From: "Test User" <test@test.com>',
+                'From: "Test User" <test' . $i . '@test.com>',
+                $msg);
+
+            $r = new MailRouter($this->dbhr, $this->dbhm);
+            $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+            $rc = $r->route();
+
+            if ($i < Spam::USER_THRESHOLD) {
+                assertEquals(MailRouter::TO_GROUP, $rc);
+            } else {
+                assertEquals(MailRouter::INCOMING_SPAM, $rc);
+            }
+        }
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testMultipleGroups() {
+        error_log(__METHOD__);
+
+        for ($i = 0; $i < Spam::GROUP_THRESHOLD + 2; $i++) {
+            error_log("Group $i");
+
+            $msg = file_get_contents('msgs/basic');
+
+            $msg = str_replace(
+                'To: "freegleplayground@yahoogroups.com" <freegleplayground@yahoogroups.com>',
+                'To: "freegleplayground' . $i . '@yahoogroups.com" <freegleplayground' . $i . '@yahoogroups.com>',
+                $msg);
+
+            $r = new MailRouter($this->dbhr, $this->dbhm);
+            $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+            $rc = $r->route();
+
+            if ($i < Spam::GROUP_THRESHOLD) {
+                assertEquals(MailRouter::TO_GROUP, $rc);
+            } else {
+                assertEquals(MailRouter::INCOMING_SPAM, $rc);
+            }
+        }
 
         error_log(__METHOD__ . " end");
     }
