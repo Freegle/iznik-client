@@ -11,20 +11,23 @@ class Spam {
 
     /** @var  $dbhr LoggedPDO */
     private $dbhr;
+
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
-
+    private $reader;
 
     function __construct($dbhr, $dbhm, $id = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        $this->reader = new Reader('/usr/local/share/GeoIP/GeoLite2-Country.mmdb');
     }
 
     public function check(IncomingMessage $msg) {
         $ip = $msg->getHeader('x-freegle-ip');
         $ip = $ip ? $ip : $msg->getHeader('x-originating-ip');
         $ip = $ip ? $ip : $msg->getHeader('x-yahoo-post-ip');
+        $host = NULL;
 
         if ($ip) {
             $ip = str_replace('[', '', $ip);
@@ -33,7 +36,7 @@ class Spam {
 
             $host = $msg->getFromhost();
             error_log("$ip has host $host");
-            if (preg_match('/mta.*groups\.mail.*yahoo\.com/', $host)) {
+            if (preg_match('/mail.*yahoo\.com/', $host)) {
                 # Posts submitted by email to Yahoo show up with an X-Originating-IP of one of Yahoo's MTAs.  We don't
                 # want to consider those as spammers.
                 $ip = NULL;
@@ -44,9 +47,13 @@ class Spam {
         if ($ip) {
             # We have an IP, we reckon.  It's unlikely that someone would fake an IP which gave a spammer match, so
             # we don't have to worry too much about false positives.
-            $reader = new Reader('/usr/local/share/GeoIP/GeoLite2-Country.mmdb');
-            $record = $reader->country($ip);
-            $country = $record->country->name;
+            try {
+                $record = $this->reader->country($ip);
+                $country = $record->country->name;
+            } catch (Exception $e) {
+                # Failed to look it up.
+                $country = NULL;
+            }
 
             # Now see if we're blocking all mails from that country.  This is legitimate if our service is for a
             # single country and we are vanishingly unlikely to get legitimate emails from certain others.
@@ -63,7 +70,7 @@ class Spam {
             $numusers = count($counts);
 
             if ($numusers > Spam::USER_THRESHOLD) {
-                return(array(true, "$ip used for $numusers different users"));
+                return(array(true, "$ip ($host) used for $numusers different users"));
             }
 
             # Now see if this IP has been used for too many different groups.  That's likely to
@@ -73,7 +80,7 @@ class Spam {
             $numgroups = count($counts);
 
             if ($numgroups > Spam::GROUP_THRESHOLD) {
-                return(array(true, "$ip used for $numgroups different groups"));
+                return(array(true, "$ip ($host) used for $numgroups different groups"));
             }
         }
 

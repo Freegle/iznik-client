@@ -10,7 +10,7 @@ require_once IZNIK_BASE . '/include/mail/MailRouter.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class RouterTest extends IznikTest {
+class MailRouterTest extends IznikTest {
     private $dbhr, $dbhm;
 
     protected function setUp() {
@@ -105,18 +105,27 @@ class RouterTest extends IznikTest {
         $rc = $r->route();
         assertEquals(MailRouter::FAILURE, $rc);
 
-        # Make the spam check itself fail
+        # Make the spamc check itself fail
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $mock = $this->getMockBuilder('spamc')
             ->disableOriginalConstructor()
             ->setMethods(array('filter'))
             ->getMock();
         $mock->method('filter')->willReturn(false);
-        $r->setSpam($mock);
+        $r->setSpamc($mock);
 
         $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::FAILURE, $rc);
+
+        # Make the geo lookup throw an exception, which it does for unknown IPs
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_replace('X-Originating-IP: 1.2.3.4', 'X-Originating-IP: 238.162.112.228', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+
+        $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_GROUP, $rc);
 
         error_log(__METHOD__ . " end");
     }
@@ -139,14 +148,14 @@ class RouterTest extends IznikTest {
         $rc = $r->route();
         assertEquals(MailRouter::FAILURE, $rc);
 
-        # Make the spam check itself fail
+        # Make the spamc check itself fail
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $mock = $this->getMockBuilder('spamc')
             ->disableOriginalConstructor()
             ->setMethods(array('filter'))
             ->getMock();
         $mock->method('filter')->willReturn(false);
-        $r->setSpam($mock);
+        $r->setSpamc($mock);
 
         $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -204,6 +213,21 @@ class RouterTest extends IznikTest {
                 assertEquals(MailRouter::INCOMING_SPAM, $rc);
             }
         }
+
+        error_log(__METHOD__ . " end");
+    }
+
+    function testRouteAll() {
+        error_log(__METHOD__);
+
+        $msg = file_get_contents('msgs/basic');
+
+        $m = new IncomingMessage($this->dbhr, $this->dbhm);
+        $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->save();
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->routeAll();
 
         error_log(__METHOD__ . " end");
     }

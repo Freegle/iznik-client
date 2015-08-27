@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/Log.php');
+require_once(IZNIK_BASE . '/include/group/Group.php');
 
 # This class represents an incoming message, i.e. one we have received (usually by email).  It is used to parse
 # a message and store it in the incoming DB table.
@@ -292,7 +293,7 @@ class IncomingMessage
             ]);
         }
 
-        # Also save into the history table, for spam checking.
+        # Also save into the history table, for spamc checking.
         $sql = "INSERT INTO messages_history (groupid, source, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, textbody, htmlbody, incomingid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?);";
         $this->dbhm->preExec($sql, [
             $this->groupid,

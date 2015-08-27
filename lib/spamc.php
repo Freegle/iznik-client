@@ -25,7 +25,7 @@ $filter->user = 'myspamuser';
 $filter->command = 'REPORT'
 
 Filter data - The filter function will return true or false depending on whether the execution was successful. This does not indicate whether
-the filter determined if the data was spam or not.
+the filter determined if the data was spamc or not.
 
 if (!$filter->filter($data_to_be_filtered)) {
 print_r($filter->err);
@@ -39,17 +39,17 @@ port - spamd port (default: 783)
 timeout - network timeout. (default: 30seconds)
 user - spamassassin user
 command - type of request to make:
-CHECK         --  Just check if the passed message is spam or not and reply as
+CHECK         --  Just check if the passed message is spamc or not and reply as
 described below. Filter returns true/false based on server response.
 
-SYMBOLS       --  Check if message is spam or not, and return score plus list
+SYMBOLS       --  Check if message is spamc or not, and return score plus list
 of symbols hit. Filter returns true/false based on server response.
 
-REPORT        --  Check if message is spam or not, and return score plus report
+REPORT        --  Check if message is spamc or not, and return score plus report
 Filter returns true/false based on server response.
 
-REPORT_IFSPAM --  Check if message is spam or not, and return score plus report
-if the message is spam. Filter returns true/false based on server response.
+REPORT_IFSPAM --  Check if message is spamc or not, and return score plus report
+if the message is spamc. Filter returns true/false based on server response.
 
 SKIP          --  For compatibility only. Always returns true. No reponse is provided.
 
@@ -70,8 +70,8 @@ RESPONSE_STRING -- Response string. EX_OK is success, otherwise error string is 
 CONTENT_LENGTH 	-- Size of data sent to server. (Only valid if command is PROCESS, otherwise 0)
 REPORT		-- Report from server. This format depends on the command issue and may be empty.
 SPAM		-- Bool, reports filter decision. (depends on command issued)
-SCORE		-- reported spam score
-MAX		-- Max spam score as configured on the server.
+SCORE		-- reported spamc score
+MAX		-- Max spamc score as configured on the server.
 
 If unsuccessful, the 'err' variable will contain error information.
 
@@ -105,7 +105,7 @@ class spamc
 
     private function _parseHeader($line) {
         preg_match('/^(SPAMD\/)(\d*\.\d*)\s(\d*)\s(.*)/', $line, $matches);
-        if ($matches[1] == 'SPAMD/') { // okay, we talked to a spamd server
+        if ($matches && $matches[1] == 'SPAMD/') { // okay, we talked to a spamd server
             $this->result = array('VERSION'=>$matches[2],
                 'RESPONSE_CODE'=>$matches[3],
                 'RESPONSE_STRING'=>$matches[4]);
@@ -155,21 +155,38 @@ class spamc
         switch ($this->command) {
             case 'CHECK':
                 $this->_parseHeader($line);
-                if ($this->result['RESPONSE_CODE'] > 0) {
+                error_log("Result $line " . var_export($this->result, true));
+                if (!array_key_exists('RESPONSE_CODE', $this->result) || $this->result['RESPONSE_CODE'] > 0) {
                     // there was an error. Report and return.
                     return false;
                     break;
                 }  // no error, continue.
 
-                // check only returns one line, so parse it and return.
+                // check sometimes only returns one line, so parse it and return.
                 $line = array_shift($this->response);
-                preg_match("/^(Spam:)\s(True|False)\s;\s(-?\d?\.?\d*)/", $line, $matches);
+                #error_log("CHECK line $line");
+                $rc = preg_match("/^(Spam:)\s(True|False)\s;\s(-?\d?\.?\d*)/", $line, $matches);
+                if (!$rc) {
+                    if (array_key_exists('SPAM', $this->result)) {
+                        # CHECK has returned the same kind of result as other calls, so no need
+                        # to parse.
+                        #error_log("Spam check returned unusual but correct format");
+                        break;
+                    }
+
+                    #error_log("Spam check returned bad line $line");
+                    return false;
+                }
+
                 if ($matches[2] == 'True') {
                     $this->result['SPAM'] = true;
                 } else {
                     $this->result['SPAM'] = false;
                 }
-                $this->result['SCORE'] = $matches[3];
+
+                if (array_key_exists(3, $matches)) {
+                    $this->result['SCORE'] = $matches[3];
+                }
                 $this->result['MAX'] = array_key_exists(4, $matches) ? $matches[4] : 1000;
                 break;
             case 'SYMBOLS':

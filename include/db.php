@@ -163,6 +163,7 @@ class LoggedPDO {
                 $ret = $this->parentExec($sql);
                 $worked = true;
             } catch (Exception $e) {
+                error_log("execption " . $e->getMessage());
                 if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
                     # It's a Percona deadlock - retry.
                     $try++;

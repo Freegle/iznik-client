@@ -15,6 +15,7 @@ class MailRouter
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
     private $msg;
+    private $spamc;
     private $spam;
 
     /**
@@ -26,11 +27,27 @@ class MailRouter
     }
 
     /**
+     * @param mixed $spamc
+     */
+    public function setSpamc($spamc)
+    {
+        $this->spamc = $spamc;
+    }
+
+    /**
      * @param mixed $msg
      */
     public function setMsg($msg)
     {
         $this->msg = $msg;
+    }
+
+    /**
+     * @return Spam
+     */
+    public function getSpam()
+    {
+        return $this->spam;
     }
 
     const FAILURE = "Failure";
@@ -43,7 +60,8 @@ class MailRouter
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
         $this->log = new Log($this->dbhr, $this->dbhm);
-        $this->spam = new spamc;
+        $this->spamc = new spamc;
+        $this->spam = new Spam($this->dbhr, $this->dbhm);
 
         if ($id) {
             $this->msg = new IncomingMessage($this->dbhr, $this->dbhm, $id);
@@ -60,7 +78,7 @@ class MailRouter
     }
 
     private function markAsSpam($reason) {
-        # Move into the spam queue.  Use a transaction to avoid leaving rows lying around if we fail partway
+        # Move into the spamc queue.  Use a transaction to avoid leaving rows lying around if we fail partway
         # through.
         $rc = $this->dbhm->beginTransaction();
         $ret = true;
@@ -141,15 +159,19 @@ class MailRouter
         return($ret);
     }
 
-    public function route() {
+    public function route($msg = NULL) {
         # We route messages to one of the following destinations:
         # - to a group
         # - to a user
         # - to a spam queue
+        if ($msg) {
+            $this->msg = $msg;
+        }
+
+        error_log("Route " . $this->msg->getSubject());
 
         # First check if this message is spam based on our own checks.
-        $ip = new Spam($this->dbhr, $this->dbhm);
-        $rc = $ip->check($this->msg);
+        $rc = $this->spam->check($this->msg);
         if ($rc) {
             error_log("Message is spam: " . var_export($rc, true));
             $this->log->log([
@@ -160,13 +182,15 @@ class MailRouter
                 'group' => $this->msg->getGroupID()
             ]);
 
+            #$this->markAsSpam("Spam check failed: {$rc[1]}");
+
             $ret = MailRouter::INCOMING_SPAM;
         } else {
             # Now check if we think this is just plain spam.
-            $this->spam->command = 'CHECK';
+            $this->spamc->command = 'CHECK';
 
-            if ($this->spam->filter($this->msg->getMessage())) {
-                $spamscore = $this->spam->result['SCORE'];
+            if ($this->spamc->filter($this->msg->getMessage())) {
+                $spamscore = $this->spamc->result['SCORE'];
 
                 if ($spamscore >= 5) {
                     # This might be spam.  We'll mark it as such, then it will get reviewed.
@@ -200,8 +224,16 @@ class MailRouter
             }
         }
 
-        error_log("Route " . $this->msg->getSubject() . " " . $ret);
+        error_log("Routed " . $this->msg->getSubject() . " " . $ret);
 
         return($ret);
+    }
+
+    public function routeAll() {
+        $msgs = $this->dbhr->preQuery("SELECT id FROM messages_incoming FOR UPDATE;");
+        foreach ($msgs as $m) {
+            $msg = new IncomingMessage($this->dbhr, $this->dbhm, $m['id']);
+            $this->route($msg);
+        }
     }
 }
