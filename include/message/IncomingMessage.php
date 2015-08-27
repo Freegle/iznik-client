@@ -30,6 +30,11 @@ class IncomingMessage
     {
         $this->fromip = $fromip;
         $this->dbhm->preExec("UPDATE messages_incoming SET fromip = ? WHERE id = ?;", [$fromip, $this->id]);
+
+        $name = gethostbyaddr($fromip);
+        $name = ($name == $fromip) ? NULL : $name;
+        $this->dbhm->preExec("UPDATE messages_history SET fromip = ?, fromhost = ? WHERE incomingid = ?;",
+            [$fromip, $name, $this->id]);
     }
 
     const EMAIL = 'Email';
@@ -232,6 +237,7 @@ class IncomingMessage
 
     # Save a parsed message to the DB
     public function save() {
+        # Save into the incoming messages table.
         $sql = "INSERT INTO messages_incoming (groupid, source, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, textbody, htmlbody) VALUES(?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->groupid,
@@ -246,7 +252,6 @@ class IncomingMessage
             $this->textbody,
             $this->htmlbody
         ]);
-        error_log($sql);
 
         $id = NULL;
         if ($rc) {
@@ -261,6 +266,23 @@ class IncomingMessage
                 'text' => $this->messageid
             ]);
         }
+
+        # Also save into the history table, for spam checking.
+        $sql = "INSERT INTO messages_history (groupid, source, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, textbody, htmlbody, incomingid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?);";
+        $this->dbhm->preExec($sql, [
+            $this->groupid,
+            $this->source,
+            $this->message,
+            $this->envelopefrom,
+            $this->envelopeto,
+            $this->fromname,
+            $this->fromaddr,
+            $this->subject,
+            $this->messageid,
+            $this->textbody,
+            $this->htmlbody,
+            $this->id
+        ]);
 
         return($id);
     }

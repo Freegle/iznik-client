@@ -33,10 +33,10 @@ class MailRouter
         $this->msg = $msg;
     }
 
-    const FAILURE = -1;
-    const INCOMING_SPAM = 1;
-    const TO_GROUP = 2;
-    const TO_USER = 3;
+    const FAILURE = "Failure";
+    const INCOMING_SPAM = "IncomingSpam";
+    const TO_GROUP = "ToGroup";
+    const TO_USER = "ToUser";
 
     function __construct($dbhr, $dbhm, $id = NULL)
     {
@@ -69,13 +69,14 @@ class MailRouter
             $rollback = true;
 
             # Copy the relevant fields in the row to the table, and add the reason.
-            $rc = $this->dbhm->preExec("INSERT INTO messages_spam (arrival, source, message,
+            $sql = "INSERT INTO messages_spam (arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       textbody, htmlbody, fromip, reason)
                       SELECT arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       textbody, htmlbody, fromip, " . $this->dbhm->quote($reason) .
-                    " AS reason FROM messages_incoming WHERE id = ?;",
+                " AS reason FROM messages_incoming WHERE id = ?;";
+            $rc = $this->dbhm->preExec($sql,
                 [
                     $this->msg->getID()
                 ]);
@@ -90,6 +91,8 @@ class MailRouter
                         $rollback = false;
                     }
                 }
+            } else {
+                error_log("Failed to mark spam $sql");
             }
 
             if ($rollback) {
@@ -129,6 +132,8 @@ class MailRouter
                         $rollback = false;
                     }
                 }
+            } else {
+                error_log("Failed to mark approved $sql");
             }
 
             if ($rollback) {
@@ -196,6 +201,8 @@ class MailRouter
                 $ret = MailRouter::FAILURE;
             }
         }
+
+        error_log("Route " . $this->msg->getSubject() . " " . $ret);
 
         return($ret);
     }

@@ -17,7 +17,15 @@ class SpamIP {
         $ip = $ip ? $ip : $msg->getHeader('x-originating-ip');
         $ip = $ip ? $ip : $msg->getHeader('x-yahoo-post-ip');
 
+        if (preg_match('/mta.*groups\.mail.*yahoo\.com/', $ip)) {
+            # Posts submitted by email to Yahoo show up with an X-Originating-IP of one of Yahoo's MTAs.  We don't
+            # want to consider those as spammers.
+            $ip = NULL;
+        }
+
         if ($ip) {
+            $ip = str_replace('[', '', $ip);
+            $ip = str_replace(']', '', $ip);
             $msg->setFromIP($ip);
 
             # We have an IP, we reckon.  It's unlikely that someone would fake an IP which gave a spammer match, so
