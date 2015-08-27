@@ -155,7 +155,7 @@ class spamc
         switch ($this->command) {
             case 'CHECK':
                 $this->_parseHeader($line);
-                error_log("Result $line " . var_export($this->result, true));
+                #error_log("Result $line " . var_export($this->result, true));
                 if (!array_key_exists('RESPONSE_CODE', $this->result) || $this->result['RESPONSE_CODE'] > 0) {
                     // there was an error. Report and return.
                     return false;

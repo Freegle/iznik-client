@@ -19,14 +19,6 @@ class MailRouter
     private $spam;
 
     /**
-     * @param mixed $spam
-     */
-    public function setSpam($spam)
-    {
-        $this->spam = $spam;
-    }
-
-    /**
      * @param mixed $spamc
      */
     public function setSpamc($spamc)
@@ -42,17 +34,9 @@ class MailRouter
         $this->msg = $msg;
     }
 
-    /**
-     * @return Spam
-     */
-    public function getSpam()
-    {
-        return $this->spam;
-    }
-
     const FAILURE = "Failure";
     const INCOMING_SPAM = "IncomingSpam";
-    const TO_GROUP = "ToGroup";
+    const APPROVED = "Approved";
     const TO_USER = "ToUser";
 
     function __construct($dbhr, $dbhm, $id = NULL)
@@ -182,7 +166,7 @@ class MailRouter
                 'group' => $this->msg->getGroupID()
             ]);
 
-            #$this->markAsSpam("Spam check failed: {$rc[1]}");
+            $this->markAsSpam("Spam check failed: {$rc[1]}");
 
             $ret = MailRouter::INCOMING_SPAM;
         } else {
@@ -211,7 +195,7 @@ class MailRouter
                 } else {
                     # Not obviously spam.
                     if ($this->markApproved()) {
-                        $ret = MailRouter::TO_GROUP;
+                        $ret = MailRouter::APPROVED;
                     } else {
                         $this->msg->recordFailure('Failed to mark approved');
                         $ret = MailRouter::FAILURE;

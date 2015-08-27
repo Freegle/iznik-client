@@ -54,13 +54,13 @@ class MailRouterTest extends IznikTest {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::TO_GROUP, $rc);
+        assertEquals(MailRouter::APPROVED, $rc);
 
         $msg = file_get_contents('msgs/fromyahoo');
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::TO_GROUP, $rc);
+        assertEquals(MailRouter::APPROVED, $rc);
 
         error_log(__METHOD__ . " end");
     }
@@ -125,7 +125,7 @@ class MailRouterTest extends IznikTest {
 
         $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::TO_GROUP, $rc);
+        assertEquals(MailRouter::APPROVED, $rc);
 
         error_log(__METHOD__ . " end");
     }
@@ -181,7 +181,7 @@ class MailRouterTest extends IznikTest {
             $rc = $r->route();
 
             if ($i < Spam::USER_THRESHOLD) {
-                assertEquals(MailRouter::TO_GROUP, $rc);
+                assertEquals(MailRouter::APPROVED, $rc);
             } else {
                 assertEquals(MailRouter::INCOMING_SPAM, $rc);
             }
@@ -208,7 +208,7 @@ class MailRouterTest extends IznikTest {
             $rc = $r->route();
 
             if ($i < Spam::GROUP_THRESHOLD) {
-                assertEquals(MailRouter::TO_GROUP, $rc);
+                assertEquals(MailRouter::APPROVED, $rc);
             } else {
                 assertEquals(MailRouter::INCOMING_SPAM, $rc);
             }
