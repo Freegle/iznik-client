@@ -13,7 +13,15 @@ class SpamMessage
     private $dbhm;
     private $id;
     private $source, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto,
-        $messageid, $parser, $groupid, $fromip, $fromhost;
+        $messageid, $parser, $groupid, $fromip, $fromhost, $reason;
+
+    /**
+     * @return mixed
+     */
+    public function getReason()
+    {
+        return $this->reason;
+    }
 
     /**
      * @return mixed
@@ -99,7 +107,7 @@ class SpamMessage
             foreach ($msgs as $msg) {
                 foreach (['message', 'source', 'envelopefrom', 'fromname', 'fromaddr',
                              'envelopeto', 'subject', 'textbody', 'htmlbody', 'subject',
-                             'messageid', 'groupid', 'fromip', 'fromname'] as $attr) {
+                             'messageid', 'groupid', 'fromip', 'fromname', 'reason'] as $attr) {
                     if (pres($attr, $msg)) {
                         $this->$attr = $msg[$attr];
                     }
