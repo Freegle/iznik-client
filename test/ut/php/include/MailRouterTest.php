@@ -5,6 +5,7 @@ if (!defined('UT_DIR')) {
 }
 require_once UT_DIR . '/IznikTest.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
+require_once IZNIK_BASE . '/include/message/SpamMessage.php';
 
 /**
  * @backupGlobals disabled
@@ -41,8 +42,32 @@ class MailRouterTest extends IznikTest {
         $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $id = $m->save();
 
+        $m = new IncomingMessage($this->dbhr, $this->dbhm, $id);
+        assertEquals(IncomingMessage::YAHOO_APPROVED, $m->getSource());
+
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
-        $r->route();
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+
+        assertNull(SpamMessage::findByIncomingId($this->dbhr, -1));
+        $spamid = SpamMessage::findByIncomingId($this->dbhr, $id);
+        $spam = new SpamMessage($this->dbhr, $this->dbhm, $spamid);
+        assertEquals('sender@example.net', $spam->getFromaddr());
+        assertNull($spam->getFromIP());
+        assertNull($spam->getFromhost());
+        assertNull($spam->getGroupID());
+        assertEquals($spamid, $spam->getID());
+        assertEquals('GTUBE1.1010101@example.net', $spam->getMessageID());
+        assertEquals($msg, $spam->getMessage());
+        assertEquals(IncomingMessage::YAHOO_APPROVED, $spam->getSource());
+        assertEquals('from@test.com', $spam->getEnvelopefrom());
+        assertEquals('to@test.com', $spam->getEnvelopeto());
+        assertNotNull($spam->getTextbody());
+        assertNull($spam->getHtmlbody());
+        assertEquals($spam->getSubject(), $spam->getHeader('subject'));
+        assertEquals('recipient@example.net', $spam->getTo()[0]['address']);
+        assertEquals('Sender', $spam->getFromname());
+        $spam->delete();
 
         error_log(__METHOD__ . " end");
     }
@@ -82,7 +107,7 @@ class MailRouterTest extends IznikTest {
         # This should have stored the IP in the message.
         error_log("Message ID $id");
         $m = new IncomingMessage($this->dbhm, $this->dbhm, $id);
-        assertEquals('41.205.16.153', $m->getFromIP());
+        assertNull($m->getFromIP());
 
         error_log(__METHOD__ . " end");
     }

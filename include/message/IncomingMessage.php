@@ -25,6 +25,14 @@ class IncomingMessage
     }
 
     /**
+     * @return mixed
+     */
+    public function getSource()
+    {
+        return $this->source;
+    }
+
+    /**
      * @param mixed $fromip
      */
     public function setFromIP($fromip)

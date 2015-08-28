@@ -35,7 +35,6 @@ class Spam {
             $msg->setFromIP($ip);
 
             $host = $msg->getFromhost();
-            error_log("$ip has host $host");
             if (preg_match('/mail.*yahoo\.com/', $host)) {
                 # Posts submitted by email to Yahoo show up with an X-Originating-IP of one of Yahoo's MTAs.  We don't
                 # want to consider those as spammers.
@@ -60,7 +59,7 @@ class Spam {
             $countries = $this->dbhr->preQuery("SELECT * FROM spam_countries WHERE country LIKE ?;", [$country]);
             foreach ($countries as $country) {
                 # Gotcha.
-                return(array(true, "Blocking all mails from {$country['country']}"));
+                return(array(true, "Blocking $ip as is in {$country['country']}"));
             }
 
             # Now see if this IP has been used for too many different users.  That is likely to

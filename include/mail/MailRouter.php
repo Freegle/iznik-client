@@ -58,7 +58,7 @@ class MailRouter
         # We parse it and save it to the DB.  Then it will get picked up by background
         # processing.
         $this->msg->parse($source, $from, $to, $msg);
-        $this->msg->save();
+        return($this->msg->save());
     }
 
     private function markAsSpam($reason) {
@@ -71,10 +71,10 @@ class MailRouter
             $rollback = true;
 
             # Copy the relevant fields in the row to the table, and add the reason.
-            $sql = "INSERT INTO messages_spam (arrival, source, message,
+            $sql = "INSERT INTO messages_spam (incomingid, arrival, `source`, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       textbody, htmlbody, fromip, reason)
-                      SELECT arrival, source, message,
+                      SELECT id, arrival, `source`, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       textbody, htmlbody, fromip, " . $this->dbhm->quote($reason) .
                 " AS reason FROM messages_incoming WHERE id = ?;";
@@ -151,8 +151,6 @@ class MailRouter
         if ($msg) {
             $this->msg = $msg;
         }
-
-        error_log("Route " . $this->msg->getSubject());
 
         # First check if this message is spam based on our own checks.
         $rc = $this->spam->check($this->msg);
