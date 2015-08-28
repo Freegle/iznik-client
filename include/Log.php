@@ -12,6 +12,7 @@ class Log
 
     # Log types must match the enumeration in the logs table.
     const TYPE_GROUP = 'Group';
+    const TYPE_USER = 'User';
     const TYPE_MESSAGE = 'Message';
 
     const SUBTYPE_CREATED = 'Created';

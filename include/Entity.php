@@ -35,6 +35,8 @@ class Entity
         foreach ($list as $att) {
             if (pres($att, $this->{$this->name})) {
                 $ret[$att] = $this->{$this->name}[$att];
+            } else {
+                $ret[$att] = NULL;
             }
         }
 
