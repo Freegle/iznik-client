@@ -297,7 +297,8 @@ class IncomingMessage
                 'type' => Log::TYPE_MESSAGE,
                 'subtype' => Log::SUBTYPE_RECEIVED,
                 'message_incoming' => $id,
-                'text' => $this->messageid
+                'text' => $this->messageid,
+                'group' => $this->groupid
             ]);
         }
 
