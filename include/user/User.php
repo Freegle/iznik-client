@@ -13,6 +13,11 @@ class User extends Entity
     const ROLE_SUPPORT = 'Support';
     const ROLE_ADMIN = 'Admin';
 
+    const LOGIN_YAHOO = 'Yahoo';
+    const LOGIN_FACEBOOK = 'Facebook';
+    const LOGIN_GOOGLE = 'Google';
+    const LOGIN_NATIVE = 'Native';
+
     /** @var  $log Log */
     private $log;
     var $user;
@@ -93,6 +98,48 @@ class User extends Entity
         } catch (DBException $e) {
             return(false);
         }
+    }
+
+    public function removeEmail($email)
+    {
+        $rc = $this->dbhm->preExec("DELETE FROM users_emails WHERE userid = ? AND email LIKE ?;",
+            [$this->id, $email]);
+        return($rc);
+    }
+
+    public function getLogins() {
+        $emails = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ?;",
+            [$this->id]);
+        return($emails);
+    }
+
+    public function findByLogin($type, $uid) {
+        $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE uid = ? AND type = ?;",
+            [ $uid, $type]);
+        foreach ($logins as $login) {
+            return($login['userid']);
+        }
+
+        return(NULL);
+    }
+
+    public function addLogin($type, $uid)
+    {
+        # If the login with this type already exists in the table, the insert will fail.
+        try {
+            $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, uid, type) VALUES (?, ?, ?)",
+                [$this->id, $uid, $type]);
+            return($rc);
+        } catch (DBException $e) {
+            return(false);
+        }
+    }
+
+    public function removeLogin($type, $uid)
+    {
+        $rc = $this->dbhm->preExec("DELETE FROM users_logins WHERE userid = ? AND type = ? AND uid LIKE ?;",
+            [$this->id, $type, $uid]);
+        return($rc);
     }
 
     public function delete() {

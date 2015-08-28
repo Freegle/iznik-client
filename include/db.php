@@ -122,6 +122,8 @@ class LoggedPDO {
                         $duration = microtime(true) - $start;
                         $this->maybeLog($sql, NULL, $duration);
                     }
+                } else {
+                    $msg = "Operation returned nothing";
                 }
 
                 $try++;

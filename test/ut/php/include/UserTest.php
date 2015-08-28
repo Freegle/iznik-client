@@ -20,7 +20,8 @@ class userTest extends IznikTest {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_emails WHERE email = 'test@test.com');");
+        $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_emails WHERE email IN ('test@test.com', 'test2@test.com'));");
+        $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_logins WHERE uid IN ('testid', '1234'));");
     }
 
     protected function tearDown() {
@@ -57,23 +58,6 @@ class userTest extends IznikTest {
         error_log(__METHOD__ . " end");
     }
 
-    public function testErrors() {
-        error_log(__METHOD__);
-
-        $mock = $this->getMockBuilder('LoggedPDO')
-            ->disableOriginalConstructor()
-            ->setMethods(array('preExec'))
-            ->getMock();
-        $mock->method('preExec')->willThrowException(new Exception());
-        $u = new User($this->dbhr, $this->dbhm);
-        $u->setDbhm($mock);
-        $id = $u->create(NULL, NULL, 'Test User');
-        assertNull($id);
-
-        error_log(__METHOD__ . " end");
-    }
-
-
     public function testEmails() {
         error_log(__METHOD__);
 
@@ -92,8 +76,65 @@ class userTest extends IznikTest {
         # Add it again - should fail
         assertEquals(0, $u->addEmail('test@test.com'));
 
+        # Add a second
+        assertGreaterThan(0, $u->addEmail('test2@test.com'));
+        $emails = $u->getEmails();
+        assertEquals(2, count($emails));
+        assertEquals($id, $u->findByEmail('test2@test.com'));
+        assertGreaterThan(0, $u->removeEmail('test2@test.com'));
+        assertNull($u->findByEmail('test2@test.com'));
+
         assertEquals($id, $u->findByEmail('test@test.com'));
         assertNull($u->findByEmail('testinvalid@test.com'));
+
+        error_log(__METHOD__ . " end");
+    }
+    public function testLogins() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        assertEquals(0, count($u->getEmails()));
+
+        # Add a login - should work.
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_YAHOO, 'testid'));
+
+        # Check it's there
+        $logins = $u->getLogins();
+        assertEquals(1, count($logins));
+        assertEquals('testid', $logins[0]['uid']);
+
+        # Add it again - should fail
+        assertEquals(0, $u->addLogin(User::LOGIN_YAHOO, 'testid'));
+
+        # Add a second
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, '1234'));
+        $logins = $u->getLogins();
+        assertEquals(2, count($logins));
+        assertEquals($id, $u->findByLogin(User::LOGIN_FACEBOOK, '1234'));
+        assertNull($u->findByLogin(User::LOGIN_YAHOO, '1234'));
+        assertNull($u->findByLogin(User::LOGIN_FACEBOOK, 'testid'));
+        assertGreaterThan(0, $u->removeLogin(User::LOGIN_FACEBOOK, '1234'));
+        assertNull($u->findByLogin(User::LOGIN_FACEBOOK, '1234'));
+
+        assertEquals($id, $u->findByLogin(User::LOGIN_YAHOO, 'testid'));
+        assertNull($u->findByLogin(User::LOGIN_YAHOO, 'testinvalid'));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testErrors() {
+        error_log(__METHOD__);
+
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->disableOriginalConstructor()
+            ->setMethods(array('preExec'))
+            ->getMock();
+        $mock->method('preExec')->willThrowException(new Exception());
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->setDbhm($mock);
+        $id = $u->create(NULL, NULL, 'Test User');
+        assertNull($id);
 
         error_log(__METHOD__ . " end");
     }

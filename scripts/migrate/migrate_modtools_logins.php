@@ -14,21 +14,16 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$g = new Group($dbhr, $dbhm);
+$u = new User($dbhr, $dbhm);
 
-$oldgroups = $dbhold->query("SELECT * FROM groups WHERE groupname != '';");
-foreach ($oldgroups as $group) {
-    $type = Group::GROUP_OTHER;
+$mods = $dbhold->query("SELECT * FROM moderators;");
+foreach ($mods as $mod) {
+    $id = $u->findByEmail($mod['email']);
 
-    if (intval($group['freeglegroupid'])) {
-        $type = Group::GROUP_FREEGLE;
-    } else if (intval($group['reusegroup'])) {
-        $type = Group::GROUP_REUSE;
+    if (!$id) {
+        $id = $u->create(NULL, NULL, $mod['name']);
+        $u->addEmail($mod['email']);
+        $u->addLogin(User::LOGIN_YAHOO, $mod['yahooid']);
     }
-
-    $g->create(
-        $group['groupname'],
-        $type
-    );
 }
 
