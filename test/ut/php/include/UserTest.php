@@ -19,6 +19,8 @@ class userTest extends IznikTest {
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+
+        $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_emails WHERE email = 'test@test.com');");
     }
 
     protected function tearDown() {
@@ -67,6 +69,31 @@ class userTest extends IznikTest {
         $u->setDbhm($mock);
         $id = $u->create(NULL, NULL, 'Test User');
         assertNull($id);
+
+        error_log(__METHOD__ . " end");
+    }
+
+
+    public function testEmails() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        assertEquals(0, count($u->getEmails()));
+
+        # Add an email - should work.
+        assertGreaterThan(0, $u->addEmail('test@test.com'));
+
+        # Check it's there
+        $emails = $u->getEmails();
+        assertEquals(1, count($emails));
+        assertEquals('test@test.com', $emails[0]['email']);
+
+        # Add it again - should fail
+        assertEquals(0, $u->addEmail('test@test.com'));
+
+        assertEquals($id, $u->findByEmail('test@test.com'));
+        assertNull($u->findByEmail('testinvalid@test.com'));
 
         error_log(__METHOD__ . " end");
     }

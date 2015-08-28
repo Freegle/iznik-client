@@ -15,6 +15,7 @@ class User extends Entity
 
     /** @var  $log Log */
     private $log;
+    var $user;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -63,6 +64,34 @@ class User extends Entity
             return($id);
         } else {
             return(NULL);
+        }
+    }
+
+    public function getEmails() {
+        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE userid = ?;",
+            [$this->id]);
+        return($emails);
+    }
+
+    public function findByEmail($email) {
+        $users = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;",
+            [ $email ]);
+        foreach ($users as $user) {
+            return($user['userid']);
+        }
+
+        return(NULL);
+    }
+
+    public function addEmail($email)
+    {
+        # If the email already exists in the table, the insert will fail.
+        try {
+            $rc = $this->dbhm->preExec("INSERT INTO users_emails (userid, email) VALUES (?, ?)",
+                [$this->id, $email]);
+            return($rc);
+        } catch (DBException $e) {
+            return(false);
         }
     }
 
