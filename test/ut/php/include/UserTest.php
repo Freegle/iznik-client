@@ -77,9 +77,10 @@ class userTest extends IznikTest {
         assertEquals(0, $u->addEmail('test@test.com'));
 
         # Add a second
-        assertGreaterThan(0, $u->addEmail('test2@test.com'));
+        assertGreaterThan(0, $u->addEmail('test2@test.com', 0));
         $emails = $u->getEmails();
         assertEquals(2, count($emails));
+        assertEquals(0, $emails[1]['primary']);
         assertEquals($id, $u->findByEmail('test2@test.com'));
         assertGreaterThan(0, $u->removeEmail('test2@test.com'));
         assertNull($u->findByEmail('test2@test.com'));

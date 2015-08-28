@@ -57,7 +57,6 @@ class User extends Entity
         }
 
         if ($rc && $id) {
-            error_log("Fetch created $id");
             $this->fetch($this->dbhr, $this->dbhm, $id, 'users', 'user', $this->publicatts);
             $this->log->log([
                 'type' => Log::TYPE_USER,
@@ -88,12 +87,12 @@ class User extends Entity
         return(NULL);
     }
 
-    public function addEmail($email)
+    public function addEmail($email, $primary = 1)
     {
         # If the email already exists in the table, the insert will fail.
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO users_emails (userid, email) VALUES (?, ?)",
-                [$this->id, $email]);
+            $rc = $this->dbhm->preExec("INSERT INTO users_emails (userid, email, `primary`) VALUES (?, ?, ?)",
+                [$this->id, $email, $primary]);
             return($rc);
         } catch (DBException $e) {
             return(false);

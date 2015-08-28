@@ -123,7 +123,7 @@ class LoggedPDO {
                         $this->maybeLog($sql, NULL, $duration);
                     }
                 } else {
-                    $msg = "Operation returned nothing";
+                    $msg = var_export($this->_db->errorInfo(), true);
                 }
 
                 $try++;
