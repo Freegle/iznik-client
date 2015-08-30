@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/message/IncomingMessage.php');
+require_once(IZNIK_BASE . '/include/message/PendingMessage.php');
 require_once(IZNIK_BASE . '/include/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
@@ -74,10 +75,10 @@ class MailRouter
             # Copy the relevant fields in the row to the table, and add the reason.
             $sql = "INSERT INTO messages_spam (incomingid, arrival, `source`, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                      textbody, htmlbody, fromip, reason)
+                      tnpostid, textbody, htmlbody, fromip, reason)
                       SELECT id, arrival, `source`, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                      textbody, htmlbody, fromip, " . $this->dbhm->quote($reason) .
+                      tnpostid, textbody, htmlbody, fromip, " . $this->dbhm->quote($reason) .
                 " AS reason FROM messages_incoming WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql,
                 [
@@ -106,6 +107,13 @@ class MailRouter
     }
 
     private function markApproved() {
+        # A message we are marking as approved may previously have been in our pending queue.  This can happen if a
+        # message is handled on another system, e.g. moderated directly on Yahoo.
+        #
+        # We don't need a transaction for this part.
+        $p = new PendingMessage($this->dbhm, $this->dbhm);
+        $p->removeApprovedMessage($this->msg);
+
         # Move into the approved queue.  Use a transaction to avoid leaving rows lying around if we fail partway
         # through.
         $rc = $this->dbhm->beginTransaction();
@@ -117,10 +125,10 @@ class MailRouter
             # Copy the relevant fields in the row to the table, and add the reason.
             $sql = "INSERT INTO messages_approved (incomingid, arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                      textbody, htmlbody, fromip)
+                      tnpostid, textbody, htmlbody, fromip)
                       SELECT id, arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                      textbody, htmlbody, fromip FROM messages_incoming WHERE id = ?;";
+                      tnpostid, textbody, htmlbody, fromip FROM messages_incoming WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $this->msg->getID() ]);
 
             if ($rc) {
@@ -155,12 +163,13 @@ class MailRouter
             $rollback = true;
 
             # Copy the relevant fields in the row to the table, and add the reason.
+            error_log("Copy incoming ID to pending " . $this->msg->getID());
             $sql = "INSERT INTO messages_pending (incomingid, arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                      textbody, htmlbody, fromip)
+                      tnpostid, textbody, htmlbody, fromip)
                       SELECT id, arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                      textbody, htmlbody, fromip FROM messages_incoming WHERE id = ?;";
+                      tnpostid, textbody, htmlbody, fromip FROM messages_incoming WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $this->msg->getID() ]);
 
             if ($rc) {

@@ -3,6 +3,7 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/message/IncomingMessage.php');
 
 # This class represents a pending message, i.e. one we have put into the messages_pending table.
 class PendingMessage
@@ -167,6 +168,32 @@ class PendingMessage
 
     public function getTo() {
         return(mailparse_rfc822_parse_addresses($this->parser->getHeader('to')));
+    }
+
+    public function removeApprovedMessage(IncomingMessage $msg) {
+        # Try to find by message id.
+        $msgid = $msg->getMessageID();
+        if ($msgid) {
+            $sql = "SELECT id FROM messages_pending WHERE messageid LIKE ?;";
+            error_log("Check messageid $sql $msgid");
+            $pendings = $this->dbhr->preQuery($sql, [$msgid]);
+
+            foreach ($pendings as $pending) {
+                $this->dbhm->preExec("DELETE FROM messages_pending WHERE id = ?;", [$pending['id']]);
+            }
+        }
+
+        # Try to find by TN post id - TN doesn't put a messageid in.
+        # TODO It would be nice to remove this.
+        $tnpostid = $msg->getTnpostid();
+        if ($tnpostid) {
+            $sql = "SELECT id FROM messages_pending WHERE tnpostid LIKE ?;";
+            $pendings = $this->dbhr->preQuery($sql,[$tnpostid]);
+
+            foreach ($pendings as $pending) {
+                $this->dbhm->preExec("DELETE FROM messages_pending WHERE id = ?;", [$pending['id']]);
+            }
+        }
     }
 
     function delete()

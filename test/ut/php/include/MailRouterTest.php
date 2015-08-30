@@ -111,6 +111,51 @@ class MailRouterTest extends IznikTest {
         error_log(__METHOD__ . " end");
     }
 
+
+    function testPendingToApproved() {
+        error_log(__METHOD__);
+
+        $msg = file_get_contents('msgs/basic');
+        $m = new IncomingMessage($this->dbhr, $this->dbhm);
+        $m->parse(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
+
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+        assertNotNull(new PendingMessage($this->dbhr, $this->dbhm, $id));
+        error_log("Pending id $id");
+
+        $msg = file_get_contents('msgs/basic');
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        assertNull((new PendingMessage($this->dbhr, $this->dbhm, $id))->getMessage());
+
+        # Now the same, but with a TN post which has no messageid.
+        error_log("Now TN post");
+        $msg = file_get_contents('msgs/tn');
+        $m = new IncomingMessage($this->dbhr, $this->dbhm);
+        $m->parse(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        assertEquals('20065945', $m->getTnpostid());
+        $id = $m->save();
+
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+        assertNotNull(new PendingMessage($this->dbhr, $this->dbhm, $id));
+        error_log("Pending id $id");
+
+        $msg = file_get_contents('msgs/tn');
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        assertNull((new PendingMessage($this->dbhr, $this->dbhm, $id))->getMessage());
+
+        error_log(__METHOD__ . " end");
+    }
     public function testHam() {
         error_log(__METHOD__);
 
