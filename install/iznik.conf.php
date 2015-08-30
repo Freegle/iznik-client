@@ -7,3 +7,7 @@ define('SQLPASSWORD', 'zzzz');
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');
 
+define('SITE_NAME', 'Iznik');
+define('SITE_DESC', 'Making moderating easier');
+
+

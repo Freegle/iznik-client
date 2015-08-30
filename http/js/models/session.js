@@ -1,0 +1,133 @@
+Iznik.Models.Session = IznikModel.extend({
+
+    initialize: function() {
+        var self = this;
+    },
+
+    testLoggedIn: function() {
+        var self = this;
+
+        $.ajax({
+            url: API + 'getsettings.php',
+            success: function(ret) {
+                if ((ret.ret ==0) && (ret.hasOwnProperty('personal'))) {
+                    //console.log("Logged in");
+                    self.set('session', ret);
+                    self.trigger('isLoggedIn', true);
+                } else {
+                    //console.log("Not logged in");
+                    self.trigger('isLoggedIn', false);
+                }
+            },
+            error: function() {
+                console.log("Get settings failed");
+                self.trigger('isLoggedIn', false);
+            }
+        })
+    },
+
+    forceLogin: function() {
+        var self = this;
+
+        self.listenToOnce(self, 'isLoggedIn', function(loggedin) {
+            //console.log("Are we logged in?", loggedin);
+            if (loggedin) {
+                // We are already logged in.  Inform the view that asked.
+                Iznik.Session.trigger('loggedIn');
+            } else {
+                // We're not logged in - make it happen.
+                var sign = new Iznik.Views.SignInUp();
+                sign.render();
+            }
+        });
+
+        self.testLoggedIn();
+    },
+
+    facebookLogin: function(){
+        var self = this;
+        //console.log("Do facebook login");
+        $.ajax({
+            url: API + 'session_login.php',
+            type: 'POST',
+            data: {
+                fblogin: true
+            },
+            success: function(response){
+                if(response.ret === 0){
+                    //We fire 2 separate calls, one to tell the CurrentUser that the user has just logged in.
+                    //another to tell anyone listening that the user is logged in (In case we were testing).
+                    self.trigger('facebookLoggedIn', response);
+                    self.trigger('loggedIn', response);
+                } else {
+                    var v = new Iznik.Views.CookieError();
+                    self.listenTo(v, 'modalClosed', function() {
+                        self.trigger('loginFailed', response);
+                    });
+                    v.render();
+                }
+            }
+        });
+    },
+
+    yahooLogin: function() {
+        console.log("Login with Yahoo");
+        var self = this;
+
+        var match,
+            pl     = /\+/g,  // Regex for replacing addition symbol with a space
+            search = /([^&=]+)=?([^&]*)/g,
+            decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+            query  = window.location.search.substring(1);
+
+        // We want to post to the server to do the login there.  We pass all the URL
+        // parameters we have, which include the OpenID response.
+        urlParams = {};
+        while (match = search.exec(query))
+            urlParams[decode(match[1])] = decode(match[2]);
+        console.log("Got URL params", urlParams);
+        urlParams['yahoologin'] = true;
+        urlParams['returnto'] = document.URL;
+
+        $.ajax({
+            url: API + 'session_login.php',
+            type: 'POST',
+            data: urlParams,
+            success: function(response){
+                if(response.ret === 0){
+                    //We fire 2 separate calls, one to tell the CurrentUser that the user has just logged in.
+                    //another to tell anyone listening that the user is logged in (In case we were testing).
+                    self.trigger('yahoologincomplete', response);
+                    self.trigger('loggedIn', response);
+                } else {
+                    self.trigger('yahoologincomplete', response);
+                    self.trigger('loginFailed', response);
+                }
+            }
+        });
+    },
+
+    catsForGroup: function(groupid) {
+        var all = [1,2,3,4,5,6,7,8,9,10,11];
+        if (this.get('myGroups')) {
+            var ret = all;
+            this.get('myGroups').each(function(group) {
+                //console.log("Compare ", groupid, group.get('groupid'), group.get('categories'));
+                if (group.get('groupid') == groupid) {
+                    // We have a list of categories if we have a list, and the list isn't all of them (there are 11).
+                    ret = group.get('categories') && group.get('categories').length > 0  && group.get('categories').split(',').length < all.length ? group.get('categories').split(',') : all;
+                    //console.log("catsForGroup, found", groupid, ret, group);
+                }
+            });
+
+            //console.log("return cats", ret);
+            return(ret);
+        }
+
+        //console.log("catsForGroup", groupid, null);
+
+        return(all);
+    }
+});
+
+Iznik.Session = new Iznik.Models.Session();
