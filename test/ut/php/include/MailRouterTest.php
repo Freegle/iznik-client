@@ -88,6 +88,12 @@ class MailRouterTest extends IznikTest {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
+        $msg = file_get_contents('msgs/basic');
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->received(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
         error_log(__METHOD__ . " end");
     }
 
@@ -171,6 +177,10 @@ class MailRouterTest extends IznikTest {
         $r->setMsg($mock);
 
         $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::FAILURE, $rc);
+
+        $r->received(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::FAILURE, $rc);
 

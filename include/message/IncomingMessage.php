@@ -14,7 +14,7 @@ class IncomingMessage
     private $dbhm;
     private $id;
     private $source, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto,
-        $messageid, $retrycount, $retrylastfailure, $parser, $groupid, $fromip, $fromhost;
+        $messageid, $tnpostid, $retrycount, $retrylastfailure, $parser, $groupid, $fromip, $fromhost;
 
     /**
      * @return mixed
@@ -109,6 +109,14 @@ class IncomingMessage
     /**
      * @return mixed
      */
+    public function getTnpostid()
+    {
+        return $this->tnpostid;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getEnvelopefrom()
     {
         return $this->envelopefrom;
@@ -134,7 +142,7 @@ class IncomingMessage
             foreach ($msgs as $msg) {
                 foreach (['message', 'source', 'envelopefrom', 'fromname', 'fromaddr',
                         'envelopeto', 'subject', 'textbody', 'htmlbody', 'subject',
-                         'messageid','retrycount', 'retrylastfailure', 'groupid', 'fromip', 'fromname'] as $attr) {
+                         'messageid', 'tnpostid', 'retrycount', 'retrylastfailure', 'groupid', 'fromip', 'fromname'] as $attr) {
                     if (pres($attr, $msg)) {
                         $this->$attr = $msg[$attr];
                     }
@@ -241,6 +249,7 @@ class IncomingMessage
         $this->messageid = $Parser->getHeader('message-id');
         $this->messageid = str_replace('<', '', $this->messageid);
         $this->messageid = str_replace('>', '', $this->messageid);
+        $this->tnpostid = $Parser->getHeader('x-trash-nothing-post-id');
 
         $this->textbody = $Parser->getMessageBody('text');
         $this->htmlbody = $Parser->getMessageBody('html');
@@ -272,7 +281,7 @@ class IncomingMessage
     # Save a parsed message to the DB
     public function save() {
         # Save into the incoming messages table.
-        $sql = "INSERT INTO messages_incoming (groupid, source, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, textbody, htmlbody) VALUES(?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages_incoming (groupid, source, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody) VALUES(?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->groupid,
             $this->source,
@@ -283,6 +292,7 @@ class IncomingMessage
             $this->fromaddr,
             $this->subject,
             $this->messageid,
+            $this->tnpostid,
             $this->textbody,
             $this->htmlbody
         ]);

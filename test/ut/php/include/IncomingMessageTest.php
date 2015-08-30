@@ -120,5 +120,22 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testTN() {
+        error_log(__METHOD__);
+
+        $msg = file_get_contents('msgs/tn');
+        $m = new IncomingMessage($this->dbhr, $this->dbhm);
+        $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertEquals('20065945', $m->getTnpostid());
+
+        # Save it
+        $id = $m->save();
+        assertNotNull($id);
+
+        $m->delete();
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

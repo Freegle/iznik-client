@@ -37,6 +37,7 @@ class MailRouter
     const FAILURE = "Failure";
     const INCOMING_SPAM = "IncomingSpam";
     const APPROVED = "Approved";
+    const PENDING = 'Pending';
     const TO_USER = "ToUser";
 
     function __construct($dbhr, $dbhm, $id = NULL)
@@ -143,6 +144,46 @@ class MailRouter
         return($ret);
     }
 
+
+    private function markPending() {
+        # Move into the pending queue.  Use a transaction to avoid leaving rows lying around if we fail partway
+        # through.
+        $rc = $this->dbhm->beginTransaction();
+        $ret = true;
+
+        if ($rc) {
+            $rollback = true;
+
+            # Copy the relevant fields in the row to the table, and add the reason.
+            $sql = "INSERT INTO messages_pending (arrival, source, message,
+                      envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
+                      textbody, htmlbody, fromip)
+                      SELECT arrival, source, message,
+                      envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
+                      textbody, htmlbody, fromip FROM messages_incoming WHERE id = ?;";
+            $rc = $this->dbhm->preExec($sql, [ $this->msg->getID() ]);
+
+            if ($rc) {
+                $rc = $this->msg->delete();
+
+                if ($rc) {
+                    $rc = $this->dbhm->commit();
+
+                    if ($rc) {
+                        $rollback = false;
+                    }
+                }
+            }
+
+            if ($rollback) {
+                $this->dbhm->rollBack();
+                $ret = false;
+            }
+        }
+
+        return($ret);
+    }
+
     public function route($msg = NULL) {
         # We route messages to one of the following destinations:
         # - to a group
@@ -192,11 +233,16 @@ class MailRouter
                     }
                 } else {
                     # Not obviously spam.
-                    if ($this->markApproved()) {
+                    #
+                    # For now move all pending messages into the pending queue.  This will change when we know the
+                    # moderation status of the member and the group settings.
+                    # TODO
+                    $ret = MailRouter::FAILURE;
+                    if ($this->msg->getSource() == IncomingMessage::YAHOO_PENDING &&
+                        $this->markPending()) {
+                        $ret = MailRouter::PENDING;
+                    } else if ($this->markApproved()) {
                         $ret = MailRouter::APPROVED;
-                    } else {
-                        $this->msg->recordFailure('Failed to mark approved');
-                        $ret = MailRouter::FAILURE;
                     }
                 }
             } else {
