@@ -48,7 +48,8 @@ require_once(BASE_DIR . '/include/template.php');
 
     <?php
     # Pull in all our JS.
-    scriptInclude();
+    $ret = scriptInclude(MINIFY ? (function($str) { return(JSMin::minify($str)); }) : FALSE);
+    echo implode("\n", $ret[1]);
 
     # Pull in all the templates as script tags for later expansion.
     # TODO Could cache these rather than return inline?

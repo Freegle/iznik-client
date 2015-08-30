@@ -1,6 +1,7 @@
 <?php
 
-function scriptInclude()
+# We take the minify function as a parameter to ease UT.
+function scriptInclude($minify)
 {
     $jsfiles = array(
         "js/lib/jquery-1.11.3.js",
@@ -51,15 +52,16 @@ function scriptInclude()
         "js/iznik/router.js"
     );
 
+    $ret = [];
     # This one split out because of weird document.write stuff
-    echo '<script src="/js/lib/binaryajax.js"></script>' . "\n";
+    $ret[] = '<script src="/js/lib/binaryajax.js"></script>' . "\n";
+    $cachefile = NULL;
 
-    if (!MINIFY) {
+    if (!$minify) {
         # Just output them as script tags.  Add a timestamp so that if we change the file, the client will reload.
         foreach ($jsfiles as $jsfile) {
-            $thisone = file_get_contents(BASE_DIR . "/http/$jsfile");
-            echo "<script>$thisone</script>\n";
-            #echo '<script src="/' . $jsfile . '?t=' . date("YmdHis", filemtime(BASE_DIR . "/http/$jsfile")) . '"></script>' . "\n";
+            $thisone = file_get_contents(IZNIK_BASE . "/http/$jsfile");
+            $ret[] = "<script>$thisone</script>\n";
         }
     }
     else
@@ -68,24 +70,22 @@ function scriptInclude()
         # so that if we change the script, we will regenerate it.
         $tosign = '';
         foreach ($jsfiles as $jsfile) {
-            $tosign .= date("YmdHis", filemtime(BASE_DIR . "/http/$jsfile")) . $jsfile;
+            $tosign .= date("YmdHis", filemtime(IZNIK_BASE . "/http/$jsfile")) . $jsfile;
         }
 
         $hash = md5($tosign);
-        $cachefile = BASE_DIR . "/http/jscache/$hash.js";
+        $cachefile = IZNIK_BASE . "/http/jscache/$hash.js";
 
         if (!file_exists($cachefile))
         {
             # We do not already have a minified version cached.
-            #error_log("Need to minify");
             # We need to generate a minified version.
-            require(BASE_DIR . "/include/JSMin.php");
-            mkdir(BASE_DIR . '/http/jscache/');
+            @mkdir(IZNIK_BASE . '/http/jscache/');
             $js = '';
             foreach ($jsfiles as $jsfile) {
-                $thisone = file_get_contents(BASE_DIR . "/http/$jsfile");
+                $thisone = file_get_contents(IZNIK_BASE . "/http/$jsfile");
                 try {
-                    $mind = JSMin::minify($thisone);
+                    $mind = $minify($thisone);
                     $js .= $mind;
                     error_log("Minified $jsfile from " . strlen($thisone) . " to " . strlen($mind));
                 } catch (Exception $e) {
@@ -98,8 +98,10 @@ function scriptInclude()
             file_put_contents($cachefile, $js);
         }
 
-        echo "<script type=\"text/javascript\" src=\"/jscache/$hash.js\"></script>";
+        $ret[] = "<script type=\"text/javascript\" src=\"/jscache/$hash.js\"></script>";
     }
+
+    return([$cachefile, $ret]);
 }
 
 ?>
