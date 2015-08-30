@@ -1,0 +1,105 @@
+<?php
+
+function scriptInclude()
+{
+    $jsfiles = array(
+        "js/lib/jquery-1.11.3.js",
+        "js/lib/jquery-migrate-1.2.1.js",
+        "js/lib/jquery-ui.js",
+        "js/lib/underscore.js",
+        "js/lib/moment.js",
+        "js/lib/combodate.js",
+        "js/lib/jquery-dateFormat.min.js",
+        "js/lib/exif.js",
+        "js/lib/jquery.ui.touch-punch.js",
+        "js/lib/backbone-1.1.2.js",
+        "js/lib/jquery.dotdotdot.min.js",
+        "js/lib/json2.js",
+        "js/lib/flowtype.js",
+        "js/lib/pushstream.js",
+        "js/lib/FormRepo.js",
+        "js/lib/canvasResize.js",
+        "js/lib/notify.js",
+        "js/lib/timeago.js",
+        "js/lib/jquery.validate.min.js",
+        "js/lib/jquery.validate.additional-methods.js",
+        "js/lib/jquery.geocomplete.min.js",
+        "js/lib/jquery.dd.min.js",
+        "js/lib/richMarker.js",
+        "js/lib/markerclusterer.min.js",
+        "js/lib/placeholders.min.js",
+        "js/lib/bootstrap-select.min.js",
+        "js/lib/bootstrap-switch.min.js",
+        "js/lib/bootstrap-datepicker.js",
+        "js/lib/sly.min.js",
+        "js/lib/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js",
+        "js/lib/bootstrap-datepicker.en-GB.js",
+        "js/lib/autosize.js",
+        "js/iznik/dateshim.js",
+        "js/iznik/zombies.js",
+        "js/iznik/underscore.js",
+        "js/iznik/main.js",
+        "js/iznik/utility.js",
+        "js/iznik/facebook.js",
+        "js/iznik/google.js",
+        "js/models/session.js",
+        "js/views/layout.js",
+        "js/views/modal.js",
+        "js/views/signinup.js",
+        "js/views/pages/pages.js",
+        "js/views/pages/landing.js",
+        "js/iznik/router.js"
+    );
+
+    # This one split out because of weird document.write stuff
+    echo '<script src="/js/lib/binaryajax.js"></script>' . "\n";
+
+    if (!MINIFY) {
+        # Just output them as script tags.  Add a timestamp so that if we change the file, the client will reload.
+        foreach ($jsfiles as $jsfile) {
+            $thisone = file_get_contents(BASE_DIR . "/http/$jsfile");
+            echo "<script>$thisone</script>\n";
+            #echo '<script src="/' . $jsfile . '?t=' . date("YmdHis", filemtime(BASE_DIR . "/http/$jsfile")) . '"></script>' . "\n";
+        }
+    }
+    else
+    {
+        # We combine the scripts into a single minified file.  We cache this based on an MD5 hash of the file modification times
+        # so that if we change the script, we will regenerate it.
+        $tosign = '';
+        foreach ($jsfiles as $jsfile) {
+            $tosign .= date("YmdHis", filemtime(BASE_DIR . "/http/$jsfile")) . $jsfile;
+        }
+
+        $hash = md5($tosign);
+        $cachefile = BASE_DIR . "/http/jscache/$hash.js";
+
+        if (!file_exists($cachefile))
+        {
+            # We do not already have a minified version cached.
+            #error_log("Need to minify");
+            # We need to generate a minified version.
+            require(BASE_DIR . "/include/JSMin.php");
+            mkdir(BASE_DIR . '/http/jscache/');
+            $js = '';
+            foreach ($jsfiles as $jsfile) {
+                $thisone = file_get_contents(BASE_DIR . "/http/$jsfile");
+                try {
+                    $mind = JSMin::minify($thisone);
+                    $js .= $mind;
+                    error_log("Minified $jsfile from " . strlen($thisone) . " to " . strlen($mind));
+                } catch (Exception $e) {
+                    error_log("Minify $jsfile len " . strlen($thisone) . " failed");
+                    $js .= $thisone;
+                }
+            }
+
+            error_log("Minifed len " . strlen($js));
+            file_put_contents($cachefile, $js);
+        }
+
+        echo "<script type=\"text/javascript\" src=\"/jscache/$hash.js\"></script>";
+    }
+}
+
+?>
