@@ -115,10 +115,10 @@ class MailRouter
             $rollback = true;
 
             # Copy the relevant fields in the row to the table, and add the reason.
-            $sql = "INSERT INTO messages_approved (arrival, source, message,
+            $sql = "INSERT INTO messages_approved (incomingid, arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       textbody, htmlbody, fromip)
-                      SELECT arrival, source, message,
+                      SELECT id, arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       textbody, htmlbody, fromip FROM messages_incoming WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $this->msg->getID() ]);
@@ -155,10 +155,10 @@ class MailRouter
             $rollback = true;
 
             # Copy the relevant fields in the row to the table, and add the reason.
-            $sql = "INSERT INTO messages_pending (arrival, source, message,
+            $sql = "INSERT INTO messages_pending (incomingid, arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       textbody, htmlbody, fromip)
-                      SELECT arrival, source, message,
+                      SELECT id, arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       textbody, htmlbody, fromip FROM messages_incoming WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $this->msg->getID() ]);

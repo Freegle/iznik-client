@@ -6,6 +6,7 @@ if (!defined('UT_DIR')) {
 require_once UT_DIR . '/IznikTest.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 require_once IZNIK_BASE . '/include/message/SpamMessage.php';
+require_once IZNIK_BASE . '/include/message/PendingMessage.php';
 
 /**
  * @backupGlobals disabled
@@ -69,6 +70,43 @@ class MailRouterTest extends IznikTest {
         assertEquals('Sender', $spam->getFromname());
         assertEquals('SpamAssassin flagged this as likely spam; score 1000 (high is bad)', $spam->getReason());
         $spam->delete();
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testPending() {
+        error_log(__METHOD__);
+
+        $msg = file_get_contents('msgs/basic');
+        $m = new IncomingMessage($this->dbhr, $this->dbhm);
+        $m->parse(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
+
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+        
+        assertNull(PendingMessage::findByIncomingId($this->dbhr, -1));
+        $pendid = PendingMessage::findByIncomingId($this->dbhr, $id);
+        assertNotNull($pendid);
+        error_log("Found $id in pending $pendid");
+        $pend = new PendingMessage($this->dbhr, $this->dbhm, $pendid);
+        assertEquals('test@test.com', $pend->getFromaddr());
+        assertEquals('1.2.3.4', $pend->getFromIP());
+        assertNull($pend->getFromhost());
+        assertNotNull($pend->getGroupID());
+        assertEquals($pendid, $pend->getID());
+        assertEquals('emff7a66f1-e0ed-4792-b493-17a75d806a30@edward-x1', $pend->getMessageID());
+        assertEquals($msg, $pend->getMessage());
+        assertEquals(IncomingMessage::YAHOO_PENDING, $pend->getSource());
+        assertEquals('from@test.com', $pend->getEnvelopefrom());
+        assertEquals('to@test.com', $pend->getEnvelopeto());
+        assertNotNull($pend->getTextbody());
+        assertNotNull($pend->getHtmlbody());
+        assertEquals($pend->getSubject(), $pend->getHeader('subject'));
+        assertEquals('freegleplayground@yahoogroups.com', $pend->getTo()[0]['address']);
+        assertEquals('Test User', $pend->getFromname());
+        $pend->delete();
 
         error_log(__METHOD__ . " end");
     }
