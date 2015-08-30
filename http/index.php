@@ -5,9 +5,10 @@ date_default_timezone_set('UTC');
 session_start();
 define( 'BASE_DIR', dirname(__FILE__) . '/..' );
 require_once(BASE_DIR . '/include/config.php');
-require_once(BASE_DIR . '/include/utils.php');
-require_once(BASE_DIR . '/include/db.php');
-require_once(BASE_DIR . '/include/yahoo.php');
+require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/db.php');
+require_once(IZNIK_BASE . '/include/yahoo.php');
+require_once(IZNIK_BASE . "/lib/JSMin.php");
 
 if (pres('REQUEST_URI', $_SERVER) == 'yahoologin') {
     # We have been redirected here from Yahoo.  Time to try to log in while we still have the
