@@ -1,6 +1,6 @@
 <?php
-require_once(BASE_DIR . '/include/scripts.php');
-require_once(BASE_DIR . '/include/template.php');
+require_once(IZNIK_BASE . '/include/scripts.php');
+require_once(IZNIK_BASE . '/include/template.php');
 ?><!DOCTYPE HTML>
 <html>
 <head>
@@ -53,9 +53,8 @@ require_once(BASE_DIR . '/include/template.php');
 
     # Pull in all the templates as script tags for later expansion.
     # TODO Could cache these rather than return inline?
-    $widget_location = BASE_DIR . '/http/template/';
+    $widget_location = IZNIK_BASE . '/http/template/';
     $collection = dirToArray($widget_location);
-    error_log("\n\n\n". var_export($collection, true));
     $tpls = addTemplate($collection, $widget_location);
     echo implode("\n", $tpls);
     ?>
@@ -82,12 +81,12 @@ require_once(BASE_DIR . '/include/template.php');
 
     <!-- And then we do custom styling on top. -->
     <!--[if !IE]><!-->
-    <link rel="stylesheet" type="text/css" href="/css/style.css?t=<?php echo date("YmdHis", filemtime(BASE_DIR . "/http/css/style.css")); ?>">
+    <link rel="stylesheet" type="text/css" href="/css/style.css?t=<?php echo date("YmdHis", filemtime(IZNIK_BASE . "/http/css/style.css")); ?>">
     <![endif]-->
     <!--[if gte IE 9]>
-    <link rel="stylesheet" type="text/css" href="/css/style.css?t=<?php echo date("YmdHis", filemtime(BASE_DIR . "/http/css/style.css")); ?>"><![endif]-->
+    <link rel="stylesheet" type="text/css" href="/css/style.css?t=<?php echo date("YmdHis", filemtime(IZNIK_BASE . "/http/css/style.css")); ?>"><![endif]-->
     <!--[if lt IE 9]>
-    <link rel="stylesheet" type="text/css" href="/css/ie-only.css?t=<?php echo date("YmdHis", filemtime(BASE_DIR . "/http/css/ie-only.css")); ?>">
+    <link rel="stylesheet" type="text/css" href="/css/ie-only.css?t=<?php echo date("YmdHis", filemtime(IZNIK_BASE . "/http/css/ie-only.css")); ?>">
     <![endif]-->
 
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
