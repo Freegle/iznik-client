@@ -292,7 +292,7 @@ class MailRouterTest extends IznikTest {
             $msg = file_get_contents('msgs/basic');
             $msg = str_replace(
                 'From: "Test User" <test@test.com>',
-                'From: "Test User" <test' . $i . '@test.com>',
+                'From: "Test User ' . $i . '" <test' . $i . '@test.com>',
                 $msg);
 
             $r = new MailRouter($this->dbhr, $this->dbhm);

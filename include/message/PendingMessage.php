@@ -178,7 +178,6 @@ class PendingMessage
             $pendings = $this->dbhr->preQuery($sql, [$msgid]);
 
             foreach ($pendings as $pending) {
-                error_log("Found prior pending by message id");
                 $this->dbhm->preExec("DELETE FROM messages_pending WHERE id = ?;", [$pending['id']]);
             }
         }
@@ -191,7 +190,6 @@ class PendingMessage
             $pendings = $this->dbhr->preQuery($sql,[$tnpostid]);
 
             foreach ($pendings as $pending) {
-                error_log("Found prior pending by TN ID");
                 $this->dbhm->preExec("DELETE FROM messages_pending WHERE id = ?;", [$pending['id']]);
             }
         }

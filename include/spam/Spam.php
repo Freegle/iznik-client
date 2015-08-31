@@ -59,17 +59,20 @@ class Spam {
             $countries = $this->dbhr->preQuery("SELECT * FROM spam_countries WHERE country LIKE ?;", [$country]);
             foreach ($countries as $country) {
                 # Gotcha.
-                return(array(true, "Blocking $ip as is in {$country['country']}"));
+                return(array(true, "Blocking IP $ip as it's in {$country['country']}"));
             }
 
             # Now see if this IP has been used for too many different users.  That is likely to
             # be someone masquerading to fool people.
-            $sql = "SELECT COUNT(*) AS count, fromaddr FROM messages_history WHERE fromip = ? GROUP BY fromaddr;";
+            #
+            # Should check address, but we don't yet have the canonical address so will be fooled by FBUser
+            # TODO
+            $sql = "SELECT COUNT(*) AS count, fromaddr FROM messages_history WHERE fromip = ? GROUP BY fromname;";
             $counts = $this->dbhr->preQuery($sql, [$ip]);
             $numusers = count($counts);
 
             if ($numusers > Spam::USER_THRESHOLD) {
-                return(array(true, "$ip ($host) used for $numusers different users"));
+                return(array(true, "Blocking IP $ip ($host) as used for $numusers different users"));
             }
 
             # Now see if this IP has been used for too many different groups.  That's likely to
@@ -79,7 +82,7 @@ class Spam {
             $numgroups = count($counts);
 
             if ($numgroups > Spam::GROUP_THRESHOLD) {
-                return(array(true, "$ip ($host) used for $numgroups different groups"));
+                return(array(true, "Blocking IP $ip ($host) used for $numgroups different groups"));
             }
         }
 
