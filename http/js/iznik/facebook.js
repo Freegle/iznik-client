@@ -1,5 +1,5 @@
 // TODO Make configurable
-var facebookAppId = 123;
+var facebookAppId = 161792100826551;
 
 Iznik.Views.FBLoad = IznikView.extend({
     FBLoaded: false,
@@ -27,7 +27,7 @@ Iznik.Views.FBLoad = IznikView.extend({
                 self.FBLoaded = true;
                 self.FBDisabled = true;
                 self.trigger('fbloaded');
-            }, 5000);
+            }, 10000);
 
             // Load the SDK asynchronously
             (function(d, s, id){
