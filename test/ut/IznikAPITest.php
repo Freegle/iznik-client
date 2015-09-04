@@ -7,7 +7,6 @@ require_once UT_DIR . '/IznikTest.php';
 require_once(UT_DIR . '/../../include/config.php');
 require_once(IZNIK_BASE . '/include/session/Session.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/http/api/session_get.php');
 
 /**
  * @backupGlobals disabled
@@ -15,6 +14,8 @@ require_once(IZNIK_BASE . '/http/api/session_get.php');
  */
 class IznikAPITest extends IznikTest {
     private $dbhr, $dbhm;
+
+    private $lastOutput = NULL;
 
     protected function setUp() {
         parent::setUp ();
@@ -38,9 +39,21 @@ class IznikAPITest extends IznikTest {
 
         # API calls have to run from the api directory, as they would from the web server.
         chdir(IZNIK_BASE . '/http/api');
-        require_once(IZNIK_BASE . '/http/api/api.php');
+        require(IZNIK_BASE . '/http/api/api.php');
 
-        $ret = json_decode($this->getActualOutput(), true);
+        # Get the output since we last did this.
+        $op = $this->getActualOutput();
+
+        if ($this->lastOutput) {
+            $len = strlen($this->lastOutput);
+            $this->lastOutput = $op;
+            $op = substr($op, $len);
+        } else {
+            $this->lastOutput = $op;
+        }
+
+        $ret = json_decode($op, true);
+
         return($ret);
     }
 }

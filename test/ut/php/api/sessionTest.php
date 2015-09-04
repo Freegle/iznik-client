@@ -13,9 +13,9 @@ class sessionTest extends IznikAPITest {
     public function testBasic() {
         error_log(__METHOD__);
 
-        $ret = $this->call(array(
+        $ret = $this->call([
             'call' => 'session_get'
-        ));
+        ]);
 
         assertEquals(1, $ret['ret']);
 

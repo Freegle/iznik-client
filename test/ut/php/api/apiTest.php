@@ -3,44 +3,67 @@
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTest.php';
-require_once(UT_DIR . '/../../include/config.php');
-require_once(IZNIK_BASE . '/include/session/Session.php');
-require_once(IZNIK_BASE . '/include/user/User.php');
+require_once UT_DIR . '/IznikAPITest.php';
 
 /**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class apiTest extends IznikTest {
-    private $dbhr, $dbhm;
-
-    protected function setUp() {
-        parent::setUp ();
-
-        global $dbhr, $dbhm;
-        $this->dbhr = $dbhr;
-        $this->dbhm = $dbhm;
-    }
-
-    protected function tearDown() {
-        parent::tearDown ();
-
-        @session_destroy();
-    }
-
-    public function __construct() {
-    }
-
-    public function testBasic() {
+class apiTest extends IznikAPITest {
+    public function testBadCall() {
         error_log(__METHOD__);
 
-        # This has to run from the API directory, as it would on the web server
-        chdir(IZNIK_BASE . '/http/api');
+        $ret = $this->call([]);
+        assertEquals(1000, $ret['ret']);
 
-        $this->expectOutputRegex('/.*No return code defined.*/');
+        error_log(__METHOD__ . " end");
+    }
 
-        require_once(IZNIK_BASE . '/http/api/api.php');
+    public function testDuplicatePOST() {
+        error_log(__METHOD__);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['REQUEST_URI'] = 'test';
+        $_REQUEST = [
+            'test' => 'dup'
+        ];
+
+        # We prevent duplicate posts within a short time.
+        error_log("POST - should work");
+        $ret = $this->call([]);
+        assertEquals(1000, $ret['ret']);
+
+        error_log("POST - should fail");
+        $ret = $this->call([]);
+        assertEquals(999, $ret['ret']);
+
+        sleep(DUPLICATE_POST_PROTECTION + 1);
+        error_log("POST - should work");
+        $ret = $this->call([]);
+        assertEquals(1000, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testException() {
+        error_log(__METHOD__);
+
+        $ret = $this->call([
+            'call' => 'exception'
+        ]);
+        assertEquals(998, $ret['ret']);
+
+        # Should fail a couple of times and then work.
+        $ret = $this->call([
+            'call' => 'DBexceptionWork'
+        ]);
+        assertEquals(1000, $ret['ret']);
+
+        # Should fail.
+        $ret = $this->call([
+            'call' => 'DBexceptionFail'
+        ]);
+        assertEquals(997, $ret['ret']);
 
         error_log(__METHOD__ . " end");
     }

@@ -38,7 +38,7 @@ do {
             if (($ago < DUPLICATE_POST_PROTECTION) && ($req == $_SESSION['POSTLASTDATA'])) {
                 $ret = array('ret' => 999, 'text' => 'Duplicate request - rejected.', 'data' => $_REQUEST);
                 echo json_encode($ret);
-                exit(0);
+                break;
             }
         }
 
@@ -55,6 +55,20 @@ do {
             case 'session_get':
                 $ret = session_get();
                 break;
+            case 'exception':
+                # For UT
+                throw new Exception();
+            case 'DBexceptionWork':
+                # For UT
+                if ($apicallretries < 2) {
+                    error_log("Fail DBException $apicallretries");
+                    throw new DBException();
+                }
+
+                break;
+            case 'DBexceptionFail':
+                # For UT
+                throw new DBException();
         }
 
         # If we get here, everything worked.  Add profiling info.
@@ -85,11 +99,18 @@ do {
             # again.
             error_log("DB Exception try $apicallretries ");
             $apicallretries++;
+
+            if ($apicallretries >= API_RETRIES) {
+                echo json_encode(array('ret' => 997, 'status' => 'DB operation failed after retry', 'exception' => $e->getMessage()));
+            }
         } else {
             # Something else.
             error_log("Uncaught exception " . $e->getMessage());
-            echo json_encode(array('ret' => 999, 'status' => 'Unexpected error', 'exception' => $e->getMessage()));
-            exit(0);
+            echo json_encode(array('ret' => 998, 'status' => 'Unexpected error', 'exception' => $e->getMessage()));
+            break;
         }
+
+        # Make sure the duplicate POST detection doesn't throw us.
+        unset($_SESSION['POSTLASTTIME']);
     }
 } while ($apicallretries < API_RETRIES);
