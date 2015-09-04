@@ -1,7 +1,7 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/Log.php');
+require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 
 # This class represents an incoming message, i.e. one we have received (usually by email).  It is used to parse

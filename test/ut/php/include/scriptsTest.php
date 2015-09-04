@@ -5,7 +5,7 @@ if (!defined('UT_DIR')) {
 }
 require_once UT_DIR . '/IznikTest.php';
 require_once(UT_DIR . '/../../include/config.php');
-require_once IZNIK_BASE . '/include/scripts.php';
+require_once IZNIK_BASE . '/include/misc/scripts.php';
 require_once(IZNIK_BASE . "/lib/JSMin.php");
 
 /**

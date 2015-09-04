@@ -93,3 +93,40 @@ function filterArray(&$array, $skip = NULL) {
         }
     }
 }
+
+function getCpuUsage() {
+    global $tusage, $rusage;
+    $dat = getrusage();
+    $dat["ru_utime.tv_usec"] = ($dat["ru_utime.tv_sec"]*1e6 + $dat["ru_utime.tv_usec"]) - $rusage;
+    $time = (microtime(true) - $tusage) * 1000000;
+
+    // cpu per request
+    if($time > 0) {
+        $cpu = $dat["ru_utime.tv_usec"] / $time / 1000;
+    } else {
+        $cpu = 0;
+    }
+
+    return $cpu;
+}
+
+// equiv to rand, mt_rand
+// returns int in *closed* interval [$min,$max]
+function devurandom_rand($min = 1, $max = 0x7FFFFFFF) {
+    if (function_exists('mcrypt_create_iv')) {
+        $diff = $max - $min;
+        if ($diff < 0 || $diff > 0x7FFFFFFF) {
+            throw new RuntimeException("Bad range");
+        }
+        $bytes = mcrypt_create_iv(4, MCRYPT_DEV_URANDOM);
+        if ($bytes === false || strlen($bytes) != 4) {
+            throw new RuntimeException("Unable to get 4 bytes");
+        }
+        $ary = unpack("Nint", $bytes);
+        $val = $ary['int'] & 0x7FFFFFFF;   // 32-bit safe
+        $fp = (float)$val / 2147483647.0; // convert to [0,1]
+        return round($fp * $diff) + $min;
+    } else {
+        return mt_rand($min, $max);
+    }
+}

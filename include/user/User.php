@@ -1,7 +1,7 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/Entity.php');
+require_once(IZNIK_BASE . '/include/misc/Entity.php');
 
 class User extends Entity
 {
