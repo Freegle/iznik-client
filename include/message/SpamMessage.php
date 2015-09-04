@@ -1,7 +1,7 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/Log.php');
+require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 
 # This class represents a spam message, i.e. one we have put into the messages_spam table.

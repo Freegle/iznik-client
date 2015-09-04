@@ -3,7 +3,7 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/message/IncomingMessage.php');
 require_once(IZNIK_BASE . '/include/message/PendingMessage.php');
-require_once(IZNIK_BASE . '/include/Log.php');
+require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/lib/spamc.php');

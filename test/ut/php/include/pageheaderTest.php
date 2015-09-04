@@ -27,7 +27,7 @@ class pageheaderTest extends IznikTest {
 
         $this->expectOutputRegex('/.*<meta property="og:title" content="' . SITE_NAME . '"\/>./*');
         $this->expectOutputRegex('/.*<script.*/');
-        require_once(IZNIK_BASE . '/include/pageheader.php');
+        require_once(IZNIK_BASE . '/include/misc/pageheader.php');
 
         error_log(__METHOD__ . " end");
     }

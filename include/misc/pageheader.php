@@ -1,6 +1,6 @@
 <?php
-require_once(IZNIK_BASE . '/include/scripts.php');
-require_once(IZNIK_BASE . '/include/template.php');
+require_once(IZNIK_BASE . '/include/misc/scripts.php');
+require_once(IZNIK_BASE . '/include/misc/template.php');
 ?><!DOCTYPE HTML>
 <html>
 <head>
@@ -11,7 +11,7 @@ require_once(IZNIK_BASE . '/include/template.php');
     <meta name="robots" content="nofollow, noindex, noarchive, nocache">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="careicon">
+    <meta name="apple-mobile-web-app-title" content="<?php echo SITE_NAME; ?>">
     <meta name="format-detection" content="telephone=no">
 
     <?php

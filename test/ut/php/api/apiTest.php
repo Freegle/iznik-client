@@ -5,13 +5,14 @@ if (!defined('UT_DIR')) {
 }
 require_once UT_DIR . '/IznikTest.php';
 require_once(UT_DIR . '/../../include/config.php');
-require_once IZNIK_BASE . '/include/session/Yahoo.php';
+require_once(IZNIK_BASE . '/include/session/Session.php');
+require_once(IZNIK_BASE . '/include/user/User.php');
 
 /**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class yahooTest extends IznikTest {
+class apiTest extends IznikTest {
     private $dbhr, $dbhm;
 
     protected function setUp() {
@@ -24,6 +25,8 @@ class yahooTest extends IznikTest {
 
     protected function tearDown() {
         parent::tearDown ();
+
+        @session_destroy();
     }
 
     public function __construct() {
@@ -32,21 +35,12 @@ class yahooTest extends IznikTest {
     public function testBasic() {
         error_log(__METHOD__);
 
-        $_SERVER['HTTP_HOST'] = 'localhost';
-        $_SERVER['REQUEST_URI'] = '/';
-        $y = new Yahoo($this->dbhr, $this->dbhm);
-        $rc  = $y->login();
-        assertEquals(1, $rc[1]['ret']);
-        assertTrue(array_key_exists('redirect', $rc[1]));
+        # This has to run from the API directory, as it would on the web server
+        chdir(IZNIK_BASE . '/http/api');
 
-        $mock = $this->getMockBuilder('LightOpenID')
-            ->disableOriginalConstructor()
-            ->setMethods(array('validate'))
-            ->getMock();
-        $mock->method('validate')->willReturn(true);
-        $y->setOpenid($mock);
-        $rc  = $y->login();
-        assertNull($rc);
+        $this->expectOutputRegex('/.*No return code defined.*/');
+
+        require_once(IZNIK_BASE . '/http/api/api.php');
 
         error_log(__METHOD__ . " end");
     }
