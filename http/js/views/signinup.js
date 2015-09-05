@@ -43,7 +43,7 @@ Iznik.Views.SignInUp = Iznik.Views.Modal.extend({
 
         $.ajax({
             type: "POST",
-            url: API + "session_login.php",
+            url: API + "session_login",
             data: {
                 'email': self.$('.js-signinform .js-email').val(),
                 'password': self.$('.js-signinform .js-password').val()
@@ -76,7 +76,7 @@ Iznik.Views.SignInUp = Iznik.Views.Modal.extend({
         self.$('.js-signinerror').hide();
         $.ajax({
             type: "POST",
-            url: API + "register.php",
+            url: API + "user_register",
             data: {
                 'email': self.$('.js-signupform .js-email').val(),
                 'password': self.$('.js-signupform .js-password').val(),
@@ -141,7 +141,7 @@ Iznik.Views.SignInUp = Iznik.Views.Modal.extend({
             self.$('.js-signinform .js-email').focus();
         } else {
             $.ajax({
-                url: API + 'lostpassword.php',
+                url: API + 'user_lostpassword',
                 type: 'POST',
                 data: {
                     email: email

@@ -2,6 +2,8 @@
 
 require_once("/etc/iznik.conf");
 require_once(IZNIK_BASE . '/lib/openid.php');
+require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/session/Session.php');
 
 class Yahoo
 {
@@ -10,6 +12,16 @@ class Yahoo
 
     /** @var  $openid LightOpenID */
     private $openid;
+
+    private static $instance;
+
+    public static function getInstance($dbhr, $dbhm)
+    {
+        if (!isset(self::$instance)) {
+            self::$instance = new Yahoo($dbhr, $dbhm);
+        }
+        return self::$instance;
+    }
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -36,30 +48,72 @@ class Yahoo
     {
         try
         {
-            #error_log("Validate " . var_export($_REQUEST, true));
-            if (($this->openid->validate()) && ($this->openid->identity != 'https://open.login.yahooapis.com/openid20/user_profile/xrds'))
+            if (($this->openid->validate()) &&
+                ($this->openid->identity != 'https://open.login.yahooapis.com/openid20/user_profile/xrds'))
             {
-                // We are logged in.  Store session information
-                #error_log("We are logged in with Yahoo");
-                $_SESSION['loggedin'] = true;
-                $_SESSION['openidid'] = htmlspecialchars($this->openid->identity);
-                $_SESSION['openidattr'] = $this->openid->getAttributes();
+                $attrs = $this->openid->getAttributes();
+
+                # The Yahoo ID is derived from the email; Yahoo always returns the Yahoo email even if a different
+                # email is configured on the profile.  Way to go.
+                $yahooid = $attrs['contact/email'];
+                $p = strpos($yahooid, "@");
+                $yahooid = substr($yahooid, 0, $p);
+
+                # See if we know this user already.
+                $users = $this->dbhr->preQuery(
+                    "SELECT userid FROM users_logins WHERE type = 'Yahoo' AND uid = ?;",
+                    [ $yahooid ]
+                );
+
+                $id = NULL;
+                foreach ($users as $user) {
+                    # We found them.
+                    $id = $user['userid'];
+                }
+
+                if (!$id) {
+                    # We don't know them.  Create a user.
+                    #
+                    # There's a timing window here, where if we had two first-time logins for the same user,
+                    # one would fail.  Bigger fish to fry.
+                    $u = new User($this->dbhr, $this->dbhm);
+
+                    # We don't have the firstname/lastname split, only a single name.  Way two go.
+                    $id = $u->create(NULL, NULL, $attrs['name']);
+
+                    if ($id) {
+                        # Now Set up a login entry.
+                        $rc = $this->dbhm->preExec(
+                            "INSERT INTO users_logins (userid, type, uid) VALUES (?,'Yahoo',?);",
+                            [
+                                $id,
+                                $yahooid
+                            ]
+                        );
+
+                        $id = $rc ? $id : NULL;
+                    }
+                }
+
+                if ($id) {
+                    // We are logged in.
+                    $s = new Session($this->dbhr, $this->dbhm);
+                    $s->create($id);
+                    return([ $s, [ 'ret' => 0, 'status' => 'Success']]);
+                }
             } else if (!$this->openid->mode) {
-                #error_log("Not logged in with Yahoo");
-                $_SESSION['sesstype'] = 'Yahoo';
+                # We're not logged in.  Redirect to Yahoo to authorise.
                 $this->openid->identity = 'https://me.yahoo.com';
                 $this->openid->required = array('contact/email', 'namePerson', 'namePerson/first', 'namePerson/last');
                 $url = $this->openid->authUrl() . "&key=Iznik";
-                return array(NULL, array('ret' => 1, 'redirect' => $url), true, false);
-            } else {
-                #error_log("Dunno where we are with Yahoo");
+                return [NULL, ['ret' => 1, 'redirect' => $url]];
             }
         }
         catch (Exception $e)
         {
-            var_dump($e);
+            error_log("Yahoo Login exception " . $e->getMessage());
         }
 
-        return (NULL);
+        return ([NULL, [ 'ret' => 2, 'status' => 'Login failed']]);
     }
 }

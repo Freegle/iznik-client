@@ -8,7 +8,7 @@ Iznik.Models.Session = IznikModel.extend({
         var self = this;
 
         $.ajax({
-            url: API + 'getsettings.php',
+            url: API + 'settings_get',
             success: function(ret) {
                 if ((ret.ret ==0) && (ret.hasOwnProperty('personal'))) {
                     //console.log("Logged in");
@@ -48,7 +48,7 @@ Iznik.Models.Session = IznikModel.extend({
         var self = this;
         //console.log("Do facebook login");
         $.ajax({
-            url: API + 'session_login.php',
+            url: API + 'session_login',
             type: 'POST',
             data: {
                 fblogin: true
@@ -90,7 +90,7 @@ Iznik.Models.Session = IznikModel.extend({
         urlParams['returnto'] = document.URL;
 
         $.ajax({
-            url: API + 'session_login.php',
+            url: API + 'session_login',
             type: 'POST',
             data: urlParams,
             success: function(response){

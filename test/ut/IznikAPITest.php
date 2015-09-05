@@ -13,7 +13,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
  * @backupStaticAttributes disabled
  */
 class IznikAPITest extends IznikTest {
-    private $dbhr, $dbhm;
+    public $dbhr, $dbhm;
 
     private $lastOutput = NULL;
 
@@ -23,6 +23,9 @@ class IznikAPITest extends IznikTest {
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+
+        $_SERVER['HTTP_HOST'] = 'localhost';
+        $_SERVER['REQUEST_URI'] = '/';
     }
 
     protected function tearDown() {

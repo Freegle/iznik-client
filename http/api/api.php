@@ -6,10 +6,13 @@ require_once('../../include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 require_once(IZNIK_BASE . '/include/session/Session.php');
+require_once(IZNIK_BASE . '/include/session/Yahoo.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/session_get.php');
+require_once(IZNIK_BASE . '/http/api/session_login.php');
+require_once(IZNIK_BASE . '/http/api/session_logout.php');
 
 $includetime = microtime(true) - $scriptstart;
 
@@ -54,6 +57,12 @@ do {
         switch ($call) {
             case 'session_get':
                 $ret = session_get();
+                break;
+            case 'session_login':
+                $ret = session_login();
+                break;
+            case 'session_logout':
+                $ret = session_logout();
                 break;
             case 'exception':
                 # For UT

@@ -22,7 +22,7 @@ if (pres('REQUEST_URI', $_SERVER) == 'yahoologin') {
     # client later.
     $y->login();
 }
-include_once(BASE_DIR . '/include/pageheader.php');
+include_once(BASE_DIR . '/include/misc/pageheader.php');
 ?>
 <body>
 <div class="backmask"></div>

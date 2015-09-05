@@ -70,6 +70,15 @@ class Session {
     # Based on http://stackoverflow.com/questions/244882/what-is-the-best-way-to-implement-remember-me-for-a-website
     private $dbhr;
     private $dbhm;
+    private $id;
+
+    /**
+     * @return mixed
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm) {
         $this->dbhr = $dbhr;
@@ -79,6 +88,7 @@ class Session {
     public function create($id) {
         # Destroy any existing sessions.
         $this->destroy($id);
+        $this->id = $id;
 
         # Generate a new series and token.
         $series = devurandom_rand();
@@ -86,19 +96,19 @@ class Session {
         $thash  = sha1($token);
 
         $sql = "INSERT INTO sessions (`id`, `series`, `token`) VALUES (?,?,?);";
-        $count = $this->dbhm->preExec($sql, [
+        $this->dbhm->preExec($sql, [
             $id,
             $series,
             $thash
         ]);
 
-        return(array(
+        $_SESSION['id'] = $id;
+
+        return (array(
             'id' => $id,
             'series' => $series,
             'token' => $token
         ));
-
-        return(NULL);
     }
 
     public function verify($id, $series, $token) {
