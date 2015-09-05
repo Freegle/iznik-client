@@ -12,7 +12,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class sessionTest extends IznikTest {
+class sessionClassTest extends IznikTest {
     private $dbhr, $dbhm;
 
     protected function setUp() {
@@ -90,7 +90,7 @@ class sessionTest extends IznikTest {
         assertEquals($id, $ret['id']);
 
         # Cookie should log us in
-        $_SESSION['logged_in'] = FALSE;
+        $_SESSION['id'] = NULL;
         $_COOKIE[COOKIE_NAME] = json_encode($ret);
         prepareSession($this->dbhm, $this->dbhm);
         assertTrue($_SESSION['logged_in']);

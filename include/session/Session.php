@@ -12,7 +12,7 @@ if (!isset($_SESSION)) {
 }
 
 function prepareSession($dbhr, $dbhm) {
-    if ((!array_key_exists('id', $_SESSION)) &&
+    if ((!pres('id', $_SESSION)) &&
         (array_key_exists(COOKIE_NAME, $_COOKIE))) {
         # Check our cookie to see if it's a valid session
         $cookie = json_decode($_COOKIE[COOKIE_NAME], true);
@@ -137,12 +137,17 @@ class Session {
 
     public function destroy($id) {
         #error_log(var_export($this->dbhr, true));
+        session_reopen();
+
         if ($id) {
             $sql = "DELETE FROM sessions WHERE id = ?;";
             $this->dbhm->preExec($sql, [
                 $id
             ]);
         }
+
+        $_SESSION['id'] = NULL;
+        $_SESSION['logged_in'] = FALSE;
     }
 }
 
