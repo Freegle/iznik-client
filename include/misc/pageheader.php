@@ -53,9 +53,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
 
     # Pull in all the templates as script tags for later expansion.
     # TODO Could cache these rather than return inline?
-    $widget_location = IZNIK_BASE . '/http/template/';
-    $collection = dirToArray($widget_location);
-    $tpls = addTemplate($collection, $widget_location);
+    $tpls = addTemplate(IZNIK_BASE . '/http/template/', IZNIK_BASE . '/http/template/');
     echo implode("\n", $tpls);
     ?>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=geometry,places,drawing,visualization"></script>
@@ -90,6 +88,14 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <![endif]-->
 
     <!-- And then some custom styles for our different apps -->
+    <?php
+    echo "<!-- {$_SERVER['HTTP_HOST']} {$_SERVER['REQUEST_URI']} -->";
+    if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE) {
+        ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?t=<?php echo date("YmdHis", filemtime(IZNIK_BASE . "/http/css/modtools.css")); ?>"><?php
+    } else {
+        ?><link rel="stylesheet" type="text/css" href="/css/user.css?t=<?php echo date("YmdHis", filemtime(IZNIK_BASE . "/http/css/user.css")); ?>"><?php
+    }
+    ?>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
     <meta name="HandheldFriendly" content="true">
 

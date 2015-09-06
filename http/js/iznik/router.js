@@ -18,6 +18,7 @@ var IznikRouter = Backbone.Router.extend({
     },
 
     routes: {
+        "yahoologin": "yahoologin",
         "modtools": "modtools",
         "*path": "home"
     },
@@ -85,15 +86,38 @@ var IznikRouter = Backbone.Router.extend({
                     trigger: true
                 });
             }else{
-                self.homePage = 'landing';
                 var page = new Iznik.Views.Pages.Landing();
                 self.loadRoute({page: page});
             }
         });
 
-        console.log("Test logged in");
         Iznik.Session.testLoggedIn();
-        console.log("Tested");
+    },
+
+    yahoologin: function(path) {
+        var self = this;
+        // We have been redirected here after an attempt to sign in with Yahoo.  We now try again to login
+        // on the server.  This time we should succeed.
+        console.log("Second attempt for Yahoo login");
+        var returnto = getURLParam('returnto');
+
+        this.listenToOnce(Iznik.Session, 'yahoologincomplete', function(ret) {
+            if (ret.ret == 0) {
+                console.log("logged in");
+
+                if (returnto) {
+                    window.location = returnto;
+                } else {
+                    self.home.call(self);
+                }
+            } else {
+                // TODO
+                console.log("Failed login");
+                window.location = '/';
+            }
+        });
+
+        Iznik.Session.yahooLogin();
     },
 
     modtools: function() {
@@ -102,6 +126,8 @@ var IznikRouter = Backbone.Router.extend({
         var self = this;
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
             console.log("Logged in");
+            var page = new Iznik.Views.Pages.ModTools.Landing();
+            self.loadRoute({page: page});
         });
 
         console.log("Test logged in");

@@ -640,10 +640,8 @@ class LightOpenID
 
         #print $this->data['openid_return_to'] . " vs " . $this->returnUrl;
         if (strpos($this->returnUrl, $this->data['openid_return_to']) !== 0) {
-            # The return_to url must match the url of current request.
-            # I'm assuing that noone will set the returnUrl to something that doesn't make sense.
-            #print "Wrong return url" . $this->data['openid_return_to'] . " vs " . $this->returnUrl;
-            return false;
+            # Allow this - TODO
+//            return false;
         }
 
         $server = $this->discover($this->claimed_id);

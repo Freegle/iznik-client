@@ -8,9 +8,9 @@ Iznik.Models.Session = IznikModel.extend({
         var self = this;
 
         $.ajax({
-            url: API + 'settings_get',
+            url: API + 'session_get',
             success: function(ret) {
-                if ((ret.ret ==0) && (ret.hasOwnProperty('personal'))) {
+                if ((ret.ret ==0)) {
                     //console.log("Logged in");
                     self.set('session', ret);
                     self.trigger('isLoggedIn', true);

@@ -26,10 +26,7 @@ class templateTest extends IznikTest {
     public function testBasic() {
         error_log(__METHOD__);
 
-        $widget_location = IZNIK_BASE . '/http/template/';
-        $collection = dirToArray($widget_location);
-        $ret = addTemplate($collection, $widget_location);
-        error_log(var_export($ret, true));
+        $ret = addTemplate(IZNIK_BASE . '/http/template/', IZNIK_BASE . '/http/template/');
         assertTrue(strpos($ret[1], 'layout') !== FALSE);
 
         error_log(__METHOD__ . " end");

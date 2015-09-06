@@ -2,26 +2,28 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 
-function addTemplate($collection, $widget_location){
+function addTemplate($location, $toplocation){
     $ret = [];
-    foreach($collection as $key => $node){
-        if(is_array($node)){
-            foreach($node as $template){
-                $html = file_get_contents ( $widget_location.$key.'/'.$template);
-                // Get the filename to use.
-                $template = pathinfo ( $template );
-                $template = $template ['filename'];
-                $tplname = INCLUDE_TEMPLATE_NAME ? "\n<!-- TPL $widget_location$key/$template -->\n" : "";
-                $ret[] = '<script id="' .$key.'_'.$template . "_template\" type=\"text/template\" >$tplname" . $html . '</script>';
-            }
-        }else{
-            $template = $node;
-            $html = file_get_contents ($widget_location.$template);
-            // Get the filename to use.
-            $template = pathinfo ( $template );
-            $template = $template ['filename'];
-            $tplname = INCLUDE_TEMPLATE_NAME ? "\n<!-- TPL $widget_location$key/$template -->\n" : "";
-            $ret[] = '<script id="' . $template . "_template\" type=\"text/template\" >$tplname" . $html . '</script>';
+    foreach (scandir($location) as $node) {
+        # Skip link to current and parent folder
+        if ($node == '.')  continue;
+        if ($node == '..') continue;
+
+        # Check if it's a node or a folder
+        if (is_dir($location . DIRECTORY_SEPARATOR . $node)) {
+            # Recurse.
+            $ret = array_merge($ret, addTemplate($location . DIRECTORY_SEPARATOR . $node, $toplocation));
+        } else {
+            $fn = $location . DIRECTORY_SEPARATOR . $node;
+            $html = file_get_contents ($fn);
+
+            # Get template name to use for id
+            $tplname = str_replace(DIRECTORY_SEPARATOR, '_', substr($fn, strlen($toplocation) + 1));
+            $tplname = str_replace('.html', '', $tplname);
+
+            $tplcomm = INCLUDE_TEMPLATE_NAME ? "\n<!-- TPL $tplname -->\n" : "";
+
+            $ret[] = '<script id="' . $tplname . "_template\" type=\"text/template\" >$tplcomm" . $html . '</script>';
         }
     }
 
