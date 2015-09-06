@@ -344,7 +344,7 @@ body {
 }
 
 .padmd {
-    padding: 5px;
+    padding: 5px !important;
 }
 
 .nopad {

@@ -20,7 +20,7 @@ if (pres('REQUEST_URI', $_SERVER) == 'yahoologin') {
 
     # No need to pay attention to the result - whether it worked or not will be determined by the
     # client later.
-    $y->login();
+    $y->login(get_current_url());
 }
 include_once(BASE_DIR . '/include/misc/pageheader.php');
 ?>

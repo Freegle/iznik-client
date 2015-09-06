@@ -35,17 +35,10 @@ var IznikRouter = Backbone.Router.extend({
         //console.log("loadRoute"); console.log(routeOptions);
         var self = this;
         routeOptions = routeOptions || {};
-        var currentPage = this.getCurrentPage(routeOptions.path);
 
         function loadPage(options){
             try {
                 options = options || {};
-
-                if (!self.layout) {
-                    // Add the basic layout.
-                    self.layout = new Iznik.Views.Layout();
-                    self.layout.render();
-                }
 
                 self.listenToOnce(routeOptions.page, 'pageContentAdded', function(){
                     self.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
@@ -70,8 +63,6 @@ var IznikRouter = Backbone.Router.extend({
                 });
 
                 routeOptions.page.render();
-
-                self.lastPageLoaded = currentPage;
             } catch (e) {
                 console.log("Page load failed", e);
             }

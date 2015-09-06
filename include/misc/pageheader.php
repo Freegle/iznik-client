@@ -89,6 +89,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <link rel="stylesheet" type="text/css" href="/css/ie-only.css?t=<?php echo date("YmdHis", filemtime(IZNIK_BASE . "/http/css/ie-only.css")); ?>">
     <![endif]-->
 
+    <!-- And then some custom styles for our different apps -->
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
     <meta name="HandheldFriendly" content="true">
 
