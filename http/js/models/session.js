@@ -85,15 +85,16 @@ Iznik.Models.Session = IznikModel.extend({
         urlParams = {};
         while (match = search.exec(query))
             urlParams[decode(match[1])] = decode(match[2]);
-        console.log("Got URL params", urlParams);
         urlParams['yahoologin'] = true;
         urlParams['returnto'] = document.URL;
+        console.log("Got URL params", urlParams);
 
         $.ajax({
             url: API + 'session_login',
             type: 'POST',
             data: urlParams,
             success: function(response){
+                console.log("Session login returned", response);
                 if(response.ret === 0){
                     //We fire 2 separate calls, one to tell the CurrentUser that the user has just logged in.
                     //another to tell anyone listening that the user is logged in (In case we were testing).

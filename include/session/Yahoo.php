@@ -30,9 +30,7 @@ class Yahoo
 
         $this->openid = new LightOpenID;
         $this->openid->realm = "https://{$_SERVER['HTTP_HOST']}";
-        $loginurl = "https://{$_SERVER['HTTP_HOST']}/yahoologin";
-        $this->openid->returnUrl = $loginurl;
-        
+
         return ($this);
     }
     
@@ -44,13 +42,17 @@ class Yahoo
         $this->openid = $openid;
     }
 
-    function login()
+    function login($returnto)
     {
         try
         {
+            $loginurl = "https://{$_SERVER['HTTP_HOST']}/yahoologin?returnto=" . urlencode($returnto);
+            $this->openid->returnUrl = $loginurl;
+
             if (($this->openid->validate()) &&
                 ($this->openid->identity != 'https://open.login.yahooapis.com/openid20/user_profile/xrds'))
             {
+                error_log("Validated Yahoo Login");
                 $attrs = $this->openid->getAttributes();
 
                 # The Yahoo ID is derived from the email; Yahoo always returns the Yahoo email even if a different
@@ -70,6 +72,8 @@ class Yahoo
                     # We found them.
                     $id = $user['userid'];
                 }
+
+                error_log("Found them? $id");
 
                 if (!$id) {
                     # We don't know them.  Create a user.
@@ -97,6 +101,7 @@ class Yahoo
 
                 if ($id) {
                     // We are logged in.
+                    error_log("Logged in");
                     $s = new Session($this->dbhr, $this->dbhm);
                     $s->create($id);
                     return([ $s, [ 'ret' => 0, 'status' => 'Success']]);
@@ -105,6 +110,7 @@ class Yahoo
                 # We're not logged in.  Redirect to Yahoo to authorise.
                 $this->openid->identity = 'https://me.yahoo.com';
                 $this->openid->required = array('contact/email', 'namePerson', 'namePerson/first', 'namePerson/last');
+                $this->openid->redirect_uri = $returnto;
                 $url = $this->openid->authUrl() . "&key=Iznik";
                 return [NULL, ['ret' => 1, 'redirect' => $url]];
             }

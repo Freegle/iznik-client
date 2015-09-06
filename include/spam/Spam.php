@@ -40,6 +40,14 @@ class Spam {
                 # want to consider those as spammers.
                 $ip = NULL;
                 $msg->setFromIP($ip);
+            } else {
+                # Check if it's whitelisted
+                $sql = "SELECT * FROM spam_whitelist_ips WHERE ip = ?;";
+                $ips = $this->dbhr->preQuery($sql, [$ip]);
+                foreach ($ips as $ip) {
+                    $ip = NULL;
+                    $msg->setFromIP($ip);
+                }
             }
         }
 

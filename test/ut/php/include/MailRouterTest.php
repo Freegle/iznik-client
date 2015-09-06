@@ -26,10 +26,17 @@ class MailRouterTest extends IznikTest {
         $this->dbhm->preExec("DELETE FROM messages_incoming WHERE fromaddr = ? OR fromip = ?;", ['from@test.com', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM messages_approved WHERE fromaddr = ? OR fromip = ?;", ['from@test.com', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM messages_history WHERE fromaddr = ? OR fromip = ?;", ['from@test.com', '1.2.3.4']);
+
+        # Whitelist this IP
+        $this->dbhm->preExec("INSERT INTO spam_whitelist_ips (ip, comment) VALUES ('1.2.3.4', 'UT whitelist');", []);
     }
 
     protected function tearDown() {
         parent::tearDown ();
+
+        $this->dbhm->preExec("DELETE FROM spam_whitelist_ips WHERE ip = '1.2.3.4';", []);
+        $this->dbhm->preExec("DELETE FROM messages_history WHERE fromip = '1.2.3.4';", []);
+        $this->dbhm->preExec("DELETE FROM messages_history WHERE fromip = '4.3.2.1';", []);
     }
 
     public function __construct() {
@@ -74,6 +81,22 @@ class MailRouterTest extends IznikTest {
         error_log(__METHOD__ . " end");
     }
 
+    public function testWhitelist() {
+        error_log(__METHOD__);
+
+        $msg = file_get_contents('msgs/spam');
+        $msg = str_replace('Precedence: junk', 'X-Freegle-IP: 1.2.3.4', $msg);
+        $m = new IncomingMessage($this->dbhr, $this->dbhm);
+        $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
+
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testPending() {
         error_log(__METHOD__);
 
@@ -92,7 +115,7 @@ class MailRouterTest extends IznikTest {
         error_log("Found $id in pending $pendid");
         $pend = new PendingMessage($this->dbhr, $this->dbhm, $pendid);
         assertEquals('test@test.com', $pend->getFromaddr());
-        assertEquals('1.2.3.4', $pend->getFromIP());
+        assertNull($pend->getFromIP()); # Because whitelisted IPs are masked out
         assertNull($pend->getFromhost());
         assertNotNull($pend->getGroupID());
         assertEquals($pendid, $pend->getID());
@@ -294,6 +317,7 @@ class MailRouterTest extends IznikTest {
                 'From: "Test User" <test@test.com>',
                 'From: "Test User ' . $i . '" <test' . $i . '@test.com>',
                 $msg);
+            $msg = str_replace('1.2.3.4', '4.3.2.1', $msg);
 
             $r = new MailRouter($this->dbhr, $this->dbhm);
             $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -321,6 +345,7 @@ class MailRouterTest extends IznikTest {
                 'To: "freegleplayground@yahoogroups.com" <freegleplayground@yahoogroups.com>',
                 'To: "freegleplayground' . $i . '@yahoogroups.com" <freegleplayground' . $i . '@yahoogroups.com>',
                 $msg);
+            $msg = str_replace('1.2.3.4', '4.3.2.1', $msg);
 
             $r = new MailRouter($this->dbhr, $this->dbhm);
             $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);

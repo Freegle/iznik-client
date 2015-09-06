@@ -16,6 +16,7 @@ function session_login() {
     $returnto = array_key_exists('returnto', $_REQUEST) ? $_REQUEST['returnto'] : NULL;
     $rememberme = array_key_exists('rememberme', $_REQUEST) ? filter_var($_REQUEST['rememberme'], FILTER_VALIDATE_BOOLEAN) : false;
 
+    $id = NULL;
     $user = new User($dbhr, $dbhm);
     $f = NULL;
     $newuser = false;
