@@ -43,7 +43,7 @@ Iznik.Views.SignInUp = Iznik.Views.Modal.extend({
 
         $.ajax({
             type: "POST",
-            url: API + "session_login",
+            url: API + "session",
             data: {
                 'email': self.$('.js-signinform .js-email').val(),
                 'password': self.$('.js-signinform .js-password').val()

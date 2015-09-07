@@ -13,7 +13,7 @@ class apiTest extends IznikAPITest {
     public function testBadCall() {
         error_log(__METHOD__);
 
-        $ret = $this->call([]);
+        $ret = $this->call('unknown', 'GET', []);
         assertEquals(1000, $ret['ret']);
 
         error_log(__METHOD__ . " end");
@@ -22,24 +22,18 @@ class apiTest extends IznikAPITest {
     public function testDuplicatePOST() {
         error_log(__METHOD__);
 
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_SERVER['REQUEST_URI'] = 'test';
-        $_REQUEST = [
-            'test' => 'dup'
-        ];
-
         # We prevent duplicate posts within a short time.
         error_log("POST - should work");
-        $ret = $this->call([]);
+        $ret = $this->call('test', 'POST', []);
         assertEquals(1000, $ret['ret']);
 
         error_log("POST - should fail");
-        $ret = $this->call([]);
+        $ret = $this->call('test', 'POST', []);
         assertEquals(999, $ret['ret']);
 
         sleep(DUPLICATE_POST_PROTECTION + 1);
         error_log("POST - should work");
-        $ret = $this->call([]);
+        $ret = $this->call('test', 'POST', []);
         assertEquals(1000, $ret['ret']);
 
         error_log(__METHOD__ . " end");
@@ -48,21 +42,15 @@ class apiTest extends IznikAPITest {
     public function testException() {
         error_log(__METHOD__);
 
-        $ret = $this->call([
-            'call' => 'exception'
-        ]);
+        $ret = $this->call('exception', 'POST', []);
         assertEquals(998, $ret['ret']);
 
         # Should fail a couple of times and then work.
-        $ret = $this->call([
-            'call' => 'DBexceptionWork'
-        ]);
+        $ret = $this->call('DBexceptionWork', 'POST', []);
         assertEquals(1000, $ret['ret']);
 
         # Should fail.
-        $ret = $this->call([
-            'call' => 'DBexceptionFail'
-        ]);
+        $ret = $this->call('DBexceptionFail', 'POST', []);
         assertEquals(997, $ret['ret']);
 
         error_log(__METHOD__ . " end");

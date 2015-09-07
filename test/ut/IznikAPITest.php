@@ -37,8 +37,12 @@ class IznikAPITest extends IznikTest {
     public function __construct() {
     }
 
-    public function call($params) {
+    public function call($call, $type, $params) {
         $_REQUEST = array_merge($_REQUEST, $params);
+
+        $_SERVER['REQUEST_METHOD'] = $type;
+        $_SERVER['REQUEST_URI'] = "/api/$call.php";
+        $_REQUEST['call'] = $call;
 
         # API calls have to run from the api directory, as they would from the web server.
         chdir(IZNIK_BASE . '/http/api');

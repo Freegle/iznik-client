@@ -4,6 +4,7 @@
 // Suppress errors on the header command for UT
 @header('Content-type: application/json');
 @header('Access-Control-Allow-Origin: *');
+@header('Access-Control-Allow-Headers: ' . $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']);
 @header('Access-Control-Allow-Credentials: true');
 @header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"');
 

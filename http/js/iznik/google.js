@@ -11,7 +11,7 @@ Iznik.Views.GoogleLoad = IznikView.extend({
             self.authResult = authResult;
             $.ajax({
                 type: 'POST',
-                url: '/api/session_login',
+                url: '/api/session',
                 data: {
                     'googleauthcode': self.authResult.code,
                     'googlelogin': true

@@ -1,0 +1,106 @@
+swagger: '2.0'
+info:
+  title: Iznik API
+  description: This is an explorable definition of the Iznik REST API.
+  version: "1.0.0"
+host: iznik.modtools.org
+schemes:
+  - https
+  - http
+basePath: /api
+produces:
+  - application/json
+paths:
+  /session:
+    get:
+      summary: Session Get
+      tags: [Session]
+      description: |
+        Check if current user is logged in
+      responses: 
+          "200": 
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    post:
+      summary: Session Login
+      tags: [Session]
+      description: |
+        Log in as a user
+      parameters:
+      - name: fblogin
+        in: query
+        description: Log in via Facebook
+        type: boolean
+      - name: yahoologin
+        in: query
+        description: Log in via Yahoo
+        type: boolean
+      - name: returnto
+        in: query
+        description: URL to return to for Login methods which respond with a redirect request
+        type: string
+      responses:
+          "200": 
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    delete:
+      summary: Session Logout
+      tags: [Session]
+      description: |
+        Log out current user
+      responses: 
+          "200": 
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+definitions:
+  Response:
+    properties: 
+      ret:
+        type: integer
+        description: Return text
+      status:
+        type: string
+        description: Human-readable description
+      call:
+        type: string
+        description: The name of the call made
+      duration:
+        type: number
+        description: Elapsed time for this call (seconds)
+      cpucost:
+        type: number
+        description: CPU time spent processing this call (seconds)
+      dbwaittime:
+        type: number
+        description: Elapsed time spent on DB ops for this call (seconds)
+      includetime:
+        type: number
+        description: Elapsed time spent including scripts (seconds)
+      whoamitime:
+        type: number
+        description: Elapsed time spent working out who this session is for (seconds)
+  Error:
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      fields:
+        type: string
+        

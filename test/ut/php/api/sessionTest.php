@@ -13,9 +13,7 @@ class sessionTest extends IznikAPITest {
     public function testLoggedOut() {
         error_log(__METHOD__);
 
-        $ret = $this->call([
-            'call' => 'session_get'
-        ]);
+        $ret = $this->call('session', 'GET', []);
         assertEquals(1, $ret['ret']);
 
         error_log(__METHOD__ . " end");
@@ -25,8 +23,7 @@ class sessionTest extends IznikAPITest {
         error_log(__METHOD__);
 
         # Logged out should cause redirect
-        $ret = $this->call([
-            'call' => 'session_login',
+        $ret = $this->call('session', 'POST', [
             'yahoologin' => 1
         ]);
         assertEquals(1, $ret['ret']);
@@ -46,39 +43,28 @@ class sessionTest extends IznikAPITest {
         ]);
         $y->setOpenid($mock);
 
-        $ret = $this->call([
-            'call' => 'session_login',
+        $ret = $this->call('session', 'POST', [
             'yahoologin' => 1
         ]);
         assertEquals(0, $ret['ret']);
 
-        $ret = $this->call([
-            'call' => 'session_get'
-        ]);
+        $ret = $this->call('session', 'GET', []);
         assertEquals(0, $ret['ret']);
 
         $mock->method('getAttributes')->willThrowException(new Exception());
-        $ret = $this->call([
-            'call' => 'session_login',
+        $ret = $this->call('session', 'POST', [
             'yahoologin' => 1
         ]);
         assertEquals(2, $ret['ret']);
 
         # Logout
-        $ret = $this->call([
-            'call' => 'session_logout'
-        ]);
+        $ret = $this->call('session','DELETE', []);
         assertEquals(0, $ret['ret']);
-        $ret = $this->call([
-            'call' => 'session_logout'
-        ]);
+        $ret = $this->call('session','DELETE', []);
         assertEquals(0, $ret['ret']);
 
         # Should be logged out
-        $ret = $this->call([
-            'call' => 'session_get',
-            'yahoologin' => 1
-        ]);
+        $ret = $this->call('session','GET', []);
         assertEquals(1, $ret['ret']);
 
         error_log(__METHOD__ . " end");
