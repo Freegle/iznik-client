@@ -1,10 +1,11 @@
-<h1>Welcome to ModTools, <% if (me.firstname) { %>{{me.firstname}}<% } else { %>{{me.fullname}}<% } %></h1>
+<h1>Welcome to ModTools</h1>
+<p>Hello, <% if (me.firstname) { %>{{me.firstname}}<% } else { %>{{me.fullname}}<% } %>.
 <% if (me.systemrole == 'User') { %>
-<div class="alert alert-info" role="alert">This area of the site is for moderators only, I'm afraid.</div>
+</p><div class="alert alert-info" role="alert">This area of the site is for moderators only, I'm afraid.</div>
 <% } else if (me.systemrole == 'Moderator') { %>
-<div class="alert alert-success" role="alert">You're a moderator.  Here's your dashboard.</div>
+You're a moderator.  Here's your dashboard.</p>
 <% } else if (me.systemrole == 'Support') { %>
-<div class="alert alert-success" role="alert">You're part of the Support team.  Here's your dashboard.</div>
+You're part of the Support team.  Here's your dashboard.</p>
 <% } else if (me.systemrole == 'Admin') { %>
-<div class="alert alert-success" role="alert">You're a System Admin.  Here's your dashboard.</div>
+You're a System Admin.  Here's your dashboard.</p>
 <% } %>
