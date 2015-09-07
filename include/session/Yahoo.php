@@ -42,13 +42,12 @@ class Yahoo
         $this->openid = $openid;
     }
 
-    function login($returnto)
+    function login($returnto = '/')
     {
         try
         {
             $loginurl = "https://{$_SERVER['HTTP_HOST']}/yahoologin?returnto=" . urlencode($returnto);
             $this->openid->returnUrl = $loginurl;
-            error_log("Check login " . $this->openid->validate() . " id " . $this->openid->identity);
 
             if (($this->openid->validate()) &&
                 ($this->openid->identity != 'https://open.login.yahooapis.com/openid20/user_profile/xrds'))

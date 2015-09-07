@@ -22,10 +22,10 @@ class pageheaderTest extends IznikTest {
     public function __construct() {
     }
 
-    public function testUser() {
+    public function testModtools() {
         error_log(__METHOD__);
 
-        $_SERVER['REQUEST_URI'] = 'something';
+        $_SERVER['REQUEST_URI'] = 'modtools';
         $this->expectOutputRegex('/.*<meta property="og:title" content="' . SITE_NAME . '"\/>./*');
         $this->expectOutputRegex('/.*<script.*/');
         require_once(IZNIK_BASE . '/include/misc/pageheader.php');

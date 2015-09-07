@@ -8,9 +8,11 @@ global $dbhr, $dbhm;
 require_once(IZNIK_BASE . '/include/session/Session.php');
 require_once(IZNIK_BASE . '/include/session/Yahoo.php');
 require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/dashboard/Dashboard.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/session.php');
+require_once(IZNIK_BASE . '/http/api/dashboard.php');
 
 $includetime = microtime(true) - $scriptstart;
 
@@ -22,8 +24,8 @@ $_REQUEST['type'] = $_SERVER['REQUEST_METHOD'];
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     # We don't bother returning different values for different calls.
     http_response_code(204);
-    header('Allow: POST, GET, DELETE, PUT');
-    header('Access-Control-Allow-Methods:  POST, GET, DELETE, PUT');
+    @header('Allow: POST, GET, DELETE, PUT');
+    @header('Access-Control-Allow-Methods:  POST, GET, DELETE, PUT');
 } else {
     # Actual API calls
     $ret = array('ret' => 1000, 'status' => 'Invalid API call');
@@ -63,6 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             switch ($call) {
                 case 'session':
                     $ret = session();
+                    break;
+                case 'dashboard':
+                    $ret = dashboard();
                     break;
                 case 'exception':
                     # For UT

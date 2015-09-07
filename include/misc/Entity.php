@@ -12,7 +12,7 @@ class Entity
     var $dbhm;
     var $id;
     var $publicatts = array();
-    private $name;
+    private $name, $table;
 
     function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts)
     {
@@ -21,6 +21,7 @@ class Entity
         $this->name = $name;
         $this->id = $id;
         $this->publicatts = $publicatts;
+        $this->table = $table;
 
         if ($id) {
             $entities = $dbhr->preQuery("SELECT * FROM $table WHERE id = ?;", [$id]);
@@ -52,6 +53,13 @@ class Entity
             return($this->{$this->name}[$att]);
         } else {
             return(NULL);
+        }
+    }
+
+    public function setPrivate($att, $val) {
+        $rc = $this->dbhm->preExec("UPDATE {$this->table} SET $att = ? WHERE id = {$this->id};", [$val]);
+        if ($rc) {
+            $this->{$this->name}[$att] = $val;
         }
     }
 }

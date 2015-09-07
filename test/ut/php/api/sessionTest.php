@@ -69,5 +69,23 @@ class sessionTest extends IznikAPITest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testNative() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        assertTrue($u->addEmail('test@test.com'));
+        $u = new User($this->dbhm, $this->dbhm, $id);
+
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $ret = $this->call('session', 'POST', [
+            'email' => 'test@test.com',
+            'password' => 'testpw'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

@@ -1,10 +1,15 @@
 // We have a view for everything that is common across all pages, e.g. sidebars.
 Iznik.Views.Page = IznikView.extend({
+    modtools: false,
+
     render: function() {
         var self = this;
 
         // Set the base page layout
-        $('body').html(window.template('layout'));
+        console.log("Render page", this.template, this.modtools);
+        $('body').html(this.modtools ?
+            window.template('modtools_layout_layout') :
+            window.template('layout_layout'));
         $('.bodyContent').html(this.$el);
 
         // Put this page in

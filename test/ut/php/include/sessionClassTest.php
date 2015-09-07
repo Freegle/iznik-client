@@ -23,6 +23,7 @@ class sessionClassTest extends IznikTest {
         $this->dbhm = $dbhm;
 
         $dbhm->preExec("DELETE FROM users WHERE firstname = 'Test' AND lastname = 'User';");
+        $_SESSION['id'] = NULL;
     }
 
     protected function tearDown() {
@@ -62,7 +63,7 @@ class sessionClassTest extends IznikTest {
         # Now fake the login
         $_SESSION['id'] = $id;
         $me = whoAmI($this->dbhm, $this->dbhm);
-        assertEquals($id, $me['id']);
+        assertEquals($id, $me->getPrivate('id'));
 
         error_log(__METHOD__ . " end");
     }

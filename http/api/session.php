@@ -35,9 +35,10 @@ function session() {
         if ($password && $email) {
             # Native login via username and password
             $possid = $user->findByEmail($email);
+            error_log("$email $password $possid");
             if ($possid) {
                 $u = new User($dbhr, $dbhm, $possid);
-                if ($u->checkPassword($password)) {
+                if ($u->login($password)) {
                     $ret = array('ret' => 0, 'status' => 'Success');
                     $id = $possid;
                 }
@@ -67,7 +68,6 @@ function session() {
         if ($id) {
             # Return some more useful info.
             $u = new User($dbhr, $dbhm, $id);
-
             $ret['user'] = $u->getPublic();
         }
     } else if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
@@ -92,6 +92,8 @@ function session() {
             session_regenerate_id(true);
         } catch (Exception $e) {}
     }
+
+    error_log(var_export($ret, true));
 
     return($ret);
 }

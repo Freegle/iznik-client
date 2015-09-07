@@ -123,9 +123,9 @@ class userTest extends IznikTest {
         assertNull($u->findByLogin(User::LOGIN_YAHOO, 'testinvalid'));
 
         # Test native
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, 'testpw'));
-        assertTrue($u->checkPassword('testpw'));
-        assertFalse($u->checkPassword('testpwbad'));
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        assertFalse($u->login('testpwbad'));
 
         error_log(__METHOD__ . " end");
     }

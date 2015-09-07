@@ -55,5 +55,15 @@ class apiTest extends IznikAPITest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testOptions() {
+        error_log(__METHOD__);
+
+        # Testing header output is hard
+        # TODO ...but doable, apparently.
+        $ret = $this->call('test', 'OPTIONS', []);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
+require_once(IZNIK_BASE . '/include/session/Session.php');
 
 class User extends Entity
 {
@@ -32,22 +33,17 @@ class User extends Entity
         return sha1($pw . PASSWORD_SALT);
     }
 
-    public function checkPassword($pw) {
+    public function login($pw) {
         # TODO Passwords are a complex area.  There is probably something better we could do.
         #
         # TODO lockout
-        error_log("Check $pw for {$this->id}");
         if ($this->id) {
             $pw = $this->hashPassword($pw);
-            error_log("Get logins");
             $logins = $this->getLogins();
-            error_log("Got logins for {$this->id} " . var_export($logins, true));
             foreach ($logins as $login) {
-                error_log("Check $pw vs {$login['uid']}");
-                if ($login['type'] == User::LOGIN_NATIVE && $pw == $login['uid']) {
+                error_log("Check $pw vs {$login['credentials']}");
+                if ($login['type'] == User::LOGIN_NATIVE && $pw == $login['credentials']) {
                     $s = new Session($this->dbhr, $this->dbhm);
-                    $s->create($this->id);
-
                     return (TRUE);
                 }
             }
@@ -150,17 +146,17 @@ class User extends Entity
         return(NULL);
     }
 
-    public function addLogin($type, $uid)
+    public function addLogin($type, $uid, $creds = NULL)
     {
         if ($type == User::LOGIN_NATIVE) {
-            # Native login - encrypt the password a bit.
-            $uid = $this->hashPassword($uid);
+            # Native login - the uid is the password encrypt the password a bit.
+            $creds = $this->hashPassword($creds);
         }
 
         # If the login with this type already exists in the table, the insert will fail.
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, uid, type) VALUES (?, ?, ?)",
-                [$this->id, $uid, $type]);
+            $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, uid, type, credentials) VALUES (?, ?, ?, ?)",
+                [$this->id, $uid, $type, $creds]);
             return($rc);
         } catch (DBException $e) {
             return(false);

@@ -26,6 +26,10 @@ class IznikAPITest extends IznikTest {
 
         $_SERVER['HTTP_HOST'] = 'localhost';
         $_SERVER['REQUEST_URI'] = '/';
+        $_SESSION['id'] = NULL;
+
+        $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_emails WHERE email IN ('test@test.com', 'test2@test.com'));");
+        $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_logins WHERE uid IN ('testid', '1234'));");
     }
 
     protected function tearDown() {
@@ -38,7 +42,7 @@ class IznikAPITest extends IznikTest {
     }
 
     public function call($call, $type, $params) {
-        $_REQUEST = array_merge($_REQUEST, $params);
+        $_REQUEST = array_merge($params);
 
         $_SERVER['REQUEST_METHOD'] = $type;
         $_SERVER['REQUEST_URI'] = "/api/$call.php";
