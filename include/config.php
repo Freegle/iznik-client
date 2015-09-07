@@ -11,6 +11,9 @@ define('MINIFY', false);
 
 define('COOKIE_NAME', 'session');
 
+# Our servers run on UTC
+date_default_timezone_set('UTC');
+
 # Per-machine config or overrides
 require_once('/etc/iznik.conf');
 

@@ -90,6 +90,7 @@ class userTest extends IznikTest {
 
         error_log(__METHOD__ . " end");
     }
+
     public function testLogins() {
         error_log(__METHOD__);
 
@@ -120,6 +121,11 @@ class userTest extends IznikTest {
 
         assertEquals($id, $u->findByLogin(User::LOGIN_YAHOO, 'testid'));
         assertNull($u->findByLogin(User::LOGIN_YAHOO, 'testinvalid'));
+
+        # Test native
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, 'testpw'));
+        assertTrue($u->checkPassword('testpw'));
+        assertFalse($u->checkPassword('testpwbad'));
 
         error_log(__METHOD__ . " end");
     }

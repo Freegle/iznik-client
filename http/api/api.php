@@ -28,11 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     # Actual API calls
     $ret = array('ret' => 1000, 'status' => 'Invalid API call');
     $t = microtime(true);
-    $me = whoAmI($dbhr, $dbhm, true);
     $whoamitime = microtime(true) - $t;
 
-# We wrap the whole request in a retry handler.  This is so that we can deal with errors caused by
-# conflicts within the Percona cluster.
+    # We wrap the whole request in a retry handler.  This is so that we can deal with errors caused by
+    # conflicts within the Percona cluster.
     $apicallretries = 0;
 
     do {
@@ -84,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             # If we get here, everything worked.  Add profiling info.
             $ret['call'] = $call;
             $ret['type'] = $_SERVER['REQUEST_METHOD'];
+            $ret['session'] = session_id();
             $ret['duration'] = (microtime(true) - $scriptstart);
             $ret['cpucost'] = getCpuUsage();
             $ret['dbwaittime'] = $dbhr->getWaitTime() + $dbhm->getWaitTime();

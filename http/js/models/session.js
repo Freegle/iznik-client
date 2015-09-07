@@ -11,7 +11,7 @@ Iznik.Models.Session = IznikModel.extend({
             success: function(ret) {
                 if ((ret.ret ==0)) {
                     //console.log("Logged in");
-                    self.set('session', ret);
+                    self.set(ret);
                     self.trigger('isLoggedIn', true);
                 } else {
                     //console.log("Not logged in");

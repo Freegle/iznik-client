@@ -28,6 +28,34 @@ class User extends Entity
         $this->log = new Log($dbhr, $dbhm);
     }
 
+    private function hashPassword($pw) {
+        return sha1($pw . PASSWORD_SALT);
+    }
+
+    public function checkPassword($pw) {
+        # TODO Passwords are a complex area.  There is probably something better we could do.
+        #
+        # TODO lockout
+        error_log("Check $pw for {$this->id}");
+        if ($this->id) {
+            $pw = $this->hashPassword($pw);
+            error_log("Get logins");
+            $logins = $this->getLogins();
+            error_log("Got logins for {$this->id} " . var_export($logins, true));
+            foreach ($logins as $login) {
+                error_log("Check $pw vs {$login['uid']}");
+                if ($login['type'] == User::LOGIN_NATIVE && $pw == $login['uid']) {
+                    $s = new Session($this->dbhr, $this->dbhm);
+                    $s->create($this->id);
+
+                    return (TRUE);
+                }
+            }
+        }
+
+        return(FALSE);
+    }
+
     public function getName() {
         # We may or may not have the knowledge about how the name is split out, depending
         # on the sign-in mechanism.
@@ -107,9 +135,9 @@ class User extends Entity
     }
 
     public function getLogins() {
-        $emails = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ?;",
+        $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ?;",
             [$this->id]);
-        return($emails);
+        return($logins);
     }
 
     public function findByLogin($type, $uid) {
@@ -124,6 +152,11 @@ class User extends Entity
 
     public function addLogin($type, $uid)
     {
+        if ($type == User::LOGIN_NATIVE) {
+            # Native login - encrypt the password a bit.
+            $uid = $this->hashPassword($uid);
+        }
+
         # If the login with this type already exists in the table, the insert will fail.
         try {
             $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, uid, type) VALUES (?, ?, ?)",

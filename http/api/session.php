@@ -7,7 +7,7 @@ function session() {
     if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         # Check if we're logged in
         if ($me) {
-            $ret = array('ret' => 0, 'status' => 'Success', 'me' => array());
+            $ret = array('ret' => 0, 'status' => 'Success', 'me' => $me->getPublic());
         } else {
             $ret = array('ret' => 1, 'status' => 'Not logged in');
         }
@@ -15,23 +15,34 @@ function session() {
         # Login
         session_reopen();
 
-        $fblogin = array_key_exists('fblogin', $_REQUEST) ? filter_var($_REQUEST['fblogin'], FILTER_VALIDATE_BOOLEAN) : false;
-        $googlelogin = array_key_exists('googlelogin', $_REQUEST) ? filter_var($_REQUEST['googlelogin'], FILTER_VALIDATE_BOOLEAN) : false;
-        $yahoologin = array_key_exists('yahoologin', $_REQUEST) ? filter_var($_REQUEST['yahoologin'], FILTER_VALIDATE_BOOLEAN) : false;
+        $fblogin = array_key_exists('fblogin', $_REQUEST) ? filter_var($_REQUEST['fblogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+        $googlelogin = array_key_exists('googlelogin', $_REQUEST) ? filter_var($_REQUEST['googlelogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+        $yahoologin = array_key_exists('yahoologin', $_REQUEST) ? filter_var($_REQUEST['yahoologin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
         $fbauthtoken = array_key_exists('fbauthtoken', $_REQUEST) ? $_REQUEST['fbauthtoken'] : NULL;
         $googleauthcode = array_key_exists('googleauthcode', $_REQUEST) ? $_REQUEST['googleauthcode'] : NULL;
-        $mobile = array_key_exists('mobile', $_REQUEST) ? filter_var($_REQUEST['mobile'], FILTER_VALIDATE_BOOLEAN) : false;
-        $email = array_key_exists('email', $_REQUEST) ? $_REQUEST['email'] : '';
-        $password = array_key_exists('password', $_REQUEST) ? $_REQUEST['password'] : '';
+        $mobile = array_key_exists('mobile', $_REQUEST) ? filter_var($_REQUEST['mobile'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+        $email = array_key_exists('email', $_REQUEST) ? $_REQUEST['email'] : NULL;
+        $password = array_key_exists('password', $_REQUEST) ? $_REQUEST['password'] : NULL;
         $key = array_key_exists('key', $_REQUEST) ? $_REQUEST['key'] : NULL;
         $returnto = array_key_exists('returnto', $_REQUEST) ? $_REQUEST['returnto'] : NULL;
-        $rememberme = array_key_exists('rememberme', $_REQUEST) ? filter_var($_REQUEST['rememberme'], FILTER_VALIDATE_BOOLEAN) : false;
+        $rememberme = array_key_exists('rememberme', $_REQUEST) ? filter_var($_REQUEST['rememberme'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
         $id = NULL;
         $user = new User($dbhr, $dbhm);
         $f = NULL;
-        $newuser = false;
         $ret = array('ret' => 1, 'status' => 'Invalid login details');
+
+        if ($password && $email) {
+            # Native login via username and password
+            $possid = $user->findByEmail($email);
+            if ($possid) {
+                $u = new User($dbhr, $dbhm, $possid);
+                if ($u->checkPassword($password)) {
+                    $ret = array('ret' => 0, 'status' => 'Success');
+                    $id = $possid;
+                }
+            }
+        }
 
         if ($fblogin) {
             # We've been asked to log in via Facebook.
@@ -57,7 +68,6 @@ function session() {
             # Return some more useful info.
             $u = new User($dbhr, $dbhm, $id);
 
-            $ret['session'] = session_id();
             $ret['user'] = $u->getPublic();
         }
     } else if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {

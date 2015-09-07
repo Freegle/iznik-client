@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
   title: Iznik API
-  description: This is an explorable definition of the Iznik REST API.
+  description: "This is an explorable definition of the Iznik REST API.  \n\nYou should put the result of your login (via a POST to session) into the api_key field above for future calls.  In web browsers this is handled by cookies, but Swagger doesn't support those.\n\nNote that the results of each call are not fully defined in here; we do a minimum required to allow Swagger to work."
   version: "1.0.0"
 host: iznik.modtools.org
 schemes:
@@ -40,6 +40,14 @@ paths:
         in: query
         description: Log in via Yahoo
         type: boolean
+      - name: email
+        in: query
+        description: For native login, email address
+        type: string
+      - name: password
+        in: query
+        description: For native login, password
+        type: string
       - name: returnto
         in: query
         description: URL to return to for Login methods which respond with a redirect request
@@ -94,6 +102,9 @@ definitions:
       whoamitime:
         type: number
         description: Elapsed time spent working out who this session is for (seconds)
+      session:
+        type: string
+        description: The ID of this session; will match the Set-Cookie, but can also be passed back in using the api_key parameter
   Error:
     properties:
       code:

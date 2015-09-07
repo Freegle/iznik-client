@@ -182,6 +182,10 @@ body {
     width: 98%;
 }
 
+.logo {
+    height: 50px;
+}
+
 .fullmodal .modal-dialog {
     width: 100%;
     height: 100%;

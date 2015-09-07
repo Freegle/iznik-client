@@ -1,8 +1,9 @@
 <?php
-# This file should go into /etc/iznik.conf
+# This file should be suitably modified, then go into /etc/iznik.conf
 define('SQLDB', 'iznik');
 define('SQLUSER', 'zzzz');
 define('SQLPASSWORD', 'zzzz');
+define('PASSWORD_SALT', 'zzzz');
 
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');

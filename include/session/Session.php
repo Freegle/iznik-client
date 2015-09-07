@@ -7,6 +7,13 @@ require_once(IZNIK_BASE . '/include/utils.php');
 # once you've called it, the session is then blocked, which is bad for simultaneous AJAX calls, so we unlock write access
 # unless told to keep it.  We also have a call to reclaim write access to the session for some cases.
 
+if (pres('api_key', $_REQUEST)) {
+    # We have been passed a session id.
+    #
+    # One example of this is when we are called from Swagger.
+    session_id($_REQUEST['api_key']);
+}
+
 if (!isset($_SESSION)) {
     session_start();
 }
@@ -45,11 +52,7 @@ function whoAmI(LoggedPDO $dbhr, $dbhm, $writeaccess = false)
 
     if ($id) {
         # We are logged in.  Get our details
-        $sql = "SELECT * FROM users WHERE id = $id;";
-        $users = $dbhr->query($sql);
-        foreach ($users as $user) {
-            $ret = $user;
-        }
+        $ret = new User($dbhr, $dbhm, $id);
     }
 
     if (!$writeaccess) {

@@ -16,7 +16,6 @@ function onRequestStart() {
     $dat = getrusage();
     $tusage =  microtime(true);
     $rusage = $dat["ru_utime.tv_sec"]*1e6+$dat["ru_utime.tv_usec"];
-    #error_log("Start request $tusage $rusage" . var_export($dat, true));
 }
 
 onRequestStart();
