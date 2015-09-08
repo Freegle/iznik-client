@@ -44,6 +44,7 @@ class User extends Entity
                 error_log("Check $pw vs {$login['credentials']}");
                 if ($login['type'] == User::LOGIN_NATIVE && $pw == $login['credentials']) {
                     $s = new Session($this->dbhr, $this->dbhm);
+                    $s->create($this->id);
                     return (TRUE);
                 }
             }

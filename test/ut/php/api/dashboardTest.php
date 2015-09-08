@@ -32,9 +32,11 @@ class dashboardTest extends IznikAPITest {
         $u = new User($this->dbhr, $this->dbhm, $id);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
+        error_log("After login {$_SESSION['id']}");
 
         # Shouldn't get anything as a user
         $ret = $this->call('dashboard', 'GET', []);
+        error_log(var_export($ret, true));
         assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
         assertFalse(array_key_exists('messagehistory', $dash));
