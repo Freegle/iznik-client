@@ -45,32 +45,52 @@ function presdef($key, $arr, $def) {
     }
 }
 
-function filterArray(&$array, $skip = NULL) {
-    foreach($array as $key=>$var){
-
-        # PDO can return numeric indices, which we don'[t want to pass out.
-        #error_log("key $key exists " . array_key_exists($key, $array) . " val {$array[$key]} vs $var int " . is_int($key) . " numeric " . is_numeric($key));
-        #print "$key type ". gettype($array[$key]) . " null? " . is_null($array[$key]) . "\n";
-        if ($skip && (array_search($key, $skip) !== false)) {
-            # Asked to do nothing
-        } else if (is_null($array[$key])) {
-            unset($array[$key]);
-        } else if (is_int($key) || is_numeric($key)) {
-            unset($array[$key]);
-        } else if (is_array($var)) {
-            filterArray($array[$key]);
-        } else if ((array_key_exists($key, $array)) && (gettype($array[$key]) == 'string') && (strlen($array[$key]) == 0)) {
-            # There is no value here worth returning.
-            unset($array[$key]);
-        } else if ((is_numeric($array[$key])) && (strpos(',', $array[$key]) === false)) {
-            # This is an integer value.  We want to return it as an int rather than a string,
-            # not least for boolean values which would otherwise require a parseInt on the client.
-            $array[$key] = intval($array[$key]);
-        } else {
-            # This is a hack which flattens odd characters to avoid json_encode returning null.
-            $array[$key] = @iconv('UTF-8', 'UTF-8//IGNORE', $array[$key]);
+function filterResult(&$array, $skip = NULL) {
+    # PDO can return numeric indices, which we don't want to pass out.  We also want to ensure that we have the
+    # correct data types - for example PDO returns floats as strings.
+    $allnumeric = true;
+    foreach ($array as $key=>$var) {
+        if (!is_int($key) && !is_numeric($key)) {
+            $allnumeric = false;
         }
     }
+
+    foreach($array as $key => $val){
+        #print "$key type ". gettype($val) . " null? " . is_null($val) . "\n";
+        error_log("Consider $key = $val " . is_numeric($val));
+        
+        if ($skip && (array_search($key, $skip) !== false)) {
+            # Asked to do nothing
+        } else if (is_null($val)) {
+            unset($array[$key]);
+        } else if ((is_int($key) || is_numeric($key)) && (!$allnumeric)) {
+            unset($array[$key]);
+        } else if (is_array($val)) {
+            error_log("Recurse $key");
+            $thisone = $val;
+            filterResult($val);
+            $array[$key] = $val;
+        } else if ((array_key_exists($key, $array)) && (gettype($val) == 'string') && (strlen($val) == 0)) {
+            # There is no value here worth returning.
+            unset($val);
+        } else if (is_numeric($val)) {
+            error_log("Numeric");
+            if (strpos($val, '.') === false) {
+                # This is an integer value.  We want to return it as an int rather than a string,
+                # not least for boolean values which would otherwise require a parseInt on the client.
+                error_log("Int");
+                $array[$key] = intval($val);
+            } else {
+                error_log("Float");
+                $array[$key] = floatval($val);
+            }
+        } else {
+            # This is a hack which flattens odd characters to avoid json_encode returning null.
+            $array[$key] = @iconv('UTF-8', 'UTF-8//IGNORE', $val);
+        }
+    }
+
+    error_log(var_export($array, true));
 }
 
 function getCpuUsage() {

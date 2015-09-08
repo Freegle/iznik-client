@@ -95,6 +95,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             $ret['includetime'] = $includetime;
             $ret['whoamitime'] = $whoamitime;
 
+            filterResult($ret);
+
             echo json_encode($ret);
 
             if ($apicallretries > 0) {

@@ -32,11 +32,44 @@ Iznik.Views.MessageGraph = IznikView.extend({
                 title: self.options.title,
                 interpolateNulls: false,
                 legend: {position: 'none'},
+                chartArea: {'width': '80%', 'height': '80%'},
                 hAxis: {
                     format: 'dd MMM'
                 },
                 series: {
                     0: {color: 'blue'}
+                }
+            };
+            self.chart.draw(self.data, self.chartOptions);
+        });
+    }
+});
+
+Iznik.Views.DomainChart = IznikView.extend({
+    template: 'utils_domain_chart',
+
+    render: function() {
+        var self = this;
+
+        // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+        _.defer(function() {
+            self.$el.html(window.template(self.template)());
+            var arr = [['Domain', 'Count']];
+
+            self.options.data.each(function(count) {
+                arr.push([count.get('domain'), count.get('count')]);
+            });
+            console.log("Domain arr", arr);
+
+            self.data = google.visualization.arrayToDataTable(arr);
+            self.chart = new google.visualization.PieChart(self.options.target);
+            self.chartOptions = {
+                title: self.options.title,
+                legend: {position: 'none'},
+                chartArea: {'width': '80%', 'height': '80%'},
+                slices2: {
+                    1: {offset: 0.2},
+                    2: {offset: 0.2}
                 }
             };
             self.chart.draw(self.data, self.chartOptions);

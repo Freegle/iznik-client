@@ -47,7 +47,7 @@ class dashboardTest extends IznikAPITest {
         assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
         error_log("Dash " . var_export($dash, true));
-        assertGreaterThan(0, $dash['messagehistory']['messages']);
+        assertGreaterThan(0, $dash['messagehistory']);
 
         error_log(__METHOD__ . " end");
     }
