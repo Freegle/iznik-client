@@ -23,17 +23,7 @@ class Dashboard {
                 # Get a summary of messages across the whole site for the last 30 days
                 $mysqltime = date ("Y-m-d", strtotime("Midnight 30 days ago"));
                 $sql = "SELECT COUNT(*) AS count, DATE(arrival) AS date FROM `messages_history` WHERE arrival > ? GROUP BY date ORDER BY date ASC;";
-                $msgs = $this->dbhr->preQuery($sql, [$mysqltime]);
-
-                # We get it back as an array - change the keys to the dates.
-                $ret['messagehistory'] = [
-                    'messages' => []
-                ];
-
-                foreach ($msgs as $msg) {
-                    $ret['messagehistory'][$msg['date']] = $msg['count'];
-                }
-
+                $ret['messagehistory'] = $this->dbhr->preQuery($sql, [$mysqltime]);
                 break;
             }
             default : {

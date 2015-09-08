@@ -47,6 +47,7 @@ function scriptInclude($minify)
         "js/views/modal.js",
         "js/views/signinup.js",
         "js/views/pages/pages.js",
+        "js/views/utils.js",
         "js/views/pages/landing.js",
         "js/views/pages/modtools/landing.js",
         "js/iznik/router.js"

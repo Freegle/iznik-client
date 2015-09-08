@@ -56,8 +56,8 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     $tpls = addTemplate(IZNIK_BASE . '/http/template/', IZNIK_BASE . '/http/template/');
     echo implode("\n", $tpls);
     ?>
-    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=geometry,places,drawing,visualization"></script>
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCpB54NtsIUX6L9ChabAmvr6k48DZhRJs0&sensor=false&libraries=geometry,places,drawing,visualization"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['corechart', 'annotationchart']}]}"></script>
 
     <!-- We use bootstrap as a base UI -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">

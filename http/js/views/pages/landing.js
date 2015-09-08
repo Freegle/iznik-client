@@ -1,3 +1,3 @@
 Iznik.Views.Pages.Landing = Iznik.Views.Page.extend({
-    template: "landing_main"
+    template: "landing_main",
 });

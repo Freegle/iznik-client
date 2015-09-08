@@ -14,7 +14,9 @@ window.Iznik = {
         MyPosts: {},
         Help: {},
         Alerts: {},
-        Reuse: {}
+        Reuse: {},
+        ModTools: {},
+        Utils: {}
     },
     Collections: {}
 };

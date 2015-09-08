@@ -718,3 +718,6 @@ filter: alpha(opacity=70); /* IE */
     opacity: 0.2;
 }
 
+.graph {
+    height: 300px;
+}
