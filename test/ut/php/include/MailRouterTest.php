@@ -29,6 +29,7 @@ class MailRouterTest extends IznikTest {
         $this->dbhm->preExec("DELETE FROM messages_incoming WHERE fromaddr = ? OR fromip = ?;", ['test@test.com', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM messages_approved WHERE fromaddr = ? OR fromip = ?;", ['test@test.com', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM messages_history WHERE fromaddr = ? OR fromip = ?;", ['test@test.com', '1.2.3.4']);
+        $this->dbhm->preExec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';", []);
 
         # Whitelist this IP
         $this->dbhm->preExec("INSERT INTO spam_whitelist_ips (ip, comment) VALUES ('1.2.3.4', 'UT whitelist');", []);
@@ -43,6 +44,41 @@ class MailRouterTest extends IznikTest {
     }
 
     public function __construct() {
+    }
+
+    public function testSpamSubject() {
+        error_log(__METHOD__);
+
+        $subj = "Test spam subject " . microtime();
+        $groups = [];
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+
+        for ($i = 0; $i < Spam::SUBJECT_THRESHOLD + 2; $i++) {
+            $g = new Group($this->dbhr, $this->dbhm);
+            $g->create("testgroup$i", Group::GROUP_REUSE);
+            $groups[] = $g;
+
+            $msg = file_get_contents('msgs/basic');
+            $msg = str_replace('Basic test', $subj, $msg);
+            $msg = str_replace('To: "freegleplayground@yahoogroups.com" <freegleplayground@yahoogroups.com>',
+                    "To: \"testgroup$i\" <testgroup$i@yahoogroups.com>",
+                    $msg);
+
+            $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+            $rc = $r->route();
+
+            if ($i < Spam::SUBJECT_THRESHOLD - 1) {
+                assertEquals(MailRouter::APPROVED, $rc);
+            } else {
+                assertEquals(MailRouter::INCOMING_SPAM, $rc);
+            }
+        }
+
+        foreach ($groups as $group) {
+            $group->delete();
+        }
+
+        error_log(__METHOD__ . " end");
     }
 
     public function testSpam() {

@@ -50,6 +50,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 </HEAD>
 <BODY>Hey.</BODY></HTML>", $m->getHtmlbody());
         assertEquals(0, count($m->getAttachments()));
+        assertEquals(IncomingMessage::TYPE_OTHER, $m->getType());
 
         # Save it
         $id = $m->save();
@@ -134,6 +135,15 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         assertNotNull($id);
 
         $m->delete();
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testType() {
+        error_log(__METHOD__);
+
+        assertEquals(IncomingMessage::TYPE_OFFER, IncomingMessage::determineType('OFFER: item (location)'));
+        assertEquals(IncomingMessage::TYPE_WANTED, IncomingMessage::determineType('[Group]WANTED: item'));
 
         error_log(__METHOD__ . " end");
     }

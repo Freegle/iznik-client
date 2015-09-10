@@ -8,13 +8,28 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 # a message and store it in the incoming DB table.
 class IncomingMessage
 {
+    const TYPE_OFFER = 'Offer';
+    const TYPE_TAKEN = 'Taken';
+    const TYPE_WANTED = 'Wanted';
+    const TYPE_RECEIVED = 'Received';
+    const TYPE_ADMIN = 'Admin';
+    const TYPE_OTHER = 'Other';
+
     /** @var  $dbhr LoggedPDO */
     private $dbhr;
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
+
+    /**
+     * @return mixed
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
     private $id;
     private $source, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto,
-        $messageid, $tnpostid, $retrycount, $retrylastfailure, $parser, $groupid, $fromip, $fromhost;
+        $messageid, $tnpostid, $retrycount, $retrylastfailure, $parser, $groupid, $fromip, $fromhost, $type;
 
     /**
      * @return mixed
@@ -141,7 +156,7 @@ class IncomingMessage
             $msgs = $dbhr->preQuery("SELECT * FROM messages_incoming WHERE id = ?;", [$id]);
             foreach ($msgs as $msg) {
                 foreach (['message', 'source', 'envelopefrom', 'fromname', 'fromaddr',
-                        'envelopeto', 'subject', 'textbody', 'htmlbody', 'subject',
+                        'envelopeto', 'subject', 'textbody', 'htmlbody', 'subject', 'type',
                          'messageid', 'tnpostid', 'retrycount', 'retrylastfailure', 'groupid', 'fromip', 'fromname'] as $attr) {
                     if (pres($attr, $msg)) {
                         $this->$attr = $msg[$attr];
@@ -202,6 +217,36 @@ class IncomingMessage
     public function getAttachments()
     {
         return $this->attachments;
+    }
+
+    public static function determineType($subj) {
+        $type = IncomingMessage::TYPE_OTHER;
+
+        # We try various mis-spellings, and Welsh.  This is not to suggest that Welsh is a spelling error.
+        $keywords = [
+            IncomingMessage::TYPE_OFFER => [
+                'ofer', 'offr', 'offrer', 'ffered', 'offfered', 'offrered', 'offered', 'offeer', 'cynnig', 'offred',
+                'offer', 'offering', 'reoffer', 're offer', 're-offer', 'reoffered', 're offered', 're-offered',
+                'offfer', 'offeed', 'available'],
+            IncomingMessage::TYPE_TAKEN => ['collected', 'take', 'stc', 'gone', 'withdrawn', 'ta ke n', 'promised',
+                'cymeryd', 'cymerwyd', 'takln', 'taken'],
+            IncomingMessage::TYPE_WANTED => ['wnted', 'requested', 'rquested', 'request', 'would like', 'want',
+                'anted', 'wated', 'need', 'needed', 'wamted', 'require', 'required', 'watnted', 'wented',
+                'sought', 'seeking', 'eisiau', 'wedi eisiau', 'eisiau', 'wnated', 'wanted', 'looking', 'waned'],
+            IncomingMessage::TYPE_RECEIVED => ['recieved', 'reiceved', 'receved', 'rcd', 'rec\'d', 'recevied',
+                'receive', 'derbynewid', 'derbyniwyd', 'received', 'recivered'],
+            IncomingMessage::TYPE_ADMIN => ['admin', 'sn']
+        ];
+
+        foreach ($keywords as $keyword => $vals) {
+            foreach ($vals as $val) {
+                if (preg_match('/\b' . preg_quote($val) . '\b/i', $subj)) {
+                    $type = $keyword;
+                }
+            }
+        }
+
+        return($type);
     }
 
     # Parse a raw SMTP message.
@@ -267,6 +312,16 @@ class IncomingMessage
             # Check if it's a group we host.
             $g = new Group($this->dbhr, $this->dbhm);
             $this->setGroupID($g->findByShortName($groupname));
+
+            if ($this->groupid) {
+                # If this is a reuse group, we need to determine the type.
+                $g = new Group($this->dbhr, $this->dbhm, $this->groupid);
+                if ($g->getPrivate('type') == Group::GROUP_FREEGLE ||
+                    $g->getPrivate('type') == Group::GROUP_REUSE
+                ) {
+                    $this->type = $this->determineType($this->subject);
+                }
+            }
         }
     }
 
@@ -281,7 +336,7 @@ class IncomingMessage
     # Save a parsed message to the DB
     public function save() {
         # Save into the incoming messages table.
-        $sql = "INSERT INTO messages_incoming (groupid, source, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody) VALUES(?,?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages_incoming (groupid, source, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->groupid,
             $this->source,
@@ -294,7 +349,8 @@ class IncomingMessage
             $this->messageid,
             $this->tnpostid,
             $this->textbody,
-            $this->htmlbody
+            $this->htmlbody,
+            $this->type
         ]);
 
         $id = NULL;

@@ -10,7 +10,7 @@ require_once(UT_DIR . '/../../include/config.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class pageheaderTest extends IznikTest {
+class pageheaderTest2 extends IznikTest {
     protected function setUp() {
         parent::setUp ();
     }

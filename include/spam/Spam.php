@@ -8,6 +8,7 @@ use GeoIp2\Database\Reader;
 class Spam {
     CONST USER_THRESHOLD = 4;
     CONST GROUP_THRESHOLD = 20;
+    CONST SUBJECT_THRESHOLD = 10;
 
     /** @var  $dbhr LoggedPDO */
     private $dbhr;
@@ -91,6 +92,42 @@ class Spam {
 
             if ($numgroups > Spam::GROUP_THRESHOLD) {
                 return(array(true, "Blocking IP $ip ($host) used for $numgroups different groups"));
+            }
+        }
+
+        # Now check whether this subject (pace any location) is appearing on many groups.
+        $subj = $msg->getSubject();
+        if (preg_match('/(.*)\(.*\)/', $subj, $matches)) {
+            # Strip possible location - useful for reuse groups
+            $subj = $matches[1];
+        }
+        if (preg_match('/\[.*\](.*)/', $subj, $matches)) {
+            # Strip possible group name
+            $subj = $matches[1];
+        }
+
+        $subj = trim($subj);
+
+        if (strlen($subj) > 0) {
+            $sql = "SELECT COUNT(DISTINCT groupid) AS count FROM messages_history WHERE subject LIKE ? AND groupid IS NOT NULL;";
+            $counts = $this->dbhr->preQuery($sql, [
+                "$subj%"
+            ]);
+
+            foreach ($counts as $count) {
+                if ($count['count'] >= Spam::SUBJECT_THRESHOLD) {
+                    # Possible spam subject - but check against our whitelist.
+                    $found = FALSE;
+                    $sql = "SELECT id FROM spam_whitelist_subjects WHERE subject LIKE ?;";
+                    $whites = $this->dbhr->preQuery($sql, [$subj]);
+                    foreach ($whites as $white) {
+                        $found = TRUE;
+                    }
+
+                    if (!$found) {
+                        return (array(true, "Warning - subject $subj recently used on {$count['count']} groups"));
+                    }
+                }
             }
         }
 

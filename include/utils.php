@@ -57,7 +57,7 @@ function filterResult(&$array, $skip = NULL) {
 
     foreach($array as $key => $val){
         #print "$key type ". gettype($val) . " null? " . is_null($val) . "\n";
-        error_log("Consider $key = $val " . is_numeric($val));
+        #error_log("Consider $key = $val " . is_numeric($val));
         
         if ($skip && (array_search($key, $skip) !== false)) {
             # Asked to do nothing
@@ -66,7 +66,7 @@ function filterResult(&$array, $skip = NULL) {
         } else if ((is_int($key) || is_numeric($key)) && (!$allnumeric)) {
             unset($array[$key]);
         } else if (is_array($val)) {
-            error_log("Recurse $key");
+            #error_log("Recurse $key");
             $thisone = $val;
             filterResult($val);
             $array[$key] = $val;
@@ -74,14 +74,12 @@ function filterResult(&$array, $skip = NULL) {
             # There is no value here worth returning.
             unset($val);
         } else if (is_numeric($val)) {
-            error_log("Numeric");
+            #error_log("Numeric");
             if (strpos($val, '.') === false) {
                 # This is an integer value.  We want to return it as an int rather than a string,
                 # not least for boolean values which would otherwise require a parseInt on the client.
-                error_log("Int");
                 $array[$key] = intval($val);
             } else {
-                error_log("Float");
                 $array[$key] = floatval($val);
             }
         } else {
@@ -89,8 +87,6 @@ function filterResult(&$array, $skip = NULL) {
             $array[$key] = @iconv('UTF-8', 'UTF-8//IGNORE', $val);
         }
     }
-
-    error_log(var_export($array, true));
 }
 
 function getCpuUsage() {

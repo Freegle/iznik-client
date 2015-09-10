@@ -75,11 +75,11 @@ class MailRouter
             # Copy the relevant fields in the row to the table, and add the reason.
             $sql = "INSERT INTO messages_spam (incomingid, arrival, `source`, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                      tnpostid, textbody, htmlbody, fromip, reason)
+                      tnpostid, textbody, htmlbody, fromip, reason, type)
                       SELECT id, arrival, `source`, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       tnpostid, textbody, htmlbody, fromip, " . $this->dbhm->quote($reason) .
-                " AS reason FROM messages_incoming WHERE id = ?;";
+                " AS reason, type FROM messages_incoming WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql,
                 [
                     $this->msg->getID()
@@ -125,10 +125,10 @@ class MailRouter
             # Copy the relevant fields in the row to the table, and add the reason.
             $sql = "INSERT INTO messages_approved (incomingid, arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                      tnpostid, textbody, htmlbody, fromip)
+                      tnpostid, textbody, htmlbody, fromip, type)
                       SELECT id, arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                      tnpostid, textbody, htmlbody, fromip FROM messages_incoming WHERE id = ?;";
+                      tnpostid, textbody, htmlbody, fromip, type FROM messages_incoming WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $this->msg->getID() ]);
 
             if ($rc) {
@@ -166,10 +166,10 @@ class MailRouter
             error_log("Copy incoming ID to pending " . $this->msg->getID());
             $sql = "INSERT INTO messages_pending (incomingid, arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                      tnpostid, textbody, htmlbody, fromip)
+                      tnpostid, textbody, htmlbody, fromip, type)
                       SELECT id, arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                      tnpostid, textbody, htmlbody, fromip FROM messages_incoming WHERE id = ?;";
+                      tnpostid, textbody, htmlbody, fromip, type FROM messages_incoming WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $this->msg->getID() ]);
 
             if ($rc) {

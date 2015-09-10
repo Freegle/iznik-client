@@ -6,7 +6,7 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 class Group extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'settings');
+    var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'settings', 'type');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';

@@ -15,12 +15,12 @@ Iznik.Views.Pages.ModTools.Landing = Iznik.Views.Page.extend({
                 switch (Iznik.Session.get('me').systemrole){
                     case 'Admin':
                         messagetitle = 'Message History (System-wide)';
-                        spamtitle = 'Spam History (System-wide)';
+                        spamtitle = 'Spam Detection (System-wide)';
                         domaintitle = 'Domain Breakdown (System-wide)';
                         break;
                     default:
                         messagetitle = 'Message History (Your groups)';
-                        spamtitle = 'Spam History (Your groups)';
+                        spamtitle = 'Spam Detection (Your groups)';
                         domaintitle = 'Domain Breakdown (Your groups)';
                         break;
                 }
