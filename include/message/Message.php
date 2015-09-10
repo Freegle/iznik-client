@@ -3,6 +3,7 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/message/Attachment.php');
 
 # This is a base class
 class Message
@@ -22,6 +23,14 @@ class Message
     public $id,
         $source, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto,
         $messageid, $tnpostid, $retrycount, $retrylastfailure, $groupid, $fromip, $fromhost, $type, $attachments;
+
+    # Attributes used when fetching attachments
+    private $attachmentAttributes = [
+        'IncomingMessage' => 'incomingid',
+        'PendingMessage' => 'pendingid',
+        'SpamMessage' => 'spamid',
+        'ApprovedMessage' => 'approvedid'
+    ];
 
     /**
      * @return mixed
@@ -56,8 +65,8 @@ class Message
         $name = NULL;
 
         if ($fromip) {
-# If the call returns a hostname which is the same as the IP, then it's
-# not resolvable.
+            # If the call returns a hostname which is the same as the IP, then it's
+            # not resolvable.
             $name = gethostbyaddr($fromip);
             $name = ($name == $fromip) ? NULL : $name;
             $this->fromhost = $name;
@@ -188,9 +197,19 @@ class Message
     /**
      * @return PhpMimeMailParser\Attachment[]
      */
-    public function getAttachments()
+    public function getParsedAttachments()
     {
         return $this->attachments;
+    }
+
+    # Get attachments which have been saved
+    public function getAttachments() {
+        # This is a bit sneaky; we find out our classname, to see which of the classes which extend us we are,
+        # and then get by that id.
+        $className = get_class($this);
+        $atts = Attachment::getById($this->dbhr, $this->dbhm, $this->getID(), $this->attachmentAttributes[$className]);
+
+        return($atts);
     }
 
     public static function determineType($subj) {

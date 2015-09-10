@@ -33,7 +33,7 @@ body {
 }
 
 .navbar-fixed-top {
-    max-height: 75px;
+    height: 75px;
     top: 0px;
 }
 /* Sticky footer styles
@@ -45,24 +45,6 @@ body {
     /* The html and body elements cannot have any padding or margin. */
 }
 
-/* Wrapper for page content to push down footer */
-#wrap {
-    min-height: 100%;
-    height: auto !important;
-    height: 100%;
-    /* Negative indent footer by it's height */
-    margin: 0 auto -60px;
-}
-
-/* Set the fixed height of the footer here */
-#push,
-#footer {
-    height: 60px;
-}
-#footer {
-    background-color: #f5f5f5;
-}
-
 /* Lastly, apply responsive CSS fixes as necessary */
 @media (max-width: 767px) {
     #footer {
@@ -72,7 +54,6 @@ body {
         padding-right: 20px;
     }
 }
-
 
 .inlineblock {
     display: inline-block;

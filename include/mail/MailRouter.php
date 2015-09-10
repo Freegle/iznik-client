@@ -85,6 +85,17 @@ class MailRouter
                     $this->msg->getID()
                 ]);
 
+            $approvedid = $this->dbhm->lastInsertId();
+
+            if ($rc) {
+                # If our DB ops fail we drop an attachment - better than failing the message.
+                $this->dbhm->preExec("UPDATE messages_attachments SET spamid = NULL, pendingid = ? WHERE incomingid = ?;",
+                    [
+                        $approvedid,
+                        $this->msg->getID()
+                    ]);
+            }
+
             if ($rc) {
                 $rc = $this->msg->delete();
 
@@ -122,7 +133,7 @@ class MailRouter
         if ($rc) {
             $rollback = true;
 
-            # Copy the relevant fields in the row to the table, and add the reason.
+            # Copy the relevant fields in the row to the table.
             $sql = "INSERT INTO messages_approved (incomingid, arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       tnpostid, textbody, htmlbody, fromip, type)
@@ -130,6 +141,16 @@ class MailRouter
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       tnpostid, textbody, htmlbody, fromip, type FROM messages_incoming WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $this->msg->getID() ]);
+            $approvedid = $this->dbhm->lastInsertId();
+
+            if ($rc) {
+                # If our DB ops fail we drop an attachment - better than failing the message.
+                $this->dbhm->preExec("UPDATE messages_attachments SET incomingid = NULL, approvedid = ? WHERE incomingid = ?;",
+                    [
+                        $approvedid,
+                        $this->msg->getID()
+                    ]);
+            }
 
             if ($rc) {
                 $rc = $this->msg->delete();
@@ -171,6 +192,16 @@ class MailRouter
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       tnpostid, textbody, htmlbody, fromip, type FROM messages_incoming WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $this->msg->getID() ]);
+            $approvedid = $this->dbhm->lastInsertId();
+
+            if ($rc) {
+                # If our DB ops fail we drop an attachment - better than failing the message.
+                $this->dbhm->preExec("UPDATE messages_attachments SET incomingid = NULL, pendingid = ? WHERE incomingid = ?;",
+                    [
+                        $approvedid,
+                        $this->msg->getID()
+                    ]);
+            }
 
             if ($rc) {
                 $rc = $this->msg->delete();

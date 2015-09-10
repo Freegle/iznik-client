@@ -292,18 +292,18 @@ body {
 }
 
 #wrapper.toggled {
-    padding-left: 250px;
+    padding-left: 150px;
     overflow: scroll;
 }
 
 #sidebar-wrapper {
     z-index: 1000;
     position: absolute;
-    top: 61px;
-    left: 250px;
+    top: 75px;
+    left: 150px;
     width: 0;
     height: 100%;
-    margin-left: -250px;
+    margin-left: -150px;
     overflow-y: auto;
     background: #e8fefb;
     -webkit-transition: all 0.5s ease;
@@ -312,7 +312,7 @@ body {
     transition: all 0.5s ease;
 }
 #wrapper.toggled #sidebar-wrapper {
-    width: 0px;
+    width: 150px;
 }
 
 #page-content-wrapper {
@@ -328,8 +328,6 @@ body {
     position: relative;
     margin-right: 0px;
 }
-
-/* Sidebar Styles */
 
 .sidebar-nav {
     position: absolute;
@@ -354,7 +352,8 @@ body {
 .sidebar-nav li a {
     display: block;
     text-decoration: none;
-    color: #999999;
+    color: #3C73B3;
+    font-size: 15px;
 }
 
 .sidebar-nav li a:hover {

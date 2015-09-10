@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/message/Message.php');
 # a message and store it in the incoming DB table.
 class IncomingMessage extends Message
 {
-    private $attach_dir, $parser;
+    private $attach_dir, $attach_files, $parser;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -46,18 +46,23 @@ class IncomingMessage extends Message
 
         # We save the attachments to a temp directory.  This is tidied up on destruction or save.
         $this->attach_dir = tmpdir();
-        $Parser->saveAttachments($this->attach_dir);
+        $this->attach_files = $Parser->saveAttachments($this->attach_dir . DIRECTORY_SEPARATOR);
         $this->attachments = $Parser->getAttachments();
 
         if ($source == IncomingMessage::YAHOO_PENDING) {
             # This is an APPROVE mail; we need to extract the included copy of the original message.
-            $atts = $this->getAttachments();
+            $atts = $this->getParsedAttachments();
             if (count($atts) >= 1 && $atts[0]->contentType == 'message/rfc822') {
                 $attachedmsg = $atts[0]->getContent();
                 $Parser->setText($attachedmsg);
-                $Parser->saveAttachments($this->attach_dir);
+                $this->attach_files = $Parser->saveAttachments($this->attach_dir);
                 $this->attachments = $Parser->getAttachments();
             }
+        }
+
+        if (count($this->attachments) == 0) {
+            # No attachments - tidy up temp dir.
+            rrmdir($this->attach_dir);
         }
 
         $this->source = $source;
@@ -143,6 +148,22 @@ class IncomingMessage extends Message
                 'message_incoming' => $id,
                 'text' => $this->messageid,
                 'group' => $this->groupid
+            ]);
+        }
+
+        # Save the attachments.
+        #
+        # If we crash or fail at this point, we would have mislaid an attachment for a message.  That's not great, but the
+        # perf cost of a transaction for incoming messages is significant, and we can live with it.
+        foreach ($this->attachments as $att) {
+            $ct = $att->getContentType();
+            $fn = $this->attach_dir . DIRECTORY_SEPARATOR . $att->getFilename();
+            $len = filesize($fn);
+            $sql = "INSERT INTO messages_attachments (incomingid, contenttype, data) VALUES (?,?,LOAD_FILE(?));";
+            $this->dbhm->preExec($sql, [
+                $this->id,
+                $ct,
+                $fn
             ]);
         }
 

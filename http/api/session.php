@@ -8,6 +8,7 @@ function session() {
         # Check if we're logged in
         if ($me) {
             $ret = array('ret' => 0, 'status' => 'Success', 'me' => $me->getPublic());
+//            $ret['groups'] = $me->getGroups();
         } else {
             $ret = array('ret' => 1, 'status' => 'Not logged in');
         }

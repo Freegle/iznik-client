@@ -49,7 +49,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 .plain pre, .plain tt {font-family: Tahoma;font-size: 12pt;}</STYLE>
 </HEAD>
 <BODY>Hey.</BODY></HTML>", $m->getHtmlbody());
-        assertEquals(0, count($m->getAttachments()));
+        assertEquals(0, count($m->getParsedAttachments()));
         assertEquals(IncomingMessage::TYPE_OTHER, $m->getType());
 
         # Save it
@@ -87,7 +87,9 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         $msg = file_get_contents('msgs/attachment');
         $m = new IncomingMessage($this->dbhr, $this->dbhm);
         $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $atts = $m->getAttachments();
+
+        # Check the parsed attachments
+        $atts = $m->getParsedAttachments();
         assertEquals(2, count($atts));
         assertEquals('g4g220x194.png', $atts[0]->getFilename());
         assertEquals('image/png', $atts[0]->getContentType());
@@ -97,6 +99,13 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         # Save it
         $id = $m->save();
         assertNotNull($id);
+
+        # Check the saved attachments
+        $atts = $m->getAttachments();
+        assertEquals('image/png', $atts[0]->getContentType());
+        assertEquals(7975, strlen($atts[0]->getData()));
+        assertEquals('image/png', $atts[1]->getContentType());
+        assertEquals(9695, strlen($atts[1]->getData()));
 
         $m->delete();
 

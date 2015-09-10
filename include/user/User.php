@@ -184,4 +184,8 @@ class User extends Entity
 
         return($rc);
     }
+//
+//    public function getGroups() {
+//        $sql = "SELECT id FROM ";
+//    }
 }
