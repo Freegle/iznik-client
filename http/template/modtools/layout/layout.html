@@ -3,87 +3,64 @@
         <div class="navbar-header">
             <ul class="nav navbar-nav js-navbar fdnavbar">
                 <li class="notop js-home clickme padleft pull-left">
-                    <img src="/images/favicon/smalltile.png" class="padmd img-responsive img-rounded inline" />
+                    <img src="/images/favicon/smalltile.png" class="padmd img-responsive img-rounded inline"/>
                 </li>
                 <li class="pull-right" role="presentation">
-                    <button class="reallyHide btn btn-info js-signin js-loggedoutonly margtop" style="display:none">Sign in</button>
+                    <button class="reallyHide btn btn-info js-signin js-loggedoutonly margtop" style="display:none">Sign
+                        in
+                    </button>
                     <div class="reallyHide menu js-menu js-loggedinonly pull-right" style="display:none">
-                        <button id="dropdownmenu" class="btn-default" type="button" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">
-                            <div class="inline">Menu</div>
-                            <span class="caret"></span>
+                        <button class="btn-default navbar-toggle collapse in" data-toggle="collapse"
+                                id="menu-toggle">
+                            <span class="glyphicon glyphicon-th-large" aria-hidden="true">&nbsp;Menu</span>
                         </button>
-                        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownmenu">
-                            <li role="presentation" class=""><a role="menuitem" href="/mygroups">My Groups</a></li>
-                            <li role="presentation" class="js-settings"><a role="menuitem" href="/settings">Settings</a></li>
-                            <li role="presentation"><a role="menuitem" href="/help">Help</a></li>
-                            <li role="presentation" class="js-logout"><a role="menuitem" href="/logout">Logout</a></li>
-                        </ul>
                     </div>
                 </li>
             </ul>
         </div>
     </div>
 </div>
-<div class="container margtopbig">
-    <div class="row margtop">
-        <div class="col-md-1 hidden-sm hidden-xs js-leftsidebar ">
-            <div class="sidebar-nav-fixed fullholder pull-left affix pre-scrollable">
-                <div class="nopad js-loggedinonly">
-                    <ul class="nav ">
-                        <div class="js-leftbar">
-                        </div>
-                    </ul>
-                </div>
-                <!--/.well -->
-            </div>
-            <!--/sidebar-nav-fixed -->
-        </div>
-        <!--/span-->
-        <div class="col-md-8">
-            <div class="js-alerts"></div>
-            <div class="pageContent img-rounded">
-            </div>
-        </div>
-        <!--/span-->
-        <div class="col-md-3 hidden-sm hidden-xs js-rightsidebar">
-            <div class="sidebar-nav-fixed fullholder pull-right affix">
-                <div class="nav js-rightcontent">
-                    <ul class="list-group nomargin">
-                    </ul>
-                    <!--[if gte IE 9]>
-                    <script>
-                        console.log("Load twitter widget");
-                        try {
-                            !function (d, s, id) {
-                                var js, fjs = d.getElementsByTagName(s)[0], p = /^http:/.test(d.location) ? 'http' : 'https';
-                                if (!d.getElementById(id)) {
-                                    js = d.createElement(s);
-                                    js.id = id;
-                                    js.src = p + '://platform.twitter.com/widgets.js';
-                                    fjs.parentNode.insertBefore(js, fjs);
-                                }
-                            }(document, 'script', 'twitter-wjs');
-                        } catch (e) {
-                            console.log("Failed to load twitter");
-                        }
-                    </script>
-                    <![endif]-->
-                </div>
-            </div>
-            <!--/sidebar-nav-fixed -->
-        </div>
-        <!--/span-->
+<div id="wrapper">
+    <div id="sidebar-wrapper">
+        <ul class="sidebar-nav nav-pills nav-stacked" id="menu">
+            <li class="active">
+                <a href="/modtools">Dashboard</a>
+            </li>
+            <hr class="ui-widget-content ui-menu-divider">
+            <li>
+                <a href="/modtools/messages">Messages</a>
+                <ul class="nav-pills nav-stacked">
+                    <li><a href="/modtools/pendingmessages">Pending</a></li>
+                    <li><a href="/modtools/spam">Spam</a></li>
+                </ul>
+            </li>
+            <hr class="ui-widget-content ui-menu-divider">
+            <li>
+                <a href="/modtools/members">Members</a>
+                <ul class="nav-pills nav-stacked">
+                    <li><a href="/modtools/pendingmembers">Pending</a></li>
+                    <li><a href="/modtools/comments">Comments</a></li>
+                </ul>
+            </li>
+            <hr class="ui-widget-content ui-menu-divider">
+            <li>
+                <a href="/modtools/settings">Settings</a>
+                <a href="/modtools/help">Help</a>
+            </li>
+            <hr class="ui-widget-content ui-menu-divider">
+            <li>
+                <a href="/modtools/signout">Sign Out</a>
+            </li>
+        </ul>
     </div>
-    <!--/row-->
-    <div id="footer" style="display:none;">
-        <!--<div class="left">-->
-        <!--<a data-realurl="true" href="/help" class="underhov">Help</a><span class="space"> | </span>-->
-        <!--<a data-realurl="true" href="/terms" class="underhov">Terms</a><span class="space"> | </span>-->
-        <!--<a data-realurl="true" href="/privacy" class="underhov">Privacy</a><span class="space"> | </span>-->
-        <!--<a data-realurl="true" href="/contact" class="underhov">Contact</a>-->
-        <!--</div>-->
-        <div style="display:none;" id="googleshim"></div>
+    <div id="page-content-wrapper">
+        <div class="container-fluid xyz">
+            <div class="row">
+                <div class="col-lg-12 pageContent"/>
+            </div>
+        </div>
     </div>
-
 </div>
-<!--/.fluid-container-->
+<div id="footer" style="display:none;">
+    <div style="display:none;" id="googleshim"></div>
+</div>

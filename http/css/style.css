@@ -272,7 +272,7 @@ body {
 }
 
 .menu {
-    margin-top: 13px;
+    margin-top: 3px;
     height: 30px;
 }
 
@@ -326,6 +326,10 @@ body {
 
 .padmd {
     padding: 5px !important;
+}
+
+.padbot {
+    padding-bottom: 10px !important;
 }
 
 .nopad {

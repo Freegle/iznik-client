@@ -32,6 +32,12 @@ Iznik.Views.Page = IznikView.extend({
 
         Iznik.Session.testLoggedIn();
 
+        // Sort out any menu
+        $("#menu-toggle").click(function(e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("toggled");
+        });
+
         window.scrollTo(0, 0);
 
         // Let anyone who cares know.
