@@ -3,96 +3,17 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/message/Message.php');
 
 # This class represents a spam message, i.e. one we have put into the messages_spam table.
-class SpamMessage
+class SpamMessage extends Message
 {
-    /** @var  $dbhr LoggedPDO */
-    private $dbhr;
-    /** @var  $dbhm LoggedPDO */
-    private $dbhm;
-    private $id;
-    private $source, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto,
-        $messageid, $parser, $groupid, $fromip, $fromhost, $reason;
-
     /**
      * @return mixed
      */
     public function getReason()
     {
         return $this->reason;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getSource()
-    {
-        return $this->source;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getFromIP()
-    {
-        return $this->fromip;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getFromhost()
-    {
-        return $this->fromhost;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getGroupID()
-    {
-        return $this->groupid;
-    }
-
-    /**
-     * @return null
-     */
-    public function getID()
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getMessageID()
-    {
-        return $this->messageid;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getMessage()
-    {
-        return $this->message;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getEnvelopefrom()
-    {
-        return $this->envelopefrom;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getEnvelopeto()
-    {
-        return $this->envelopeto;
     }
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
@@ -127,46 +48,6 @@ class SpamMessage
         }
 
         return(NULL);
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getFromname()
-    {
-        return $this->fromname;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getFromaddr()
-    {
-        return $this->fromaddr;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getTextbody()
-    {
-        return $this->textbody;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getHtmlbody()
-    {
-        return $this->htmlbody;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getSubject()
-    {
-        return $this->subject;
     }
 
     public function getHeader($hdr) {

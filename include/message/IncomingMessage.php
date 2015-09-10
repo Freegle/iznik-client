@@ -3,147 +3,13 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/message/Message.php');
 
 # This class represents an incoming message, i.e. one we have received (usually by email).  It is used to parse
 # a message and store it in the incoming DB table.
-class IncomingMessage
+class IncomingMessage extends Message
 {
-    const TYPE_OFFER = 'Offer';
-    const TYPE_TAKEN = 'Taken';
-    const TYPE_WANTED = 'Wanted';
-    const TYPE_RECEIVED = 'Received';
-    const TYPE_ADMIN = 'Admin';
-    const TYPE_OTHER = 'Other';
-
-    /** @var  $dbhr LoggedPDO */
-    private $dbhr;
-    /** @var  $dbhm LoggedPDO */
-    private $dbhm;
-
-    /**
-     * @return mixed
-     */
-    public function getType()
-    {
-        return $this->type;
-    }
-    private $id;
-    private $source, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto,
-        $messageid, $tnpostid, $retrycount, $retrylastfailure, $parser, $groupid, $fromip, $fromhost, $type;
-
-    /**
-     * @return mixed
-     */
-    public function getFromIP()
-    {
-        return $this->fromip;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getSource()
-    {
-        return $this->source;
-    }
-
-    /**
-     * @param mixed $fromip
-     */
-    public function setFromIP($fromip)
-    {
-        $this->fromip = $fromip;
-        $name = NULL;
-
-        if ($fromip) {
-            # If the call returns a hostname which is the same as the IP, then it's
-            # not resolvable.
-            $name = gethostbyaddr($fromip);
-            $name = ($name == $fromip) ? NULL : $name;
-            $this->fromhost = $name;
-        }
-
-        $this->dbhm->preExec("UPDATE messages_incoming SET fromip = ? WHERE id = ?;",
-            [$fromip, $this->id]);
-        $this->dbhm->preExec("UPDATE messages_history SET fromip = ?, fromhost = ? WHERE incomingid = ?;",
-            [$fromip, $name, $this->id]);
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getFromhost()
-    {
-        return $this->fromhost;
-    }
-
-    const EMAIL = 'Email';
-    const YAHOO_APPROVED = 'Yahoo Approved';
-    const YAHOO_PENDING = 'Yahoo Pending';
-
-    /**
-     * @return mixed
-     */
-    public function getGroupID()
-    {
-        return $this->groupid;
-    }
-
-    /**
-     * @param mixed $groupid
-     */
-    public function setGroupID($groupid)
-    {
-        $this->groupid = $groupid;
-    }
-
-    /**
-     * @return null
-     */
-    public function getID()
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getMessageID()
-    {
-        return $this->messageid;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getMessage()
-    {
-        return $this->message;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getTnpostid()
-    {
-        return $this->tnpostid;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getEnvelopefrom()
-    {
-        return $this->envelopefrom;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getEnvelopeto()
-    {
-        return $this->envelopeto;
-    }
+    private $attach_dir, $parser;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -167,86 +33,6 @@ class IncomingMessage
             $this->parser = new PhpMimeMailParser\Parser();
             $this->parser->setText($this->message);
         }
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getFromname()
-    {
-        return $this->fromname;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getFromaddr()
-    {
-        return $this->fromaddr;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getTextbody()
-    {
-        return $this->textbody;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getHtmlbody()
-    {
-        return $this->htmlbody;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getSubject()
-    {
-        return $this->subject;
-    }
-
-    private $attachments, $attach_dir;
-
-    /**
-     * @return PhpMimeMailParser\Attachment[]
-     */
-    public function getAttachments()
-    {
-        return $this->attachments;
-    }
-
-    public static function determineType($subj) {
-        $type = IncomingMessage::TYPE_OTHER;
-
-        # We try various mis-spellings, and Welsh.  This is not to suggest that Welsh is a spelling error.
-        $keywords = [
-            IncomingMessage::TYPE_OFFER => [
-                'ofer', 'offr', 'offrer', 'ffered', 'offfered', 'offrered', 'offered', 'offeer', 'cynnig', 'offred',
-                'offer', 'offering', 'reoffer', 're offer', 're-offer', 'reoffered', 're offered', 're-offered',
-                'offfer', 'offeed', 'available'],
-            IncomingMessage::TYPE_TAKEN => ['collected', 'take', 'stc', 'gone', 'withdrawn', 'ta ke n', 'promised',
-                'cymeryd', 'cymerwyd', 'takln', 'taken'],
-            IncomingMessage::TYPE_WANTED => ['wnted', 'requested', 'rquested', 'request', 'would like', 'want',
-                'anted', 'wated', 'need', 'needed', 'wamted', 'require', 'required', 'watnted', 'wented',
-                'sought', 'seeking', 'eisiau', 'wedi eisiau', 'eisiau', 'wnated', 'wanted', 'looking', 'waned'],
-            IncomingMessage::TYPE_RECEIVED => ['recieved', 'reiceved', 'receved', 'rcd', 'rec\'d', 'recevied',
-                'receive', 'derbynewid', 'derbyniwyd', 'received', 'recivered'],
-            IncomingMessage::TYPE_ADMIN => ['admin', 'sn']
-        ];
-
-        foreach ($keywords as $keyword => $vals) {
-            foreach ($vals as $val) {
-                if (preg_match('/\b' . preg_quote($val) . '\b/i', $subj)) {
-                    $type = $keyword;
-                }
-            }
-        }
-
-        return($type);
     }
 
     # Parse a raw SMTP message.
@@ -325,14 +111,6 @@ class IncomingMessage
         }
     }
 
-    public function getHeader($hdr) {
-        return($this->parser->getHeader($hdr));
-    }
-
-    public function getTo() {
-        return(mailparse_rfc822_parse_addresses($this->parser->getHeader('to')));
-    }
-
     # Save a parsed message to the DB
     public function save() {
         # Save into the incoming messages table.
@@ -369,7 +147,7 @@ class IncomingMessage
         }
 
         # Also save into the history table, for spamc checking.
-        $sql = "INSERT INTO messages_history (groupid, source, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, textbody, htmlbody, incomingid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages_history (groupid, source, message, envelopefrom, envelopeto, fromname, fromaddr, subject, prunedsubject, messageid, textbody, htmlbody, incomingid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $this->dbhm->preExec($sql, [
             $this->groupid,
             $this->source,
@@ -379,6 +157,7 @@ class IncomingMessage
             $this->fromname,
             $this->fromaddr,
             $this->subject,
+            $this->getPrunedSubject(),
             $this->messageid,
             $this->textbody,
             $this->htmlbody,
@@ -402,6 +181,14 @@ class IncomingMessage
         ]);
 
         return($count);
+    }
+
+    public function getHeader($hdr) {
+        return($this->parser->getHeader($hdr));
+    }
+
+    public function getTo() {
+        return(mailparse_rfc822_parse_addresses($this->parser->getHeader('to')));
     }
 
     function delete()

@@ -81,7 +81,7 @@ class Spam {
             $numusers = count($counts);
 
             if ($numusers > Spam::USER_THRESHOLD) {
-                return(array(true, "Blocking IP $ip ($host) as used for $numusers different users"));
+                return(array(true, "Blocking IP $ip ($host) recently used for $numusers different users"));
             }
 
             # Now see if this IP has been used for too many different groups.  That's likely to
@@ -91,25 +91,15 @@ class Spam {
             $numgroups = count($counts);
 
             if ($numgroups > Spam::GROUP_THRESHOLD) {
-                return(array(true, "Blocking IP $ip ($host) used for $numgroups different groups"));
+                return(array(true, "Blocking IP $ip ($host) recently used for $numgroups different groups"));
             }
         }
 
         # Now check whether this subject (pace any location) is appearing on many groups.
-        $subj = $msg->getSubject();
-        if (preg_match('/(.*)\(.*\)/', $subj, $matches)) {
-            # Strip possible location - useful for reuse groups
-            $subj = $matches[1];
-        }
-        if (preg_match('/\[.*\](.*)/', $subj, $matches)) {
-            # Strip possible group name
-            $subj = $matches[1];
-        }
-
-        $subj = trim($subj);
+        $subj = $msg->getPrunedSubject();
 
         if (strlen($subj) > 0) {
-            $sql = "SELECT COUNT(DISTINCT groupid) AS count FROM messages_history WHERE subject LIKE ? AND groupid IS NOT NULL;";
+            $sql = "SELECT COUNT(DISTINCT groupid) AS count FROM messages_history WHERE prunedsubject LIKE ? AND groupid IS NOT NULL;";
             $counts = $this->dbhr->preQuery($sql, [
                 "$subj%"
             ]);
