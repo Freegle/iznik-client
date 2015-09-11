@@ -19,6 +19,8 @@ class IncomingMessageTest extends IznikTest {
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+
+        $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_emails WHERE email IN ('test@test.com', 'test2@test.com'));");
     }
 
     protected function tearDown() {
@@ -32,10 +34,13 @@ class IncomingMessageTest extends IznikTest {
         error_log(__METHOD__);
 
         $msg = file_get_contents('msgs/basic');
+        $t = "TestUser" . microtime(true) . "@test.com";
+        $msg = str_replace('From: "Test User" <test@test.com>', 'From: "' . $t . '" <test@test.com>', $msg);
+        error_log($msg);
         $m = new IncomingMessage($this->dbhr, $this->dbhm);
         $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals('Basic test', $m->getSubject());
-        assertEquals('Test User', $m->getFromname());
+        assertEquals($t, $m->getFromname());
         assertEquals('test@test.com', $m->getFromaddr());
         assertEquals('Hey.', $m->getTextbody());
         assertEquals('from@test.com', $m->getEnvelopefrom());
@@ -61,7 +66,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         $m = new IncomingMessage($this->dbhr, $this->dbhm, $id);
         assertEquals('Basic test', $m->getSubject());
         assertEquals('Basic test', $m->getHeader('subject'));
-        assertEquals('Test User', $m->getFromname());
+        assertEquals($t, $m->getFromname());
         assertEquals('test@test.com', $m->getFromaddr());
         assertEquals('Hey.', $m->getTextbody());
         assertEquals('from@test.com', $m->getEnvelopefrom());

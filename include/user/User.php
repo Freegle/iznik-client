@@ -131,6 +131,46 @@ class User extends Entity
         return($rc);
     }
 
+    public function addMembership($groupid) {
+        $rc = $this->dbhm->preExec("INSERT IGNORE INTO memberships (userid, groupid) VALUES (?,?);",
+            [
+                $this->id,
+                $groupid
+            ]);
+
+        if ($rc) {
+            $l = new Log($this->dbhr, $this->dbhm);
+            $l->log([
+                'type' => Log::TYPE_GROUP,
+                'subtype' => Log::SUBTYPE_JOINED,
+                'user' => $this->id,
+                'group' => $groupid
+            ]);
+        }
+
+        return($rc);
+    }
+
+    public function removeMembership($groupid) {
+        $rc = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = ? AND groupid = ?;",
+            [
+                $this->id,
+                $groupid
+            ]);
+
+        if ($rc) {
+            $l = new Log($this->dbhr, $this->dbhm);
+            $l->log([
+                'type' => Log::TYPE_GROUP,
+                'subtype' => Log::SUBTYPE_LEFT,
+                'user' => $this->id,
+                'group' => $groupid
+            ]);
+        }
+
+        return($rc);
+    }
+
     public function getLogins() {
         $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ?;",
             [$this->id]);

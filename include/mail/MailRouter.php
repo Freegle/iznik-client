@@ -173,7 +173,6 @@ class MailRouter
         return($ret);
     }
 
-
     private function markPending() {
         # Move into the pending queue.  Use a transaction to avoid leaving rows lying around if we fail partway
         # through.
@@ -184,7 +183,6 @@ class MailRouter
             $rollback = true;
 
             # Copy the relevant fields in the row to the table, and add the reason.
-            error_log("Copy incoming ID to pending " . $this->msg->getID());
             $sql = "INSERT INTO messages_pending (incomingid, arrival, source, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       tnpostid, textbody, htmlbody, fromip, type)
@@ -225,6 +223,7 @@ class MailRouter
     }
 
     public function route($msg = NULL) {
+        # The originator of this message
         # We route messages to one of the following destinations:
         # - to a group
         # - to a user

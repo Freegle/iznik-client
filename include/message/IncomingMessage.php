@@ -4,6 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
+require_once(IZNIK_BASE . '/include/user/User.php');
 
 # This class represents an incoming message, i.e. one we have received (usually by email).  It is used to parse
 # a message and store it in the incoming DB table.
@@ -81,6 +82,7 @@ class IncomingMessage extends Message
 
         $this->fromname = $from[0]['display'];
         $this->fromaddr = $from[0]['address'];
+
         $this->subject = $Parser->getHeader('subject');
         $this->messageid = $Parser->getHeader('message-id');
         $this->messageid = str_replace('<', '', $this->messageid);
@@ -111,6 +113,43 @@ class IncomingMessage extends Message
                     $g->getPrivate('type') == Group::GROUP_REUSE
                 ) {
                     $this->type = $this->determineType($this->subject);
+                }
+
+
+                if ($source == IncomingMessage::YAHOO_PENDING || $source == IncomingMessage::YAHOO_APPROVED) {
+                    # Make sure we have a user and a membership for the originator of this message; they were a member
+                    # at the time they sent this.  If they have since left we'll pick that up later via a sync.
+                    $u = new User($this->dbhr, $this->dbhm);
+                    $userid = $u->findByEmail($this->fromaddr);
+
+                    if (!$userid) {
+                        # We don't know them.  Add.
+                        #
+                        # We don't have a first and last name, so use what we have. If the friendly name is set to an
+                        # email address, take the first part.
+                        $name = $this->fromname;
+                        if (preg_match('/(.*)@/', $name, $matches)) {
+                            $name = $matches[1];
+                        }
+
+                        if ($userid = $u->create(NULL, NULL, $name)) {
+                            # If any of these fail, then we'll pick it up later when we do a sync with the source group,
+                            # so no need for a transaction.
+                            $u = new User($this->dbhr, $this->dbhm, $userid);
+                            $u->addEmail($this->fromaddr, TRUE);
+                            $l = new Log($this->dbhr, $this->dbhm);
+                            $l->log([
+                                'type' => Log::TYPE_USER,
+                                'subtype' => Log::SUBTYPE_CREATED,
+                                'message_incoming' => $this->id,
+                                'user' => $userid,
+                                'text' => 'First seen on incoming message',
+                                'group' => $this->groupid
+                            ]);
+
+                            $u->addMembership($this->groupid);
+                        }
+                    }
                 }
             }
         }

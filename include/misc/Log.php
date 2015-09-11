@@ -19,6 +19,8 @@ class Log
     const SUBTYPE_DELETED = 'Deleted';
     const SUBTYPE_RECEIVED = 'Received';
     const SUBTYPE_FAILURE = 'Failure';
+    const SUBTYPE_JOINED = 'Joined';
+    const SUBTYPE_LEFT = 'Left';
     const SUBTYPE_CLASSIFIED_SPAM = 'ClassifiedSpam';
     const SUBTYPE_SENT = 'Sent';
 

@@ -30,6 +30,7 @@ class MailRouterTest extends IznikTest {
         $this->dbhm->preExec("DELETE FROM messages_approved WHERE fromaddr = ? OR fromip = ?;", ['test@test.com', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM messages_history WHERE fromaddr = ? OR fromip = ?;", ['test@test.com', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';", []);
+        $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';", []);
 
         # Whitelist this IP
         $this->dbhm->preExec("INSERT INTO spam_whitelist_ips (ip, comment) VALUES ('1.2.3.4', 'UT whitelist');", []);
