@@ -5,6 +5,7 @@ if (!defined('UT_DIR')) {
 }
 require_once UT_DIR . '/IznikTest.php';
 require_once IZNIK_BASE . '/include/user/User.php';
+require_once IZNIK_BASE . '/include/group/Group.php';
 
 /**
  * @backupGlobals disabled
@@ -142,6 +143,37 @@ class userTest extends IznikTest {
         $u->setDbhm($mock);
         $id = $u->create(NULL, NULL, 'Test User');
         assertNull($id);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testMemberships() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $id = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $id);
+        $u->addMembership($group1);
+        $u->addMembership($group2);
+        $membs = $u->getMemberships();
+        assertEquals(2, count($membs));
+
+        $u->removeMembership($group1);
+        $membs = $u->getMemberships();
+        assertEquals(1, count($membs));
+        assertEquals($group2, $membs[0]['id']);
+
+        $g = new Group($this->dbhr, $this->dbhm, $group1);
+        $g->delete();
+        $g = new Group($this->dbhr, $this->dbhm, $group2);
+        $g->delete();
+
+        $membs = $u->getMemberships();
+        assertEquals(0, count($membs));
 
         error_log(__METHOD__ . " end");
     }

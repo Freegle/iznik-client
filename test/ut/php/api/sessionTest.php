@@ -78,12 +78,23 @@ class sessionTest extends IznikAPITest {
         assertTrue($u->addEmail('test@test.com'));
         $u = new User($this->dbhm, $this->dbhm, $id);
 
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $g = new Group($this->dbhr, $this->dbhm, $group1);
+        $u->addMembership($group1);
+
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $ret = $this->call('session', 'POST', [
             'email' => 'test@test.com',
             'password' => 'testpw'
         ]);
         assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('session','GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals($group1, $ret['groups'][0]['id']);
+
+        $g->delete();
 
         error_log(__METHOD__ . " end");
     }

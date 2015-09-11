@@ -171,6 +171,17 @@ class User extends Entity
         return($rc);
     }
 
+    public function getMemberships() {
+        $ret = [];
+        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [ $this->id ]);
+        foreach ($groups as $group) {
+            $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+            $ret[] = $g->getPublic();
+        }
+
+        return($ret);
+    }
+
     public function getLogins() {
         $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ?;",
             [$this->id]);

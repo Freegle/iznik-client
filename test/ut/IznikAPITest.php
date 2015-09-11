@@ -7,6 +7,7 @@ require_once UT_DIR . '/IznikTest.php';
 require_once(UT_DIR . '/../../include/config.php');
 require_once(IZNIK_BASE . '/include/session/Session.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/group/Group.php');
 
 /**
  * @backupGlobals disabled
@@ -30,6 +31,7 @@ class IznikAPITest extends IznikTest {
 
         $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_emails WHERE email IN ('test@test.com', 'test2@test.com'));");
         $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_logins WHERE uid IN ('testid', '1234'));");
+        $dbhm->exec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';");
     }
 
     protected function tearDown() {
