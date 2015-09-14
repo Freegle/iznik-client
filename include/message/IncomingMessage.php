@@ -92,8 +92,16 @@ class IncomingMessage extends Message
             }
         }
 
-        if (!$this->sourceheader) {
-            $this->sourceheader = NULL;
+        if (!$this->sourceheader && $Parser->getHeader('x-mailer') == 'Yahoo Groups Message Poster') {
+            $this->sourceheader = 'Yahoo-Web';
+        }
+
+        if (!$this->sourceheader && (strpos($Parser->getHeader('x-mailer'), 'Freegle Message Maker') !== FALSE)) {
+            $this->sourceheader = 'MessageMaker';
+        }
+
+        if (!$this->sourceheader ) {
+            $this->sourceheader = 'Yahoo-Email';
         }
 
         $this->subject = $Parser->getHeader('subject');
@@ -166,6 +174,14 @@ class IncomingMessage extends Message
                 }
             }
         }
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSourceheader()
+    {
+        return $this->sourceheader;
     }
 
     # Save a parsed message to the DB

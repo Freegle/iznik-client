@@ -23,6 +23,10 @@ class userTest extends IznikTest {
 
         $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_emails WHERE email IN ('test@test.com', 'test2@test.com'));");
         $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_logins WHERE uid IN ('testid', '1234'));");
+        $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
+        $dbhm->preExec("DELETE FROM users WHERE firstname = 'Test' AND lastname = 'User';");
+        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup1';");
+        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup2';");
     }
 
     protected function tearDown() {

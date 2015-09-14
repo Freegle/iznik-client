@@ -8,7 +8,7 @@ use GeoIp2\Database\Reader;
 class Spam {
     CONST USER_THRESHOLD = 10;
     CONST GROUP_THRESHOLD = 20;
-    CONST SUBJECT_THRESHOLD = 10;
+    CONST SUBJECT_THRESHOLD = 20;
 
     /** @var  $dbhr LoggedPDO */
     private $dbhr;
@@ -90,11 +90,11 @@ class Spam {
 
             # Now see if this IP has been used for too many different groups.  That's likely to
             # be someone spamming.
-            $sql = "SELECT groups.nameshort FROM messages_history INNER JOIN groups ON groups.id = message_history.groupid WHERE fromip = ? GROUP BY groupid;";
+            $sql = "SELECT groups.nameshort FROM messages_history INNER JOIN groups ON groups.id = messages_history.groupid WHERE fromip = ? GROUP BY groupid;";
             $groups = $this->dbhr->preQuery($sql, [$ip]);
             $numgroups = count($groups);
 
-            if ($numgroups > Spam::GROUP_THRESHOLD) {
+            if ($numgroups >= Spam::GROUP_THRESHOLD) {
                 $list = [];
                 foreach ($groups as $group) {
                     $list[] = $group['nameshort'];
@@ -105,7 +105,7 @@ class Spam {
 
         # Now check whether this subject (pace any location) is appearing on many groups.
         #
-        # Don't check very short subjects - might be something like "TAKEN".    
+        # Don't check very short subjects - might be something like "TAKEN".
         $subj = $msg->getPrunedSubject();
 
         if (strlen($subj) > 10) {

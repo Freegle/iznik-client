@@ -56,6 +56,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 <BODY>Hey.</BODY></HTML>", $m->getHtmlbody());
         assertEquals(0, count($m->getParsedAttachments()));
         assertEquals(IncomingMessage::TYPE_OTHER, $m->getType());
+        assertEquals('FDv2', $m->getSourceheader());
 
         # Save it
         $id = $m->save();
@@ -92,6 +93,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         $msg = file_get_contents('msgs/attachment');
         $m = new IncomingMessage($this->dbhr, $this->dbhm);
         $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertEquals('MessageMaker', $m->getSourceheader());
 
         # Check the parsed attachments
         $atts = $m->getParsedAttachments();

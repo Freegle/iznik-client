@@ -33,7 +33,7 @@ class MailRouterTest extends IznikTest {
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';", []);
 
         # Whitelist this IP
-        $this->dbhm->preExec("INSERT INTO spam_whitelist_ips (ip, comment) VALUES ('1.2.3.4', 'UT whitelist');", []);
+        $this->dbhm->preExec("INSERT IGNORE INTO spam_whitelist_ips (ip, comment) VALUES ('1.2.3.4', 'UT whitelist');", []);
     }
 
     protected function tearDown() {
@@ -202,6 +202,7 @@ class MailRouterTest extends IznikTest {
         $m = new IncomingMessage($this->dbhr, $this->dbhm);
         $m->parse(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         assertEquals('20065945', $m->getTnpostid());
+        assertEquals('TN-email', $m->getSourceheader());
         $id = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
@@ -230,7 +231,9 @@ class MailRouterTest extends IznikTest {
 
         $msg = file_get_contents('msgs/fromyahoo');
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m = new IncomingMessage($this->dbhr, $this->dbhm, $id);
+        assertEquals('Yahoo-Web', $m->getSourceheader());
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -251,6 +254,7 @@ class MailRouterTest extends IznikTest {
 
         $m = new IncomingMessage($this->dbhr, $this->dbhm);
         $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertEquals('Yahoo-Email', $m->getSourceheader());
         $id = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
@@ -413,7 +417,24 @@ class MailRouterTest extends IznikTest {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $r->routeAll();
 
+        # Force exception
+        $msg = file_get_contents('msgs/basic');
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $m = new IncomingMessage($this->dbhr, $this->dbhm);
+        $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->save();
+
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->disableOriginalConstructor()
+            ->setMethods(array('preExec'))
+            ->getMock();
+        $mock->method('preExec')->will($this->throwException(new Exception()));
+        $r->setDbhm($mock);
+        $r->routeAll();
+
         error_log(__METHOD__ . " end");
     }
+
+
 }
 
