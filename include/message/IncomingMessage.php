@@ -86,7 +86,10 @@ class IncomingMessage extends Message
         $this->sourceheader = $Parser->getHeader('x-freegle-source');
 
         if (!$this->sourceheader) {
-            $this->sourceheader = "TN-" . $Parser->getHeader('x-trash-nothing-source');
+            $this->sourceheader = $Parser->getHeader('x-trash-nothing-source');
+            if ($this->sourceheader) {
+                $this->sourceheader = "TN-" . $this->sourceheader;
+            }
         }
 
         if (!$this->sourceheader) {
