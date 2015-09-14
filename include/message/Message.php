@@ -21,7 +21,7 @@ class Message
     public $dbhm;
 
     public $id,
-        $source, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto,
+        $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto,
         $messageid, $tnpostid, $retrycount, $retrylastfailure, $groupid, $fromip, $fromhost, $type, $attachments;
 
     # Attributes used when fetching attachments

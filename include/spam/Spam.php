@@ -6,7 +6,7 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 use GeoIp2\Database\Reader;
 
 class Spam {
-    CONST USER_THRESHOLD = 4;
+    CONST USER_THRESHOLD = 10;
     CONST GROUP_THRESHOLD = 20;
     CONST SUBJECT_THRESHOLD = 10;
 
@@ -76,29 +76,39 @@ class Spam {
             #
             # Should check address, but we don't yet have the canonical address so will be fooled by FBUser
             # TODO
-            $sql = "SELECT COUNT(*) AS count, fromaddr FROM messages_history WHERE fromip = ? GROUP BY fromname;";
-            $counts = $this->dbhr->preQuery($sql, [$ip]);
-            $numusers = count($counts);
+            $sql = "SELECT fromname FROM messages_history WHERE fromip = ? GROUP BY fromname;";
+            $users = $this->dbhr->preQuery($sql, [$ip]);
+            $numusers = count($users);
 
             if ($numusers > Spam::USER_THRESHOLD) {
-                return(array(true, "Blocking IP $ip ($host) recently used for $numusers different users"));
+                $list = [];
+                foreach ($users as $user) {
+                    $list[] = $user['fromname'];
+                }
+                return(array(true, "IP $ip ($host) recently used for $numusers different users (" . implode(',', $list) . ")"));
             }
 
             # Now see if this IP has been used for too many different groups.  That's likely to
             # be someone spamming.
-            $sql = "SELECT COUNT(*) AS count, groupid FROM messages_history WHERE fromip = ? GROUP BY groupid;";
-            $counts = $this->dbhr->preQuery($sql, [$ip]);
-            $numgroups = count($counts);
+            $sql = "SELECT groups.nameshort FROM messages_history INNER JOIN groups ON groups.id = message_history.groupid WHERE fromip = ? GROUP BY groupid;";
+            $groups = $this->dbhr->preQuery($sql, [$ip]);
+            $numgroups = count($groups);
 
             if ($numgroups > Spam::GROUP_THRESHOLD) {
-                return(array(true, "Blocking IP $ip ($host) recently used for $numgroups different groups"));
+                $list = [];
+                foreach ($groups as $group) {
+                    $list[] = $group['nameshort'];
+                }
+                return(array(true, "IP $ip ($host) recently used for $numgroups different groups (" . implode(',', $list) . ")"));
             }
         }
 
         # Now check whether this subject (pace any location) is appearing on many groups.
+        #
+        # Don't check very short subjects - might be something like "TAKEN".    
         $subj = $msg->getPrunedSubject();
 
-        if (strlen($subj) > 0) {
+        if (strlen($subj) > 10) {
             $sql = "SELECT COUNT(DISTINCT groupid) AS count FROM messages_history WHERE prunedsubject LIKE ? AND groupid IS NOT NULL;";
             $counts = $this->dbhr->preQuery($sql, [
                 "$subj%"

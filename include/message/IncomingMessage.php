@@ -22,7 +22,7 @@ class IncomingMessage extends Message
 
             $msgs = $dbhr->preQuery("SELECT * FROM messages_incoming WHERE id = ?;", [$id]);
             foreach ($msgs as $msg) {
-                foreach (['message', 'source', 'envelopefrom', 'fromname', 'fromaddr',
+                foreach (['message', 'source', 'sourceheader', 'envelopefrom', 'fromname', 'fromaddr',
                         'envelopeto', 'subject', 'textbody', 'htmlbody', 'subject', 'type',
                          'messageid', 'tnpostid', 'retrycount', 'retrylastfailure', 'groupid', 'fromip', 'fromname'] as $attr) {
                     if (pres($attr, $msg)) {
@@ -82,6 +82,16 @@ class IncomingMessage extends Message
 
         $this->fromname = $from[0]['display'];
         $this->fromaddr = $from[0]['address'];
+
+        $this->sourceheader = $Parser->getHeader('x-freegle-source');
+
+        if (!$this->sourceheader) {
+            $this->sourceheader = "TN-" . $Parser->getHeader('x-trash-nothing-source');
+        }
+
+        if (!$this->sourceheader) {
+            $this->sourceheader = NULL;
+        }
 
         $this->subject = $Parser->getHeader('subject');
         $this->messageid = $Parser->getHeader('message-id');
@@ -158,10 +168,11 @@ class IncomingMessage extends Message
     # Save a parsed message to the DB
     public function save() {
         # Save into the incoming messages table.
-        $sql = "INSERT INTO messages_incoming (groupid, source, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages_incoming (groupid, source, sourceheader, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->groupid,
             $this->source,
+            $this->sourceheader,
             $this->message,
             $this->envelopefrom,
             $this->envelopeto,

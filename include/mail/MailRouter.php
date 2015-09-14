@@ -73,10 +73,10 @@ class MailRouter
             $rollback = true;
 
             # Copy the relevant fields in the row to the table, and add the reason.
-            $sql = "INSERT INTO messages_spam (incomingid, arrival, `source`, message,
+            $sql = "INSERT INTO messages_spam (incomingid, arrival, `source`, sourceheader, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       tnpostid, textbody, htmlbody, fromip, reason, type)
-                      SELECT id, arrival, `source`, message,
+                      SELECT id, arrival, `source`, sourceheader, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       tnpostid, textbody, htmlbody, fromip, " . $this->dbhm->quote($reason) .
                 " AS reason, type FROM messages_incoming WHERE id = ?;";
@@ -134,10 +134,10 @@ class MailRouter
             $rollback = true;
 
             # Copy the relevant fields in the row to the table.
-            $sql = "INSERT INTO messages_approved (incomingid, arrival, source, message,
+            $sql = "INSERT INTO messages_approved (incomingid, arrival, source, sourceheader, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       tnpostid, textbody, htmlbody, fromip, type)
-                      SELECT id, arrival, source, message,
+                      SELECT id, arrival, source, sourceheader, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       tnpostid, textbody, htmlbody, fromip, type FROM messages_incoming WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $this->msg->getID() ]);
@@ -183,10 +183,10 @@ class MailRouter
             $rollback = true;
 
             # Copy the relevant fields in the row to the table, and add the reason.
-            $sql = "INSERT INTO messages_pending (incomingid, arrival, source, message,
+            $sql = "INSERT INTO messages_pending (incomingid, arrival, source, sourceheader, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       tnpostid, textbody, htmlbody, fromip, type)
-                      SELECT id, arrival, source, message,
+                      SELECT id, arrival, source, sourceheader, message,
                       envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                       tnpostid, textbody, htmlbody, fromip, type FROM messages_incoming WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $this->msg->getID() ]);
