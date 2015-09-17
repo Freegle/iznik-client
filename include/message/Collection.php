@@ -53,35 +53,39 @@ class Collection
             $roles[$groupid] = $me ? $me->getRole($groupid) : User::ROLE_NONE;
         }
 
-        $groupq = " AND groupid IN (" . implode(',', $groupids) . ") ";
+        if (count($groupids) > 0) {
+            $groupq = " AND groupid IN (" . implode(',', $groupids) . ") ";
 
-        $sql = "SELECT id, groupid FROM {$this->table} WHERE id > ? $groupq ORDER BY id DESC LIMIT $limit";
-        $msglist = $this->dbhr->preQuery($sql, [
-            $start
-        ]);
+            $sql = "SELECT id, groupid FROM {$this->table} WHERE id > ? $groupq ORDER BY id DESC LIMIT $limit";
+            $msglist = $this->dbhr->preQuery($sql, [
+                $start
+            ]);
 
-        foreach ($msglist as $msg) {
-            switch ($this->table) {
-                case Collection::APPROVED:
-                    $m = new ApprovedMessage($this->dbhr, $this->dbhm, $msg['id']);
-                    $msgs[] = $m->getPublic();
-                    break;
-                case Collection::PENDING:
-                    if ($roles[$msg['groupid']] == User::ROLE_MODERATOR ||
-                        $roles[$msg['groupid']] == User::ROLE_OWNER) {
-                        # Only visible to moderators or owners
-                        $m = new PendingMessage($this->dbhr, $this->dbhm, $msg['id']);
+            foreach ($msglist as $msg) {
+                switch ($this->table) {
+                    case Collection::APPROVED:
+                        $m = new ApprovedMessage($this->dbhr, $this->dbhm, $msg['id']);
                         $msgs[] = $m->getPublic();
-                    }
-                    break;
-                case Collection::SPAM:
-                    if ($roles[$msg['groupid']] == User::ROLE_MODERATOR ||
-                        $roles[$msg['groupid']] == User::ROLE_OWNER) {
-                        # Only visible to moderators or owners
-                        $m = new SpamMessage($this->dbhr, $this->dbhm, $msg['id']);
-                        $msgs[] = $m->getPublic();
-                    }
-                    break;
+                        break;
+                    case Collection::PENDING:
+                        if ($roles[$msg['groupid']] == User::ROLE_MODERATOR ||
+                            $roles[$msg['groupid']] == User::ROLE_OWNER
+                        ) {
+                            # Only visible to moderators or owners
+                            $m = new PendingMessage($this->dbhr, $this->dbhm, $msg['id']);
+                            $msgs[] = $m->getPublic();
+                        }
+                        break;
+                    case Collection::SPAM:
+                        if ($roles[$msg['groupid']] == User::ROLE_MODERATOR ||
+                            $roles[$msg['groupid']] == User::ROLE_OWNER
+                        ) {
+                            # Only visible to moderators or owners
+                            $m = new SpamMessage($this->dbhr, $this->dbhm, $msg['id']);
+                            $msgs[] = $m->getPublic();
+                        }
+                        break;
+                }
             }
         }
 

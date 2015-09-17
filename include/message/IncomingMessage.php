@@ -232,6 +232,7 @@ class IncomingMessage extends Message
         # If we crash or fail at this point, we would have mislaid an attachment for a message.  That's not great, but the
         # perf cost of a transaction for incoming messages is significant, and we can live with it.
         foreach ($this->attachments as $att) {
+            /** @var Attachment $att */
             $ct = $att->getContentType();
             $fn = $this->attach_dir . DIRECTORY_SEPARATOR . $att->getFilename();
             $len = filesize($fn);
