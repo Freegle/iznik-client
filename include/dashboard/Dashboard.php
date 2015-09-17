@@ -29,9 +29,15 @@ class Dashboard {
                 $sql = "SELECT COUNT(*) AS count, DATE(timestamp) AS date FROM `logs` WHERE timestamp > ? AND type = 'Message' AND subtype = 'ClassifiedSpam' GROUP BY date ORDER BY date ASC;";
                 $ret['spamhistory'] = $this->dbhr->preQuery($sql, [$mysqltime]);
 
+                $mysqltime = date ("Y-m-d", strtotime("Midnight 2 days ago"));
+
                 # Get domain breakdown
                 $sql = "SELECT SUBSTRING_INDEX(`fromaddr`, '@', -1) AS domain, COUNT(*) AS count FROM `messages_approved` WHERE arrival > ? GROUP BY domain ORDER BY count DESC LIMIT 10;";
                 $ret['domainhistory'] = $this->dbhr->preQuery($sql, [$mysqltime]);
+
+                # Get source breakdown
+                $sql = "SELECT sourceheader AS source, COUNT(*) AS count FROM `messages_approved` WHERE arrival > ? AND sourceheader IS NOT NULL GROUP BY sourceheader ORDER BY count DESC LIMIT 10;";
+                $ret['sourcehistory'] = $this->dbhr->preQuery($sql, [$mysqltime]);
 
                 break;
             }

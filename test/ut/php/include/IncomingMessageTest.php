@@ -128,10 +128,11 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 
         assertEquals('Test pending', $m->getSubject());
         assertEquals('Test User', $m->getFromname());
-        assertEquals('test@test.com', $m->getFromaddr());
+        assertEquals('test@ilovefreegle.org', $m->getFromaddr());
         assertEquals('Test', $m->getTextbody());
         assertEquals('from@test.com', $m->getEnvelopefrom());
         assertEquals('to@test.com', $m->getEnvelopeto());
+        assertEquals('FDv2', $m->getSourceheader());
 
         $m->delete();
 

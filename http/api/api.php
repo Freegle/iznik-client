@@ -9,10 +9,12 @@ require_once(IZNIK_BASE . '/include/session/Session.php');
 require_once(IZNIK_BASE . '/include/session/Yahoo.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/dashboard/Dashboard.php');
+require_once(IZNIK_BASE . '/include/message/Collection.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/session.php');
 require_once(IZNIK_BASE . '/http/api/dashboard.php');
+require_once(IZNIK_BASE . '/http/api/messages.php');
 
 $includetime = microtime(true) - $scriptstart;
 
@@ -65,6 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             switch ($call) {
                 case 'session':
                     $ret = session();
+                    break;
+                case 'messages':
+                    $ret = messages();
                     break;
                 case 'dashboard':
                     $ret = dashboard();

@@ -9,8 +9,13 @@ class User extends Entity
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'settings', 'systemrole');
 
-    const ROLE_USER = 'User';
+    # Roles on specific groups
+    const ROLE_NONE = 'None';
+    const ROLE_MEMBER = 'Member';
     const ROLE_MODERATOR = 'Moderator';
+    const ROLE_OWNER = 'Owner';
+
+    # Role on site
     const ROLE_SUPPORT = 'Support';
     const ROLE_ADMIN = 'Admin';
 
@@ -182,6 +187,17 @@ class User extends Entity
         return($ret);
     }
 
+    public function getModeratorships() {
+        $ret = [];
+        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner');", [ $this->id ]);
+        foreach ($groups as $group) {
+            $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+            $ret[] = $g->getPublic();
+        }
+
+        return($ret);
+    }
+
     public function getLogins() {
         $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ?;",
             [$this->id]);
@@ -220,6 +236,59 @@ class User extends Entity
         $rc = $this->dbhm->preExec("DELETE FROM users_logins WHERE userid = ? AND type = ? AND uid LIKE ?;",
             [$this->id, $type, $uid]);
         return($rc);
+    }
+
+    public function getRole($groupid) {
+        # We can have a number of roles on a group
+        # - none, we can only see what is member
+        # - member, we are a group member and can see some extra info
+        # - moderator, we can see most info on a group
+        # - owner, we can see everything
+        #
+        # If our system role is support then we get moderator status; if it's admin we get owner status.
+        $role = User::ROLE_NONE;
+
+        switch ($this->getPrivate('systemrole')) {
+            case User::ROLE_SUPPORT:
+                $role = User::ROLE_MODERATOR;
+                break;
+            case User::ROLE_ADMIN:
+                $role = User::ROLE_OWNER;
+                break;
+        }
+
+        # Now find if we have any membership of the group which might also give us a role.
+        $membs = $this->dbhr->preQuery("SELECT role FROM memberships WHERE userid = ? AND groupid = ?;",
+            [
+                $this->id,
+                $groupid
+            ]);
+
+        foreach ($membs as $memb) {
+            switch ($memb['role']) {
+                case 'Moderator':
+                    $role = User::ROLE_MODERATOR;
+                    break;
+                case 'Owner':
+                    $role = User::ROLE_OWNER;
+                    break;
+                case 'Member':
+                    # Upgrade from none to member.
+                    $role = $role == User::ROLE_NONE ? User::ROLE_MEMBER : $role;
+                    break;
+            }
+        }
+
+        return($role);
+    }
+
+    public function setRole($role, $groupid) {
+        $sql = "UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;";
+        $this->dbhm->preExec($sql, [
+            $role,
+            $this->id,
+            $groupid
+        ]);
     }
 
     public function delete() {

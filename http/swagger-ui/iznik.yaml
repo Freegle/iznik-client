@@ -75,6 +75,39 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+  /messages:
+    get:
+      summary: Messages Get
+      tags: [Messages]
+      description: |
+        Retrieve messages
+      parameters:
+      - name: groupid
+        in: query
+        description: Groupid to query; default is all for current user
+        type: number
+      - name: collection
+        in: query
+        description: Which collection the message is in; default is messages_approved
+        type: string
+        enum: ['messages_approved', 'messages_pending', 'messages_spam']
+      - name: start
+        in: query
+        description: For paging results; message ID above which to return
+        type: integer
+      - name: limit
+        in: query
+        description: For paging results; max number of messages to return
+        type: integer
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
 definitions:
   Response:
     properties: 

@@ -17,14 +17,17 @@ class IncomingMessage extends Message
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
+        # Add in properties specific to this class.
+        $this->moderatorAtts = array_merge($this->moderatorAtts, [
+            'retrycount', 'retrylastfailure'
+        ]);
+
         if ($id) {
             $this->id = $id;
 
             $msgs = $dbhr->preQuery("SELECT * FROM messages_incoming WHERE id = ?;", [$id]);
             foreach ($msgs as $msg) {
-                foreach (['message', 'source', 'sourceheader', 'envelopefrom', 'fromname', 'fromaddr',
-                        'envelopeto', 'subject', 'textbody', 'htmlbody', 'subject', 'type',
-                         'messageid', 'tnpostid', 'retrycount', 'retrylastfailure', 'groupid', 'fromip', 'fromname'] as $attr) {
+                foreach (array_merge($this->nonMemberAtts, $this->memberAtts, $this->moderatorAtts, $this->ownerAtts) as $attr) {
                     if (pres($attr, $msg)) {
                         $this->$attr = $msg[$attr];
                     }
@@ -84,6 +87,7 @@ class IncomingMessage extends Message
         $this->fromaddr = $from[0]['address'];
 
         $this->sourceheader = $Parser->getHeader('x-freegle-source');
+        $this->sourceheader = ($this->sourceheader == 'Unknown' ? NULL : $this->sourceheader);
 
         if (!$this->sourceheader) {
             $this->sourceheader = $Parser->getHeader('x-trash-nothing-source');
@@ -100,8 +104,12 @@ class IncomingMessage extends Message
             $this->sourceheader = 'MessageMaker';
         }
 
-        if (!$this->sourceheader ) {
-            $this->sourceheader = 'Yahoo-Email';
+        if (!$this->sourceheader) {
+            if (stripos($this->fromaddr, 'ilovefreegle.org') !== FALSE) {
+                $this->sourceheader = 'FDv2';
+            } else {
+                $this->sourceheader = 'Yahoo-Email';
+            }
         }
 
         $this->subject = $Parser->getHeader('subject');
@@ -135,7 +143,6 @@ class IncomingMessage extends Message
                 ) {
                     $this->type = $this->determineType($this->subject);
                 }
-
 
                 if ($source == IncomingMessage::YAHOO_PENDING || $source == IncomingMessage::YAHOO_APPROVED) {
                     # Make sure we have a user and a membership for the originator of this message; they were a member

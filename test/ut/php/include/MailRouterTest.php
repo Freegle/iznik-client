@@ -418,6 +418,7 @@ class MailRouterTest extends IznikTest {
         $r->routeAll();
 
         # Force exception
+        error_log("Now force exception");
         $msg = file_get_contents('msgs/basic');
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $m = new IncomingMessage($this->dbhr, $this->dbhm);
@@ -426,9 +427,11 @@ class MailRouterTest extends IznikTest {
 
         $mock = $this->getMockBuilder('LoggedPDO')
             ->disableOriginalConstructor()
-            ->setMethods(array('preExec'))
+            ->setMethods(array('preExec', 'rollBack', 'beginTransaction'))
             ->getMock();
         $mock->method('preExec')->will($this->throwException(new Exception()));
+        $mock->method('rollBack')->willReturn(true);
+        $mock->method('beginTransaction')->willReturn(true);
         $r->setDbhm($mock);
         $r->routeAll();
 

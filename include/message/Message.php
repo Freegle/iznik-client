@@ -15,6 +15,10 @@ class Message
     const TYPE_ADMIN = 'Admin';
     const TYPE_OTHER = 'Other';
 
+    const APPROVED = 'messages_approved';
+    const PENDING = 'messages_pending';
+    const SPAM = 'messages_spam';
+
     /** @var  $dbhr LoggedPDO */
     public $dbhr;
     /** @var  $dbhm LoggedPDO */
@@ -23,6 +27,58 @@ class Message
     public $id,
         $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto,
         $messageid, $tnpostid, $retrycount, $retrylastfailure, $groupid, $fromip, $fromhost, $type, $attachments;
+
+    # Each message has some public attributes, which are visible to API users.
+    #
+    # Which attributes can be seen depends on the currently logged in user's role on the group.
+    #
+    # Other attributes are only visible within the server code.
+    public $nonMemberAtts = [
+        'id', 'groupid', 'message', 'subject', 'type', 'arrival'
+    ];
+
+    public $memberAtts = [
+        'textbody', 'htmlbody'
+    ];
+
+    public $moderatorAtts = [
+        'source', 'sourceheader', 'fromname', 'fromaddr', 'envelopeto', 'envelopefrom', 'messageid', 'tnpostid',
+        'fromip', 'fromname'
+    ];
+
+    public $ownerAtts = [
+        'incomingid'
+    ];
+
+    public function getPublic() {
+        $ret = [];
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $role = $me ? $me->getRole($this->groupid) : User::ROLE_NONE;
+
+        foreach ($this->nonMemberAtts as $att) {
+            $ret[$att] = $this->$att;
+        }
+
+        if ($role == User::ROLE_MEMBER) {
+            foreach ($this->memberAtts as $att) {
+                $ret[$att] = $this->$att;
+            }
+        }
+
+        if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+            foreach ($this->moderatorAtts as $att) {
+                $ret[$att] = $this->$att;
+            }
+        }
+
+        if ($role == User::ROLE_OWNER) {
+            foreach ($this->ownerAtts as $att) {
+                $ret[$att] = $this->$att;
+            }
+        }
+
+        return($ret);
+    }
 
     # Attributes used when fetching attachments
     private $attachmentAttributes = [

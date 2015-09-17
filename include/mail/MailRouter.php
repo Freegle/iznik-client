@@ -259,16 +259,15 @@ class MailRouter
         # First check if this message is spam based on our own checks.
         $rc = $this->spam->check($this->msg);
         if ($rc) {
-            error_log("Message is spam: " . var_export($rc, true));
             $this->log->log([
                 'type' => Log::TYPE_MESSAGE,
                 'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
                 'message_incoming' => $this->msg->getID(),
-                'text' => "Spam check failed: {$rc[1]}",
+                'text' => "Spam check: {$rc[1]}",
                 'group' => $this->msg->getGroupID()
             ]);
 
-            $this->markAsSpam("Spam check failed: {$rc[1]}");
+            $this->markAsSpam("Spam check: {$rc[1]}");
 
             $ret = MailRouter::INCOMING_SPAM;
         } else {
@@ -329,6 +328,7 @@ class MailRouter
             } catch (Exception $e) {
                 # Ignore this and continue routing the rest.
                 error_log("Route failed " . $e->getMessage());
+                $this->dbhm->rollBack();
             }
         }
     }

@@ -94,7 +94,5 @@ function session() {
         } catch (Exception $e) {}
     }
 
-    error_log(var_export($ret, true));
-
     return($ret);
 }

@@ -19,9 +19,7 @@ class PendingMessage extends Message
 
             $msgs = $dbhr->preQuery("SELECT * FROM messages_pending WHERE id = ?;", [$id]);
             foreach ($msgs as $msg) {
-                foreach (['message', 'source', 'envelopefrom', 'fromname', 'fromaddr',
-                             'envelopeto', 'subject', 'textbody', 'htmlbody', 'subject',
-                             'messageid', 'groupid', 'fromip', 'fromname', 'incomingid'] as $attr) {
+                foreach (array_merge($this->nonMemberAtts, $this->memberAtts, $this->moderatorAtts, $this->ownerAtts) as $attr) {
                     if (pres($attr, $msg)) {
                         $this->$attr = $msg[$attr];
                     }

@@ -16,12 +16,14 @@ Iznik.Views.Pages.ModTools.Landing = Iznik.Views.Page.extend({
                     case 'Admin':
                         messagetitle = 'Message History (System-wide)';
                         spamtitle = 'Spam Detection (System-wide)';
-                        domaintitle = 'Domain Breakdown (System-wide)';
+                        domaintitle = 'Email domains people use (System-wide)';
+                        sourcetitle = 'How people send messages (System-wide)';
                         break;
                     default:
                         messagetitle = 'Message History (Your groups)';
                         spamtitle = 'Spam Detection (Your groups)';
-                        domaintitle = 'Domain Breakdown (Your groups)';
+                        domaintitle = 'Email domains people use (Your groups)';
+                        sourcetitle = 'How people send messages (Your groups)';
                         break;
                 }
 
@@ -48,6 +50,15 @@ Iznik.Views.Pages.ModTools.Landing = Iznik.Views.Page.extend({
                     target: self.$('.js-domainchart').get()[0],
                     data: coll,
                     title: domaintitle
+                });
+
+                graph.render();
+
+                coll = new Iznik.Collections.DateCounts(ret.dashboard.sourcehistory);
+                graph = new Iznik.Views.SourceChart({
+                    target: self.$('.js-sourcechart').get()[0],
+                    data: coll,
+                    title: sourcetitle
                 });
 
                 graph.render();

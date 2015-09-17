@@ -705,4 +705,5 @@ filter: alpha(opacity=70); /* IE */
 
 .graph {
     height: 300px;
+    padding-bottom: 10px;
 }
