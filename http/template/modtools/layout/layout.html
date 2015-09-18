@@ -21,42 +21,15 @@
     </div>
 </div>
 <div id="wrapper">
-    <div id="sidebar-wrapper">
-        <ul class="sidebar-nav nav-pills nav-stacked" id="menu">
-            <li class="active">
-                <a href="/modtools">Dashboard</a>
-            </li>
-            <hr class="ui-widget-content ui-menu-divider">
-            <li>
-                <a href="/modtools/messages">Messages</a>
-                <ul class="nav-pills nav-stacked">
-                    <li><a href="/modtools/pendingmessages">Pending</a></li>
-                    <li><a href="/modtools/spam">Spam</a></li>
-                </ul>
-            </li>
-            <hr class="ui-widget-content ui-menu-divider">
-            <li>
-                <a href="/modtools/members">Members</a>
-                <ul class="nav-pills nav-stacked">
-                    <li><a href="/modtools/pendingmembers">Pending</a></li>
-                    <li><a href="/modtools/comments">Comments</a></li>
-                </ul>
-            </li>
-            <hr class="ui-widget-content ui-menu-divider">
-            <li>
-                <a href="/modtools/settings">Settings</a>
-                <a href="/modtools/help">Help</a>
-            </li>
-            <hr class="ui-widget-content ui-menu-divider">
-            <li>
-                <a href="/modtools/signout">Sign Out</a>
-            </li>
-        </ul>
+    <div id="sidebar-wrapper" class="js-leftsidebar">
     </div>
     <div id="page-content-wrapper">
         <div class="container-fluid xyz">
             <div class="row">
-                <div class="col-lg-12 pageContent"/>
+                <div class="col-lg-10 pageContent js-pageContent"/>
+                <div class="col-lg-2 hidden-m hidden-sm hidden-xs rightSidebar js-rightsidebar">
+                    <div class="js-supporters"></div>
+                </div>
             </div>
         </div>
     </div>

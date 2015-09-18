@@ -59,7 +59,6 @@ Iznik.Views.DomainChart = IznikView.extend({
             self.options.data.each(function(count) {
                 arr.push([count.get('domain'), count.get('count')]);
             });
-            console.log("Domain arr", arr);
 
             self.data = google.visualization.arrayToDataTable(arr);
             self.chart = new google.visualization.PieChart(self.options.target);

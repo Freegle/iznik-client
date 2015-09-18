@@ -108,6 +108,21 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+  /supporters:
+    get:
+      summary: Supporters Get
+      tags: [Supporters]
+      description: |
+        Retrieve list of supporters of this project
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
 definitions:
   Response:
     properties: 

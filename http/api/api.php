@@ -10,11 +10,13 @@ require_once(IZNIK_BASE . '/include/session/Yahoo.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/dashboard/Dashboard.php');
 require_once(IZNIK_BASE . '/include/message/Collection.php');
+require_once(IZNIK_BASE . '/include/misc/Supporters.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/session.php');
 require_once(IZNIK_BASE . '/http/api/dashboard.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
+require_once(IZNIK_BASE . '/http/api/supporters.php');
 
 $includetime = microtime(true) - $scriptstart;
 
@@ -65,18 +67,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             # call_user_func doesn't scale well on multicores with HHVM, so we need can't figure out the function from
             # the call name - use a switch instead.
             switch ($call) {
-                case 'session':
-                    $ret = session();
-                    break;
-                case 'messages':
-                    $ret = messages();
-                    break;
                 case 'dashboard':
                     $ret = dashboard();
                     break;
                 case 'exception':
                     # For UT
                     throw new Exception();
+                case 'messages':
+                    $ret = messages();
+                    break;
+                case 'session':
+                    $ret = session();
+                    break;
+                case 'supporters':
+                    $ret = supporters();
+                    break;
                 case 'DBexceptionWork':
                     # For UT
                     if ($apicallretries < 2) {

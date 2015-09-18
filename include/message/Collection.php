@@ -8,7 +8,6 @@ require_once(IZNIK_BASE . '/include/message/ApprovedMessage.php');
 require_once(IZNIK_BASE . '/include/message/IncomingMessage.php');
 require_once(IZNIK_BASE . '/include/message/PendingMessage.php');
 require_once(IZNIK_BASE . '/include/message/SpamMessage.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
 
 class Collection
 {
@@ -51,6 +50,7 @@ class Collection
             $groups[$groupid] = $g->getPublic();
             $groupids[] = $groupid;
             $roles[$groupid] = $me ? $me->getRole($groupid) : User::ROLE_NONE;
+            $groups[$groupid]['role'] = $roles[$groupid];
         }
 
         if (count($groupids) > 0) {

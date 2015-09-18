@@ -34,7 +34,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'groupid', 'message', 'subject', 'type', 'arrival'
+        'id', 'groupid', 'subject', 'type', 'arrival'
     ];
 
     public $memberAtts = [
@@ -76,6 +76,9 @@ class Message
                 $ret[$att] = $this->$att;
             }
         }
+
+        # Remove any group subject tag.
+        $ret['subject'] = preg_replace('/\[.*\]\s*/', '', $ret['subject']);
 
         return($ret);
     }

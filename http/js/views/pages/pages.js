@@ -2,8 +2,9 @@
 Iznik.Views.Page = IznikView.extend({
     modtools: false,
 
-    render: function() {
+    render: function(options) {
         var self = this;
+        options = typeof options == 'undefined' ? {} : options;
 
         // Set the base page layout
         console.log("Render page", this.template, this.modtools);
@@ -12,14 +13,21 @@ Iznik.Views.Page = IznikView.extend({
             window.template('layout_layout'));
         $('.bodyContent').html(this.$el);
 
+        var m = new Iznik.Views.LeftMenu();
+        $('.js-leftsidebar').html(m.render().el);
+
+        if (!options.noSupporters) {
+            var s = new Iznik.Views.Supporters();
+            $('.js-rightsidebar').html(s.render().el);
+        }
+
         // Put this page in
         this.$el.html(window.template(this.template)(Iznik.Session.toJSON2()));
-        $('.pageContent').html(this.$el);
+        $('.js-pageContent').html(this.$el);
 
         // Show anything which should or shouldn't be visible based on login status.
         this.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
             if (loggedIn) {
-                console.log("Loggedin only", $('.js-loggedinonly'));
                 $('.js-loggedinonly').toggleClass('reallyHide');
                 $('.js-loggedinonly').fadeIn('slow');
                 $('.js-loggedoutonly').fadeOut('slow');
@@ -47,4 +55,97 @@ Iznik.Views.Page = IznikView.extend({
 
 Iznik.Views.Pages.NotFound = Iznik.Views.Page.extend({
     template: "notfound"
+});
+
+Iznik.Views.LeftMenu = IznikView.extend({
+    template: "layout_leftmenu",
+
+    render: function() {
+        this.$el.html(window.template(this.template));
+        return this;
+    }
+});
+
+Iznik.Views.Supporters = IznikView.extend({
+    template: "layout_supporters",
+
+    render: function() {
+        var self = this;
+
+        $.ajax({
+            url: API + 'supporters',
+            success: function(ret) {
+                self.$el.html(window.template(self.template));
+
+                var html = '';
+                _.each(ret.supporters.Wowzer, function(el, index, list) {
+                    if (index == ret.supporters.Wowzer.length - 1) {
+                        html += ' and '
+                    } else if (index > 0) {
+                        html += ', '
+                    }
+
+                    html += el.name;
+                });
+                self.$('.js-wowzer').html(html);
+
+                var html = '';
+                _.each(ret.supporters['Front Page'], function(el, index, list) {
+                    if (index == ret.supporters['Front Page'].length - 1) {
+                        html += ' and '
+                    } else if (index > 0) {
+                        html += ', '
+                    }
+
+                    html += el.name;
+                });
+                self.$('.js-frontpage').html(html);
+
+                self.$('.js-content').fadeIn('slow');
+            }
+        })
+
+        return self;
+    }
+});
+
+Iznik.Views.Pages.Supporters = Iznik.Views.Page.extend({
+    modtools: true,
+
+    template: "supporters",
+
+    render: function() {
+        var self = this;
+
+        Iznik.Views.Page.prototype.render.call(this, {
+            noSupporters: true
+        });
+
+        $.ajax({
+            url: API + 'supporters',
+            success: function(ret) {
+                self.$el.html(window.template(self.template));
+
+                var html = '';
+
+                function add(el, index, list) {
+                    console.log("Add", el.name);
+                    if (html ) {
+                        html += ', '
+                    }
+
+                    html += el.name;
+                }
+
+                _.each(ret.supporters['Wowzer'], add);
+                _.each(ret.supporters['Front Page'], add);
+                _.each(ret.supporters['Supporter'], add);
+
+                self.$('.js-list').html(html);
+                self.$('.js-content').fadeIn('slow');
+            }
+        })
+
+        return self;
+    }
 });

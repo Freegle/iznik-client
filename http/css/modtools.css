@@ -147,7 +147,7 @@
     box-shadow: 0 0 10px #45941a;
 }
 
-.pageContent {
+.pageContent, .rightSidebar {
     top: 61px;
 }
 
@@ -159,6 +159,10 @@
     /*padding: 50px;*/
     padding: 15px;
     margin-top:50px;
+}
+
+.rightSidebar h1 {
+    color: #777 !important;;
 }
 
 .masontitle {

@@ -20,6 +20,7 @@ var IznikRouter = Backbone.Router.extend({
     routes: {
         "yahoologin": "yahoologin",
         "modtools": "modtools",
+        "modtools/supporters": "supporters",
         "*path": "home"
     },
 
@@ -121,17 +122,19 @@ var IznikRouter = Backbone.Router.extend({
     },
 
     modtools: function() {
-        console.log("ModTools");
         // We need to be signed in before we can tell if we're allowed to see the moderator tools.
         var self = this;
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
-            console.log("Logged in");
             var page = new Iznik.Views.Pages.ModTools.Landing();
             self.loadRoute({page: page});
         });
 
-        console.log("Test logged in");
         Iznik.Session.forceLogin();
+    },
+
+    supporters: function() {
+        var page = new Iznik.Views.Pages.Supporters();
+        this.loadRoute({page: page});
     }
 });
 
