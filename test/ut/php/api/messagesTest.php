@@ -219,7 +219,8 @@ class messagesTest extends IznikAPITest {
             'groupid' => 0,
             'collection' => 'wibble'
         ]);
-        assertNotEquals(0, $ret['ret']);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['messages']));
 
         error_log(__METHOD__ . " end");
     }

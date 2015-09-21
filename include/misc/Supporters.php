@@ -19,9 +19,11 @@ class Supporters
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        $this->dbhm->preExec("DELETE FROM supporters WHERE name = 'Obediah Clutterbuck';");
     }
 
     function get() {
+        $this->dbhm->preExec("INSERT INTO supporters (type, name) VALUES ('Supporter', 'Obediah Clutterbuck');");
         $sql = "SELECT * FROM supporters WHERE anonymous = 0 AND type != 'Buyer';";
         $ret = [
             'Wowzer' => [],

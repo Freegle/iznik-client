@@ -8,7 +8,7 @@ use GeoIp2\Database\Reader;
 class Spam {
     CONST USER_THRESHOLD = 10;
     CONST GROUP_THRESHOLD = 20;
-    CONST SUBJECT_THRESHOLD = 20;
+    CONST SUBJECT_THRESHOLD = 30;  // SUBJECT_THRESHOLD must be > GROUP_THRESHOLD for UT
 
     /** @var  $dbhr LoggedPDO */
     private $dbhr;
@@ -108,7 +108,7 @@ class Spam {
         # Don't check very short subjects - might be something like "TAKEN".
         $subj = $msg->getPrunedSubject();
 
-        if (strlen($subj) > 10) {
+        if (strlen($subj) >= 10) {
             $sql = "SELECT COUNT(DISTINCT groupid) AS count FROM messages_history WHERE prunedsubject LIKE ? AND groupid IS NOT NULL;";
             $counts = $this->dbhr->preQuery($sql, [
                 "$subj%"

@@ -119,14 +119,10 @@ class User extends Entity
 
     public function addEmail($email, $primary = 1)
     {
-        # If the email already exists in the table, the insert will fail.
-        try {
-            $rc = $this->dbhm->preExec("INSERT INTO users_emails (userid, email, `primary`) VALUES (?, ?, ?)",
-                [$this->id, $email, $primary]);
-            return($rc);
-        } catch (DBException $e) {
-            return(false);
-        }
+        # If the email already exists in the table, then that's fine.
+        $rc = $this->dbhm->preExec("INSERT IGNORE INTO users_emails (userid, email, `primary`) VALUES (?, ?, ?)",
+            [$this->id, $email, $primary]);
+        return($rc);
     }
 
     public function removeEmail($email)
@@ -136,11 +132,12 @@ class User extends Entity
         return($rc);
     }
 
-    public function addMembership($groupid) {
-        $rc = $this->dbhm->preExec("INSERT IGNORE INTO memberships (userid, groupid) VALUES (?,?);",
+    public function addMembership($groupid, $role = User::ROLE_MEMBER) {
+        $rc = $this->dbhm->preExec("REPLACE INTO memberships (userid, groupid, role) VALUES (?,?,?);",
             [
                 $this->id,
-                $groupid
+                $groupid,
+                $role
             ]);
 
         if ($rc) {
@@ -178,10 +175,18 @@ class User extends Entity
 
     public function getMemberships() {
         $ret = [];
-        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [ $this->id ]);
+        $groups = $this->dbhr->preQuery("SELECT groupid, role FROM memberships WHERE userid = ?;", [ $this->id ]);
         foreach ($groups as $group) {
             $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
-            $ret[] = $g->getPublic();
+            $one = $g->getPublic();
+            $one['role'] = $group['role'];
+
+            if ($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER) {
+                # Give a summary of outstanding work.
+                $one['work'] = $g->getWorkCounts();
+            }
+
+            $ret[] = $one;
         }
 
         return($ret);
@@ -221,14 +226,10 @@ class User extends Entity
             $creds = $this->hashPassword($creds);
         }
 
-        # If the login with this type already exists in the table, the insert will fail.
-        try {
-            $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, uid, type, credentials) VALUES (?, ?, ?, ?)",
-                [$this->id, $uid, $type, $creds]);
-            return($rc);
-        } catch (DBException $e) {
-            return(false);
-        }
+        # If the login with this type already exists in the table, that's fine.
+        $rc = $this->dbhm->preExec("INSERT IGNORE INTO users_logins (userid, uid, type, credentials) VALUES (?, ?, ?, ?)",
+            [$this->id, $uid, $type, $creds]);
+        return($rc);
     }
 
     public function removeLogin($type, $uid)
@@ -258,8 +259,7 @@ class User extends Entity
         }
 
         # Now find if we have any membership of the group which might also give us a role.
-        $membs = $this->dbhr->preQuery("SELECT role FROM memberships WHERE userid = ? AND groupid = ?;",
-            [
+        $membs = $this->dbhr->preQuery("SELECT role FROM memberships WHERE userid = ? AND groupid = ?;", [
                 $this->id,
                 $groupid
             ]);
@@ -304,8 +304,4 @@ class User extends Entity
 
         return($rc);
     }
-//
-//    public function getGroups() {
-//        $sql = "SELECT id FROM ";
-//    }
 }

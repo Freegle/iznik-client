@@ -28,7 +28,7 @@ class MailRouterTest extends IznikTest {
         $this->dbhm->preExec("DELETE FROM messages_history WHERE fromaddr = ? OR fromip = ?;", ['from@test.com', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM messages_incoming WHERE fromaddr = ? OR fromip = ?;", ['test@test.com', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM messages_approved WHERE fromaddr = ? OR fromip = ?;", ['test@test.com', '1.2.3.4']);
-        $this->dbhm->preExec("DELETE FROM messages_history WHERE fromaddr = ? OR fromip = ?;", ['test@test.com', '1.2.3.4']);
+        $this->dbhm->preExec("DELETE FROM messages_history WHERE fromaddr IN (?,?) OR fromip = ?;", ['test@test.com', 'GTUBE1.1010101@example.net', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';", []);
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';", []);
 
@@ -373,6 +373,59 @@ class MailRouterTest extends IznikTest {
                 assertEquals(MailRouter::INCOMING_SPAM, $rc);
             }
         }
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testMultipleSubjects() {
+        error_log(__METHOD__);
+
+        $this->dbhm->exec("INSERT IGNORE INTO spam_whitelist_subjects (subject, comment) VALUES ('Basic test', 'For UT');");
+
+        # Our subject is whitelisted and therefore should go through ok
+        for ($i = 0; $i < Spam::SUBJECT_THRESHOLD + 2; $i++) {
+            error_log("Group $i");
+            $g = new Group($this->dbhr, $this->dbhm);
+            $g->create("testgroup$i", Group::GROUP_REUSE);
+
+            $msg = file_get_contents('msgs/basic');
+            $msg = str_replace(
+                'To: "freegleplayground@yahoogroups.com" <freegleplayground@yahoogroups.com>',
+                'To: "testgroup' . $i . '@yahoogroups.com" <testgroup' . $i . '@yahoogroups.com>',
+                $msg);
+
+            $r = new MailRouter($this->dbhr, $this->dbhm);
+            $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+            $rc = $r->route();
+
+            assertEquals(MailRouter::APPROVED, $rc);
+        }
+
+        $this->dbhm->preExec("DELETE FROM messages_history WHERE fromip LIKE ?;", ['4.3.2.%']);
+
+        # Now try with a non-whitelisted subject
+        for ($i = 0; $i < Spam::SUBJECT_THRESHOLD + 2; $i++) {
+            error_log("Group $i");
+
+            $msg = file_get_contents('msgs/basic');
+            $msg = str_replace('Subject: Basic test', 'Subject: Modified subject', $msg);
+            $msg = str_replace(
+                'To: "freegleplayground@yahoogroups.com" <freegleplayground@yahoogroups.com>',
+                'To: "testgroup' . $i . '@yahoogroups.com" <testgroup' . $i . '@yahoogroups.com>',
+                $msg);
+
+            $r = new MailRouter($this->dbhr, $this->dbhm);
+            $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+            $rc = $r->route();
+
+            if ($i + 1 < Spam::SUBJECT_THRESHOLD) {
+                assertEquals(MailRouter::APPROVED, $rc);
+            } else {
+                assertEquals(MailRouter::INCOMING_SPAM, $rc);
+            }
+        }
+
+        $this->dbhm->preExec("DELETE FROM messages_history WHERE fromip LIKE ?;", ['4.3.2.%']);
 
         error_log(__METHOD__ . " end");
     }

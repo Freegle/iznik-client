@@ -38,12 +38,12 @@ class Message
     ];
 
     public $memberAtts = [
-        'textbody', 'htmlbody'
+        'textbody', 'htmlbody', 'fromname'
     ];
 
     public $moderatorAtts = [
-        'source', 'sourceheader', 'fromname', 'fromaddr', 'envelopeto', 'envelopefrom', 'messageid', 'tnpostid',
-        'fromip', 'fromname'
+        'source', 'sourceheader', 'fromaddr', 'envelopeto', 'envelopefrom', 'messageid', 'tnpostid',
+        'fromip', 'message'
     ];
 
     public $ownerAtts = [

@@ -78,8 +78,8 @@ class userTest extends IznikTest {
         assertEquals(1, count($emails));
         assertEquals('test@test.com', $emails[0]['email']);
 
-        # Add it again - should fail
-        assertEquals(0, $u->addEmail('test@test.com'));
+        # Add it again - should work
+        assertEquals(1, $u->addEmail('test@test.com'));
 
         # Add a second
         assertGreaterThan(0, $u->addEmail('test2@test.com', 0));
@@ -111,8 +111,8 @@ class userTest extends IznikTest {
         assertEquals(1, count($logins));
         assertEquals('testid', $logins[0]['uid']);
 
-        # Add it again - should fail
-        assertEquals(0, $u->addLogin(User::LOGIN_YAHOO, 'testid'));
+        # Add it again - should work
+        assertEquals(1, $u->addLogin(User::LOGIN_YAHOO, 'testid'));
 
         # Add a second
         assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, '1234'));
@@ -162,8 +162,20 @@ class userTest extends IznikTest {
         $id = $u->create(NULL, NULL, 'Test User');
         $u = new User($this->dbhr, $this->dbhm, $id);
         assertEquals($u->getRole($group1), User::ROLE_NONE);
-        $u->addMembership($group1);
+
+        $u->addMembership($group1, User::ROLE_MEMBER);
         assertEquals($u->getRole($group1), User::ROLE_MEMBER);
+        $u->addMembership($group1, User::ROLE_OWNER);
+        assertEquals($u->getRole($group1), User::ROLE_OWNER);
+        assertTrue(array_key_exists('work', $u->getMemberships()[0]));
+        $modships = $u->getModeratorships();
+        assertEquals(1, count($modships));
+
+        $u->setRole(User::ROLE_MODERATOR, $group1);
+        assertEquals($u->getRole($group1), User::ROLE_MODERATOR);
+        assertTrue(array_key_exists('work', $u->getMemberships()[0]));
+        $modships = $u->getModeratorships();
+        assertEquals(1, count($modships));
 
         $u->addMembership($group2);
         $membs = $u->getMemberships();
@@ -174,6 +186,12 @@ class userTest extends IznikTest {
         $membs = $u->getMemberships();
         assertEquals(1, count($membs));
         assertEquals($group2, $membs[0]['id']);
+
+        // Support and admin users have a mod role on the group even if not a member
+        $u->setPrivate('systemrole', User::ROLE_SUPPORT);
+        assertEquals($u->getRole($group1), User::ROLE_MODERATOR);
+        $u->setPrivate('systemrole', User::ROLE_ADMIN);
+        assertEquals($u->getRole($group1), User::ROLE_OWNER);
 
         $g = new Group($this->dbhr, $this->dbhm, $group1);
         $g->delete();
