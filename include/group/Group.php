@@ -67,4 +67,17 @@ class Group extends Entity
 
         return(NULL);
     }
+
+    public function getWorkCounts() {
+        $ret = [
+            'pending' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_pending WHERE groupid = ?;", [
+                $this->id
+            ])[0]['count'],
+            'spam' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_spam WHERE groupid = ?;", [
+                $this->id
+            ])[0]['count'],
+        ];
+
+        return($ret);
+    }
 }
