@@ -174,7 +174,6 @@ class MailRouterTest extends IznikTest {
         error_log(__METHOD__ . " end");
     }
 
-
     function testPendingToApproved() {
         error_log(__METHOD__);
 
@@ -220,6 +219,40 @@ class MailRouterTest extends IznikTest {
 
         error_log(__METHOD__ . " end");
     }
+
+    function testTNSpamToApproved() {
+        error_log(__METHOD__);
+
+        # Force a TN message to spam
+        $msg = file_get_contents('msgs/tn');
+        $m = new IncomingMessage($this->dbhr, $this->dbhm);
+        $m->parse(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
+
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
+        $mock = $this->getMockBuilder('spamc')
+            ->disableOriginalConstructor()
+            ->setMethods(array('filter'))
+            ->getMock();
+        $mock->method('filter')->willReturn(true);
+        $mock->result['SCORE'] = 100;
+        $r->setSpamc($mock);
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+        assertNotNull(new Spam($this->dbhr, $this->dbhm, $id));
+        error_log("Spam id $id");
+
+        $msg = file_get_contents('msgs/tn');
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+
+        $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        assertNull((new PendingMessage($this->dbhr, $this->dbhm, $id))->getMessage());
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testHam() {
         error_log(__METHOD__);
 
