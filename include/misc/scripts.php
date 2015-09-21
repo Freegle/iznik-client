@@ -43,6 +43,7 @@ function scriptInclude($minify)
         "js/iznik/utility.js",
         "js/iznik/facebook.js",
         "js/iznik/google.js",
+        "js/iznik/accordionpersist.js",
         "js/models/session.js",
         "js/views/modal.js",
         "js/views/signinup.js",

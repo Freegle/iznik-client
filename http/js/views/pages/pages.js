@@ -18,8 +18,14 @@ Iznik.Views.Page = IznikView.extend({
 
         if (!options.noSupporters) {
             var s = new Iznik.Views.Supporters();
-            $('.js-rightsidebar').html(s.render().el);
+            $('#rightaccordion').append(s.render().el);
+        } else {
+            $('#rightaccordion').empty();
         }
+
+        var s = new Iznik.Views.Plugin();
+        $('#rightaccordion').append(s.render().el);
+        $('#rightaccordion').accordionPersist();
 
         // Put this page in
         this.$el.html(window.template(this.template)(Iznik.Session.toJSON2()));
@@ -66,7 +72,15 @@ Iznik.Views.LeftMenu = IznikView.extend({
     }
 });
 
+Iznik.Views.Plugin = IznikView.extend({
+    className: "panel panel-default js-plugin",
+
+    template: "layout_plugin"
+});
+
 Iznik.Views.Supporters = IznikView.extend({
+    className: "panel panel-default js-supporters",
+
     template: "layout_supporters",
 
     render: function() {

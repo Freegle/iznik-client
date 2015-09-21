@@ -24,8 +24,6 @@ Iznik.Views.MessageGraph = IznikView.extend({
             var formatter = new google.visualization.DateFormat({formatType: 'yy-M-d H'});
             formatter.format(data, 1);
 
-            console.log("Target", self.options.target, data);
-
             self.chart = new google.visualization.LineChart(self.options.target);
             self.data = data;
             self.chartOptions = {
