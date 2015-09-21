@@ -44,14 +44,16 @@ function scriptInclude($minify)
         "js/iznik/facebook.js",
         "js/iznik/google.js",
         "js/iznik/accordionpersist.js",
+        "js/iznik/majax.js",
         "js/models/session.js",
+        "js/views/plugin.js",
         "js/views/modal.js",
         "js/views/signinup.js",
         "js/views/pages/pages.js",
         "js/views/utils.js",
         "js/views/pages/landing.js",
         "js/views/pages/modtools/landing.js",
-        "js/iznik/router.js"
+        "js/iznik/router.js",
     );
 
     $ret = [];

@@ -39,35 +39,19 @@ var IznikRouter = Backbone.Router.extend({
         routeOptions = routeOptions || {};
 
         function loadPage(options){
-            try {
-                options = options || {};
+            options = options || {};
 
-                self.listenToOnce(routeOptions.page, 'pageContentAdded', function(){
-                    self.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
-                        if (loggedIn) {
-                        }
-                    });
-
-                    Iznik.Session.testLoggedIn();
-
-                    // Select the right tab
-                    $('.js-navbar a').each(function() {
-                        //console.log($(this).prop('href'), $(this).prop('href').indexOf(Backbone.history.fragment));
-                        if ($(this).prop('href').indexOf('/' + Backbone.history.fragment) !== -1) {
-                            $(this).closest('li').addClass('active');
-                        } else {
-                            $(this).closest('li').removeClass('active');
-                        }
-                    });
-
-                    self.pageLoaded = true;
-                    self.trigger('pageContentAdded');
+            self.listenToOnce(routeOptions.page, 'pageContentAdded', function(){
+                self.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
+                    if (loggedIn) {
+                    }
                 });
 
-                routeOptions.page.render();
-            } catch (e) {
-                console.log("Page load failed", e);
-            }
+                Iznik.Session.testLoggedIn();
+                self.trigger('pageContentAdded');
+            });
+
+            routeOptions.page.render();
         }
 
         // Load the FB API.  If we're in a canvas app, it'll check if we're logged in, and if not try to do so.  Otherwise
@@ -152,6 +136,10 @@ $(document).ready(function(){
         console.log("Top-level exception", e);
         console.trace();
     }
+
+    // Start the plugin
+    var p = new Iznik.Views.Plugin.Main();
+    p.render();
 });
 
 // We can flag anchors as not to be handled via Backbone using data-realurl

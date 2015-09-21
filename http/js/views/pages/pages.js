@@ -23,7 +23,7 @@ Iznik.Views.Page = IznikView.extend({
             $('#rightaccordion').empty();
         }
 
-        var s = new Iznik.Views.Plugin();
+        var s = new Iznik.Views.Plugin.Info();
         $('#rightaccordion').append(s.render().el);
         $('#rightaccordion').accordionPersist();
 
@@ -70,12 +70,6 @@ Iznik.Views.LeftMenu = IznikView.extend({
         this.$el.html(window.template(this.template));
         return this;
     }
-});
-
-Iznik.Views.Plugin = IznikView.extend({
-    className: "panel panel-default js-plugin",
-
-    template: "layout_plugin"
 });
 
 Iznik.Views.Supporters = IznikView.extend({

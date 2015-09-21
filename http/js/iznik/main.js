@@ -15,8 +15,7 @@ window.Iznik = {
         Help: {},
         Alerts: {},
         Reuse: {},
-        ModTools: {},
-        Utils: {}
+        Plugin: {}
     },
     Collections: {}
 };

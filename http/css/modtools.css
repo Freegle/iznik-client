@@ -151,6 +151,10 @@
     top: 61px;
 }
 
+.navbar {
+    height: 61px !important;
+}
+
 .pageContent.landing {
     background: white;
     -moz-box-shadow: 0 0px 100px #45941a;
