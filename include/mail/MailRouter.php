@@ -138,6 +138,8 @@ class MailRouter
         # We don't need a transaction for this part.
         $p = new PendingMessage($this->dbhm, $this->dbhm);
         $p->removeApprovedMessage($this->msg);
+        $s = new SpamMessage($this->dbhm, $this->dbhm);
+        $s->removeApprovedMessage($this->msg);
 
         # Move into the approved queue.  Use a transaction to avoid leaving rows lying around if we fail partway
         # through.

@@ -9,6 +9,17 @@ function session() {
         if ($me) {
             $ret = array('ret' => 0, 'status' => 'Success', 'me' => $me->getPublic());
             $ret['groups'] = $me->getMemberships();
+            $ret['work'] = [];
+
+            foreach ($ret['groups'] as $group) {
+                foreach ($group['work'] as $key => $work) {
+                    if (pres($key, $ret['work'])) {
+                        $ret['work'][$key] += $work;
+                    } else {
+                        $ret['work'][$key] = $work;
+                    }
+                }
+            }
         } else {
             $ret = array('ret' => 1, 'status' => 'Not logged in');
         }

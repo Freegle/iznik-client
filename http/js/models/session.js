@@ -9,10 +9,20 @@ Iznik.Models.Session = IznikModel.extend({
         $.ajax({
             url: API + 'session',
             success: function(ret) {
-                if ((ret.ret ==0)) {
+                if ((ret.ret == 0)) {
                     //console.log("Logged in");
                     self.set(ret);
                     self.trigger('isLoggedIn', true);
+                    if (ret.work.pending) {
+                        $('.js-pendingcount').html(ret.work.pending);
+                    } else {
+                        $('.js-pendingcount').empty();
+                    }
+                    if (ret.work.spam) {
+                        $('.js-spamcount').html(ret.work.spam);
+                    } else {
+                        $('.js-spamcount').empty();
+                    }
                 } else {
                     //console.log("Not logged in");
                     self.trigger('isLoggedIn', false);

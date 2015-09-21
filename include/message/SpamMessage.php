@@ -61,6 +61,32 @@ class SpamMessage extends Message
         return(mailparse_rfc822_parse_addresses($this->parser->getHeader('to')));
     }
 
+
+    public function removeApprovedMessage(IncomingMessage $msg)
+    {
+        # Try to find by message id.
+        $msgid = $msg->getMessageID();
+        if ($msgid) {
+            $sql = "SELECT id FROM messages_spam WHERE messageid LIKE ?;";
+            $pendings = $this->dbhr->preQuery($sql, [$msgid]);
+
+            foreach ($pendings as $pending) {
+                $this->dbhm->preExec("DELETE FROM messages_spam WHERE id = ?;", [$pending['id']]);
+            }
+        }
+
+        # Try to find by TN post id - TN doesn't put a messageid in.
+        $tnpostid = $msg->getTnpostid();
+        if ($tnpostid) {
+            $sql = "SELECT id FROM messages_spam WHERE tnpostid LIKE ?;";
+            $pendings = $this->dbhr->preQuery($sql, [$tnpostid]);
+
+            foreach ($pendings as $pending) {
+                $this->dbhm->preExec("DELETE FROM messages_spam WHERE id = ?;", [$pending['id']]);
+            }
+        }
+    }
+
     function delete()
     {
         $rc = true;

@@ -57,7 +57,7 @@ class PendingMessage extends Message
             $pendings = $this->dbhr->preQuery($sql, [$msgid]);
 
             foreach ($pendings as $pending) {
-                $this->dbhm->preExec("DELETE FROM messages_pending WHERE id = ?;", [$pending['id']]);
+                $rc = $this->dbhm->preExec("DELETE FROM messages_pending WHERE id = ?;", [$pending['id']]);
             }
         }
 
