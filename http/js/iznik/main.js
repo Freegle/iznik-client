@@ -1,21 +1,15 @@
 window.Iznik = {
     Models     : {},
     Views      : {
-        Pages: {
-            ModTools: {}
+        ModTools: {
+            Pages: {},
+            Message: {}
         },
-        Map: {},
-        Group: {},
-        Message: {},
-        Post: {},
-        Reply: {},
-        Settings: {},
-        Events: {},
-        MyPosts: {},
-        Help: {},
-        Alerts: {},
-        Reuse: {},
-        Plugin: {}
+        Plugin: {},
+        User: {
+            Pages: {}
+        },
+        Group: {}
     },
     Collections: {}
 };

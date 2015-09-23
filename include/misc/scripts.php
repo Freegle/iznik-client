@@ -47,6 +47,7 @@ function scriptInclude($minify)
         "js/iznik/selectpersist.js",
         "js/iznik/majax.js",
         "js/models/session.js",
+        "js/models/message.js",
         "js/views/plugin.js",
         "js/views/modal.js",
         "js/views/signinup.js",
@@ -54,6 +55,7 @@ function scriptInclude($minify)
         "js/views/utils.js",
         "js/views/pages/landing.js",
         "js/views/pages/modtools/landing.js",
+        "js/views/pages/modtools/spam.js",
         "js/views/group/select.js",
         "js/iznik/router.js",
     );

@@ -59,7 +59,7 @@ Iznik.Views.Page = IznikView.extend({
     }
 });
 
-Iznik.Views.Pages.NotFound = Iznik.Views.Page.extend({
+Iznik.Views.User.Pages.NotFound = Iznik.Views.Page.extend({
     template: "notfound"
 });
 
@@ -117,7 +117,7 @@ Iznik.Views.Supporters = IznikView.extend({
     }
 });
 
-Iznik.Views.Pages.Supporters = Iznik.Views.Page.extend({
+Iznik.Views.ModTools.Pages.Supporters = Iznik.Views.Page.extend({
     modtools: true,
 
     template: "supporters",

@@ -21,6 +21,7 @@ var IznikRouter = Backbone.Router.extend({
         "yahoologin": "yahoologin",
         "modtools": "modtools",
         "modtools/supporters": "supporters",
+        "modtools/spam": "spam",
         "*path": "home"
     },
 
@@ -71,7 +72,7 @@ var IznikRouter = Backbone.Router.extend({
                     trigger: true
                 });
             }else{
-                var page = new Iznik.Views.Pages.Landing();
+                var page = new Iznik.Views.User.Pages.Landing();
                 self.loadRoute({page: page});
             }
         });
@@ -109,7 +110,7 @@ var IznikRouter = Backbone.Router.extend({
         // We need to be signed in before we can tell if we're allowed to see the moderator tools.
         var self = this;
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
-            var page = new Iznik.Views.Pages.ModTools.Landing();
+            var page = new Iznik.Views.ModTools.Pages.Landing();
             self.loadRoute({page: page});
         });
 
@@ -117,7 +118,12 @@ var IznikRouter = Backbone.Router.extend({
     },
 
     supporters: function() {
-        var page = new Iznik.Views.Pages.Supporters();
+        var page = new Iznik.Views.ModTools.Pages.Supporters();
+        this.loadRoute({page: page});
+    },
+
+    spam: function() {
+        var page = new Iznik.Views.ModTools.Pages.Spam();
         this.loadRoute({page: page});
     }
 });

@@ -52,7 +52,6 @@ class Dashboard {
             $membs = $this->me->getMemberships();
             foreach ($membs as $memb) {
                 # We want groups of the appropriate type on which we are a mod or owner
-                error_log("Compare $type to {$memb['type']}");
                 if (($memb['role'] == User::ROLE_OWNER || $memb['role'] == User::ROLE_MODERATOR) &&
                     (!$type || $memb['type'] == $type)) {
                     if ($groupid) {

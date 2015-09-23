@@ -152,7 +152,7 @@
 }
 
 .navbar {
-    height: 61px !important;
+    height: 75px !important;
 }
 
 .pageContent.landing {
@@ -431,3 +431,7 @@ body {
 }
 
 /*Side menu end*/
+
+#wrapper, #page-content-wrapper {
+    height: 100%;
+}

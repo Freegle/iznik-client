@@ -27,6 +27,11 @@ function messages() {
 
         $c = new Collection($dbhr, $dbhm, $collection);
         list($groups, $msgs) = $c->get($start, $limit, $groups);
+
+        foreach ($msgs as &$msg) {
+            $msg['arrival'] = ISODate($msg['arrival']);
+        }
+
         $ret = [
             'ret' => 0,
             'status' => 'Success',

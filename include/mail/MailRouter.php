@@ -265,11 +265,11 @@ class MailRouter
                 'type' => Log::TYPE_MESSAGE,
                 'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
                 'message_incoming' => $this->msg->getID(),
-                'text' => "Spam check: {$rc[1]}",
+                'text' => "{$rc[1]}",
                 'group' => $this->msg->getGroupID()
             ]);
 
-            $this->markAsSpam("Spam check: {$rc[1]}");
+            $this->markAsSpam("{$rc[1]}");
 
             $ret = MailRouter::INCOMING_SPAM;
         } else {
