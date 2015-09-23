@@ -22,9 +22,7 @@ class SpamMessage extends Message
         $this->dbhm = $dbhm;
 
         # Add in properties specific to this class.
-        $this->moderatorAtts = array_merge($this->moderatorAtts, [
-            'reason'
-        ]);
+        $this->moderatorAtts[] = 'reason';
 
         if ($id) {
             $this->id = $id;

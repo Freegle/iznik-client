@@ -357,7 +357,7 @@ class LoggedPDO {
         }
 
         if (!$rc) {
-            error_log("Couldn't background $sql");
+//            error_log("Couldn't background $sql");
         }
     }
 

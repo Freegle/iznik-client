@@ -4,7 +4,6 @@ Iznik.Views.ModTools.Pages.Spam = Iznik.Views.Page.extend({
     template: "modtools_spam_main",
 
     messageAdded: function(message) {
-        console.log("Got message", message);
         var v = new Iznik.Views.ModTools.Message.Spam({
             model: message
         });
@@ -37,6 +36,7 @@ Iznik.Views.ModTools.Message.Spam = IznikView.extend({
     render: function() {
         // We overwrite this.el so that we can avoid the wrapping element.
         var html = window.template(this.template)(this.model.toJSON2());
+        console.log("Expanded to", html);
         this.el = html;
         this.delegateEvents(this.events);
         return(this);

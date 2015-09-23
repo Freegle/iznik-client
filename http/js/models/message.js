@@ -23,7 +23,6 @@ Iznik.Collections.Message = IznikCollection.extend({
 
         // Fill in the groups
         _.each(ret.messages, function(message, index, list) {
-            console.log("Got message in collection", message);
             message.group = groups[message.groupid];
         });
 
