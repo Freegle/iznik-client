@@ -12,6 +12,10 @@ Iznik.Models.Session = IznikModel.extend({
                 if ((ret.ret == 0)) {
                     //console.log("Logged in");
                     self.set(ret);
+
+                    // We get an array of groups back - we want it to be a collection.
+                    self.set('groups', new Backbone.Collection(ret.groups));
+
                     self.trigger('isLoggedIn', true);
                     if (ret.work.pending) {
                         $('.js-pendingcount').html(ret.work.pending);

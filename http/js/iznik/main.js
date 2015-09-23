@@ -5,8 +5,8 @@ window.Iznik = {
             ModTools: {}
         },
         Map: {},
-        Groups: {},
-        Messages: {},
+        Group: {},
+        Message: {},
         Post: {},
         Reply: {},
         Settings: {},

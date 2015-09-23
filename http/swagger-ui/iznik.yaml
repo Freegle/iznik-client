@@ -11,6 +11,34 @@ basePath: /api
 produces:
   - application/json
 paths:
+  /dashboard:
+    get:
+      summary: Dashboard Get
+      tags: [Dashboard]
+      description: |
+        Get dashboard information
+      parameters:
+      - name: systemwide
+        in: query
+        description: Get system wide dashboard information
+        type: boolean
+      - name: allgroups
+        in: query
+        description: Get dashboard information for all groups for currently logged in user
+        type: boolean
+      - name: group
+        in: query
+        description: Get dashboard information for specific group
+        type: number
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
   /session:
     get:
       summary: Session Get

@@ -6,7 +6,7 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 class Group extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'settings', 'type');
+    var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'logo');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
@@ -18,6 +18,7 @@ class Group extends Entity
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts);
+
         $this->log = new Log($dbhr, $dbhm);
     }
 
@@ -79,5 +80,14 @@ class Group extends Entity
         ];
 
         return($ret);
+    }
+
+    public function getPublic() {
+        $atts = parent::getPublic();
+
+        # Add in derived properties.
+        $atts['namedisplay'] = $atts['namefull'] ? $atts['namefull'] : $atts['nameshort'];
+
+        return($atts);
     }
 }

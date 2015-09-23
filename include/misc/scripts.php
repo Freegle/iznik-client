@@ -53,6 +53,7 @@ function scriptInclude($minify)
         "js/views/utils.js",
         "js/views/pages/landing.js",
         "js/views/pages/modtools/landing.js",
+        "js/views/group/select.js",
         "js/iznik/router.js",
     );
 

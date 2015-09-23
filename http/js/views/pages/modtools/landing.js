@@ -3,29 +3,31 @@ Iznik.Views.Pages.ModTools.Landing = Iznik.Views.Page.extend({
 
     template: "modtools_landing_main",
 
-    render: function() {
-        var self = this;
-        var messagetitle, spamtitle, domaintitle;
+    selected: null,
 
-        Iznik.Views.Page.prototype.render.call(this);
+    updateGraphs: function() {
+        var data = {};
+
+        console.log("Currently selexted", this.selected);
+        if (this.selected == -2) {
+            console.log("System wide");
+            data.systemwide = true;
+        } else if (this.selected == -1) {
+            console.log("All groups");
+            data.allgroups = true;
+        } else {
+            console.log("Specific group");
+            data.group = this.selected
+        }
 
         $.ajax({
             url: API + 'dashboard',
+            data: data,
             success: function(ret) {
-                switch (Iznik.Session.get('me').systemrole){
-                    case 'Admin':
-                        messagetitle = 'Message History (System-wide)';
-                        spamtitle = 'Spam Detection (System-wide)';
-                        domaintitle = 'Email domains people use (System-wide)';
-                        sourcetitle = 'How people send messages (System-wide)';
-                        break;
-                    default:
-                        messagetitle = 'Message History (Your groups)';
-                        spamtitle = 'Spam Detection (Your groups)';
-                        domaintitle = 'Email domains people use (Your groups)';
-                        sourcetitle = 'How people send messages (Your groups)';
-                        break;
-                }
+                messagetitle = 'Message History';
+                spamtitle = 'Spam Detection';
+                domaintitle = 'Email domains people use';
+                sourcetitle = 'How people send messages';
 
                 var coll = new Iznik.Collections.DateCounts(ret.dashboard.messagehistory);
                 var graph = new Iznik.Views.MessageGraph({
@@ -64,5 +66,27 @@ Iznik.Views.Pages.ModTools.Landing = Iznik.Views.Page.extend({
                 graph.render();
             }
         })
+    },
+
+    render: function() {
+        var self = this;
+        var messagetitle, spamtitle, domaintitle;
+
+        Iznik.Views.Page.prototype.render.call(this);
+
+        var v = new Iznik.Views.Group.Select({
+            systemWide: true,
+            all: true,
+            id: 'statsGroupDropdown'
+        });
+
+        self.listenTo(v, 'selected', function(selected) {
+            console.log("Selected group", selected);
+            self.selected = selected;
+            self.updateGraphs();
+        });
+
+        // Render after the listen to as they are called during render.
+        self.$('.js-groupselect').html(v.render().el);
     }
 });
