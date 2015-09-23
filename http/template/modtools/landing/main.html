@@ -10,7 +10,19 @@ You're part of the Support team.  Here's your dashboard.</p>
 You're a System Admin.  Here's your dashboard.</p>
 <% } %>
 <h2>Key Stats</h2>
-<div class="botspace js-groupselect"></div>
+<div class="row">
+    <div class="col-md-6">
+        <div class="botspace js-groupselect"></div>
+    </div>
+    <div class="col-md-6">
+        <select id="statsGroupType" class="js-grouptype" data-style="btn-inverse">
+            <option value=null>All types of group</option>
+            <option value="Freegle">Freegle groups only</option>
+            <option value="Reuse">Non-Freegle Reuse groups</option>
+            <option value="Other">Other groups</option>
+        </select>
+    </div>
+</div>
 <div class="row">
     <div class="col-md-6">
         <div class="js-messagegraph graph"></div>

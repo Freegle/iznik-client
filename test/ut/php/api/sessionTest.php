@@ -4,6 +4,7 @@ if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
 require_once UT_DIR . '/IznikAPITest.php';
+require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 
 /**
  * @backupGlobals disabled
@@ -95,6 +96,66 @@ class sessionTest extends IznikAPITest {
         assertEquals($group1, $ret['groups'][0]['id']);
 
         $g->delete();
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testWork() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        assertTrue($u->addEmail('test@test.com'));
+        $u = new User($this->dbhm, $this->dbhm, $id);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
+        $g1 = new Group($this->dbhr, $this->dbhm, $group1);
+        $g2 = new Group($this->dbhr, $this->dbhm, $group2);
+        $u->addMembership($group1, User::ROLE_MODERATOR);
+        $u->addMembership($group2, User::ROLE_MODERATOR);
+
+        # Send one message to pending on each.
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $m = new IncomingMessage($this->dbhr, $this->dbhm);
+        $m->parse(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
+
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
+        $m = new IncomingMessage($this->dbhr, $this->dbhm);
+        $m->parse(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
+
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $ret = $this->call('session', 'POST', [
+            'email' => 'test@test.com',
+            'password' => 'testpw'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('session','GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals($group1, $ret['groups'][0]['id']);
+        assertEquals(1, $ret['groups'][0]['work']['pending']);
+        assertEquals(1, $ret['groups'][1]['work']['pending']);
+        assertEquals(0, $ret['groups'][0]['work']['spam']);
+        assertEquals(0, $ret['groups'][1]['work']['spam']);
+        assertEquals(2, $ret['work']['pending']);
+        assertEquals(0, $ret['work']['spam']);
+
+        $g1->delete();
+        $g2->delete();
 
         error_log(__METHOD__ . " end");
     }

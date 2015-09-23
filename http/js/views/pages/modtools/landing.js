@@ -8,16 +8,16 @@ Iznik.Views.Pages.ModTools.Landing = Iznik.Views.Page.extend({
     updateGraphs: function() {
         var data = {};
 
-        console.log("Currently selexted", this.selected);
         if (this.selected == -2) {
-            console.log("System wide");
             data.systemwide = true;
         } else if (this.selected == -1) {
-            console.log("All groups");
             data.allgroups = true;
         } else {
-            console.log("Specific group");
             data.group = this.selected
+        }
+
+        if ($('#statsGroupType').val()) {
+            data.grouptype = $('#statsGroupType').val();
         }
 
         $.ajax({
@@ -74,6 +74,12 @@ Iznik.Views.Pages.ModTools.Landing = Iznik.Views.Page.extend({
 
         Iznik.Views.Page.prototype.render.call(this);
 
+        self.$('.js-grouptype').selectpicker();
+        self.$('.js-grouptype').selectPersist();
+        self.$('.js-grouptype').change(function() {
+            self.updateGraphs.apply(self);
+        });
+
         var v = new Iznik.Views.Group.Select({
             systemWide: true,
             all: true,
@@ -81,10 +87,10 @@ Iznik.Views.Pages.ModTools.Landing = Iznik.Views.Page.extend({
         });
 
         self.listenTo(v, 'selected', function(selected) {
-            console.log("Selected group", selected);
             self.selected = selected;
             self.updateGraphs();
         });
+
 
         // Render after the listen to as they are called during render.
         self.$('.js-groupselect').html(v.render().el);

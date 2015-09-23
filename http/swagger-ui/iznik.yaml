@@ -30,6 +30,11 @@ paths:
         in: query
         description: Get dashboard information for specific group
         type: number
+      - name: grouptype
+        in: query
+        description: Which type of group to include
+        type: string
+        enum: ['Freegle', 'Reuse', 'Other']
       responses:
           "200":
             description: "Successful response"
