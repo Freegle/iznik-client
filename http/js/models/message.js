@@ -10,7 +10,6 @@ Iznik.Collections.Message = IznikCollection.extend({
 
         // Use a comparator to show in most recent first order
         this.comparator = function(a) {
-            console.log("Compare", a);
             return((new Date(a.get('arrival'))).getTime());
         }
     },

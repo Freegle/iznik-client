@@ -36,7 +36,6 @@ Iznik.Views.ModTools.Message.Spam = IznikView.extend({
     render: function() {
         // We overwrite this.el so that we can avoid the wrapping element.
         var html = window.template(this.template)(this.model.toJSON2());
-        console.log("Expanded to", html);
         this.el = html;
         this.delegateEvents(this.events);
         return(this);

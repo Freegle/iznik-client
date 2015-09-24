@@ -29,12 +29,6 @@ var IznikRouter = Backbone.Router.extend({
         // Tidy any modal grey.
         $('.modal-backdrop').remove();
 
-        // Remove any old alerts.
-        $('.js-alerts').empty();
-
-        // ...and qtips
-        $(".qtip").remove();
-
         //console.log("loadRoute"); console.log(routeOptions);
         var self = this;
         routeOptions = routeOptions || {};
@@ -43,13 +37,26 @@ var IznikRouter = Backbone.Router.extend({
             options = options || {};
 
             self.listenToOnce(routeOptions.page, 'pageContentAdded', function(){
-                self.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
-                    if (loggedIn) {
-                    }
-                });
+                if (routeOptions.modtools) {
+                    // This is a ModTools page - start any plugin work.
+                    self.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
+                        if (loggedIn) {
+                            Iznik.Session.get('groups').each(function(group) {
+                                console.log("Consider sync for ", group);
+                                if (group.get('onyahoo') &&
+                                    (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
+                                    // We are a mod on this group.  Set our various syncs going.
+                                    console.log("Mod or Owner");
+                                    (new Iznik.Views.Plugin.Yahoo.SyncPending({model: group})).render();
+                                }
+                            });
 
-                Iznik.Session.testLoggedIn();
-                self.trigger('pageContentAdded');
+                            IznikPlugin.checkWork();
+                        }
+                    });
+
+                    Iznik.Session.testLoggedIn();
+                }
             });
 
             routeOptions.page.render();
@@ -84,13 +91,10 @@ var IznikRouter = Backbone.Router.extend({
         var self = this;
         // We have been redirected here after an attempt to sign in with Yahoo.  We now try again to login
         // on the server.  This time we should succeed.
-        console.log("Second attempt for Yahoo login");
         var returnto = getURLParam('returnto');
 
         this.listenToOnce(Iznik.Session, 'yahoologincomplete', function(ret) {
             if (ret.ret == 0) {
-                console.log("logged in");
-
                 if (returnto) {
                     window.location = returnto;
                 } else {
@@ -98,7 +102,6 @@ var IznikRouter = Backbone.Router.extend({
                 }
             } else {
                 // TODO
-                console.log("Failed login");
                 window.location = '/';
             }
         });
@@ -107,11 +110,10 @@ var IznikRouter = Backbone.Router.extend({
     },
 
     modtools: function() {
-        // We need to be signed in before we can tell if we're allowed to see the moderator tools.
         var self = this;
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
             var page = new Iznik.Views.ModTools.Pages.Landing();
-            self.loadRoute({page: page});
+            self.loadRoute({page: page, modtools: true});
         });
 
         Iznik.Session.forceLogin();
@@ -123,8 +125,12 @@ var IznikRouter = Backbone.Router.extend({
     },
 
     spam: function() {
-        var page = new Iznik.Views.ModTools.Pages.Spam();
-        this.loadRoute({page: page});
+        this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
+            var page = new Iznik.Views.ModTools.Pages.Spam();
+            this.loadRoute({page: page, modtools: true});
+        });
+
+        Iznik.Session.forceLogin();
     }
 });
 
@@ -144,8 +150,7 @@ $(document).ready(function(){
     }
 
     // Start the plugin
-    var p = new Iznik.Views.Plugin.Main();
-    p.render();
+    IznikPlugin.render();
 });
 
 // We can flag anchors as not to be handled via Backbone using data-realurl

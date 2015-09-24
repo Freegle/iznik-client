@@ -5,7 +5,9 @@ window.Iznik = {
             Pages: {},
             Message: {}
         },
-        Plugin: {},
+        Plugin: {
+            Yahoo: {}
+        },
         User: {
             Pages: {}
         },
@@ -30,7 +32,9 @@ var IznikModel = Backbone.Model.extend({
     }
 });
 
-var IznikCollection = Backbone.Collection.extend({});
+var IznikCollection = Backbone.Collection.extend({
+    model: IznikModel
+});
 
 // Set options into this.options by default.
 var IznikView = (function(View) {
@@ -75,3 +79,4 @@ function isMobile(){
 }
 
 var API = '/api/';
+var YAHOOAPI= 'https://groups.yahoo.com/api/v1/groups/';

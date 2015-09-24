@@ -14,7 +14,7 @@ Iznik.Models.Session = IznikModel.extend({
                     self.set(ret);
 
                     // We get an array of groups back - we want it to be a collection.
-                    self.set('groups', new Backbone.Collection(ret.groups));
+                    self.set('groups', new IznikCollection(ret.groups));
 
                     self.trigger('isLoggedIn', true);
                     if (ret.work.pending) {
