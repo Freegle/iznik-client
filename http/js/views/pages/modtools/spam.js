@@ -8,11 +8,15 @@ Iznik.Views.ModTools.Pages.Spam = Iznik.Views.Page.extend({
             model: message
         });
 
-        var el = v.render().el;
-        this.$('.js-list').append(el);
+        this.$('.js-list').append(v.render().el);
         this.$('.timeago').timeago();
 
-        $(el).fadeIn('slow');
+        this.$el.fadeIn('slow');
+    },
+
+    messageRemoved: function(message) {
+        // Message removed from the collection.  Trigger an event to be picked up by views, to remove themselves.
+        message.trigger('removed');
     },
 
     render: function() {
@@ -21,6 +25,7 @@ Iznik.Views.ModTools.Pages.Spam = Iznik.Views.Page.extend({
         var msgs = new Iznik.Collections.Message();
 
         this.listenTo(msgs, 'add', this.messageAdded);
+        this.listenTo(msgs, 'remove', this.messageRemoved);
 
         msgs.fetch({
             data: {
@@ -34,10 +39,20 @@ Iznik.Views.ModTools.Message.Spam = IznikView.extend({
     template: 'modtools_spam_message',
 
     render: function() {
-        // We overwrite this.el so that we can avoid the wrapping element.
-        var html = window.template(this.template)(this.model.toJSON2());
-        this.el = html;
-        this.delegateEvents(this.events);
+        var self = this;
+
+        self.$el.html(window.template(self.template)(self.model.toJSON2()));
+
+        // When this model is removed from the collection, it will have an event triggered on it. When that happens,
+        // we want to remove this view.
+        this.listenToOnce(this.model, 'removed', function() {
+            console.log("Spam remove", self.$el);
+
+            self.$el.fadeOut('slow', function() {
+                self.remove();
+            });
+        });
+
         return(this);
     }
 });
