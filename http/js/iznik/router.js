@@ -42,11 +42,9 @@ var IznikRouter = Backbone.Router.extend({
                     self.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
                         if (loggedIn) {
                             Iznik.Session.get('groups').each(function(group) {
-                                console.log("Consider sync for ", group);
                                 if (group.get('onyahoo') &&
                                     (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
                                     // We are a mod on this group.  Set our various syncs going.
-                                    console.log("Mod or Owner");
                                     (new Iznik.Views.Plugin.Yahoo.SyncPending({model: group})).render();
                                 }
                             });

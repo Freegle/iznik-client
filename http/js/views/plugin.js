@@ -129,22 +129,21 @@ Iznik.Views.Plugin.Work = IznikView.extend({
     }
 });
 
-Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Work.extend({
+Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
     offset: 1,
-    chunkSize: 100,
 
-    template: 'plugin_syncpending',
+    chunkSize: 100,
 
     start: function() {
         var self = this;
 
         // Need to create this here rather than as a property, otherwise the same array is shared between instances
         // of this object.
-        this.pendings = [];
+        this.messages = [];
 
         $.ajax({
             type: "GET",
-            url: YAHOOAPI + self.model.get('nameshort') + "/pending/messages/" + self.offset + "/parts?start=1&count=" + self.chunkSize + "&chrome=raw",
+            url: self.url(),
             context: self,
             success: self.processChunk,
             error: self.failChunk
@@ -159,14 +158,14 @@ Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Work.extend({
         if (ret.ygData) {
             var total = ret.ygData.numResults;
             this.offset += total;
-            var messages = ret.ygData.pendingMessages;
+            var messages = ret.ygData[this.messageLocation];
 
             for (var i = 0; i < total; i++) {
                 var message = messages[i];
                 var d = new Date();
                 d.setUTCSeconds(message['postDate']);
 
-                this.pendings.push({
+                this.messages.push({
                     email: message['email'],
                     subject: message['subject'],
                     date: d.toUTCString()
@@ -175,12 +174,23 @@ Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Work.extend({
 
             if (total == 0 || total < this.chunkSize) {
                 // Finished
-                console.log("Got list", this.model.get('nameshort'), this.pendings);
+                console.log("Got list", this.model.get('nameshort'), this.messages);
                 this.succeed();
             } else {
                 this.queue();
             }
         }
+    }
+});
+
+Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Yahoo.Sync.extend({
+    template: 'plugin_syncpending',
+
+    messageLocation: 'pendingMessages',
+
+    url: function() {
+        return YAHOOAPI + this.model.get('nameshort') + "/pending/messages/" + this.offset +
+            "/parts?start=1&count=" + this.chunkSize + "&chrome=raw"
     }
 });
 
