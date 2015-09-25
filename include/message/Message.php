@@ -34,7 +34,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'groupid', 'subject', 'type', 'arrival'
+        'id', 'groupid', 'subject', 'type', 'arrival', 'date'
     ];
 
     public $memberAtts = [

@@ -91,4 +91,15 @@ class Collection
 
         return([$groups, $msgs]);
     }
+
+    function find($sender, $groupid, $date) {
+        $sql = "SELECT id FROM {$this->table} WHERE fromaddr = ? AND groupid = ? AND date = ?;";
+        $msglist = $this->dbhr->preQuery($sql, [
+            $sender,
+            $groupid,
+            $date
+        ]);
+
+        return(count($msglist) > 0);
+    }
 }

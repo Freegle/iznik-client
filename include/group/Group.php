@@ -91,4 +91,21 @@ class Group extends Entity
 
         return($atts);
     }
+
+    public function correlate($collection, $messages) {
+        # Check whether any of the messages in $messages are not present on the server.
+        $missing = [];
+
+        $c = new Collection($this->dbhr, $this->dbhm, $collection);
+
+        if ($messages) {
+            foreach ($messages as $message) {
+                if (!$c->find($message['email'], $this->id, $message['date'])) {
+                    $missing[] = $message;
+                }
+            }
+        }
+
+        return($missing);
+    }
 }

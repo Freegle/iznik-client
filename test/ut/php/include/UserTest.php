@@ -162,17 +162,21 @@ class userTest extends IznikTest {
         $id = $u->create(NULL, NULL, 'Test User');
         $u = new User($this->dbhr, $this->dbhm, $id);
         assertEquals($u->getRole($group1), User::ROLE_NONE);
+        assertFalse($u->isModOrOwner($group1));
 
         $u->addMembership($group1, User::ROLE_MEMBER);
         assertEquals($u->getRole($group1), User::ROLE_MEMBER);
+        assertFalse($u->isModOrOwner($group1));
         $u->addMembership($group1, User::ROLE_OWNER);
         assertEquals($u->getRole($group1), User::ROLE_OWNER);
+        assertTrue($u->isModOrOwner($group1));
         assertTrue(array_key_exists('work', $u->getMemberships()[0]));
         $modships = $u->getModeratorships();
         assertEquals(1, count($modships));
 
         $u->setRole(User::ROLE_MODERATOR, $group1);
         assertEquals($u->getRole($group1), User::ROLE_MODERATOR);
+        assertTrue($u->isModOrOwner($group1));
         assertTrue(array_key_exists('work', $u->getMemberships()[0]));
         $modships = $u->getModeratorships();
         assertEquals(1, count($modships));

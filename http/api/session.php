@@ -49,7 +49,6 @@ function session() {
         if ($password && $email) {
             # Native login via username and password
             $possid = $user->findByEmail($email);
-            error_log("$email $password $possid");
             if ($possid) {
                 $u = new User($dbhr, $dbhm, $possid);
                 if ($u->login($password)) {

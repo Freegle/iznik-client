@@ -85,6 +85,7 @@ class IncomingMessage extends Message
 
         $this->fromname = $from[0]['display'];
         $this->fromaddr = $from[0]['address'];
+        $this->date = gmdate("Y-m-d H:i:s", strtotime($Parser->getHeader('date')));
 
         $this->sourceheader = $Parser->getHeader('x-freegle-source');
         $this->sourceheader = ($this->sourceheader == 'Unknown' ? NULL : $this->sourceheader);
@@ -194,8 +195,9 @@ class IncomingMessage extends Message
     # Save a parsed message to the DB
     public function save() {
         # Save into the incoming messages table.
-        $sql = "INSERT INTO messages_incoming (groupid, source, sourceheader, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages_incoming (date, groupid, source, sourceheader, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
+            $this->date,
             $this->groupid,
             $this->source,
             $this->sourceheader,

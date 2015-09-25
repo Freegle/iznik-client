@@ -46,7 +46,6 @@ class User extends Entity
             $pw = $this->hashPassword($pw);
             $logins = $this->getLogins();
             foreach ($logins as $login) {
-                error_log("Check $pw vs {$login['credentials']}");
                 if ($login['type'] == User::LOGIN_NATIVE && $pw == $login['credentials']) {
                     $s = new Session($this->dbhr, $this->dbhm);
                     $s->create($this->id);
@@ -201,6 +200,20 @@ class User extends Entity
         }
 
         return($ret);
+    }
+
+    public function isModOrOwner($groupid) {
+        $ret = [];
+        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner') AND groupid = ?;", [
+            $this->id,
+            $groupid
+        ]);
+
+        foreach ($groups as $group) {
+            return true;
+        }
+
+        return(false);
     }
 
     public function getLogins() {

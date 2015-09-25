@@ -141,6 +141,37 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+  /correlate:
+    post:
+      summary: Messages Correlated
+      tags: [Messages]
+      description: |
+        Correlate messages on server to determine any missing
+      parameters:
+      - name: groupid
+        in: query
+        description: Groupid to query; default is all for current user
+        type: number
+      - name: collection
+        in: query
+        description: Which collection the message is in; default is messages_approved
+        type: string
+        enum: ['messages_approved', 'messages_pending', 'messages_spam']
+      - name: messages
+        in: body
+        description: Array of messages
+        required: true,
+        schema:
+          $ref: '#/definitions/correlate'
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
   /supporters:
     get:
       summary: Supporters Get
@@ -195,4 +226,18 @@ definitions:
         type: string
       fields:
         type: string
-        
+  correlate:
+    type: array,
+    items:
+        $ref: '#/definitions/correlatemessage'
+  correlatemessage:
+    properties:
+        email:
+          type: string
+          description: 'Email of sender'
+        subject:
+          type: string
+          description: 'Subject of message'
+        date:
+          type: date-time
+          description: 'Post date, i.e. Date: header field'
