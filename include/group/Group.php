@@ -93,8 +93,9 @@ class Group extends Entity
     }
 
     public function correlate($collection, $messages) {
-        # Check whether any of the messages in $messages are not present on the server.
+        # Check whether any of the messages in $messages are not present on the server or vice-versa.
         $missing = [];
+        $present = [];
 
         $c = new Collection($this->dbhr, $this->dbhm, $collection);
 

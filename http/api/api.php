@@ -48,8 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
             # Repeat logins are OK.  So are correlations, which are passed as a POST because we want to add
             # a body and that fits better with a POST, but which is a read-only operation.
-            if (($_SERVER['REQUEST_URI'] != '/api/session.php') &&
-                ($_SERVER['REQUEST_URI'] != '/api/correlate.php') &&
+            if (($call != 'session') && ($call != 'correlate') &&
                 array_key_exists('POSTLASTTIME', $_SESSION)) {
                 $ago = time() - $_SESSION['POSTLASTTIME'];
 

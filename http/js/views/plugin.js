@@ -168,13 +168,32 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                 this.messages.push({
                     email: message['email'],
                     subject: message['subject'],
-                    date: d.toUTCString()
+                    date: d.toISOString()
                 });
             }
 
             if (total == 0 || total < this.chunkSize) {
-                // Finished
+                // Finished.  Now check with the server whether we have any messages which it doesn't.
                 console.log("Got list", this.model.get('nameshort'), this.messages);
+                $.ajax({
+                    type: "POST",
+                    url: API + 'correlate',
+                    context: self,
+                    data: {
+                        'groupid': this.model.get('id'),
+                        'collection': this.collection,
+                        'messages': this.messages
+                    },
+                    success: function(ret) {
+                        if (ret.ret == 0) {
+                            console.log("Correlate result", ret);
+                        } else {
+                            self.failChunk();
+                        }
+                    },
+                    error: self.failChunk
+                });
+
                 this.succeed();
             } else {
                 this.queue();
@@ -187,6 +206,8 @@ Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Yahoo.Sync.extend({
     template: 'plugin_syncpending',
 
     messageLocation: 'pendingMessages',
+
+    collecton: 'messages_pending',
 
     url: function() {
         return YAHOOAPI + this.model.get('nameshort') + "/pending/messages/" + this.offset +

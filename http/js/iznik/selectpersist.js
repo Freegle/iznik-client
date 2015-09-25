@@ -8,12 +8,9 @@
         // Find last value
         try {
             var val = localStorage.getItem('selectPersist.' + this.id);
-            console.log("Last val", val);
 
             if (val) {
-                console.log("Set to", val);
                 this.selectpicker('val', val);
-                console.log("Set it ", this.val());
             }
         } catch (e) {
             // No matter; if local storage is not available then we can't persist.
