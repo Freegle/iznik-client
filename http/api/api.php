@@ -16,6 +16,7 @@ require_once(IZNIK_BASE . '/include/misc/Supporters.php');
 require_once(IZNIK_BASE . '/http/api/session.php');
 require_once(IZNIK_BASE . '/http/api/dashboard.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
+require_once(IZNIK_BASE . '/http/api/message.php');
 require_once(IZNIK_BASE . '/http/api/correlate.php');
 require_once(IZNIK_BASE . '/http/api/supporters.php');
 
@@ -46,8 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
         if ((DUPLICATE_POST_PROTECTION > 0) && array_key_exists('REQUEST_METHOD', $_SERVER) && ($_SERVER['REQUEST_METHOD'] == 'POST')) {
             $req = $_SERVER['REQUEST_URI'] . serialize($_REQUEST);
 
-            # Repeat logins are OK.  So are correlations, which are passed as a POST because we want to add
-            # a body and that fits better with a POST, but which is a read-only operation.
+            # Repeat logins are OK.
+            #
+            # So are correlations, which are repeatable without ill effects.
             if (($call != 'session') && ($call != 'correlate') &&
                 array_key_exists('POSTLASTTIME', $_SESSION)) {
                 $ago = time() - $_SESSION['POSTLASTTIME'];
@@ -77,6 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
                     throw new Exception();
                 case 'messages':
                     $ret = messages();
+                    break;
+                case 'message':
+                    $ret = message();
                     break;
                 case 'correlate':
                     $ret = correlate();
@@ -139,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             } else {
                 # Something else.
                 error_log("Uncaught exception " . $e->getMessage());
-                #var_dump($e->getTrace());
+                var_dump($e->getTrace());
                 echo json_encode(array('ret' => 998, 'status' => 'Unexpected error', 'exception' => $e->getMessage()));
                 break;
             }

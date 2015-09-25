@@ -94,19 +94,40 @@ class Group extends Entity
 
     public function correlate($collection, $messages) {
         # Check whether any of the messages in $messages are not present on the server or vice-versa.
-        $missing = [];
-        $present = [];
+        $missingonserver = [];
+        $supplied = [];
+        $missingonclient = [];
 
         $c = new Collection($this->dbhr, $this->dbhm, $collection);
 
         if ($messages) {
             foreach ($messages as $message) {
+                $supplied[$message['email'] . $message['date']] = true;
                 if (!$c->find($message['email'], $this->id, $message['date'])) {
-                    $missing[] = $message;
+                    $missingonserver[] = $message;
+                }
+            }
+
+            $ourmsgs = $this->dbhr->preQuery(
+                "SELECT id, fromaddr, subject, date FROM " . $c->getCollection() . " WHERE groupid = ?;",
+                [
+                    $this->id
+                ]
+            );
+
+            foreach ($ourmsgs as $msg) {
+                $key = $msg['fromaddr'] . ISODate($msg['date']);
+                if (!array_key_exists($key, $supplied)) {
+                    $missingonclient[] = [
+                        'id' => $msg['id'],
+                        'email' => $msg['fromaddr'],
+                        'subject' => $msg['subject'],
+                        'date' => ISODate($msg['date'])
+                    ];
                 }
             }
         }
 
-        return($missing);
+        return([$missingonserver, $missingonclient]);
     }
 }

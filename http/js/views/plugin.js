@@ -207,7 +207,7 @@ Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Yahoo.Sync.extend({
 
     messageLocation: 'pendingMessages',
 
-    collecton: 'messages_pending',
+    collection: 'messages_pending',
 
     url: function() {
         return YAHOOAPI + this.model.get('nameshort') + "/pending/messages/" + this.offset +

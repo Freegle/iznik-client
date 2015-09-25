@@ -13,7 +13,7 @@ require_once IZNIK_BASE . '/include/message/Collection.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class messagesTest extends IznikAPITest {
+class messageTest extends IznikAPITest {
     public $dbhr, $dbhm;
 
     protected function setUp() {
@@ -47,39 +47,20 @@ class messagesTest extends IznikAPITest {
         $incomingid = $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
-        assertNull(ApprovedMessage::findByIncomingId($this->dbhr, $incomingid+1));
         $id = ApprovedMessage::findByIncomingId($this->dbhr, $incomingid);
 
-        $c = new Collection($this->dbhr, $this->dbhm, Collection::APPROVED);
         $a = new ApprovedMessage($this->dbhr, $this->dbhm, $id);
 
         # Should be able to see this message even logged out.
-        $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
+            'collection' => 'messages_approved'
         ]);
         assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
-        assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
-
-        # Now join and check we can see see it.
-        $u = new User($this->dbhr, $this->dbhm);
-        $id = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $id);
-        $u->addMembership($group1);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
-
-        $ret = $this->call('messages', 'GET', [
-        ]);
-        assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
-        assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
+        assertEquals($id, $ret['message']['id']);
 
         $a->delete();
+        $g->delete();
 
         error_log(__METHOD__ . " end");
     }
@@ -97,50 +78,41 @@ class messagesTest extends IznikAPITest {
         $incomingid = $r->received(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
-        assertNull(PendingMessage::findByIncomingId($this->dbhr, $incomingid+1));
         $id = PendingMessage::findByIncomingId($this->dbhr, $incomingid);
 
-        $c = new Collection($this->dbhr, $this->dbhm, Collection::PENDING);
         $a = new PendingMessage($this->dbhr, $this->dbhm, $id);
 
-        # Shouldn't be able to see pending
-        $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+        # Shouldn't be able to see pending logged out
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
             'collection' => 'messages_pending'
         ]);
+        assertEquals(1, $ret['ret']);
 
-        assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
-
-        # Now join - shouldn't be able to see a pending message
+        # Now join - shouldn't be able to see a pending message as user
         $u = new User($this->dbhr, $this->dbhm);
-        $id = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $id);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
             'collection' => 'messages_pending'
         ]);
-        assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
+        assertEquals(2, $ret['ret']);
 
         # Promote to mod - should be able to see it.
         $u->setRole(User::ROLE_MODERATOR, $group1);
-        assertEquals(User::ROLE_MODERATOR, $u->getRole($group1));
-        $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
             'collection' => 'messages_pending'
         ]);
         assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
-        assertTrue(array_key_exists('source', $msgs[0])); # A mod, should see mod att
+        assertEquals($id, $ret['message']['id']);
 
         $a->delete();
 
@@ -161,66 +133,63 @@ class messagesTest extends IznikAPITest {
         $incomingid = $r->received(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
-        assertNull(SpamMessage::findByIncomingId($this->dbhr, $incomingid+1));
         $id = SpamMessage::findByIncomingId($this->dbhr, $incomingid);
 
-        $c = new Collection($this->dbhr, $this->dbhm, Collection::SPAM);
         $a = new SpamMessage($this->dbhr, $this->dbhm, $id);
 
-        # Shouldn't be able to see spam
-        $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+        # Shouldn't be able to see spam logged out
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
             'collection' => 'messages_spam'
         ]);
+        assertEquals(1, $ret['ret']);
 
-        assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
-
-        # Now join - shouldn't be able to see a spam message
+        # Now join - shouldn't be able to see a spam message as user
         $u = new User($this->dbhr, $this->dbhm);
-        $id = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $id);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
 
-        $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
             'collection' => 'messages_spam'
         ]);
-        assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
+        assertEquals(2, $ret['ret']);
 
         # Promote to owner - should be able to see it.
         $u->setRole(User::ROLE_OWNER, $group1);
-        assertEquals(User::ROLE_OWNER, $u->getRole($group1));
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
-        $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
             'collection' => 'messages_spam'
         ]);
         assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
-        error_log(var_export($msgs, true));
-        assertTrue(array_key_exists('source', $msgs[0])); # An owner, should see mod att
+        assertEquals($id, $ret['message']['id']);
 
-        $a->delete();
+        # Delete it - as a user should fail
+        $u->setRole(User::ROLE_MEMBER, $group1);
+        $ret = $this->call('message', 'DELETE', [
+            'id' => $id,
+            'collection' => 'messages_approved'
+        ]);
+        assertEquals(2, $ret['ret']);
 
-        error_log(__METHOD__ . " end");
-    }
-
-    public function testError() {
-        error_log(__METHOD__);
-
-        $ret = $this->call('messages', 'GET', [
-            'groupid' => 0,
-            'collection' => 'wibble'
+        $u->setRole(User::ROLE_OWNER, $group1);
+        $ret = $this->call('message', 'DELETE', [
+            'id' => $id,
+            'collection' => 'messages_spam'
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(0, count($ret['messages']));
+
+        # Try again to see it - should be gone
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
+            'collection' => 'messages_spam'
+        ]);
+        assertEquals(2, $ret['ret']);
 
         error_log(__METHOD__ . " end");
     }

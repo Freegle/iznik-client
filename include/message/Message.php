@@ -67,7 +67,6 @@ class Message
 
         if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
             foreach ($this->moderatorAtts as $att) {
-                error_log("Consider mod att $att");
                 $ret[$att] = $this->$att;
             }
         }

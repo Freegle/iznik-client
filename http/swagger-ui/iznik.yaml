@@ -108,6 +108,31 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+  /message:
+    get:
+      summary: Message Get
+      tags: [Messages]
+      description: |
+        Retrieve message
+      parameters:
+      - name: id
+        in: query
+        description: ID of the message
+        type: number
+      - name: collection
+        in: query
+        description: Which collection the message is in; default is messages_approved
+        type: string
+        enum: ['messages_approved', 'messages_pending', 'messages_spam']
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
   /messages:
     get:
       summary: Messages Get

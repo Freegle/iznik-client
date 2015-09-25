@@ -18,11 +18,8 @@ function correlate() {
             $ret = [ 'ret' => 3, 'status' => 'Permission denied' ];
 
             if ($me->isModOrOwner($groupid)) {
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success',
-                    'missingonserver' => $g->correlate($collection, $messages)
-                ];
+                $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                list($ret['missingonserver'], $ret['missingonclient']) = $g->correlate($collection, $messages);
             }
         }
     }
