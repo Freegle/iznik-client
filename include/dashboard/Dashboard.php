@@ -32,7 +32,7 @@ class Dashboard {
 
         if ($systemwide && $this->me->getPrivate('systemrole')) {
             # Get a summary of messages across the whole site for the last 30 days
-            $sql = "SELECT COUNT(*) AS count, DATE(arrival) AS date FROM `messages_approved` $typeq1 WHERE arrival > ? GROUP BY date ORDER BY date ASC;";
+            $sql = "SELECT COUNT(*) AS count, DATE(arrival) AS date FROM `messages_approved` $typeq1 WHERE arrival > ? GROUP BY DATE(arrival) ORDER BY date ASC;";
             $ret['messagehistory'] = $this->dbhr->preQuery($sql, $params);
 
             # Show spam rate
@@ -69,7 +69,7 @@ class Dashboard {
             if (count($groups) > 0) {
                 $groups = '(' . implode(',', $groups) . ')';
 
-                $sql = "SELECT COUNT(*) AS count, DATE(arrival) AS date FROM `messages_approved` $typeq1 WHERE arrival > ? AND groupid IN $groups GROUP BY date ORDER BY date ASC;";
+                $sql = "SELECT COUNT(*) AS count, DATE(arrival) AS date FROM `messages_approved` $typeq1 WHERE arrival > ? AND groupid IN $groups GROUP BY DATE(arrival) ORDER BY date ASC;";
                 $ret['messagesql'] = "$sql " . var_export($params, true);
                 $ret['messagehistory'] = $this->dbhr->preQuery($sql, $params);
 
