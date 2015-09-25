@@ -22,7 +22,6 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         if (!this.currentItem) {
             // Get any first item of work to do.
             var first = this.work.pop();
-            console.log("First item of work", first);
 
             if (first) {
                 $('#js-nowork').hide();
@@ -47,6 +46,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     requeueWork: function(work) {
         // This is ongoing - so put to the front.
         this.work.unshift(work);
+        this.checkWork();
     },
 
     checkPluginStatus: function() {
@@ -54,7 +54,6 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
         function checkResponse(self) {
             return(function(ret) {
-                console.log("checkPluginStatus", self);
                 if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
                     if (!self.connected) {
                         self.resume();
@@ -95,7 +94,7 @@ Iznik.Views.Plugin.Info = IznikView.extend({
 
 Iznik.Views.Plugin.Work = IznikView.extend({
     fail: function() {
-        console.log("Plugin failed");
+        // TODO Should we show failures in some way?
         var self = this;
         this.$el.fadeOut(2000, function() {
             self.remove();
@@ -104,7 +103,6 @@ Iznik.Views.Plugin.Work = IznikView.extend({
     },
 
     succeed: function() {
-        console.log("Plugin succeeded");
         var self = this;
         this.$el.fadeOut(2000, function() {
             self.remove();
@@ -121,7 +119,6 @@ Iznik.Views.Plugin.Work = IznikView.extend({
 
     render: function() {
         // Render our template and add it to the visible work queue.
-        console.log("Work Render", this);
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
         $('#js-work').prepend(this.$el).fadeIn('slow');
 
@@ -133,54 +130,57 @@ Iznik.Views.Plugin.Work = IznikView.extend({
 });
 
 Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Work.extend({
-    offset: 0,
-
-    pending: [],
+    offset: 1,
+    chunkSize: 100,
 
     template: 'plugin_syncpending',
 
     start: function() {
         var self = this;
-        console.log("SyncPending", this);
+
+        // Need to create this here rather than as a property, otherwise the same array is shared between instances
+        // of this object.
+        this.pendings = [];
 
         $.ajax({
             type: "GET",
-            url: YAHOOAPI + self.model.get('nameshort') + "/pending/messages/" + self.offset + "/parts?start=1&count=1000&chrome=raw",
-            success: function (ret) {
-                if (ret['ygData']) {
-                    console.log("Got pending for ", self.model.get('nameshort'));
-                    var total = ret['ygData']['numResults'];
-                    self.offset += total;
-                    var messages = ret['ygData']['pendingMessages'];
-
-                    for (var i = 0; i < total; i++) {
-                        var message = messages[i];
-                        console.log("Got message", message);
-                        //
-                        //self.pendings.push({
-                        //    groupid: group['groupid'],
-                        //    groupname: groupname,
-                        //    id: message['msgId'],
-                        //    email: message['email'],
-                        //    subject: message['subject'],
-                        //    yid: message['profile'],
-                        //    textbody: $('<div>' + message['messageParts'][0]['textContent'] + '</div>').text(),
-                        //    epochgmt: message['postDate']
-                        //});
-                    }
-
-                    if (total == 0) {
-                        // Finished
-                        self.succeed();
-                    } else {
-                        self.queue();
-                    }
-                }
-            },
-            error: function (request, status, error) {
-                self.fail();
-            }
+            url: YAHOOAPI + self.model.get('nameshort') + "/pending/messages/" + self.offset + "/parts?start=1&count=" + self.chunkSize + "&chrome=raw",
+            context: self,
+            success: self.processChunk,
+            error: self.failChunk
         });
+    },
+
+    failChunk:  function (request, status, error) {
+        this.fail();
+    },
+
+    processChunk: function(ret) {
+        if (ret.ygData) {
+            var total = ret.ygData.numResults;
+            this.offset += total;
+            var messages = ret.ygData.pendingMessages;
+
+            for (var i = 0; i < total; i++) {
+                var message = messages[i];
+                var d = new Date();
+                d.setUTCSeconds(message['postDate']);
+
+                this.pendings.push({
+                    email: message['email'],
+                    subject: message['subject'],
+                    date: d.toUTCString()
+                });
+            }
+
+            if (total == 0 || total < this.chunkSize) {
+                // Finished
+                console.log("Got list", this.model.get('nameshort'), this.pendings);
+                this.succeed();
+            } else {
+                this.queue();
+            }
+        }
     }
 });
 

@@ -14,15 +14,12 @@ Iznik.Views.FBLoad = IznikView.extend({
         var self = this;
 
         if (self.FBLoaded){
-            console.log("Loaded already");
             this.trigger('fbloaded');
         } else if((!self.FBLoaded) && (!self.FBLoading)){
-            console.log("Not loaded FB yet");
             self.FBLoading = true;
 
             // The load might fail if we have a blocker.  The only way to deal with this is via a timeout.
             self.timeout = window.setTimeout(function() {
-                console.log("Facebook failed to load");
                 self.FBLoading = false;
                 self.FBLoaded = true;
                 self.FBDisabled = true;
@@ -40,12 +37,10 @@ Iznik.Views.FBLoad = IznikView.extend({
             }(document, 'script', 'facebook-jssdk'));
 
             window.fbAsyncInit = function(){
-                console.log("Facebook loaded");
                 self.FBLoading = false;
                 self.FBLoaded = true;
 
                 try{
-                    console.log("Call init");
                     FB.init({
                         appId: facebookAppId,
                         cookie: true,  // enable cookies to allow the server to access the session
@@ -55,27 +50,20 @@ Iznik.Views.FBLoad = IznikView.extend({
 
                     // We need to check the login status - otherwise if we try to share using
                     // dialog mode the SDK will use a popup instead, which the browser will block.
-                    console.log("Get login status");
                     FB.getLoginStatus(function(response){
                         window.clearTimeout(self.timeout);
-                        console.log("FB Login status rsp");
-                        console.log(response);
                         if(((window.location.search.indexOf('fb_sig_in_iframe=1') > -1) ||
                             (window.location.search.indexOf('session=') > -1) ||
                             (window.location.search.indexOf('signed_request=') > -1) ||
                             (window.name.indexOf('iframe_canvas') > -1) ||
                             (window.name.indexOf('app_runner') > -1))){
-                            //console.log("In FB canvas");
                             Iznik.Session.set('canvas', true);
 
                             var login = new Iznik.Views.FBLogin();
-                            //console.log(login);
                             Iznik.Session.listenToOnce(login, 'fbloginsucceeded', function(){
                                 // We are in a canvas app, so we want to trigger a login to pass the session through
                                 // to the server.
-                                //console.log("Logged in for canvas");
                                 Iznik.Session.listenToOnce(Iznik.Session, 'facebookLoggedIn', function(){
-                                    console.log("Logged in on server, go to " + Backbone.history.fragment);
                                     Router.navigate(Backbone.history.fragment + "?t=" + (new Date()).getTime() , {
                                         trigger: true
                                     });
@@ -89,17 +77,14 @@ Iznik.Views.FBLoad = IznikView.extend({
                                     });
                                 });
 
-                                //console.log("Trigger login for server");
                                 Iznik.Session.facebookLogin();
                             });
 
                             login.render();
                         }else{
-                            //console.log("Not in canvas app");
                             self.trigger('fbloaded');
                         }
                     });
-                    //console.log("Called");
                 }catch(e){
                     console.log("Facebook init failed"); console.log(e);
                 }
