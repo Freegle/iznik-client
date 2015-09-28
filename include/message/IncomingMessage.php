@@ -16,6 +16,7 @@ class IncomingMessage extends Message
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        $this->log = new Log($this->dbhr, $this->dbhm);
 
         # Add in properties specific to this class.
         $this->moderatorAtts = array_merge($this->moderatorAtts, [
@@ -291,7 +292,7 @@ class IncomingMessage extends Message
         return(mailparse_rfc822_parse_addresses($this->parser->getHeader('to')));
     }
 
-    function delete()
+    function delete($reason = NULL)
     {
         $rc = true;
 
@@ -300,6 +301,13 @@ class IncomingMessage extends Message
         }
 
         if ($this->id) {
+            $this->log->log([
+                'type' => Log::TYPE_MESSAGE,
+                'subtype' => Log::SUBTYPE_DELETED,
+                'message_incoming' => $this->id,
+                'text' => $reason,
+                'group' => $this->groupid
+            ]);
             $rc = $this->dbhm->preExec("DELETE FROM messages_incoming WHERE id = ?;", [$this->id]);
         }
 

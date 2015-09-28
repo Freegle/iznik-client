@@ -6,6 +6,8 @@ function message() {
 
     $collection = presdef('collection', $_REQUEST, Collection::APPROVED);
     $id = intval(presdef('id', $_REQUEST, NULL));
+    $reason = presdef('reason', $_REQUEST, NULL);
+
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
     $m = NULL;
@@ -49,7 +51,7 @@ function message() {
             if (!$me->isModOrOwner($m->getGroupID())) {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
             } else {
-                $m->delete();
+                $m->delete($reason);
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success'

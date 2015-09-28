@@ -155,6 +155,8 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
     },
 
     processChunk: function(ret) {
+        var self = this;
+
         if (ret.ygData) {
             var total = ret.ygData.numResults;
             this.offset += total;
@@ -174,7 +176,6 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
 
             if (total == 0 || total < this.chunkSize) {
                 // Finished.  Now check with the server whether we have any messages which it doesn't.
-                console.log("Got list", this.model.get('nameshort'), this.messages);
                 $.ajax({
                     type: "POST",
                     url: API + 'correlate',
@@ -185,8 +186,28 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                         'messages': this.messages
                     },
                     success: function(ret) {
+                        var self = this;
+
                         if (ret.ret == 0) {
-                            console.log("Correlate result", ret);
+                            // If there are messages which we don't have but the server does, then the server
+                            // is wrong and we need to delete them.
+                            var promises = [];
+                            _.each(ret.missingonclient, function(missing, index, list) {
+                                promises.push($.ajax({
+                                    type: "DELETE",
+                                    url: API + 'message',
+                                    context: self,
+                                    data: {
+                                        id: missing.id,
+                                        collection: self.collection,
+                                        reason: 'Not present on Yahoo pending'
+                                    }
+                                }));
+                            });
+
+                            $.when(promises).then(function() {
+                                // All the deletes have completed.
+                            });
                         } else {
                             self.failChunk();
                         }

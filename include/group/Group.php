@@ -100,31 +100,29 @@ class Group extends Entity
 
         $c = new Collection($this->dbhr, $this->dbhm, $collection);
 
-        if ($messages) {
-            foreach ($messages as $message) {
-                $supplied[$message['email'] . $message['date']] = true;
-                if (!$c->find($message['email'], $this->id, $message['date'])) {
-                    $missingonserver[] = $message;
-                }
+        foreach ($messages as $message) {
+            $supplied[$message['email'] . $message['date']] = true;
+            if (!$c->find($message['email'], $this->id, $message['date'])) {
+                $missingonserver[] = $message;
             }
+        }
 
-            $ourmsgs = $this->dbhr->preQuery(
-                "SELECT id, fromaddr, subject, date FROM " . $c->getCollection() . " WHERE groupid = ?;",
-                [
-                    $this->id
-                ]
-            );
+        $ourmsgs = $this->dbhr->preQuery(
+            "SELECT id, fromaddr, subject, date FROM " . $c->getCollection() . " WHERE groupid = ?;",
+            [
+                $this->id
+            ]
+        );
 
-            foreach ($ourmsgs as $msg) {
-                $key = $msg['fromaddr'] . ISODate($msg['date']);
-                if (!array_key_exists($key, $supplied)) {
-                    $missingonclient[] = [
-                        'id' => $msg['id'],
-                        'email' => $msg['fromaddr'],
-                        'subject' => $msg['subject'],
-                        'date' => ISODate($msg['date'])
-                    ];
-                }
+        foreach ($ourmsgs as $msg) {
+            $key = $msg['fromaddr'] . ISODate($msg['date']);
+            if (!array_key_exists($key, $supplied)) {
+                $missingonclient[] = [
+                    'id' => $msg['id'],
+                    'email' => $msg['fromaddr'],
+                    'subject' => $msg['subject'],
+                    'date' => ISODate($msg['date'])
+                ];
             }
         }
 

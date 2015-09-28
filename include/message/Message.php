@@ -26,7 +26,8 @@ class Message
 
     public $id,
         $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto,
-        $messageid, $tnpostid, $retrycount, $retrylastfailure, $groupid, $fromip, $fromhost, $type, $attachments;
+        $messageid, $tnpostid, $retrycount, $retrylastfailure, $groupid, $fromip, $fromhost, $type, $attachments,
+        $incomingid;
 
     # Each message has some public attributes, which are visible to API users.
     #

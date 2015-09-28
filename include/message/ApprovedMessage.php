@@ -12,6 +12,7 @@ class ApprovedMessage extends Message
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        $this->log = new Log($this->dbhr, $this->dbhm);
 
         if ($id) {
             $this->id = $id;
@@ -37,11 +38,19 @@ class ApprovedMessage extends Message
         return(NULL);
     }
 
-    function delete()
+    function delete($reason = NULL)
     {
         $rc = true;
 
         if ($this->id) {
+            $this->log->log([
+                'type' => Log::TYPE_MESSAGE,
+                'subtype' => Log::SUBTYPE_DELETED,
+                'message_approved' => $this->id,
+                'message_incoming' => $this->incomingid,
+                'text' => $reason,
+                'group' => $this->groupid
+            ]);
             $rc = $this->dbhm->preExec("DELETE FROM messages_approved WHERE id = ?;", [$this->id]);
         }
 

@@ -20,6 +20,7 @@ class SpamMessage extends Message
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        $this->log = new Log($this->dbhr, $this->dbhm);
 
         # Add in properties specific to this class.
         $this->moderatorAtts[] = 'reason';
@@ -85,11 +86,19 @@ class SpamMessage extends Message
         }
     }
 
-    function delete()
+    function delete($reason = NULL)
     {
         $rc = true;
 
         if ($this->id) {
+            $this->log->log([
+                'type' => Log::TYPE_MESSAGE,
+                'subtype' => Log::SUBTYPE_DELETED,
+                'message_spam' => $this->id,
+                'message_incoming' => $this->incomingid,
+                'text' => $reason,
+                'group' => $this->groupid
+            ]);
             $rc = $this->dbhm->preExec("DELETE FROM messages_spam WHERE id = ?;", [$this->id]);
         }
 
