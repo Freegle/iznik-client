@@ -56,7 +56,10 @@ class correlateTest extends IznikAPITest {
 
         $ret = $this->call('correlate', 'POST', [
             'groupid' => $group1,
-            'collection' => 'messages_pending'
+            'collections' => [
+                'messages_pending',
+                'messages_spam'
+            ]
         ]);
         assertEquals(1, $ret['ret']);
 
@@ -66,7 +69,10 @@ class correlateTest extends IznikAPITest {
         # Test same - none missing.
         $ret = $this->call('correlate', 'POST', [
             'groupid' => $group1,
-            'collection' => 'messages_pending',
+            'collections' => [
+                'messages_pending',
+                'messages_spam'
+            ],
             'messages' => [
                 [
                     'email' => 'test@test.com',
@@ -77,13 +83,17 @@ class correlateTest extends IznikAPITest {
             'wibble' => 'bypass dup check'
         ]);
 
+        error_log(var_export($ret, true));
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['missingonserver']));
 
         # Test different sender - should be missing.
         $ret = $this->call('correlate', 'POST', [
             'groupid' => $group1,
-            'collection' => 'messages_pending',
+            'collections' => [
+                'messages_pending',
+                'messages_spam'
+            ],
             'messages' => [
                 [
                     'email' => 'test1@test.com',
@@ -100,7 +110,10 @@ class correlateTest extends IznikAPITest {
         # Test different time - should be missing.
         $ret = $this->call('correlate', 'POST', [
             'groupid' => $group1,
-            'collection' => 'messages_pending',
+            'collections' => [
+                'messages_pending',
+                'messages_spam'
+            ],
             'messages' => [
                 [
                     'email' => 'test1@test.com',

@@ -5,7 +5,7 @@ function correlate() {
     $me = whoAmI($dbhr, $dbhm);
 
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
-    $collection = presdef('collection', $_REQUEST, Collection::APPROVED);
+    $collections = presdef('collections', $_REQUEST, [ Collection::APPROVED, Collection::SPAM ]);
     $messages = presdef('messages', $_REQUEST, NULL);
     $ret = [ 'ret' => 1, 'status' => 'Unknown verb' ];
 
@@ -19,7 +19,7 @@ function correlate() {
 
             if ($me->isModOrOwner($groupid)) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                list($ret['missingonserver'], $ret['missingonclient']) = $g->correlate($collection, $messages);
+                list($ret['missingonserver'], $ret['missingonclient']) = $g->correlate($collections, $messages);
             }
         }
     }

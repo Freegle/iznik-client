@@ -182,7 +182,7 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                     context: self,
                     data: {
                         'groupid': this.model.get('id'),
-                        'collection': this.collection,
+                        'collections': this.collections,
                         'messages': this.messages
                     },
                     success: function(ret) {
@@ -199,7 +199,7 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                                     context: self,
                                     data: {
                                         id: missing.id,
-                                        collection: self.collection,
+                                        collection:  missing.collection,
                                         reason: 'Not present on Yahoo pending'
                                     }
                                 }));
@@ -228,7 +228,10 @@ Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Yahoo.Sync.extend({
 
     messageLocation: 'pendingMessages',
 
-    collection: 'messages_pending',
+    collections: [
+        'messages_pending',
+        'messages_spam'
+    ],
 
     url: function() {
         return YAHOOAPI + this.model.get('nameshort') + "/pending/messages/" + this.offset +

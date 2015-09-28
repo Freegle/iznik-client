@@ -92,37 +92,59 @@ class Group extends Entity
         return($atts);
     }
 
-    public function correlate($collection, $messages) {
+    public function correlate($collections, $messages) {
         # Check whether any of the messages in $messages are not present on the server or vice-versa.
         $missingonserver = [];
         $supplied = [];
         $missingonclient = [];
+        $cs = [];
 
-        $c = new Collection($this->dbhr, $this->dbhm, $collection);
+        # First find messages which are missing on the server, i.e. present in $messages but not
+        # present in any of $collections.
+        foreach ($collections as $collection)
+        {
+            $c = new Collection($this->dbhr, $this->dbhm, $collection);
+            $cs[] = $c;
+        }
 
         foreach ($messages as $message) {
             $supplied[$message['email'] . $message['date']] = true;
-            if (!$c->find($message['email'], $this->id, $message['date'])) {
+
+            $missing = true;
+
+            foreach ($cs as $c) {
+                if ($c->find($message['email'], $this->id, $message['date'])) {
+                    $missing = false;
+                }
+            }
+
+            if ($missing) {
                 $missingonserver[] = $message;
             }
         }
 
-        $ourmsgs = $this->dbhr->preQuery(
-            "SELECT id, fromaddr, subject, date FROM " . $c->getCollection() . " WHERE groupid = ?;",
-            [
-                $this->id
-            ]
-        );
+        # Now find messages which are missing on the client, i.e. present in $collections but not present in
+        # $messages.
+        foreach ($cs as $c) {
+            error_log("Check " . $c->getCollection());
+            $ourmsgs = $this->dbhr->preQuery(
+                "SELECT id, fromaddr, subject, date FROM " . $c->getCollection() . " WHERE groupid = ?;",
+                [
+                    $this->id
+                ]
+            );
 
-        foreach ($ourmsgs as $msg) {
-            $key = $msg['fromaddr'] . ISODate($msg['date']);
-            if (!array_key_exists($key, $supplied)) {
-                $missingonclient[] = [
-                    'id' => $msg['id'],
-                    'email' => $msg['fromaddr'],
-                    'subject' => $msg['subject'],
-                    'date' => ISODate($msg['date'])
-                ];
+            foreach ($ourmsgs as $msg) {
+                $key = $msg['fromaddr'] . ISODate($msg['date']);
+                if (!array_key_exists($key, $supplied)) {
+                    $missingonclient[] = [
+                        'id' => $msg['id'],
+                        'email' => $msg['fromaddr'],
+                        'subject' => $msg['subject'],
+                        'collection' => $c->getCollection(),
+                        'date' => ISODate($msg['date'])
+                    ];
+                }
             }
         }
 
