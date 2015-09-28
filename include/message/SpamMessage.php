@@ -43,7 +43,7 @@ class SpamMessage extends Message
     }
 
     public static function findByIncomingId(LoggedPDO $dbhr, $id) {
-        $msgs = $dbhr->preQuery("SELECT id FROM messages_spam WHERE incomingid = ?;",
+        $msgs = $dbhr->preQuery("SELECT id FROM messages_spam WHERE incomingid = ? ORDER BY arrival DESC LIMIT 1;;",
             [$id]);
         foreach ($msgs as $msg) {
             return($msg['id']);

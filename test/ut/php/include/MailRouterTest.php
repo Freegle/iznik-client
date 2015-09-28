@@ -26,6 +26,7 @@ class MailRouterTest extends IznikTest {
         $this->dbhm->preExec("DELETE FROM messages_incoming WHERE fromaddr = ? OR fromip = ?;", ['from@test.com', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM messages_approved WHERE fromaddr = ? OR fromip = ?;", ['from@test.com', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM messages_history WHERE fromaddr = ? OR fromip = ?;", ['from@test.com', '1.2.3.4']);
+        $this->dbhm->preExec("DELETE FROM messages_history WHERE prunedsubject LIKE ?;", ['Test spam mail']);
         $this->dbhm->preExec("DELETE FROM messages_incoming WHERE fromaddr = ? OR fromip = ?;", ['test@test.com', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM messages_approved WHERE fromaddr = ? OR fromip = ?;", ['test@test.com', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM messages_history WHERE fromaddr IN (?,?) OR fromip = ?;", ['test@test.com', 'GTUBE1.1010101@example.net', '1.2.3.4']);

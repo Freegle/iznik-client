@@ -45,10 +45,12 @@ class messagesTest extends IznikAPITest {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $incomingid = $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        error_log("Incomingid $incomingid");
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
-        assertNull(ApprovedMessage::findByIncomingId($this->dbhr, $incomingid+1));
+        assertNull(ApprovedMessage::findByIncomingId($this->dbhr, -$incomingid));
         $id = ApprovedMessage::findByIncomingId($this->dbhr, $incomingid);
+        error_log("Approved id $id");
 
         $c = new Collection($this->dbhr, $this->dbhm, Collection::APPROVED);
         $a = new ApprovedMessage($this->dbhr, $this->dbhm, $id);
@@ -57,6 +59,7 @@ class messagesTest extends IznikAPITest {
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1
         ]);
+        error_log(var_export($ret, true));
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         assertEquals(1, count($msgs));
