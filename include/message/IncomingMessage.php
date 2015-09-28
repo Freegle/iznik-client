@@ -20,7 +20,7 @@ class IncomingMessage extends Message
 
         # Add in properties specific to this class.
         $this->moderatorAtts = array_merge($this->moderatorAtts, [
-            'retrycount', 'retrylastfailure'
+            'retrycount', 'retrylastfailure', 'yahoopendingid', 'yahooreject', 'yahooapprove'
         ]);
 
         if ($id) {
@@ -53,9 +53,18 @@ class IncomingMessage extends Message
         $this->attach_dir = tmpdir();
         $this->attach_files = $Parser->saveAttachments($this->attach_dir . DIRECTORY_SEPARATOR);
         $this->attachments = $Parser->getAttachments();
+        $this->yahooapprove = NULL;
+        $this->yahooreject = NULL;
 
-        if ($source == IncomingMessage::YAHOO_PENDING) {
+        if ($source == Message::YAHOO_PENDING) {
+            error_log("Pending, approve $envelopefrom");
             # This is an APPROVE mail; we need to extract the included copy of the original message.
+            $this->yahooapprove = $envelopefrom;
+            if (preg_match('/^(.*-reject-.*yahoogroups.*?)($| |=)/im', $msg, $matches)) {
+                $this->yahooreject = trim($matches[1]);
+                error_log("Reject {$this->yahooreject}");
+            }
+
             $atts = $this->getParsedAttachments();
             if (count($atts) >= 1 && $atts[0]->contentType == 'message/rfc822') {
                 $attachedmsg = $atts[0]->getContent();
@@ -73,6 +82,7 @@ class IncomingMessage extends Message
         $this->source = $source;
         $this->envelopefrom = $envelopefrom;
         $this->envelopeto = $envelopeto;
+        $this->yahoopendingid = NULL;
 
         # Yahoo posts messages from the group address, but with a header showing the
         # original from address.
@@ -196,7 +206,7 @@ class IncomingMessage extends Message
     # Save a parsed message to the DB
     public function save() {
         # Save into the incoming messages table.
-        $sql = "INSERT INTO messages_incoming (date, groupid, source, sourceheader, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages_incoming (date, groupid, source, sourceheader, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type, yahoopendingid, yahooreject, yahooapprove) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->date,
             $this->groupid,
@@ -212,7 +222,10 @@ class IncomingMessage extends Message
             $this->tnpostid,
             $this->textbody,
             $this->htmlbody,
-            $this->type
+            $this->type,
+            $this->yahoopendingid,
+            $this->yahooreject,
+            $this->yahooapprove
         ]);
 
         $id = NULL;

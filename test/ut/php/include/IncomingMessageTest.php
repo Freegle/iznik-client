@@ -36,7 +36,6 @@ class IncomingMessageTest extends IznikTest {
         $msg = file_get_contents('msgs/basic');
         $t = "TestUser" . microtime(true) . "@test.com";
         $msg = str_replace('From: "Test User" <test@test.com>', 'From: "' . $t . '" <test@test.com>', $msg);
-        error_log($msg);
         $m = new IncomingMessage($this->dbhr, $this->dbhm);
         $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals('Basic test', $m->getSubject());
@@ -133,6 +132,8 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         assertEquals('from@test.com', $m->getEnvelopefrom());
         assertEquals('to@test.com', $m->getEnvelopeto());
         assertEquals('FDv2', $m->getSourceheader());
+        assertEquals('from@test.com', $m->getYahooapprove());
+        assertEquals('ehtest-reject-ow3u5p5maxnf4tpmee4hjnr0wsla@yahoogroups.com', $m->getYahooreject());
 
         $m->delete();
 

@@ -170,7 +170,8 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                 this.messages.push({
                     email: message['email'],
                     subject: message['subject'],
-                    date: d.toISOString()
+                    date: d.toISOString(),
+                    yahoopendingid: message['msgId']
                 });
             }
 
@@ -205,6 +206,23 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                                 }));
                             });
 
+                            // If there are messages which we have but the server doesn't, then the server is
+                            // wrong and we need to add them.
+                            _.each(ret.missingonserver, function(missing, index, list) {
+
+                                $.ajax({
+                                    type: "GET",
+                                    url: self.sourceurl(missing['yahoopendingid']),
+                                    context: self,
+                                    success: function(ret) {
+                                        console.log("Get source", ret);
+                                        if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
+                                            console.log("Got email ", ret.ygData.rawEmail);
+                                        }
+                                    }
+                                });
+                            });
+
                             $.when(promises).then(function() {
                                 // All the deletes have completed.
                             });
@@ -236,6 +254,10 @@ Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Yahoo.Sync.extend({
     url: function() {
         return YAHOOAPI + this.model.get('nameshort') + "/pending/messages/" + this.offset +
             "/parts?start=1&count=" + this.chunkSize + "&chrome=raw"
+    },
+
+    sourceurl: function(id) {
+        return YAHOOAPI + this.model.get('nameshort') + '/pending/messages/' + id + '/raw'
     }
 });
 

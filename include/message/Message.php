@@ -15,6 +15,30 @@ class Message
     const TYPE_ADMIN = 'Admin';
     const TYPE_OTHER = 'Other';
 
+    /**
+     * @return mixed
+     */
+    public function getYahooapprove()
+    {
+        return $this->yahooapprove;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getYahoopendingid()
+    {
+        return $this->yahoopendingid;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getYahooreject()
+    {
+        return $this->yahooreject;
+    }
+
     const APPROVED = 'messages_approved';
     const PENDING = 'messages_pending';
     const SPAM = 'messages_spam';
@@ -27,7 +51,7 @@ class Message
     public $id,
         $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr, $envelopefrom, $envelopeto,
         $messageid, $tnpostid, $retrycount, $retrylastfailure, $groupid, $fromip, $fromhost, $type, $attachments,
-        $incomingid;
+        $incomingid, $yahoopendingid, $yahooreject, $yahooapprove;
 
     # Each message has some public attributes, which are visible to API users.
     #

@@ -88,11 +88,11 @@ class MailRouter
                 # Copy the relevant fields in the row to the table, and add the reason.
                 $sql = "INSERT INTO messages_spam (incomingid, arrival, `date`, `source`, sourceheader, message,
                           envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                          tnpostid, textbody, htmlbody, fromip, reason, type)
+                          tnpostid, textbody, htmlbody, fromip, reason, type, yahoopendingid, yahooreject, yahooapprove)
                           SELECT id, arrival, `date`, `source`, sourceheader, message,
                           envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
                           tnpostid, textbody, htmlbody, fromip, " . $this->dbhm->quote($reason) .
-                    " AS reason, type FROM messages_incoming WHERE id = ?;";
+                    " AS reason, type, yahoopendingid, yahooreject, yahooapprove FROM messages_incoming WHERE id = ?;";
                 $rc = $this->dbhm->preExec($sql,
                     [
                         $this->msg->getID()
@@ -210,10 +210,11 @@ class MailRouter
                 # Copy the relevant fields in the row to the table, and add the reason.
                 $sql = "INSERT INTO messages_pending (incomingid, arrival, `date`, source, sourceheader, message,
                           envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                          tnpostid, textbody, htmlbody, fromip, type)
+                          tnpostid, textbody, htmlbody, fromip, type, yahoopendingid, yahooreject, yahooapprove)
                           SELECT id, arrival, `date`, source, sourceheader, message,
                           envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                          tnpostid, textbody, htmlbody, fromip, type FROM messages_incoming WHERE id = ?;";
+                          tnpostid, textbody, htmlbody, fromip, type, yahoopendingid, yahooreject, yahooapprove
+                          FROM messages_incoming WHERE id = ?;";
                 $rc = $this->dbhm->preExec($sql, [$this->msg->getID()]);
                 $approvedid = $this->dbhm->lastInsertId();
 
