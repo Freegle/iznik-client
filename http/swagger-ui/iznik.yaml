@@ -133,6 +133,38 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+    put:
+      summary: Message add
+      tags: [Messages]
+      description: |
+        Add a full SMTP message.  This is used for synchronisation with moderator tools
+      parameters:
+      - name: groupid
+        in: query
+        description: ID of the group we're adding to
+        type: number
+      - name: collection
+        in: query
+        description: Which collection the message is in; default is messages_approved
+        type: string
+        enum: ['Yahoo Approved', 'Yahoo Pending']
+      - name: from
+        in: body
+        description: The submitter of the message
+        type: string
+      - name: message
+        in: body
+        description: The full message source
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
     delete:
       summary: Message Delete
       tags: [Messages]

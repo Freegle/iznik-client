@@ -108,6 +108,9 @@ Iznik.Views.Plugin.Work = IznikView.extend({
             self.remove();
             IznikPlugin.completedWork();
         });
+
+        // Refresh any counts on our menu, which may have changed.
+        Iznik.Session.updateCounts();
     },
 
     queue: function() {
@@ -136,6 +139,9 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
 
     start: function() {
         var self = this;
+
+        // Change icon
+        self.$('.glyphicon-time').removeClass('glyphicon-time').addClass('glyphicon-refresh rotate');
 
         // Need to create this here rather than as a property, otherwise the same array is shared between instances
         // of this object.
@@ -210,21 +216,37 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                             // wrong and we need to add them.
                             _.each(ret.missingonserver, function(missing, index, list) {
 
+                                missing.deferred = new $.Deferred();
+                                promises.push(missing.deferred.promise());
+
                                 $.ajax({
                                     type: "GET",
                                     url: self.sourceurl(missing['yahoopendingid']),
                                     context: self,
                                     success: function(ret) {
-                                        console.log("Get source", ret);
                                         if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
-                                            console.log("Got email ", ret.ygData.rawEmail);
+                                            $.ajax({
+                                                type: "PUT",
+                                                url: API + 'message',
+                                                data: {
+                                                    groupid: self.model.get('id'),
+                                                    from: ret.ygData.email,
+                                                    message: ret.ygData.rawEmail,
+                                                    source: self.source
+                                                },
+                                                context: self,
+                                                success: function(ret) {
+                                                    console.log("Put completed");
+                                                    missing.deferred.resolve();
+                                                }
+                                            });
                                         }
                                     }
                                 });
                             });
 
                             $.when(promises).then(function() {
-                                // All the deletes have completed.
+                                self.succeed();
                             });
                         } else {
                             self.failChunk();
@@ -232,8 +254,6 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                     },
                     error: self.failChunk
                 });
-
-                this.succeed();
             } else {
                 this.queue();
             }
@@ -250,6 +270,8 @@ Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Yahoo.Sync.extend({
         'messages_pending',
         'messages_spam'
     ],
+
+    source: 'Yahoo Pending',
 
     url: function() {
         return YAHOOAPI + this.model.get('nameshort') + "/pending/messages/" + this.offset +

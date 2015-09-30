@@ -57,12 +57,10 @@ class IncomingMessage extends Message
         $this->yahooreject = NULL;
 
         if ($source == Message::YAHOO_PENDING) {
-            error_log("Pending, approve $envelopefrom");
             # This is an APPROVE mail; we need to extract the included copy of the original message.
-            $this->yahooapprove = $envelopefrom;
+            $this->yahooapprove = $Parser->getHeader('reply-to');
             if (preg_match('/^(.*-reject-.*yahoogroups.*?)($| |=)/im', $msg, $matches)) {
                 $this->yahooreject = trim($matches[1]);
-                error_log("Reject {$this->yahooreject}");
             }
 
             $atts = $this->getParsedAttachments();

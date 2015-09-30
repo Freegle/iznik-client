@@ -3,6 +3,10 @@ Iznik.Models.Session = IznikModel.extend({
     initialize: function() {
     },
 
+    updateCounts: function() {
+        this.testLoggedIn();
+    },
+
     testLoggedIn: function() {
         var self = this;
 
