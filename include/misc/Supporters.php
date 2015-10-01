@@ -5,11 +5,6 @@ require_once(IZNIK_BASE . '/include/misc/Log.php');
 
 class Supporters
 {
-    # These match the table names
-    const APPROVED = 'messages_approved';
-    const PENDING = 'messages_pending';
-    const SPAM = 'messages_spam';
-
     /** @var  $dbhr LoggedPDO */
     public $dbhr;
     /** @var  $dbhm LoggedPDO */

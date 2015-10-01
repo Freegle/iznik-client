@@ -4,17 +4,15 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
-require_once(IZNIK_BASE . '/include/message/ApprovedMessage.php');
-require_once(IZNIK_BASE . '/include/message/IncomingMessage.php');
-require_once(IZNIK_BASE . '/include/message/PendingMessage.php');
-require_once(IZNIK_BASE . '/include/message/SpamMessage.php');
+require_once(IZNIK_BASE . '/include/message/Message.php');
 
 class Collection
 {
-    # These match the collection names
-    const APPROVED = 'messages_approved';
-    const PENDING = 'messages_pending';
-    const SPAM = 'messages_spam';
+    # These match the collection enumeration
+    const IMCOMING = 'Incoming';
+    const APPROVED = 'Approved';
+    const PENDING = 'Pending';
+    const SPAM = 'Spam';
 
     /** @var  $dbhr LoggedPDO */
     public $dbhr;
@@ -76,7 +74,7 @@ class Collection
             foreach ($msglist as $msg) {
                 switch ($this->collection) {
                     case Collection::APPROVED:
-                        $m = new ApprovedMessage($this->dbhr, $this->dbhm, $msg['id']);
+                        $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
                         $n = $m->getPublic();
                         unset($n['message']);
                         $msgs[] = $n;
@@ -86,7 +84,7 @@ class Collection
                             $roles[$msg['groupid']] == User::ROLE_OWNER
                         ) {
                             # Only visible to moderators or owners
-                            $m = new PendingMessage($this->dbhr, $this->dbhm, $msg['id']);
+                            $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
                             $n = $m->getPublic();
                             unset($n['message']);
                             $msgs[] = $n;
@@ -97,7 +95,7 @@ class Collection
                             $roles[$msg['groupid']] == User::ROLE_OWNER
                         ) {
                             # Only visible to moderators or owners
-                            $m = new SpamMessage($this->dbhr, $this->dbhm, $msg['id']);
+                            $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
                             $n = $m->getPublic();
                             unset($n['message']);
                             $msgs[] = $n;

@@ -37,7 +37,7 @@ class Group extends Entity
             $this->log->log([
                 'type' => Log::TYPE_GROUP,
                 'subtype' => Log::SUBTYPE_CREATED,
-                'group' => $id,
+                'groupid' => $id,
                 'text' => $shortname
             ]);
 
@@ -53,7 +53,7 @@ class Group extends Entity
             $this->log->log([
                 'type' => Log::TYPE_GROUP,
                 'subtype' => Log::SUBTYPE_DELETED,
-                'group' => $this->id
+                'groupid' => $this->id
             ]);
         }
 
@@ -72,10 +72,10 @@ class Group extends Entity
 
     public function getWorkCounts() {
         $ret = [
-            'pending' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_pending WHERE groupid = ?;", [
+            'pending' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages WHERE groupid = ? AND collection = 'Pending';", [
                 $this->id
             ])[0]['count'],
-            'spam' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_spam WHERE groupid = ?;", [
+            'spam' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages WHERE groupid = ? AND collectin = 'Spam';", [
                 $this->id
             ])[0]['count'],
         ];

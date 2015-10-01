@@ -90,7 +90,7 @@ class User extends Entity
             $this->log->log([
                 'type' => Log::TYPE_USER,
                 'subtype' => Log::SUBTYPE_CREATED,
-                'group' => $id,
+                'groupid' => $id,
                 'text' => $this->getName()
             ]);
 
@@ -145,7 +145,7 @@ class User extends Entity
                 'type' => Log::TYPE_GROUP,
                 'subtype' => Log::SUBTYPE_JOINED,
                 'user' => $this->id,
-                'group' => $groupid
+                'groupid' => $groupid
             ]);
         }
 
@@ -165,7 +165,7 @@ class User extends Entity
                 'type' => Log::TYPE_GROUP,
                 'subtype' => Log::SUBTYPE_LEFT,
                 'user' => $this->id,
-                'group' => $groupid
+                'groupid' => $groupid
             ]);
         }
 

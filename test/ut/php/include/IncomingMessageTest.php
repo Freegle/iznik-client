@@ -4,13 +4,12 @@ if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
 require_once UT_DIR . '/IznikTest.php';
-require_once IZNIK_BASE . '/include/message/IncomingMessage.php';
 
 /**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class IncomingMessageTest extends IznikTest {
+class MessageTest extends IznikTest {
     private $dbhr, $dbhm;
 
     protected function setUp() {
@@ -36,8 +35,8 @@ class IncomingMessageTest extends IznikTest {
         $msg = file_get_contents('msgs/basic');
         $t = "TestUser" . microtime(true) . "@test.com";
         $msg = str_replace('From: "Test User" <test@test.com>', 'From: "' . $t . '" <test@test.com>', $msg);
-        $m = new IncomingMessage($this->dbhr, $this->dbhm);
-        $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals('Basic test', $m->getSubject());
         assertEquals($t, $m->getFromname());
         assertEquals('test@test.com', $m->getFromaddr());
@@ -54,7 +53,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 </HEAD>
 <BODY>Hey.</BODY></HTML>", $m->getHtmlbody());
         assertEquals(0, count($m->getParsedAttachments()));
-        assertEquals(IncomingMessage::TYPE_OTHER, $m->getType());
+        assertEquals(Message::TYPE_OTHER, $m->getType());
         assertEquals('FDv2', $m->getSourceheader());
 
         # Save it
@@ -63,7 +62,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 
         # Read it back
         unset($m);
-        $m = new IncomingMessage($this->dbhr, $this->dbhm, $id);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals('Basic test', $m->getSubject());
         assertEquals('Basic test', $m->getHeader('subject'));
         assertEquals($t, $m->getFromname());
@@ -90,8 +89,8 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         error_log(__METHOD__);
 
         $msg = file_get_contents('msgs/attachment');
-        $m = new IncomingMessage($this->dbhr, $this->dbhm);
-        $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals('MessageMaker', $m->getSourceheader());
 
         # Check the parsed attachments
@@ -122,8 +121,8 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         error_log(__METHOD__);
 
         $msg = file_get_contents('msgs/approve');
-        $m = new IncomingMessage($this->dbhr, $this->dbhm);
-        $m->parse(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
 
         assertEquals('Test pending', $m->getSubject());
         assertEquals('Test User', $m->getFromname());
@@ -144,8 +143,8 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         error_log(__METHOD__);
 
         $msg = file_get_contents('msgs/tn');
-        $m = new IncomingMessage($this->dbhr, $this->dbhm);
-        $m->parse(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals('20065945', $m->getTnpostid());
 
         # Save it
@@ -160,8 +159,8 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
     public function testType() {
         error_log(__METHOD__);
 
-        assertEquals(IncomingMessage::TYPE_OFFER, IncomingMessage::determineType('OFFER: item (location)'));
-        assertEquals(IncomingMessage::TYPE_WANTED, IncomingMessage::determineType('[Group]WANTED: item'));
+        assertEquals(Message::TYPE_OFFER, Message::determineType('OFFER: item (location)'));
+        assertEquals(Message::TYPE_WANTED, Message::determineType('[Group]WANTED: item'));
 
         error_log(__METHOD__ . " end");
     }

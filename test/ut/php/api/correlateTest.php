@@ -44,7 +44,7 @@ class correlateTest extends IznikAPITest {
         $msg = file_get_contents('msgs/basic');
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $incomingid = $r->received(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $msgid = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -57,8 +57,8 @@ class correlateTest extends IznikAPITest {
         $ret = $this->call('correlate', 'POST', [
             'groupid' => $group1,
             'collections' => [
-                'messages_pending',
-                'messages_spam'
+                'Pending',
+                'Spam'
             ]
         ]);
         assertEquals(1, $ret['ret']);
@@ -70,8 +70,8 @@ class correlateTest extends IznikAPITest {
         $ret = $this->call('correlate', 'POST', [
             'groupid' => $group1,
             'collections' => [
-                'messages_pending',
-                'messages_spam'
+                'Pending',
+                'Spam'
             ],
             'messages' => [
                 [
@@ -91,8 +91,8 @@ class correlateTest extends IznikAPITest {
         $ret = $this->call('correlate', 'POST', [
             'groupid' => $group1,
             'collections' => [
-                'messages_pending',
-                'messages_spam'
+                'Pending',
+                'Spam'
             ],
             'messages' => [
                 [
@@ -111,8 +111,8 @@ class correlateTest extends IznikAPITest {
         $ret = $this->call('correlate', 'POST', [
             'groupid' => $group1,
             'collections' => [
-                'messages_pending',
-                'messages_spam'
+                'Pending',
+                'Spam'
             ],
             'messages' => [
                 [

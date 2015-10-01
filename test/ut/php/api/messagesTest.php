@@ -44,16 +44,16 @@ class messagesTest extends IznikAPITest {
         $msg = file_get_contents('msgs/basic');
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $incomingid = $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        error_log("Incomingid $incomingid");
+        $msgid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        error_log("msgid $msgid");
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
-        assertNull(ApprovedMessage::findByIncomingId($this->dbhr, -$incomingid));
-        $id = ApprovedMessage::findByIncomingId($this->dbhr, $incomingid);
+        assertNull(Message::findBymsgid($this->dbhr, -$msgid));
+        $id = Message::findBymsgid($this->dbhr, $msgid);
         error_log("Approved id $id");
 
         $c = new Collection($this->dbhr, $this->dbhm, Collection::APPROVED);
-        $a = new ApprovedMessage($this->dbhr, $this->dbhm, $id);
+        $a = new Message($this->dbhr, $this->dbhm, $id);
 
         # Should be able to see this message even logged out.
         $ret = $this->call('messages', 'GET', [
@@ -97,19 +97,19 @@ class messagesTest extends IznikAPITest {
         $msg = file_get_contents('msgs/basic');
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $incomingid = $r->received(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $msgid = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
-        assertNull(PendingMessage::findByIncomingId($this->dbhr, $incomingid+1));
-        $id = PendingMessage::findByIncomingId($this->dbhr, $incomingid);
+        assertNull(Message::findBymsgid($this->dbhr, $msgid+1));
+        $id = Message::findBymsgid($this->dbhr, $msgid);
 
         $c = new Collection($this->dbhr, $this->dbhm, Collection::PENDING);
-        $a = new PendingMessage($this->dbhr, $this->dbhm, $id);
+        $a = new Message($this->dbhr, $this->dbhm, $id);
 
         # Shouldn't be able to see pending
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1,
-            'collection' => 'messages_pending'
+            'collection' => 'Pending'
         ]);
 
         assertEquals(0, $ret['ret']);
@@ -126,7 +126,7 @@ class messagesTest extends IznikAPITest {
 
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1,
-            'collection' => 'messages_pending'
+            'collection' => 'Pending'
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
@@ -137,7 +137,7 @@ class messagesTest extends IznikAPITest {
         assertEquals(User::ROLE_MODERATOR, $u->getRole($group1));
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1,
-            'collection' => 'messages_pending'
+            'collection' => 'Pending'
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
@@ -161,19 +161,19 @@ class messagesTest extends IznikAPITest {
         $msg = file_get_contents('msgs/spam');
         $msg = str_ireplace('To: Recipient <recipient@example.net>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $incomingid = $r->received(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $msgid = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
-        assertNull(SpamMessage::findByIncomingId($this->dbhr, $incomingid+1));
-        $id = SpamMessage::findByIncomingId($this->dbhr, $incomingid);
+        assertNull(Message::findBymsgid($this->dbhr, $msgid+1));
+        $id = Message::findBymsgid($this->dbhr, $msgid);
 
         $c = new Collection($this->dbhr, $this->dbhm, Collection::SPAM);
-        $a = new SpamMessage($this->dbhr, $this->dbhm, $id);
+        $a = new Message($this->dbhr, $this->dbhm, $id);
 
         # Shouldn't be able to see spam
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1,
-            'collection' => 'messages_spam'
+            'collection' => 'Spam'
         ]);
 
         assertEquals(0, $ret['ret']);
@@ -188,7 +188,7 @@ class messagesTest extends IznikAPITest {
 
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1,
-            'collection' => 'messages_spam'
+            'collection' => 'Spam'
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
@@ -201,7 +201,7 @@ class messagesTest extends IznikAPITest {
         assertTrue($u->login('testpw'));
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1,
-            'collection' => 'messages_spam'
+            'collection' => 'Spam'
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];

@@ -145,14 +145,14 @@ CREATE TABLE IF NOT EXISTS `memberships` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `messages_approved`
+-- Table structure for table `Approved`
 --
 
-CREATE TABLE IF NOT EXISTS `messages_approved` (
+CREATE TABLE IF NOT EXISTS `Approved` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique iD',
   `arrival` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this message arrived at our server',
   `groupid` bigint(20) unsigned DEFAULT NULL COMMENT 'Destination group, if identified',
-  `incomingid` bigint(20) unsigned DEFAULT NULL,
+  `msgid` bigint(20) unsigned DEFAULT NULL,
   `source` enum('Email','Yahoo Approved','Yahoo Pending') NOT NULL DEFAULT 'Email' COMMENT 'Source of incoming message',
   `fromip` varchar(40) DEFAULT NULL COMMENT 'IP we think this message came from',
   `message` longtext NOT NULL COMMENT 'The unparsed message',
@@ -178,7 +178,7 @@ CREATE TABLE IF NOT EXISTS `messages_approved` (
   KEY `groupid` (`groupid`),
   KEY `fromup` (`fromip`),
   KEY `tnpostid` (`tnpostid`),
-  KEY `incomingid` (`incomingid`),
+  KEY `msgid` (`msgid`),
   KEY `type` (`type`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Messages which have been approved for members' AUTO_INCREMENT=80905 ;
 
@@ -190,7 +190,7 @@ CREATE TABLE IF NOT EXISTS `messages_approved` (
 
 CREATE TABLE IF NOT EXISTS `messages_attachments` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `incomingid` bigint(20) unsigned DEFAULT NULL,
+  `msgid` bigint(20) unsigned DEFAULT NULL,
   `approvedid` bigint(20) unsigned DEFAULT NULL,
   `pendingid` bigint(20) unsigned DEFAULT NULL,
   `spamid` bigint(20) unsigned DEFAULT NULL,
@@ -198,11 +198,11 @@ CREATE TABLE IF NOT EXISTS `messages_attachments` (
   `data` blob NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
-  KEY `incomingid` (`incomingid`),
+  KEY `msgid` (`msgid`),
   KEY `approvedid` (`approvedid`),
   KEY `pendingid` (`pendingid`),
   KEY `spamid` (`spamid`),
-  KEY `incomingid_2` (`incomingid`,`approvedid`,`pendingid`,`spamid`)
+  KEY `msgid_2` (`msgid`,`approvedid`,`pendingid`,`spamid`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Attachments parsed out from messages' AUTO_INCREMENT=694 ;
 
 -- --------------------------------------------------------
@@ -213,7 +213,7 @@ CREATE TABLE IF NOT EXISTS `messages_attachments` (
 
 CREATE TABLE IF NOT EXISTS `messages_history` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique iD',
-  `incomingid` bigint(20) unsigned DEFAULT NULL,
+  `msgid` bigint(20) unsigned DEFAULT NULL,
   `arrival` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this message arrived at our server',
   `source` enum('Email','Yahoo Approved','Yahoo Pending') NOT NULL DEFAULT 'Email' COMMENT 'Source of incoming message',
   `fromip` varchar(40) DEFAULT NULL COMMENT 'IP we think this message came from',
@@ -237,7 +237,7 @@ CREATE TABLE IF NOT EXISTS `messages_history` (
   KEY `message-id` (`messageid`),
   KEY `groupid` (`groupid`),
   KEY `fromup` (`fromip`),
-  KEY `incomingid` (`incomingid`),
+  KEY `msgid` (`msgid`),
   KEY `fromhost` (`fromhost`),
   KEY `arrival` (`arrival`),
   KEY `subject` (`subject`(767)),
@@ -247,10 +247,10 @@ CREATE TABLE IF NOT EXISTS `messages_history` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `messages_incoming`
+-- Table structure for table `Incoming`
 --
 
-CREATE TABLE IF NOT EXISTS `messages_incoming` (
+CREATE TABLE IF NOT EXISTS `Incoming` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique iD',
   `arrival` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this message arrived at our server',
   `source` enum('Email','Yahoo Approved','Yahoo Pending') NOT NULL DEFAULT 'Email' COMMENT 'Source of incoming message',
@@ -299,14 +299,14 @@ CREATE TABLE IF NOT EXISTS `messages_outgoing` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `messages_pending`
+-- Table structure for table `Pending`
 --
 
-CREATE TABLE IF NOT EXISTS `messages_pending` (
+CREATE TABLE IF NOT EXISTS `Pending` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique iD',
   `arrival` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this message arrived at our server',
   `groupid` bigint(20) unsigned DEFAULT NULL COMMENT 'Destination group, if identified',
-  `incomingid` bigint(20) unsigned DEFAULT NULL,
+  `msgid` bigint(20) unsigned DEFAULT NULL,
   `source` enum('Email','Yahoo Approved','Yahoo Pending') NOT NULL DEFAULT 'Email' COMMENT 'Source of incoming message',
   `fromip` varchar(40) DEFAULT NULL COMMENT 'IP we think this message came from',
   `message` longtext NOT NULL COMMENT 'The unparsed message',
@@ -332,21 +332,21 @@ CREATE TABLE IF NOT EXISTS `messages_pending` (
   KEY `groupid` (`groupid`),
   KEY `fromup` (`fromip`),
   KEY `tnpostid` (`tnpostid`),
-  KEY `incomingid` (`incomingid`),
+  KEY `msgid` (`msgid`),
   KEY `type` (`type`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Messages which have been approved for members' AUTO_INCREMENT=33477 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `messages_spam`
+-- Table structure for table `Spam`
 --
 
-CREATE TABLE IF NOT EXISTS `messages_spam` (
+CREATE TABLE IF NOT EXISTS `Spam` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique iD',
   `arrival` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this message arrived at our server',
   `groupid` bigint(20) unsigned DEFAULT NULL COMMENT 'Destination group, if identified',
-  `incomingid` bigint(20) unsigned DEFAULT NULL,
+  `msgid` bigint(20) unsigned DEFAULT NULL,
   `source` enum('Email','Yahoo Approved','Yahoo Pending') NOT NULL DEFAULT 'Email' COMMENT 'Source of incoming message',
   `fromip` varchar(40) DEFAULT NULL COMMENT 'IP we think this message came from',
   `message` longtext NOT NULL COMMENT 'The unparsed message',
@@ -369,7 +369,7 @@ CREATE TABLE IF NOT EXISTS `messages_spam` (
   KEY `message-id` (`messageid`),
   KEY `groupid` (`groupid`),
   KEY `fromup` (`fromip`),
-  KEY `incomingid` (`incomingid`),
+  KEY `msgid` (`msgid`),
   KEY `tnpostid` (`tnpostid`),
   KEY `type` (`type`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Messages suspected as spam, for review' AUTO_INCREMENT=1804 ;
@@ -519,8 +519,8 @@ ADD CONSTRAINT `locations_approved_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `g
 -- Constraints for table `logs`
 --
 ALTER TABLE `logs`
-ADD CONSTRAINT `logs_ibfk_1` FOREIGN KEY (`message_approved`) REFERENCES `messages_approved` (`id`) ON DELETE SET NULL,
-ADD CONSTRAINT `logs_ibfk_2` FOREIGN KEY (`message_incoming`) REFERENCES `messages_incoming` (`id`) ON DELETE SET NULL,
+ADD CONSTRAINT `logs_ibfk_1` FOREIGN KEY (`message_approved`) REFERENCES `Approved` (`id`) ON DELETE SET NULL,
+ADD CONSTRAINT `logs_ibfk_2` FOREIGN KEY (`message_incoming`) REFERENCES `Incoming` (`id`) ON DELETE SET NULL,
 ADD CONSTRAINT `logs_ibfk_3` FOREIGN KEY (`message_pending`) REFERENCES `logs_sql` (`message_pending`) ON DELETE SET NULL;
 
 --
@@ -537,31 +537,31 @@ ADD CONSTRAINT `memberships_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`
 ADD CONSTRAINT `memberships_ibfk_2` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `messages_approved`
+-- Constraints for table `Approved`
 --
-ALTER TABLE `messages_approved`
-ADD CONSTRAINT `messages_approved_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE SET NULL;
+ALTER TABLE `Approved`
+ADD CONSTRAINT `Approved_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `messages_attachments`
 --
 ALTER TABLE `messages_attachments`
-ADD CONSTRAINT `messages_attachments_ibfk_1` FOREIGN KEY (`incomingid`) REFERENCES `messages_incoming` (`id`) ON DELETE SET NULL,
-ADD CONSTRAINT `messages_attachments_ibfk_2` FOREIGN KEY (`approvedid`) REFERENCES `messages_approved` (`id`) ON DELETE SET NULL,
-ADD CONSTRAINT `messages_attachments_ibfk_3` FOREIGN KEY (`pendingid`) REFERENCES `messages_pending` (`id`) ON DELETE SET NULL,
-ADD CONSTRAINT `messages_attachments_ibfk_4` FOREIGN KEY (`spamid`) REFERENCES `messages_spam` (`id`) ON DELETE SET NULL;
+ADD CONSTRAINT `messages_attachments_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `Incoming` (`id`) ON DELETE SET NULL,
+ADD CONSTRAINT `messages_attachments_ibfk_2` FOREIGN KEY (`approvedid`) REFERENCES `Approved` (`id`) ON DELETE SET NULL,
+ADD CONSTRAINT `messages_attachments_ibfk_3` FOREIGN KEY (`pendingid`) REFERENCES `Pending` (`id`) ON DELETE SET NULL,
+ADD CONSTRAINT `messages_attachments_ibfk_4` FOREIGN KEY (`spamid`) REFERENCES `Spam` (`id`) ON DELETE SET NULL;
 
 --
--- Constraints for table `messages_incoming`
+-- Constraints for table `Incoming`
 --
-ALTER TABLE `messages_incoming`
-ADD CONSTRAINT `messages_incoming_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE SET NULL;
+ALTER TABLE `Incoming`
+ADD CONSTRAINT `Incoming_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE SET NULL;
 
 --
--- Constraints for table `messages_spam`
+-- Constraints for table `Spam`
 --
-ALTER TABLE `messages_spam`
-ADD CONSTRAINT `messages_spam_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE;
+ALTER TABLE `Spam`
+ADD CONSTRAINT `Spam_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `users_emails`
@@ -581,11 +581,11 @@ DELIMITER $$
 --
 CREATE DEFINER=`root`@`localhost` EVENT `pruneSessions` ON SCHEDULE EVERY 1 DAY STARTS '2015-09-04 05:00:00' ON COMPLETION NOT PRESERVE ENABLE DO DELETE FROM sessions WHERE DATEDIFF(NOW(), `date`) > 7$$
 
-CREATE DEFINER=`root`@`localhost` EVENT `pruneSpam` ON SCHEDULE EVERY 1 DAY STARTS '2015-08-28 11:13:05' ON COMPLETION NOT PRESERVE ENABLE COMMENT 'Delete old messages from spam' DO DELETE FROM messages_spam WHERE DATEDIFF(NOW(), arrival) > 7$$
+CREATE DEFINER=`root`@`localhost` EVENT `pruneSpam` ON SCHEDULE EVERY 1 DAY STARTS '2015-08-28 11:13:05' ON COMPLETION NOT PRESERVE ENABLE COMMENT 'Delete old messages from spam' DO DELETE FROM Spam WHERE DATEDIFF(NOW(), arrival) > 7$$
 
 CREATE DEFINER=`root`@`localhost` EVENT `pruneHistory` ON SCHEDULE EVERY 1 DAY STARTS '2015-08-27 07:46:30' ON COMPLETION NOT PRESERVE ENABLE COMMENT 'Delete old records from the history table which we use for spam' DO DELETE FROM messages_history WHERE DATEDIFF(NOW(), arrival) > 7$$
 
-CREATE DEFINER=`root`@`localhost` EVENT `pruneAttachments` ON SCHEDULE EVERY 1 DAY STARTS '2015-09-11 03:00:00' ON COMPLETION NOT PRESERVE ENABLE DO DELETE FROM messages_attachments WHERE incomingid IS NULL AND
+CREATE DEFINER=`root`@`localhost` EVENT `pruneAttachments` ON SCHEDULE EVERY 1 DAY STARTS '2015-09-11 03:00:00' ON COMPLETION NOT PRESERVE ENABLE DO DELETE FROM messages_attachments WHERE msgid IS NULL AND
                                                                                                                                                                                             approvedid IS NULL AND
                                                                                                                                                                                             pendingid IS NULL AND
                                                                                                                                                                                             spamid IS NULL$$

@@ -21,13 +21,13 @@ function message() {
 
             switch ($collection) {
                 case Collection::APPROVED:
-                    $m = new ApprovedMessage($dbhr, $dbhm, $id);
+                    $m = new Message($dbhr, $dbhm, $id);
                     break;
                 case Collection::PENDING:
                     if (!$me) {
                         $ret = ['ret' => 1, 'status' => 'Not logged in'];
                     } else {
-                        $m = new PendingMessage($dbhr, $dbhm, $id);
+                        $m = new Message($dbhr, $dbhm, $id);
                         if (!$me->isModOrOwner($m->getGroupID())) {
                             $ret = ['ret' => 2, 'status' => 'Permission denied'];
                             $m = NULL;
@@ -38,7 +38,7 @@ function message() {
                     if (!$me) {
                         $ret = ['ret' => 1, 'status' => 'Not logged in'];
                     } else {
-                        $m = new SpamMessage($dbhr, $dbhm, $id);
+                        $m = new Message($dbhr, $dbhm, $id);
                         if (!$me->isModOrOwner($m->getGroupID())) {
                             $ret = ['ret' => 2, 'status' => 'Permission denied'];
                             $m = NULL;

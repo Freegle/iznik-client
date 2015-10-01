@@ -119,8 +119,8 @@ class sessionTest extends IznikAPITest {
         # Send one message to pending on each.
         $msg = file_get_contents('msgs/basic');
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
-        $m = new IncomingMessage($this->dbhr, $this->dbhm);
-        $m->parse(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $id = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
@@ -129,8 +129,8 @@ class sessionTest extends IznikAPITest {
 
         $msg = file_get_contents('msgs/basic');
         $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
-        $m = new IncomingMessage($this->dbhr, $this->dbhm);
-        $m->parse(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $id = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);

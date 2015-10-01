@@ -1,8 +1,7 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/message/IncomingMessage.php');
-require_once(IZNIK_BASE . '/include/message/PendingMessage.php');
+require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
@@ -59,9 +58,9 @@ class MailRouter
         $this->spam = new Spam($this->dbhr, $this->dbhm);
 
         if ($id) {
-            $this->msg = new IncomingMessage($this->dbhr, $this->dbhm, $id);
+            $this->msg = new Message($this->dbhr, $this->dbhm, $id);
         } else {
-            $this->msg = new IncomingMessage($this->dbhr, $this->dbhm);
+            $this->msg = new Message($this->dbhr, $this->dbhm);
         }
     }
 
@@ -73,180 +72,25 @@ class MailRouter
     }
 
     private function markAsSpam($reason) {
-        # Move into the spamc queue.  Use a transaction to avoid leaving rows lying around if we fail partway
-        # through.
-        $rc = $this->dbhm->beginTransaction();
-        $ret = true;
-
-        if ($rc) {
-            try {
-                $rollback = true;
-
-                # Lock out the incoming message
-                $this->dbhm->preExec("SELECT id FROM messages_incoming WHERE id = ? FOR UPDATE;", [$this->msg->getID()]);
-
-                # Copy the relevant fields in the row to the table, and add the reason.
-                $sql = "INSERT INTO messages_spam (incomingid, arrival, `date`, `source`, sourceheader, message,
-                          envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                          tnpostid, textbody, htmlbody, fromip, reason, type, yahoopendingid, yahooreject, yahooapprove)
-                          SELECT id, arrival, `date`, `source`, sourceheader, message,
-                          envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                          tnpostid, textbody, htmlbody, fromip, " . $this->dbhm->quote($reason) .
-                    " AS reason, type, yahoopendingid, yahooreject, yahooapprove FROM messages_incoming WHERE id = ?;";
-                $rc = $this->dbhm->preExec($sql,
-                    [
-                        $this->msg->getID()
-                    ]);
-
-                $approvedid = $this->dbhm->lastInsertId();
-
-                if ($rc) {
-                    # If our DB ops fail we drop an attachment - better than failing the message.
-                    $this->dbhm->preExec("UPDATE messages_attachments SET spamid = NULL, pendingid = ? WHERE incomingid = ?;",
-                        [
-                            $approvedid,
-                            $this->msg->getID()
-                        ]);
-                }
-
-                if ($rc) {
-                    $rc = $this->msg->delete();
-
-                    if ($rc) {
-                        $rc = $this->dbhm->commit();
-
-                        if ($rc) {
-                            $rollback = false;
-                        }
-                    }
-                }
-            } catch (Exception $e) {}
-
-            if ($rollback) {
-                $this->dbhm->rollBack();
-                $ret = false;
-            }
-        }
-
-        return($ret);
+        return($this->dbhm->preExec("UPDATE messages SET collection = 'Spam' WHERE id = ?;", [ $this->id ]));
     }
 
     private function markApproved() {
         # A message we are marking as approved may previously have been in our pending queue.  This can happen if a
         # message is handled on another system, e.g. moderated directly on Yahoo.
         #
-        # We don't need a transaction for this part.
-        $p = new PendingMessage($this->dbhm, $this->dbhm);
-        $p->removeApprovedMessage($this->msg);
-        $s = new SpamMessage($this->dbhm, $this->dbhm);
-        $s->removeApprovedMessage($this->msg);
+        # We don't need a transaction for this - transactions aren't great for scalability and worst case we
+        # leave a spurious message around which a mod will handle.
+        $p = new Message($this->dbhm, $this->dbhm);
+        $p->removeByMessageID($this->msg);
+        $s = new Message($this->dbhm, $this->dbhm);
+        $s->removeByMessageID($this->msg);
 
-        # Move into the approved queue.  Use a transaction to avoid leaving rows lying around if we fail partway
-        # through.
-        $rc = $this->dbhm->beginTransaction();
-        $ret = true;
-
-        if ($rc) {
-            try {
-                $rollback = true;
-
-                # Lock out the incoming message
-                $this->dbhm->preExec("SELECT id FROM messages_incoming WHERE id = ? FOR UPDATE;", [$this->msg->getID()]);
-
-                # Copy the relevant fields in the row to the table.
-                $sql = "INSERT INTO messages_approved (incomingid, arrival, `date`, source, sourceheader, message,
-                          envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                          tnpostid, textbody, htmlbody, fromip, type)
-                          SELECT id, arrival, `date`, source, sourceheader, message,
-                          envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                          tnpostid, textbody, htmlbody, fromip, type FROM messages_incoming WHERE id = ?;";
-                $rc = $this->dbhm->preExec($sql, [$this->msg->getID()]);
-                $approvedid = $this->dbhm->lastInsertId();
-
-                if ($rc) {
-                    # If our DB ops fail we drop an attachment - better than failing the message.
-                    $this->dbhm->preExec("UPDATE messages_attachments SET incomingid = NULL, approvedid = ? WHERE incomingid = ?;",
-                        [
-                            $approvedid,
-                            $this->msg->getID()
-                        ]);
-                }
-
-                if ($rc) {
-                    $rc = $this->msg->delete();
-
-                    if ($rc) {
-                        $rc = $this->dbhm->commit();
-
-                        if ($rc) {
-                            $rollback = false;
-                        }
-                    }
-                }
-            } catch (Exception $e) {}
-
-            if ($rollback) {
-                $this->dbhm->rollBack();
-                $ret = false;
-            }
-        }
-
-        return($ret);
+        return($this->dbhm->preExec("UPDATE messages SET collection = 'Approved' WHERE id = ?;", [ $this->id ]));
     }
 
     private function markPending() {
-        # Move into the pending queue.  Use a transaction to avoid leaving rows lying around if we fail partway
-        # through.
-        $rc = $this->dbhm->beginTransaction();
-        $ret = true;
-
-        if ($rc) {
-            try {
-                $rollback = true;
-
-                # Lock out the incoming message
-                $this->dbhm->preExec("SELECT id FROM messages_incoming WHERE id = ? FOR UPDATE;", [$this->msg->getID()]);
-
-                # Copy the relevant fields in the row to the table, and add the reason.
-                $sql = "INSERT INTO messages_pending (incomingid, arrival, `date`, source, sourceheader, message,
-                          envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                          tnpostid, textbody, htmlbody, fromip, type, yahoopendingid, yahooreject, yahooapprove)
-                          SELECT id, arrival, `date`, source, sourceheader, message,
-                          envelopefrom, fromname, fromaddr, envelopeto, groupid, subject, messageid,
-                          tnpostid, textbody, htmlbody, fromip, type, yahoopendingid, yahooreject, yahooapprove
-                          FROM messages_incoming WHERE id = ?;";
-                $rc = $this->dbhm->preExec($sql, [$this->msg->getID()]);
-                $approvedid = $this->dbhm->lastInsertId();
-
-                if ($rc) {
-                    # If our DB ops fail we drop an attachment - better than failing the message.
-                    $this->dbhm->preExec("UPDATE messages_attachments SET incomingid = NULL, pendingid = ? WHERE incomingid = ?;",
-                        [
-                            $approvedid,
-                            $this->msg->getID()
-                        ]);
-                }
-
-                if ($rc) {
-                    $rc = $this->msg->delete();
-
-                    if ($rc) {
-                        $rc = $this->dbhm->commit();
-
-                        if ($rc) {
-                            $rollback = false;
-                        }
-                    }
-                }
-            } catch (Exception $e) {}
-
-            if ($rollback) {
-                $this->dbhm->rollBack();
-                $ret = false;
-            }
-        }
-
-        return($ret);
+        return($this->dbhm->preExec("UPDATE messages SET collection = 'Pending' WHERE id = ?;", [ $this->id ]));
     }
 
     public function route($msg = NULL) {
@@ -265,9 +109,9 @@ class MailRouter
             $this->log->log([
                 'type' => Log::TYPE_MESSAGE,
                 'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
-                'message_incoming' => $this->msg->getID(),
+                'msgid' => $this->msg->getID(),
                 'text' => "{$rc[1]}",
-                'group' => $this->msg->getGroupID()
+                'groupid' => $this->msg->getGroupID()
             ]);
 
             $this->markAsSpam("{$rc[1]}");
@@ -285,9 +129,9 @@ class MailRouter
                     $this->log->log([
                         'type' => Log::TYPE_MESSAGE,
                         'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
-                        'message_incoming' => $this->msg->getID(),
+                        'msgid' => $this->msg->getID(),
                         'text' => "SpamAssassin score $spamscore",
-                        'group' => $this->msg->getGroupID()
+                        'groupid' => $this->msg->getGroupID()
                     ]);
 
                     if ($this->markAsSpam("SpamAssassin flagged this as likely spam; score $spamscore (high is bad)")) {
@@ -303,7 +147,7 @@ class MailRouter
                     # moderation status of the member and the group settings.
                     # TODO
                     $ret = MailRouter::FAILURE;
-                    if ($this->msg->getSource() == IncomingMessage::YAHOO_PENDING &&
+                    if ($this->msg->getSource() == Message::YAHOO_PENDING &&
                         $this->markPending()) {
                         $ret = MailRouter::PENDING;
                     } else if ($this->markApproved()) {
@@ -323,10 +167,10 @@ class MailRouter
     }
 
     public function routeAll() {
-        $msgs = $this->dbhr->preQuery("SELECT id FROM messages_incoming;");
+        $msgs = $this->dbhr->preQuery("SELECT id FROM messages WHERE collection = 'Incoming';");
         foreach ($msgs as $m) {
             try {
-                $msg = new IncomingMessage($this->dbhr, $this->dbhm, $m['id']);
+                $msg = new Message($this->dbhr, $this->dbhm, $m['id']);
                 $this->route($msg);
             } catch (Exception $e) {
                 # Ignore this and continue routing the rest.

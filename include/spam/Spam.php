@@ -24,7 +24,7 @@ class Spam {
         $this->reader = new Reader('/usr/local/share/GeoIP/GeoLite2-Country.mmdb');
     }
 
-    public function check(IncomingMessage $msg) {
+    public function check(Message $msg) {
         $ip = $msg->getHeader('x-freegle-ip');
         $ip = $ip ? $ip : $msg->getHeader('x-originating-ip');
         $ip = $ip ? $ip : $msg->getHeader('x-yahoo-post-ip');
