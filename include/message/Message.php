@@ -123,7 +123,6 @@ class Message
         # if the message is on our group.
         $me = whoAmI($this->dbhr, $this->dbhm);
         $role = User::ROLE_NONMEMBER;
-        error_log("Consider role for " . (($me ? $me->getId() : 'logged out')));
 
         if ($me) {
             $sql = "SELECT role FROM memberships
@@ -136,7 +135,6 @@ class Message
             ]);
 
             foreach ($groups as $group) {
-                error_log("Found role {$group['role']}");
                 switch ($group['role']) {
                     case User::ROLE_OWNER:
                         # Owner is highest.
@@ -160,10 +158,8 @@ class Message
     public function getPublic() {
         $ret = [];
         $role = $this->getRoleForMessage();
-        error_log("Get public role $role");
 
         foreach ($this->nonMemberAtts as $att) {
-            error_log("Get $att {$this->$att}");
             $ret[$att] = $this->$att;
         }
 
@@ -187,6 +183,14 @@ class Message
 
         # Remove any group subject tag.
         $ret['subject'] = preg_replace('/\[.*\]\s*/', '', $ret['subject']);
+
+        # Add any groups that this message is on.
+        $ret['groups'] = [];
+        $sql = "SELECT groupid FROM messages_groups WHERE msgid = ?;";
+        $groups = $this->dbhr->preQuery($sql, [ $this->id] );
+        foreach ($groups as $group) {
+            $ret['groups'][] = $group['groupid'];
+        }
 
         return($ret);
     }

@@ -42,16 +42,33 @@ Iznik.Views.ModTools.Message.Spam = IznikView.extend({
         var self = this;
 
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
+        _.each(self.model.get('groups'), function(group, index, list) {
+            var mod = new IznikModel(group);
+            mod.set('source', self.model.get('source'));
+            var v = new Iznik.Views.ModTools.Message.Spam.Group({
+                model: mod
+            });
+            self.$('.js-grouplist').append(v.render().el);
+        });
 
         // When this model is removed from the collection, it will have an event triggered on it. When that happens,
         // we want to remove this view.
         this.listenToOnce(this.model, 'removed', function() {
-            console.log("Spam remove", self.$el);
-
             self.$el.fadeOut('slow', function() {
                 self.remove();
             });
         });
+
+        return(this);
+    }
+});
+
+Iznik.Views.ModTools.Message.Spam.Group = IznikView.extend({
+    template: 'modtools_spam_group',
+
+    render: function() {
+        var self = this;
+        self.$el.html(window.template(self.template)(self.model.toJSON2()));
 
         return(this);
     }

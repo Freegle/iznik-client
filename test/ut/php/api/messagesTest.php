@@ -212,6 +212,7 @@ class messagesTest extends IznikAPITest {
         $msgs = $ret['messages'];
         assertEquals(1, count($msgs));
         assertEquals($a->getID(), $msgs[0]['id']);
+        assertEquals($group1, $msgs[0]['group']['id']);
         assertTrue(array_key_exists('source', $msgs[0])); # A mod, should see mod att
 
         $a->delete();

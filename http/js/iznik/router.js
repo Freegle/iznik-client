@@ -21,6 +21,7 @@ var IznikRouter = Backbone.Router.extend({
         "yahoologin": "yahoologin",
         "modtools": "modtools",
         "modtools/supporters": "supporters",
+        "modtools/pending": "pending",
         "modtools/spam": "spam",
         "*path": "home"
     },
@@ -120,6 +121,15 @@ var IznikRouter = Backbone.Router.extend({
     supporters: function() {
         var page = new Iznik.Views.ModTools.Pages.Supporters();
         this.loadRoute({page: page});
+    },
+
+    pending: function() {
+        this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
+            var page = new Iznik.Views.ModTools.Pages.Pending();
+            this.loadRoute({page: page, modtools: true});
+        });
+
+        Iznik.Session.forceLogin();
     },
 
     spam: function() {
