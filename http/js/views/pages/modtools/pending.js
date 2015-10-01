@@ -1,10 +1,10 @@
-Iznik.Views.ModTools.Pages.Spam = Iznik.Views.Page.extend({
+Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
     modtools: true,
 
-    template: "modtools_spam_main",
+    template: "modtools_pending_main",
 
     messageAdded: function(message) {
-        var v = new Iznik.Views.ModTools.Message.Spam({
+        var v = new Iznik.Views.ModTools.Message.Pending({
             model: message
         });
 
@@ -29,14 +29,14 @@ Iznik.Views.ModTools.Pages.Spam = Iznik.Views.Page.extend({
 
         msgs.fetch({
             data: {
-                collection: 'Spam'
+                collection: 'Pending'
             }
         });
     }
 });
 
-Iznik.Views.ModTools.Message.Spam = IznikView.extend({
-    template: 'modtools_spam_message',
+Iznik.Views.ModTools.Message.Pending = IznikView.extend({
+    template: 'modtools_pending_message',
 
     render: function() {
         var self = this;
@@ -48,7 +48,7 @@ Iznik.Views.ModTools.Message.Spam = IznikView.extend({
             // Add in the message, because we need some values from that
             mod.set('message', self.model.toJSON());
 
-            var v = new Iznik.Views.ModTools.Message.Spam.Group({
+            var v = new Iznik.Views.ModTools.Message.Pending.Group({
                 model: mod
             });
             self.$('.js-grouplist').append(v.render().el);
@@ -66,12 +66,11 @@ Iznik.Views.ModTools.Message.Spam = IznikView.extend({
     }
 });
 
-Iznik.Views.ModTools.Message.Spam.Group = IznikView.extend({
-    template: 'modtools_spam_group',
+Iznik.Views.ModTools.Message.Pending.Group = IznikView.extend({
+    template: 'modtools_pending_group',
 
     render: function() {
         var self = this;
-        console.log("spam group render", self.model.toJSON2());
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
 
         return(this);

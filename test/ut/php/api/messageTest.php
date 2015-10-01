@@ -117,7 +117,6 @@ class messageTest extends IznikAPITest {
         error_log(__METHOD__ . " end");
     }
 
-
     public function testPut() {
         error_log(__METHOD__ . " start");
 

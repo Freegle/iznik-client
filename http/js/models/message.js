@@ -24,7 +24,8 @@ Iznik.Collections.Message = IznikCollection.extend({
         _.each(ret.messages, function(message, index, list) {
             var groups = [];
             _.each(message.groups, function(group, index2, list2) {
-                groups.push(ret.groups[group]);
+                var groupdata = ret.groups[group.groupid]
+                groups.push(_.extend([], groupdata, group));
             });
 
             message.groups = groups;

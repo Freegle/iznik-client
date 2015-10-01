@@ -186,11 +186,15 @@ class Message
 
         # Add any groups that this message is on.
         $ret['groups'] = [];
-        $sql = "SELECT groupid FROM messages_groups WHERE msgid = ?;";
-        $groups = $this->dbhr->preQuery($sql, [ $this->id] );
-        foreach ($groups as $group) {
-            $ret['groups'][] = $group['groupid'];
+        $sql = "SELECT * FROM messages_groups WHERE msgid = ?;";
+        $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id] );
+
+        foreach ($ret['groups'] as &$group) {
+            $group['arrival'] = ISODate($group['arrival']);
         }
+
+        $ret['arrival'] = ISODate($ret['arrival']);
+        $ret['date'] = ISODate($ret['date']);
 
         return($ret);
     }

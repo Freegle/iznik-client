@@ -71,7 +71,6 @@ class Collection
             foreach ($msglist as $msg) {
                 $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
                 $role = $m->getRoleForMessage();
-                error_log("role for {$msg['msgid']} on {$msg['groupid']} is $role");
 
                 switch ($this->collection) {
                     case Collection::APPROVED:
