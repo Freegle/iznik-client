@@ -99,7 +99,7 @@ Iznik.Models.Session = IznikModel.extend({
 
         // We want to post to the server to do the login there.  We pass all the URL
         // parameters we have, which include the OpenID response.
-        urlParams = {};
+        var urlParams = {};
         while (match = search.exec(query))
             urlParams[decode(match[1])] = decode(match[2]);
         urlParams['yahoologin'] = true;

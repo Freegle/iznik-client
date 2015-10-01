@@ -132,6 +132,8 @@ var IznikRouter = Backbone.Router.extend({
     }
 });
 
+var Router;
+
 $(document).ready(function(){
     // We're ready.  Get backbone up and running.
     Router = new IznikRouter();

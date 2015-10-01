@@ -53,7 +53,7 @@ serialQueue.prototype.add = function (args) {
             args.start();
         }
     });
-}
+};
 
 var majaxQueue = new serialQueue();
 

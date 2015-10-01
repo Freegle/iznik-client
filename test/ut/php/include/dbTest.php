@@ -75,8 +75,24 @@ class dbTest extends IznikTest {
         $tables = $this->dbhm->query('SHOW COLUMNS FROM test;')->fetchAll();
         assertEquals('id', $tables[0]['Field']);
 
+        $rc = $this->dbhm->rollBack();
+        assertTrue($rc);
+        $counts = $this->dbhm->preQuery("SELECT COUNT(*) AS count FROM test;");
+        assertEquals(0, $counts[0]['count']);
+
+        $rc = $this->dbhm->beginTransaction();
+
+        $rc = $this->dbhm->exec('INSERT INTO test VALUES ();');
+        assertEquals(1, $rc);
+        assertGreaterThan(0, $this->dbhm->lastInsertId());
+
+        $tables = $this->dbhm->query('SHOW COLUMNS FROM test;')->fetchAll();
+        assertEquals('id', $tables[0]['Field']);
+
         $rc = $this->dbhm->commit();
         assertTrue($rc);
+        $counts = $this->dbhm->preQuery("SELECT COUNT(*) AS count FROM test;");
+        assertEquals(1, $counts[0]['count']);
 
         error_log(__METHOD__ . " end");
     }

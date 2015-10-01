@@ -119,8 +119,8 @@ class sessionTest extends IznikAPITest {
         # Send one message to pending on each.
         $msg = file_get_contents('msgs/basic');
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
-        $m = new IncomingMessage($this->dbhr, $this->dbhm);
-        $m->parse(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $id = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
@@ -129,8 +129,8 @@ class sessionTest extends IznikAPITest {
 
         $msg = file_get_contents('msgs/basic');
         $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
-        $m = new IncomingMessage($this->dbhr, $this->dbhm);
-        $m->parse(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $id = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
@@ -147,6 +147,7 @@ class sessionTest extends IznikAPITest {
         $ret = $this->call('session','GET', []);
         assertEquals(0, $ret['ret']);
         assertEquals($group1, $ret['groups'][0]['id']);
+        assertEquals($group2, $ret['groups'][1]['id']);
         assertEquals(1, $ret['groups'][0]['work']['pending']);
         assertEquals(1, $ret['groups'][1]['work']['pending']);
         assertEquals(0, $ret['groups'][0]['work']['spam']);

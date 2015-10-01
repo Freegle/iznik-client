@@ -83,7 +83,7 @@ Iznik.Views.Group.Select = IznikView.extend({
 
                 self.trigger('selected', self.dropdown.value);
                 self.trigger('change');
-            })
+            });
 
             self.trigger('selected', self.dropdown.value);
         });

@@ -161,7 +161,7 @@ class userTest extends IznikTest {
         $u = new User($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
         $u = new User($this->dbhr, $this->dbhm, $id);
-        assertEquals($u->getRole($group1), User::ROLE_NONE);
+        assertEquals($u->getRole($group1), User::ROLE_NONMEMBER);
         assertFalse($u->isModOrOwner($group1));
 
         $u->addMembership($group1, User::ROLE_MEMBER);
@@ -186,7 +186,7 @@ class userTest extends IznikTest {
         assertEquals(2, count($membs));
 
         $u->removeMembership($group1);
-        assertEquals($u->getRole($group1), User::ROLE_NONE);
+        assertEquals($u->getRole($group1), User::ROLE_NONMEMBER);
         $membs = $u->getMemberships();
         assertEquals(1, count($membs));
         assertEquals($group2, $membs[0]['id']);

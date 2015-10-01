@@ -144,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
                 }
             } else {
                 # Something else.
-                error_log("Uncaught exception " . $e->getMessage());
+                error_log("Uncaught exception at " . $e->getFile() . " line " . $e->getLine() . " " . $e->getMessage());
                 echo json_encode(array('ret' => 998, 'status' => 'Unexpected error', 'exception' => $e->getMessage()));
                 break;
             }

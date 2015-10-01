@@ -29,7 +29,7 @@ Iznik.Views.ModTools.Pages.Spam = Iznik.Views.Page.extend({
 
         msgs.fetch({
             data: {
-                collection: 'messages_spam'
+                collection: 'Spam'
             }
         });
     }

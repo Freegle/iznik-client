@@ -44,16 +44,13 @@ class messagesTest extends IznikAPITest {
         $msg = file_get_contents('msgs/basic');
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $incomingid = $r->received(IncomingMessage::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        error_log("Incomingid $incomingid");
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
-        assertNull(ApprovedMessage::findByIncomingId($this->dbhr, -$incomingid));
-        $id = ApprovedMessage::findByIncomingId($this->dbhr, $incomingid);
         error_log("Approved id $id");
 
         $c = new Collection($this->dbhr, $this->dbhm, Collection::APPROVED);
-        $a = new ApprovedMessage($this->dbhr, $this->dbhm, $id);
+        $a = new Message($this->dbhr, $this->dbhm, $id);
 
         # Should be able to see this message even logged out.
         $ret = $this->call('messages', 'GET', [
@@ -87,70 +84,6 @@ class messagesTest extends IznikAPITest {
         error_log(__METHOD__ . " end");
     }
 
-    public function testPending() {
-        error_log(__METHOD__);
-
-        $g = new Group($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
-        # Create a group with a message on it
-        $msg = file_get_contents('msgs/basic');
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $incomingid = $r->received(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
-        assertNull(PendingMessage::findByIncomingId($this->dbhr, $incomingid+1));
-        $id = PendingMessage::findByIncomingId($this->dbhr, $incomingid);
-
-        $c = new Collection($this->dbhr, $this->dbhm, Collection::PENDING);
-        $a = new PendingMessage($this->dbhr, $this->dbhm, $id);
-
-        # Shouldn't be able to see pending
-        $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
-            'collection' => 'messages_pending'
-        ]);
-
-        assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
-
-        # Now join - shouldn't be able to see a pending message
-        $u = new User($this->dbhr, $this->dbhm);
-        $id = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $id);
-        $u->addMembership($group1);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
-
-        $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
-            'collection' => 'messages_pending'
-        ]);
-        assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
-
-        # Promote to mod - should be able to see it.
-        $u->setRole(User::ROLE_MODERATOR, $group1);
-        assertEquals(User::ROLE_MODERATOR, $u->getRole($group1));
-        $ret = $this->call('messages', 'GET', [
-            'groupid' => $group1,
-            'collection' => 'messages_pending'
-        ]);
-        assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
-        assertTrue(array_key_exists('source', $msgs[0])); # A mod, should see mod att
-
-        $a->delete();
-
-        error_log(__METHOD__ . " end");
-    }
-
-
     public function testSpam() {
         error_log(__METHOD__);
 
@@ -161,19 +94,17 @@ class messagesTest extends IznikAPITest {
         $msg = file_get_contents('msgs/spam');
         $msg = str_ireplace('To: Recipient <recipient@example.net>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $incomingid = $r->received(IncomingMessage::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
-        assertNull(SpamMessage::findByIncomingId($this->dbhr, $incomingid+1));
-        $id = SpamMessage::findByIncomingId($this->dbhr, $incomingid);
 
         $c = new Collection($this->dbhr, $this->dbhm, Collection::SPAM);
-        $a = new SpamMessage($this->dbhr, $this->dbhm, $id);
+        $a = new Message($this->dbhr, $this->dbhm, $id);
 
         # Shouldn't be able to see spam
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1,
-            'collection' => 'messages_spam'
+            'collection' => 'Spam'
         ]);
 
         assertEquals(0, $ret['ret']);
@@ -188,7 +119,7 @@ class messagesTest extends IznikAPITest {
 
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1,
-            'collection' => 'messages_spam'
+            'collection' => 'Spam'
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
@@ -201,7 +132,7 @@ class messagesTest extends IznikAPITest {
         assertTrue($u->login('testpw'));
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1,
-            'collection' => 'messages_spam'
+            'collection' => 'Spam'
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
@@ -224,6 +155,66 @@ class messagesTest extends IznikAPITest {
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['messages']));
+
+        error_log(__METHOD__ . " end");
+    }
+    public function testPending() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        # Create a group with a message on it
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        $c = new Collection($this->dbhr, $this->dbhm, Collection::PENDING);
+        $a = new Message($this->dbhr, $this->dbhm, $id);
+
+        # Shouldn't be able to see pending
+        $ret = $this->call('messages', 'GET', [
+            'groupid' => $group1,
+            'collection' => 'Pending'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(0, count($msgs));
+
+        # Now join - shouldn't be able to see a pending message
+        $u = new User($this->dbhr, $this->dbhm);
+        $id = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $id);
+        $u->addMembership($group1);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('messages', 'GET', [
+            'groupid' => $group1,
+            'collection' => 'Pending'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(0, count($msgs));
+
+        # Promote to mod - should be able to see it.
+        $u->setRole(User::ROLE_MODERATOR, $group1);
+        assertEquals(User::ROLE_MODERATOR, $u->getRole($group1));
+        $ret = $this->call('messages', 'GET', [
+            'groupid' => $group1,
+            'collection' => 'Pending'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($a->getID(), $msgs[0]['id']);
+        assertTrue(array_key_exists('source', $msgs[0])); # A mod, should see mod att
+
+        $a->delete();
 
         error_log(__METHOD__ . " end");
     }

@@ -24,10 +24,10 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
             url: API + 'dashboard',
             data: data,
             success: function(ret) {
-                messagetitle = 'Message History';
-                spamtitle = 'Spam Detection';
-                domaintitle = 'Email domains people use';
-                sourcetitle = 'How people send messages';
+                var messagetitle = 'Message History';
+                var spamtitle = 'Spam Detection';
+                var domaintitle = 'Email domains people use';
+                var sourcetitle = 'How people send messages';
 
                 var coll = new Iznik.Collections.DateCounts(ret.dashboard.messagehistory);
                 var graph = new Iznik.Views.MessageGraph({

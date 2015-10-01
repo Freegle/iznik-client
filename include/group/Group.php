@@ -37,7 +37,7 @@ class Group extends Entity
             $this->log->log([
                 'type' => Log::TYPE_GROUP,
                 'subtype' => Log::SUBTYPE_CREATED,
-                'group' => $id,
+                'groupid' => $id,
                 'text' => $shortname
             ]);
 
@@ -53,7 +53,7 @@ class Group extends Entity
             $this->log->log([
                 'type' => Log::TYPE_GROUP,
                 'subtype' => Log::SUBTYPE_DELETED,
-                'group' => $this->id
+                'groupid' => $this->id
             ]);
         }
 
@@ -71,14 +71,17 @@ class Group extends Entity
     }
 
     public function getWorkCounts() {
+        error_log("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = {$this->id} AND messages_groups.collection = 'Pending';");
         $ret = [
-            'pending' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_pending WHERE groupid = ?;", [
+            'pending' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Pending';", [
                 $this->id
             ])[0]['count'],
-            'spam' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_spam WHERE groupid = ?;", [
+            'spam' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Spam';", [
                 $this->id
             ])[0]['count'],
         ];
+
+        error_log("Counts for {$this->id} are " . var_export($ret, true));
 
         return($ret);
     }
@@ -126,11 +129,11 @@ class Group extends Entity
         # Now find messages which are missing on the client, i.e. present in $collections but not present in
         # $messages.
         foreach ($cs as $c) {
-            error_log("Check " . $c->getCollection());
             $ourmsgs = $this->dbhr->preQuery(
-                "SELECT id, fromaddr, subject, date FROM " . $c->getCollection() . " WHERE groupid = ?;",
+                "SELECT id, fromaddr, subject, date FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ?;",
                 [
-                    $this->id
+                    $this->id,
+                    $c->getCollection()
                 ]
             );
 

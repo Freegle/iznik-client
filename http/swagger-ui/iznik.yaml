@@ -121,9 +121,9 @@ paths:
         type: number
       - name: collection
         in: query
-        description: Which collection the message is in; default is messages_approved
+        description: Which collection the message is in; default is approved
         type: string
-        enum: ['messages_approved', 'messages_pending', 'messages_spam']
+        enum: ['approved', 'pending', 'spam']
       responses:
           "200":
             description: "Successful response"
@@ -143,9 +143,9 @@ paths:
         in: query
         description: ID of the group we're adding to
         type: number
-      - name: collection
+      - name: source
         in: query
-        description: Which collection the message is in; default is messages_approved
+        description: Where the message has come from
         type: string
         enum: ['Yahoo Approved', 'Yahoo Pending']
       - name: from
@@ -177,9 +177,9 @@ paths:
         type: number
       - name: collection
         in: query
-        description: Which collection the message is in; default is messages_approved
+        description: Which collection the message is in; default is Approved
         type: string
-        enum: ['messages_approved', 'messages_pending', 'messages_spam']
+        enum: ['Approved', 'Pending', 'Spam']
       - name: reason
         in: query
         description: Why the message is being delete
@@ -206,9 +206,9 @@ paths:
         type: number
       - name: collection
         in: query
-        description: Which collection the message is in; default is messages_approved
+        description: Which collection the message is in; default is Approved
         type: string
-        enum: ['messages_approved', 'messages_pending', 'messages_spam']
+        enum: ['Approved', 'Pending', 'Spam']
       - name: start
         in: query
         description: For paging results; message ID above which to return
@@ -239,9 +239,9 @@ paths:
         type: number
       - name: collection
         in: query
-        description: Which collection the message is in; default is messages_approved
+        description: Which collection the message is in; default is Approved
         type: string
-        enum: ['messages_approved', 'messages_pending', 'messages_spam']
+        enum: ['Approved', 'Pending', 'Spam']
       - name: messages
         in: body
         description: Array of messages
