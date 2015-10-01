@@ -18,33 +18,39 @@ function message() {
         case 'GET':
         case 'DELETE': {
             $m = NULL;
+            $m = new Message($dbhr, $dbhm, $id);
+            error_log("Looking for message $id found " . $m->getID());
 
-            switch ($collection) {
-                case Collection::APPROVED:
-                    $m = new Message($dbhr, $dbhm, $id);
-                    break;
-                case Collection::PENDING:
-                    if (!$me) {
-                        $ret = ['ret' => 1, 'status' => 'Not logged in'];
-                    } else {
-                        $m = new Message($dbhr, $dbhm, $id);
-                        if (!$me->isModOrOwner($m->getGroupID())) {
-                            $ret = ['ret' => 2, 'status' => 'Permission denied'];
+            if (!$m->getID()) {
+                $ret = ['ret' => 3, 'status' => 'Message does not exist'];
+                $m = NULL;
+            } else {
+                switch ($collection) {
+                    case Collection::APPROVED:
+                        break;
+                    case Collection::PENDING:
+                        if (!$me) {
+                            $ret = ['ret' => 1, 'status' => 'Not logged in'];
                             $m = NULL;
+                        } else {
+                            if (!$me->isModOrOwner($m->getGroups()[0])) {
+                                $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                                $m = NULL;
+                            }
                         }
-                    }
-                    break;
-                case Collection::SPAM:
-                    if (!$me) {
-                        $ret = ['ret' => 1, 'status' => 'Not logged in'];
-                    } else {
-                        $m = new Message($dbhr, $dbhm, $id);
-                        if (!$me->isModOrOwner($m->getGroupID())) {
-                            $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                        break;
+                    case Collection::SPAM:
+                        if (!$me) {
+                            $ret = ['ret' => 1, 'status' => 'Not logged in'];
                             $m = NULL;
+                        } else {
+                            if (!$me->isModOrOwner($m->getGroups()[0])) {
+                                $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                                $m = NULL;
+                            }
                         }
-                    }
-                    break;
+                        break;
+                }
             }
 
             if ($m) {
@@ -55,7 +61,7 @@ function message() {
                         'message' => $m->getPublic()
                     ];
                 } else if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
-                    if (!$me->isModOrOwner($m->getGroupID())) {
+                    if (!$me->isModOrOwner($m->getGroups()[0])) {
                         $ret = ['ret' => 2, 'status' => 'Permission denied'];
                     } else {
                         $m->delete($reason);
@@ -73,7 +79,7 @@ function message() {
             # We are trying to sync a message.
             switch ($source) {
                 case Message::YAHOO_PENDING:
-                case Message::YAHOO_PENDING:
+                case Message::YAHOO_APPROVED:
                     break;
                 default:
                     $source = NULL;

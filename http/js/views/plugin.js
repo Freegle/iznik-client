@@ -236,7 +236,6 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                                                 },
                                                 context: self,
                                                 success: function(ret) {
-                                                    console.log("Put completed");
                                                     missing.deferred.resolve();
                                                 }
                                             });
@@ -264,7 +263,7 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
 Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Yahoo.Sync.extend({
     template: 'plugin_syncpending',
 
-    messageLocation: 'Messages',
+    messageLocation: 'pendingMessages',
 
     collections: [
         'pending',

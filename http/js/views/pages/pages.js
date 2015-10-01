@@ -111,7 +111,7 @@ Iznik.Views.Supporters = IznikView.extend({
 
                 self.$('.js-content').fadeIn('slow');
             }
-        })
+        });
 
         return self;
     }
@@ -152,7 +152,7 @@ Iznik.Views.ModTools.Pages.Supporters = Iznik.Views.Page.extend({
                 self.$('.js-list').html(html);
                 self.$('.js-content').fadeIn('slow');
             }
-        })
+        });
 
         return self;
     }

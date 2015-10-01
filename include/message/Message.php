@@ -3,7 +3,9 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
+require_once(IZNIK_BASE . '/include/message/Collection.php');
 
 class Message
 {
@@ -13,6 +15,14 @@ class Message
     const TYPE_RECEIVED = 'Received';
     const TYPE_ADMIN = 'Admin';
     const TYPE_OTHER = 'Other';
+
+    /**
+     * @return null
+     */
+    public function getGroupid()
+    {
+        return $this->groupid;
+    }
 
     /**
      * @return mixed
@@ -44,9 +54,21 @@ class Message
     private $dbhm;
 
     private $id, $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr,
-        $envelopefrom, $envelopeto, $messageid, $tnpostid, $groupid, $fromip, $date,
+        $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attachments, $yahoopendingid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
-        $parser;
+        $parser, $arrival, $spamreason;
+
+    # The groupid is only used for parsing and saving incoming messages; after that a message can be on multiple
+    # groups as is handled via the messages_groups table.
+    private $groupid = NULL;
+
+    /**
+     * @return mixed
+     */
+    public function getSpamreason()
+    {
+        return $this->spamreason;
+    }
 
     # Each message has some public attributes, which are visible to API users.
     #
@@ -54,7 +76,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'groupid', 'subject', 'type', 'arrival', 'date'
+        'id', 'subject', 'type', 'arrival', 'date'
     ];
 
     public $memberAtts = [
@@ -63,10 +85,12 @@ class Message
 
     public $moderatorAtts = [
         'source', 'sourceheader', 'fromaddr', 'envelopeto', 'envelopefrom', 'messageid', 'tnpostid',
-        'fromip', 'message', 'yahoopendingid', 'yahooreject', 'yahooapprove'
+        'fromip', 'message', 'yahoopendingid', 'yahooreject', 'yahooapprove', 'spamreason'
     ];
 
     public $ownerAtts = [
+        # Add in a dup for UT coverage of loop below.
+        'source'
     ];
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
@@ -76,10 +100,10 @@ class Message
         $this->log = new Log($this->dbhr, $this->dbhm);
 
         if ($id) {
-            $this->id = $id;
-
             $msgs = $dbhr->preQuery("SELECT * FROM messages WHERE id = ?;", [$id]);
             foreach ($msgs as $msg) {
+                $this->id = $id;
+
                 foreach (array_merge($this->nonMemberAtts, $this->memberAtts, $this->moderatorAtts, $this->ownerAtts) as $attr) {
                     if (pres($attr, $msg)) {
                         $this->$attr = $msg[$attr];
@@ -87,17 +111,59 @@ class Message
                 }
             }
 
+            # TODO We don't need to parse each time.
             $this->parser = new PhpMimeMailParser\Parser();
             $this->parser->setText($this->message);
         }
     }
 
+    public function getRoleForMessage() {
+        # Our role for a message is the highest role we have on any group that this message is on.  That means that
+        # we have limited access to information on other groups of which we are not a moderator, but that is legitimate
+        # if the message is on our group.
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $role = User::ROLE_NONMEMBER;
+        error_log("Consider role for " . (($me ? $me->getId() : 'logged out')));
+
+        if ($me) {
+            $sql = "SELECT role FROM memberships
+              INNER JOIN messages_groups ON messages_groups.msgid = ?
+                  AND messages_groups.groupid = memberships.groupid
+                  AND userid = ?;";
+            $groups = $this->dbhr->preQuery($sql, [
+                $this->id,
+                $me->getId()
+            ]);
+
+            foreach ($groups as $group) {
+                error_log("Found role {$group['role']}");
+                switch ($group['role']) {
+                    case User::ROLE_OWNER:
+                        # Owner is highest.
+                        $role = $group['role'];
+                        break;
+                    case User::ROLE_MODERATOR:
+                        # Upgrade from member or non-member to mod.
+                        $role = ($role == User::ROLE_MEMBER || $role == User::ROLE_NONMEMBER) ? User::ROLE_MODERATOR : $role;
+                        break;
+                    case User::ROLE_MEMBER:
+                        # Just a member
+                        $role = User::ROLE_MEMBER;
+                        break;
+                }
+            }
+        }
+
+        return($role);
+    }
+
     public function getPublic() {
         $ret = [];
-        $me = whoAmI($this->dbhr, $this->dbhm);
-        $role = $me ? $me->getRole($this->groupid) : User::ROLE_NONE;
+        $role = $this->getRoleForMessage();
+        error_log("Get public role $role");
 
         foreach ($this->nonMemberAtts as $att) {
+            error_log("Get $att {$this->$att}");
             $ret[$att] = $this->$att;
         }
 
@@ -190,22 +256,6 @@ class Message
     const EMAIL = 'Email';
     const YAHOO_APPROVED = 'Yahoo Approved';
     const YAHOO_PENDING = 'Yahoo Pending';
-
-    /**
-     * @return mixed
-     */
-    public function getGroupID()
-    {
-        return $this->groupid;
-    }
-
-    /**
-     * @param mixed $groupid
-     */
-    public function setGroupID($groupid)
-    {
-        $this->groupid = $groupid;
-    }
 
     /**
      * @return null
@@ -305,6 +355,7 @@ class Message
 
     # Get attachments which have been saved
     public function getAttachments() {
+        error_log("Get attachments for " . $this->getID());
         $atts = Attachment::getById($this->dbhr, $this->dbhm, $this->getID());
         return($atts);
     }
@@ -458,7 +509,7 @@ class Message
         if ($groupname) {
             # Check if it's a group we host.
             $g = new Group($this->dbhr, $this->dbhm);
-            $this->setGroupID($g->findByShortName($groupname));
+            $this->groupid = $g->findByShortName($groupname);
 
             if ($this->groupid) {
                 # If this is a reuse group, we need to determine the type.
@@ -509,12 +560,19 @@ class Message
     }
     # Save a parsed message to the DB
     public function save() {
-        # Save into the incoming messages table.
-        $sql = "INSERT INTO messages (date, groupid, collection, source, sourceheader, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type, yahoopendingid, yahooreject, yahooapprove) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        # A message we are saving as approved may previously have been in system, for example as pending.  When it
+        # comes back to us, it might not be the same, so we should remove any old one first.
+        #
+        # This can happen if a message is handled on another system, e.g. moderated directly on Yahoo.
+        #
+        # We don't need a transaction for this - transactions aren't great for scalability and worst case we
+        # leave a spurious message around which a mod will handle.
+        $this->removeByMessageID($this->groupid);
+
+        # Save into the messages table.
+        $sql = "INSERT INTO messages (date, source, sourceheader, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type, yahoopendingid, yahooreject, yahooapprove) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->date,
-            $this->groupid,
-            Collection::IMCOMING,
             $this->source,
             $this->sourceheader,
             $this->message,
@@ -534,8 +592,10 @@ class Message
         ]);
 
         $id = NULL;
+
         if ($rc) {
             $id = $this->dbhm->lastInsertId();
+
             $this->id = $id;
 
             $l = new Log($this->dbhr, $this->dbhm);
@@ -548,6 +608,16 @@ class Message
             ]);
         }
 
+        if ($this->groupid) {
+            # Save the group we're on.  If we crash or fail at this point we leave the message stranded, which is ok
+            # given the perf cost of a transaction.
+            $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, collection) VALUES (?,?,?);", [
+                $this->id,
+                $this->groupid,
+                Collection::INCOMING
+            ]);
+        }
+
         # Save the attachments.
         #
         # If we crash or fail at this point, we would have mislaid an attachment for a message.  That's not great, but the
@@ -556,6 +626,7 @@ class Message
             /** @var \PhpMimeMailParser\Attachment $att */
             $ct = $att->getContentType();
             $fn = $this->attach_dir . DIRECTORY_SEPARATOR . $att->getFilename();
+            error_log("Save attachment {$this->id} $ct");
             $sql = "INSERT INTO messages_attachments (msgid, contenttype, data) VALUES (?,?,LOAD_FILE(?));";
             $this->dbhm->preExec($sql, [
                 $this->id,
@@ -564,7 +635,7 @@ class Message
             ]);
         }
 
-        # Also save into the history table, for spamc checking.
+        # Also save into the history table, for spam checking.
         $sql = "INSERT INTO messages_history (groupid, source, message, envelopefrom, envelopeto, fromname, fromaddr, subject, prunedsubject, messageid, textbody, htmlbody, msgid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $this->dbhm->preExec($sql, [
             $this->groupid,
@@ -609,7 +680,7 @@ class Message
         return(mailparse_rfc822_parse_addresses($this->parser->getHeader('to')));
     }
 
-    function delete($reason = NULL, $groupid)
+    function delete($reason = NULL, $groupid = NULL)
     {
         $rc = true;
 
@@ -621,40 +692,55 @@ class Message
             $this->log->log([
                 'type' => Log::TYPE_MESSAGE,
                 'subtype' => Log::SUBTYPE_DELETED,
-                'message' => $this->id,
+                'msgid' => $this->id,
                 'text' => $reason,
-                'groupid' => $this->groupid
+                'groupid' => $groupid
             ]);
-            $rc = $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid = ? AND groupid = ?;", [
-                $this->id,
-                $groupid
-            ]);
+
+            if ($groupid) {
+                # The message has been allocated to a group; mark it as deleted.  We keep deleted messages for
+                # PD.
+                $rc = $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid = ? AND groupid = ?;", [
+                    $this->id,
+                    $groupid
+                ]);
+            } else {
+                # The message has never reached a group.  We can fully deleted it.
+                $rc = $this->dbhm->preExec("DELETE FROM messages WHERE id = ?;", [ $this->id ]);
+            }
         }
 
         return($rc);
     }
 
-    public function removeByMessageID(Message $msg) {
+    public function removeByMessageID($groupid) {
         # Try to find by message id.
-        $msgid = $msg->getMessageID();
+        $msgid = $this->getMessageID();
         if ($msgid) {
-            $sql = "SELECT id FROM messages WHERE messageid LIKE ?;";
-            $msgs = $this->dbhr->preQuery($sql, [$msgid]);
-
-            foreach ($msgs as $msg) {
-                $this->dbhm->preExec("DELETE FROM messages WHERE id = ?;", [$msg['id']]);
-            }
+            $this->dbhm->preExec("DELETE FROM messages WHERE messageid LIKE ? AND messages.id IN (SELECT msgid FROM messages_groups WHERE messages_groups.groupid = ?);", [
+                $msgid,
+                $groupid
+            ]);
         }
 
         # Also try to find by TN post id
-        $tnpostid = $msg->getTnpostid();
+        $tnpostid = $this->getTnpostid();
         if ($tnpostid) {
-            $sql = "SELECT id FROM messages WHERE tnpostid LIKE ?;";
-            $msgs = $this->dbhr->preQuery($sql,[$tnpostid]);
-
-            foreach ($msgs as $msg) {
-                $this->dbhm->preExec("DELETE FROM messages WHERE id = ?;", [$msg['id']]);
-            }
+            $this->dbhm->preExec("DELETE FROM messages WHERE tnpostid LIKE ? AND messages.id IN (SELECT msgid FROM messages_groups WHERE messages_groups.groupid = ?);", [
+                $tnpostid,
+                $groupid
+            ]);
         }
+    }
+
+    public function getGroups() {
+        $ret = [];
+        $sql = "SELECT groupid FROM messages_groups WHERE msgid = ?;";
+        $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
+        foreach ($groups as $group) {
+            $ret[] = $group['groupid'];
+        }
+
+        return($ret);
     }
 }

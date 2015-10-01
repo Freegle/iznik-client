@@ -94,14 +94,12 @@ class MailRouterTest extends IznikTest {
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
-        assertNull(Message::findBymsgid($this->dbhr, -1));
-        $spamid = Message::findBymsgid($this->dbhr, $id);
-        $spam = new Message($this->dbhr, $this->dbhm, $spamid);
+        $spam = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals('sender@example.net', $spam->getFromaddr());
         assertNull($spam->getFromIP());
         assertNull($spam->getFromhost());
-        assertNull($spam->getGroupID());
-        assertEquals($spamid, $spam->getID());
+        assertEquals(0, count($spam->getGroups()));
+        assertEquals($id, $spam->getID());
         assertEquals('GTUBE1.1010101@example.net', $spam->getMessageID());
         assertEquals($msg, $spam->getMessage());
         assertEquals(Message::YAHOO_APPROVED, $spam->getSource());
@@ -112,7 +110,7 @@ class MailRouterTest extends IznikTest {
         assertEquals($spam->getSubject(), $spam->getHeader('subject'));
         assertEquals('recipient@example.net', $spam->getTo()[0]['address']);
         assertEquals('Sender', $spam->getFromname());
-        assertEquals('SpamAssassin flagged this as likely spam; score 1000 (high is bad)', $spam->getReason());
+        assertEquals('SpamAssassin flagged this as likely spam; score 1000 (high is bad)', $spam->getSpamReason());
         $spam->delete();
 
         error_log(__METHOD__ . " end");
@@ -146,16 +144,12 @@ class MailRouterTest extends IznikTest {
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
         
-        assertNull(Message::findBymsgid($this->dbhr, -1));
-        $pendid = Message::findBymsgid($this->dbhr, $id);
-        assertNotNull($pendid);
-        error_log("Found $id in pending $pendid");
-        $pend = new Message($this->dbhr, $this->dbhm, $pendid);
+        $pend = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals('test@test.com', $pend->getFromaddr());
         assertNull($pend->getFromIP()); # Because whitelisted IPs are masked out
         assertNull($pend->getFromhost());
-        assertNotNull($pend->getGroupID());
-        assertEquals($pendid, $pend->getID());
+        assertNotNull($pend->getGroups()[0]);
+        assertEquals($id, $pend->getID());
         assertEquals('emff7a66f1-e0ed-4792-b493-17a75d806a30@edward-x1', $pend->getMessageID());
         assertEquals($msg, $pend->getMessage());
         assertEquals(Message::YAHOO_PENDING, $pend->getSource());
@@ -292,9 +286,8 @@ class MailRouterTest extends IznikTest {
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         # This should have stored the IP in the message.
-        error_log("Message ID $id");
         $m = new Message($this->dbhm, $this->dbhm, $id);
-        assertNull($m->getFromIP());
+        assertEquals('41.205.16.153', $m->getFromIP());
 
         error_log(__METHOD__ . " end");
     }
@@ -303,15 +296,13 @@ class MailRouterTest extends IznikTest {
         error_log(__METHOD__);
 
         $msg = file_get_contents('msgs/spam');
-        $r = new MailRouter($this->dbhr, $this->dbhm);
 
-        # Make the attempt to move the message fail.
-        $mock = $this->getMockBuilder('Message')
+        # Make the attempt to mark as spam fail.
+        $r = $this->getMockBuilder('MailRouter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
-            ->setMethods(array('delete'))
+            ->setMethods(array('markAsSpam'))
             ->getMock();
-        $mock->method('delete')->willReturn(false);
-        $r->setMsg($mock);
+        $r->method('markAsSpam')->willReturn(false);
 
         $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -346,16 +337,16 @@ class MailRouterTest extends IznikTest {
         error_log(__METHOD__);
 
         $msg = file_get_contents('msgs/basic');
-        $r = new MailRouter($this->dbhr, $this->dbhm);
 
-        # Make the attempt to move the message fail.
-        $mock = $this->getMockBuilder('Message')
+        # Make the attempt to mark the message as approved
+        $r = $this->getMockBuilder('MailRouter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
-            ->setMethods(array('delete'))
+            ->setMethods(array('markApproved', 'markPending'))
             ->getMock();
-        $mock->method('delete')->willReturn(false);
-        $r->setMsg($mock);
+        $r->method('markApproved')->willReturn(false);
+        $r->method('markPending')->willReturn(false);
 
+        error_log("Expect markApproved fail");
         $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::FAILURE, $rc);
@@ -495,7 +486,9 @@ class MailRouterTest extends IznikTest {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $m->save();
+        assertNotNull($m->getGroupId());
+        $id = $m->save();
+        error_log("Set up id $id");
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $r->routeAll();

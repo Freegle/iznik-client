@@ -14,6 +14,14 @@ class Entity
     var $publicatts = array();
     private $name, $table;
 
+    /**
+     * @return mixed
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
     function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts)
     {
         $this->dbhr = $dbhr;

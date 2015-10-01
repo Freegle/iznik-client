@@ -35,14 +35,6 @@ class MailRouter
         $this->spamc = $spamc;
     }
 
-    /**
-     * @param mixed $msg
-     */
-    public function setMsg($msg)
-    {
-        $this->msg = $msg;
-    }
-
     const FAILURE = "Failure";
     const INCOMING_SPAM = "IncomingSpam";
     const APPROVED = "Approved";
@@ -71,26 +63,27 @@ class MailRouter
         return($this->msg->save());
     }
 
-    private function markAsSpam($reason) {
-        return($this->dbhm->preExec("UPDATE messages SET collection = 'Spam' WHERE id = ?;", [ $this->id ]));
+    # Public for UT
+    public function markAsSpam($reason) {
+        error_log("Mark " . $this->msg->getID() . " as spam");
+        return(
+            $this->dbhm->preExec("UPDATE messages SET spamreason = ? WHERE id = ?;", [
+                $reason,
+                $this->msg->getID()
+            ]) &&
+            $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Spam' WHERE msgid = ?;", [
+                $this->msg->getID()
+            ]));
     }
 
-    private function markApproved() {
-        # A message we are marking as approved may previously have been in our pending queue.  This can happen if a
-        # message is handled on another system, e.g. moderated directly on Yahoo.
-        #
-        # We don't need a transaction for this - transactions aren't great for scalability and worst case we
-        # leave a spurious message around which a mod will handle.
-        $p = new Message($this->dbhm, $this->dbhm);
-        $p->removeByMessageID($this->msg);
-        $s = new Message($this->dbhm, $this->dbhm);
-        $s->removeByMessageID($this->msg);
-
-        return($this->dbhm->preExec("UPDATE messages SET collection = 'Approved' WHERE id = ?;", [ $this->id ]));
+    # Public for UT
+    public function markApproved() {
+        return($this->dbhm->preExec("UPDATE messages_groups SET collection = 'Approved' WHERE msgid = ?;", [ $this->msg->getID() ]));
     }
 
-    private function markPending() {
-        return($this->dbhm->preExec("UPDATE messages SET collection = 'Pending' WHERE id = ?;", [ $this->id ]));
+    # Public for UT
+    public function markPending() {
+        return($this->dbhm->preExec("UPDATE messages_groups SET collection = 'Pending' WHERE msgid = ?;", [ $this->msg->getID() ]));
     }
 
     public function route($msg = NULL) {
@@ -111,12 +104,14 @@ class MailRouter
                 'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
                 'msgid' => $this->msg->getID(),
                 'text' => "{$rc[1]}",
-                'groupid' => $this->msg->getGroupID()
+                'groupid' => $this->msg->getGroups()[0]
             ]);
 
-            $this->markAsSpam("{$rc[1]}");
-
-            $ret = MailRouter::INCOMING_SPAM;
+            if ($this->markAsSpam("{$rc[1]}")) {
+                $ret = MailRouter::INCOMING_SPAM;
+            } else {
+                $ret = MailRouter::INCOMING_FAILURE;
+            }
         } else {
             # Now check if we think this is just plain spam.
             $this->spamc->command = 'CHECK';
@@ -126,13 +121,26 @@ class MailRouter
 
                 if ($spamscore >= 5) {
                     # This might be spam.  We'll mark it as such, then it will get reviewed.
-                    $this->log->log([
-                        'type' => Log::TYPE_MESSAGE,
-                        'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
-                        'msgid' => $this->msg->getID(),
-                        'text' => "SpamAssassin score $spamscore",
-                        'groupid' => $this->msg->getGroupID()
-                    ]);
+                    $groups = $this->msg->getGroups();
+
+                    if (count($groups) > 0) {
+                        foreach ($groups as $groupid) {
+                            $this->log->log([
+                                'type' => Log::TYPE_MESSAGE,
+                                'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
+                                'msgid' => $this->msg->getID(),
+                                'text' => "SpamAssassin score $spamscore",
+                                'groupid' => $groupid
+                            ]);
+                        }
+                    } else {
+                        $this->log->log([
+                            'type' => Log::TYPE_MESSAGE,
+                            'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
+                            'msgid' => $this->msg->getID(),
+                            'text' => "SpamAssassin score $spamscore"
+                        ]);
+                    }
 
                     if ($this->markAsSpam("SpamAssassin flagged this as likely spam; score $spamscore (high is bad)")) {
                         $ret = MailRouter::INCOMING_SPAM;
@@ -152,6 +160,8 @@ class MailRouter
                         $ret = MailRouter::PENDING;
                     } else if ($this->markApproved()) {
                         $ret = MailRouter::APPROVED;
+                    } else {
+                        $ret = MailRouter::FAILURE;
                     }
                 }
             } else {
@@ -167,10 +177,13 @@ class MailRouter
     }
 
     public function routeAll() {
-        $msgs = $this->dbhr->preQuery("SELECT id FROM messages WHERE collection = 'Incoming';");
+        $msgs = $this->dbhr->preQuery("SELECT msgid FROM messages_groups WHERE collection = 'Incoming';");
         foreach ($msgs as $m) {
             try {
-                $msg = new Message($this->dbhr, $this->dbhm, $m['id']);
+                // @codeCoverageIgnoreStart This seems to be needed due to a presumed bug in phpUnit.  This line
+                // doesn't show as covered even though the next one does, which is clearly not possible.
+                $msg = new Message($this->dbhr, $this->dbhm, $m['msgid']);
+                // @codeCoverageIgnoreEnd
                 $this->route($msg);
             } catch (Exception $e) {
                 # Ignore this and continue routing the rest.

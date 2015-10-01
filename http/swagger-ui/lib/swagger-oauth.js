@@ -60,10 +60,10 @@ function handleLogin() {
       '</div>'].join(''));
   $(document.body).append(popupDialog);
 
-  popup = popupDialog.find('ul.api-popup-scopes').empty();
+  var popup = popupDialog.find('ul.api-popup-scopes').empty();
   for (i = 0; i < scopes.length; i ++) {
     scope = scopes[i];
-    str = '<li><input type="checkbox" id="scope_' + i + '" scope="' + scope.scope + '"/>' + '<label for="scope_' + i + '">' + scope.scope;
+    var str = '<li><input type="checkbox" id="scope_' + i + '" scope="' + scope.scope + '"/>' + '<label for="scope_' + i + '">' + scope.scope;
     if (scope.description) {
       str += '<br/><span class="api-scope-desc">' + scope.description + '</span>';
     }
@@ -134,7 +134,7 @@ function handleLogin() {
         }
       }
     }
-    var scopes = []
+    var scopes = [];
     var o = $('.api-popup-scopes').find('input:checked');
 
     for(k =0; k < o.length; k++) {
@@ -215,7 +215,7 @@ window.processOAuthCode = function processOAuthCode(data) {
     'code': data.code,
     'grant_type': 'authorization_code',
     'redirect_uri': redirect_uri
-  }
+  };
   $.ajax(
   {
     url : window.swaggerUi.tokenUrl,
@@ -230,7 +230,7 @@ window.processOAuthCode = function processOAuthCode(data) {
       onOAuthComplete("");
     }
   });
-}
+};
 
 window.onOAuthComplete = function onOAuthComplete(token) {
   if(token) {

@@ -47,8 +47,7 @@
     };
 
     var getTheView = function($el){
-        var ret = $el.length ? $el.data('saveView') : null;
-        return ret;
+        return($el.length ? $el.data('saveView') : null);
     };
 
     var methods = {

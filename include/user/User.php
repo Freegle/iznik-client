@@ -10,7 +10,7 @@ class User extends Entity
     var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'settings', 'systemrole');
 
     # Roles on specific groups
-    const ROLE_NONE = 'None';
+    const ROLE_NONMEMBER = 'Non-member';
     const ROLE_MEMBER = 'Member';
     const ROLE_MODERATOR = 'Moderator';
     const ROLE_OWNER = 'Owner';
@@ -203,7 +203,6 @@ class User extends Entity
     }
 
     public function isModOrOwner($groupid) {
-        $ret = [];
         $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner') AND groupid = ?;", [
             $this->id,
             $groupid
@@ -260,7 +259,7 @@ class User extends Entity
         # - owner, we can see everything
         #
         # If our system role is support then we get moderator status; if it's admin we get owner status.
-        $role = User::ROLE_NONE;
+        $role = User::ROLE_NONMEMBER;
 
         switch ($this->getPrivate('systemrole')) {
             case User::ROLE_SUPPORT:
@@ -287,7 +286,7 @@ class User extends Entity
                     break;
                 case 'Member':
                     # Upgrade from none to member.
-                    $role = $role == User::ROLE_NONE ? User::ROLE_MEMBER : $role;
+                    $role = $role == User::ROLE_NONMEMBER ? User::ROLE_MEMBER : $role;
                     break;
             }
         }
@@ -296,6 +295,7 @@ class User extends Entity
     }
 
     public function setRole($role, $groupid) {
+        error_log("Set role for $groupid to $role");
         $sql = "UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;";
         $this->dbhm->preExec($sql, [
             $role,

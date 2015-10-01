@@ -36,7 +36,7 @@ class Attachment
     }
 
     public static function getById($dbhr, $dbhm, $id) {
-        $sql = "SELECT id FROM messages_attachments;";
+        $sql = "SELECT id FROM messages_attachments WHERE msgid = ? ORDER BY id;";
         $atts = $dbhr->preQuery($sql, [$id]);
         $ret = [];
         foreach ($atts as $att) {
