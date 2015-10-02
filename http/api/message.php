@@ -11,6 +11,7 @@ function message() {
     $source = presdef('source', $_REQUEST, NULL);
     $from = presdef('from', $_REQUEST, NULL);
     $message = presdef('message', $_REQUEST, NULL);
+    $yahoopendingid = presdef('yahoopendingid', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -91,8 +92,10 @@ function message() {
 
             if ($g && $me && $me->isModOrOwner($groupid)) {
                 $r = new MailRouter($dbhr, $dbhm);
-                $r->received($source, $from, $g->getPrivate('nameshort') . '@yahoogroups.com', $message);
+                $id = $r->received($source, $from, $g->getPrivate('nameshort') . '@yahoogroups.com', $message);
                 $rc = $r->route();
+                $m = new Message($dbhr, $dbhm, $id);
+                $m->setYahooPendingId($yahoopendingid);
 
                 $ret = [
                     'ret' => 0,

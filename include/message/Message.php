@@ -40,6 +40,13 @@ class Message
         return $this->yahoopendingid;
     }
 
+    public function setYahooPendingId($id) {
+        $rc = $this->dbhm->preExec("UPDATE messages SET yahoopendingid = ? WHERE id = {$this->id};", [ $id ]);
+        if ($rc) {
+            $this->yahoopendingid = $id;
+        }
+    }
+
     /**
      * @return mixed
      */

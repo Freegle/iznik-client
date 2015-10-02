@@ -110,6 +110,10 @@ class Collection
             $mysqltime
         ]);
 
-        return(count($msglist) > 0);
+        if (count($msglist) == 1) {
+            return($msglist[0]['id']);
+        } else {
+            return NULL;
+        }
     }
 }

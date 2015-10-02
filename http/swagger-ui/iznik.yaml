@@ -156,6 +156,10 @@ paths:
         in: body
         description: The full message source
         type: string
+      - name: yahoopendingid
+        in: body
+        description: The pending ID on Yahoo
+        type: string
       responses:
           "200":
             description: "Successful response"

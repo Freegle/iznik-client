@@ -11,8 +11,8 @@
                     <div class="panel panel-default">
                         <div class="panel-body small">
                             <div class="ellipsis">
-                                <span data-toggle="tooltip" title="Email address is {{envelopefrom}}">
-                                    <div class="glyphicon glyphicon-envelope" />&nbsp;{{envelopefrom}}
+                                <span data-toggle="tooltip" title="Email address is <% if (obj.envelopefrom) { %>{{envelopefrom}}<% } else { %>{{fromaddr}}<% } %>">
+                                    <div class="glyphicon glyphicon-envelope" />&nbsp;<% if (obj.envelopefrom) { %>{{envelopefrom}}<% } else { %>{{fromaddr}}<% } %>
                                 </span>
                             </div>
                             <div class="ellipsis">

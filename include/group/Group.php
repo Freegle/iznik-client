@@ -71,7 +71,6 @@ class Group extends Entity
     }
 
     public function getWorkCounts() {
-        error_log("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = {$this->id} AND messages_groups.collection = 'Pending';");
         $ret = [
             'pending' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Pending';", [
                 $this->id
@@ -80,8 +79,6 @@ class Group extends Entity
                 $this->id
             ])[0]['count'],
         ];
-
-        error_log("Counts for {$this->id} are " . var_export($ret, true));
 
         return($ret);
     }
@@ -117,8 +114,16 @@ class Group extends Entity
 
             foreach ($cs as $c) {
                 /** @var Collection $c */
-                if ($c->find($message['email'], $this->id, $message['date'])) {
+                $id = $c->find($message['email'], $this->id, $message['date']);
+                if ($id) {
                     $missing = false;
+
+                    # Make sure we have the pending id set, which we won't have if we got the message by email.
+                    error_log("Set pending {$message['yahoopendingid']} for $id");
+                    $this->dbhm->preExec("UPDATE messages SET yahoopendingid = ? WHERE id = ? AND yahoopendingid IS NULL;", [
+                        $message['yahoopendingid'],
+                        $id
+                    ]);
                 }
             }
 
