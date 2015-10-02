@@ -184,7 +184,7 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                 // Finished.  Now check with the server whether we have any messages which it doesn't.
                 $.ajax({
                     type: "POST",
-                    url: API + 'correlate',
+                    url: API + 'messages',
                     context: self,
                     data: {
                         'groupid': this.model.get('id'),
@@ -227,7 +227,7 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                                             var source = decodeEntities(ret.ygData.rawEmail);
                                             $.ajax({
                                                 type: "PUT",
-                                                url: API + 'message',
+                                                url: API + 'messages',
                                                 data: {
                                                     groupid: self.model.get('id'),
                                                     from: ret.ygData.email,

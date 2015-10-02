@@ -122,12 +122,13 @@ class Group extends Entity
                 if ($id) {
                     $missing = false;
 
-                    # Make sure we have the pending id set, which we won't have if we got the message by email.
-                    error_log("Set pending {$message['yahoopendingid']} for $id");
-                    $this->dbhm->preExec("UPDATE messages SET yahoopendingid = ? WHERE id = ? AND yahoopendingid IS NULL;", [
-                        $message['yahoopendingid'],
-                        $id
-                    ]);
+                    if (pres('yahoopendingid', $message)) {
+                        # Make sure we have the pending id set, which we won't have if we got the message by email.
+                        $this->dbhm->preExec("UPDATE messages SET yahoopendingid = ? WHERE id = ? AND yahoopendingid IS NULL;", [
+                            $message['yahoopendingid'],
+                            $id
+                        ]);
+                    }
                 }
             }
 

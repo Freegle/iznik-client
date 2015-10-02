@@ -8,10 +8,6 @@ function message() {
     $id = intval(presdef('id', $_REQUEST, NULL));
     $reason = presdef('reason', $_REQUEST, NULL);
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
-    $source = presdef('source', $_REQUEST, NULL);
-    $from = presdef('from', $_REQUEST, NULL);
-    $message = presdef('message', $_REQUEST, NULL);
-    $yahoopendingid = presdef('yahoopendingid', $_REQUEST, NULL);
     $action = presdef('action', $_REQUEST, NULL);
     $subject = presdef('subject', $_REQUEST, NULL);
     $body = presdef('body', $_REQUEST, NULL);
@@ -78,36 +74,6 @@ function message() {
             }
         }
         break;
-
-        case 'PUT': {
-            # We are trying to sync a message.
-            switch ($source) {
-                case Message::YAHOO_PENDING:
-                case Message::YAHOO_APPROVED:
-                    break;
-                default:
-                    $source = NULL;
-                    break;
-            }
-
-            $g = new Group($dbhr, $dbhm, $groupid);
-            $ret = ['ret' => 2, 'status' => 'Permission denied'];
-
-            if ($g && $me && $me->isModOrOwner($groupid)) {
-                $r = new MailRouter($dbhr, $dbhm);
-                $id = $r->received($source, $from, $g->getPrivate('nameshort') . '@yahoogroups.com', $message);
-                $rc = $r->route();
-                $m = new Message($dbhr, $dbhm, $id);
-                $m->setYahooPendingId($yahoopendingid);
-
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success',
-                    'routed' => $rc
-                ];
-            }
-            break;
-        }
 
         case 'POST': {
             $m = new Message($dbhr, $dbhm, $id);

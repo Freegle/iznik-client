@@ -158,6 +158,7 @@ class messagesTest extends IznikAPITest {
 
         error_log(__METHOD__ . " end");
     }
+
     public function testPending() {
         error_log(__METHOD__);
 
@@ -216,6 +217,54 @@ class messagesTest extends IznikAPITest {
         assertTrue(array_key_exists('source', $msgs[0])); # A mod, should see mod att
 
         $a->delete();
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testPut() {
+        error_log(__METHOD__ . " start");
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+        $msg = file_get_contents('msgs/basic');
+
+        $ret = $this->call('messages', 'PUT', [
+            'groupid' => $group1,
+            'source' => Message::YAHOO_PENDING,
+            'from' => 'test@test.com',
+            'message' => $msg
+        ]);
+
+        # Should fail - not a mod
+        assertEquals(2, $ret['ret']);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($group1, User::ROLE_MODERATOR);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('messages', 'PUT', [
+            'groupid' => $group1,
+            'source' => Message::YAHOO_PENDING,
+            'from' => 'test@test.com',
+            'message' => $msg
+        ]);
+
+        # Should work
+        assertEquals(0, $ret['ret']);
+        assertEquals(MailRouter::PENDING, $ret['routed']);
+
+        # Should fail - invalid source
+        $ret = $this->call('messages', 'PUT', [
+            'groupid' => $group1,
+            'source' => 'wibble',
+            'from' => 'test@test.com',
+            'message' => $msg
+        ]);
+
+        assertEquals(997, $ret['ret']);
 
         error_log(__METHOD__ . " end");
     }

@@ -54,7 +54,7 @@ class correlateTest extends IznikAPITest {
         $u = new User($this->dbhr, $this->dbhm, $id);
         $u->addMembership($group1, User::ROLE_MODERATOR);
 
-        $ret = $this->call('correlate', 'POST', [
+        $ret = $this->call('messages', 'POST', [
             'groupid' => $group1,
             'collections' => [
                 'Pending',
@@ -67,7 +67,7 @@ class correlateTest extends IznikAPITest {
         assertTrue($u->login('testpw'));
 
         # Test same - none missing.
-        $ret = $this->call('correlate', 'POST', [
+        $ret = $this->call('messages', 'POST', [
             'groupid' => $group1,
             'collections' => [
                 'Pending',
@@ -88,7 +88,7 @@ class correlateTest extends IznikAPITest {
         assertEquals(0, count($ret['missingonserver']));
 
         # Test different sender - should be missing.
-        $ret = $this->call('correlate', 'POST', [
+        $ret = $this->call('messages', 'POST', [
             'groupid' => $group1,
             'collections' => [
                 'Pending',
@@ -108,7 +108,7 @@ class correlateTest extends IznikAPITest {
         assertEquals('test1@test.com', $ret['missingonserver'][0]['email']);
 
         # Test different time - should be missing.
-        $ret = $this->call('correlate', 'POST', [
+        $ret = $this->call('messages', 'POST', [
             'groupid' => $group1,
             'collections' => [
                 'Pending',
