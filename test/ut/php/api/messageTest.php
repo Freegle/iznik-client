@@ -254,7 +254,7 @@ class messageTest extends IznikAPITest {
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
-        $this->dbhm->preExec("UPDATE messages SET yahooapprove = 'test@test.com' WHERE id = $id;");
+        $this->dbhm->preExec("UPDATE messages SET yahooapprove = 'test@test.com', yahoopendingid = 1 WHERE id = $id;");
 
         # Suppress mails.
         $m = $this->getMockBuilder('Message')
@@ -296,6 +296,12 @@ class messageTest extends IznikAPITest {
             'duplicate' => 1
         ]);
         assertEquals(0, $ret['ret']);
+
+        # Plugin work should exist
+        $p = new Plugin($this->dbhr, $this->dbhm);
+        $work = $p->get($group1);
+        assertEquals(1, count($work));
+        $p->delete($work[0]['id']);
 
         # Should be gone
         $ret = $this->call('message', 'POST', [

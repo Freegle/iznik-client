@@ -38,6 +38,29 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
 Iznik.Views.ModTools.Message.Pending = IznikView.extend({
     template: 'modtools_pending_message',
 
+    events: {
+        'click .js-approve' : 'approve'
+    },
+
+    approve: function() {
+        var self = this;
+
+        // We approve the message on all groups.  Future enhancement?
+        _.each(self.model.get('groups'), function(group, index, list) {
+            $.ajax({
+                type: 'POST',
+                url: API + 'message',
+                data: {
+                    id: self.model.get('id'),
+                    groupid: group.id,
+                    action: 'Approve'
+                }, success: function(ret) {
+                    self.$el.fadeOut('slow');
+                }
+            })
+        });
+    },
+
     render: function() {
         var self = this;
 

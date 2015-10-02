@@ -12,6 +12,7 @@ require_once(IZNIK_BASE . '/include/dashboard/Dashboard.php');
 require_once(IZNIK_BASE . '/include/message/Collection.php');
 require_once(IZNIK_BASE . '/include/misc/Supporters.php');
 require_once(IZNIK_BASE . '/include/mail/MailRouter.php');
+require_once(IZNIK_BASE . '/include/misc/plugin.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/session.php');

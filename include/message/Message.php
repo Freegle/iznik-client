@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
+require_once(IZNIK_BASE . '/include/misc/plugin.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
@@ -728,6 +729,8 @@ class Message
     }
 
     public function approve($groupid) {
+        # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
+        # behaviour.
         $this->log->log([
             'type' => Log::TYPE_MESSAGE,
             'subtype' => Log::SUBTYPE_APPROVED,
@@ -735,17 +738,34 @@ class Message
             'groupid' => $groupid
         ]);
 
+        $handled = false;
+
         if ($this->yahooapprove) {
             # We can trigger approval by email - do so.
             # TODO Probably the approve/reject mails should be in messages_groups rather than per-message.
             $this->mailer($this->yahooapprove, "My name is Iznik and I approve this message", "", NULL, '-f' . MODERATOR_EMAIL);
+            $handled = true;
         }
 
-        $sql = "UPDATE messages_groups SET collection = ? WHERE msgid = ?;";
-        $this->dbhm->preExec($sql, [
-            Collection::APPROVED,
-            $this->id
-        ]);
+        $ypid = $this->getYahoopendingid();
+        error_log("YPID $ypid");
+        if ($ypid) {
+            # We can trigger approval via the plugin - do so.
+            $p = new Plugin($this->dbhr, $this->dbhm);
+            $p->add($groupid, [
+                'type' => 'ApprovePendingMessage',
+                'id' => $ypid
+            ]);
+            $handled = true;
+        }
+
+        if ($handled) {
+            $sql = "UPDATE messages_groups SET collection = ? WHERE msgid = ?;";
+            $this->dbhm->preExec($sql, [
+                Collection::APPROVED,
+                $this->id
+            ]);
+        }
     }
 
     function delete($reason = NULL, $groupid = NULL)
