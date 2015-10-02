@@ -295,7 +295,6 @@ class User extends Entity
     }
 
     public function setRole($role, $groupid) {
-        error_log("Set role for $groupid to $role");
         $sql = "UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;";
         $this->dbhm->preExec($sql, [
             $role,

@@ -20,6 +20,7 @@ require_once(IZNIK_BASE . '/http/api/dashboard.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
 require_once(IZNIK_BASE . '/http/api/message.php');
 require_once(IZNIK_BASE . '/http/api/supporters.php');
+require_once(IZNIK_BASE . '/http/api/plugin.php');
 
 $includetime = microtime(true) - $scriptstart;
 
@@ -83,6 +84,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
                     break;
                 case 'message':
                     $ret = message();
+                    break;
+                case 'plugin':
+                    $ret = plugin();
                     break;
                 case 'session':
                     $ret = session();

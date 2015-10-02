@@ -19,7 +19,6 @@ function message() {
         case 'DELETE': {
             $m = NULL;
             $m = new Message($dbhr, $dbhm, $id);
-            error_log("Looking for message $id found " . $m->getID());
 
             if (!$m->getID()) {
                 $ret = ['ret' => 3, 'status' => 'Message does not exist'];
@@ -85,7 +84,8 @@ function message() {
                     $ret = ['ret' => 3, 'status' => 'Message is not pending'];
                 } else {
                     if ($action == 'Delete') {
-                        $m->delete('Deleted by moderator', $groupid);
+                        # We have to reject on Yahoo, but without a reply.
+                        $m->reject($groupid, NULL, NULL);
                     } else if ($action == 'Reject') {
                         $m->reject($groupid, $subject, $body);
                     } else if ($action == 'Approve') {

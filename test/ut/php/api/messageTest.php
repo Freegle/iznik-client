@@ -250,16 +250,186 @@ class messageTest extends IznikAPITest {
         assertEquals(0, $ret['ret']);
 
         # Plugin work should exist
-        $p = new Plugin($this->dbhr, $this->dbhm);
-        $work = $p->get($group1);
-        assertEquals(1, count($work));
-        $p->delete($work[0]['id']);
+        $ret = $this->call('plugin', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['plugin']));
+        assertEquals($group1, $ret['plugin'][0]['groupid']);
+        assertEquals('{"type":"ApprovePendingMessage","id":"1"}', $ret['plugin'][0]['data']);
+        $pid = $ret['plugin'][0]['id'];
+
+        $ret = $this->call('plugin', 'DELETE', [
+            'id' => $pid
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('plugin', 'GET', []);
+        assertEquals(0, count($ret['plugin']));
 
         # Should be gone
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $group1,
             'action' => 'Approve',
+            'duplicate' => 2
+        ]);
+        assertEquals(3, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testReject() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+        $this->dbhm->preExec("UPDATE messages SET yahooreject = 'test@test.com', yahoopendingid = 1 WHERE id = $id;");
+
+        # Suppress mails.
+        $m = $this->getMockBuilder('Message')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+        $m->method('mailer')->willReturn(false);
+
+        # Shouldn't be able to reject logged out
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Reject'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Now join - shouldn't be able to reject as a member
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($group1);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Reject'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Promote to owner - should be able to reject it.  Suppress the mail.
+        $u->setRole(User::ROLE_OWNER, $group1);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Reject',
+            'subject' => 'Test reject',
+            'body' => 'Test body',
+            'duplicate' => 1
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Plugin work should exist
+        $ret = $this->call('plugin', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['plugin']));
+        assertEquals($group1, $ret['plugin'][0]['groupid']);
+        assertEquals('{"type":"RejectPendingMessage","id":"1"}', $ret['plugin'][0]['data']);
+        $pid = $ret['plugin'][0]['id'];
+
+        $ret = $this->call('plugin', 'DELETE', [
+            'id' => $pid
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('plugin', 'GET', []);
+        assertEquals(0, count($ret['plugin']));
+
+        # Should be gone
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Reject',
+            'duplicate' => 2
+        ]);
+        assertEquals(3, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testDelete() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+        $this->dbhm->preExec("UPDATE messages SET yahooreject = 'test@test.com', yahoopendingid = 1 WHERE id = $id;");
+
+        # Shouldn't be able to delete logged out
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Delete'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Now join - shouldn't be able to delete as a member
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($group1);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Delete'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Promote to owner - should be able to delete it.
+        $u->setRole(User::ROLE_OWNER, $group1);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Delete',
+            'duplicate' => 1
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Plugin work should exist
+        $ret = $this->call('plugin', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['plugin']));
+        assertEquals($group1, $ret['plugin'][0]['groupid']);
+        assertEquals('{"type":"RejectPendingMessage","id":"1"}', $ret['plugin'][0]['data']);
+        $pid = $ret['plugin'][0]['id'];
+
+        $ret = $this->call('plugin', 'DELETE', [
+            'id' => $pid
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('plugin', 'GET', []);
+        assertEquals(0, count($ret['plugin']));
+
+        # Should be gone
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Reject',
             'duplicate' => 2
         ]);
         assertEquals(3, $ret['ret']);

@@ -313,6 +313,41 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+  /plugin:
+    get:
+      summary: Plugin Get
+      tags: [Plugin]
+      description: |
+        Get list of work for currently logged in user
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+  /plugin/{id}:
+    delete:
+      summary: Plugin Delete
+      tags: [Plugin]
+      description: |
+        Delete an item of work
+      parameters:
+      - name: id
+        in: path
+        description: ID of plugin work item
+        type: number
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
 definitions:
   Response:
     properties: 

@@ -714,7 +714,7 @@ class Message
 
     public function isPending($groupid) {
         $ret = false;
-        $sql = "SELECT msgid FROM messages_groups WHERE msgid = ? AND groupid = ? AND collection = ?;";
+        $sql = "SELECT msgid FROM messages_groups WHERE msgid = ? AND groupid = ? AND collection = ? AND deleted = 0;";
         $groups = $this->dbhr->preQuery($sql, [
             $this->id,
             $groupid,
@@ -729,7 +729,7 @@ class Message
         # behaviour.
         $this->log->log([
             'type' => Log::TYPE_MESSAGE,
-            'subtype' => Log::SUBTYPE_REJECTED,
+            'subtype' => $subject ? Log::SUBTYPE_REJECTED : Log::SUBTYPE_DELETED,
             'msgid' => $this->id,
             'groupid' => $groupid,
             'text' => $subject

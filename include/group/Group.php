@@ -48,7 +48,7 @@ class Group extends Entity
     }
 
     public function getModsEmail() {
-        return($this->nameshort . "-owner@yahoogroups.com");
+        return($this->group['nameshort'] . "-owner@yahoogroups.com");
     }
 
     public function delete() {
