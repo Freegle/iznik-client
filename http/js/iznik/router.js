@@ -1,7 +1,31 @@
 var IznikRouter = Backbone.Router.extend({
 
     initialize: function(){
+        var self = this;
+
         this.bind('route', this.pageView);
+
+        self.listenToOnce(self, 'loadedPage', function() {
+            // We start our syncs once - after that they are responsible for restarting themselves if they want to.
+            self.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
+                if (self.modtools) {
+                    // This is a ModTools page - start any plugin work.
+                    if (loggedIn) {
+                        Iznik.Session.get('groups').each(function (group) {
+                            if (group.get('onyahoo') &&
+                                (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
+                                // We are a mod on this group.  Set our various syncs going.
+                                (new Iznik.Views.Plugin.Yahoo.SyncPending({model: group})).render();
+                            }
+                        });
+
+                        IznikPlugin.checkWork();
+                    }
+                }
+            });
+
+            Iznik.Session.testLoggedIn();
+        });
     },
 
     pageView: function(){
@@ -34,31 +58,12 @@ var IznikRouter = Backbone.Router.extend({
         var self = this;
         routeOptions = routeOptions || {};
 
+        self.modtools = routeOptions.modtools;
+
         function loadPage(options){
             options = options || {};
-
-            self.listenToOnce(routeOptions.page, 'pageContentAdded', function(){
-                if (routeOptions.modtools) {
-                    // This is a ModTools page - start any plugin work.
-                    self.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
-                        if (loggedIn) {
-                            Iznik.Session.get('groups').each(function(group) {
-                                if (group.get('onyahoo') &&
-                                    (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
-                                    // We are a mod on this group.  Set our various syncs going.
-                                    (new Iznik.Views.Plugin.Yahoo.SyncPending({model: group})).render();
-                                }
-                            });
-
-                            IznikPlugin.checkWork();
-                        }
-                    });
-
-                    Iznik.Session.testLoggedIn();
-                }
-            });
-
             routeOptions.page.render();
+            self.trigger('loadedPage');
         }
 
         // Load the FB API.  If we're in a canvas app, it'll check if we're logged in, and if not try to do so.  Otherwise
@@ -66,6 +71,7 @@ var IznikRouter = Backbone.Router.extend({
         self.listenToOnce(FBLoad, 'fbloaded', function(){
             loadPage();
         });
+
         FBLoad.render();
     },
 

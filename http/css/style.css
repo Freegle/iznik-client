@@ -723,3 +723,9 @@ a button {
     -moz-hyphens: auto;
     hyphens: auto;
 }
+
+.ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

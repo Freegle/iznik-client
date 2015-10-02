@@ -6,6 +6,13 @@ Iznik.Views.Page = IznikView.extend({
         var self = this;
         options = typeof options == 'undefined' ? {} : options;
 
+        var rightbar = null;
+
+        if ($('#rightaccordion').length > 0) {
+            // We render the right sidebar only once, so that the plugin work remains there if we route to a new page
+            rightbar = $('#rightaccordion').children().detach();
+        }
+
         // Set the base page layout
         console.log("Render page", this.template, this.modtools);
         $('body').html(this.modtools ?
@@ -16,16 +23,23 @@ Iznik.Views.Page = IznikView.extend({
         var m = new Iznik.Views.LeftMenu();
         $('.js-leftsidebar').html(m.render().el);
 
-        if (!options.noSupporters) {
+        if (!rightbar) {
             var s = new Iznik.Views.Supporters();
             $('#rightaccordion').append(s.render().el);
+
+            var s = new Iznik.Views.Plugin.Info();
+            $('#rightaccordion').append(s.render().el);
+            $('#rightaccordion').accordionPersist();
         } else {
-            $('#rightaccordion').empty();
+            console.log("Restore rightbar");
+            $('#rightaccordion').empty().append(rightbar);
         }
 
-        var s = new Iznik.Views.Plugin.Info();
-        $('#rightaccordion').append(s.render().el);
-        $('#rightaccordion').accordionPersist();
+        if (options.noSupporters) {
+            $('.js-supporters').hide();
+        } else {
+            $('.js-supporters').show();
+        }
 
         // Put this page in
         this.$el.html(window.template(this.template)(Iznik.Session.toJSON2()));

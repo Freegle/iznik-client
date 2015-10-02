@@ -7,15 +7,24 @@
     <div class="panel-body">
         <div class="completefull nomargin">
             <div class="row-fluid">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="panel panel-default">
-                        <div class="panel-body forcebreak small">
-                            {{envelopefrom}}
+                        <div class="panel-body small">
+                            <div class="ellipsis">
+                                <span data-toggle="tooltip" title="Email address is {{envelopefrom}}">
+                                    <div class="glyphicon glyphicon-envelope" />&nbsp;{{envelopefrom}}
+                                </span>
+                            </div>
+                            <div class="ellipsis">
+                                <span data-toggle="tooltip" title="Friendly name is {{fromname}}">
+                                    <div class="glyphicon glyphicon-user" />&nbsp;{{fromname}}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-9">
-                    <div class="msgbody botspace"><% if (obj.textbody) { %>{{obj.textbody}}<% } else { %><span class="text-muted"><em>No message body</em></span><% } %></div>
+                <div class="col-md-8">
+                    <div class="msgbody botspace"><% if (obj.textbody && obj.textbody.length > 0) { %>{{obj.textbody}}<% } else { %><span class="text-muted"><em>No message body</em></span><% } %></div>
                     <ul class="list-inline list-unstyled botspace topspace">
                         <li class="span1 offset1">
                             <div class="btn btn-success"><div class="glyphicon glyphicon-ok"></div>&nbsp;Approve</div>

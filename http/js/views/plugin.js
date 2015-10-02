@@ -170,13 +170,12 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
 
             for (var i = 0; i < total; i++) {
                 var message = messages[i];
-                var d = new Date();
-                d.setUTCSeconds(message['postDate']);
+                var d = moment(message['postDate'] * 1000);
 
                 this.messages.push({
                     email: message['email'],
                     subject: message['subject'],
-                    date: d.toISOString(),
+                    date: d.format(),
                     yahoopendingid: message['msgId']
                 });
             }

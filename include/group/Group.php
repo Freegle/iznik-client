@@ -111,11 +111,12 @@ class Group extends Entity
         }
 
         foreach ($messages as $message) {
-            $supplied[$message['email'] . $message['date']] = true;
+            $supplied[$message['email'] . strtotime($message['date'])] = true;
 
             $missing = true;
 
             foreach ($cs as $c) {
+                /** @var Collection $c */
                 if ($c->find($message['email'], $this->id, $message['date'])) {
                     $missing = false;
                 }
@@ -140,7 +141,7 @@ class Group extends Entity
             );
 
             foreach ($ourmsgs as $msg) {
-                $key = $msg['fromaddr'] . ISODate($msg['date']);
+                $key = $msg['fromaddr'] . strtotime($msg['date']);
                 if (!array_key_exists($key, $supplied)) {
                     $missingonclient[] = [
                         'id' => $msg['id'],

@@ -102,11 +102,12 @@ class Collection
     }
 
     function find($sender, $groupid, $date) {
+        $mysqltime = gmdate("Y-m-d H:i:s", strtotime($date));
         $sql = "SELECT id FROM messages INNER JOIN messages_groups ON messages.fromaddr = ? AND messages_groups.msgid = messages.id AND messages_groups.groupid = ? AND messages.date = ?;";
         $msglist = $this->dbhr->preQuery($sql, [
             $sender,
             $groupid,
-            $date
+            $mysqltime
         ]);
 
         return(count($msglist) > 0);
