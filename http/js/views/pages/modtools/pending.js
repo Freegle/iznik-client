@@ -39,7 +39,9 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
     template: 'modtools_pending_message',
 
     events: {
-        'click .js-approve' : 'approve'
+        'click .js-approve' : 'approve',
+        'click .js-reject' : 'reject',
+        'click .js-delete' : 'delete'
     },
 
     approve: function() {
@@ -54,6 +56,46 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
                     id: self.model.get('id'),
                     groupid: group.id,
                     action: 'Approve'
+                }, success: function(ret) {
+                    self.$el.fadeOut('slow');
+                }
+            })
+        });
+    },
+
+    reject: function() {
+        var self = this;
+
+        // We reject the message on all groups.  Future enhancement?
+        _.each(self.model.get('groups'), function(group, index, list) {
+            $.ajax({
+                type: 'POST',
+                url: API + 'message',
+                data: {
+                    id: self.model.get('id'),
+                    groupid: group.id,
+                    action: 'Reject',
+                    subject: 'Test rejection',
+                    body: 'Test body ' + self.model.get('textbody')
+                }, success: function(ret) {
+                    self.$el.fadeOut('slow');
+                }
+            })
+        });
+    },
+
+    delete: function() {
+        var self = this;
+
+        // We delete the message on all groups.  Future enhancement?
+        _.each(self.model.get('groups'), function(group, index, list) {
+            $.ajax({
+                type: 'POST',
+                url: API + 'message',
+                data: {
+                    id: self.model.get('id'),
+                    groupid: group.id,
+                    action: 'Delete'
                 }, success: function(ret) {
                     self.$el.fadeOut('slow');
                 }

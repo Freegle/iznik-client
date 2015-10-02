@@ -47,6 +47,10 @@ class Group extends Entity
         }
     }
 
+    public function getModsEmail() {
+        return($this->nameshort . "-owner@yahoogroups.com");
+    }
+
     public function delete() {
         $rc = $this->dbhm->preExec("DELETE FROM groups WHERE id = ?;", [$this->id]);
         if ($rc) {
@@ -72,10 +76,10 @@ class Group extends Entity
 
     public function getWorkCounts() {
         $ret = [
-            'pending' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Pending';", [
+            'pending' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Pending' AND messages_groups.deleted = 0;", [
                 $this->id
             ])[0]['count'],
-            'spam' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Spam';", [
+            'spam' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Spam' AND messages_groups.deleted = 0;", [
                 $this->id
             ])[0]['count'],
         ];

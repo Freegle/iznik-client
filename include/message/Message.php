@@ -725,7 +725,61 @@ class Message
     }
 
     public function reject($groupid, $subject, $body) {
+        # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
+        # behaviour.
+        $this->log->log([
+            'type' => Log::TYPE_MESSAGE,
+            'subtype' => Log::SUBTYPE_REJECTED,
+            'msgid' => $this->id,
+            'groupid' => $groupid,
+            'text' => $subject
+        ]);
 
+        $handled = false;
+
+        if ($this->yahooreject) {
+            # We can trigger rejection by email - do so.
+            # TODO Probably the approve/reject mails should be in messages_groups rather than per-message.
+            $this->mailer($this->yahooreject, "My name is Iznik and I reject this message", "", NULL, '-f' . MODERATOR_EMAIL);
+            $handled = true;
+        }
+
+        $ypid = $this->getYahoopendingid();
+        if ($ypid) {
+            # We can trigger rejection via the plugin - do so.
+            $p = new Plugin($this->dbhr, $this->dbhm);
+            $p->add($groupid, [
+                'type' => 'RejectPendingMessage',
+                'id' => $ypid
+            ]);
+            $handled = true;
+        }
+
+        if ($handled) {
+            $sql = "UPDATE messages_groups SET deleted = 1 WHERE msgid = ?;";
+            $this->dbhm->preExec($sql, [
+                $this->id
+            ]);
+
+            if ($subject) {
+                # We have a rejection mail to send.
+                $to = $this->getEnvelopefrom();
+                $to = $to ? $to : $this->getFromaddr();
+                $g = new Group($this->dbhr, $this->dbhm, $groupid);
+                $me = whoAmI($this->dbhr, $this->dbhm);
+
+                $name = $me->getName();
+                $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
+
+                $this->mailer(
+                    $to,
+                    $subject,
+                    $body,
+                    $headers,
+                    "-f" . $g->getModsEmail()
+                );
+            }
+        }
     }
 
     public function approve($groupid) {
@@ -748,7 +802,6 @@ class Message
         }
 
         $ypid = $this->getYahoopendingid();
-        error_log("YPID $ypid");
         if ($ypid) {
             # We can trigger approval via the plugin - do so.
             $p = new Plugin($this->dbhr, $this->dbhm);
