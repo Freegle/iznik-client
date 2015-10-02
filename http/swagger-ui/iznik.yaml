@@ -197,6 +197,44 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+    post:
+      summary: Message Approve/Reject
+      tags: [Messages]
+      description: |
+        Approve or reject a message
+      parameters:
+      - name: id
+        in: body
+        description: ID of the message
+        type: number
+        required: true
+      - name: groupid
+        in: query
+        description: ID of the group we're adding to
+        type: number
+      - name: action
+        in: query
+        description: Whether to approve or reject
+        type: string
+        enum: ['Approve', 'Reject', 'Delete']
+        required: true
+      - name: subject
+        in: body
+        description: Subject line for any rejection email
+        type: string
+      - name: body
+        in: body
+        description: Bodyfor any rejection email
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
   /messages:
     get:
       summary: Messages Get

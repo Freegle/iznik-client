@@ -12,6 +12,9 @@ function message() {
     $from = presdef('from', $_REQUEST, NULL);
     $message = presdef('message', $_REQUEST, NULL);
     $yahoopendingid = presdef('yahoopendingid', $_REQUEST, NULL);
+    $action = presdef('action', $_REQUEST, NULL);
+    $subject = presdef('subject', $_REQUEST, NULL);
+    $body = presdef('body', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -102,6 +105,32 @@ function message() {
                     'status' => 'Success',
                     'routed' => $rc
                 ];
+            }
+            break;
+        }
+
+        case 'POST': {
+            $m = new Message($dbhr, $dbhm, $id);
+            $ret = ['ret' => 2, 'status' => 'Permission denied'];
+
+            if ($m && $me && $me->isModOrOwner($groupid)) {
+                # Check that this is pending.
+                if (!$m->isPending($groupid)) {
+                    $ret = ['ret' => 3, 'status' => 'Message is not pending'];
+                } else {
+                    if ($action == 'Delete') {
+                        $m->delete('Deleted by moderator', $groupid);
+                    } else if ($action == 'Reject') {
+                        $m->reject($groupid, $subject, $body);
+                    } else if ($action == 'Approve') {
+                        $m->approve($groupid);
+                    }
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                }
             }
         }
     }

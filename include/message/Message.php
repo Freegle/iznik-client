@@ -104,6 +104,7 @@ class Message
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+
         $this->log = new Log($this->dbhr, $this->dbhm);
 
         if ($id) {
@@ -122,6 +123,11 @@ class Message
             $this->parser = new PhpMimeMailParser\Parser();
             $this->parser->setText($this->message);
         }
+    }
+
+    # Default mailer is to use the standard PHP one, but this can be overridden in UT.
+    private function mailer() {
+        call_user_func_array('mail', func_get_args());
     }
 
     public function getRoleForMessage() {
@@ -370,7 +376,6 @@ class Message
 
     # Get attachments which have been saved
     public function getAttachments() {
-        error_log("Get attachments for " . $this->getID());
         $atts = Attachment::getById($this->dbhr, $this->dbhm, $this->getID());
         return($atts);
     }
@@ -695,6 +700,54 @@ class Message
         return(mailparse_rfc822_parse_addresses($this->parser->getHeader('to')));
     }
 
+    public function getGroups() {
+        $ret = [];
+        $sql = "SELECT groupid FROM messages_groups WHERE msgid = ?;";
+        $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
+        foreach ($groups as $group) {
+            $ret[] = $group['groupid'];
+        }
+
+        return($ret);
+    }
+
+    public function isPending($groupid) {
+        $ret = false;
+        $sql = "SELECT msgid FROM messages_groups WHERE msgid = ? AND groupid = ? AND collection = ?;";
+        $groups = $this->dbhr->preQuery($sql, [
+            $this->id,
+            $groupid,
+            Collection::PENDING
+        ]);
+
+        return(count($groups) > 0);
+    }
+
+    public function reject($groupid, $subject, $body) {
+
+    }
+
+    public function approve($groupid) {
+        $this->log->log([
+            'type' => Log::TYPE_MESSAGE,
+            'subtype' => Log::SUBTYPE_APPROVED,
+            'msgid' => $this->id,
+            'groupid' => $groupid
+        ]);
+
+        if ($this->yahooapprove) {
+            # We can trigger approval by email - do so.
+            # TODO Probably the approve/reject mails should be in messages_groups rather than per-message.
+            $this->mailer($this->yahooapprove, "My name is Iznik and I approve this message", "", NULL, '-f' . MODERATOR_EMAIL);
+        }
+
+        $sql = "UPDATE messages_groups SET collection = ? WHERE msgid = ?;";
+        $this->dbhm->preExec($sql, [
+            Collection::APPROVED,
+            $this->id
+        ]);
+    }
+
     function delete($reason = NULL, $groupid = NULL)
     {
         $rc = true;
@@ -746,16 +799,5 @@ class Message
                 $groupid
             ]);
         }
-    }
-
-    public function getGroups() {
-        $ret = [];
-        $sql = "SELECT groupid FROM messages_groups WHERE msgid = ?;";
-        $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
-        foreach ($groups as $group) {
-            $ret[] = $group['groupid'];
-        }
-
-        return($ret);
     }
 }

@@ -4,6 +4,7 @@ define('SQLDB', 'iznik');
 define('SQLUSER', 'zzzz');
 define('SQLPASSWORD', 'zzzz');
 define('PASSWORD_SALT', 'zzzz');
+define('MODERATOR_EMAIL', 'zzzz');
 
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');

@@ -240,5 +240,73 @@ class messageTest extends IznikAPITest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testApprove() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+        $this->dbhm->preExec("UPDATE messages SET yahooapprove = 'test@test.com' WHERE id = $id;");
+
+        # Suppress mails.
+        $m = $this->getMockBuilder('Message')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+        $m->method('mailer')->willReturn(false);
+
+        # Shouldn't be able to approve logged out
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Approve'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Now join - shouldn't be able to approve as a member
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($group1);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Approve'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Promote to owner - should be able to approve it.  Suppress the mail.
+        $u->setRole(User::ROLE_OWNER, $group1);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Approve',
+            'duplicate' => 1
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Should be gone
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Approve',
+            'duplicate' => 2
+        ]);
+        assertEquals(3, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
