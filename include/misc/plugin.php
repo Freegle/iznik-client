@@ -13,6 +13,7 @@ class Plugin {
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        $this->log = new Log($this->dbhr, $this->dbhm);
     }
 
     public function add($groupid, $data) {
@@ -21,15 +22,38 @@ class Plugin {
             $groupid,
             json_encode($data)
         ]);
+
+        $this->log->log([
+            'type' => Log::TYPE_PLUGIN,
+            'subtype' => Log::SUBTYPE_CREATED,
+            'groupid' => $groupid,
+            'text' => $data
+        ]);
     }
 
     public function get($groupid) {
         # Put a limit on to avoid swamping a particular user with work.  They'll pick it up again later.
         $sql = "SELECT * FROM plugin WHERE groupid = ? LIMIT 100;";
-        return($this->dbhr->preQuery($sql, [ $groupid ]));
+        $plugins = $this->dbhr->preQuery($sql, [ $groupid ]);
+
+        foreach ($plugins as &$plugin) {
+            $plugin['added'] = ISODate($plugin['added']);
+        }
+
+        return($plugins);
     }
 
     public function delete($id) {
+        $sql = "SELECT * FROM plugin WHERE id = ?;";
+        $plugins = $this->dbhr->preQuery($sql, [ $id ]);
+        foreach ($plugins as $plugin) {
+            $this->log->log([
+                'type' => Log::TYPE_PLUGIN,
+                'subtype' => Log::SUBTYPE_DELETED,
+                'groupid' => $plugin['groupid']
+            ]);
+        }
+
         $sql = "DELETE FROM plugin WHERE id = ?;";
         return($this->dbhm->preExec($sql, [ $id ]));
     }
