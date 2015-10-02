@@ -225,13 +225,14 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                                     context: self,
                                     success: function(ret) {
                                         if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
+                                            var source = decodeEntities(ret.ygData.rawEmail);
                                             $.ajax({
                                                 type: "PUT",
                                                 url: API + 'message',
                                                 data: {
                                                     groupid: self.model.get('id'),
                                                     from: ret.ygData.email,
-                                                    message: ret.ygData.rawEmail,
+                                                    message: source,
                                                     source: self.source
                                                 },
                                                 context: self,
