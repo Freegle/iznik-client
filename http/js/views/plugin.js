@@ -266,8 +266,8 @@ Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Yahoo.Sync.extend({
     messageLocation: 'pendingMessages',
 
     collections: [
-        'pending',
-        'spam'
+        'Pending',
+        'Spam'
     ],
 
     source: 'Yahoo Pending',

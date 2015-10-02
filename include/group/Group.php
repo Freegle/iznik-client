@@ -128,9 +128,11 @@ class Group extends Entity
 
         # Now find messages which are missing on the client, i.e. present in $collections but not present in
         # $messages.
+        /** @var Collection $c */
         foreach ($cs as $c) {
+            $sql = "SELECT id, fromaddr, subject, date FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ?;";
             $ourmsgs = $this->dbhr->preQuery(
-                "SELECT id, fromaddr, subject, date FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ?;",
+                $sql,
                 [
                     $this->id,
                     $c->getCollection()
