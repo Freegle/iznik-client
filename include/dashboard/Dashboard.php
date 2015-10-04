@@ -32,7 +32,7 @@ class Dashboard {
 
         if ($systemwide && $this->me->getPrivate('systemrole')) {
             # Get a summary of messages across the whole site for the last 30 days
-            $sql = "SELECT COUNT(*) AS count, DATE(messages.arrival) AS date FROM messages INNER JOIN messages_groups $typeq1 WHERE messages.arrival > ? AND collection = 'Approved' GROUP BY DATE(messages.arrival) ORDER BY date ASC;";
+            $sql = "SELECT COUNT(*) AS count, DATE(messages.arrival) AS date FROM messages INNER JOIN messages_groups  ON messages.id = messages_groups.msgid $typeq1 WHERE messages.arrival > ? AND collection = 'Approved' GROUP BY DATE(messages.arrival) ORDER BY date ASC;";
             $ret['messagehistory'] = $this->dbhr->preQuery($sql, $params);
 
             # Show spam rate
@@ -40,11 +40,11 @@ class Dashboard {
             $ret['spamhistory'] = $this->dbhr->preQuery($sql, $params);
 
             # Get domain breakdown
-            $sql = "SELECT SUBSTRING_INDEX(`fromaddr`, '@', -1) AS domain, COUNT(*) AS count FROM messages INNER JOIN messages_groups $typeq1 WHERE messages.arrival > ? AND collection = 'Approved' GROUP BY domain ORDER BY count DESC LIMIT 10;";
+            $sql = "SELECT SUBSTRING_INDEX(`fromaddr`, '@', -1) AS domain, COUNT(*) AS count FROM messages INNER JOIN messages_groups  ON messages.id = messages_groups.msgid $typeq1 WHERE messages.arrival > ? AND collection = 'Approved' GROUP BY domain ORDER BY count DESC LIMIT 10;";
             $ret['domainhistory'] = $this->dbhr->preQuery($sql, $params);
 
             # Get source breakdown
-            $sql = "SELECT sourceheader AS source, COUNT(*) AS count FROM messages INNER JOIN messages_groups $typeq1 WHERE messages.arrival > ? AND sourceheader IS NOT NULL AND collection = 'Approved' GROUP BY sourceheader ORDER BY count DESC LIMIT 10;";
+            $sql = "SELECT sourceheader AS source, COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $typeq1 WHERE messages.arrival > ? AND sourceheader IS NOT NULL AND collection = 'Approved' GROUP BY sourceheader ORDER BY count DESC LIMIT 10;";
             $ret['sourcehistory'] = $this->dbhr->preQuery($sql, $params);
         } else {
             # We want the summaries for one or more groups.  Get the list.

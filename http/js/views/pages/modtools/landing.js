@@ -16,7 +16,7 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
             data.group = this.selected
         }
 
-        if ($('#statsGroupType').val()) {
+        if ($('#statsGroupType').val() != 'null') {
             data.grouptype = $('#statsGroupType').val();
         }
 

@@ -82,6 +82,11 @@ Iznik.Views.LeftMenu = IznikView.extend({
 
     render: function() {
         this.$el.html(window.template(this.template));
+
+        this.$('.js-firefox').attr('href',
+            this.$('.js-firefox').attr('href') + '?' + Math.random()
+        );
+
         return this;
     }
 });
