@@ -27,8 +27,6 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             var first = this.work.pop();
 
             if (first) {
-                $('#js-nowork').hide();
-
                 // Get a crumb from Yahoo to do the work.  It doesn't matter which of our groups we do this for -
                 // Yahoo returns the same crumb.
                 var groups = Iznik.Session.get('groups');
@@ -55,7 +53,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                                 success: getCrumb,
                                 error: function (request, status, error) {
                                     console.log("Get crumb failed");
-                                    self.retryWork(work);
+                                    self.retryWork(self.currentItem);
                                 }
                             });
                         }
@@ -68,11 +66,9 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                     success: getCrumb,
                     error: function (request, status, error) {
                         console.log("Get crumb failed");
-                        self.retryWork(work);
+                        self.retryWork(self.currentItem);
                     }
                 });
-            } else {
-                $('#js-nowork').fadeIn('slow');
             }
         }
     },
@@ -105,8 +101,11 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     updatePluginCount: function() {
         if (this.work.length > 0) {
             $('.js-plugincount').html(this.work.length).show();
+            $('#js-nowork').hide();
+
         } else {
             $('.js-plugincount').empty().hide();
+            $('#js-nowork').fadeIn('slow');
         }
     },
 
@@ -157,7 +156,16 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             type: 'GET',
             url: 'https://groups.yahoo.com/api/v1/user/groups/all',
             success: checkResponse(self),
-            complete: function() {
+            error: function() {
+                // If we got an error, we're not connected.
+                if (self.connected) {
+                    self.pause();
+                }
+
+                $('#js-pluginconnected').fadeOut('slow', function() {
+                    $('#js-plugindisconnected').fadeIn('slow');
+                })
+            }, complete: function() {
                 window.setTimeout(_.bind(self.checkPluginStatus, self), 30000);
             }
         });
