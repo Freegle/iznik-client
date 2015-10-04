@@ -190,6 +190,7 @@ body {
     word-wrap: break-word;
     white-space: pre;
     max-height: 300px;
+    overflow-y: auto;
 }
 
 .msgpic {

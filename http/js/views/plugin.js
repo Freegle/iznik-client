@@ -411,12 +411,12 @@ Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Yahoo.Sync.extend({
     source: 'Yahoo Pending',
 
     url: function() {
-        return YAHOOAPI + this.model.get('nameshort') + "/pending/messages/" + this.offset +
+        return YAHOOAPI + 'groups/' + this.model.get('nameshort') + "/pending/messages/" + this.offset +
             "/parts?start=1&count=" + this.chunkSize + "&chrome=raw"
     },
 
     sourceurl: function(id) {
-        return YAHOOAPI + this.model.get('nameshort') + '/pending/messages/' + id + '/raw'
+        return YAHOOAPI + 'groups/' + this.model.get('nameshort') + '/pending/messages/' + id + '/raw'
     }
 });
 
@@ -431,7 +431,7 @@ Iznik.Views.Plugin.Yahoo.ApprovePendingMessage = Iznik.Views.Plugin.Work.extend(
 
         $.ajax({
             type: "POST",
-            url: YAHOOAPI + this.model.get('group').nameshort + "/pending/messages",
+            url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/pending/messages",
             data: {
                 A: this.model.get('yahoopendingid'),
                 gapi_crumb: this.crumb
@@ -464,7 +464,7 @@ Iznik.Views.Plugin.Yahoo.RejectPendingMessage = Iznik.Views.Plugin.Work.extend({
 
         $.ajax({
             type: "POST",
-            url: YAHOOAPI + this.model.get('group').nameshort + "/pending/messages",
+            url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/pending/messages",
             data: {
                 A: this.model.get('yahoopendingid'),
                 gapi_crumb: this.crumb

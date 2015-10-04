@@ -117,6 +117,19 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
                 model: mod
             });
             self.$('.js-grouplist').append(v.render().el);
+
+            var mod = new Iznik.Models.Yahoo.User({
+                email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
+                group: group.nameshort
+            });
+
+            mod.fetch().then(function() {
+                console.log("fetched Yahoo user", mod);
+                var v = new Iznik.Views.ModTools.Yahoo.User({
+                    model: mod
+                });
+                self.$('.js-yahoo').append(v.render().el);
+            })
         });
 
         // When this model is removed from the collection, it will have an event triggered on it. When that happens,

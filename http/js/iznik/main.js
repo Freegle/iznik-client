@@ -1,9 +1,13 @@
 window.Iznik = {
-    Models     : {},
+    Models     : {
+        Yahoo: {}
+    },
     Views      : {
         ModTools: {
             Pages: {},
-            Message: {}
+            Message: {},
+            Yahoo: {
+            }
         },
         Plugin: {
             Yahoo: {}
@@ -79,4 +83,4 @@ function isMobile(){
 }
 
 var API = '/api/';
-var YAHOOAPI= 'https://groups.yahoo.com/api/v1/groups/';
+var YAHOOAPI= 'https://groups.yahoo.com/api/v1/';
