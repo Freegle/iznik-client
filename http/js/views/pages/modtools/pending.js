@@ -124,7 +124,6 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
             });
 
             mod.fetch().then(function() {
-                console.log("fetched Yahoo user", mod);
                 var v = new Iznik.Views.ModTools.Yahoo.User({
                     model: mod
                 });
