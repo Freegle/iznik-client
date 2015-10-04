@@ -70,7 +70,6 @@ class Dashboard {
                 $groups = '(' . implode(',', $groups) . ')';
 
                 $sql = "SELECT COUNT(*) AS count, DATE(messages.arrival) AS date FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $typeq1 WHERE messages.arrival > ? AND groupid IN $groups AND collection = 'Approved' GROUP BY DATE(messages.arrival) ORDER BY date ASC;";
-                $ret['messagesql'] = "$sql " . var_export($params, true);
                 $ret['messagehistory'] = $this->dbhr->preQuery($sql, $params);
 
                 # Show spam rate

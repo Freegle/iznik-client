@@ -122,7 +122,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     },
 
     retryWork: function(work) {
-        // This is ongoing - so put to the front.
+        // Put at the back so as not to block other work.
         this.work.push(work);
         this.checkWork();
     },

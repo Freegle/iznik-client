@@ -27,7 +27,7 @@ class Plugin {
             'type' => Log::TYPE_PLUGIN,
             'subtype' => Log::SUBTYPE_CREATED,
             'groupid' => $groupid,
-            'text' => $data
+            'text' => json_encode($data)
         ]);
     }
 

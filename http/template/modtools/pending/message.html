@@ -24,18 +24,22 @@
                     </div>
                 </div>
                 <div class="col-md-8">
-                    <div class="msgbody botspace"><% if (obj.textbody && obj.textbody.length > 0) { %>{{obj.textbody}}<% } else { %><span class="text-muted"><em>No message body</em></span><% } %></div>
-                    <ul class="list-inline list-unstyled botspace topspace">
-                        <li class="span1 offset1">
-                            <div class="btn btn-success js-approve"><div class="glyphicon glyphicon-ok"></div>&nbsp;Approve</div>
-                        </li>
-                        <li class="span1">
-                            <div class="btn btn-warning js-reject"><div class="glyphicon glyphicon-arrow-right"></div>&nbsp;Reject</div>
-                        </li>
-                        <li class="span1">
-                            <div class="btn btn-danger js-delete"><div class="glyphicon glyphicon-trash"></div>&nbsp;Delete</div>
-                        </li>
-                    </ul>
+                    <div class="row">
+                        <div class="msgbody botspace"><% if (obj.textbody && obj.textbody.length > 0) { %>{{obj.textbody}}<% } else { %><span class="text-muted"><em>No message body</em></span><% } %></div>
+                    </div>
+                    <div class="row">
+                        <ul class="list-inline list-unstyled botspace topspace">
+                            <li class="span1 offset1">
+                                <div class="btn btn-success js-approve"><div class="glyphicon glyphicon-ok"></div>&nbsp;Approve</div>
+                            </li>
+                            <li class="span1">
+                                <div class="btn btn-warning js-reject"><div class="glyphicon glyphicon-arrow-right"></div>&nbsp;Reject</div>
+                            </li>
+                            <li class="span1">
+                                <div class="btn btn-danger js-delete"><div class="glyphicon glyphicon-trash"></div>&nbsp;Delete</div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
