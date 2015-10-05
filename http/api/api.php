@@ -21,6 +21,7 @@ require_once(IZNIK_BASE . '/http/api/messages.php');
 require_once(IZNIK_BASE . '/http/api/message.php');
 require_once(IZNIK_BASE . '/http/api/supporters.php');
 require_once(IZNIK_BASE . '/http/api/plugin.php');
+require_once(IZNIK_BASE . '/http/api/user.php');
 
 $includetime = microtime(true) - $scriptstart;
 
@@ -93,6 +94,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
                     break;
                 case 'supporters':
                     $ret = supporters();
+                    break;
+                case 'user':
+                    $ret = user();
                     break;
                 case 'DBexceptionWork':
                     # For UT

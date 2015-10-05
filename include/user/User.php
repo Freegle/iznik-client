@@ -100,6 +100,15 @@ class User extends Entity
         }
     }
 
+    public function findByYahooId($id) {
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooUserId = ?;", [ $id ]);
+        if (count($users) == 1) {
+            return($users[0]['id']);
+        }
+
+        return(NULL);
+    }
+
     public function getEmails() {
         $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE userid = ?;",
             [$this->id]);

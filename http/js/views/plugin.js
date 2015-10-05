@@ -27,6 +27,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             var first = this.work.pop();
 
             if (first) {
+                self.currentItem = first;
+
                 // Get a crumb from Yahoo to do the work.  It doesn't matter which of our groups we do this for -
                 // Yahoo returns the same crumb.
                 var groups = Iznik.Session.get('groups');
@@ -37,7 +39,6 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                     if (match) {
                         // All work has a start method which triggers action.
-                        self.currentItem = first;
                         first.crumb = match[1];
                         first.start();
                     } else {
@@ -74,35 +75,16 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     },
 
     addWork: function(work) {
-        if (work.model.get('id')) {
-            // This is work from the server, which we may already have
-            if (this.currentItem && work.model.get('id') == this.currentItem.model.get('id')) {
-                return;
-            }
-
-            var got = false;
-
-            _.each(this.work, function(item, index, list) {
-                if (item.model.get('id') == work.model.get('id')) {
-                    got = true;
-                    work.remove();
-                }
-            });
-
-            if (got) {
-                return;
-            }
-        }
-
         this.work.push(work);
         this.updatePluginCount();
     },
 
     updatePluginCount: function() {
-        if (this.work.length > 0) {
-            $('.js-plugincount').html(this.work.length).show();
-            $('#js-nowork').hide();
+        var count = this.work.length + (this.currentItem !== null ? 1 : 0 );
 
+        if (count > 0) {
+            $('.js-plugincount').html(count).show();
+            $('#js-nowork').hide();
         } else {
             $('.js-plugincount').empty().hide();
             $('#js-nowork').fadeIn('slow');
@@ -123,7 +105,6 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     retryWork: function(work) {
         // Put at the back so as not to block other work.
         this.work.push(work);
-        this.checkWork();
     },
 
     checkPluginStatus: function() {
@@ -180,6 +161,19 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                         work.workid = work.id;
                         work = _.extend(work, jQuery.parseJSON(work.data));
 
+                        // This is work from the server, which we may already have
+                        var got = (self.currentItem && work.id == self.currentItem.model.get('id'));
+
+                        _.each(self.work, function(item, index, list) {
+                            if (item.model.get('id') == work.id) {
+                                got = true;
+                            }
+                        });
+
+                        if (got) {
+                            return;
+                        }
+
                         // Create a piece of work for us to do.  If we already have this one it'll be filtered
                         // out when we add it.
                         if (work.hasOwnProperty('groupid')) {
@@ -204,8 +198,24 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                                 }).render());
                                 break;
                             }
+
+                            case 'DeliveryType': {
+                                (new Iznik.Views.Plugin.Yahoo.DeliveryType({
+                                    model: new IznikModel(work)
+                                }).render());
+                                break;
+                            }
+
+                            case 'PostingStatus': {
+                                (new Iznik.Views.Plugin.Yahoo.PostingStatus({
+                                    model: new IznikModel(work)
+                                }).render());
+                                break;
+                            }
                         }
                     });
+
+                    self.checkWork();
                 }
             }
         })
@@ -221,13 +231,18 @@ Iznik.Views.Plugin.Info = IznikView.extend({
 Iznik.Views.Plugin.Work = IznikView.extend({
     startBusy: function() {
         // Change icon
-        this.$('.glyphicon-time').removeClass('glyphicon-time').addClass('glyphicon-refresh rotate');
+        this.$('.glyphicon-time, glyphicon-warning-sign').removeClass('glyphicon-time, glyphicon-warning-sign').addClass('glyphicon-refresh rotate');
     },
 
     fail: function() {
         // Failed - put to the back of the queue.
-        this.retryWork(this);
+        IznikPlugin.retryWork(this);
         IznikPlugin.completedWork();
+
+        // Move to the end of the list.
+        this.$('.glyphicon-refresh').removeClass('glyphicon-refresh rotate').addClass('glyphicon-warning-sign');
+        this.$el.detach();
+        $('#js-work').append(this.$el);
     },
 
     succeed: function() {
@@ -456,6 +471,8 @@ Iznik.Views.Plugin.Yahoo.ApprovePendingMessage = Iznik.Views.Plugin.Work.extend(
                         self.fail();
                     }
                 }
+            }, error: function(a,b,c) {
+                self.fail();
             }
         });
     }
@@ -492,6 +509,50 @@ Iznik.Views.Plugin.Yahoo.RejectPendingMessage = Iznik.Views.Plugin.Work.extend({
             }
         });
     }
+});
+
+Iznik.Views.Plugin.Yahoo.ChangeAttribute  = Iznik.Views.Plugin.Work.extend({
+    server: true,
+
+    start: function() {
+        var self = this;
+        this.startBusy();
+
+        var mod = IznikYahooUsers.findUser({
+            email: this.model.get('email'),
+            group: this.model.get('group').nameshort
+        });
+
+        mod.fetch().then(function() {
+            // Make the change.  This will result in change events to the model and thereby refresh any
+            // views.
+            if (!mod.get('userId')) {
+                // We couldn't fetch the user on Yahoo, which means they are no longer on the group.  This
+                // is effectively a success for this change.
+                self.succeed();
+            } else {
+                self.listenToOnce(mod, 'completed', function(worked) {
+                    if (worked) {
+                        self.succeed();
+                    } else {
+                        self.fail();
+                    }
+                });
+
+                mod.changeAttr(self.attr, self.model.get(self.attr));
+            }
+        });
+    }
+});
+
+Iznik.Views.Plugin.Yahoo.DeliveryType  = Iznik.Views.Plugin.Yahoo.ChangeAttribute.extend({
+    template: 'plugin_yahoo_delivery',
+    attr: 'deliveryType'
+});
+
+Iznik.Views.Plugin.Yahoo.PostingStatus = Iznik.Views.Plugin.Yahoo.ChangeAttribute.extend({
+    template: 'plugin_yahoo_posting',
+    attr: 'postingStatus'
 });
 
 var IznikPlugin = new Iznik.Views.Plugin.Main();

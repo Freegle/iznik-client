@@ -14,7 +14,6 @@ Iznik.Views.Page = IznikView.extend({
         }
 
         // Set the base page layout
-        console.log("Render page", this.template, this.modtools);
         $('body').html(this.modtools ?
             window.template('modtools_layout_layout') :
             window.template('layout_layout'));
@@ -31,7 +30,6 @@ Iznik.Views.Page = IznikView.extend({
             $('#rightaccordion').append(s.render().el);
             $('#rightaccordion').accordionPersist();
         } else {
-            console.log("Restore rightbar");
             $('#rightaccordion').empty().append(rightbar);
         }
 

@@ -575,6 +575,15 @@ class Message
                             $u->addMembership($this->groupid);
                         }
                     }
+
+                    # Now we have a user.  If there is a Yahoo uid in here - which there isn't always - add it to the
+                    # user entry.
+                    $gp = $Parser->getHeader('x-yahoo-group-post');
+                    if ($gp && preg_match('/u=(.*);/', $gp, $matches)) {
+                        // This is Yahoo's unique identifier for this user.
+                        $u = new User($this->dbhr, $this->dbhm, $userid);
+                        $u->setPrivate('yahooUserId', $matches[1]);
+                    }
                 }
             }
         }

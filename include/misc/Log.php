@@ -26,6 +26,8 @@ class Log
     const SUBTYPE_LEFT = 'Left';
     const SUBTYPE_CLASSIFIED_SPAM = 'ClassifiedSpam';
     const SUBTYPE_SENT = 'Sent';
+    const SUBTYPE_YAHOO_DELIVERY_TYPE = 'YahooDeliveryType';
+    const SUBTYPE_YAHOO_POSTING_STATUS = 'YahooPostingStatus';
 
     function __construct($dbhr, $dbhm)
     {

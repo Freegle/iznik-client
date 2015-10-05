@@ -1,0 +1,13 @@
+<div class="panel panel-default">
+    <div class="panel-body">
+        <h4>
+            <div class="glyphicon glyphicon-time" ></div>
+            Change Yahoo Posting
+        </h4>
+        Change posting status for {{email}} on {{group.nameshort}} to
+        <% if (postingStatus == 'MODERATED') { %>Moderated<% } %>
+        <% if (postingStatus == 'DEFAULT') { %>Group Settings<% } %>
+        <% if (postingStatus == 'PROHIBITED') { %>Can't Post<% } %>
+        <% if (postingStatus == 'UNMODERATED') { %>Unmoderated<% } %>
+    </div>
+</div>

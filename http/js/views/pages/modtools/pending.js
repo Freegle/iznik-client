@@ -118,9 +118,10 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
             });
             self.$('.js-grouplist').append(v.render().el);
 
-            var mod = new Iznik.Models.Yahoo.User({
+            var mod = IznikYahooUsers.findUser({
                 email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
-                group: group.nameshort
+                group: group.nameshort,
+                groupid: group.id
             });
 
             mod.fetch().then(function() {

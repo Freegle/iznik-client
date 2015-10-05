@@ -2,23 +2,22 @@ Iznik.Views.ModTools.Yahoo.User = IznikView.extend({
     template: 'modtools_yahoo_user',
 
     events: {
-        'change .js-posting': 'changePosting',
-        'change .js-deliver': 'changeDelivery'
+        'change .js-posting': 'changePostingStatus',
+        'change .js-delivery': 'changeDelivery'
     },
 
-    changePosting: function() {
+    changePostingStatus: function() {
         var newVal = this.$('.js-posting').val();
-        this.model.set('postingStatus', newVal);
+        this.model.changePostingStatus(newVal);
     },
 
     changeDelivery: function() {
         var newVal = this.$('.js-delivery').val();
-        this.model.set('deliveryType', newVal);
+        this.model.changeDelivery(newVal);
     },
 
     render: function() {
         var self = this;
-        console.log("User render");
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
 
         self.$('.js-posting').val(self.model.get('postingStatus'));

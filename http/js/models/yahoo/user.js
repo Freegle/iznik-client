@@ -1,9 +1,4 @@
 Iznik.Models.Yahoo.User = IznikModel.extend({
-    initialize: function() {
-        this.bind('change:deliveryType', this.changeDelivery);
-        this.bind('change:postingStatus', this.changePostingStatus);
-    },
-
     url: function() {
         var url = YAHOOAPI + "search/groups/" + this.get('group') +
                 "/members?memberType=CONFIRMED&start=1&count=1&sortBy=name&sortOrder=asc&query=" +
@@ -17,80 +12,131 @@ Iznik.Models.Yahoo.User = IznikModel.extend({
                 ret.ygData.members.length == 1) {
             return(ret.ygData.members[0]);
         }
-
-        // We set up our listens for changes now, which avoids them firing during the fetch
     },
 
-    changeAttr: function(attr, model, val) {
+    changeAttr: function(attr, val) {
         var self = this;
-        console.log("change", attr, model.previous(attr), val);
-        if (!_.isUndefined(model.previous(attr))) {
-            // Not the initial fetch.
-            function getCrumb(ret) {
-                var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
+
+        function getCrumb(ret) {
+            var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
+
+            if (match) {
+                // Got a crumb.
+                self.crumb = match[1];
+
+                var members = [
+                    {}
+                ];
+                members[0]["userId"] = self.get('userId');
+                members[0][attr] = val;
+
+                console.log("Change delivery", self, members);
+
+                new majax({
+                    type: "PUT",
+                    url: YAHOOAPI + 'groups/' + self.get('group') + "/members?gapi_crumb=" + self.crumb,
+                    data: {
+                        members: JSON.stringify(members)
+                    }, success: function (ret) {
+                        // Fetch it.  That's an easy way of double-checking whether it worked; if not
+                        // then the value will be different, triggering a change event and hence a
+                        // a re-render of the view.
+                        var worked = ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('members') &&
+                                ret.ygData.members.length == 1 && ret.ygData.members[0].hasOwnProperty('status') &&
+                                ret.ygData.members[0].status == 'SUCCESSFUL';
+                        self.fetch().then(function () {
+                            self.trigger('completed', worked);
+                        });
+                    }, error: function (request, status, error) {
+                        // Couldn't make the change. Reset to old value.  This will trigger a change event and
+                        // hence a re-render of any relevant view.
+                        self.set(attr, self.previous(attr));
+                        self.trigger('completed', false);
+                    }
+                });
+            } else {
+                var match = /window.location.href = "(.*)"/.exec(ret);
 
                 if (match) {
-                    // Got a crumb.
-                    self.crumb = match[1];
-
-                    var members = [
-                        {}
-                    ];
-                    members[0]["userId"] = self.get('userId');
-                    members[0][attr] = val;
-
-                    new majax({
-                        type: "PUT",
-                        url: YAHOOAPI + 'groups/' + self.get('group') + "/members?gapi_crumb=" + self.crumb,
-                        data: {
-                            members: JSON.stringify(members)
-                        }, complete: function () {
-                            // Fetch it.  That's an easy way of checking whether it worked; if not
-                            // then the value will be different, triggering a change event and hence a
-                            // a re-render of the view.
-                            console.log("After before fetch", self.toJSON2());
-                            self.fetch().then(function() {
-                                console.log("After fetch", self.toJSON2())
-                            });
+                    var url = match[1];
+                    $.ajax({
+                        type: "GET",
+                        url: url,
+                        success: getCrumb,
+                        error: function (request, status, error) {
+                            // Couldn't get a crumb. Reset to old value.  This will trigger a change event and
+                            // hence a re-render of any relevant view.
+                            self.set(attr, self.previous(attr));
+                            self.trigger('completed', true);
                         }
                     });
-                } else {
-                    var match = /window.location.href = "(.*)"/.exec(ret);
-
-                    if (match) {
-                        var url = match[1];
-                        $.ajax({
-                            type: "GET",
-                            url: url,
-                            success: getCrumb,
-                            error: function (request, status, error) {
-                                // Couldn't get a crumb. Reset to old value.  This will trigger a change event and
-                                // hance a re-render of any relevant view.
-                                self.set(attr, self.previous(attr));
-                            }
-                        });
-                    }
                 }
             }
-
-            $.ajax({
-                type: "GET",
-                url: "https://groups.yahoo.com/neo/groups/" + self.get('group') + "/management/members",
-                success: getCrumb,
-                error: function (request, status, error) {
-                    // Couldn't get a crumb. Reset to old value.  This will trigger a change event and
-                    // hance a re-render of any relevant view.
-                    self.set(attr, self.previous(attr));
-                }
-            });
         }
+
+        $.ajax({
+            type: "GET",
+            url: "https://groups.yahoo.com/neo/groups/" + self.get('group') + "/management/members",
+            success: getCrumb,
+            error: function (request, status, error) {
+                // Couldn't get a crumb. Reset to old value.  This will trigger a change event and
+                // hance a re-render of any relevant view.
+                self.set(attr, self.previous(attr));
+                self.trigger('completed', true);
+            }
+        });
     },
 
-    changeDelivery: function(model, val) {
-        this.changeAttr('deliveryType', model, val);
+    // We make Yahoo changes via the server.  They will then come back to us as plugin requests, which we
+    // will act on, and update the model.
+    //
+    // This seems convoluted but
+    // a) it allows us to log the change
+    // b) it allows us to retain the change even if the user navigates away before we've
+    // managed to persuade Yahoo to do it
+    // c) it gives common code with other cases where changes are triggered from the server side
+    // rather than the client.
+    changeDelivery: function(val) {
+        $.ajax({
+            type: 'POST',
+            url: API + '/user',
+            data: {
+                groupid: this.get('groupid'),
+                email: this.get('email'),
+                yahooDeliveryType: val
+            }, success: function(ret) {
+                IznikPlugin.checkPluginStatus();
+            }
+        });
     },
 
-    changePostingStatus: function(model, val) {
-        this.changeAttr('postingStatus', model, val);
+    changePostingStatus: function(val) {
+        $.ajax({
+            type: 'POST',
+            url: API + '/user',
+            data: {
+                groupid: this.get('groupid'),
+                email: this.get('email'),
+                yahooPostingStatus: val
+            }, success: function(ret) {
+                IznikPlugin.checkPluginStatus();
+            }
+        });
     }
 });
+
+// We maintain a singleton collection of users.  This allows us to use the same model across multiple views, which
+// means that when a change is made to the model, the relevant views can pick it up.
+Iznik.Collections.Yahoo.Users = IznikCollection.extend({
+    findUser: function(parms) {
+        var mod = this.findWhere(parms);
+
+        if (!mod) {
+            mod = new Iznik.Models.Yahoo.User(parms);
+            this.add(mod);
+        }
+        return(mod)
+    }
+});
+
+IznikYahooUsers = new Iznik.Collections.Yahoo.Users();

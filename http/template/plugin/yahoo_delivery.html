@@ -1,0 +1,13 @@
+<div class="panel panel-default">
+    <div class="panel-body">
+        <h4>
+            <div class="glyphicon glyphicon-time" ></div>
+            Change Yahoo Delivery
+        </h4>
+        Change delivery for {{email}} on {{group.nameshort}} to
+        <% if (deliveryType == 'DIGEST') { %>Daily Digest<% } %>
+        <% if (deliveryType == 'NONE') { %>Web Only<% } %>
+        <% if (deliveryType == 'SINGLE') { %>Individual Emails<% } %>
+        <% if (deliveryType == 'ANNOUNCEMENT') { %>Special Notices<% } %>
+    </div>
+</div>

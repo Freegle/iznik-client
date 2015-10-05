@@ -348,6 +348,89 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+  /user/{id}:
+    get:
+      summary: User Get
+      tags: [Users]
+      description: |
+        Retrieve user
+      parameters:
+      - name: id
+        in: path
+        description: ID of the user
+        type: number
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    delete:
+      summary: User Delete
+      tags: [Users]
+      description: |
+        Delete user from system and all groups
+      parameters:
+      - name: id
+        in: path
+        description: ID of the user
+        type: number
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    post:
+      summary: User Modify
+      tags: [Users]
+      description: |
+        Modify a user
+      parameters:
+      - name: id
+        in: path
+        description: Unique ID of the user.  This or yahooid or email must be present.
+        type: number
+        required: false
+      - name: yahooid
+        in: body
+        description: Unique ID of the user on Yahoo.  This or id or email must be present.
+        type: number
+        required: true
+      - name: email
+        in: query
+        description: Unique Email of the user.  This or yahooid or or must be present
+        type: string
+      - name: groupid
+        in: query
+        description: ID of any specific group we're affecting the user's settings on
+        type: number
+      - name: yahooDeliveryType
+        in: query
+        description: Any change to Yahoo Delivery Type
+        type: string
+        enum: ['DIGEST', 'NONE', 'SINGLE', 'ANNOUNCEMENT']
+      - name: yahooPostingStatus
+        in: query
+        description: Any change to Yahoo Posting Status
+        type: string
+        enum: ['MODERATED', 'DEFAULT', 'PROHIBITED', 'UNMODERATED']
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+
 definitions:
   Response:
     properties: 

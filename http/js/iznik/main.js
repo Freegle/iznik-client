@@ -17,7 +17,10 @@ window.Iznik = {
         },
         Group: {}
     },
-    Collections: {}
+    Collections: {
+        ModTools: {},
+        Yahoo: {}
+    }
 };
 
 // Define our own base classes.
