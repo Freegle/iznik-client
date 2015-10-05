@@ -25,6 +25,7 @@ class correlateTest extends IznikAPITest {
 
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $dbhm->preExec("DELETE FROM users WHERE yahooUserId = 1;");
     }
 
     protected function tearDown() {
@@ -77,6 +78,7 @@ class correlateTest extends IznikAPITest {
                 [
                     'email' => 'test@test.com',
                     'subject' => 'Basic test',
+                    'yahoopendingid' => 1,
                     'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
                 ]
             ],

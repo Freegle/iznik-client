@@ -223,6 +223,9 @@ class messageTest extends IznikAPITest {
         ]);
         assertEquals(2, $ret['ret']);
 
+        $ret = $this->call('plugin', 'GET', []);
+        assertEquals(1, $ret['ret']);
+
         # Now join - shouldn't be able to approve as a member
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');

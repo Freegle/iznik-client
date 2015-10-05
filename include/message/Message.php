@@ -582,7 +582,10 @@ class Message
                     if ($gp && preg_match('/u=(.*);/', $gp, $matches)) {
                         // This is Yahoo's unique identifier for this user.
                         $u = new User($this->dbhr, $this->dbhm, $userid);
-                        $u->setPrivate('yahooUserId', $matches[1]);
+
+                        if ($u->getPrivate('yahooUserId') != $matches[1]) {
+                            $u->setPrivate('yahooUserId', $matches[1]);
+                        }
                     }
                 }
             }

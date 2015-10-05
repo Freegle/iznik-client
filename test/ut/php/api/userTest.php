@@ -13,7 +13,7 @@ require_once IZNIK_BASE . '/include/message/Collection.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class userTest extends IznikAPITest {
+class userAPITest extends IznikAPITest {
     public $dbhr, $dbhm;
 
     protected function setUp() {
@@ -25,6 +25,7 @@ class userTest extends IznikAPITest {
 
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $dbhm->preExec("DELETE FROM users WHERE yahooUserId = 1;");
 
         # Create a moderator and log in as them
         $g = new Group($this->dbhr, $this->dbhm);
@@ -80,18 +81,28 @@ class userTest extends IznikAPITest {
     public function testPostingStatus() {
         error_log(__METHOD__);
 
-        # Shouldn't be able to do this as a member
         $ret = $this->call('user', 'POST', [
-            'id' => $this->uid,
+            'yahooUserId' => 1,
             'groupid' => $this->groupid,
             'yahooPostingStatus' => 'PROHIBITED'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = ?;", [ $this->uid ]);
+
+        # Shouldn't be able to do this as a member
+        $ret = $this->call('user', 'POST', [
+            'yahooUserId' => 1,
+            'groupid' => $this->groupid,
+            'yahooPostingStatus' => 'PROHIBITED',
+            'duplicate' => 0
         ]);
         assertEquals(2, $ret['ret']);
 
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
 
         $ret = $this->call('user', 'POST', [
-            'id' => $this->uid,
+            'yahooUserId' => 1,
             'groupid' => $this->groupid,
             'yahooPostingStatus' => 'PROHIBITED',
             'duplicate' => 1

@@ -160,7 +160,7 @@ class MailRouterTest extends IznikTest {
         assertEquals($pend->getSubject(), $pend->getHeader('subject'));
         assertEquals('freegleplayground@yahoogroups.com', $pend->getTo()[0]['address']);
         assertEquals('Test User', $pend->getFromname());
-        $pend->delete();
+        $pend->delete($pend->getGroups()[0]);
 
         error_log(__METHOD__ . " end");
     }
