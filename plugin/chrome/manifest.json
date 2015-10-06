@@ -1,0 +1,36 @@
+{
+  "manifest_version": 2,
+
+  "name": "ModTools",
+  "description": "Make moderating Yahoo Groups easier",
+  "version": "0.16",
+
+  "permissions": [
+    "*://*.modtools.org/",
+    "webRequest",
+    "webRequestBlocking",
+    "cookies",
+    "storage",
+    "*://direct.ilovefreegle.org/",
+    "*://*.yahoo.com/"
+  ],
+
+  "icons": { "16": "ModToolsLogo16.png",
+             "48": "ModToolsLogo48.png",
+            "128": "ModToolsLogo128.png" },
+
+
+  "background": {
+    "scripts": [ "jquery-1.10.2.min.js", "modtools.js" ],
+    "persistent": true
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["http://modtools.org/*", "http://www.modtools.org/*", "http://dev.modtools.org/*", "http://iznik.modtools.org/*" ],
+      "js": ["jquery-1.10.2.min.js", "modtoolscont.js"]
+    }
+  ],
+
+  "web_accessible_resources": ["manifest.json"]
+}

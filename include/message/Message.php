@@ -64,7 +64,7 @@ class Message
     private $id, $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr,
         $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attachments, $yahoopendingid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
-        $parser, $arrival, $spamreason;
+        $parser, $arrival, $spamreason, $fromuser;
 
     # The groupid is only used for parsing and saving incoming messages; after that a message can be on multiple
     # groups as is handled via the messages_groups table.
@@ -88,7 +88,7 @@ class Message
     ];
 
     public $memberAtts = [
-        'textbody', 'htmlbody', 'fromname'
+        'textbody', 'htmlbody', 'fromname', 'fromuser'
     ];
 
     public $moderatorAtts = [
@@ -201,7 +201,7 @@ class Message
         # Add any groups that this message is on.
         $ret['groups'] = [];
         $sql = "SELECT * FROM messages_groups WHERE msgid = ?;";
-        $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id] );
+        $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ] );
 
         foreach ($ret['groups'] as &$group) {
             $group['arrival'] = ISODate($group['arrival']);
@@ -209,6 +209,12 @@ class Message
 
         $ret['arrival'] = ISODate($ret['arrival']);
         $ret['date'] = ISODate($ret['date']);
+
+        if (pres('fromuser', $ret)) {
+            $u = new User($this->dbhr, $this->dbhm, $ret['fromuser']);
+            $ret['fromuser'] = $u->getPublic();
+            filterResult($ret['fromuser']);
+        }
 
         return($ret);
     }
@@ -587,6 +593,8 @@ class Message
                             $u->setPrivate('yahooUserId', $matches[1]);
                         }
                     }
+
+                    $this->fromuser = $userid;
                 }
             }
         }
@@ -603,12 +611,13 @@ class Message
         $this->removeByMessageID($this->groupid);
 
         # Save into the messages table.
-        $sql = "INSERT INTO messages (date, source, sourceheader, message, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type, yahoopendingid, yahooreject, yahooapprove) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type, yahoopendingid, yahooreject, yahooapprove) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->date,
             $this->source,
             $this->sourceheader,
             $this->message,
+            $this->fromuser,
             $this->envelopefrom,
             $this->envelopeto,
             $this->fromname,
@@ -669,11 +678,12 @@ class Message
         }
 
         # Also save into the history table, for spam checking.
-        $sql = "INSERT INTO messages_history (groupid, source, message, envelopefrom, envelopeto, fromname, fromaddr, subject, prunedsubject, messageid, textbody, htmlbody, msgid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages_history (groupid, source, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, subject, prunedsubject, messageid, textbody, htmlbody, msgid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $this->dbhm->preExec($sql, [
             $this->groupid,
             $this->source,
             $this->message,
+            $this->fromuser,
             $this->envelopefrom,
             $this->envelopeto,
             $this->fromname,
@@ -884,5 +894,13 @@ class Message
                 $groupid
             ]);
         }
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getFromuser()
+    {
+        return $this->fromuser;
     }
 }

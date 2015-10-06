@@ -9,7 +9,7 @@ $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
 $at = 0;
 
 do {
-    $sql = "SELECT * FROM Approved ORDER BY arrival DESC LIMIT $at, " . ($at + 100) . ";";
+    $sql = "SELECT * FROM messages ORDER BY arrival DESC LIMIT $at, " . ($at + 100) . ";";
     error_log($sql);
 
     $msgs = $dbhr->query($sql);
@@ -21,7 +21,7 @@ do {
         $i->parse(Message::YAHOO_APPROVED, $msg['fromaddr'], $msg['envelopeto'], $msg['message']);
         if ($i->getSourceheader() != $msg['sourceheader']) {
             error_log("{$msg['id']} Change from {$msg['sourceheader']} to " . $i->getSourceheader());
-            $sql = "UPDATE Approved SET sourceheader = ? WHERE id = ?;";
+            $sql = "UPDATE messages SET sourceheader = ? WHERE id = ?;";
             $dbhm->preExec($sql,
                 [
                     $i->getSourceheader(),

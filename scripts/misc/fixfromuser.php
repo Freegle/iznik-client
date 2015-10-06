@@ -7,11 +7,10 @@ require_once(IZNIK_BASE . '/include/message/Message.php');
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
 $at = 0;
-$table = "messages";
 
 do {
-    error_log("At $at");
-    $sql = "SELECT * FROM $table WHERE date IS NULL LIMIT 100;";
+    $sql = "SELECT * FROM messages WHERE fromuser IS NULL ORDER BY arrival DESC LIMIT $at, " . ($at + 100) . ";";
+    error_log($sql);
 
     $msgs = $dbhr->query($sql);
     $i = new Message($dbhr, $dbhm);
@@ -20,14 +19,14 @@ do {
     foreach ($msgs as $msg) {
         $found = true;
         $i->parse(Message::YAHOO_APPROVED, $msg['fromaddr'], $msg['envelopeto'], $msg['message']);
-        $date = gmdate("Y-m-d H:i:s", strtotime($i->date));
-        $sql = "UPDATE $table SET date = ? WHERE id = ?;";
+        error_log("{$msg['id']} Change fromuser to " . $i->getFromuser());
+        $sql = "UPDATE messages SET fromuser = ? WHERE id = ?;";
         $dbhm->preExec($sql,
             [
-                $date,
+                $i->getFromuser(),
                 $msg['id']
             ]);
-
-        $at++;
     }
+
+    $at += 100;
 } while ($found);

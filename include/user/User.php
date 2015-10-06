@@ -312,6 +312,16 @@ class User extends Entity
         ]);
     }
 
+    public function getPublic() {
+        $atts = parent::getPublic();
+
+        # Add in the message history.
+        $sql = "SELECT id, arrival, date, subject, type FROM messages WHERE fromuser = ?;";
+        $atts['messagehistory'] = $this->dbhr->preQuery($sql, [ $this->id ]);
+
+        return($atts);
+    }
+
     public function delete() {
         $rc = $this->dbhm->preExec("DELETE FROM users WHERE id = ?;", [$this->id]);
         if ($rc) {
