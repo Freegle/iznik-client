@@ -1,13 +1,14 @@
 window.Iznik = {
     Models     : {
+        ModTools: {},
         Yahoo: {}
     },
     Views      : {
         ModTools: {
             Pages: {},
             Message: {},
-            Yahoo: {
-            }
+            User: {},
+            Yahoo: {}
         },
         Plugin: {
             Yahoo: {}

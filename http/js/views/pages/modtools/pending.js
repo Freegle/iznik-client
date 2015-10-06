@@ -118,6 +118,14 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
             });
             self.$('.js-grouplist').append(v.render().el);
 
+            var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
+            var v = new Iznik.Views.ModTools.User({
+                model: mod
+            });
+
+            self.$('.js-user').html(v.render().el);
+
+            // The Yahoo part of the user
             var mod = IznikYahooUsers.findUser({
                 email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
                 group: group.nameshort,
