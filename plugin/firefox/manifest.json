@@ -32,10 +32,10 @@
   "content_scripts": [
     {
       "matches": [
-        "http://modtools.org/*",
-        "http://www.modtools.org/*",
-        "http://dev.modtools.org/*",
-        "http://iznik.modtools.org/*"
+        "*://modtools.org/*",
+        "*://www.modtools.org/*",
+        "*://dev.modtools.org/*",
+        "*://iznik.modtools.org/*"
       ],
       "js": [
         "jquery-1.10.2.min.js",

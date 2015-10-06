@@ -14,10 +14,10 @@ Iznik.Views.Page = IznikView.extend({
         }
 
         // Set the base page layout
-        $('body').html(this.modtools ?
+        $('#bodyContent').html(this.modtools ?
             window.template('modtools_layout_layout') :
             window.template('layout_layout'));
-        $('.bodyContent').html(this.$el);
+        $('.pageContent').html(this.$el);
 
         var m = new Iznik.Views.LeftMenu();
         $('.js-leftsidebar').html(m.render().el);

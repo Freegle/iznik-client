@@ -316,8 +316,10 @@ class User extends Entity
         $atts = parent::getPublic();
 
         # Add in the message history.
-        $sql = "SELECT id, arrival, date, subject, type FROM messages WHERE fromuser = ?;";
+        $sql = "SELECT id, arrival, date, subject, type FROM messages WHERE fromuser = ? ORDER BY arrival DESC;";
         $atts['messagehistory'] = $this->dbhr->preQuery($sql, [ $this->id ]);
+
+        $atts['displayname'] = $this->getName();
 
         return($atts);
     }

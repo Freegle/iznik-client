@@ -734,3 +734,13 @@ a button {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.badge-outline {
+    color: black;
+    border: 1px solid #999;
+    background-color: transparent;
+}
+
+.faded {
+    opacity: 0.3;
+}

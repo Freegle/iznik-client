@@ -147,7 +147,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                     $('#js-plugindisconnected').fadeIn('slow');
                 })
             }, complete: function() {
-                window.setTimeout(_.bind(self.checkPluginStatus, self), 30000);
+                window.setTimeout(_.bind(self.checkPluginStatus, self), 10000);
             }
         });
 

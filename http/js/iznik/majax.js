@@ -57,11 +57,6 @@ serialQueue.prototype.add = function (args) {
 
 var majaxQueue = new serialQueue();
 
-$(document).ready(function () {
-    $('body').append('<div style="display:none" id="modtoolsreq"></div>');
-    $('body').append('<div style="display:none" id="modtoolsrsp"></div>');
-});
-
 function majax(args) {
     this.args = args;
     this.deferred = new jQuery.Deferred();

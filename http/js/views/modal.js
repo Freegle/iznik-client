@@ -60,8 +60,10 @@ Iznik.Views.Modal = IznikView.extend({
 
         modalOpen = this;
 
-        console.log("Expand template " + template);
-        this.$el.html(window.template(template)(this.model ? this.model.toJSON2() : null));
+        if (template) {
+            // For more complex modals we might have set up the content before calling open.
+            this.$el.html(window.template(template)(this.model ? this.model.toJSON2() : null));
+        }
 
         // Attach the modal to the DOM
         $('#bodyContent').append(this.$el);
@@ -80,5 +82,9 @@ Iznik.Views.Modal = IznikView.extend({
         this.$el.on('click', 'a', function(){
             self.cancel();
         });
+    },
+
+    render: function() {
+        this.open(this.template, this.model);
     }
 });

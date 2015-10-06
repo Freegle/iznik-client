@@ -184,20 +184,9 @@ Iznik.Views.SignInUp = Iznik.Views.Modal.extend({
 });
 
 Iznik.Views.SignInUp.Result = Iznik.Views.Modal.extend({
-    template: 'signinup_result',
-
-    render: function() {
-        var self = this;
-        this.open(this.template, self.model);
-    }
+    template: 'signinup_result'
 });
 
 Iznik.Views.CookieError = Iznik.Views.Modal.extend({
-    template: 'signinup_cookies',
-
-    render: function() {
-        var self = this;
-        this.open(this.template, self.model);
-        return(this);
-    }
+    template: 'signinup_cookies'
 });
