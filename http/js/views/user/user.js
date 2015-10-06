@@ -49,6 +49,24 @@ Iznik.Views.ModTools.User.History = IznikView.extend({
             this.$('.js-singular').hide();
         }
 
+        var counts = {
+            Offer: 0,
+            Wanted: 0,
+            Taken: 0,
+            Received: 0,
+            Other: 0
+        };
+
+        this.collection.each(function(message) {
+            if (counts.hasOwnProperty(message.get('type'))) {
+                counts[message.get('type')]++;
+            }
+        });
+
+        _.each(counts, function(value, key, list) {
+            self.$('.js-' + key.toLowerCase() + 'count').html(value);
+        });
+
         return(this);
     }
 });
@@ -61,7 +79,6 @@ Iznik.Views.ModTools.User.PostSummary = Iznik.Views.Modal.extend({
 
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
         this.collection.each(function(message) {
-            console.log("Details message",message);
             var v = new Iznik.Views.ModTools.User.SummaryEntry({
                 model: message
             });

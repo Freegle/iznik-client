@@ -744,3 +744,7 @@ a button {
 .faded {
     opacity: 0.3;
 }
+
+.yahoouserinfo {
+    height: 95px;
+}
