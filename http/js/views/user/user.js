@@ -41,6 +41,10 @@ Iznik.Views.ModTools.User.History = IznikView.extend({
         this.$el.html(window.template(this.template)());
         this.$('.js-msgcount').html(this.collection.length);
 
+        if (this.collection.length == 0) {
+            this.$('.js-msgcount').closest('.btn').addClass('disabled');
+        }
+
         if (this.collection.length == 1) {
             this.$('.js-plural').hide();
             this.$('.js-singular').show();
