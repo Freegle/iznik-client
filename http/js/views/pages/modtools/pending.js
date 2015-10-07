@@ -77,7 +77,6 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
         });
 
         this.listenToOnce(v, 'rejected', function() {
-            console.log("Rejected");
             self.$el.fadeOut('slow', function() {
                 self.remove();
             });

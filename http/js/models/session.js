@@ -20,8 +20,11 @@ Iznik.Models.Session = IznikModel.extend({
                     // We get an array of groups back - we want it to be a collection.
                     self.set('groups', new IznikCollection(ret.groups));
 
+                    var total = 0;
+
                     self.trigger('isLoggedIn', true);
                     if (ret.work.pending) {
+                        total += ret.work.pending;
                         if (ret.work.pending != $('.js-pendingcount').html()) {
                             $('.js-pendingcount').html(ret.work.pending);
                             Iznik.Session.trigger('pendingcountschanged');
@@ -29,11 +32,15 @@ Iznik.Models.Session = IznikModel.extend({
                     } else {
                         $('.js-pendingcount').empty();
                     }
+
                     if (ret.work.spam) {
+                        total += ret.work.spam;
                         $('.js-spamcount').html(ret.work.spam);
                     } else {
                         $('.js-spamcount').empty();
                     }
+
+                    document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
                 } else {
                     //console.log("Not logged in");
                     self.trigger('isLoggedIn', false);

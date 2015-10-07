@@ -212,7 +212,9 @@ class Message
 
         if (pres('fromuser', $ret)) {
             $u = new User($this->dbhr, $this->dbhm, $ret['fromuser']);
-            $ret['fromuser'] = $u->getPublic();
+
+            # Get the user details, relative to the groups this message appears on.
+            $ret['fromuser'] = $u->getPublic($this->getGroups());
             filterResult($ret['fromuser']);
         }
 
@@ -545,6 +547,8 @@ class Message
                     $g->getPrivate('type') == Group::GROUP_REUSE
                 ) {
                     $this->type = $this->determineType($this->subject);
+                } else {
+                    $this->type = Message::TYPE_OTHER;
                 }
 
                 if ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED) {

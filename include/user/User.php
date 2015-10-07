@@ -312,12 +312,23 @@ class User extends Entity
         ]);
     }
 
-    public function getPublic() {
+    public function getPublic($groupids = NULL) {
         $atts = parent::getPublic();
 
-        # Add in the message history.
-        $sql = "SELECT id, arrival, date, subject, type FROM messages WHERE fromuser = ? ORDER BY arrival DESC;";
-        $atts['messagehistory'] = $this->dbhr->preQuery($sql, [ $this->id ]);
+        # Add in the message history - from any of the emails associated with this user.
+        if ($groupids && count($groupids) > 0) {
+            # On these groups
+            $groupq = implode(',', $groupids);
+            $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? ORDER BY messages.arrival DESC;";
+        } else {
+            # On all groups.
+            $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? ORDER BY messages.arrival DESC;";
+        }
+
+        $atts['messagehistory'] = $this->dbhr->preQuery($sql, [
+            Collection::APPROVED,
+            $this->id
+        ]);
 
         $atts['displayname'] = $this->getName();
 
