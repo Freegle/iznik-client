@@ -25,7 +25,6 @@ if (pres('REQUEST_URI', $_SERVER) == 'yahoologin') {
 include_once(BASE_DIR . '/include/misc/pageheader.php');
 ?>
 <body>
-<div class="backmask"></div>
 <noscript>
     <h1>Please enable Javascript</h1>
 

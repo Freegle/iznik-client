@@ -19,19 +19,26 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
         message.trigger('removed');
     },
 
-    render: function() {
-        Iznik.Views.Page.prototype.render.call(this);
-
-        var msgs = new Iznik.Collections.Message();
-
-        this.listenTo(msgs, 'add', this.messageAdded);
-        this.listenTo(msgs, 'remove', this.messageRemoved);
-
-        msgs.fetch({
+    fetch: function() {
+        this.msgs.fetch({
             data: {
                 collection: 'Pending'
             }
         });
+    },
+
+    render: function() {
+        Iznik.Views.Page.prototype.render.call(this);
+
+        this.msgs = new Iznik.Collections.Message();
+
+        // By setting up these listeners we will add and remove messages nicely from the view.
+        this.listenTo(this.msgs, 'add', this.messageAdded);
+        this.listenTo(this.msgs, 'remove', this.messageRemoved);
+
+        // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
+        // appropriately.
+        this.listenTo(Iznik.Session, 'pendingcountschanged', this.fetch);
     }
 });
 
@@ -64,24 +71,11 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
     },
 
     reject: function() {
-        var self = this;
-
-        // We reject the message on all groups.  Future enhancement?
-        _.each(self.model.get('groups'), function(group, index, list) {
-            $.ajax({
-                type: 'POST',
-                url: API + 'message',
-                data: {
-                    id: self.model.get('id'),
-                    groupid: group.id,
-                    action: 'Reject',
-                    subject: 'Test rejection',
-                    body: 'Test body ' + self.model.get('textbody')
-                }, success: function(ret) {
-                    self.$el.fadeOut('slow');
-                }
-            })
+        var v = new Iznik.Views.ModTools.Message.Pending.Reject({
+            model: this.model
         });
+
+        v.render();
     },
 
     delete: function() {
@@ -162,3 +156,44 @@ Iznik.Views.ModTools.Message.Pending.Group = IznikView.extend({
         return(this);
     }
 });
+
+Iznik.Views.ModTools.Message.Pending.Reject = Iznik.Views.Modal.extend({
+    template: 'modtools_pending_reject',
+
+    render: function() {
+        var self = this;
+
+        this.$el.html(window.template(this.template)(this.model.toJSON2()));
+
+        // Quote original message.
+        var msg = this.model.get('textbody');
+        msg = msg.replace(/(^|\r|\n|\r\n)/gm, '\r>');
+        this.$('.js-text').val(msg);
+
+        this.open(null);
+        $('.modal').on('shown.bs.modal', function () {
+            $('.modal .js-text').focus();
+        })
+
+        // We reject the message on all groups.  Future enhancement?
+        //_.each(self.model.get('groups'), function(group, index, list) {
+        //    $.ajax({
+        //        type: 'POST',
+        //        url: API + 'message',
+        //        data: {
+        //            id: self.model.get('id'),
+        //            groupid: group.id,
+        //            action: 'Reject',
+        //            subject: 'Test rejection',
+        //            body: 'Test body ' + self.model.get('textbody')
+        //        }, success: function(ret) {
+        //            self.$el.fadeOut('slow');
+        //        }
+        //    })
+        //});
+
+        return(this);
+    }
+});
+
+

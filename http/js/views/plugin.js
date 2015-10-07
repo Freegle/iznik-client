@@ -151,6 +151,9 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             }
         });
 
+        // Get our session, both to keep it alive and update any counts.
+        Iznik.Session.testLoggedIn();
+
         // Check if we have any plugin work to do from the server.
         $.ajax({
             type: 'GET',
