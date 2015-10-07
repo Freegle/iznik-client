@@ -71,8 +71,16 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
     },
 
     reject: function() {
+        var self = this;
         var v = new Iznik.Views.ModTools.Message.Pending.Reject({
             model: this.model
+        });
+
+        this.listenToOnce(v, 'rejected', function() {
+            console.log("Rejected");
+            self.$el.fadeOut('slow', function() {
+                self.remove();
+            });
         });
 
         v.render();
@@ -160,6 +168,31 @@ Iznik.Views.ModTools.Message.Pending.Group = IznikView.extend({
 Iznik.Views.ModTools.Message.Pending.Reject = Iznik.Views.Modal.extend({
     template: 'modtools_pending_reject',
 
+    events: {
+        'click .js-send': 'send'
+    },
+
+    send: function() {
+        // We reject the message on all groups.  Future enhancement?
+        var self= this;
+        _.each(self.model.get('groups'), function(group, index, list) {
+            $.ajax({
+                type: 'POST',
+                url: API + 'message',
+                data: {
+                    id: self.model.get('id'),
+                    groupid: group.id,
+                    action: 'Reject',
+                    subject: 'Re: ' + self.model.get('subject'),
+                    body: self.$('.js-text').val()
+                }, success: function(ret) {
+                    self.trigger('rejected');
+                    self.close();
+                }
+            })
+        });
+    },
+
     render: function() {
         var self = this;
 
@@ -174,23 +207,6 @@ Iznik.Views.ModTools.Message.Pending.Reject = Iznik.Views.Modal.extend({
         $('.modal').on('shown.bs.modal', function () {
             $('.modal .js-text').focus();
         })
-
-        // We reject the message on all groups.  Future enhancement?
-        //_.each(self.model.get('groups'), function(group, index, list) {
-        //    $.ajax({
-        //        type: 'POST',
-        //        url: API + 'message',
-        //        data: {
-        //            id: self.model.get('id'),
-        //            groupid: group.id,
-        //            action: 'Reject',
-        //            subject: 'Test rejection',
-        //            body: 'Test body ' + self.model.get('textbody')
-        //        }, success: function(ret) {
-        //            self.$el.fadeOut('slow');
-        //        }
-        //    })
-        //});
 
         return(this);
     }
