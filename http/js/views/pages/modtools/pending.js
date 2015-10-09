@@ -20,9 +20,15 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
     },
 
     fetch: function() {
+        var self = this;
+        self.$('.js-none').hide();
         this.msgs.fetch({
             data: {
                 collection: 'Pending'
+            }
+        }).then(function() {
+            if (self.msgs.length == 0) {
+                self.$('.js-none').fadeIn('slow');
             }
         });
     },
@@ -39,6 +45,7 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
         // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
         // appropriately.
         this.listenTo(Iznik.Session, 'pendingcountschanged', this.fetch);
+        this.fetch();
     }
 });
 

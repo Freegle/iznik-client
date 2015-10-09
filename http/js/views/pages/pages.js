@@ -22,6 +22,7 @@ Iznik.Views.Page = IznikView.extend({
 
         var m = new Iznik.Views.LeftMenu();
         $('.js-leftsidebar').html(m.render().el);
+        rightaccordion = $('#rightaccordion');
 
         if (!rightbar) {
             var s = new Iznik.Views.Supporters();
