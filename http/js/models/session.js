@@ -25,8 +25,9 @@ Iznik.Models.Session = IznikModel.extend({
                     self.trigger('isLoggedIn', true);
                     if (ret.work.pending) {
                         total += ret.work.pending;
-                        if (ret.work.pending != $('.js-pendingcount').html()) {
-                            $('.js-pendingcount').html(ret.work.pending);
+                        var pendingCount = $('.js-pendingcount');
+                        if (ret.work.pending != pendingCount.html()) {
+                            pendingCount.html(ret.work.pending);
                             Iznik.Session.trigger('pendingcountschanged');
                         }
                     } else {

@@ -48,7 +48,7 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
     events: {
         'click .js-approve' : 'approve',
         'click .js-reject' : 'reject',
-        'click .js-delete' : 'delete'
+        'click .js-delete' : 'deleteMe'
     },
 
     approve: function() {
@@ -85,7 +85,7 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
         v.render();
     },
 
-    delete: function() {
+    deleteMe: function() {
         var self = this;
 
         // We delete the message on all groups.  Future enhancement?
@@ -205,7 +205,7 @@ Iznik.Views.ModTools.Message.Pending.Reject = Iznik.Views.Modal.extend({
         this.open(null);
         $('.modal').on('shown.bs.modal', function () {
             $('.modal .js-text').focus();
-        })
+        });
 
         return(this);
     }

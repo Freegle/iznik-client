@@ -7,10 +7,11 @@ Iznik.Views.Page = IznikView.extend({
         options = typeof options == 'undefined' ? {} : options;
 
         var rightbar = null;
+        var rightaccordion = $('#rightaccordion');
 
-        if ($('#rightaccordion').length > 0) {
+        if (rightaccordion.length > 0) {
             // We render the right sidebar only once, so that the plugin work remains there if we route to a new page
-            rightbar = $('#rightaccordion').children().detach();
+            rightbar = rightaccordion.children().detach();
         }
 
         // Set the base page layout
@@ -24,13 +25,13 @@ Iznik.Views.Page = IznikView.extend({
 
         if (!rightbar) {
             var s = new Iznik.Views.Supporters();
-            $('#rightaccordion').append(s.render().el);
+            rightaccordion.append(s.render().el);
 
             var s = new Iznik.Views.Plugin.Info();
-            $('#rightaccordion').append(s.render().el);
-            $('#rightaccordion').accordionPersist();
+            rightaccordion.append(s.render().el);
+            rightaccordion.accordionPersist();
         } else {
-            $('#rightaccordion').empty().append(rightbar);
+            rightaccordion.empty().append(rightbar);
         }
 
         if (options.noSupporters) {
@@ -45,14 +46,17 @@ Iznik.Views.Page = IznikView.extend({
 
         // Show anything which should or shouldn't be visible based on login status.
         this.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
+            var loggedInOnly = $('.js-loggedinonly');
+            var loggedOutOnly = $('.js-loggedoutonly');
+
             if (loggedIn) {
-                $('.js-loggedinonly').toggleClass('reallyHide');
-                $('.js-loggedinonly').fadeIn('slow');
-                $('.js-loggedoutonly').fadeOut('slow');
+                loggedInOnly.toggleClass('reallyHide');
+                loggedInOnly.fadeIn('slow');
+                loggedOutOnly.fadeOut('slow');
             } else {
-                $('.js-loggedoutonly').toggleClass('reallyHide');
-                $('.js-loggedoutonly').fadeIn('slow');
-                $('.js-loggedinonly').fadeOut('slow');
+                loggedOutOnly.toggleClass('reallyHide');
+                loggedOutOnly.fadeIn('slow');
+                loggedInOnly.fadeOut('slow');
             }
         });
 

@@ -19,6 +19,8 @@ class userAPITest extends IznikAPITest {
     protected function setUp() {
         parent::setUp ();
 
+        /** @var LoggedPDO $dbhr */
+        /** @var LoggedPDO $dbhm */
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;

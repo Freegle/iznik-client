@@ -14,16 +14,16 @@
 //   or be made by the plugin and trigger back to us by cancellation.
 //   We pick up the response from such cancellations and invoke the callback.
 
-// serialQueue for executing operations one at a time.
+// SerialQueue for executing operations one at a time.
 //
 // Assumes the object passed contains a deferred property and a start method.
 
-function serialQueue() {
+function SerialQueue() {
     this.entries = [];
     this.count = 0;
 }
 
-serialQueue.prototype.add = function (args) {
+SerialQueue.prototype.add = function (args) {
     var self = this;
 
     return(function () {
@@ -55,7 +55,7 @@ serialQueue.prototype.add = function (args) {
     });
 };
 
-var majaxQueue = new serialQueue();
+var majaxQueue = new SerialQueue();
 
 function majax(args) {
     this.args = args;

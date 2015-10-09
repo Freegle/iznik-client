@@ -22,8 +22,9 @@
         }
 
         // Add event listener to record changes and persist them.
-        $('#' + self.id).on('shown.bs.collapse', function() {
-            var id = $('#' + self.id + ' .in').attr('id');
+        var el = $('#' + self.id);
+        el.on('shown.bs.collapse', function() {
+            var id = el.attr('id');
 
             try {
                 localStorage.setItem('accordionPersist.' + self.id, '#' + id);
@@ -32,7 +33,7 @@
             }
         });
 
-        $('#' + self.id).on('hidden.bs.collapse', function() {
+        el.on('hidden.bs.collapse', function() {
             try {
                 localStorage.removeItem('accordionPersist.' + self.id);
             } catch (e) {

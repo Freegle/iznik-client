@@ -20,12 +20,13 @@ Iznik.Views.Modal = IznikView.extend({
         // We hide the dialog, but keep the DOM elements until after the callback has been
         // made in case the callback wants to extract data from them.
         this.$el.find('.modal').modal('hide');
-        $('body').removeClass('modal-open');
+        var body = $('body');
+        body.removeClass('modal-open');
         $('.modal-backdrop').remove();
 
         this.trigger('modalCancelled');
         //noinspection JSJQueryEfficiency
-        $('body').trigger('modalCancelled');
+        body.trigger('modalCancelled');
 
         IznikView.prototype.remove.call(this);
         this.remove();
@@ -37,12 +38,12 @@ Iznik.Views.Modal = IznikView.extend({
         // We hide the dialog, but keep the DOM elements until after the callback has been
         // made in case the callback wants to extract data from them.
         this.$el.find('.modal').modal('hide');
-        $('body').removeClass('modal-open');
+        var body = $('body');
+        body.removeClass('modal-open');
         $('.modal-backdrop').remove();
 
         this.trigger('modalClosed');
-        //noinspection JSJQueryEfficiency
-        $('body').trigger('modalClosed');
+        body.trigger('modalClosed');
 
         Backbone.View.prototype.remove.call(this);
         this.remove();

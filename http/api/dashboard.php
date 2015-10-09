@@ -8,14 +8,20 @@ function dashboard() {
     $groupid = presdef('group', $_REQUEST, NULL);
     $type = presdef('grouptype', $_REQUEST, NULL);
 
-    if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-        # Check if we're logged in
-        if ($me) {
-            $ret = array('ret' => 0, 'status' => 'Success');
-            $d = new Dashboard($dbhr, $dbhm, $me);
-            $ret['dashboard'] = $d->get($systemwide, $allgroups, $groupid, $type);
-        } else {
-            $ret = array('ret' => 1, 'status' => 'Not logged in');
+    $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
+
+    switch ($_SERVER['REQUEST_METHOD']) {
+        case 'GET': {
+            # Check if we're logged in
+            if ($me) {
+                $ret = array('ret' => 0, 'status' => 'Success');
+                $d = new Dashboard($dbhr, $dbhm, $me);
+                $ret['dashboard'] = $d->get($systemwide, $allgroups, $groupid, $type);
+            } else {
+                $ret = array('ret' => 1, 'status' => 'Not logged in');
+            }
+
+            break;
         }
     }
 
