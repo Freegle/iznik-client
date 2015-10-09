@@ -145,7 +145,17 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
                     model: mod
                 });
                 self.$('.js-yahoo').append(v.render().el);
-            })
+            });
+
+            // Add any attachments.
+            _.each(self.model.get('attachments'), function(att) {
+                console.log("Attachment", att);
+                var v = new Iznik.Views.ModTools.Message.Photo({
+                    model: new IznikModel(att)
+                });
+
+                self.$('.js-attlist').append(v.render().el);
+            });
         });
 
         // When this model is removed from the collection, it will have an event triggered on it. When that happens,
@@ -218,4 +228,23 @@ Iznik.Views.ModTools.Message.Pending.Reject = Iznik.Views.Modal.extend({
     }
 });
 
+Iznik.Views.ModTools.Message.Photo = IznikView.extend({
+    tagName: 'li',
 
+    template: 'modtools_message_photo',
+
+    events: {
+        'click .js-img': 'click'
+    },
+
+    click: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var v = new Iznik.Views.Modal({
+            model: this.model
+        });
+
+        v.open('modtools_message_photozoom');
+    }
+});

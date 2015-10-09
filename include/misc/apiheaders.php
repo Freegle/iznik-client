@@ -1,8 +1,14 @@
 <?php
+$call = array_key_exists('call', $_REQUEST) ? $_REQUEST['call'] : NULL;
+
 // We allow anyone to use our API.
 //
 // Suppress errors on the header command for UT
-@header('Content-type: application/json');
+if ($call != 'image') {
+    # For images we'll set the content type later.
+    @header('Content-type: application/json');
+}
+
 @header('Access-Control-Allow-Origin: *');
 @header('Access-Control-Allow-Headers: ' . $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']);
 @header('Access-Control-Allow-Credentials: true');

@@ -20,6 +20,25 @@ class Attachment
         return $this->contentType;
     }
 
+    public function getPath() {
+        # We serve up our attachment names as though they are files.
+        # When these are fetched it will go through image.php
+        return("/img_{$this->id}.jpg");
+    }
+
+    public function getPublic() {
+        $ret = array(
+            'id' => $this->id
+        );
+
+        if (stripos($this->contentType, 'image') !== FALSE) {
+            # It's an image.  That's the only type we support.
+            $ret['path'] = $this->getPath();
+        }
+
+        return($ret);
+    }
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->dbhr = $dbhr;

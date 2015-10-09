@@ -218,6 +218,15 @@ class Message
             filterResult($ret['fromuser']);
         }
 
+        # Add any attachments - visible to non-members.
+        $ret['attachments'] = [];
+        $atts = $this->getAttachments();
+
+        foreach ($atts as $att) {
+            /** @var $att Attachment */
+            $ret['attachments'][] = $att->getPublic();
+        }
+
         return($ret);
     }
 

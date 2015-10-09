@@ -113,6 +113,10 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         assertEquals('image/png', $atts[1]->getContentType());
         assertEquals(9695, strlen($atts[1]->getData()));
 
+        # Check the returned attachments
+        $atts = $m->getPublic();
+        assertEquals(2, count($atts['attachments']));
+
         $m->delete();
 
         error_log(__METHOD__ . " end");

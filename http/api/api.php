@@ -13,6 +13,7 @@ require_once(IZNIK_BASE . '/include/message/Collection.php');
 require_once(IZNIK_BASE . '/include/misc/Supporters.php');
 require_once(IZNIK_BASE . '/include/mail/MailRouter.php');
 require_once(IZNIK_BASE . '/include/misc/plugin.php');
+require_once(IZNIK_BASE . '/include/misc/Image.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/session.php');
@@ -22,6 +23,7 @@ require_once(IZNIK_BASE . '/http/api/message.php');
 require_once(IZNIK_BASE . '/http/api/supporters.php');
 require_once(IZNIK_BASE . '/http/api/plugin.php');
 require_once(IZNIK_BASE . '/http/api/user.php');
+require_once(IZNIK_BASE . '/http/api/image.php');
 
 $includetime = microtime(true) - $scriptstart;
 
@@ -80,6 +82,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
                 case 'exception':
                     # For UT
                     throw new Exception();
+                case 'image':
+                    $ret = image();
+                    break;
                 case 'messages':
                     $ret = messages();
                     break;
@@ -112,18 +117,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             }
 
             # If we get here, everything worked.  Add profiling info.
-            $ret['call'] = $call;
-            $ret['type'] = $_SERVER['REQUEST_METHOD'];
-            $ret['session'] = session_id();
-            $ret['duration'] = (microtime(true) - $scriptstart);
-            $ret['cpucost'] = getCpuUsage();
-            $ret['dbwaittime'] = $dbhr->getWaitTime() + $dbhm->getWaitTime();
-            $ret['includetime'] = $includetime;
-            $ret['whoamitime'] = $whoamitime;
+            if (pres('img', $ret)) {
+                # This is an image we want to output.  Can cache forever - if an image changes it would get a new id
+                @header('Content-Type: image/jpeg');
+                @header('Content-Length: ' . strlen($ret['img']));
+                @header('Cache-Control: max-age=315360000');
+                print $ret['img'];
+            } else {
+                # This is a normal API call.
+                $ret['call'] = $call;
+                $ret['type'] = $_SERVER['REQUEST_METHOD'];
+                $ret['session'] = session_id();
+                $ret['duration'] = (microtime(true) - $scriptstart);
+                $ret['cpucost'] = getCpuUsage();
+                $ret['dbwaittime'] = $dbhr->getWaitTime() + $dbhm->getWaitTime();
+                $ret['includetime'] = $includetime;
+                $ret['whoamitime'] = $whoamitime;
 
-            filterResult($ret);
+                filterResult($ret);
 
-            echo json_encode($ret);
+                echo json_encode($ret);
+            }
 
             if ($apicallretries > 0) {
                 error_log("API call $call worked after $apicallretries");

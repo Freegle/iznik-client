@@ -43,7 +43,7 @@ class IznikAPITest extends IznikTest {
     public function __construct() {
     }
 
-    public function call($call, $type, $params) {
+    public function call($call, $type, $params, $decode = TRUE) {
         $_REQUEST = array_merge($params);
 
         $_SERVER['REQUEST_METHOD'] = $type;
@@ -65,7 +65,11 @@ class IznikAPITest extends IznikTest {
             $this->lastOutput = $op;
         }
 
-        $ret = json_decode($op, true);
+        if ($decode) {
+            $ret = json_decode($op, true);
+        } else {
+            $ret = $op;
+        }
 
         return($ret);
     }
