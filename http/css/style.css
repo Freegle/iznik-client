@@ -739,6 +739,6 @@ a button {
     height: 95px;
 }
 
-.panel-footer btn {
+.panel-footer .btn {
     padding: 5px;
 }
