@@ -101,13 +101,26 @@ class Collection
         return([$groups, $msgs]);
     }
 
-    function find($sender, $groupid, $date) {
-        $mysqltime = gmdate("Y-m-d H:i:s", strtotime($date));
-        $sql = "SELECT id FROM messages INNER JOIN messages_groups ON messages.fromaddr = ? AND messages_groups.msgid = messages.id AND messages_groups.groupid = ? AND messages.date = ?;";
+    function findByYahooApprovedId($groupid, $id) {
+        $sql = "SELECT id FROM messages INNER JOIN messages_groups ON messages.yahooapprovedid = ? AND messages_groups.msgid = messages.id AND messages_groups.groupid = ?;";
         $msglist = $this->dbhr->preQuery($sql, [
-            $sender,
-            $groupid,
-            $mysqltime
+            $id,
+            $groupid
+        ]);
+
+        if (count($msglist) == 1) {
+            return($msglist[0]['id']);
+        } else {
+            return NULL;
+        }
+    }
+
+    function findByYahooPendingId($groupid, $id) {
+        $sql = "SELECT id FROM messages INNER JOIN messages_groups ON messages.yahoopendingid = ? AND messages_groups.msgid = messages.id AND messages_groups.groupid = ?;";
+        error_log("$sql $id $groupid");
+        $msglist = $this->dbhr->preQuery($sql, [
+            $id,
+            $groupid
         ]);
 
         if (count($msglist) == 1) {

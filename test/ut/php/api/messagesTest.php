@@ -232,6 +232,7 @@ class messagesTest extends IznikAPITest {
             'groupid' => $group1,
             'source' => Message::YAHOO_PENDING,
             'from' => 'test@test.com',
+            'yahoopendingid' => 833,
             'message' => $msg
         ]);
 
@@ -249,6 +250,7 @@ class messagesTest extends IznikAPITest {
             'groupid' => $group1,
             'source' => Message::YAHOO_PENDING,
             'from' => 'test@test.com',
+            'yahoopendingid' => 833,
             'message' => $msg
         ]);
 
@@ -261,10 +263,23 @@ class messagesTest extends IznikAPITest {
             'groupid' => $group1,
             'source' => 'wibble',
             'from' => 'test@test.com',
+            'yahooapprovedid' => 833,
             'message' => $msg
         ]);
 
         assertEquals(997, $ret['ret']);
+
+        $ret = $this->call('messages', 'PUT', [
+            'groupid' => $group1,
+            'source' => Message::YAHOO_APPROVED,
+            'from' => 'test@test.com',
+            'yahooapprovedid' => 833,
+            'message' => $msg
+        ]);
+
+        # Should work
+        assertEquals(0, $ret['ret']);
+        assertEquals(MailRouter::APPROVED, $ret['routed']);
 
         error_log(__METHOD__ . " end");
     }

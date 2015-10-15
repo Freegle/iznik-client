@@ -12,6 +12,7 @@ function messages() {
     $from = presdef('from', $_REQUEST, NULL);
     $message = presdef('message', $_REQUEST, NULL);
     $yahoopendingid = presdef('yahoopendingid', $_REQUEST, NULL);
+    $yahooapprovedid = presdef('yahooapprovedid', $_REQUEST, NULL);
     $collections = presdef('collections', $_REQUEST, [ Collection::APPROVED, Collection::SPAM ]);
     $messages = presdef('messages', $_REQUEST, NULL);
 
@@ -64,7 +65,14 @@ function messages() {
                 $id = $r->received($source, $from, $g->getPrivate('nameshort') . '@yahoogroups.com', $message);
                 $rc = $r->route();
                 $m = new Message($dbhr, $dbhm, $id);
-                $m->setYahooPendingId($yahoopendingid);
+
+                if ($yahoopendingid) {
+                    $m->setYahooPendingId($yahoopendingid);
+                }
+
+                if ($yahooapprovedid) {
+                    $m->setYahooApprovedId($yahooapprovedid);
+                }
 
                 $ret = [
                     'ret' => 0,

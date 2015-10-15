@@ -99,6 +99,21 @@ class Group extends Entity
         return($atts);
     }
 
+    private function getKey($message) {
+        # Both pending and approved messages have unique IDs, though they are only unique within pending and approved,
+        # not between them.
+        #
+        # It would be nice to believe in a world where Message-ID was unique.
+        $key = NULL;
+        if (pres('yahoopendingid', $message)) {
+            $key = "P-{$message['yahoopendingid']}";
+        } else if (pres('yahooapprovedid', $message)) {
+            $key = "A-{$message['yahooapprovedid']}";
+        }
+
+        return($key);
+    }
+
     public function correlate($collections, $messages) {
         # Check whether any of the messages in $messages are not present on the server or vice-versa.
         $missingonserver = [];
@@ -115,20 +130,42 @@ class Group extends Entity
         }
 
         foreach ($messages as $message) {
-            $supplied[$message['email'] . strtotime($message['date'])] = true;
+            $key = $this->getKey($message);
+            $supplied[$key] = true;
 
             $missing = true;
 
             foreach ($cs as $c) {
                 /** @var Collection $c */
-                $id = $c->find($message['email'], $this->id, $message['date']);
+                $id = NULL;
+
+                error_log("collection " . $c->getCollection() . " message " . var_export($message, true));
+                switch (($c->getCollection())) {
+                    case Collection::APPROVED:
+                        $id = $c->findByYahooApprovedId($this->id, $message['yahooapprovedid']);
+                        break;
+                    case Collection::PENDING:
+                        $id = $c->findByYahooPendingId($this->id, $message['yahoopendingid']);
+                        break;
+                }
+                error_log("found id $id");
+
                 if ($id) {
                     $missing = false;
 
+                    # TODO these two clauses can go at some point - it's no longer true.
                     if (pres('yahoopendingid', $message)) {
                         # Make sure we have the pending id set, which we won't have if we got the message by email.
                         $this->dbhm->preExec("UPDATE messages SET yahoopendingid = ? WHERE id = ? AND yahoopendingid IS NULL;", [
                             $message['yahoopendingid'],
+                            $id
+                        ]);
+                    }
+
+                    if (pres('yahooapprovedid', $message)) {
+                        # Make sure we have the approved id set, which we won't have if we got the message by email.
+                        $this->dbhm->preExec("UPDATE messages SET yahooapprovedid = ? WHERE id = ? AND yahooapprovedid IS NULL;", [
+                            $message['yahooapprovedid'],
                             $id
                         ]);
                     }
@@ -144,7 +181,7 @@ class Group extends Entity
         # $messages.
         /** @var Collection $c */
         foreach ($cs as $c) {
-            $sql = "SELECT id, fromaddr, subject, date FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ?;";
+            $sql = "SELECT id, fromaddr, yahoopendingid, yahooapprovedid, subject, date FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ?;";
             $ourmsgs = $this->dbhr->preQuery(
                 $sql,
                 [
@@ -154,7 +191,7 @@ class Group extends Entity
             );
 
             foreach ($ourmsgs as $msg) {
-                $key = $msg['fromaddr'] . strtotime($msg['date']);
+                $key = $this->getKey($msg);
                 if (!array_key_exists($key, $supplied)) {
                     $missingonclient[] = [
                         'id' => $msg['id'],

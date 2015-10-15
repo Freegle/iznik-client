@@ -42,10 +42,18 @@ class Message
     }
 
     public function setYahooPendingId($id) {
-        $rc = $this->dbhm->preExec("UPDATE messages SET yahoopendingid = ? WHERE id = {$this->id};", [ $id ]);
-        if ($rc) {
-            $this->yahoopendingid = $id;
-        }
+        $this->dbhm->preExec("UPDATE messages SET yahoopendingid = ? WHERE id = {$this->id};", [ $id ]);
+        $this->yahoopendingid = $id;
+    }
+
+    public function getYahooapprovedid()
+    {
+        return $this->yahooapprovedid;
+    }
+
+    public function setYahooApprovedId($id) {
+        $rc = $this->dbhm->preExec("UPDATE messages SET yahooapprovedid = ? WHERE id = {$this->id};", [ $id ]);
+        $this->yahooapprovedid = $id;
     }
 
     /**
@@ -63,7 +71,7 @@ class Message
 
     private $id, $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr,
         $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
-        $fromhost, $type, $attachments, $yahoopendingid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
+        $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
         $parser, $arrival, $spamreason, $fromuser;
 
     # The groupid is only used for parsing and saving incoming messages; after that a message can be on multiple
@@ -88,7 +96,7 @@ class Message
     ];
 
     public $memberAtts = [
-        'textbody', 'htmlbody', 'fromname', 'fromuser'
+        'textbody', 'htmlbody', 'fromname', 'fromuser', 'yahooapprovedid'
     ];
 
     public $moderatorAtts = [
@@ -485,6 +493,18 @@ class Message
         $this->envelopefrom = $envelopefrom;
         $this->envelopeto = $envelopeto;
         $this->yahoopendingid = NULL;
+        $this->yahooapprovedid = NULL;
+
+        # Get Yahoo pending message id
+        if (preg_match('/pending\?view=1&msg=(\d*)/im', $msg, $matches)) {
+            $this->yahoopendingid = $matches[1];
+        }
+
+        # Get Yahoo approved message id
+        $newmanid = $Parser->getHeader('x-yahoo-newman-id');
+        if ($newmanid && preg_match('/.*\-m(\d*)/', $newmanid, $matches)) {
+            $this->yahooapprovedid = $matches[1];
+        }
 
         # Yahoo posts messages from the group address, but with a header showing the
         # original from address.
@@ -624,7 +644,7 @@ class Message
         $this->removeByMessageID($this->groupid);
 
         # Save into the messages table.
-        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type, yahoopendingid, yahooreject, yahooapprove) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->date,
             $this->source,
@@ -642,6 +662,7 @@ class Message
             $this->htmlbody,
             $this->type,
             $this->yahoopendingid,
+            $this->yahooapprovedid,
             $this->yahooreject,
             $this->yahooapprove
         ]);

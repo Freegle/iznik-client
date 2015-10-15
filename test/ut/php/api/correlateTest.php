@@ -42,12 +42,14 @@ class correlateTest extends IznikAPITest {
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
-        $msg = file_get_contents('msgs/basic');
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = file_get_contents('msgs/approve');
+        $msg = str_ireplace('ehtest', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $msgid = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $msgid);
+        assertEquals(833, $m->getYahoopendingid());
 
         # Create a mod
         $u = new User($this->dbhr, $this->dbhm);
@@ -78,18 +80,18 @@ class correlateTest extends IznikAPITest {
                 [
                     'email' => 'test@test.com',
                     'subject' => 'Basic test',
-                    'yahoopendingid' => 1,
+                    'yahoopendingid' => 833,
                     'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
                 ]
             ],
             'wibble' => 'bypass dup check'
         ]);
-
         error_log(var_export($ret, true));
+
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['missingonserver']));
 
-        # Test different sender - should be missing.
+        # Test different pending id - should be missing.
         $ret = $this->call('messages', 'POST', [
             'groupid' => $group1,
             'collections' => [
@@ -100,6 +102,7 @@ class correlateTest extends IznikAPITest {
                 [
                     'email' => 'test1@test.com',
                     'subject' => 'Basic test',
+                    'yahoopendingid' => 832,
                     'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
                 ]
             ]
@@ -109,25 +112,88 @@ class correlateTest extends IznikAPITest {
         assertEquals(1, count($ret['missingonserver']));
         assertEquals('test1@test.com', $ret['missingonserver'][0]['email']);
 
-        # Test different time - should be missing.
+        $u->delete();
+        $g->delete();
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testApproved() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        # Create a group with a message on it
+        $msg = file_get_contents('msgs/fromyahoo');
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $msgid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $msgid);
+        assertEquals(1, $m->getYahooapprovedid());
+
+        # Create a mod
+        $u = new User($this->dbhr, $this->dbhm);
+        $id = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $id);
+        $u->addMembership($group1, User::ROLE_MODERATOR);
+
         $ret = $this->call('messages', 'POST', [
             'groupid' => $group1,
             'collections' => [
-                'Pending',
+                'Approved',
+                'Spam'
+            ]
+        ]);
+        assertEquals(1, $ret['ret']);
+
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        # Test same - none missing.
+        $ret = $this->call('messages', 'POST', [
+            'groupid' => $group1,
+            'collections' => [
+                'Approved',
+                'Spam'
+            ],
+            'messages' => [
+                [
+                    'email' => 'test@test.com',
+                    'subject' => 'Basic test',
+                    'yahooapprovedid' => 1,
+                    'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
+                ]
+            ],
+            'wibble' => 'bypass dup check'
+        ]);
+        error_log(var_export($ret, true));
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['missingonserver']));
+
+        # Test different approved id - should be missing.
+        $ret = $this->call('messages', 'POST', [
+            'groupid' => $group1,
+            'collections' => [
+                'Approved',
                 'Spam'
             ],
             'messages' => [
                 [
                     'email' => 'test1@test.com',
                     'subject' => 'Basic test',
-                    'date' => isodate('21 Aug 2015 10:45:58 +0000')
+                    'yahooapprovedid' => 2,
+                    'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
                 ]
             ]
         ]);
 
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['missingonserver']));
-        assertEquals('2015-08-21T10:45:58Z', $ret['missingonserver'][0]['date']);
+        assertEquals('test1@test.com', $ret['missingonserver'][0]['email']);
 
         $u->delete();
         $g->delete();

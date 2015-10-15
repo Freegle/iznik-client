@@ -22,7 +22,10 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         var self = this;
         this.updatePluginCount();
 
-        if (!this.currentItem) {
+        var groups = Iznik.Session.get('groups');
+        var groupname = groups && groups.length > 0 ? groups.at(0).get('nameshort') : null;
+
+        if (groupname && !this.currentItem) {
             // Get any first item of work to do.
             var first = this.work.pop();
 
@@ -31,9 +34,6 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                 // Get a crumb from Yahoo to do the work.  It doesn't matter which of our groups we do this for -
                 // Yahoo returns the same crumb.
-                var groups = Iznik.Session.get('groups');
-                var groupname = groups.at(0).nameshort;
-
                 function getCrumb(ret) {
                     var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
 
@@ -97,14 +97,18 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     },
 
     requeueWork: function(work) {
+        console.log("Requeue", work);
         // This is ongoing - so put to the front.
+        this.currentItem = null;
         this.work.unshift(work);
         this.checkWork();
     },
 
     retryWork: function(work) {
         // Put at the back so as not to block other work.
+        this.currentItem = null;
         this.work.push(work);
+        this.checkWork();
     },
 
     checkPluginStatus: function() {
@@ -282,6 +286,7 @@ Iznik.Views.Plugin.Work = IznikView.extend({
     queue: function() {
         window.setTimeout(_.bind(function() {
             // This is ongoing - so add it to the front of the queue.
+            console.log("Requeue it");
             IznikPlugin.requeueWork(this);
         }, this), 500);
     },
@@ -302,6 +307,8 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
     offset: 1,
 
     chunkSize: 100,
+
+    ageLimit: 7,
 
     start: function() {
         var self = this;
@@ -326,25 +333,40 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
 
     processChunk: function(ret) {
         var self = this;
+        var now = moment();
 
         if (ret.ygData) {
-            var total = ret.ygData.numResults;
+            var total = ret.ygData[this.numField];
             this.offset += total;
             var messages = ret.ygData[this.messageLocation];
+            var maxage = null;
 
             for (var i = 0; i < total; i++) {
                 var message = messages[i];
-                var d = moment(message['postDate'] * 1000);
+                var d = moment(message[this.dateField] * 1000);
+                var age = now.diff(d) / 1000 / 60 / 60 / 24;
+                maxage = age > maxage ? age : maxage;
+                var percent = Math.round((maxage / self.ageLimit) * 100);
+                self.$('.progress-bar').css('width',  percent + '%').attr('aria-valuenow', percent);
 
-                this.messages.push({
+                var thisone = {
                     email: message['email'],
                     subject: message['subject'],
-                    date: d.format(),
-                    yahoopendingid: message['msgId']
-                });
+                    date: d.format()
+                };
+
+                if (message.hasOwnProperty('msgId')) {
+                    thisone.yahoopendingid = message['msgId'];
+                }
+
+                if (message.hasOwnProperty('messageId')) {
+                    thisone.yahooapprovedid = message['messageId'];
+                }
+
+                this.messages.push(thisone);
             }
 
-            if (total == 0 || total < this.chunkSize) {
+            if (total == 0 || total < this.chunkSize || maxage >= self.ageLimit) {
                 // Finished.  Now check with the server whether we have any messages which it doesn't.
                 $.ajax({
                     type: "POST",
@@ -384,26 +406,38 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
 
                                 $.ajax({
                                     type: "GET",
-                                    url: self.sourceurl(missing['yahoopendingid']),
+                                    url: self.sourceurl(missing[self.idField]),
                                     context: self,
                                     success: function(ret) {
                                         if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
                                             var source = decodeEntities(ret.ygData.rawEmail);
+                                            var data = {
+                                                groupid: self.model.get('id'),
+                                                from: ret.ygData.email,
+                                                message: source,
+                                                source: self.source
+                                            };
+
+                                            data[self.idField] = missing[self.idField];
+
                                             $.ajax({
                                                 type: "PUT",
                                                 url: API + 'messages',
-                                                data: {
-                                                    groupid: self.model.get('id'),
-                                                    from: ret.ygData.email,
-                                                    message: source,
-                                                    source: self.source
-                                                },
+                                                data: data,
                                                 context: self,
                                                 success: function(ret) {
                                                     missing.deferred.resolve();
                                                 }
                                             });
+                                        } else {
+                                            // Couldn't fetch.  Not much we can do - Yahoo has some messages
+                                            // which are not accessible.
+                                            missing.deferred.resolve();
                                         }
+                                    }, error: function(req, status, error) {
+                                        // Couldn't fetch.  Not much we can do - Yahoo has some messages
+                                        // which are not accessible.
+                                        missing.deferred.resolve();
                                     }
                                 });
                             });
@@ -418,6 +452,7 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                     error: self.failChunk
                 });
             } else {
+                console.log("Still going, queue");
                 this.queue();
             }
         }
@@ -425,9 +460,13 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
 });
 
 Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Yahoo.Sync.extend({
-    template: 'plugin_syncpending',
+    template: 'plugin_sync_pending',
 
     messageLocation: 'pendingMessages',
+
+    numField: 'numResults',
+    idField: 'yahoopendingid',
+    dateField: 'postDate',
 
     collections: [
         'Pending',
@@ -443,6 +482,40 @@ Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Yahoo.Sync.extend({
 
     sourceurl: function(id) {
         return YAHOOAPI + 'groups/' + this.model.get('nameshort') + '/pending/messages/' + id + '/raw'
+    }
+});
+
+Iznik.Views.Plugin.Yahoo.SyncApproved = Iznik.Views.Plugin.Yahoo.Sync.extend({
+    // Setting offset to 0 omits start from first one
+    offset: 0,
+
+    template: 'plugin_sync_approved',
+
+    messageLocation: 'messages',
+
+    numField: 'numRecords',
+    idField: 'yahooapprovedid',
+    dateField: 'date',
+
+    collections: [
+        'Approved',
+        'Spam'
+    ],
+
+    source: 'Yahoo Approved',
+
+    url: function() {
+        var url = YAHOOAPI + 'groups/' + this.model.get('nameshort') + "/messages?count=" + this.chunkSize + "&chrome=raw"
+
+        if (this.offset) {
+            url += "&start=" + this.offset;
+        }
+
+        return(url);
+    },
+
+    sourceurl: function(id) {
+        return YAHOOAPI + 'groups/' + this.model.get('nameshort') + '/messages/' + id + '/raw'
     }
 });
 

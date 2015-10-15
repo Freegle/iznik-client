@@ -25,9 +25,10 @@ class MailRouterTest extends IznikTest {
         $this->dbhm->preExec("DELETE FROM messages WHERE fromaddr = ? OR fromip = ?;", ['from@test.com', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM messages_history WHERE fromaddr = ? OR fromip = ?;", ['from@test.com', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM messages_history WHERE prunedsubject LIKE ?;", ['Test spam mail']);
-        $this->dbhm->preExec("DELETE FROM messages_history WHERE fromaddr IN (?,?) OR fromip = ?;", ['test@test.com', 'GTUBE1.1010101@example.net', '1.2.3.4']);
+        $this->dbhm->preExec("DELETE FROM messages_history WHERE fromaddr IN (?,?,?) OR fromip = ?;", ['test@test.com', 'GTUBE1.1010101@example.net', 'to@test,com', '1.2.3.4']);
         $this->dbhm->preExec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';", []);
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';", []);
+        $this->dbhm->preExec("DELETE FROM users WHERE id IN (SELECT userid FROM users_emails WHERE email LIKE '%test.com');", []);
 
         # Whitelist this IP
         $this->dbhm->preExec("INSERT IGNORE INTO spam_whitelist_ips (ip, comment) VALUES ('1.2.3.4', 'UT whitelist');", []);
@@ -240,32 +241,6 @@ class MailRouterTest extends IznikTest {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         assertNull((new Message($this->dbhr, $this->dbhm, $id))->getMessage());
-
-        error_log(__METHOD__ . " end");
-    }
-
-    public function testHam() {
-        error_log(__METHOD__);
-
-        $msg = file_get_contents('msgs/basic');
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
-
-        $msg = file_get_contents('msgs/fromyahoo');
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals('Yahoo-Web', $m->getSourceheader());
-        $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
-
-        $msg = file_get_contents('msgs/basic');
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
 
         error_log(__METHOD__ . " end");
     }
@@ -514,6 +489,39 @@ class MailRouterTest extends IznikTest {
         error_log(__METHOD__ . " end");
     }
 
+    public function testHam() {
+        error_log(__METHOD__);
 
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        error_log("Created user $uid");
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        assertGreaterThan(0, $u->addEmail('test@test.com'));
+
+        $msg = file_get_contents('msgs/basic');
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $msg = file_get_contents('msgs/fromyahoo');
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals('Yahoo-Web', $m->getSourceheader());
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        assertEquals(1, $m->getYahooapprovedid());
+
+        $msg = file_get_contents('msgs/basic');
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals($uid, $m->getFromuser());
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

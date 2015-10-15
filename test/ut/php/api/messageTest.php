@@ -297,7 +297,7 @@ class messageTest extends IznikAPITest {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+        $group1 = $g->create('testgroup', Group::GROUP_OTHER);
 
         $msg = file_get_contents('msgs/basic');
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -314,6 +314,8 @@ class messageTest extends IznikAPITest {
             ->setMethods(array('mailer'))
             ->getMock();
         $m->method('mailer')->willReturn(false);
+
+        assertEquals(Message::TYPE_OTHER, $m->getType());
 
         # Shouldn't be able to reject logged out
         $ret = $this->call('message', 'POST', [
@@ -450,6 +452,14 @@ class messageTest extends IznikAPITest {
             'duplicate' => 2
         ]);
         assertEquals(3, $ret['ret']);
+
+        # Route and delete approved.
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals(1, $m->delete(NULL, $group1));
 
         error_log(__METHOD__ . " end");
     }
