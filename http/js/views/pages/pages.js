@@ -98,6 +98,11 @@ Iznik.Views.LeftMenu = IznikView.extend({
 
             if (href == window.location.pathname) {
                 $(this).closest('li').addClass('active');
+
+                // Force reload on click, which doesn't happen by default.
+                $(this).click(function() {
+                    Backbone.history.loadUrl(href);
+                });
             }
         });
 
