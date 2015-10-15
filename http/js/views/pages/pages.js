@@ -86,9 +86,20 @@ Iznik.Views.LeftMenu = IznikView.extend({
     render: function() {
         this.$el.html(window.template(this.template));
 
+        // Bypass caching for plugin load
         this.$('.js-firefox').attr('href',
             this.$('.js-firefox').attr('href') + '?' + Math.random()
         );
+
+        // Highlight current page if any.
+        this.$('a').each(function() {
+            var href = $(this).attr('href');
+            $(this).closest('li').removeClass('active');
+
+            if (href == window.location.pathname) {
+                $(this).closest('li').addClass('active');
+            }
+        });
 
         return this;
     }
