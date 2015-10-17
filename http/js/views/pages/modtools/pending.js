@@ -3,22 +3,6 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
 
     template: "modtools_pending_main",
 
-    messageAdded: function(message) {
-        var v = new Iznik.Views.ModTools.Message.Pending({
-            model: message
-        });
-
-        this.$('.js-list').append(v.render().el);
-        this.$('.timeago').timeago();
-
-        this.$el.fadeIn('slow');
-    },
-
-    messageRemoved: function(message) {
-        // Message removed from the collection.  Trigger an event to be picked up by views, to remove themselves.
-        message.trigger('removed');
-    },
-
     fetch: function() {
         var self = this;
         self.$('.js-none').hide();
@@ -29,6 +13,15 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
         }).then(function() {
             if (self.msgs.length == 0) {
                 self.$('.js-none').fadeIn('slow');
+            } else {
+                // CollectionView handles adding/removing/sorting for us.
+                self.collectionView = new Backbone.CollectionView( {
+                    el : self.$('.js-list'),
+                    modelView : Iznik.Views.ModTools.Message.Pending,
+                    collection : self.msgs
+                } );
+
+                self.collectionView.render();
             }
         });
     },
@@ -37,10 +30,6 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
         Iznik.Views.Page.prototype.render.call(this);
 
         this.msgs = new Iznik.Collections.Message();
-
-        // By setting up these listeners we will add and remove messages nicely from the view.
-        this.listenTo(this.msgs, 'add', this.messageAdded);
-        this.listenTo(this.msgs, 'remove', this.messageRemoved);
 
         // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
         // appropriately.
@@ -158,13 +147,8 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
             });
         });
 
-        // When this model is removed from the collection, it will have an event triggered on it. When that happens,
-        // we want to remove this view.
-        this.listenToOnce(this.model, 'removed', function() {
-            self.$el.fadeOut('slow', function() {
-                self.remove();
-            });
-        });
+        this.$('.timeago').timeago();
+        this.$el.fadeIn('slow');
 
         return(this);
     }

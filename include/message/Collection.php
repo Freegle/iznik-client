@@ -60,7 +60,9 @@ class Collection
         if (count($groupids) > 0) {
             $groupq = " AND groupid IN (" . implode(',', $groupids) . ") ";
 
-            $sql = "SELECT messages_groups.msgid, messages_groups.groupid FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE msgid > ? $groupq AND collection = ? AND deleted = 0 ORDER BY messages.id DESC LIMIT $limit";
+            # We don't have to worry much about ordering, because that is done by the client, but we might as well return
+            # something predictable.
+            $sql = "SELECT msgid, groupid FROM messages_groups WHERE msgid > ? $groupq AND collection = ? AND deleted = 0 ORDER BY msgid DESC LIMIT $limit";
             $msglist = $this->dbhr->preQuery($sql, [
                 $start,
                 $this->collection
