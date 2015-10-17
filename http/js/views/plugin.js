@@ -582,6 +582,8 @@ Iznik.Views.Plugin.Yahoo.RejectPendingMessage = Iznik.Views.Plugin.Work.extend({
                         self.fail();
                     }
                 }
+            }, error: function() {
+                self.fail();
             }
         });
     }

@@ -14,6 +14,7 @@ function scriptInclude($minify)
         "js/lib/exif.js",
         "js/lib/jquery.ui.touch-punch.js",
         "js/lib/backbone-1.1.2.js",
+        "js/lib/backbone.collectionView.js",
         "js/lib/jquery.dotdotdot.min.js",
         "js/lib/json2.js",
         "js/lib/flowtype.js",

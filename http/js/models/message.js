@@ -9,8 +9,9 @@ Iznik.Collections.Message = IznikCollection.extend({
         this.options = options;
 
         // Use a comparator to show in most recent first order
-        this.comparator = function(a) {
-            return((new Date(a.get('arrival'))).getTime());
+        this.comparator = function(a, b) {
+            var ret = (new Date(b.get('date'))).getTime() - (new Date(a.get('date'))).getTime();
+            return(ret);
         }
     },
 

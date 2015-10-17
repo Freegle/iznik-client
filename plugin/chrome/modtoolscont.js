@@ -16,7 +16,6 @@ d.style.display = "none";
 d.innerHTML = version;
 document.body.appendChild(d);
 
-console.log("Add message listener");
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     console.log("Content script message received");

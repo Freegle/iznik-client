@@ -3,34 +3,24 @@ Iznik.Views.ModTools.Pages.Spam = Iznik.Views.Page.extend({
 
     template: "modtools_spam_main",
 
-    messageAdded: function(message) {
-        var v = new Iznik.Views.ModTools.Message.Spam({
-            model: message
-        });
-
-        this.$('.js-list').append(v.render().el);
-        this.$('.timeago').timeago();
-
-        this.$el.fadeIn('slow');
-    },
-
-    messageRemoved: function(message) {
-        // Message removed from the collection.  Trigger an event to be picked up by views, to remove themselves.
-        message.trigger('removed');
-    },
-
     render: function() {
         Iznik.Views.Page.prototype.render.call(this);
 
-        var msgs = new Iznik.Collections.Message();
+        self.msgs = new Iznik.Collections.Message();
 
-        this.listenTo(msgs, 'add', this.messageAdded);
-        this.listenTo(msgs, 'remove', this.messageRemoved);
-
-        msgs.fetch({
+        self.msgs.fetch({
             data: {
                 collection: 'Spam'
             }
+        }).then(function() {
+            // CollectionView handles adding/removing/sorting for us.
+            self.collectionView = new Backbone.CollectionView( {
+                el : self.$('.js-list'),
+                modelView : Iznik.Views.ModTools.Message.Spam,
+                collection : self.msgs
+            } );
+
+            self.collectionView.render();
         });
     }
 });
@@ -54,13 +44,8 @@ Iznik.Views.ModTools.Message.Spam = IznikView.extend({
             self.$('.js-grouplist').append(v.render().el);
         });
 
-        // When this model is removed from the collection, it will have an event triggered on it. When that happens,
-        // we want to remove this view.
-        this.listenToOnce(this.model, 'removed', function() {
-            self.$el.fadeOut('slow', function() {
-                self.remove();
-            });
-        });
+        this.$('.timeago').timeago();
+        this.$el.fadeIn('slow');
 
         return(this);
     }
@@ -71,7 +56,6 @@ Iznik.Views.ModTools.Message.Spam.Group = IznikView.extend({
 
     render: function() {
         var self = this;
-        console.log("spam group render", self.model.toJSON2());
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
 
         return(this);

@@ -107,7 +107,7 @@ class MailRouter
                 'groupid' => $this->msg->getGroups()[0]
             ]);
 
-            $ret = MailRouter::INCOMING_FAILURE;
+            $ret = MailRouter::FAILURE;
 
             if ($this->markAsSpam("{$rc[1]}")) {
                 $ret = MailRouter::INCOMING_SPAM;
