@@ -117,6 +117,24 @@ class MailRouterTest extends IznikTest {
         error_log(__METHOD__ . " end");
     }
 
+    public function testSpamOverride() {
+        error_log(__METHOD__);
+
+        $msg = file_get_contents('msgs/spam');
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
+
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals(Message::YAHOO_APPROVED, $m->getSource());
+
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route(NULL, TRUE);
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testWhitelist() {
         error_log(__METHOD__);
 

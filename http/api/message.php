@@ -79,23 +79,30 @@ function message() {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
             if ($m && $me && $me->isModOrOwner($groupid)) {
-                # Check that this is pending.
-                if (!$m->isPending($groupid)) {
-                    $ret = ['ret' => 3, 'status' => 'Message is not pending'];
-                } else {
-                    if ($action == 'Delete') {
+                $ret = [ 'ret' => 0, 'status' => 'Success' ];
+
+                if ($action == 'Delete') {
+                    if ($m->isPending($groupid)) {
                         # We have to reject on Yahoo, but without a reply.
                         $m->reject($groupid, NULL, NULL);
-                    } else if ($action == 'Reject') {
+                    } else {
+                        $m->delete($reason);
+                    }
+                } else if ($action == 'Reject') {
+                    if (!$m->isPending($groupid)) {
+                        $ret = ['ret' => 3, 'status' => 'Message is not pending'];
+                    } else {
                         $m->reject($groupid, $subject, $body);
-                    } else if ($action == 'Approve') {
+                    }
+                } else if ($action == 'Approve') {
+                    if (!$m->isPending($groupid)) {
+                        $ret = ['ret' => 3, 'status' => 'Message is not pending'];
+                    } else {
                         $m->approve($groupid);
                     }
-
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success'
-                    ];
+                } else if ($action == 'NotSpam') {
+                    $r = new MailRouter($dbhr, $dbhm);
+                    $r->route($m, TRUE);
                 }
             }
         }

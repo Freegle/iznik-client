@@ -21,6 +21,7 @@ class Log
     const SUBTYPE_APPROVED = 'Approved';
     const SUBTYPE_REJECTED = 'Rejected';
     const SUBTYPE_RECEIVED = 'Received';
+    const SUBTYPE_NOTSPAM = 'NotSpam';
     const SUBTYPE_FAILURE = 'Failure';
     const SUBTYPE_JOINED = 'Joined';
     const SUBTYPE_LEFT = 'Left';

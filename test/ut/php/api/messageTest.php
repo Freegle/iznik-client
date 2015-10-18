@@ -463,5 +463,76 @@ class messageTest extends IznikAPITest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testNotSpam() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $msg = file_get_contents('msgs/spam');
+        $msg = str_ireplace('To: Recipient <recipient@example.net>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+
+        # Shouldn't be able to do this logged out
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'NotSpam'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $ret = $this->call('plugin', 'GET', []);
+        assertEquals(1, $ret['ret']);
+
+        # Now join - shouldn't be able to do this as a member
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($group1);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'NotSpam'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Promote to owner - should be able to do this it.
+        $u->setRole(User::ROLE_OWNER, $group1);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'NotSpam',
+            'duplicate' => 1
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Message should now be in pending.
+        $ret = $this->call('messages', 'GET', [
+            'groupid' => $group1,
+            'collection' => 'Pending'
+        ]);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($id, $msgs[0]['id']);
+
+        # Spam should be empty.
+        $ret = $this->call('messages', 'GET', [
+            'groupid' => $group1,
+            'collection' => 'Spam'
+        ]);
+        $msgs = $ret['messages'];
+        assertEquals(0, count($msgs));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

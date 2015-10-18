@@ -86,8 +86,9 @@ class MailRouter
         return($this->dbhm->preExec("UPDATE messages_groups SET collection = 'Pending' WHERE msgid = ?;", [ $this->msg->getID() ]));
     }
 
-    public function route($msg = NULL) {
-        # The originator of this message
+    public function route($msg = NULL, $notspam = FALSE) {
+        $ret = NULL;
+
         # We route messages to one of the following destinations:
         # - to a group
         # - to a user
@@ -96,77 +97,82 @@ class MailRouter
             $this->msg = $msg;
         }
 
-        # First check if this message is spam based on our own checks.
-        $rc = $this->spam->check($this->msg);
-        if ($rc) {
-            $this->log->log([
-                'type' => Log::TYPE_MESSAGE,
-                'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
-                'msgid' => $this->msg->getID(),
-                'text' => "{$rc[1]}",
-                'groupid' => $this->msg->getGroups()[0]
-            ]);
+        if (!$notspam) {
+            # First check if this message is spam based on our own checks.
+            $rc = $this->spam->check($this->msg);
+            if ($rc) {
+                $this->log->log([
+                    'type' => Log::TYPE_MESSAGE,
+                    'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
+                    'msgid' => $this->msg->getID(),
+                    'text' => "{$rc[1]}",
+                    'groupid' => $this->msg->getGroups()[0]
+                ]);
 
-            $ret = MailRouter::FAILURE;
+                $ret = MailRouter::FAILURE;
 
-            if ($this->markAsSpam("{$rc[1]}")) {
-                $ret = MailRouter::INCOMING_SPAM;
-            }
-        } else {
-            # Now check if we think this is just plain spam.
-            $this->spamc->command = 'CHECK';
+                if ($this->markAsSpam("{$rc[1]}")) {
+                    $ret = MailRouter::INCOMING_SPAM;
+                }
+            } else {
+                # Now check if we think this is just plain spam.
+                $this->spamc->command = 'CHECK';
 
-            if ($this->spamc->filter($this->msg->getMessage())) {
-                $spamscore = $this->spamc->result['SCORE'];
+                if ($this->spamc->filter($this->msg->getMessage())) {
+                    $spamscore = $this->spamc->result['SCORE'];
 
-                if ($spamscore >= 5) {
-                    # This might be spam.  We'll mark it as such, then it will get reviewed.
-                    $groups = $this->msg->getGroups();
+                    if ($spamscore >= 5) {
+                        # This might be spam.  We'll mark it as such, then it will get reviewed.
+                        $groups = $this->msg->getGroups();
 
-                    if (count($groups) > 0) {
-                        foreach ($groups as $groupid) {
+                        if (count($groups) > 0) {
+                            foreach ($groups as $groupid) {
+                                $this->log->log([
+                                    'type' => Log::TYPE_MESSAGE,
+                                    'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
+                                    'msgid' => $this->msg->getID(),
+                                    'text' => "SpamAssassin score $spamscore",
+                                    'groupid' => $groupid
+                                ]);
+                            }
+                        } else {
                             $this->log->log([
                                 'type' => Log::TYPE_MESSAGE,
                                 'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
                                 'msgid' => $this->msg->getID(),
-                                'text' => "SpamAssassin score $spamscore",
-                                'groupid' => $groupid
+                                'text' => "SpamAssassin score $spamscore"
                             ]);
                         }
-                    } else {
-                        $this->log->log([
-                            'type' => Log::TYPE_MESSAGE,
-                            'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
-                            'msgid' => $this->msg->getID(),
-                            'text' => "SpamAssassin score $spamscore"
-                        ]);
-                    }
 
-                    if ($this->markAsSpam("SpamAssassin flagged this as likely spam; score $spamscore (high is bad)")) {
-                        $ret = MailRouter::INCOMING_SPAM;
-                    } else {
-                        $this->msg->recordFailure('Failed to mark spam');
-                        $ret = MailRouter::FAILURE;
+                        if ($this->markAsSpam("SpamAssassin flagged this as likely spam; score $spamscore (high is bad)")) {
+                            $ret = MailRouter::INCOMING_SPAM;
+                        } else {
+                            $this->msg->recordFailure('Failed to mark spam');
+                            $ret = MailRouter::FAILURE;
+                        }
                     }
                 } else {
-                    # Not obviously spam.
-                    #
-                    # For now move all pending messages into the pending queue.  This will change when we know the
-                    # moderation status of the member and the group settings.
-                    # TODO
+                    # We have failed to check that this is spam.  Record the failure.
+                    $this->msg->recordFailure('Spam Assassin check failed');
                     $ret = MailRouter::FAILURE;
-                    if ($this->msg->getSource() == Message::YAHOO_PENDING &&
-                        $this->markPending()) {
-                        $ret = MailRouter::PENDING;
-                    } else if ($this->markApproved()) {
-                        $ret = MailRouter::APPROVED;
-                    } else {
-                        $ret = MailRouter::FAILURE;
-                    }
                 }
+            }
+        }
+
+        if (!$ret) {
+            # Not obviously spam.
+            #
+            # For now move all pending messages into the pending queue.  This will change when we know the
+            # moderation status of the member and the group settings.
+            # TODO
+            $ret = MailRouter::FAILURE;
+            if ($this->msg->getSource() == Message::YAHOO_PENDING &&
+                $this->markPending()
+            ) {
+                $ret = MailRouter::PENDING;
+            } else if ($this->markApproved()) {
+                $ret = MailRouter::APPROVED;
             } else {
-                # We have failed to check that this is spam.  Record the failure.
-                $this->msg->recordFailure('Spam Assassin check failed');
                 $ret = MailRouter::FAILURE;
             }
         }
