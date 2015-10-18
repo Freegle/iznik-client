@@ -47,6 +47,7 @@ var IznikRouter = Backbone.Router.extend({
         "modtools": "modtools",
         "modtools/supporters": "supporters",
         "modtools/pending": "pending",
+        "modtools/approved": "approved",
         "modtools/spam": "spam",
         "*path": "home"
     },
@@ -141,6 +142,15 @@ var IznikRouter = Backbone.Router.extend({
     spam: function() {
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
             var page = new Iznik.Views.ModTools.Pages.Spam();
+            this.loadRoute({page: page, modtools: true});
+        });
+
+        Iznik.Session.forceLogin();
+    },
+
+    approved: function() {
+        this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
+            var page = new Iznik.Views.ModTools.Pages.Approved();
             this.loadRoute({page: page, modtools: true});
         });
 

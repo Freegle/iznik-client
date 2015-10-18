@@ -23,23 +23,33 @@ Iznik.Models.Session = IznikModel.extend({
                     var total = 0;
 
                     self.trigger('isLoggedIn', true);
-                    if (ret.work.pending) {
-                        total += ret.work.pending;
-                        var pendingCount = $('.js-pendingcount');
-                        if (ret.work.pending != pendingCount.html()) {
-                            pendingCount.html(ret.work.pending);
-                            Iznik.Session.trigger('pendingcountschanged');
-                        }
-                    } else {
-                        $('.js-pendingcount').empty();
-                    }
 
-                    if (ret.work.spam) {
-                        total += ret.work.spam;
-                        $('.js-spamcount').html(ret.work.spam);
-                    } else {
-                        $('.js-spamcount').empty();
-                    }
+                    // Update our various counts.
+                    var counts = [
+                        {
+                            fi: 'pending',
+                            el: '.js-pendingcount',
+                            ev: 'pendingcountschanged'
+                        },
+                        {
+                            fi: 'spam',
+                            el: '.js-spamcount',
+                            ev: 'spamcountschanged'
+                        }
+                    ];
+
+                    _.each(counts, function(count) {
+                        if (ret.work[count.fi]) {
+                            total += ret.work[count.fi];
+                            var countel = $(count.el);
+                            if (ret.work.pending != countel.html()) {
+                                countel.html(ret.work[count.fi]);
+                                Iznik.Session.trigger(count.ev);
+                            }
+                        } else {
+                            $(countel).empty();
+                        }
+                    })
 
                     document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
                 } else {
