@@ -161,6 +161,15 @@ var IznikRouter = Backbone.Router.extend({
 var Router;
 
 $(document).ready(function(){
+    // We have a busy indicator.
+    $(document).ajaxStop(function () {
+        $('#spinner').hide();
+    });
+
+    $(document).ajaxStart(function () {
+        $('#spinner').show();
+    });
+
     // We're ready.  Get backbone up and running.
     Router = new IznikRouter();
 

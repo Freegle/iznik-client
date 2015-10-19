@@ -74,6 +74,7 @@ class Collection
 
             # At the moment we only support ordering by date DESC.
             $sql = "SELECT msgid, groupid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id WHERE $startq $groupq AND collection = ? AND deleted = 0 ORDER BY messages.date DESC LIMIT $limit";
+            error_log($sql . var_export($args, true));
             $msglist = $this->dbhr->preQuery($sql, $args);
 
             # Don't return the message attribute as it will be huge.  They can get that via a call to the

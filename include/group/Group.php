@@ -139,7 +139,6 @@ class Group extends Entity
                 /** @var Collection $c */
                 $id = NULL;
 
-                error_log("collection " . $c->getCollection() . " message " . var_export($message, true));
                 switch (($c->getCollection())) {
                     case Collection::APPROVED:
                         $id = $c->findByYahooApprovedId($this->id, $message['yahooapprovedid']);
@@ -148,7 +147,6 @@ class Group extends Entity
                         $id = $c->findByYahooPendingId($this->id, $message['yahoopendingid']);
                         break;
                 }
-                error_log("found id $id");
 
                 if ($id) {
                     $missing = false;

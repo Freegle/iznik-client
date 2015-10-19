@@ -28,9 +28,11 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
                 remove: false
             }).then(function() {
                 self.fetching = false;
-                if (!self.start && self.msgs.length == 0) {
+                if (!self.start) {
                     self.$('.js-none').fadeIn('slow');
-                } else {
+                }
+
+                if (self.msgs.length > 0) {
                     self.msgs.each(function(msg) {
                         var thisone = (new Date(msg.get('date'))).getTime();
                         if (self.start == null || thisone < self.start) {
