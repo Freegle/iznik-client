@@ -49,7 +49,19 @@ class Collection
         $groups = [];
         $groupids = [];
         $msgs = [];
-        $start = $start ? $start : 0;
+
+        if ($start) {
+            $args = [
+                $start,
+                $this->collection
+            ];
+            $startq = "messages.date < ? ";
+        } else {
+            $args = [
+                $this->collection
+            ];
+            $startq = '1=1';
+        }
 
         foreach ($groupfilter as $groupid) {
             $g = new Group($this->dbhr, $this->dbhm, $groupid);
@@ -60,13 +72,9 @@ class Collection
         if (count($groupids) > 0) {
             $groupq = " AND groupid IN (" . implode(',', $groupids) . ") ";
 
-            # We don't have to worry much about ordering, because that is done by the client, but we might as well return
-            # something predictable.
-            $sql = "SELECT msgid, groupid FROM messages_groups WHERE msgid > ? $groupq AND collection = ? AND deleted = 0 ORDER BY msgid DESC LIMIT $limit";
-            $msglist = $this->dbhr->preQuery($sql, [
-                $start,
-                $this->collection
-            ]);
+            # At the moment we only support ordering by date DESC.
+            $sql = "SELECT msgid, groupid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id WHERE $startq $groupq AND collection = ? AND deleted = 0 ORDER BY messages.date DESC LIMIT $limit";
+            $msglist = $this->dbhr->preQuery($sql, $args);
 
             # Don't return the message attribute as it will be huge.  They can get that via a call to the
             # message API call.

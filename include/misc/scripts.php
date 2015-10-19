@@ -37,6 +37,7 @@ function scriptInclude($minify)
         "js/lib/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js",
         "js/lib/bootstrap-datepicker.en-GB.js",
         "js/lib/autosize.js",
+        "js/lib/jquery.waypoints.js",
         "js/iznik/dateshim.js",
         "js/iznik/zombies.js",
         "js/iznik/underscore.js",

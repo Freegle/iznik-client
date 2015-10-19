@@ -3,33 +3,87 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
 
     template: "modtools_approved_main",
 
-    fetch: function() {
-        var self = this;
-        self.$('.js-none').hide();
-        this.msgs.fetch({
-            data: {
-                collection: 'Approved'
-            }
-        }).then(function() {
-            if (self.msgs.length == 0) {
-                self.$('.js-none').fadeIn('slow');
-            } else {
-                // CollectionView handles adding/removing/sorting for us.
-                self.collectionView = new Backbone.CollectionView( {
-                    el : self.$('.js-list'),
-                    modelView : Iznik.Views.ModTools.Message.Approved,
-                    collection : self.msgs
-                } );
+    fetching: false,
+    start: null,
+    startdate: null,
 
-                self.collectionView.render();
+    fetch: function(start) {
+        var self = this;
+
+        if (!self.fetching) {
+            self.fetching = true;
+            self.$('.js-none').hide();
+            var data = {
+                collection: 'Approved'
+            };
+
+            if (self.start) {
+                data.start = self.startdate;
             }
-        });
+
+            // Fetch more messages - and leave the old ones in the collection
+            this.msgs.fetch({
+                data: data,
+                reset: false,
+                remove: false
+            }).then(function() {
+                self.fetching = false;
+                if (!self.start && self.msgs.length == 0) {
+                    self.$('.js-none').fadeIn('slow');
+                } else {
+                    self.msgs.each(function(msg) {
+                        var thisone = (new Date(msg.get('date'))).getTime();
+                        if (self.start == null || thisone < self.start) {
+                            self.start = thisone;
+                            self.startdate = msg.get('date');
+                        }
+                    });
+
+                    // Waypoints allow us to see when we have scrolled to the bottom.
+                    if (self.lastWaypoint) {
+                        self.lastWaypoint.destroy();
+                    }
+
+                    var vm = self.collectionView.viewManager;
+                    var lastView = vm.last();
+
+                    if (lastView) {
+                        self.lastMessage = lastView;
+                        self.lastWaypoint = new Waypoint({
+                            element: lastView.el,
+                            handler: function(direction) {
+                                if (direction == 'down') {
+                                    // We have scrolled to the last view.  Fetch more.
+                                    self.fetch();
+                                }
+                            },
+                            offset: '99%' // Fire as soon as this view becomes visible
+                        });
+                    }
+                }
+            });
+        }
     },
 
     render: function() {
+        var self = this;
+
         Iznik.Views.Page.prototype.render.call(this);
 
         this.msgs = new Iznik.Collections.Message();
+
+        // CollectionView handles adding/removing/sorting for us.
+        self.collectionView = new Backbone.CollectionView( {
+            el : self.$('.js-list'),
+            modelView : Iznik.Views.ModTools.Message.Approved,
+            modelViewOptions: {
+                collection: self.msgs,
+                page: self
+            },
+            collection: self.msgs
+        } );
+
+        self.collectionView.render();
 
         // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
         // appropriately.
@@ -67,6 +121,13 @@ Iznik.Views.ModTools.Message.Approved = IznikView.extend({
     render: function() {
         var self = this;
 
+        var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
+        var v = new Iznik.Views.ModTools.User({
+            model: mod
+        });
+
+        self.$('.js-user').html(v.render().el);
+
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
         _.each(self.model.get('groups'), function(group, index, list) {
             var mod = new IznikModel(group);
@@ -78,13 +139,6 @@ Iznik.Views.ModTools.Message.Approved = IznikView.extend({
                 model: mod
             });
             self.$('.js-grouplist').append(v.render().el);
-
-            var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
-            var v = new Iznik.Views.ModTools.User({
-                model: mod
-            });
-
-            self.$('.js-user').html(v.render().el);
 
             // The Yahoo part of the user
             var mod = IznikYahooUsers.findUser({
@@ -99,20 +153,20 @@ Iznik.Views.ModTools.Message.Approved = IznikView.extend({
                 });
                 self.$('.js-yahoo').append(v.render().el);
             });
+        });
 
-            // Add any attachments.
-            _.each(self.model.get('attachments'), function(att) {
-                console.log("Attachment", att);
-                var v = new Iznik.Views.ModTools.Message.Photo({
-                    model: new IznikModel(att)
-                });
-
-                self.$('.js-attlist').append(v.render().el);
+        // Add any attachments.
+        _.each(self.model.get('attachments'), function(att) {
+            console.log("Attachment", att);
+            var v = new Iznik.Views.ModTools.Message.Photo({
+                model: new IznikModel(att)
             });
+
+            self.$('.js-attlist').append(v.render().el);
         });
 
         this.$('.timeago').timeago();
-        this.$el.fadeIn('slow');
+        //this.$el.fadeIn('slow');
 
         return(this);
     }

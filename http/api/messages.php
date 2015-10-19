@@ -7,7 +7,7 @@ function messages() {
     $groupid = presdef('groupid', $_REQUEST, NULL);
     $collection = presdef('collection', $_REQUEST, Collection::APPROVED);
     $start = intval(presdef('start', $_REQUEST, NULL));
-    $limit = intval(presdef('limit', $_REQUEST, 100));
+    $limit = intval(presdef('limit', $_REQUEST, 10));
     $source = presdef('source', $_REQUEST, NULL);
     $from = presdef('from', $_REQUEST, NULL);
     $message = presdef('message', $_REQUEST, NULL);
