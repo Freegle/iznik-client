@@ -220,7 +220,7 @@ class messageTest extends IznikAPITest {
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
-        $this->dbhm->preExec("UPDATE messages SET yahooapprove = 'test@test.com', yahoopendingid = 1 WHERE id = $id;");
+        $this->dbhm->preExec("UPDATE messages_groups SET yahooapprove = 'test@test.com', yahoopendingid = 1 WHERE msgid = $id;");
 
         # Suppress mails.
         $m = $this->getMockBuilder('Message')
@@ -306,7 +306,7 @@ class messageTest extends IznikAPITest {
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
-        $this->dbhm->preExec("UPDATE messages SET yahooreject = 'test@test.com', yahoopendingid = 1 WHERE id = $id;");
+        $this->dbhm->preExec("UPDATE messages_groups SET yahooreject = 'test@test.com', yahoopendingid = 1 WHERE msgid = $id;");
 
         # Suppress mails.
         $m = $this->getMockBuilder('Message')
@@ -393,7 +393,7 @@ class messageTest extends IznikAPITest {
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
-        $this->dbhm->preExec("UPDATE messages SET yahooreject = 'test@test.com', yahoopendingid = 1 WHERE id = $id;");
+        $this->dbhm->preExec("UPDATE messages_groups SET yahooreject = 'test@test.com', yahoopendingid = 1 WHERE msgid = $id;");
 
         # Shouldn't be able to delete logged out
         $ret = $this->call('message', 'POST', [
@@ -459,7 +459,13 @@ class messageTest extends IznikAPITest {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals(1, $m->delete(NULL, $group1));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Delete'
+        ]);
+        assertEquals(0, $ret['ret']);
 
         error_log(__METHOD__ . " end");
     }

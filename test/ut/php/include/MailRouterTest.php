@@ -529,7 +529,6 @@ class MailRouterTest extends IznikTest {
         assertEquals('Yahoo-Web', $m->getSourceheader());
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
-        assertEquals(1, $m->getYahooapprovedid());
 
         $msg = file_get_contents('msgs/basic');
         $r = new MailRouter($this->dbhr, $this->dbhm);

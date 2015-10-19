@@ -150,23 +150,6 @@ class Group extends Entity
 
                 if ($id) {
                     $missing = false;
-
-                    # TODO these two clauses can go at some point - it's no longer true.
-                    if (pres('yahoopendingid', $message)) {
-                        # Make sure we have the pending id set, which we won't have if we got the message by email.
-                        $this->dbhm->preExec("UPDATE messages SET yahoopendingid = ? WHERE id = ? AND yahoopendingid IS NULL;", [
-                            $message['yahoopendingid'],
-                            $id
-                        ]);
-                    }
-
-                    if (pres('yahooapprovedid', $message)) {
-                        # Make sure we have the approved id set, which we won't have if we got the message by email.
-                        $this->dbhm->preExec("UPDATE messages SET yahooapprovedid = ? WHERE id = ? AND yahooapprovedid IS NULL;", [
-                            $message['yahooapprovedid'],
-                            $id
-                        ]);
-                    }
                 }
             }
 

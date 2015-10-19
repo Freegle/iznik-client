@@ -33,26 +33,15 @@ class Message
         return $this->yahooapprove;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getYahoopendingid()
-    {
-        return $this->yahoopendingid;
-    }
-
-    public function setYahooPendingId($id) {
-        $this->dbhm->preExec("UPDATE messages SET yahoopendingid = ? WHERE id = {$this->id};", [ $id ]);
+    public function setYahooPendingId($groupid, $id) {
+        $sql = "UPDATE messages_groups SET yahoopendingid = ? WHERE msgid = {$this->id} AND groupid = ?;";
+        $rc = $this->dbhm->preExec($sql, [ $groupid, $id ]);
         $this->yahoopendingid = $id;
     }
 
-    public function getYahooapprovedid()
-    {
-        return $this->yahooapprovedid;
-    }
-
-    public function setYahooApprovedId($id) {
-        $rc = $this->dbhm->preExec("UPDATE messages SET yahooapprovedid = ? WHERE id = {$this->id};", [ $id ]);
+    public function setYahooApprovedId($groupid, $id) {
+        $sql = "UPDATE messages_groups SET yahooapprovedid = ? WHERE msgid = {$this->id} AND groupid = ?;";
+        $rc = $this->dbhm->preExec($sql, [ $groupid, $id ]);
         $this->yahooapprovedid = $id;
     }
 
@@ -96,12 +85,12 @@ class Message
     ];
 
     public $memberAtts = [
-        'textbody', 'htmlbody', 'fromname', 'fromuser', 'yahooapprovedid'
+        'textbody', 'htmlbody', 'fromname', 'fromuser'
     ];
 
     public $moderatorAtts = [
         'source', 'sourceheader', 'fromaddr', 'envelopeto', 'envelopefrom', 'messageid', 'tnpostid',
-        'fromip', 'message', 'yahoopendingid', 'yahooreject', 'yahooapprove', 'spamreason'
+        'fromip', 'message', 'spamreason'
     ];
 
     public $ownerAtts = [
@@ -644,7 +633,7 @@ class Message
         $this->removeByMessageID($this->groupid);
 
         # Save into the messages table.
-        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->date,
             $this->source,
@@ -660,11 +649,7 @@ class Message
             $this->tnpostid,
             $this->textbody,
             $this->htmlbody,
-            $this->type,
-            $this->yahoopendingid,
-            $this->yahooapprovedid,
-            $this->yahooreject,
-            $this->yahooapprove
+            $this->type
         ]);
 
         $id = NULL;
@@ -687,9 +672,13 @@ class Message
         if ($this->groupid) {
             # Save the group we're on.  If we crash or fail at this point we leave the message stranded, which is ok
             # given the perf cost of a transaction.
-            $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, collection) VALUES (?,?,?);", [
+            $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection) VALUES (?,?,?,?,?,?,?);", [
                 $this->id,
                 $this->groupid,
+                $this->yahoopendingid,
+                $this->yahooapprovedid,
+                $this->yahooreject,
+                $this->yahooapprove,
                 Collection::INCOMING
             ]);
         }
@@ -793,22 +782,24 @@ class Message
 
         $handled = false;
 
-        if ($this->yahooreject) {
-            # We can trigger rejection by email - do so.
-            # TODO Probably the approve/reject mails should be in messages_groups rather than per-message.
-            $this->mailer($this->yahooreject, "My name is Iznik and I reject this message", "", NULL, '-f' . MODERATOR_EMAIL);
-            $handled = true;
-        }
+        $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ?;";
+        $groups = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
+        foreach ($groups as $group) {
+            if ($group['yahooreject']) {
+                # We can trigger rejection by email - do so.
+                $this->mailer($group['yahooreject'], "My name is Iznik and I reject this message", "", NULL, '-f' . MODERATOR_EMAIL);
+                $handled = true;
+            }
 
-        $ypid = $this->getYahoopendingid();
-        if ($ypid) {
-            # We can trigger rejection via the plugin - do so.
-            $p = new Plugin($this->dbhr, $this->dbhm);
-            $p->add($groupid, [
-                'type' => 'RejectPendingMessage',
-                'id' => $ypid
-            ]);
-            $handled = true;
+            if ($group['yahoopendingid']) {
+                # We can trigger rejection via the plugin - do so.
+                $p = new Plugin($this->dbhr, $this->dbhm);
+                $p->add($groupid, [
+                    'type' => 'RejectPendingMessage',
+                    'id' => $group['yahoopendingid']
+                ]);
+                $handled = true;
+            }
         }
 
         if ($handled) {
@@ -850,22 +841,24 @@ class Message
 
         $handled = false;
 
-        if ($this->yahooapprove) {
-            # We can trigger approval by email - do so.
-            # TODO Probably the approve/reject mails should be in messages_groups rather than per-message.
-            $this->mailer($this->yahooapprove, "My name is Iznik and I approve this message", "", NULL, '-f' . MODERATOR_EMAIL);
-            $handled = true;
-        }
+        $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ?;";
+        $groups = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
+        foreach ($groups as $group) {
+            if ($group['yahooapprove']) {
+                # We can trigger approval by email - do so.
+                $this->mailer($group['yahooapprove'], "My name is Iznik and I approve this message", "", NULL, '-f' . MODERATOR_EMAIL);
+                $handled = true;
+            }
 
-        $ypid = $this->getYahoopendingid();
-        if ($ypid) {
-            # We can trigger approval via the plugin - do so.
-            $p = new Plugin($this->dbhr, $this->dbhm);
-            $p->add($groupid, [
-                'type' => 'ApprovePendingMessage',
-                'id' => $ypid
-            ]);
-            $handled = true;
+            if ($group['yahoopendingid']) {
+                # We can trigger approval via the plugin - do so.
+                $p = new Plugin($this->dbhr, $this->dbhm);
+                $p->add($groupid, [
+                    'type' => 'ApprovePendingMessage',
+                    'id' => $group['yahoopendingid']
+                ]);
+                $handled = true;
+            }
         }
 
         if ($handled) {

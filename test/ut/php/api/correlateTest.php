@@ -26,6 +26,7 @@ class correlateTest extends IznikAPITest {
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
         $dbhm->preExec("DELETE FROM users WHERE yahooUserId = 1;");
+        $dbhm->preExec("DELETE FROM messages_history WHERE fromaddr = 'test@ilovefreegle.org';");
     }
 
     protected function tearDown() {
@@ -49,7 +50,6 @@ class correlateTest extends IznikAPITest {
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $msgid);
-        assertEquals(833, $m->getYahoopendingid());
 
         # Create a mod
         $u = new User($this->dbhr, $this->dbhm);
@@ -132,7 +132,6 @@ class correlateTest extends IznikAPITest {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $msgid);
-        assertEquals(1, $m->getYahooapprovedid());
 
         # Create a mod
         $u = new User($this->dbhr, $this->dbhm);

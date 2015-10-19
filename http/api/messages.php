@@ -67,11 +67,11 @@ function messages() {
                 $m = new Message($dbhr, $dbhm, $id);
 
                 if ($yahoopendingid) {
-                    $m->setYahooPendingId($yahoopendingid);
+                    $m->setYahooPendingId($groupid, $yahoopendingid);
                 }
 
                 if ($yahooapprovedid) {
-                    $m->setYahooApprovedId($yahooapprovedid);
+                    $m->setYahooApprovedId($groupid, $yahooapprovedid);
                 }
 
                 $ret = [

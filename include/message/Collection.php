@@ -113,29 +113,28 @@ class Collection
     }
 
     function findByYahooApprovedId($groupid, $id) {
-        $sql = "SELECT id FROM messages INNER JOIN messages_groups ON messages.yahooapprovedid = ? AND messages_groups.msgid = messages.id AND messages_groups.groupid = ?;";
+        $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahooapprovedid = ?;";
         $msglist = $this->dbhr->preQuery($sql, [
-            $id,
-            $groupid
+            $groupid,
+            $id
         ]);
 
         if (count($msglist) == 1) {
-            return($msglist[0]['id']);
+            return($msglist[0]['msgid']);
         } else {
             return NULL;
         }
     }
 
     function findByYahooPendingId($groupid, $id) {
-        $sql = "SELECT id FROM messages INNER JOIN messages_groups ON messages.yahoopendingid = ? AND messages_groups.msgid = messages.id AND messages_groups.groupid = ?;";
-        error_log("$sql $id $groupid");
+        $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahoopendingid = ?;";
         $msglist = $this->dbhr->preQuery($sql, [
-            $id,
-            $groupid
+            $groupid,
+            $id
         ]);
 
         if (count($msglist) == 1) {
-            return($msglist[0]['id']);
+            return($msglist[0]['msgid']);
         } else {
             return NULL;
         }

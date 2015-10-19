@@ -132,7 +132,8 @@ class messagesTest extends IznikAPITest {
         assertTrue($u->login('testpw'));
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1,
-            'collection' => 'Spam'
+            'collection' => 'Spam',
+            'start' => '2100-01-01T06:00:00Z'
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
