@@ -122,6 +122,41 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         error_log(__METHOD__ . " end");
     }
 
+    public function testEmbedded() {
+        error_log(__METHOD__);
+
+        $msg = file_get_contents('msgs/inlinephoto');
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+
+        # Check the parsed inline images
+        $imgs = $m->getInlineimgs();
+        assertEquals(2, count($imgs));
+
+        # Save it and check they show up as attachments
+        $id = $m->save();
+        $atts = Attachment::getById($this->dbhr, $this->dbhm, $id);
+        assertEquals(2, count($atts));
+
+        $m->delete();
+
+        # Test invalid embedded image
+        $msg = str_replace("https://www.google.co.uk/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png", "http://google.com", $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+
+        # Check the parsed inline images - should be none
+        $imgs = $m->getInlineimgs();
+        assertEquals(0, count($imgs));
+
+        # Save it and check they don't show up as attachments
+        $id = $m->save();
+        $atts = Attachment::getById($this->dbhr, $this->dbhm, $id);
+        assertEquals(0, count($atts));
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testPending() {
         error_log(__METHOD__);
 

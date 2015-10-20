@@ -1,0 +1,42 @@
+From: "Test User" <test@test.com>
+To: "ehtest@yahoogroups.com" <ehtest@yahoogroups.com>
+Subject: Test att
+Date: Sat, 22 Aug 2015 13:14:51 +0000
+Message-Id: <em47d9afc0-8c92-4fc8-b791-f63ff69360a2@edward-x1>
+Reply-To: "Test User" <test@test.com>
+User-Agent: eM_Client/6.0.22344.0
+X-Mailer: Freegle Message Maker 2.7
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="------=_MBBD231414-99C8-4563-B61D-69E50BE6FCD3"
+
+
+--------=_MBBD231414-99C8-4563-B61D-69E50BE6FCD3
+Content-Type: multipart/alternative;
+ boundary="------=_MB153ECA7E-06F3-462A-AF2C-D3E3B2A46538"
+
+
+--------=_MB153ECA7E-06F3-462A-AF2C-D3E3B2A46538
+Content-Type: text/plain; format=flowed; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Test with 2 attachments
+--------=_MB153ECA7E-06F3-462A-AF2C-D3E3B2A46538
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<HTML><HEAD>
+<STYLE id=3DeMClientCss>
+blockquote.cite { margin-left: 5px; margin-right: 0px; padding-left: 10px;=
+ padding-right:0px; border-left: 1px solid #cccccc }
+blockquote.cite2 {margin-left: 5px; margin-right: 0px; padding-left: 10px;=
+ padding-right:0px; border-left: 1px solid #cccccc; margin-top: 3px; paddin=
+g-top: 0px; }
+.plain pre, .plain tt { font-family: monospace; font-size: 100%; font-weigh=
+t: normal; font-style: normal; white-space: pre-wrap; }
+a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
+.plain pre, .plain tt {font-family: Tahoma;font-size: 12pt;}</STYLE>
+</HEAD>
+<BODY>Test with 2 attachments<img src="https://www.google.co.uk/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" /><img src="https://www.google.co.uk/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" /></BODY></HTML>
+--------=_MB153ECA7E-06F3-462A-AF2C-D3E3B2A46538--
+
+--------=_MBBD231414-99C8-4563-B61D-69E50BE6FCD3--

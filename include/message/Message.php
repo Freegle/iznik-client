@@ -7,6 +7,7 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
 require_once(IZNIK_BASE . '/include/message/Collection.php');
+require_once(IZNIK_BASE . '/include/misc/Image.php');
 
 class Message
 {
@@ -35,13 +36,13 @@ class Message
 
     public function setYahooPendingId($groupid, $id) {
         $sql = "UPDATE messages_groups SET yahoopendingid = ? WHERE msgid = {$this->id} AND groupid = ?;";
-        $rc = $this->dbhm->preExec($sql, [ $groupid, $id ]);
+        $rc = $this->dbhm->preExec($sql, [ $id, $groupid ]);
         $this->yahoopendingid = $id;
     }
 
     public function setYahooApprovedId($groupid, $id) {
         $sql = "UPDATE messages_groups SET yahooapprovedid = ? WHERE msgid = {$this->id} AND groupid = ?;";
-        $rc = $this->dbhm->preExec($sql, [ $groupid, $id ]);
+        $rc = $this->dbhm->preExec($sql, [ $id, $groupid ]);
         $this->yahooapprovedid = $id;
     }
 
@@ -66,6 +67,8 @@ class Message
     # The groupid is only used for parsing and saving incoming messages; after that a message can be on multiple
     # groups as is handled via the messages_groups table.
     private $groupid = NULL;
+
+    private $inlineimgs = [];
 
     /**
      * @return mixed
@@ -382,6 +385,14 @@ class Message
     }
 
     /**
+     * @return array
+     */
+    public function getInlineimgs()
+    {
+        return $this->inlineimgs;
+    }
+
+    /**
      * @return PhpMimeMailParser\Attachment[]
      */
     public function getParsedAttachments()
@@ -544,6 +555,33 @@ class Message
         $this->textbody = $Parser->getMessageBody('text');
         $this->htmlbody = $Parser->getMessageBody('html');
 
+        # The HTML body might contain images as img tags, rather than actual attachments.  Extract these too.
+        $doc = new DOMDocument();
+        $doc->loadHTML($this->htmlbody);
+        $imgs = $doc->getElementsByTagName('img');
+
+        foreach ($imgs as $img) {
+            $src = $img->getAttribute('src');
+
+            # We only want to get images from http or https to avoid the security risk of fetching a local file.
+            if (stripos($src, 'http://') === 0 || stripos($src, 'https://') === 0) {
+                $ctx = stream_context_create(array('http'=>
+                    array(
+                        'timeout' => 30,  # Only wait for 30 seconds to fetch an image.
+                    )
+                ));
+                $data = file_get_contents($src, false, $ctx);
+
+                # Try to convert to an image.  If it's not an image, this will fail.
+                $img = new Image($data);
+                $newdata = $img->getData();
+
+                if ($newdata) {
+                    $this->inlineimgs[] = $newdata;
+                }
+            }
+        }
+
         # See if we can find a group this is intended for.
         $groupname = NULL;
         $to = $this->getTo();
@@ -691,12 +729,20 @@ class Message
             /** @var \PhpMimeMailParser\Attachment $att */
             $ct = $att->getContentType();
             $fn = $this->attach_dir . DIRECTORY_SEPARATOR . $att->getFilename();
-            error_log("Save attachment {$this->id} $ct");
             $sql = "INSERT INTO messages_attachments (msgid, contenttype, data) VALUES (?,?,LOAD_FILE(?));";
             $this->dbhm->preExec($sql, [
                 $this->id,
                 $ct,
                 $fn
+            ]);
+        }
+
+        foreach ($this->inlineimgs as $att) {
+            $sql = "INSERT INTO messages_attachments (msgid, contenttype, data) VALUES (?,?,?);";
+            $this->dbhm->preExec($sql, [
+                $this->id,
+                'image/jpeg',
+                $att
             ]);
         }
 

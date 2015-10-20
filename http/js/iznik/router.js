@@ -11,15 +11,7 @@ var IznikRouter = Backbone.Router.extend({
                 if (self.modtools) {
                     // This is a ModTools page - start any plugin work.
                     if (loggedIn) {
-                        Iznik.Session.get('groups').each(function (group) {
-                            if (group.get('onyahoo') &&
-                                (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
-                                // We are a mod on this group.  Set our various syncs going.
-                                (new Iznik.Views.Plugin.Yahoo.SyncApproved({model: group})).render();
-                                (new Iznik.Views.Plugin.Yahoo.SyncPending({model: group})).render();
-                            }
-                        });
-
+                        IznikPlugin.startSyncs();
                         IznikPlugin.checkWork();
                     }
                 }

@@ -18,6 +18,21 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         self.connected = false;
     },
 
+    startSyncs: function() {
+        Iznik.Session.get('groups').each(function (group) {
+            if (group.get('onyahoo') &&
+                (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
+                // We are a mod on this group.  Set our various syncs going.
+                (new Iznik.Views.Plugin.Yahoo.SyncApproved({model: group})).render();
+                (new Iznik.Views.Plugin.Yahoo.SyncPending({model: group})).render();
+            }
+        });
+
+        // Sync every ten minutes.  Most changes will be picked up by the session poll, but it's possible
+        // that someone will delete messages directly on Yahoo which we need to notice have gone.
+        _.delay(this.startSyncs, 600000);
+    },
+
     checkWork: function() {
         var self = this;
         this.updatePluginCount();

@@ -33,11 +33,15 @@ class Image {
     }
 
     public function getData() {
-        # Get data back as JPEG.  Use default quality.
-        ob_start();
-        imagejpeg($this->img);
-        $data = ob_get_contents();
-        ob_end_clean();
-        return($data);
+        if ($this->img) {
+            # Get data back as JPEG.  Use default quality.
+            ob_start();
+            imagejpeg($this->img);
+            $data = ob_get_contents();
+            ob_end_clean();
+            return ($data);
+        }
+
+        return(NULL);
     }
 }
