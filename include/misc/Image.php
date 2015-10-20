@@ -22,7 +22,18 @@ class Image {
         $sh = imagesy($this->img);
 
         # We might have been asked to scale either or both of the width and height.
-        $width = $width ? $width : $sw;
+        if ($width) {
+            $height = $sh * $width / $sw;
+        } else {
+            $width = $sw;
+        }
+
+        if ($height) {
+            $width = $sh * $height / $sw;
+        } else {
+            $height = $sh;
+        }
+
         $height = $height ? $height : $sh;
         $old = $this->img;
         $this->img = @imagecreatetruecolor($width, $height);
@@ -32,7 +43,7 @@ class Image {
         imagecopyresampled($this->img, $old, 0, 0, 0, 0, $width, $height, $sw, $sh);
     }
 
-    public function getData($quality = null) {
+    public function getData($quality = 75) {
         if ($this->img) {
             # Get data back as JPEG.  Use default quality.
             ob_start();
