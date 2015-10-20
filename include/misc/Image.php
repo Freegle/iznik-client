@@ -32,11 +32,11 @@ class Image {
         imagecopyresampled($this->img, $old, 0, 0, 0, 0, $width, $height, $sw, $sh);
     }
 
-    public function getData() {
+    public function getData($quality = null) {
         if ($this->img) {
             # Get data back as JPEG.  Use default quality.
             ob_start();
-            imagejpeg($this->img);
+            imagejpeg($this->img, null, $quality);
             $data = ob_get_contents();
             ob_end_clean();
             return ($data);

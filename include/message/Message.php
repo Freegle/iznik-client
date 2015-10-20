@@ -557,7 +557,7 @@ class Message
 
         # The HTML body might contain images as img tags, rather than actual attachments.  Extract these too.
         $doc = new DOMDocument();
-        $doc->loadHTML($this->htmlbody);
+        @$doc->loadHTML($this->htmlbody);
         $imgs = $doc->getElementsByTagName('img');
 
         foreach ($imgs as $img) {
@@ -574,7 +574,7 @@ class Message
 
                 # Try to convert to an image.  If it's not an image, this will fail.
                 $img = new Image($data);
-                $newdata = $img->getData();
+                $newdata = $img->getData(100);
 
                 if ($newdata) {
                     $this->inlineimgs[] = $newdata;
