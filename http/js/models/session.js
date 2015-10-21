@@ -47,7 +47,7 @@ Iznik.Models.Session = IznikModel.extend({
                                 Iznik.Session.trigger(count.ev);
                             }
                         } else {
-                            $(countel).empty();
+                            $(count.el).empty();
                         }
                     })
 

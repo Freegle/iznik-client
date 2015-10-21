@@ -9,6 +9,7 @@ function scriptInclude($minify)
         "js/lib/jquery-ui.js",
         "js/lib/underscore.js",
         "js/lib/moment.js",
+        "js/lib/ajaxq.js",
         "js/lib/combodate.js",
         "js/lib/jquery-dateFormat.min.js",
         "js/lib/exif.js",

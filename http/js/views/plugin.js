@@ -63,7 +63,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                         if (match) {
                             console.log("Got redirect");
                             var url = match[1];
-                            $.ajax({
+                            $.ajaxq('plugin', {
                                 type: "GET",
                                 url: url,
                                 success: getCrumb,
@@ -76,7 +76,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                     }
                 }
 
-                $.ajax({
+                $.ajaxq('plugin', {
                     type: "GET",
                     url: "https://groups.yahoo.com/neo/groups/" + groupname + "/management/pendingmessages",
                     success: getCrumb,
@@ -174,7 +174,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         Iznik.Session.testLoggedIn();
 
         // Check if we have any plugin work to do from the server.
-        $.ajax({
+        $.ajaxq('plugin', {
             type: 'GET',
             url: API + 'plugin',
             success: function(ret) {
@@ -284,7 +284,7 @@ Iznik.Views.Plugin.Work = IznikView.extend({
             // This work came from the server - record the success there.
             //
             // Even if this fails, continue.
-            $.ajax({
+            $.ajaxq('plugin', {
                 type: "DELETE",
                 url: API + 'plugin',
                 data: {
@@ -383,7 +383,7 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
 
             if (total == 0 || total < this.chunkSize || maxage >= self.ageLimit) {
                 // Finished.  Now check with the server whether we have any messages which it doesn't.
-                $.ajax({
+                $.ajaxq('plugin', {
                     type: "POST",
                     url: API + 'messages',
                     context: self,
@@ -400,7 +400,7 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                             // is wrong and we need to delete them.
                             var promises = [];
                             _.each(ret.missingonclient, function(missing, index, list) {
-                                promises.push($.ajax({
+                                promises.push($.ajaxq('plugin', {
                                     type: "DELETE",
                                     url: API + 'message',
                                     context: self,
@@ -419,7 +419,7 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                                 missing.deferred = new $.Deferred();
                                 promises.push(missing.deferred.promise());
 
-                                $.ajax({
+                                $.ajaxq('plugin', {
                                     type: "GET",
                                     url: self.sourceurl(missing[self.idField]),
                                     context: self,
@@ -435,7 +435,7 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
 
                                             data[self.idField] = missing[self.idField];
 
-                                            $.ajax({
+                                            $.ajaxq('plugin', {
                                                 type: "PUT",
                                                 url: API + 'messages',
                                                 data: data,
@@ -543,7 +543,7 @@ Iznik.Views.Plugin.Yahoo.ApprovePendingMessage = Iznik.Views.Plugin.Work.extend(
         var self = this;
         this.startBusy();
 
-        $.ajax({
+        $.ajaxq('plugin', {
             type: "POST",
             url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/pending/messages",
             data: {
@@ -578,7 +578,7 @@ Iznik.Views.Plugin.Yahoo.RejectPendingMessage = Iznik.Views.Plugin.Work.extend({
         var self = this;
         this.startBusy();
 
-        $.ajax({
+        $.ajaxq('plugin', {
             type: "POST",
             url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/pending/messages",
             data: {
