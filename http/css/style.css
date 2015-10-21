@@ -360,7 +360,7 @@ body {
     cursor: pointer;
 }
 
-.panel-title a {
+.panel-title :note(.dropdown-menu) a {
     display: block;
     padding: 10px 15px;
     margin: -10px -15px;

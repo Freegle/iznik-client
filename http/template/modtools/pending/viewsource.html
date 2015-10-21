@@ -1,0 +1,19 @@
+<div class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title js-modal-title">Source for {{subject}}</h4>
+            </div>
+            <div class="modal-body js-modal-body">
+                <% if (obj.source == 'Yahoo Pending') { %>
+                <div class="alert alert-warning botspace">This source is of the APPROVE message from Yahoo; the source of the actual message is inside here.</div>
+                <% } %>
+                <pre class="js-source"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default js-close" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

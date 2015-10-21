@@ -1,5 +1,17 @@
 Iznik.Models.Message = IznikModel.extend({
+    url: function() {
+        return (API + 'message/' + this.get('id'));
+    },
 
+    parse: function(ret) {
+        // We might either be called from a collection, where the message is at the top level, or
+        // from getting an individual message, where it's not.
+        if (ret.hasOwnProperty('message')) {
+            return(ret.message);
+        } else {
+            return(ret);
+        }
+    }
 });
 
 Iznik.Collections.Message = IznikCollection.extend({

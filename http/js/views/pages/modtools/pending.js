@@ -44,7 +44,18 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
     events: {
         'click .js-approve' : 'approve',
         'click .js-reject' : 'reject',
-        'click .js-delete' : 'deleteMe'
+        'click .js-delete' : 'deleteMe',
+        'click .js-viewsource': 'viewSource'
+    },
+
+    viewSource: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var v = new Iznik.Views.ModTools.Message.ViewSource({
+            model: this.model
+        });
+        v.render();
     },
 
     approve: function() {
@@ -208,6 +219,26 @@ Iznik.Views.ModTools.Message.Pending.Reject = Iznik.Views.Modal.extend({
             $('.modal .js-text').focus();
         });
 
+        return(this);
+    }
+});
+
+Iznik.Views.ModTools.Message.ViewSource = Iznik.Views.Modal.extend({
+    template: 'modtools_pending_viewsource',
+
+    render: function() {
+        var self = this;
+        this.open(this.template);
+
+        // Fetch the individual message, which gives us access to the full message (which isn't returned
+        // in the normal messages call to save bandwidth.
+        var m = new Iznik.Models.Message({
+            id: this.model.get('id')
+        });
+
+        m.fetch().then(function() {
+            self.$('.js-source').text(m.get('message'));
+        });
         return(this);
     }
 });
