@@ -12,6 +12,7 @@ function scriptInclude($minify)
         "js/lib/ajaxq.js",
         "js/lib/combodate.js",
         "js/lib/jquery-dateFormat.min.js",
+        "js/lib/jquery.scrollTo.js",
         "js/lib/exif.js",
         "js/lib/jquery.ui.touch-punch.js",
         "js/lib/backbone-1.1.2.js",

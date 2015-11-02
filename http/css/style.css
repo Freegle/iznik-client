@@ -344,6 +344,10 @@ body {
     border-left-width: 0px !important;
 }
 
+.noleftpad {
+    padding-left: 0px !important;
+}
+
 .striped:nth-of-type(odd) {
     background: #FFFFCC !important;
 }
