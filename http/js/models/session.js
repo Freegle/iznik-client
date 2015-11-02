@@ -42,7 +42,7 @@ Iznik.Models.Session = IznikModel.extend({
                         if (ret.work[count.fi]) {
                             total += ret.work[count.fi];
                             var countel = $(count.el);
-                            if (ret.work.pending != countel.html()) {
+                            if (ret.work[count.fi] != countel.html()) {
                                 countel.html(ret.work[count.fi]);
                                 Iznik.Session.trigger(count.ev);
                             }

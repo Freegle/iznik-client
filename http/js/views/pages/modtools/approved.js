@@ -123,19 +123,19 @@ Iznik.Views.ModTools.Message.Approved = IznikView.extend({
     render: function() {
         var self = this;
 
-        var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
-        var v = new Iznik.Views.ModTools.User({
-            model: mod
-        });
-
-        self.$('.js-user').html(v.render().el);
-
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
         _.each(self.model.get('groups'), function(group, index, list) {
             var mod = new IznikModel(group);
 
             // Add in the message, because we need some values from that
             mod.set('message', self.model.toJSON());
+
+            var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
+            var v = new Iznik.Views.ModTools.User({
+                model: mod
+            });
+
+            self.$('.js-user').html(v.render().el);
 
             var v = new Iznik.Views.ModTools.Message.Approved.Group({
                 model: mod

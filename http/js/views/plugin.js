@@ -57,18 +57,15 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                         first.crumb = match[1];
                         first.start();
                     } else {
-                        console.log("No match for crumb ");
                         var match = /window.location.href = "(.*)"/.exec(ret);
 
                         if (match) {
-                            console.log("Got redirect");
                             var url = match[1];
                             $.ajaxq('plugin', {
                                 type: "GET",
                                 url: url,
                                 success: getCrumb,
                                 error: function (request, status, error) {
-                                    console.log("Get crumb failed");
                                     self.retryWork(self.currentItem);
                                 }
                             });
@@ -81,7 +78,6 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                     url: "https://groups.yahoo.com/neo/groups/" + groupname + "/management/pendingmessages",
                     success: getCrumb,
                     error: function (request, status, error) {
-                        console.log("Get crumb failed");
                         self.retryWork(self.currentItem);
                     }
                 });
@@ -112,7 +108,6 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     },
 
     requeueWork: function(work) {
-        console.log("Requeue", work);
         // This is ongoing - so put to the front.
         this.currentItem = null;
         this.work.unshift(work);
@@ -301,7 +296,6 @@ Iznik.Views.Plugin.Work = IznikView.extend({
     queue: function() {
         window.setTimeout(_.bind(function() {
             // This is ongoing - so add it to the front of the queue.
-            console.log("Requeue it");
             IznikPlugin.requeueWork(this);
         }, this), 500);
     },
@@ -346,6 +340,11 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
         this.fail();
     },
 
+    ourSyncProgressBar: function() {
+        var percent = Math.round((this.promisesCount / this.promisesLen) * 100);
+        this.$('.progress-bar:last').css('width',  percent + '%').attr('aria-valuenow', percent);
+    },
+
     processChunk: function(ret) {
         var self = this;
         var now = moment();
@@ -362,7 +361,7 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                 var age = now.diff(d) / 1000 / 60 / 60 / 24;
                 maxage = age > maxage ? age : maxage;
                 var percent = Math.round((maxage / self.ageLimit) * 100);
-                self.$('.progress-bar').css('width',  percent + '%').attr('aria-valuenow', percent);
+                self.$('.progress-bar:first').css('width',  percent + '%').attr('aria-valuenow', percent);
 
                 var thisone = {
                     email: message['email'],
@@ -398,9 +397,9 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                         if (ret.ret == 0) {
                             // If there are messages which we don't have but the server does, then the server
                             // is wrong and we need to delete them.
-                            var promises = [];
+                            self.promises = [];
                             _.each(ret.missingonclient, function(missing, index, list) {
-                                promises.push($.ajaxq('plugin', {
+                                self.promises.push($.ajaxq('plugin', {
                                     type: "DELETE",
                                     url: API + 'message',
                                     context: self,
@@ -415,9 +414,8 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                             // If there are messages which we have but the server doesn't, then the server is
                             // wrong and we need to add them.
                             _.each(ret.missingonserver, function(missing, index, list) {
-
                                 missing.deferred = new $.Deferred();
-                                promises.push(missing.deferred.promise());
+                                self.promises.push(missing.deferred.promise());
 
                                 $.ajaxq('plugin', {
                                     type: "GET",
@@ -457,9 +455,24 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                                 });
                             });
 
-                            $.when(promises).then(function() {
-                                self.succeed();
+                            // Record how many there are and update progress bar
+                            self.promisesLen = self.promises.length;
+                            self.promisesCount = 0;
+                            _.each(self.promises, function(promise) {
+                                promise.done(function() {
+                                    self.promisesCount++;
+                                    self.ourSyncProgressBar.apply(self);
+
+                                    if (self.promisesCount >= self.promisesLen) {
+                                        // Once they're all done, we have succeeded.
+                                        self.succeed();
+                                    }
+                                });
                             });
+
+                            if (self.promisesLen == 0) {
+                                self.succeed();
+                            }
                         } else {
                             self.failChunk();
                         }
@@ -467,7 +480,6 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
                     error: self.failChunk
                 });
             } else {
-                console.log("Still going, queue");
                 this.queue();
             }
         }

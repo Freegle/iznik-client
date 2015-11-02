@@ -17,6 +17,14 @@ class Image {
         imagecolortransparent($this->img, $transparent);
     }
 
+    public function width() {
+        return(imagesx($this->img));
+    }
+
+    public function height() {
+        return(imagesy($this->img));
+    }
+
     public function scale($width, $height) {
         $sw = imagesx($this->img);
         $sh = imagesy($this->img);
