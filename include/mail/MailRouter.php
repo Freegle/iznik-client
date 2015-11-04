@@ -101,7 +101,6 @@ class MailRouter
             # First check if this message is spam based on our own checks.
             $rc = $this->spam->check($this->msg);
             if ($rc) {
-                error_log("Our spam "  . var_export($rc, true));
                 $this->log->log([
                     'type' => Log::TYPE_MESSAGE,
                     'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,

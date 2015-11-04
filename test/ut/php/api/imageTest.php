@@ -65,7 +65,7 @@ class imageTest extends IznikAPITest {
             'w' => 100
         ], FALSE);
 
-        assertEquals(2308, strlen($ret));
+        assertEquals(1031, strlen($ret));
 
         $a->delete();
         $g->delete();
