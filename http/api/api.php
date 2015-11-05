@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
                     throw new DBException();
             }
 
-            # If we get here, everything worked.  Add profiling info.
+            # If we get here, everything worked.
             if (pres('img', $ret)) {
                 # This is an image we want to output.  Can cache forever - if an image changes it would get a new id
                 @header('Content-Type: image/jpeg');
@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
                 @header('Cache-Control: max-age=315360000');
                 print $ret['img'];
             } else {
-                # This is a normal API call.
+                # This is a normal API call.  Add profiling info.
                 $ret['call'] = $call;
                 $ret['type'] = $_SERVER['REQUEST_METHOD'];
                 $ret['session'] = session_id();
