@@ -15,6 +15,7 @@ class Log
     const TYPE_USER = 'User';
     const TYPE_MESSAGE = 'Message';
     const TYPE_PLUGIN = 'Plugin';
+    const TYPE_CONFIG = 'Config';
 
     const SUBTYPE_CREATED = 'Created';
     const SUBTYPE_DELETED = 'Deleted';
