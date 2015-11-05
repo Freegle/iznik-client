@@ -742,3 +742,12 @@ a button {
 .panel-footer .btn {
     padding: 5px;
 }
+
+.yahooicon {
+    width: 30px;
+    display: inline-block;
+}
+
+.yahoouserinfo {
+    margin-bottom: 20px !important;
+}

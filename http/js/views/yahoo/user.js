@@ -27,6 +27,8 @@ Iznik.Views.ModTools.Yahoo.User = IznikView.extend({
 
         self.listenToOnce(self.model, 'change:postingStatus change:deliveryType', self.render);
 
+        self.$('select').selectpicker();
+
         return(this);
     }
 });

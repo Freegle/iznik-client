@@ -1,16 +1,22 @@
 <div class="botspace">
-    <div class="glyphicon glyphicon-calendar" />
-    <span class="js-joined"></span>
+    <div class="botspace">
+        <div class="glyphicon glyphicon-calendar" />
+        <span class="js-joined"></span>
+    </div>
+    <div class="botspace">
+        <select class="form-control js-posting" data-style="btn-white">
+            <option data-content="<img src='/images/yahoo.png' class='yahooicon' />Moderated " value="MODERATED">Moderated</option>
+            <option data-content="<img src='/images/yahoo.png' class='yahooicon' />Group Settings " value="DEFAULT">Group Settings</option>
+            <option data-content="<img src='/images/yahoo.png' class='yahooicon' />Can't Post " value="PROHIBITED">Can't Post</option>
+            <option data-content="<img src='/images/yahoo.png' class='yahooicon' />Unmoderated " value="UNMODERATED">Unmoderated</option>
+        </select>
+    </div>
+    <div class="botspace">
+        <select class="form-control js-delivery" data-style="btn-white">
+            <option data-content="<img src='/images/yahoo.png' class='yahooicon' />Daily Digest " value="DIGEST">Daily Digest</option>
+            <option data-content="<img src='/images/yahoo.png' class='yahooicon' />Web Only " value="NONE">Web Only</option>
+            <option data-content="<img src='/images/yahoo.png' class='yahooicon' />Individual Emails " value="SINGLE">Individual Emails</option>
+            <option data-content="<img src='/images/yahoo.png' class='yahooicon' />Special Notices " value="ANNOUNCEMENT">Special Notices</option>
+        </select>
+    </div>
 </div>
-<select class="form-control js-posting">
-    <option value="MODERATED">Moderated</option>
-    <option value="DEFAULT">Group Settings</option>
-    <option value="PROHIBITED">Can't Post</option>
-    <option value="UNMODERATED">Unmoderated</option>
-</select>
-<select class="form-control js-delivery">
-    <option value="DIGEST">Daily Digest</option>
-    <option value="NONE">Web Only</option>
-    <option value="SINGLE">Individual Emails</option>
-    <option value="ANNOUNCEMENT">Special Notices</option>
-</select>

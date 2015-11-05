@@ -942,6 +942,26 @@ class Message
                     $this->id,
                     $groupid
                 ]);
+
+                # We might be deleting a pending or spam message, in which case it may also need rejecting on Yahoo.
+                $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ?;";
+                $groups = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
+
+                foreach ($groups as $group) {
+                    if ($group['yahooreject']) {
+                        # We can trigger rejection by email - do so.
+                        $this->mailer($group['yahooreject'], "My name is Iznik and I reject this message", "", NULL, '-f' . MODERATOR_EMAIL);
+                    }
+
+                    if ($group['yahoopendingid']) {
+                        # We can trigger rejection via the plugin - do so.
+                        $p = new Plugin($this->dbhr, $this->dbhm);
+                        $p->add($groupid, [
+                            'type' => 'RejectPendingMessage',
+                            'id' => $group['yahoopendingid']
+                        ]);
+                    }
+                }
             } else {
                 # The message has never reached a group.  We can fully deleted it.
                 $rc = $this->dbhm->preExec("DELETE FROM messages WHERE id = ?;", [ $this->id ]);
