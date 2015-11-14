@@ -5,6 +5,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
+require_once(IZNIK_BASE . '/include/group/Group.php');
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=modtools;charset=utf8";
 
@@ -19,6 +20,7 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 
 $c = new ModConfig($dbhr, $dbhm);
 $u = new User($dbhr, $dbhm);
+$g = new Group($dbhr, $dbhm);
 
 $oldconfs = $dbhold->query("SELECT * FROM configs;");
 foreach ($oldconfs as $config) {
@@ -29,20 +31,67 @@ foreach ($oldconfs as $config) {
         $modid = $u->findByEmail($mod['email']);
         error_log("Found modid $modid for {$mod['email']}");
 
-        if ($modid) {
-            $c->create(
-                $config['name'],
-                $modid
-            );
-            error_log("...{$config['name']}");
+        if (!$modid) {
+            error_log("New mod, create user for them");
+            $modid = $u->create(NULL, NULL, $mod['name']);
+            $u2 = new User($dbhr, $dbhm, $modid);
+            $u2->addEmail($mod['email']);
+        }
 
-            $atts = array('fromname', 'ccrejectto', 'ccrejectaddr', 'ccfollowupto',
-                'ccfollowupaddr', 'ccrejmembto', 'ccrejmembaddr', 'ccfollmembto', 'ccfollmembaddr', 'protected',
-                'messageorder', 'network', 'coloursubj', 'subjreg', 'subjlen');
-            foreach ($atts as $att) {
-                $c->setPrivate($att, $config[$att]);
+        $cid = $c->create(
+            $config['name'],
+            $modid
+        );
+
+        $c = new ModConfig($dbhr, $dbhm, $cid);
+        error_log("...{$config['name']}");
+
+        $atts = array('fromname', 'ccrejectto', 'ccrejectaddr', 'ccfollowupto',
+            'ccfollowupaddr', 'ccrejmembto', 'ccrejmembaddr', 'ccfollmembto', 'ccfollmembaddr', 'protected',
+            'messageorder', 'network', 'coloursubj', 'subjreg', 'subjlen');
+        foreach ($atts as $att) {
+            $c->setPrivate($att, $config[$att]);
+        }
+
+        # Migrate messages.
+    }
+
+    # Migrate which configs are used to moderate.
+    $sql = "SELECT groupid, email, name FROM groupsmoderated INNER JOIN moderators ON moderators.uniqueid = groupsmoderated.moderatorid WHERE configid = {$config['uniqueid']};";
+    error_log($sql);
+    $mods = $dbhold->query($sql);
+
+    foreach ($mods as $mod) {
+        $sql = "SELECT * FROM groups WHERE groupid = {$mod['groupid']};";
+        $groups = $dbhold->query($sql);
+
+        foreach ($groups as $group) {
+            $gid = $g->findByShortName($group['groupname']);
+            error_log("Found group id $gid for {$group['groupname']}");
+            if ($gid) {
+                $modid = $u->findByEmail($mod['email']);
+
+                if (!$modid) {
+                    error_log("Don't know {$mod['email']}");
+                    # Create a membership for this mod
+                    $u2 = new User($dbhr, $dbhm, $modid);
+                    $u2->addEmail($mod['email']);
+                    $u2->addMembership($group['groupid'], User::ROLE_MODERATOR);
+                } else {
+                    error_log("Already know {$mod['email']} as $modid");
+                    $u2 = new User($dbhr, $dbhm, $modid);
+                    if (!$u2->isModOrOwner($gid)) {
+                        error_log("But not mod");
+                        $u2->addMembership($gid, User::ROLE_MODERATOR);
+                    } else {
+                        error_log("Already mod or owner");
+                    }
+                }
+
+                $c->useOnGroup($modid, $gid);
             }
         }
     }
+
 }
 

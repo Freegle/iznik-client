@@ -199,7 +199,7 @@ chrome.webRequest.onHeadersReceived.addListener(
       for (var i = 0; i < headers.length; ++i) {
         //console.log(headers[i].name + " = " + headers[i].value);
 
-        if (headers[i].name === 'Access-Control-Allow-Origin') {
+        if (headers[i].name.toLowerCase() === 'access-control-allow-origin') {
           console.log("Found Access-Control-Allow-Origin");
           headers[i].value = "*";
           found = true;
@@ -219,7 +219,7 @@ chrome.webRequest.onHeadersReceived.addListener(
       for (var i = 0; i < headers.length; ++i) {
         //console.log(headers[i].name + " = " + headers[i].value);
 
-        if (headers[i].name === 'Access-Control-Allow-Methods') {
+        if (headers[i].name.toLowerCase() === 'access-control-allow-methods') {
           console.log("Found Access-Control-Allow-Methods");
           headers[i].value = "POST, GET, OPTIONS, PUT, DELETE";
           found = true;

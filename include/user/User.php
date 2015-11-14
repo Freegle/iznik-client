@@ -212,7 +212,9 @@ class User extends Entity
     }
 
     public function isModOrOwner($groupid) {
-        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner') AND groupid = ?;", [
+        $sql = "SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner') AND groupid = ?;";
+        #error_log("$sql {$this->id}, $groupid");
+        $groups = $this->dbhr->preQuery($sql, [
             $this->id,
             $groupid
         ]);

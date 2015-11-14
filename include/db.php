@@ -14,7 +14,7 @@ require_once('config.php');
 # it hard to mock PDOs.
 
 $dbconfig = array (
-    'host' => 'localhost',
+    'host' => '127.0.0.1',
     'user' => SQLUSER,
     'pass' => SQLPASSWORD,
     'database' => SQLDB

@@ -59,6 +59,14 @@ class ModConfig extends Entity
         }
     }
 
+    public function useOnGroup($modid, $groupid) {
+        $sql = "UPDATE memberships SET configid = {$this->id} WHERE userid = ? AND groupid = ?;";
+        $this->dbhm->preExec($sql, [
+            $modid,
+            $groupid
+        ]);
+    }
+
     public function delete() {
         $rc = $this->dbhm->preExec("DELETE FROM mod_configs WHERE id = ?;", [$this->id]);
         if ($rc) {
