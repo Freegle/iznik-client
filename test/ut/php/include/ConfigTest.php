@@ -6,6 +6,7 @@ if (!defined('UT_DIR')) {
 require_once UT_DIR . '/IznikTest.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/config/ModConfig.php';
+require_once IZNIK_BASE . '/include/config/StdMessage.php';
 
 /**
  * @backupGlobals disabled
@@ -44,6 +45,11 @@ class configTest extends IznikTest {
         assertNotNull($id);
         $c = new ModConfig($this->dbhr, $this->dbhm, $id);
         assertNotNull($c);
+        $m = new StdMessage($this->dbhr, $this->dbhm);
+        $mid = $m->create("TestStdMessage");
+        assertNotNull($mid);
+        $m = new StdMessage($this->dbhr, $this->dbhm, $mid);
+        $m->delete();
         $c->delete();
 
         # Create as current user
