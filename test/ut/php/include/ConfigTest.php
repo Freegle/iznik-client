@@ -5,6 +5,7 @@ if (!defined('UT_DIR')) {
 }
 require_once UT_DIR . '/IznikTest.php';
 require_once IZNIK_BASE . '/include/user/User.php';
+require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/config/ModConfig.php';
 require_once IZNIK_BASE . '/include/config/StdMessage.php';
 
@@ -23,6 +24,7 @@ class configTest extends IznikTest {
         $this->dbhm = $dbhm;
 
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
+        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup1'");
 
         $this->user = new User($this->dbhm, $this->dbhm);
         $this->uid = $this->user->create('Test', 'User', NULL);
@@ -45,6 +47,17 @@ class configTest extends IznikTest {
         assertNotNull($id);
         $c = new ModConfig($this->dbhr, $this->dbhm, $id);
         assertNotNull($c);
+
+        # Use on a group
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($group1, User::ROLE_MODERATOR);
+        $c->useOnGroup($uid, $group1);
+        assertEquals($id, $c->getForGroup($uid, $group1));
+
         $m = new StdMessage($this->dbhr, $this->dbhm);
         $mid = $m->create("TestStdMessage");
         assertNotNull($mid);
@@ -81,6 +94,11 @@ class configTest extends IznikTest {
 
         $mock->method('preQuery')->willThrowException(new Exception());
         $id = $c->create('TestConfig');
+        assertNull($id);
+
+        $c = new StdMessage($this->dbhr, $this->dbhm);
+        $c->setDbhm($mock);
+        $id = $c->create('TestStd');
         assertNull($id);
 
         error_log(__METHOD__ . " end");

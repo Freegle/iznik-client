@@ -67,6 +67,21 @@ class ModConfig extends Entity
         ]);
     }
 
+    public function getForGroup($modid, $groupid) {
+        $sql = "SELECT configid FROM memberships WHERE userid = ? AND groupid = ?;";
+        $confs = $this->dbhr->preQuery($sql, [
+            $modid,
+            $groupid
+        ]);
+
+        $configid = NULL;
+        foreach ($confs as $conf) {
+            $configid = $conf['configid'];
+        }
+
+        return $configid;
+    }
+
     public function delete() {
         $rc = $this->dbhm->preExec("DELETE FROM mod_configs WHERE id = ?;", [$this->id]);
         if ($rc) {
