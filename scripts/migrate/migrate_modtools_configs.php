@@ -5,6 +5,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
+require_once(IZNIK_BASE . '/include/config/StdMessage.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=modtools;charset=utf8";
@@ -54,6 +55,21 @@ foreach ($oldconfs as $config) {
         }
 
         # Migrate messages.
+        $sql = "SELECT stdmsg.* FROM stdmsgmap INNER JOIN stdmsg ON stdmsgmap.stdmsgid = stdmsg.uniqueid WHERE stdmsgmap.configid = {$config['uniqueid']};";
+        $stdmsgs = $dbhold->query($sql);
+
+        foreach ($stdmsgs as $stdmsg) {
+            $s = new StdMessage($dbhr, $dbhm);
+            $sid = $s->create($stdmsg['title']);
+            $s = new StdMessage($dbhr, $dbhm, $sid);
+            $s->setPrivate('configid', $cid);
+            $atts = array('action', 'subjpref', 'subjsuff', 'body',
+                'rarelyused', 'autosend', 'newmodstatus', 'newdelstatus', 'edittext');
+
+            foreach ($atts as $att) {
+                $s->setPrivate($att, $stdmsg[$att]);
+            }
+        }
     }
 
     # Migrate which configs are used to moderate.
