@@ -53,7 +53,18 @@ class Entity
     }
 
     public function getPublic() {
-        return($this->getAtts($this->publicatts));
+        $ret = $this->getAtts($this->publicatts);
+        $ret['stdmsgs'] = [];
+
+        $sql = "SELECT id FROM mod_stdmsgs WHERE configid = {$this->id};";
+        $stdmsgs = $this->dbhr->query($sql);
+
+        foreach ($stdmsgs as $stdmsg) {
+            $s = new StdMessage($this->dbhr, $this->dbhm, $stdmsg['id']);
+            $ret['stdmsgs'][] = $s->getPublic();
+        }
+
+        return($ret);
     }
 
     public function getPrivate($att) {

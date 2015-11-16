@@ -200,6 +200,26 @@ class User extends Entity
         return($ret);
     }
 
+    public function getConfigs() {
+        $ret = [];
+        # We can see configs which
+        # - we created
+        # - are used by mods on groups on which we are a mod
+        $sql = "(SELECT DISTINCT configid AS id FROM memberships WHERE groupid IN (SELECT groupid FROM memberships WHERE userid = {$this->id} AND role IN ('Moderator', 'Owner')) AND configid IS NOT NULL) UNION (SELECT id FROM mod_configs WHERE createdby = {$this->id});";
+        $ids = $this->dbhr->query($sql);
+
+        foreach ($ids as $id) {
+            $c = new ModConfig($this->dbhr, $this->dbhm, $id['id']);
+            $thisone = $c->getPublic();
+            $u = new User($this->dbhr, $this->dbhm, $thisone['createdby']);
+            $thisone['createdby'] = $u->getPublic();
+
+            $ret[] = $thisone;
+        }
+
+        return($ret);
+    }
+
     public function getModeratorships() {
         $ret = [];
         $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner');", [ $this->id ]);

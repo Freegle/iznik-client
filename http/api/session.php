@@ -12,6 +12,7 @@ function session() {
             if ($me) {
                 $ret = array('ret' => 0, 'status' => 'Success', 'me' => $me->getPublic());
                 $ret['groups'] = $me->getMemberships();
+                $ret['configs'] = $me->getConfigs();
                 $ret['work'] = [];
 
                 foreach ($ret['groups'] as $group) {

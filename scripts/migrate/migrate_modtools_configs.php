@@ -55,6 +55,8 @@ foreach ($oldconfs as $config) {
         }
 
         # Migrate messages.
+        $dbhm->exec("DELETE FROM mod_stdmsgs WHERE configid = $cid;");
+
         $sql = "SELECT stdmsg.* FROM stdmsgmap INNER JOIN stdmsg ON stdmsgmap.stdmsgid = stdmsg.uniqueid WHERE stdmsgmap.configid = {$config['uniqueid']};";
         $stdmsgs = $dbhold->query($sql);
 
