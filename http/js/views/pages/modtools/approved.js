@@ -159,7 +159,6 @@ Iznik.Views.ModTools.Message.Approved = IznikView.extend({
 
         // Add any attachments.
         _.each(self.model.get('attachments'), function(att) {
-            console.log("Attachment", att);
             var v = new Iznik.Views.ModTools.Message.Photo({
                 model: new IznikModel(att)
             });

@@ -751,3 +751,11 @@ a button {
 .yahoouserinfo {
     margin-bottom: 20px !important;
 }
+
+.stdmsgs li {
+    padding-bottom: 5px;
+}
+
+.page-content-wrapper {
+    min-height: 200px;
+}

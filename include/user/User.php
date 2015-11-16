@@ -183,11 +183,12 @@ class User extends Entity
 
     public function getMemberships() {
         $ret = [];
-        $groups = $this->dbhr->preQuery("SELECT groupid, role FROM memberships WHERE userid = ?;", [ $this->id ]);
+        $groups = $this->dbhr->preQuery("SELECT groupid, role, configid FROM memberships WHERE userid = ?;", [ $this->id ]);
         foreach ($groups as $group) {
             $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
             $one = $g->getPublic();
             $one['role'] = $group['role'];
+            $one['configid'] = $group['configid'];
 
             if ($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER) {
                 # Give a summary of outstanding work.

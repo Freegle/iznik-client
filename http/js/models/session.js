@@ -20,6 +20,11 @@ Iznik.Models.Session = IznikModel.extend({
                     // We get an array of groups back - we want it to be a collection.
                     self.set('groups', new IznikCollection(ret.groups));
 
+                    // We may also get an array of modconfigs.
+                    if (ret.configs) {
+                        self.set('configs', new IznikCollection(ret.configs));
+                    }
+
                     var total = 0;
 
                     self.trigger('isLoggedIn', true);

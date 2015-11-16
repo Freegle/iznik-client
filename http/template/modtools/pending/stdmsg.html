@@ -1,0 +1,13 @@
+<% if (obj.action == 'Approve') { %>
+<div class="btn btn-success js-approve">
+    <div class="glyphicon glyphicon-ok"></div>&nbsp;{{obj.title}}
+</div>
+<% } else if (obj.action == 'Reject') { %>
+<div class="btn btn-warning js-reject">
+    <div class="glyphicon glyphicon-remove"></div>&nbsp;{{obj.title}}
+</div>
+<% } else if (obj.action == 'Delete') { %>
+<div class="btn btn-danger js-delete">
+    <div class="glyphicon glyphicon-trash"></div>&nbsp;{{obj.title}}
+</div>
+<% } %>

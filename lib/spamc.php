@@ -84,7 +84,7 @@ class spamc
 {
     public $port = 783;
     public $timeout = 30;
-    public $host = 'localhost';
+    public $host = '127.0.0.1';
     public $user = '';
     public $command = 'PING';
     public $err = '';

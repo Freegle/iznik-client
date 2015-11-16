@@ -42,9 +42,6 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
     template: 'modtools_pending_message',
 
     events: {
-        'click .js-approve' : 'approve',
-        'click .js-reject' : 'reject',
-        'click .js-delete' : 'deleteMe',
         'click .js-viewsource': 'viewSource'
     },
 
@@ -56,59 +53,6 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
             model: this.model
         });
         v.render();
-    },
-
-    approve: function() {
-        var self = this;
-
-        // We approve the message on all groups.  Future enhancement?
-        _.each(self.model.get('groups'), function(group, index, list) {
-            $.ajax({
-                type: 'POST',
-                url: API + 'message',
-                data: {
-                    id: self.model.get('id'),
-                    groupid: group.id,
-                    action: 'Approve'
-                }, success: function(ret) {
-                    self.$el.fadeOut('slow');
-                }
-            })
-        });
-    },
-
-    reject: function() {
-        var self = this;
-        var v = new Iznik.Views.ModTools.Message.Pending.Reject({
-            model: this.model
-        });
-
-        this.listenToOnce(v, 'rejected', function() {
-            self.$el.fadeOut('slow', function() {
-                self.remove();
-            });
-        });
-
-        v.render();
-    },
-
-    deleteMe: function() {
-        var self = this;
-
-        // We delete the message on all groups.  Future enhancement?
-        _.each(self.model.get('groups'), function(group, index, list) {
-            $.ajax({
-                type: 'POST',
-                url: API + 'message',
-                data: {
-                    id: self.model.get('id'),
-                    groupid: group.id,
-                    action: 'Delete'
-                }, success: function(ret) {
-                    self.$el.fadeOut('slow');
-                }
-            })
-        });
     },
 
     render: function() {
@@ -155,6 +99,52 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
                 });
 
                 self.$('.js-attlist').append(v.render().el);
+            });
+
+            // Add the default standard actions.
+            self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.Message.Pending.StdMessage({
+                model: new IznikModel({
+                    title: 'Approve',
+                    action: 'Approve',
+                    message: self.model,
+                    messageView: self
+                })
+            }).render().el);
+
+            self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.Message.Pending.StdMessage({
+                model: new IznikModel({
+                    title: 'Reject',
+                    action: 'Reject',
+                    message: self.model,
+                    messageView: self
+                })
+            }).render().el);
+
+            self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.Message.Pending.StdMessage({
+                model: new IznikModel({
+                    title: 'Delete',
+                    action: 'Delete',
+                    message: self.model,
+                    messageView: self
+                })
+            }).render().el);
+
+            // Add the other standard messages.
+            var configs = Iznik.Session.get('configs');
+            var sessgroup = Iznik.Session.get('groups').get(group.id);
+            var config = configs.get(sessgroup.get('configid'));
+            var stdmsgs = config.get('stdmsgs');
+
+            _.each(config.get('stdmsgs'), function(stdmsg) {
+                if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
+                    stdmsg.message = self.model;
+                    stdmsg.messageView = self;
+                    var v = new Iznik.Views.ModTools.Message.Pending.StdMessage({
+                        model: new IznikModel(stdmsg)
+                    });
+
+                    self.$('.js-stdmsgs').append(v.render().el);
+                }
             });
         });
 
@@ -240,5 +230,74 @@ Iznik.Views.ModTools.Message.ViewSource = Iznik.Views.Modal.extend({
             self.$('.js-source').text(m.get('message'));
         });
         return(this);
+    }
+});
+
+Iznik.Views.ModTools.Message.Pending.StdMessage = IznikView.extend({
+    template: 'modtools_pending_stdmsg',
+
+    tagName: 'li',
+
+    events: {
+        'click .js-approve': 'approve',
+        'click .js-reject': 'reject',
+        'click .js-delete': 'deleteMe'
+    },
+
+    approve: function() {
+        var self = this;
+        var message = self.model.get('message');
+
+        // We approve the message on all groups.  Future enhancement?
+        _.each(message.get('groups'), function(group, index, list) {
+            $.ajax({
+                type: 'POST',
+                url: API + 'message',
+                data: {
+                    id: message.get('id'),
+                    groupid: group.id,
+                    action: 'Approve'
+                }, success: function(ret) {
+                    self.model.get('messageView').$el.fadeOut('slow');
+                }
+            })
+        });
+    },
+
+    reject: function() {
+        var self = this;
+        var message = self.model.get('message');
+
+        var v = new Iznik.Views.ModTools.Message.Pending.Reject({
+            model: message
+        });
+
+        this.listenToOnce(v, 'rejected', function() {
+            self.model.get('messageView').$el.fadeOut('slow', function() {
+                self.remove();
+            });
+        });
+
+        v.render();
+    },
+
+    deleteMe: function() {
+        var self = this;
+        var message = self.model.get('message');
+
+        // We delete the message on all groups.  Future enhancement?
+        _.each(message.get('groups'), function(group, index, list) {
+            $.ajax({
+                type: 'POST',
+                url: API + 'message',
+                data: {
+                    id: message.get('id'),
+                    groupid: group.id,
+                    action: 'Delete'
+                }, success: function(ret) {
+                    self.model.get('messageView').$el.fadeOut('slow');
+                }
+            })
+        });
     }
 });
