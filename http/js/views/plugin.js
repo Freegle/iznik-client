@@ -19,12 +19,18 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     },
 
     startSyncs: function() {
+        // Start pending syncs first because if they're wrong, that's normally more annoying.
         Iznik.Session.get('groups').each(function (group) {
             if (group.get('onyahoo') &&
                 (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
-                // We are a mod on this group.  Set our various syncs going.
-                (new Iznik.Views.Plugin.Yahoo.SyncApproved({model: group})).render();
                 (new Iznik.Views.Plugin.Yahoo.SyncPending({model: group})).render();
+            }
+        });
+
+        Iznik.Session.get('groups').each(function (group) {
+            if (group.get('onyahoo') &&
+                (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
+                (new Iznik.Views.Plugin.Yahoo.SyncApproved({model: group})).render();
             }
         });
 
@@ -42,7 +48,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
         if (groupname && !this.currentItem) {
             // Get any first item of work to do.
-            var first = this.work.pop();
+            var first = this.work.shift();
 
             if (first) {
                 self.currentItem = first;
@@ -88,6 +94,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     addWork: function(work) {
         this.work.push(work);
         this.updatePluginCount();
+        this.checkWork();
     },
 
     updatePluginCount: function() {
@@ -303,7 +310,7 @@ Iznik.Views.Plugin.Work = IznikView.extend({
     render: function() {
         // Render our template and add it to the visible work queue.
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
-        $('#js-work').prepend(this.$el).fadeIn('slow');
+        $('#js-work').append(this.$el).fadeIn('slow');
 
         // Queue this item of work.
         IznikPlugin.addWork(this);
@@ -317,7 +324,7 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
 
     chunkSize: 100,
 
-    ageLimit: 7,
+    ageLimit: 31,
 
     start: function() {
         var self = this;
