@@ -56,10 +56,14 @@ class MailRouter
         }
     }
 
-    public function received($source, $from, $to, $msg) {
+    public function received($source, $from, $to, $msg, $groupid = NULL) {
         # We parse it and save it to the DB.  Then it will get picked up by background
         # processing.
-        $this->msg->parse($source, $from, $to, $msg);
+        #
+        # We have a groupid override because it's possible that we are syncing a message
+        # from a group which has changed name and the To field might therefore not match
+        # a current group name.
+        $this->msg->parse($source, $from, $to, $msg, $groupid);
         return($this->msg->save());
     }
 

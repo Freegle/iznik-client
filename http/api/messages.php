@@ -62,7 +62,7 @@ function messages() {
 
             if ($g && $me && $me->isModOrOwner($groupid)) {
                 $r = new MailRouter($dbhr, $dbhm);
-                $id = $r->received($source, $from, $g->getPrivate('nameshort') . '@yahoogroups.com', $message);
+                $id = $r->received($source, $from, $g->getPrivate('nameshort') . '@yahoogroups.com', $message, $groupid);
                 $rc = $r->route();
                 $m = new Message($dbhr, $dbhm, $id);
 

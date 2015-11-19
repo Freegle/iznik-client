@@ -531,6 +531,20 @@ class MailRouterTest extends IznikTest {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
+        # Test group override
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        $msg = file_get_contents('msgs/fromyahoo');
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals('Yahoo-Web', $m->getSourceheader());
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $groups = $m->getGroups();
+        error_log("Groups " . var_export($groups, true));
+        assertEquals($gid, $groups[0]);
+
         $msg = file_get_contents('msgs/basic');
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
@@ -541,5 +555,6 @@ class MailRouterTest extends IznikTest {
 
         error_log(__METHOD__ . " end");
     }
+
 }
 

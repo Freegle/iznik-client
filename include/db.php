@@ -123,7 +123,7 @@ class LoggedPDO {
                         $this->maybeLog($sql, NULL, $duration);
                     }
                 } else {
-                    $msg = var_export($this->_db->errorInfo(), true);
+                    $msg = var_export($sth->errorInfo(), true);
                 }
 
                 $try++;

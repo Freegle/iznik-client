@@ -453,9 +453,10 @@ class Message
     }
 
     # Parse a raw SMTP message.
-    public function parse($source, $envelopefrom, $envelopeto, $msg)
+    public function parse($source, $envelopefrom, $envelopeto, $msg, $groupid = NULL)
     {
         $this->message = $msg;
+        $this->groupid = $groupid;
 
         $Parser = new PhpMimeMailParser\Parser();
         $this->parser = $Parser;
@@ -594,9 +595,11 @@ class Message
         }
 
         if ($groupname) {
-            # Check if it's a group we host.
-            $g = new Group($this->dbhr, $this->dbhm);
-            $this->groupid = $g->findByShortName($groupname);
+            if (!$this->groupid) {
+                # Check if it's a group we host.
+                $g = new Group($this->dbhr, $this->dbhm);
+                $this->groupid = $g->findByShortName($groupname);
+            }
 
             if ($this->groupid) {
                 # If this is a reuse group, we need to determine the type.
