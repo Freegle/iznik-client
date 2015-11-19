@@ -7,6 +7,12 @@ window.Iznik = {
         ModTools: {
             Pages: {},
             Message: {},
+            StdMessage: {
+                Pending: {},
+                Approved: {},
+                PendingMember: {},
+                ApprovedMember: {}
+            },
             User: {},
             Yahoo: {}
         },

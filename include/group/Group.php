@@ -95,6 +95,9 @@ class Group extends Entity
 
         # Add in derived properties.
         $atts['namedisplay'] = $atts['namefull'] ? $atts['namefull'] : $atts['nameshort'];
+        $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = {$this->id};";
+        $counts = $this->dbhr->preQuery($sql);
+        $atts['membercount'] = $counts[0]['count'];
 
         return($atts);
     }

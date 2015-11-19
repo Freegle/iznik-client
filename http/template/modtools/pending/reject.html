@@ -6,6 +6,11 @@
                 <h4 class="modal-title js-modal-title">Reject {{subject}}</h4>
             </div>
             <div class="modal-body js-modal-body">
+                <p>
+                    <span class="text-muted">From: <span class="js-myname" /> &lt;{{obj.groups[0].nameshort}}-owner@yahoogroups.com&gt;</span><br>
+                    To: {{obj.fromname}} &lt{{obj.fromaddr}}&gt;
+                </p>
+                <input type="text" class="botspace form-control js-subject" value="{{subject}}" />
                 <textarea class="form-control js-text" rows="10"></textarea>
             </div>
             <div class="modal-footer">
