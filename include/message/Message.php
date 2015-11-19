@@ -731,11 +731,14 @@ class Message
             /** @var \PhpMimeMailParser\Attachment $att */
             $ct = $att->getContentType();
             $fn = $this->attach_dir . DIRECTORY_SEPARATOR . $att->getFilename();
-            $sql = "INSERT INTO messages_attachments (msgid, contenttype, data) VALUES (?,?,LOAD_FILE(?));";
+
+            # Can't use LOAD_FILE as server may be remote.
+            $data = file_get_contents($fn);
+            $sql = "INSERT INTO messages_attachments (msgid, contenttype, data) VALUES (?,?,?);";
             $this->dbhm->preExec($sql, [
                 $this->id,
                 $ct,
-                $fn
+                $data
             ]);
         }
 

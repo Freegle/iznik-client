@@ -756,6 +756,10 @@ a button {
     padding-bottom: 5px;
 }
 
-.page-content-wrapper {
+#page-content-wrapper {
     min-height: 200px;
+}
+
+.rarelyused {
+    width: 95% !important;
 }

@@ -49,7 +49,7 @@ foreach ($oldconfs as $config) {
 
         $atts = array('fromname', 'ccrejectto', 'ccrejectaddr', 'ccfollowupto',
             'ccfollowupaddr', 'ccrejmembto', 'ccrejmembaddr', 'ccfollmembto', 'ccfollmembaddr', 'protected',
-            'messageorder', 'network', 'coloursubj', 'subjreg', 'subjlen');
+            'network', 'coloursubj', 'subjreg', 'subjlen');
         foreach ($atts as $att) {
             $c->setPrivate($att, $config[$att]);
         }
@@ -59,10 +59,12 @@ foreach ($oldconfs as $config) {
 
         $sql = "SELECT stdmsg.* FROM stdmsgmap INNER JOIN stdmsg ON stdmsgmap.stdmsgid = stdmsg.uniqueid WHERE stdmsgmap.configid = {$config['uniqueid']};";
         $stdmsgs = $dbhold->query($sql);
+        $msgidmap = [];
 
         foreach ($stdmsgs as $stdmsg) {
             $s = new StdMessage($dbhr, $dbhm);
             $sid = $s->create($stdmsg['title']);
+            $msgidmap[$stdmsg['uniqueid']] = $sid;
             $s = new StdMessage($dbhr, $dbhm, $sid);
             $s->setPrivate('configid', $cid);
             $atts = array('action', 'subjpref', 'subjsuff', 'body',
@@ -72,6 +74,15 @@ foreach ($oldconfs as $config) {
                 $s->setPrivate($att, $stdmsg[$att]);
             }
         }
+
+        # Map the order
+        $order = json_decode($config['messageorder']);
+        $neworder = [];
+        foreach ($order as $id) {
+            $neworder[] = $msgidmap[$id];
+        }
+
+        $c->setPrivate('messageorder', json_encode($neworder));
     }
 
     # Migrate which configs are used to moderate.

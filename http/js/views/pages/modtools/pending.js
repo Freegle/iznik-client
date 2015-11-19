@@ -42,7 +42,13 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
     template: 'modtools_pending_message',
 
     events: {
-        'click .js-viewsource': 'viewSource'
+        'click .js-viewsource': 'viewSource',
+        'click .js-rarelyused': 'rarelyUsed'
+    },
+
+    rarelyUsed: function() {
+        this.$('.js-rarelyused').fadeOut('slow');
+        this.$('.js-stdmsgs li').fadeIn('slow');
     },
 
     viewSource: function(e) {
@@ -129,13 +135,30 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
                 })
             }).render().el);
 
-            // Add the other standard messages.
+            // Add the other standard messages, in the order requested.
             var configs = Iznik.Session.get('configs');
             var sessgroup = Iznik.Session.get('groups').get(group.id);
             var config = configs.get(sessgroup.get('configid'));
             var stdmsgs = config.get('stdmsgs');
+            var order = JSON.parse(config.get('messageorder'));
+            var sortmsgs = [];
+            _.each(order, function(id) {
+                var stdmsg =  null;
+                _.each(stdmsgs, function(thisone) {
+                    if (thisone.id == id) {
+                        stdmsg = thisone;
+                    }
+                });
 
-            _.each(config.get('stdmsgs'), function(stdmsg) {
+                if (stdmsg) {
+                    sortmsgs.push(stdmsg);
+                    stdmsgs = _.without(stdmsgs, stdmsg);
+                }
+            });
+
+            sortmsgs.push(stdmsgs);
+
+            _.each(sortmsgs, function(stdmsg) {
                 if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
                     stdmsg.message = self.model;
                     stdmsg.messageView = self;
@@ -143,7 +166,12 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
                         model: new IznikModel(stdmsg)
                     });
 
-                    self.$('.js-stdmsgs').append(v.render().el);
+                    var el = v.render().el;
+                    self.$('.js-stdmsgs').append(el);
+
+                    if (stdmsg.rarelyused) {
+                        $(el).hide();
+                    }
                 }
             });
         });

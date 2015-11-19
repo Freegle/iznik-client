@@ -279,7 +279,7 @@ class dbTest extends IznikTest {
 
         # Now fake a failure to record the log we use to judge if the commit worked
         $dbconfig = array (
-            'host' => 'localhost',
+            'host' => '127.0.0.1',
             'user' => SQLUSER,
             'pass' => SQLPASSWORD,
             'database' => SQLDB
@@ -319,7 +319,7 @@ class dbTest extends IznikTest {
         error_log(__METHOD__);
 
         $dbconfig = array (
-            'host' => 'localhost',
+            'host' => '127.0.0.1',
             'user' => SQLUSER,
             'pass' => SQLPASSWORD,
             'database' => SQLDB
@@ -363,7 +363,7 @@ class dbTest extends IznikTest {
         error_log(__METHOD__);
 
         $dbconfig = array (
-            'host' => 'localhost',
+            'host' => '127.0.0.1',
             'user' => SQLUSER,
             'pass' => SQLPASSWORD,
             'database' => SQLDB
