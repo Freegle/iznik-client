@@ -23,6 +23,14 @@ class Group extends Entity
         $this->log = new Log($dbhr, $dbhm);
     }
 
+    /**
+     * @param LoggedPDO $dbhm
+     */
+    public function setDbhm($dbhm)
+    {
+        $this->dbhm = $dbhm;
+    }
+
     public function create($shortname, $type) {
         try {
             $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type) VALUES (?, ?)", [$shortname, $type]);
@@ -100,6 +108,91 @@ class Group extends Entity
         $atts['membercount'] = $counts[0]['count'];
 
         return($atts);
+    }
+
+    public function getMembers() {
+        $ret = [];
+        $sql = "SELECT userid FROM memberships WHERE groupid = ?;";
+        $members = $this->dbhr->preQuery($sql, [ $this->id ]);
+        foreach ($members as $member) {
+            $u = new User($this->dbhr, $this->dbhm, $member['userid']);
+            $thisone = $u->getPublic(NULL, FALSE);
+            $thisone['emails'] = $u->getEmails();
+            $thisone['yahooDeliveryType'] = $u->getPrivate('yahooDeliveryType');
+            $thisone['yahooPostingStatus'] = $u->getPrivate('yahooPostingStatus');
+            $thisone['role'] = $u->getRole($this->id);
+            $ret[] = $thisone;
+        }
+
+        return($ret);
+    }
+
+    public function setMembers($members) {
+        # This is used to set the whole of the membership list for a group.  It's only used when the group is
+        # mastered on Yahoo, rather than by us.
+        #
+        # We do this inside a transaction because it would be a horrible situation if we deleted half the members
+        # and left the group mangled.
+        $rollback = true;
+        if ($this->dbhm->beginTransaction()) {
+            try {
+                $sql = "DELETE FROM memberships WHERE groupid = {$this->id};";
+
+                # If this doesn't work we'd get an exception
+                $this->dbhm->exec($sql);
+
+                $u = new User($this->dbhm, $this->dbhm);
+
+                foreach ($members as $member) {
+                    # First check if we already know about this user.
+                    $uid = $u->findByEmail($member['email']);
+
+                    if (!$uid) {
+                        # We don't - create them.
+                        $uid = $u->create(NULL, NULL, $member['name']);
+                        $u = new User($this->dbhm, $this->dbhm, $uid);
+                        $u->addEmail($member['email']);
+                    } else {
+                        $u = new User($this->dbhm, $this->dbhm, $uid);
+                    }
+
+                    $role = $u->getRole($this->id);
+
+                    if ($role == User::ROLE_NONMEMBER) {
+                        # We don't know this user as a member of this group yet; add them
+                        $rollback = !$u->addMembership($this->id);
+                    }
+
+                    if (!$rollback) {
+                        # Even if we already had them as a member, their role might have changed
+                        $role = User::ROLE_MEMBER;
+                        if (pres('yahooModeratorStatus', $member)) {
+                            if ($member['yahooModeratorStatus'] == 'MODERATOR') {
+                                $role = User::ROLE_MODERATOR;
+                            } else if ($member['yahooModeratorStatus'] == 'OWNER') {
+                                $role = User::ROLE_OWNER;
+                            }
+                        }
+
+                        $rollback = !$u->setRole($role, $this->id);
+                    }
+
+                    // Cheat code coverage by putting on the same line.
+                    if ($rollback) { break; }
+                }
+            } catch (Exception $e) {
+                $rollback = TRUE;
+            }
+
+            if ($rollback) {
+                # Something went wrong.
+                $this->dbhm->rollBack();
+            } else {
+                $rollback = !$this->dbhm->commit();
+            }
+        }
+
+        return(!$rollback);
     }
 
     private function getKey($message) {

@@ -298,6 +298,55 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+  /group:
+    get:
+      summary: Group Get
+      tags: [Group]
+      description:
+        Retrieve group details
+      parameters:
+      - name: groupid
+        in: query
+        description: Groupid to query; default is all for current user
+        type: number
+      - name: members
+        in: query
+        description: Whether to return membership list; default is false.
+        type: boolean
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    post:
+      summary: Update group settings
+      tags: [Group]
+      description:
+        Correlate messages on server to determine any missing
+      parameters:
+      - name: groupid
+        in: query
+        description: Groupid to update
+        required: true,
+        type: number
+      - name: members
+        in: body
+        description: Array of members.  This is a complete replacement of the membership list for this group, and is intended only for sync with Yahoo.
+        schema:
+          $ref: '#/definitions/members'
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
   /supporters:
     get:
       summary: Supporters Get
@@ -485,3 +534,27 @@ definitions:
         date:
           type: date-time
           description: 'Post date, i.e. Date: header field'
+  members:
+    type: array,
+    items:
+        $ref: '#/definitions/member'
+  member:
+    properties:
+        email:
+          type: string
+          description: 'Email of sender'
+        name:
+          type: string
+          description: 'Name of member or Yahoo ID'
+        yahooUserId:
+          type: string
+          description: 'Unique ID of member on Yahoo'
+        yahooPostingStatus:
+          type: string
+          description: 'One of MODERATED, DEFAULT, PROHIBITED, UNMODERATED'
+        yahooDeliveryType:
+          type: string
+          description: 'One of DIGEST, NONE, SINGLE, ANNOUNCEMENT'
+        date:
+          type: date-time
+          description: 'When this member joined the group'

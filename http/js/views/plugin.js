@@ -23,14 +23,14 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         Iznik.Session.get('groups').each(function (group) {
             if (group.get('onyahoo') &&
                 (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
-                (new Iznik.Views.Plugin.Yahoo.SyncPending({model: group})).render();
+                (new Iznik.Views.Plugin.Yahoo.SyncMessages.Pending({model: group})).render();
             }
         });
 
         Iznik.Session.get('groups').each(function (group) {
             if (group.get('onyahoo') &&
                 (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
-                (new Iznik.Views.Plugin.Yahoo.SyncApproved({model: group})).render();
+                (new Iznik.Views.Plugin.Yahoo.SyncMessages.Approved({model: group})).render();
             }
         });
 
@@ -319,7 +319,7 @@ Iznik.Views.Plugin.Work = IznikView.extend({
     }
 });
 
-Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
+Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.Work.extend({
     offset: 1,
 
     chunkSize: 100,
@@ -493,7 +493,7 @@ Iznik.Views.Plugin.Yahoo.Sync = Iznik.Views.Plugin.Work.extend({
     }
 });
 
-Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Yahoo.Sync.extend({
+Iznik.Views.Plugin.Yahoo.SyncMessages.Pending = Iznik.Views.Plugin.Yahoo.SyncMessages.extend({
     template: 'plugin_sync_pending',
 
     messageLocation: 'pendingMessages',
@@ -519,7 +519,7 @@ Iznik.Views.Plugin.Yahoo.SyncPending = Iznik.Views.Plugin.Yahoo.Sync.extend({
     }
 });
 
-Iznik.Views.Plugin.Yahoo.SyncApproved = Iznik.Views.Plugin.Yahoo.Sync.extend({
+Iznik.Views.Plugin.Yahoo.SyncMessages.Approved = Iznik.Views.Plugin.Yahoo.SyncMessages.extend({
     // Setting offset to 0 omits start from first one
     offset: 0,
 
@@ -550,6 +550,172 @@ Iznik.Views.Plugin.Yahoo.SyncApproved = Iznik.Views.Plugin.Yahoo.Sync.extend({
 
     sourceurl: function(id) {
         return YAHOOAPI + 'groups/' + this.model.get('nameshort') + '/messages/' + id + '/raw'
+    }
+});
+
+Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
+    offset: 1,
+
+    chunkSize: 100,
+
+    start: function() {
+        var self = this;
+        this.startBusy();
+
+        // Need to create this here rather than as a property, otherwise the same array is shared between instances
+        // of this object.
+        this.members = [];
+
+        $.ajax({
+            type: "GET",
+            url: self.url(),
+            context: self,
+            success: self.processChunk,
+            error: self.failChunk
+        });
+    },
+
+    failChunk:  function (request, status, error) {
+        this.fail();
+    },
+
+    ourSyncProgressBar: function() {
+        var percent = Math.round((this.promisesCount / this.promisesLen) * 100);
+        this.$('.progress-bar:last').css('width',  percent + '%').attr('aria-valuenow', percent);
+    },
+
+    processChunk: function(ret) {
+        var self = this;
+        var now = moment();
+
+        if (ret.ygData) {
+            var total = ret.ygData[this.numField];
+            this.offset += total;
+            var members = ret.ygData[this.memberLocation];
+            var maxage = null;
+
+            for (var i = 0; i < total; i++) {
+                var member = members[i];
+                var percent = Math.round((this.offset / total) * 100);
+                self.$('.progress-bar:first').css('width',  percent + '%').attr('aria-valuenow', percent);
+
+                var mom = new moment(member['date'] * 1000);
+                var thisone = {
+                    email: member['email'],
+                    yahooUserId: member['userId'],
+                    yahooPostingStatus: member['postingStatus'],
+                    yahooDeliveryType: member['deliveryType'],
+                    yahooModeratorStatus: member.hasOwnProperty('moderatorStatus') ? member['moderatorStatus'] : 'MEMBER',
+                    name: member['yid'],
+                    date: mom.format()
+                };
+
+                this.members.push(thisone);
+            }
+
+            if (total == 0 || total < this.chunkSize) {
+                // Finished.  Now pass these members to the server.
+                $.ajaxq('plugin', {
+                    type: "POST",
+                    url: API + 'messages',
+                    context: self,
+                    data: {
+                        'groupid': this.model.get('id'),
+                        'collections': this.collections,
+                        'messages': this.messages
+                    },
+                    success: function(ret) {
+                        var self = this;
+
+                        if (ret.ret == 0) {
+                            // If there are messages which we don't have but the server does, then the server
+                            // is wrong and we need to delete them.
+                            self.promises = [];
+                            _.each(ret.missingonclient, function(missing, index, list) {
+                                self.promises.push($.ajaxq('plugin', {
+                                    type: "DELETE",
+                                    url: API + 'message',
+                                    context: self,
+                                    data: {
+                                        id: missing.id,
+                                        collection:  missing.collection,
+                                        reason: 'Not present on Yahoo pending'
+                                    }
+                                }));
+                            });
+
+                            // If there are messages which we have but the server doesn't, then the server is
+                            // wrong and we need to add them.
+                            _.each(ret.missingonserver, function(missing, index, list) {
+                                missing.deferred = new $.Deferred();
+                                self.promises.push(missing.deferred.promise());
+
+                                $.ajaxq('plugin', {
+                                    type: "GET",
+                                    url: self.sourceurl(missing[self.idField]),
+                                    context: self,
+                                    success: function(ret) {
+                                        if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
+                                            var source = decodeEntities(ret.ygData.rawEmail);
+                                            var data = {
+                                                groupid: self.model.get('id'),
+                                                from: ret.ygData.email,
+                                                message: source,
+                                                source: self.source
+                                            };
+
+                                            data[self.idField] = missing[self.idField];
+
+                                            $.ajaxq('plugin', {
+                                                type: "PUT",
+                                                url: API + 'messages',
+                                                data: data,
+                                                context: self,
+                                                success: function(ret) {
+                                                    missing.deferred.resolve();
+                                                }
+                                            });
+                                        } else {
+                                            // Couldn't fetch.  Not much we can do - Yahoo has some messages
+                                            // which are not accessible.
+                                            missing.deferred.resolve();
+                                        }
+                                    }, error: function(req, status, error) {
+                                        // Couldn't fetch.  Not much we can do - Yahoo has some messages
+                                        // which are not accessible.
+                                        missing.deferred.resolve();
+                                    }
+                                });
+                            });
+
+                            // Record how many there are and update progress bar
+                            self.promisesLen = self.promises.length;
+                            self.promisesCount = 0;
+                            _.each(self.promises, function(promise) {
+                                promise.done(function() {
+                                    self.promisesCount++;
+                                    self.ourSyncProgressBar.apply(self);
+
+                                    if (self.promisesCount >= self.promisesLen) {
+                                        // Once they're all done, we have succeeded.
+                                        self.succeed();
+                                    }
+                                });
+                            });
+
+                            if (self.promisesLen == 0) {
+                                self.succeed();
+                            }
+                        } else {
+                            self.failChunk();
+                        }
+                    },
+                    error: self.failChunk
+                });
+            } else {
+                this.queue();
+            }
+        }
     }
 });
 

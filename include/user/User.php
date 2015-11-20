@@ -328,30 +328,34 @@ class User extends Entity
 
     public function setRole($role, $groupid) {
         $sql = "UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;";
-        $this->dbhm->preExec($sql, [
+        $rc = $this->dbhm->preExec($sql, [
             $role,
             $this->id,
             $groupid
         ]);
+
+        return($rc);
     }
 
-    public function getPublic($groupids = NULL) {
+    public function getPublic($groupids = NULL, $history = TRUE) {
         $atts = parent::getPublic();
 
-        # Add in the message history - from any of the emails associated with this user.
-        if ($groupids && count($groupids) > 0) {
-            # On these groups
-            $groupq = implode(',', $groupids);
-            $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? ORDER BY messages.arrival DESC;";
-        } else {
-            # On all groups.
-            $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? ORDER BY messages.arrival DESC;";
-        }
+        if ($history) {
+            # Add in the message history - from any of the emails associated with this user.
+            if ($groupids && count($groupids) > 0) {
+                # On these groups
+                $groupq = implode(',', $groupids);
+                $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? ORDER BY messages.arrival DESC;";
+            } else {
+                # On all groups.
+                $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? ORDER BY messages.arrival DESC;";
+            }
 
-        $atts['messagehistory'] = $this->dbhr->preQuery($sql, [
-            Collection::APPROVED,
-            $this->id
-        ]);
+            $atts['messagehistory'] = $this->dbhr->preQuery($sql, [
+                Collection::APPROVED,
+                $this->id
+            ]);
+        }
 
         $atts['displayname'] = $this->getName();
 
