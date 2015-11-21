@@ -128,8 +128,11 @@ function devurandom_rand($min = 1, $max = 0x7FFFFFFF) {
 
 function ISODate($date)
 {
-    $date = new DateTime($date);
-    $date = $date->format(DateTime::ISO8601);
-    $date = str_replace('+0000', 'Z', $date);
+    if ($date) {
+        $date = new DateTime($date);
+        $date = $date->format(DateTime::ISO8601);
+        $date = str_replace('+0000', 'Z', $date);
+    }
+
     return ($date);
 }

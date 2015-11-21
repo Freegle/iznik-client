@@ -19,6 +19,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     },
 
     startSyncs: function() {
+        var now = moment();
+
         // Start pending syncs first because if they're wrong, that's normally more annoying.
         Iznik.Session.get('groups').each(function (group) {
             if (group.get('onyahoo') &&
@@ -28,22 +30,30 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         });
 
         Iznik.Session.get('groups').each(function (group) {
+            var last = moment(group.get('lastyahoomessagesync'));
+            var hoursago = moment.duration(now.diff(last)).asHours();
+
             if (group.get('onyahoo') &&
+                (!group.get('lastyahoomessagesync') || hoursago > 23) &&
                 (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
                 (new Iznik.Views.Plugin.Yahoo.SyncMessages.Approved({model: group})).render();
             }
         });
 
         Iznik.Session.get('groups').each(function (group) {
+            var last = moment(group.get('lastyahoomembersync'));
+            var hoursago = moment.duration(now.diff(last)).asHours();
+
             if (group.get('onyahoo') &&
+                (!group.get('lastyahoomembersync') || hoursago > 23) &&
                 (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
                 (new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({model: group})).render();
             }
         });
 
-        // Sync every ten minutes.  Most changes will be picked up by the session poll, but it's possible
+        // Sync every twenty minutes.  Most changes will be picked up by the session poll, but it's possible
         // that someone will delete messages directly on Yahoo which we need to notice have gone.
-        _.delay(this.startSyncs, 600000);
+        _.delay(this.startSyncs, 1200000);
     },
 
     checkWork: function() {
@@ -311,7 +321,7 @@ Iznik.Views.Plugin.Work = IznikView.extend({
         window.setTimeout(_.bind(function() {
             // This is ongoing - so add it to the front of the queue.
             IznikPlugin.requeueWork(this);
-        }, this), 500);
+        }, this), 1);
     },
 
     render: function() {

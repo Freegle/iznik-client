@@ -106,6 +106,8 @@ class Group extends Entity
         $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = {$this->id};";
         $counts = $this->dbhr->preQuery($sql);
         $atts['membercount'] = $counts[0]['count'];
+        $atts['lastyahoomembersync'] = ISODate($this->group['lastyahoomembersync']);
+        $atts['lastyahoomessagesync'] = ISODate($this->group['lastyahoomessagesync']);
 
         return($atts);
     }
@@ -196,6 +198,7 @@ class Group extends Entity
                     if ($rollback) { break; }
                 }
 
+                $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [ $this->id ]);
             } catch (Exception $e) {
                 $rollback = TRUE;
             }
@@ -239,6 +242,12 @@ class Group extends Entity
         {
             $c = new Collection($this->dbhr, $this->dbhm, $collection);
             $cs[] = $c;
+
+            if ($collection = Collection::APPROVED) {
+                $this->dbhm->preExec("UPDATE groups SET lastyahoomessagesync = NOW() WHERE id = ?;", [
+                    $this->id
+                ]);
+            }
         }
 
         foreach ($messages as $message) {
