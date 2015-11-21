@@ -34,6 +34,13 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             }
         });
 
+        Iznik.Session.get('groups').each(function (group) {
+            if (group.get('onyahoo') &&
+                (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
+                (new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({model: group})).render();
+            }
+        });
+
         // Sync every ten minutes.  Most changes will be picked up by the session poll, but it's possible
         // that someone will delete messages directly on Yahoo which we need to notice have gone.
         _.delay(this.startSyncs, 600000);
@@ -332,7 +339,9 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.Work.extend({
 
         // Need to create this here rather than as a property, otherwise the same array is shared between instances
         // of this object.
-        this.messages = [];
+        if (!this.hasOwnProperty('messages')) {
+            this.messages = [];
+        }
 
         $.ajax({
             type: "GET",
@@ -558,13 +567,17 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
 
     chunkSize: 100,
 
+    promisesCount: 0,
+
     start: function() {
         var self = this;
         this.startBusy();
 
         // Need to create this here rather than as a property, otherwise the same array is shared between instances
         // of this object.
-        this.members = [];
+        if (!this.hasOwnProperty('members')) {
+            this.members = [];
+        }
 
         $.ajax({
             type: "GET",
@@ -579,9 +592,9 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
         this.fail();
     },
 
-    ourSyncProgressBar: function() {
-        var percent = Math.round((this.promisesCount / this.promisesLen) * 100);
-        this.$('.progress-bar:last').css('width',  percent + '%').attr('aria-valuenow', percent);
+    progressBar: function() {
+        var percent = Math.round((this.offset/ this.totalMembers) * 100);
+        this.$('.progress-bar').css('width',  percent + '%').attr('aria-valuenow', percent);
     },
 
     processChunk: function(ret) {
@@ -590,16 +603,14 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
 
         if (ret.ygData) {
             var total = ret.ygData[this.numField];
-            this.offset += total;
             var members = ret.ygData[this.memberLocation];
-            var maxage = null;
+            this.offset += members.length;
 
-            for (var i = 0; i < total; i++) {
-                var member = members[i];
-                var percent = Math.round((this.offset / total) * 100);
-                self.$('.progress-bar:first').css('width',  percent + '%').attr('aria-valuenow', percent);
+            self.totalMembers = total;
+            self.progressBar.apply(self);
 
-                var mom = new moment(member['date'] * 1000);
+            _.each(members, function(member) {
+                var mom = new moment(member[self.dateField] * 1000);
                 var thisone = {
                     email: member['email'],
                     yahooUserId: member['userId'],
@@ -610,102 +621,24 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
                     date: mom.format()
                 };
 
-                this.members.push(thisone);
-            }
+                self.members.push(thisone);
+            });
 
-            if (total == 0 || total < this.chunkSize) {
+            if (total == 0 || members.length < this.chunkSize) {
                 // Finished.  Now pass these members to the server.
                 $.ajaxq('plugin', {
                     type: "POST",
-                    url: API + 'messages',
+                    url: API + 'group',
                     context: self,
                     data: {
                         'groupid': this.model.get('id'),
-                        'collections': this.collections,
-                        'messages': this.messages
+                        'members': this.members
                     },
                     success: function(ret) {
                         var self = this;
 
                         if (ret.ret == 0) {
-                            // If there are messages which we don't have but the server does, then the server
-                            // is wrong and we need to delete them.
-                            self.promises = [];
-                            _.each(ret.missingonclient, function(missing, index, list) {
-                                self.promises.push($.ajaxq('plugin', {
-                                    type: "DELETE",
-                                    url: API + 'message',
-                                    context: self,
-                                    data: {
-                                        id: missing.id,
-                                        collection:  missing.collection,
-                                        reason: 'Not present on Yahoo pending'
-                                    }
-                                }));
-                            });
-
-                            // If there are messages which we have but the server doesn't, then the server is
-                            // wrong and we need to add them.
-                            _.each(ret.missingonserver, function(missing, index, list) {
-                                missing.deferred = new $.Deferred();
-                                self.promises.push(missing.deferred.promise());
-
-                                $.ajaxq('plugin', {
-                                    type: "GET",
-                                    url: self.sourceurl(missing[self.idField]),
-                                    context: self,
-                                    success: function(ret) {
-                                        if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
-                                            var source = decodeEntities(ret.ygData.rawEmail);
-                                            var data = {
-                                                groupid: self.model.get('id'),
-                                                from: ret.ygData.email,
-                                                message: source,
-                                                source: self.source
-                                            };
-
-                                            data[self.idField] = missing[self.idField];
-
-                                            $.ajaxq('plugin', {
-                                                type: "PUT",
-                                                url: API + 'messages',
-                                                data: data,
-                                                context: self,
-                                                success: function(ret) {
-                                                    missing.deferred.resolve();
-                                                }
-                                            });
-                                        } else {
-                                            // Couldn't fetch.  Not much we can do - Yahoo has some messages
-                                            // which are not accessible.
-                                            missing.deferred.resolve();
-                                        }
-                                    }, error: function(req, status, error) {
-                                        // Couldn't fetch.  Not much we can do - Yahoo has some messages
-                                        // which are not accessible.
-                                        missing.deferred.resolve();
-                                    }
-                                });
-                            });
-
-                            // Record how many there are and update progress bar
-                            self.promisesLen = self.promises.length;
-                            self.promisesCount = 0;
-                            _.each(self.promises, function(promise) {
-                                promise.done(function() {
-                                    self.promisesCount++;
-                                    self.ourSyncProgressBar.apply(self);
-
-                                    if (self.promisesCount >= self.promisesLen) {
-                                        // Once they're all done, we have succeeded.
-                                        self.succeed();
-                                    }
-                                });
-                            });
-
-                            if (self.promisesLen == 0) {
-                                self.succeed();
-                            }
+                            self.succeed();
                         } else {
                             self.failChunk();
                         }
@@ -716,6 +649,32 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
                 this.queue();
             }
         }
+    }
+});
+Iznik.Views.Plugin.Yahoo.SyncMembers.Approved = Iznik.Views.Plugin.Yahoo.SyncMembers.extend({
+    // Setting offset to 0 omits start from first one
+    offset: 0,
+
+    template: 'plugin_sync_approved_members',
+
+    memberLocation: 'members',
+
+    numField: 'total',
+    dateField: 'date',
+
+    collections: [
+        'Approved',
+        'Pending'
+    ],
+
+    url: function() {
+        var url = YAHOOAPI + 'groups/' + this.model.get('nameshort') + "/members/confirmed?count=" + this.chunkSize + "&chrome=raw"
+
+        if (this.offset) {
+            url += "&start=" + this.offset;
+        }
+
+        return(url);
     }
 });
 

@@ -125,7 +125,7 @@ class MailRouter
                 if ($this->spamc->filter($this->msg->getMessage())) {
                     $spamscore = $this->spamc->result['SCORE'];
 
-                    if ($spamscore >= 5) {
+                    if ($spamscore >= 8) {
                         # This might be spam.  We'll mark it as such, then it will get reviewed.
                         $groups = $this->msg->getGroups();
 
@@ -148,7 +148,7 @@ class MailRouter
                             ]);
                         }
 
-                        if ($this->markAsSpam("SpamAssassin flagged this as likely spam; score $spamscore (high is bad)")) {
+                        if ($this->markAsSpam("SpamAssassin flagged this as possible spam; score $spamscore (high is bad)")) {
                             $ret = MailRouter::INCOMING_SPAM;
                         } else {
                             $this->msg->recordFailure('Failed to mark spam');

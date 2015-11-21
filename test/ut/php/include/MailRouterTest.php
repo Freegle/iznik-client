@@ -111,7 +111,7 @@ class MailRouterTest extends IznikTest {
         assertEquals($spam->getSubject(), $spam->getHeader('subject'));
         assertEquals('recipient@example.net', $spam->getTo()[0]['address']);
         assertEquals('Sender', $spam->getFromname());
-        assertEquals('SpamAssassin flagged this as likely spam; score 1000 (high is bad)', $spam->getSpamReason());
+        assertEquals('SpamAssassin flagged this as possible spam; score 1000 (high is bad)', $spam->getSpamReason());
         $spam->delete();
 
         error_log(__METHOD__ . " end");

@@ -134,12 +134,17 @@ class Group extends Entity
         # We do this inside a transaction because it would be a horrible situation if we deleted half the members
         # and left the group mangled.
         $rollback = true;
+
+        # First save off any configs used by existing moderators, so that we can restore them after the member sync.
+        $sql = "SELECT userid, configid FROM memberships WHERE groupid = ? AND role IN ('Moderator', 'Owner') AND configid IS NOT NULL;";
+        $oldmods = $this->dbhr->preQuery($sql, [ $this->id ]);
+
         if ($this->dbhm->beginTransaction()) {
             try {
                 $sql = "DELETE FROM memberships WHERE groupid = {$this->id};";
 
                 # If this doesn't work we'd get an exception
-                $this->dbhm->exec($sql);
+                $rc = $this->dbhm->exec($sql);
 
                 $u = new User($this->dbhm, $this->dbhm);
 
@@ -156,15 +161,14 @@ class Group extends Entity
                         $u = new User($this->dbhm, $this->dbhm, $uid);
                     }
 
-                    $role = $u->getRole($this->id);
+                    $rollback = !$u->addMembership($this->id);
 
-                    if ($role == User::ROLE_NONMEMBER) {
-                        # We don't know this user as a member of this group yet; add them
-                        $rollback = !$u->addMembership($this->id);
-                    }
+                    # Set some non-critical attributes - no need to fail the transaction if they don't work.
+                    $u->setPrivate('yahooUserId', $member['yahooUserId']);
+                    $u->setMembershipAtt($this->id, 'yahooPostingStatus', $member['yahooPostingStatus']);
+                    $u->setMembershipAtt($this->id, 'yahooDeliveryType', $member['yahooDeliveryType']);
 
                     if (!$rollback) {
-                        # Even if we already had them as a member, their role might have changed
                         $role = User::ROLE_MEMBER;
                         if (pres('yahooModeratorStatus', $member)) {
                             if ($member['yahooModeratorStatus'] == 'MODERATOR') {
@@ -180,6 +184,18 @@ class Group extends Entity
                     // Cheat code coverage by putting on the same line.
                     if ($rollback) { break; }
                 }
+
+                foreach ($oldmods as $mod) {
+                    $sql = "UPDATE memberships SET configid = ? WHERE groupid = ? AND userid = ?;";
+                    $rollback = !$this->dbhm->preExec($sql, [
+                        $mod['configid'],
+                        $this->id,
+                        $mod['userid']
+                    ]);
+
+                    if ($rollback) { break; }
+                }
+
             } catch (Exception $e) {
                 $rollback = TRUE;
             }

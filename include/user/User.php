@@ -161,6 +161,17 @@ class User extends Entity
         return($rc);
     }
 
+    public function setMembershipAtt($groupid, $att, $val) {
+        $sql = "UPDATE memberships SET $att = ? WHERE groupid = ? AND userid = ?;";
+        $rc = $this->dbhm->preExec($sql, [
+            $val,
+            $groupid,
+            $this->id
+        ]);
+
+        return($rc);
+    }
+
     public function removeMembership($groupid) {
         $rc = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = ? AND groupid = ?;",
             [
