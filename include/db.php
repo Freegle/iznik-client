@@ -133,7 +133,7 @@ class LoggedPDO {
                     $try++;
                     $msg = $e->getMessage();
                 } else {
-                    $msg = "Non-deadlock DB Exception $sql " . $e->getMessage();
+                    $msg = "Non-deadlock DB Exception " . $e->getMessage() . " $sql";
                     $try = $this->tries;
                 }
             }
@@ -278,9 +278,10 @@ class LoggedPDO {
         #
         # There is a suggestion that doing query('COMMIT') works, but we've not tried that,
         # and it is good to be very careful about whether transactions have worked, even if
-        # there's a perf cost.
+        # there's a perf cost.  It's also good to have a log of key SQL operations in this
+        # way.
 
-        # We log the commit with a success because if it doesn't work the log isn't there.
+        # We log the commit with a success because if it doesn't work the log won't be there.
         $this->reallyLog($this->log, 0, microtime(true) - $this->transactionStart);
         $this->log = '';
 

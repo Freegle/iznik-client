@@ -156,7 +156,9 @@ class Group extends Entity
 
                     if (!$uid) {
                         # We don't - create them.
-                        $uid = $u->create(NULL, NULL, $member['name']);
+                        preg_match('/(.*)@/', $member['email'], $matches);
+                        $name = presdef('name', $member, $matches[1]);
+                        $uid = $u->create(NULL, NULL, $name);
                         $u = new User($this->dbhm, $this->dbhm, $uid);
                         $u->addEmail($member['email']);
                     } else {

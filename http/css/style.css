@@ -392,16 +392,10 @@ a button {
     padding-right: 10px;
 }
 
-/*#bodyEnvelope {*/
-/*position: absolute;*/
-/*top: 50px;*/
-/*left: 50%;*/
-/*}*/
-
-/*#bodyContent {*/
-/*position: relative;*/
-/*left: -50%*/
-/*}*/
+#bodyEnvelope {
+    min-height: 100% !important;
+    height: auto !important;
+}
 
 /* Falling stuff */
 
