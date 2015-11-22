@@ -25,6 +25,7 @@ class groupAPITest extends IznikAPITest {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
+        $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test';");
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
         $dbhm->preExec("DELETE FROM users WHERE yahooUserId = 1;");
@@ -41,6 +42,8 @@ class groupAPITest extends IznikAPITest {
     }
 
     protected function tearDown() {
+        $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
+
         parent::tearDown ();
     }
 
@@ -110,7 +113,7 @@ class groupAPITest extends IznikAPITest {
                 'yahooPostingStatus' => 'MODERATED',
                 'yahooDeliveryType' => 'ANNOUNCEMENT',
                 'yahooModeratorStatus' => 'MODERATOR',
-                'name' => 'Test',
+                'name' => 'Test User',
                 'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
             ],
             [
@@ -118,7 +121,7 @@ class groupAPITest extends IznikAPITest {
                 'yahooUserId' => 1,
                 'yahooPostingStatus' => 'UNMODERATED',
                 'yahooDeliveryType' => 'SINGLE',
-                'name' => 'Test',
+                'name' => 'Test User',
                 'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
             ],
             [
@@ -126,7 +129,7 @@ class groupAPITest extends IznikAPITest {
                 'yahooUserId' => 1,
                 'yahooPostingStatus' => 'PROHIBITED',
                 'yahooDeliveryType' => 'DIGEST',
-                'name' => 'Test',
+                'name' => 'Test User',
                 'yahooModeratorStatus' => 'OWNER',
                 'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
             ]
@@ -136,6 +139,7 @@ class groupAPITest extends IznikAPITest {
             'groupid' => $this->groupid,
             'members' => $members
         ]);
+        error_log(var_export($ret, true));
         assertEquals(0, $ret['ret']);
 
         $ret = $this->call('group', 'GET', [
@@ -151,6 +155,44 @@ class groupAPITest extends IznikAPITest {
         assertEquals('test3@test.com', $ret['members'][2]['emails'][0]['email']);
         assertEquals('Owner', $ret['members'][2]['role']);
         
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testLarge() {
+        error_log(__METHOD__);
+
+        assertTrue($this->user->login('testpw'));
+        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+
+        $members = [
+            [
+                'email' => 'test@test.com',
+                'yahooUserId' => 1,
+                'yahooPostingStatus' => 'MODERATED',
+                'yahooDeliveryType' => 'ANNOUNCEMENT',
+                'yahooModeratorStatus' => 'MODERATOR',
+                'name' => 'Test User',
+                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
+            ]
+        ];
+
+        for ($i = 0; $i < 50000; $i++) {
+            $members[] = [
+                'email' => "test$i@test.com",
+                'yahooUserId' => 1,
+                'yahooPostingStatus' => 'UNMODERATED',
+                'yahooDeliveryType' => 'SINGLE',
+                'name' => 'Test User',
+                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
+            ];
+        };
+
+        $ret = $this->call('group', 'POST', [
+            'groupid' => $this->groupid,
+            'members' => $members
+        ]);
+        assertEquals(0, $ret['ret']);
+
         error_log(__METHOD__ . " end");
     }
 }

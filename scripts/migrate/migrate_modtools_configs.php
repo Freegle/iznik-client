@@ -14,7 +14,6 @@ $dsn = "mysql:host={$dbconfig['host']};dbname=modtools;charset=utf8";
 $dbhm->preExec("DELETE FROM mod_configs;");
 
 $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    // PDO::ATTR_PERSISTENT => true, // Persistent connections seem to result in a leak - show status like 'Threads%'; shows an increasing number
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));

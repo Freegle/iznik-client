@@ -133,9 +133,43 @@ class Group extends Entity
         # This is used to set the whole of the membership list for a group.  It's only used when the group is
         # mastered on Yahoo, rather than by us.
         #
+        # First make sure we have users set up for all the new members; we do this first because it doesn't need
+        # to be inside the transaction, and it reduces the length of time the transaction is extant.
+        #
         # We do this inside a transaction because it would be a horrible situation if we deleted half the members
         # and left the group mangled.
         $rollback = true;
+
+        $u = new User($this->dbhm, $this->dbhm);
+        $count = 0;
+
+        foreach ($members as &$memb) {
+            if (pres('email', $memb)) {
+                # First check if we already know about this user.
+                $uid = $u->findByEmail($memb['email']);
+
+                if ($count % 1000 == 0) {
+                    error_log("$count creation");
+                }
+                $count++;
+
+                if (!$uid) {
+                    # We don't - create them.
+                    preg_match('/(.*)@/', $memb['email'], $matches);
+                    $name = presdef('name', $memb, $matches[1]);
+                    $uid = $u->create(NULL, NULL, $name);
+                    $u = new User($this->dbhm, $this->dbhm, $uid);
+                    $u->addEmail($memb['email']);
+                } else {
+                    $u = new User($this->dbhm, $this->dbhm, $uid);
+                }
+
+                $u->setPrivate('yahooUserId', $memb['yahooUserId']);
+
+                # Remember the uid for inside the transaction below.
+                $memb['uid'] = $uid;
+            }
+        }
 
         # First save off any configs used by existing moderators, so that we can restore them after the member sync.
         $sql = "SELECT userid, configid FROM memberships WHERE groupid = ? AND role IN ('Moderator', 'Owner') AND configid IS NOT NULL;";
@@ -143,36 +177,14 @@ class Group extends Entity
 
         if ($this->dbhm->beginTransaction()) {
             try {
-                $sql = "DELETE FROM memberships WHERE groupid = {$this->id};";
-
                 # If this doesn't work we'd get an exception
+                $sql = "DELETE FROM memberships WHERE groupid = {$this->id};";
                 $rc = $this->dbhm->exec($sql);
+                $bulksql = '';
 
-                $u = new User($this->dbhm, $this->dbhm);
-
-                foreach ($members as $member) {
-                    # First check if we already know about this user.
-                    $uid = $u->findByEmail($member['email']);
-
-                    if (!$uid) {
-                        # We don't - create them.
-                        preg_match('/(.*)@/', $member['email'], $matches);
-                        $name = presdef('name', $member, $matches[1]);
-                        $uid = $u->create(NULL, NULL, $name);
-                        $u = new User($this->dbhm, $this->dbhm, $uid);
-                        $u->addEmail($member['email']);
-                    } else {
-                        $u = new User($this->dbhm, $this->dbhm, $uid);
-                    }
-
-                    $rollback = !$u->addMembership($this->id);
-
-                    # Set some non-critical attributes - no need to fail the transaction if they don't work.
-                    $u->setPrivate('yahooUserId', $member['yahooUserId']);
-                    $u->setMembershipAtt($this->id, 'yahooPostingStatus', $member['yahooPostingStatus']);
-                    $u->setMembershipAtt($this->id, 'yahooDeliveryType', $member['yahooDeliveryType']);
-
-                    if (!$rollback) {
+                for ($count = 0; $count < count($members); $count++) {
+                    $member = $members[$count];
+                    if (pres('uid', $member)) {
                         $role = User::ROLE_MEMBER;
                         if (pres('yahooModeratorStatus', $member)) {
                             if ($member['yahooModeratorStatus'] == 'MODERATOR') {
@@ -182,11 +194,28 @@ class Group extends Entity
                             }
                         }
 
-                        $rollback = !$u->setRole($role, $this->id);
-                    }
+                        # Use a single SQL statement rather than the usual methods for performance reasons.  And then
+                        # batch them up into groups because that performs better in a cluster.
+                        $sql = "INSERT INTO memberships (userid, groupid, role, yahooPostingStatus, yahooDeliveryType) VALUES (" .
+                            "{$member['uid']}, {$this->id}, '{$role}', " . $this->dbhm->quote($member['yahooPostingStatus']) .
+                            ", " . $this->dbhm->quote($member['yahooDeliveryType']) . ");";
+                        $bulksql .= $sql;
 
-                    // Cheat code coverage by putting on the same line.
-                    if ($rollback) { break; }
+                        if ($count % 1000 == 0) {
+                            error_log("$count membership");
+                            $rc = $this->dbhm->exec($bulksql);
+                            $rollback = !$rc;
+                            $bulksql = '';
+                        }
+
+                        // Cheat code coverage by putting on the same line.
+                        if ($rollback) { break; }
+                    }
+                }
+
+                if ($bulksql != '') {
+                    $rc = $this->dbhm->exec($bulksql);
+                    $rollback = !$rc;
                 }
 
                 foreach ($oldmods as $mod) {
@@ -202,6 +231,7 @@ class Group extends Entity
 
                 $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [ $this->id ]);
             } catch (Exception $e) {
+                error_log("Exception " . var_export($e, true));
                 $rollback = TRUE;
             }
 

@@ -346,19 +346,18 @@ class LoggedPDO {
                 $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
             }
 
-            $rc = $this->pheanstalk->put(json_encode(array(
-                'type' => 'sql',
-                'queued' => time(),
-                'sql' => $sql,
-                'ttr' => 300
-            )));
+            if (strlen($sql) < 4000000) {
+                # Anything larger than this is probably not worth logging, even if it's worth
+                # executing.
+                $this->pheanstalk->put(json_encode(array(
+                    'type' => 'sql',
+                    'queued' => time(),
+                    'sql' => $sql,
+                    'ttr' => 300
+                )));
+            }
         } catch (Exception $e) {
-            error_log("Beanstalk exception " . $e->getMessage());
-            $rc = 0;
-        }
-
-        if (!$rc) {
-//            error_log("Couldn't background $sql");
+            error_log("Beanstalk exception " . $e->getMessage() . " on sql of len " . strlen($sql));
         }
     }
 
@@ -370,16 +369,18 @@ class LoggedPDO {
 
 # We have two handles; one for reads, and one for writes, which we need because we might have a complex
 # DB architecture where the master is split out from a replicated copy.
+#
+# Don't use persistent connections as they don't play nice - PDO can use a connection which was already
+# closed.  It's possible that our retrying would handle this ok, but we should only rely on that if
+# we've tested it better and we need the perf gain.
 $dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8";
 
 $dbhr = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    // PDO::ATTR_PERSISTENT => true, // Persistent connections seem to result in a leak - show status like 'Threads%'; shows an increasing number
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ), TRUE);
 
 $dbhm = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    // PDO::ATTR_PERSISTENT => true,
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ), FALSE, $dbhr);
