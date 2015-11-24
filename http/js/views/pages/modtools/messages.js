@@ -20,6 +20,10 @@ Iznik.Views.ModTools.Message.Photo = IznikView.extend({
 });
 
 Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
+    recentDays: 31,
+
+    keywordList: ['Offer', 'Taken', 'Wanted', 'Received', 'Other'],
+
     expand: function() {
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
 
@@ -53,17 +57,46 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
     },
 
     substitutionStrings: function(text, message, config, group) {
-        console.log("Substitute", text, message, config, group);
-        text = text.replace(/\$groupname/g, group.nameshort);
-        text = text.replace(/\$networkname/g, config.network);
-        text = text.replace(/\$groupnonetwork/g, group.nameshort.replace(config.network, ''));
+        var self = this;
 
+        text = text.replace(/\$networkname/g, config.network);
+
+        text = text.replace(/\$groupname/g, group.nameshort);
+        text = text.replace(/\$groupnonetwork/g, group.nameshort.replace(config.network, ''));
         text = text.replace(/\$owneremail/g, group.nameshort + "-owner@yahoogroups.com");
         text = text.replace(/\$groupemail/g, group.nameshort + "@yahoogroups.com");
         text = text.replace(/\$groupurl/g, "https://groups.yahoo.com/neo/groups/" + group.nameshort + "/info");
         text = text.replace(/\$myname/g, Iznik.Session.get('me').displayname);
         text = text.replace(/\$nummembers/g, group.membercount);
+        text = text.replace(/\$nummods/g, group.nummods);
+
         text = text.replace(/\$origsubj/g, message.subject);
+
+        var history = message.fromuser.messagehistory;
+        var recentmsg = '';
+        var count = 0;
+        _.each(history, function(msg) {
+            if (msg.daysago < self.recentDays) {
+                recentmsg += moment(msg.date).format('lll') + ' - ' + msg.subject + "\n";
+                count++;
+            }
+        })
+        text = text.replace(/\$recentmsg/gim, recentmsg);
+        text = text.replace(/\$numrecentmsg/gim, count);
+
+        _.each(this.keywordList, function(keyword) {
+            var recentmsg = '';
+            var count = 0;
+            _.each(history, function(msg) {
+                if (msg.type == keyword && msg.daysago < self.recentDays) {
+                    recentmsg += moment(msg.date).format('lll') + ' - ' + msg.subject + "\n";
+                    count++;
+                }
+            })
+
+            text = text.replace(new RegExp('\\$recent' + keyword.toLowerCase(), 'gim'),recentmsg);
+            text = text.replace(new RegExp('\\$numrecent' + keyword.toLowerCase(), 'gim'), count);
+        })
 
         //if (message.hasOwnProperty('comment')) {
         //    text = text.replace(/\$memberreason/g, message['comment'].trim());
@@ -71,47 +104,10 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
 
         // TODO $otherapplied
 
-        // TODO var from = message['realemail'] ? message['realemail'] : (message['from'] ? message['from'] : message['email']);
         text = text.replace(/\$membermail/g, message.fromaddr);
-        // TODO var fromid = from.substring(0, from.indexOf('@'));
-        //text = text.replace(/\$memberid/g, fromid);
-
-        var messagehistory = message.fromuser.messagehistory;
-
-        //for (var i in keywordlist) {
-        //    var keyword = keywordlist[i];
-        //    var msgs = counts[keyword];
-        //    var summ = '';
-        //
-        //    if (msgs) {
-        //        var regex = new RegExp("\\$numrecent" + keyword.toLowerCase(), "gim");
-        //        text = text.replace(regex, msgs['count']);
-        //
-        //        for (var m in msgs['messages']) {
-        //            var cmsg = msgs['messages'][m];
-        //            summ += "#" + cmsg['id'] + ": " + formatDate(cmsg['date'], false, false) + " - " + cmsg['subject'] + "\n";
-        //        }
-        //    }
-        //
-        //    var regex = new RegExp("\\$recent" + keyword.toLowerCase(), "gim");
-        //    text = text.replace(regex, summ);
-        //}
-        //
-        //var msgs = counts['All'];
-        //
-        //if (msgs) {
-        //    var regex = new RegExp("\\$numrecentmsg", "gim");
-        //    text = text.replace(regex, msgs['count']);
-        //
-        //    var summ = '';
-        //    for (var m in msgs['messages']) {
-        //        cmsg = msgs['messages'][m];
-        //        summ += "#" + cmsg['id'] + ": " + formatDate(cmsg['date'], false, false) + " - " + cmsg['subject'] + "\n";
-        //    }
-        //}
-        //
-        //var regex = new RegExp("\\$recentmsg", "gim");
-        //text = text.replace(regex, summ);
+        var from = message.fromuser.hasOwnProperty('realemail') ? message.fromuser.realemail : message.fromaddr;
+        var fromid = from.substring(0, from.indexOf('@'));
+        text = text.replace(/\$memberid/g, fromid);
 
         //if (message['headerdate']) {
         //    text = text.replace(/\$membersubdate/g, formatDate(message['headerdate'], false, false));

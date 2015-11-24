@@ -356,10 +356,10 @@ class User extends Entity
             if ($groupids && count($groupids) > 0) {
                 # On these groups
                 $groupq = implode(',', $groupids);
-                $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? ORDER BY messages.arrival DESC;";
+                $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? ORDER BY messages.arrival DESC;";
             } else {
                 # On all groups.
-                $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? ORDER BY messages.arrival DESC;";
+                $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? ORDER BY messages.arrival DESC;";
             }
 
             $atts['messagehistory'] = $this->dbhr->preQuery($sql, [

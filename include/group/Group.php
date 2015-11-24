@@ -109,6 +109,10 @@ class Group extends Entity
         $atts['lastyahoomembersync'] = ISODate($this->group['lastyahoomembersync']);
         $atts['lastyahoomessagesync'] = ISODate($this->group['lastyahoomessagesync']);
 
+        $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = {$this->id} AND role IN ('Owner', 'Moderator');";
+        $counts = $this->dbhr->preQuery($sql);
+        $atts['nummods'] = $counts[0]['count'];
+
         return($atts);
     }
 
@@ -231,7 +235,6 @@ class Group extends Entity
 
                 $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [ $this->id ]);
             } catch (Exception $e) {
-                error_log("Exception " . var_export($e, true));
                 $rollback = TRUE;
             }
 

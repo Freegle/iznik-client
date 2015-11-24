@@ -26,13 +26,12 @@ class Spam {
 
     public function check(Message $msg) {
         $ip = $msg->getHeader('x-freegle-ip');
-        $ip = $ip ? $ip : $msg->getHeader('x-originating-ip');
         $ip = $ip ? $ip : $msg->getHeader('x-yahoo-post-ip');
+        $ip = $ip ? $ip : $msg->getHeader('x-originating-ip');
+        $ip = preg_replace('/[\[\]]/', '', $ip);
         $host = NULL;
 
         if ($ip) {
-            $ip = str_replace('[', '', $ip);
-            $ip = str_replace(']', '', $ip);
             $msg->setFromIP($ip);
 
             $host = $msg->getFromhost();
@@ -45,7 +44,7 @@ class Spam {
                 # Check if it's whitelisted
                 $sql = "SELECT * FROM spam_whitelist_ips WHERE ip = ?;";
                 $ips = $this->dbhr->preQuery($sql, [$ip]);
-                foreach ($ips as $ip) {
+                foreach ($ips as $wip) {
                     $ip = NULL;
                     $msg->setFromIP($ip);
                 }

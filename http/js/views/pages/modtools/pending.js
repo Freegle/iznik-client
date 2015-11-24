@@ -163,7 +163,9 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
             sortmsgs.push(stdmsgs);
 
             _.each(sortmsgs, function(stdmsg) {
+                console.log("Consider standard ", stdmsg);
                 if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
+                    console.log("Add");
                     stdmsg.message = self.model;
                     stdmsg.messageView = self;
                     var v = new Iznik.Views.ModTools.StdMessage.Button({

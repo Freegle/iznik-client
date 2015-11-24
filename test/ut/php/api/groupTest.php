@@ -146,6 +146,7 @@ class groupAPITest extends IznikAPITest {
             'groupid' => $this->groupid,
             'members' => TRUE
         ]);
+        error_log(var_export($ret, true));
 
         assertEquals(3, count($ret['members']));
         assertEquals('test@test.com', $ret['members'][0]['emails'][0]['email']);
@@ -154,6 +155,7 @@ class groupAPITest extends IznikAPITest {
         assertEquals('Member', $ret['members'][1]['role']);
         assertEquals('test3@test.com', $ret['members'][2]['emails'][0]['email']);
         assertEquals('Owner', $ret['members'][2]['role']);
+        assertEquals(2, $ret['group']['nummods']);
         
         error_log(__METHOD__ . " end");
     }

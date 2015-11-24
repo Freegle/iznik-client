@@ -207,8 +207,10 @@ class Message
             $group['arrival'] = ISODate($group['arrival']);
         }
 
+        # Add derived attributes.
         $ret['arrival'] = ISODate($ret['arrival']);
         $ret['date'] = ISODate($ret['date']);
+        $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
 
         if (pres('fromuser', $ret)) {
             $u = new User($this->dbhr, $this->dbhm, $ret['fromuser']);
