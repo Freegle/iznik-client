@@ -3,6 +3,7 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/session/Session.php');
+require_once(IZNIK_BASE . '/include/misc/Log.php');
 
 class User extends Entity
 {
@@ -49,6 +50,15 @@ class User extends Entity
                 if ($login['type'] == User::LOGIN_NATIVE && $pw == $login['credentials']) {
                     $s = new Session($this->dbhr, $this->dbhm);
                     $s->create($this->id);
+
+                    $l = new Log($this->dbhr, $this->dbhm);
+                    $l->log([
+                        'type' => Log::TYPE_USER,
+                        'subtype' => Log::SUBTYPE_LOGIN,
+                        'byuser' => $this->id,
+                        'text' => 'Using email/password'
+                    ]);
+
                     return (TRUE);
                 }
             }
@@ -90,7 +100,7 @@ class User extends Entity
             $this->log->log([
                 'type' => Log::TYPE_USER,
                 'subtype' => Log::SUBTYPE_CREATED,
-                'groupid' => $id,
+                'user' => $id,
                 'text' => $this->getName()
             ]);
 
@@ -141,6 +151,8 @@ class User extends Entity
     }
 
     public function addMembership($groupid, $role = User::ROLE_MEMBER) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
         $rc = $this->dbhm->preExec("REPLACE INTO memberships (userid, groupid, role) VALUES (?,?,?);",
             [
                 $this->id,
@@ -154,6 +166,7 @@ class User extends Entity
                 'type' => Log::TYPE_GROUP,
                 'subtype' => Log::SUBTYPE_JOINED,
                 'user' => $this->id,
+                'byuser' => $me ? $me->getId() : NULL,
                 'groupid' => $groupid
             ]);
         }
@@ -173,6 +186,8 @@ class User extends Entity
     }
 
     public function removeMembership($groupid) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
         $rc = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = ? AND groupid = ?;",
             [
                 $this->id,
@@ -185,6 +200,7 @@ class User extends Entity
                 'type' => Log::TYPE_GROUP,
                 'subtype' => Log::SUBTYPE_LEFT,
                 'user' => $this->id,
+                'byuser' => $me->getId(),
                 'groupid' => $groupid
             ]);
         }
@@ -348,7 +364,7 @@ class User extends Entity
         return($rc);
     }
 
-    public function getPublic($groupids = NULL, $history = TRUE) {
+    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE) {
         $atts = parent::getPublic();
 
         if ($history) {
@@ -368,18 +384,61 @@ class User extends Entity
             ]);
         }
 
+        if ($logs) {
+            # Add in the log entries we have for this user.
+            #
+            # We can only see logs for this user if we have a mod role on one of the groups of which they are
+            # a member, or if we have appropriate system rights.
+            # TODO
+            $sql = "SELECT * FROM logs WHERE user = ? OR byuser = ?;";
+            $logs = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
+            $atts['logs'] = [];
+
+            foreach ($logs as $log) {
+                if (pres('byuser', $log)) {
+                    $u = new User($this->dbhr, $this->dbhm, $log['byuser']);
+                    $log['byuser'] = $u->getPublic();
+                }
+
+                if (pres('user', $log)) {
+                    $u = new User($this->dbhr, $this->dbhm, $log['user']);
+                    $log['user'] = $u->getPublic();
+                }
+
+                if (pres('groupid', $log)) {
+                    $g = new Group($this->dbhr, $this->dbhm, $log['groupid']);
+                    $log['group'] = $g->getPublic();
+                }
+
+                if (pres('msgid', $log)) {
+                    $g = new Message($this->dbhr, $this->dbhm, $log['msgid']);
+                    $log['message'] = $g->getPublic();
+
+                    # Prune large attributes.
+                    unset($log['message']['textbody']);
+                    unset($log['message']['htmlbody']);
+                    unset($log['message']['message']);
+                }
+
+                $atts['logs'][] = $log;
+            }
+        }
+
         $atts['displayname'] = $this->getName();
 
         return($atts);
     }
 
     public function delete() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
         $rc = $this->dbhm->preExec("DELETE FROM users WHERE id = ?;", [$this->id]);
         if ($rc) {
             $this->log->log([
                 'type' => Log::TYPE_USER,
                 'subtype' => Log::SUBTYPE_DELETED,
                 'user' => $this->id,
+                'byuser' => $me->getId(),
                 'text' => $this->getName()
             ]);
         }

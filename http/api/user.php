@@ -28,6 +28,27 @@ function user() {
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
     switch ($_SERVER['REQUEST_METHOD']) {
+        case 'GET': {
+            $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+
+            $u = new User($dbhr, $dbhm, $id);
+            $p = new Plugin($dbhr, $dbhm);
+            $l = new Log($dbhr, $dbhm);
+
+            $ret = ['ret' => 2, 'status' => 'Permission denied'];
+
+            if ($u && $me) {
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success'
+                ];
+
+                $ret['user'] = $u->getPublic(NULL, TRUE, $logs);
+            }
+
+            break;
+        }
+
         case 'POST': {
             $u = new User($dbhr, $dbhm, $id);
             $p = new Plugin($dbhr, $dbhm);
@@ -46,7 +67,6 @@ function user() {
                     ]);
 
                     $emails = $u->getEmails();
-                    error_log("emails " . var_export($emails, true));
                     foreach ($emails as $email) {
                         $p->add($groupid, [
                             'type' => 'DeliveryType',

@@ -408,6 +408,10 @@ paths:
         in: path
         description: ID of the user
         type: number
+      - name: logs
+        in: query
+        description: Whether to get user's logs; defaults FALSE
+        type: boolean
       responses:
           "200":
             description: "Successful response"

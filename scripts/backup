@@ -4,7 +4,6 @@
 # Who wants to know when the backup failed, or
 # when the binary logs didn't get applied
 EMAIL=geek-alerts@ilovefreegle.org
-EMAIL=log@ehibbert.org.uk
 
 # Where you keep your backups
 BACKUPDIR=/backups
@@ -35,12 +34,16 @@ if [ $? == 0 ]; then
     find $BACKUPDIR/$MOST_RECENT/* -exec gzip {} \;
 
     # Offsite - you might need to change this.
-    OFFSITE=`gsutil cp -r /backups/ gs://freegle_backup`
+    gsutil cp -r /backups/ gs://freegle_backup > /tmp/gsutil.out 2>&1
 
-    echo "$OFFSITE" | mail -s "BACKUP SUCCESS: backed up to $BACKUPDIR/$MOST_RECENT" $EMAIL
+    if [ $? == 0 ]; then
+        mail -s "BACKUP SUCCESS: backed up to $BACKUPDIR/$MOST_RECENT" $EMAIL
 
-    # Remove to keep local disk space down.
-    rm -r $BACKUPDIR/*
+        # Remove to keep local disk space down.
+        rm -r $BACKUPDIR/*
+    else
+        mail -s "BACKUP ERROR: gsutil copy failed" $EMAIL
+    fi
   else
     echo "Couldn't apply the binary logs to the backup $BACKUPDIR/$MOST_RECENT" | mail -s "BACKUP ERRO: Mysql binary log didn't get applied to backup" $EMAIL
   fi

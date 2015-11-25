@@ -27,9 +27,9 @@ class StdMessage extends Entity
         $this->dbhm = $dbhm;
     }
 
-    public function create($title) {
+    public function create($title, $cid) {
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO mod_stdmsgs (title) VALUES (?)", [$title]);
+            $rc = $this->dbhm->preExec("INSERT INTO mod_stdmsgs (title, configid) VALUES (?,?)", [$title,$cid]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
             $id = NULL;
@@ -44,7 +44,7 @@ class StdMessage extends Entity
                 'type' => Log::TYPE_CONFIG,
                 'subtype' => Log::SUBTYPE_CREATED,
                 'byuser' => $createdby,
-                'configid' => $id,
+                'configid' => $cid,
                 'text' => $title
             ]);
 

@@ -27,6 +27,7 @@ class Log
     const SUBTYPE_FAILURE = 'Failure';
     const SUBTYPE_JOINED = 'Joined';
     const SUBTYPE_LEFT = 'Left';
+    const SUBTYPE_LOGIN = 'Login';
     const SUBTYPE_CLASSIFIED_SPAM = 'ClassifiedSpam';
     const SUBTYPE_SENT = 'Sent';
     const SUBTYPE_YAHOO_DELIVERY_TYPE = 'YahooDeliveryType';

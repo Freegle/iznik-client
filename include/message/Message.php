@@ -709,6 +709,7 @@ class Message
                 'type' => Log::TYPE_MESSAGE,
                 'subtype' => Log::SUBTYPE_RECEIVED,
                 'msgid' => $id,
+                'user' => $this->fromuser,
                 'text' => $this->messageid,
                 'groupid' => $this->groupid
             ]);
@@ -828,10 +829,13 @@ class Message
     public function reject($groupid, $subject, $body) {
         # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
         # behaviour.
+        $me = whoAmI($this->dbhr, $this->dbhm);
         $this->log->log([
             'type' => Log::TYPE_MESSAGE,
             'subtype' => $subject ? Log::SUBTYPE_REJECTED : Log::SUBTYPE_DELETED,
             'msgid' => $this->id,
+            'byuser' => $me ? $me->getId() : NULL,
+            'user' => $this->fromuser,
             'groupid' => $groupid,
             'text' => $subject
         ]);
@@ -888,10 +892,13 @@ class Message
     public function approve($groupid) {
         # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
         # behaviour.
+        $me = whoAmI($this->dbhr, $this->dbhm);
         $this->log->log([
             'type' => Log::TYPE_MESSAGE,
             'subtype' => Log::SUBTYPE_APPROVED,
             'msgid' => $this->id,
+            'user' => $this->fromuser,
+            'byuser' => $me ? $me->getId() : NULL,
             'groupid' => $groupid
         ]);
 
@@ -928,6 +935,7 @@ class Message
 
     function delete($reason = NULL, $groupid = NULL)
     {
+        $me = whoAmI($this->dbhr, $this->dbhm);
         $rc = true;
 
         if ($this->attach_dir) {
@@ -939,6 +947,8 @@ class Message
                 'type' => Log::TYPE_MESSAGE,
                 'subtype' => Log::SUBTYPE_DELETED,
                 'msgid' => $this->id,
+                'user' => $this->fromuser,
+                'byuser' => $me ? $me->getId() : NULL,
                 'text' => $reason,
                 'groupid' => $groupid
             ]);

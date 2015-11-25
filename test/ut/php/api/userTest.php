@@ -119,5 +119,24 @@ class userAPITest extends IznikAPITest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testLog() {
+        error_log(__METHOD__);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $this->uid,
+            'logs' => TRUE
+        ]);
+
+        error_log(var_export($ret, true));
+
+        assertEquals(3, count($ret['user']['logs']));
+        assertEquals('Group', $ret['user']['logs'][1]['type']);
+        assertEquals('Joined', $ret['user']['logs'][1]['subtype']);
+        assertEquals($this->groupid, $ret['user']['logs'][1]['group']['id']);
+        assertEquals($this->uid, $ret['user']['logs'][2]['byuser']['id']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

@@ -55,11 +55,15 @@ class LoggedPDO {
     public function __construct($dsn, $username, $password, $options, $readonly = FALSE, LoggedPDO $readconn = NULL)
     {
         $start = microtime(true);
-        $this->_db = new PDO($dsn, $username, $password);
-        $this->dbwaittime += microtime(true) - $start;
-
+        $this->dsn = $dsn;
+        $this->username = $username;
+        $this->password = $password;
+        $this->options = $options;
         $this->readonly = $readonly;
         $this->readconn = $readconn;
+
+        $this->_db = new PDO($dsn, $username, $password);
+        $this->dbwaittime += microtime(true) - $start;
 
         return $this;
     }
@@ -124,6 +128,13 @@ class LoggedPDO {
                     }
                 } else {
                     $msg = var_export($sth->errorInfo(), true);
+                    if (stripos($msg, 'has gone away') !== FALSE) {
+                        # This can happen if we have issues with the DB, e.g. one server dies or the connection is
+                        # timed out.  We re-open the connection and try again.
+                        $try++;
+                        $this->_db = NULL;
+                        $this->_db = new PDO($this->dsn, $this->username, $this->password);
+                    }
                 }
 
                 $try++;
@@ -163,7 +174,19 @@ class LoggedPDO {
         do {
             try {
                 $ret = $this->parentExec($sql);
-                $worked = true;
+
+                if ($ret !== FALSE) {
+                    $worked = true;
+                } else {
+                    $msg = var_export($this->errorInfo(), true);
+                    $try++;
+                    if (stripos($msg, 'has gone away') !== FALSE) {
+                        # This can happen if we have issues with the DB, e.g. one server dies or the connection is
+                        # timed out.  We re-open the connection and try again.
+                        $this->_db = NULL;
+                        $this->_db = new PDO($this->dsn, $this->username, $this->password);
+                    }
+                }
             } catch (Exception $e) {
                 if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
                     # It's a Percona deadlock - retry.
@@ -200,7 +223,19 @@ class LoggedPDO {
         do {
             try {
                 $ret = $this->parentQuery($sql);
-                $worked = true;
+
+                if ($ret !== FALSE) {
+                    $worked = true;
+                } else {
+                    $try++;
+                    $msg = var_export($this->errorInfo(), true);
+                    if (stripos($msg, 'has gone away') !== FALSE) {
+                        # This can happen if we have issues with the DB, e.g. one server dies or the connection is
+                        # timed out.  We re-open the connection and try again.
+                        $this->_db = NULL;
+                        $this->_db = new PDO($this->dsn, $this->username, $this->password);
+                    }
+                }
             } catch (Exception $e) {
                 if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
                     # Retry.
@@ -253,7 +288,7 @@ class LoggedPDO {
     }
 
     public function errorInfo() {
-        return($this->_db->errorInfo());
+        return($this->_db ? $this->_db->errorInfo() : 'No DB handle');
     }
 
     public function rollBack() {

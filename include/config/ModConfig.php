@@ -59,6 +59,22 @@ class ModConfig extends Entity
         }
     }
 
+    public function getPublic() {
+        $ret = parent::getPublic();
+
+        $ret['stdmsgs'] = [];
+
+        $sql = "SELECT id FROM mod_stdmsgs WHERE configid = {$this->id};";
+        $stdmsgs = $this->dbhr->query($sql);
+
+        foreach ($stdmsgs as $stdmsg) {
+            $s = new StdMessage($this->dbhr, $this->dbhm, $stdmsg['id']);
+            $ret['stdmsgs'][] = $s->getPublic();
+        }
+
+        return($ret);
+    }
+
     public function useOnGroup($modid, $groupid) {
         $sql = "UPDATE memberships SET configid = {$this->id} WHERE userid = ? AND groupid = ?;";
         $this->dbhm->preExec($sql, [

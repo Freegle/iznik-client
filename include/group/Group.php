@@ -200,9 +200,11 @@ class Group extends Entity
 
                         # Use a single SQL statement rather than the usual methods for performance reasons.  And then
                         # batch them up into groups because that performs better in a cluster.
+                        $yps = presdef('yahooPostingStatus', $member, NULL);
+                        $ydt = presdef('yahooDeliveryType', $member, NULL);
                         $sql = "INSERT INTO memberships (userid, groupid, role, yahooPostingStatus, yahooDeliveryType) VALUES (" .
-                            "{$member['uid']}, {$this->id}, '{$role}', " . $this->dbhm->quote($member['yahooPostingStatus']) .
-                            ", " . $this->dbhm->quote($member['yahooDeliveryType']) . ");";
+                            "{$member['uid']}, {$this->id}, '{$role}', " . $this->dbhm->quote($yps) .
+                            ", " . $this->dbhm->quote($ydt) . ");";
                         $bulksql .= $sql;
 
                         if ($count % 1000 == 0) {

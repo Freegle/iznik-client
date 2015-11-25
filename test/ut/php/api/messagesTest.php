@@ -79,6 +79,20 @@ class messagesTest extends IznikAPITest {
         assertEquals($a->getID(), $msgs[0]['id']);
         assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
+        # Check the log.
+        $u->setRole(User::ROLE_MODERATOR, $group1);
+
+        error_log("Fromuser is " . $a->getFromuser());
+        $ret = $this->call('user', 'GET', [
+            'id' => $a->getFromuser(),
+            'logs' => TRUE
+        ]);
+        error_log("Logs".  var_export($ret, true));
+        assertEquals('Message', $ret['user']['logs'][3]['type']);
+        assertEquals('Received', $ret['user']['logs'][3]['subtype']);
+        assertEquals($group1, $ret['user']['logs'][3]['group']['id']);
+        assertEquals($a->getFromuser(), $ret['user']['logs'][3]['user']['id']);
+
         $a->delete();
 
         error_log(__METHOD__ . " end");

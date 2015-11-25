@@ -6,6 +6,8 @@ if (!defined('UT_DIR')) {
 require_once UT_DIR . '/IznikTest.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
+require_once IZNIK_BASE . '/include/config/ModConfig.php';
+
 
 /**
  * @backupGlobals disabled
@@ -41,7 +43,29 @@ class groupTest extends IznikTest {
         assertEquals('testgroup', $atts['nameshort']);
         assertEquals($atts['id'], $g->getPrivate('id'));
         assertNull($g->getPrivate('invalidid'));
+
+        # Test set members.
+        $u = new User($this->dbhr, $this->dbhm);
+        $c = new ModConfig($this->dbhr, $this->dbhm);
+        $cid = $c->create('TestConfig');
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->user->addMembership($g->getId(), User::ROLE_MODERATOR);
+        $this->user->setMembershipAtt($g->getId(), 'configid', $cid);
+        $rc = $g->setMembers([
+            [
+                'uid' => $this->uid,
+                'yahooModeratorStatus' => 'OWNER'
+            ]
+        ]);
+        assertTrue($rc);
+        $membs = $g->getMembers();
+        assertEquals(User::ROLE_OWNER, $membs[0]['role']);
+        $membs = $this->user->getMemberships();
+        assertEquals($cid, $membs[0]['configid']);
+
         assertGreaterThan(0 ,$g->delete());
+        $c->delete();
 
         error_log(__METHOD__ . " end");
     }

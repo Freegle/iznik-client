@@ -25,6 +25,7 @@ class dbTest extends IznikTest {
         assertNotNull($this->dbhr);
         assertNotNull($this->dbhm);
 
+        $this->dbhm->exec('DROP TABLE IF EXISTS test;');
         $rc = $this->dbhm->exec('CREATE TABLE `test` (`id` int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=latin1;');
         assertEquals(0, $rc);
     }
@@ -127,7 +128,7 @@ class dbTest extends IznikTest {
             throw new Exception('Faked deadlock exception');
         } else {
             error_log("No exception");
-            return false;
+            return TRUE;
         }
     }
 
@@ -139,6 +140,17 @@ class dbTest extends IznikTest {
         } else {
             $this->count--;
             return 1;
+        }
+    }
+
+    public function falseUntil() {
+        error_log("falseUntil count " . $this->count);
+        if ($this->count == 0) {
+            error_log("false");
+            return(true);
+        } else {
+            $this->count--;
+            return(false);
         }
     }
 
@@ -193,6 +205,33 @@ class dbTest extends IznikTest {
 
         $mock->retryQuery('SHOW COLUMNS FROM test;');
 
+        # Now a failure in the return code
+        error_log("query returns false");
+        $dbconfig = array (
+            'host' => '127.0.0.1',
+            'user' => SQLUSER,
+            'pass' => SQLPASSWORD,
+            'database' => SQLDB
+        );
+
+        $dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8";
+
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+            ), TRUE))
+            ->setMethods(array('parentQuery', 'errorInfo'))
+            ->getMock();
+        $this->count = 5;
+        $mock->method('parentQuery')->will($this->returnCallback(function() {
+            return($this->falseUntil());
+        }));
+        $mock->method('errorInfo')->willReturn('Test server has gone away');
+
+        $worked = false;
+
+        $mock->retryQuery('SHOW COLUMNS FROM test;');
+
         error_log(__METHOD__ . " end");
     }
 
@@ -243,7 +282,31 @@ class dbTest extends IznikTest {
         $mock->method('parentExec')->will($this->returnCallback(function() {
             return($this->exceptionUntil());
         }));
-        $worked = false;
+
+        $mock->retryExec('INSERT INTO test VALUES ();');
+
+        # Now a failure in the return code
+        error_log("query returns false");
+        $dbconfig = array (
+            'host' => '127.0.0.1',
+            'user' => SQLUSER,
+            'pass' => SQLPASSWORD,
+            'database' => SQLDB
+        );
+
+        $dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8";
+
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+            ), TRUE))
+            ->setMethods(array('parentExec', 'errorInfo'))
+            ->getMock();
+        $this->count = 5;
+        $mock->method('parentExec')->will($this->returnCallback(function() {
+            return($this->falseUntil());
+        }));
+        $mock->method('errorInfo')->willReturn('Test server has gone away');
 
         $mock->retryExec('INSERT INTO test VALUES ();');
 

@@ -59,9 +59,13 @@ class configTest extends IznikTest {
         assertEquals($id, $c->getForGroup($uid, $group1));
 
         $m = new StdMessage($this->dbhr, $this->dbhm);
-        $mid = $m->create("TestStdMessage");
+        $mid = $m->create("TestStdMessage", $id);
         assertNotNull($mid);
         $m = new StdMessage($this->dbhr, $this->dbhm, $mid);
+
+        assertEquals('TestConfig', $c->getPublic()['name']);
+        assertEquals('TestStdMessage', $c->getPublic()['stdmsgs'][0]['title']);
+
         $m->delete();
         $c->delete();
 
@@ -98,7 +102,7 @@ class configTest extends IznikTest {
 
         $c = new StdMessage($this->dbhr, $this->dbhm);
         $c->setDbhm($mock);
-        $id = $c->create('TestStd');
+        $id = $c->create('TestStd', $id);
         assertNull($id);
 
         error_log(__METHOD__ . " end");

@@ -62,10 +62,9 @@ foreach ($oldconfs as $config) {
 
         foreach ($stdmsgs as $stdmsg) {
             $s = new StdMessage($dbhr, $dbhm);
-            $sid = $s->create($stdmsg['title']);
+            $sid = $s->create($stdmsg['title'], $cid);
             $msgidmap[$stdmsg['uniqueid']] = $sid;
             $s = new StdMessage($dbhr, $dbhm, $sid);
-            $s->setPrivate('configid', $cid);
             $atts = array('action', 'subjpref', 'subjsuff', 'body',
                 'rarelyused', 'autosend', 'newmodstatus', 'newdelstatus', 'edittext');
 

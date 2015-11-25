@@ -4,6 +4,7 @@ require_once("/etc/iznik.conf");
 require_once(IZNIK_BASE . '/lib/openid.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/session/Session.php');
+require_once(IZNIK_BASE . '/include/misc/Log.php');
 
 class Yahoo
 {
@@ -52,7 +53,6 @@ class Yahoo
             if (($this->openid->validate()) &&
                 ($this->openid->identity != 'https://open.login.yahooapis.com/openid20/user_profile/xrds'))
             {
-                error_log("Validated Yahoo Login");
                 $attrs = $this->openid->getAttributes();
 
                 # The Yahoo ID is derived from the email; Yahoo always returns the Yahoo email even if a different
@@ -72,8 +72,6 @@ class Yahoo
                     # We found them.
                     $id = $user['userid'];
                 }
-
-                error_log("Found them? $id");
 
                 if (!$id) {
                     # We don't know them.  Create a user.
@@ -101,9 +99,17 @@ class Yahoo
 
                 if ($id) {
                     // We are logged in.
-                    error_log("Logged in");
                     $s = new Session($this->dbhr, $this->dbhm);
                     $s->create($id);
+
+                    $l = new Log($this->dbhr, $this->dbhm);
+                    $l->log([
+                        'type' => Log::TYPE_USER,
+                        'subtype' => Log::SUBTYPE_LOGIN,
+                        'byuser' => $id,
+                        'text' => 'Using Yahoo'
+                    ]);
+
                     return([ $s, [ 'ret' => 0, 'status' => 'Success']]);
                 }
             } else if (!$this->openid->mode) {

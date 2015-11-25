@@ -53,7 +53,9 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
         // Sync every twenty minutes.  Most changes will be picked up by the session poll, but it's possible
         // that someone will delete messages directly on Yahoo which we need to notice have gone.
-        _.delay(this.startSyncs, 1200000);
+        //
+        // Delay doesn't set the right context by default.
+        _.delay(_.bind(this.startSyncs, this), 1200000);
     },
 
     checkWork: function() {
