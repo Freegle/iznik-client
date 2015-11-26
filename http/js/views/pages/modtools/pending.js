@@ -161,7 +161,7 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
                     }
                 });
 
-                sortmsgs.push(stdmsgs);
+                sortmsgs = $.merge(sortmsgs, stdmsgs);
 
                 _.each(sortmsgs, function (stdmsg) {
                     if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
@@ -201,6 +201,43 @@ Iznik.Views.ModTools.Message.Pending.Group = IznikView.extend({
     }
 });
 
+Iznik.Views.ModTools.StdMessage.Pending.Approve = Iznik.Views.ModTools.StdMessage.Modal.extend({
+    template: 'modtools_pending_approve',
+
+    events: {
+        'click .js-send': 'send'
+    },
+
+    send: function() {
+        var self = this;
+
+        // We approve the message on all groups.  Future enhancement?
+        //
+        // If there's no subject prefix then there's no message to send along with the approval - it'll
+        // be the standard default button.
+        _.each(self.model.get('groups'), function(group, index, list) {
+            $.ajax({
+                type: 'POST',
+                url: API + 'message',
+                data: {
+                    id: self.model.get('id'),
+                    groupid: group.id,
+                    action: 'Approve',
+                    subject: self.options.stdmsg.get('subjpref') ? self.$('.js-subject').val() : null,
+                    body: self.options.stdmsg.get('subjpref') ? self.$('.js-text').val() : null
+                }, success: function(ret) {
+                    self.maybeSettingsChange.call(self, 'approved', self.options.stdmsg, self.model, group);
+                }
+            })
+        });
+    },
+
+    render: function() {
+        this.expand();
+        return(this);
+    }
+});
+
 Iznik.Views.ModTools.StdMessage.Pending.Reject = Iznik.Views.ModTools.StdMessage.Modal.extend({
     template: 'modtools_pending_reject',
 
@@ -219,11 +256,10 @@ Iznik.Views.ModTools.StdMessage.Pending.Reject = Iznik.Views.ModTools.StdMessage
                     id: self.model.get('id'),
                     groupid: group.id,
                     action: 'Reject',
-                    subject: 'Re: ' + self.model.get('subject'),
+                    subject: self.$('.js-subject').val(),
                     body: self.$('.js-text').val()
                 }, success: function(ret) {
-                    self.trigger('rejected');
-                    self.close();
+                    self.maybeSettingsChange.call(self, 'rejected', self.options.stdmsg, self.model, group);
                 }
             })
         });
@@ -270,20 +306,19 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
         var self = this;
         var message = self.model.get('message');
 
-        // We approve the message on all groups.  Future enhancement?
-        _.each(message.get('groups'), function(group, index, list) {
-            $.ajax({
-                type: 'POST',
-                url: API + 'message',
-                data: {
-                    id: message.get('id'),
-                    groupid: group.id,
-                    action: 'Approve'
-                }, success: function(ret) {
-                    self.model.get('messageView').$el.fadeOut('slow');
-                }
-            })
+        var v = new Iznik.Views.ModTools.StdMessage.Pending.Approve({
+            model: message,
+            stdmsg: this.model,
+            config: this.options.config
         });
+
+        this.listenToOnce(v, 'approved', function() {
+            self.model.get('messageView').$el.fadeOut('slow', function() {
+                self.remove();
+            });
+        });
+
+        v.render();
     },
 
     reject: function() {

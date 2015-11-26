@@ -834,6 +834,27 @@ class Message
         return(count($groups) > 0);
     }
 
+    private function maybeMail($groupid, $subject, $body) {
+        if ($subject) {
+            # We have a rejection mail to send.
+            $to = $this->getEnvelopefrom();
+            $to = $to ? $to : $this->getFromaddr();
+            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $me = whoAmI($this->dbhr, $this->dbhm);
+
+            $name = $me->getName();
+            $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
+
+            $this->mailer(
+                $to,
+                $subject,
+                $body,
+                $headers,
+                "-f" . $g->getModsEmail()
+            );
+        }
+    }
+
     public function reject($groupid, $subject, $body) {
         # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
         # behaviour.
@@ -876,28 +897,11 @@ class Message
                 $this->id
             ]);
 
-            if ($subject) {
-                # We have a rejection mail to send.
-                $to = $this->getEnvelopefrom();
-                $to = $to ? $to : $this->getFromaddr();
-                $g = new Group($this->dbhr, $this->dbhm, $groupid);
-                $me = whoAmI($this->dbhr, $this->dbhm);
-
-                $name = $me->getName();
-                $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
-
-                $this->mailer(
-                    $to,
-                    $subject,
-                    $body,
-                    $headers,
-                    "-f" . $g->getModsEmail()
-                );
-            }
+            $this->maybeMail($groupid, $subject, $body);
         }
     }
 
-    public function approve($groupid) {
+    public function approve($groupid, $subject, $body) {
         # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
         # behaviour.
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -907,7 +911,8 @@ class Message
             'msgid' => $this->id,
             'user' => $this->fromuser,
             'byuser' => $me ? $me->getId() : NULL,
-            'groupid' => $groupid
+            'groupid' => $groupid,
+            'text' => $subject
         ]);
 
         $handled = false;
@@ -938,6 +943,8 @@ class Message
                 Collection::APPROVED,
                 $this->id
             ]);
+
+            $this->maybeMail($groupid, $subject, $body);
         }
     }
 

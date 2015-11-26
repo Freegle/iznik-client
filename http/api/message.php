@@ -99,7 +99,7 @@ function message() {
                     if (!$m->isPending($groupid)) {
                         $ret = ['ret' => 3, 'status' => 'Message is not pending'];
                     } else {
-                        $m->approve($groupid);
+                        $m->approve($groupid, $subject, $body);
                     }
                 } else if ($action == 'NotSpam') {
                     $r = new MailRouter($dbhr, $dbhm);

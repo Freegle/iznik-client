@@ -126,6 +126,46 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         //}
 
         return(text);
+    },
+
+    maybeSettingsChange: function(trigger, stdmsg, message, group) {
+        var self = this;
+
+        var dt = stdmsg.get('newdelstatus');
+        var ps = stdmsg.get('newmodstatus');
+
+        console.log("Settings change?", stdmsg, dt, ps, trigger, message, group);
+
+        if (dt != 'UNCHANGED') {
+            $.ajax({
+                type: 'POST',
+                url: API + '/user',
+                data: {
+                    groupid: group.groupid,
+                    id: message.get('fromuser').id,
+                    yahooDeliveryType: dt
+                }, success: function(ret) {
+                    IznikPlugin.checkPluginStatus();
+                }
+            });
+        }
+
+        if (ps != 'UNCHANGED') {
+            $.ajax({
+                type: 'POST',
+                url: API + '/user',
+                data: {
+                    groupid: group.groupid,
+                    id: message.get('fromuser').id,
+                    yahooPostingStatus: ps
+                }, success: function(ret) {
+                    IznikPlugin.checkPluginStatus();
+                }
+            });
+        }
+
+        self.trigger(trigger);
+        self.close();
     }
 });
 
