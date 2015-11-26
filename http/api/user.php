@@ -32,8 +32,6 @@ function user() {
             $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
             $u = new User($dbhr, $dbhm, $id);
-            $p = new Plugin($dbhr, $dbhm);
-            $l = new Log($dbhr, $dbhm);
 
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 

@@ -1,4 +1,10 @@
-Iznik.Models.ModTools.User = IznikModel.extend({});
+Iznik.Models.ModTools.User = IznikModel.extend({
+    urlRoot: API + '/user',
+
+    parse: function(ret) {
+        return(ret.user);
+    }
+});
 
 Iznik.Models.ModTools.User.MessageHistoryEntry = IznikModel.extend({});
 

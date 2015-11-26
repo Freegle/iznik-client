@@ -73,7 +73,7 @@ class Collection
             $groupq = " AND groupid IN (" . implode(',', $groupids) . ") ";
 
             # At the moment we only support ordering by date DESC.
-            $sql = "SELECT msgid, groupid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id WHERE $startq $groupq AND collection = ? AND deleted = 0 ORDER BY messages.date DESC LIMIT $limit";
+            $sql = "SELECT msgid, groupid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $startq $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC LIMIT $limit";
             $msglist = $this->dbhr->preQuery($sql, $args);
 
             # Don't return the message attribute as it will be huge.  They can get that via a call to the
@@ -112,7 +112,7 @@ class Collection
     }
 
     function findByYahooApprovedId($groupid, $id) {
-        $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahooapprovedid = ?;";
+        $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahooapprovedid = ? AND deleted = 0;";
         $msglist = $this->dbhr->preQuery($sql, [
             $groupid,
             $id
@@ -126,7 +126,7 @@ class Collection
     }
 
     function findByYahooPendingId($groupid, $id) {
-        $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahoopendingid = ?;";
+        $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahoopendingid = ? AND collection = 'Pending' AND deleted = 0;";
         $msglist = $this->dbhr->preQuery($sql, [
             $groupid,
             $id

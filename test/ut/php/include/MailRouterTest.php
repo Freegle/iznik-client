@@ -219,7 +219,6 @@ class MailRouterTest extends IznikTest {
         $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
-        assertNull((new Message($this->dbhr, $this->dbhm, $id))->getMessage());
 
         # Now the same, but with a TN post which has no messageid.
         error_log("Now TN post");
@@ -241,7 +240,6 @@ class MailRouterTest extends IznikTest {
         $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
-        assertNull((new Message($this->dbhr, $this->dbhm, $id))->getMessage());
 
         error_log(__METHOD__ . " end");
     }
@@ -274,7 +272,6 @@ class MailRouterTest extends IznikTest {
         $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
-        assertNull((new Message($this->dbhr, $this->dbhm, $id))->getMessage());
 
         error_log(__METHOD__ . " end");
     }

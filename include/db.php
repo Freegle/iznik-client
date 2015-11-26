@@ -27,9 +27,16 @@ class DBException extends Exception
 class LoggedPDO {
 
     protected $_db;
-    private $log = '';
+    private $inTransaction = FALSE;
     private $tries = 10;
-    private $lastLogInsert = NULL;
+
+    /**
+     * @param int $tries
+     */
+    public function setTries($tries)
+    {
+        $this->tries = $tries;
+    }
     private $lastInsert = NULL;
     private $transactionStart = NULL;
     private $dbwaittime = 0;
@@ -72,21 +79,6 @@ class LoggedPDO {
         return $this->dbwaittime;
     }
 
-    private function maybeLog($sql, $ret, $duration) {
-        $t = microtime(true);
-        $micro = sprintf("%06d",($t - floor($t)) * 1000000);
-        $d = new DateTime( date('Y-m-d H:i:s.'.$micro, $t) );
-        $timestamp = $d->format("Y-m-d H:i:s.u");
-
-        if ($this->inTransaction()) {
-            # Batch it up - we'll log after the commit/rollback.
-            $str = $timestamp . " " . number_format($duration, 6) . " " . var_export($ret, true) . " $sql\n";
-            $this->log .= $str;
-        } else {
-            # We don't log outside a transaction - it's not important enough for the perf hit.
-        }
-    }
-
     # Our most commonly used method is a combine prepare and execute, wrapped in
     # a retry.  This is SQL injection safe and handles Percona failures.
     public function preExec($sql, $params = NULL, $log = TRUE) {
@@ -124,7 +116,6 @@ class LoggedPDO {
 
                     if ($log) {
                         $duration = microtime(true) - $start;
-                        $this->maybeLog($sql, NULL, $duration);
                     }
                 } else {
                     $msg = var_export($sth->errorInfo(), true);
@@ -259,28 +250,8 @@ class LoggedPDO {
         return($ret);
     }
 
-    private function reallyLog($sql, $ret, $duration) {
-        # This actually logs our SQL.  For now we log into a table in SQL itself, though later we might
-        # move to a better logging system.  If we do, remember that we're also using this as a way
-        # of checking that the commit worked - see below.
-        $ret = $ret ? $ret : 'NULL';
-        $id = isset($_SESSION) && pres('uid', $_SESSION) ? $_SESSION['uid'] : 'NULL';
-        $sql2 = "INSERT INTO logs_sql (`result`, `duration`, `statement`, `user`) VALUES ($ret, $duration, " . $this->quote($sql) . ", $id);";
-        $ret = $this->retryExec($sql2);
-
-        if (!$ret)
-            throw new DBException('Failed to log SQL'); // No brace because of coverage oddity
-
-        # We can't use PHP's lastInsertId because it doesn't work well if used multiple times within a transaction.
-        $sql = "SELECT LAST_INSERT_ID() as lastid;";
-        $lasts = $this->retryQuery($sql);
-        foreach ($lasts as $last) {
-            $this->lastLogInsert = $last['lastid'];
-        }
-    }
-
     public function inTransaction() {
-        return($this->_db->inTransaction()) ;
+        return($this->inTransaction) ;
     }
 
     public function quote($str) {
@@ -292,65 +263,39 @@ class LoggedPDO {
     }
 
     public function rollBack() {
+        $this->inTransaction = FALSE;
         return($this->_db->rollBack());
     }
 
     public function beginTransaction() {
+        $this->inTransaction = TRUE;
         $this->transactionStart = microtime(true);
         $ret = $this->_db->beginTransaction ();
-
-        $this->maybeLog("START TRANSACTION;", $ret, microtime(true) - $this->transactionStart);
         $this->dbwaittime += microtime(true) - $this->transactionStart;
 
         return($ret);
     }
 
     function commit() {
-        # We log the SQL operations involved in this transaction within the transaction.
-        # That means we can check after the commit whether it worked.  We do this because the
-        # PDO commit call is not trustworthy - it can return true even if the commit fails.
-        # See for example https://bugs.php.net/bug.php?id=66528
-        #
-        # There is a suggestion that doing query('COMMIT') works, but we've not tried that,
-        # and it is good to be very careful about whether transactions have worked, even if
-        # there's a perf cost.  It's also good to have a log of key SQL operations in this
-        # way.
-
-        # We log the commit with a success because if it doesn't work the log won't be there.
-        $this->reallyLog($this->log, 0, microtime(true) - $this->transactionStart);
-        $this->log = '';
-
         $time = microtime(true);
+        # PDO's commit() isn't reliable - it can return true
+        $this->_db->query('COMMIT;');
+        $rc = $this->_db->errorCode() == '0000';
+        error_log("Return from query commit " . $this->_db->errorCode() . ", " . var_export($rc, true) . " error " . var_export($this->_db->errorInfo(), true));
+
+        # ...but issue it anyway to get the states in sync
         $this->_db->commit();
+
         $this->dbwaittime += microtime(true) - $time;
+        $this->inTransaction = FALSE;
 
-        # Now check whether this log exists.  If it did, we know for sure that the commit
-        # took effect.  Do this from a separate read connection which can't be within
-        # the context of our transaction (which, if the commit failed, might still be active
-        # and therefore might return uncommitted data).
-        $sql = "SELECT id FROM logs_sql WHERE id = {$this->lastLogInsert};";
-        $logs = $this->readconn->retryQuery($sql);
-        /** @noinspection PhpUnusedLocalVariableInspection */
-        foreach ($logs as $log) {
-            # It does - the commit worked.
-            #error_log("Found log - commit worked");
-            $this->reallyLog("COMMIT;", 0, microtime(true) - $time);
-            return true;
-        }
-
-        # It doesn't; the commit failed.
-        error_log("No log id " . $this->lastLogInsert . " - commit failed");
-        throw new DBException('Commit failed - log not found', 1);
+        return($rc);
     }
 
     public function exec ($sql, $log = true)    {
         $time = microtime(true);
         $ret = $this->retryExec($sql);
         $this->lastInsert = $this->_db->lastInsertId();
-
-        if ($log) {
-            $this->maybeLog($sql, $ret, microtime(true) - $time);
-        }
 
         return($ret);
     }
@@ -359,12 +304,6 @@ class LoggedPDO {
         $time = microtime(true);
         $ret = $this->retryQuery($sql);
         $duration = microtime(true) - $time;
-
-        if ($log && $this->inTransaction()) {
-            # We only log read operations inside a transaction - it's pretty much free to do so given
-            # that we buffer them to a string and will be doing a commit later.
-            $this->maybeLog($sql, NULL, $duration);
-        }
 
         return($ret);
     }

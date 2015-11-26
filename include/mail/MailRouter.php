@@ -194,7 +194,10 @@ class MailRouter
                 // doesn't show as covered even though the next one does, which is clearly not possible.
                 $msg = new Message($this->dbhr, $this->dbhm, $m['msgid']);
                 // @codeCoverageIgnoreEnd
-                $this->route($msg);
+
+                if (!$msg->getDeleted()) {
+                    $this->route($msg);
+                }
             } catch (Exception $e) {
                 # Ignore this and continue routing the rest.
                 error_log("Route failed " . $e->getMessage());

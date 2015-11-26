@@ -99,6 +99,7 @@ class ModConfig extends Entity
     }
 
     public function delete() {
+        $name = $this->modconfig['name'];
         $rc = $this->dbhm->preExec("DELETE FROM mod_configs WHERE id = ?;", [$this->id]);
         if ($rc) {
             $me = whoAmI($this->dbhr, $this->dbhm);
@@ -106,7 +107,8 @@ class ModConfig extends Entity
                 'type' => Log::TYPE_CONFIG,
                 'subtype' => Log::SUBTYPE_DELETED,
                 'byuser' => $me ? $me->getId() : NULL,
-                'configid' => $this->id
+                'configid' => $this->id,
+                'text' => $name
             ]);
         }
 

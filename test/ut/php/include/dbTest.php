@@ -28,6 +28,8 @@ class dbTest extends IznikTest {
         $this->dbhm->exec('DROP TABLE IF EXISTS test;');
         $rc = $this->dbhm->exec('CREATE TABLE `test` (`id` int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=latin1;');
         assertEquals(0, $rc);
+        $rc = $this->dbhm->exec('ALTER TABLE  `test` ADD  `val` INT NOT NULL ;');
+        assertEquals(0, $rc);
     }
 
     protected function tearDown() {
@@ -68,6 +70,7 @@ class dbTest extends IznikTest {
         error_log(__METHOD__);
 
         $rc = $this->dbhm->beginTransaction();
+        assertTrue($this->dbhm->inTransaction());
 
         $rc = $this->dbhm->exec('INSERT INTO test VALUES ();');
         assertEquals(1, $rc);
@@ -78,10 +81,13 @@ class dbTest extends IznikTest {
 
         $rc = $this->dbhm->rollBack();
         assertTrue($rc);
+        assertFalse($this->dbhm->inTransaction());
+
         $counts = $this->dbhm->preQuery("SELECT COUNT(*) AS count FROM test;");
         assertEquals(0, $counts[0]['count']);
 
         $rc = $this->dbhm->beginTransaction();
+        assertTrue($this->dbhm->inTransaction());
 
         $rc = $this->dbhm->exec('INSERT INTO test VALUES ();');
         assertEquals(1, $rc);
@@ -92,6 +98,8 @@ class dbTest extends IznikTest {
 
         $rc = $this->dbhm->commit();
         assertTrue($rc);
+        assertFalse($this->dbhm->inTransaction());
+
         $counts = $this->dbhm->preQuery("SELECT COUNT(*) AS count FROM test;");
         assertEquals(1, $counts[0]['count']);
 
@@ -316,31 +324,9 @@ class dbTest extends IznikTest {
     public function testTransactionFailed() {
         error_log(__METHOD__);
 
-        # Now fake a failure to find the log we use to judge if the commit worked
-        $mock = $this->getMockBuilder('LoggedPDO')
-            ->disableOriginalConstructor()
-            ->setMethods(array('retryQuery'))
-            ->getMock();
-        $mock->method('retryQuery')->willReturn(array());
+        # We get partway through a transaction, then kill it off to provoke a commit failure.  This tests that
+        # we notice if the server dies during a transaction; PDO is suspect in this area.
 
-        $rc = $this->dbhm->beginTransaction();
-
-        $rc = $this->dbhm->exec('INSERT INTO test VALUES ();');
-        assertEquals(1, $rc);
-
-        $this->dbhm->setReadconn($mock);
-
-        $worked = false;
-        try {
-            $rc = $this->dbhm->commit();
-        } catch (DBException $e) {
-            $worked = true;
-        }
-
-        assertTrue($worked);
-        $this->dbhm->setReadconn($this->dbhr);
-
-        # Now fake a failure to record the log we use to judge if the commit worked
         $dbconfig = array (
             'host' => '127.0.0.1',
             'user' => SQLUSER,
@@ -350,29 +336,39 @@ class dbTest extends IznikTest {
 
         $dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8";
 
-        $mock = $this->getMockBuilder('LoggedPDO')
-            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-            ), TRUE))
-            ->setMethods(array('retryExec'))
-            ->getMock();
-        $this->count = 1;
-        $mock->method('retryExec')->will($this->returnCallback(function() {
-            return($this->falseAfter());
-        }));
-        
-        $rc = $mock->beginTransaction();
-        $rc = $mock->exec('INSERT INTO test VALUES ();');
+        $dbhm = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_EMULATE_PREPARES => FALSE
+        ), FALSE, $this->dbhr);
+
+        $dbhm->setTries(0);
+        $rc = $dbhm->beginTransaction();
+        assertTrue($rc);
+        $rc = $dbhm->exec('INSERT INTO test VALUES ();');
         assertEquals(1, $rc);
 
-        $worked = false;
+        $id = $dbhm->lastInsertId();
+
+        $ps = $dbhm->query("SELECT CONNECTION_ID() AS connid;")->fetchAll();
+        $connid = $ps[0]['connid'];
+        error_log("ConnID is $connid");
+
+        $this->dbhr->exec("KILL $connid;");
+
         try {
-            $rc = $mock->commit();
-        } catch (DBException $e) {
-            $worked = true;
+            error_log("Commit first");
+            $rc = $dbhm->commit();
+            assertFalse($rc);
+        } catch (Exception $e) {
+            # Don't expect an exception
+            assertFalse(TRUE);
         }
 
-        assertTrue($worked);
+        $ids = $this->dbhr->query("SELECT * FROM test WHERE id = $id;");
+        foreach ($ids as $id) {
+            # Shouldn't be there.
+            assertFalse(TRUE);
+        }
 
         error_log(__METHOD__ . " end");
     }

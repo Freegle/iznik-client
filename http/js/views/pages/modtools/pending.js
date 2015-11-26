@@ -142,45 +142,45 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
                 })
             }).render().el);
 
-            // Add the other standard messages, in the order requested.
-            var stdmsgs = config.get('stdmsgs');
-            var order = JSON.parse(config.get('messageorder'));
-            var sortmsgs = [];
-            _.each(order, function(id) {
-                var stdmsg =  null;
-                _.each(stdmsgs, function(thisone) {
-                    if (thisone.id == id) {
-                        stdmsg = thisone;
+            if (config) {
+                // Add the other standard messages, in the order requested.
+                var stdmsgs = config.get('stdmsgs');
+                var order = JSON.parse(config.get('messageorder'));
+                var sortmsgs = [];
+                _.each(order, function (id) {
+                    var stdmsg = null;
+                    _.each(stdmsgs, function (thisone) {
+                        if (thisone.id == id) {
+                            stdmsg = thisone;
+                        }
+                    });
+
+                    if (stdmsg) {
+                        sortmsgs.push(stdmsg);
+                        stdmsgs = _.without(stdmsgs, stdmsg);
                     }
                 });
 
-                if (stdmsg) {
-                    sortmsgs.push(stdmsg);
-                    stdmsgs = _.without(stdmsgs, stdmsg);
-                }
-            });
+                sortmsgs.push(stdmsgs);
 
-            sortmsgs.push(stdmsgs);
+                _.each(sortmsgs, function (stdmsg) {
+                    if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
+                        stdmsg.message = self.model;
+                        stdmsg.messageView = self;
+                        var v = new Iznik.Views.ModTools.StdMessage.Button({
+                            model: new IznikModel(stdmsg),
+                            config: config
+                        });
 
-            _.each(sortmsgs, function(stdmsg) {
-                console.log("Consider standard ", stdmsg);
-                if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
-                    console.log("Add");
-                    stdmsg.message = self.model;
-                    stdmsg.messageView = self;
-                    var v = new Iznik.Views.ModTools.StdMessage.Button({
-                        model: new IznikModel(stdmsg),
-                        config: config
-                    });
+                        var el = v.render().el;
+                        self.$('.js-stdmsgs').append(el);
 
-                    var el = v.render().el;
-                    self.$('.js-stdmsgs').append(el);
-
-                    if (stdmsg.rarelyused) {
-                        $(el).hide();
+                        if (stdmsg.rarelyused) {
+                            $(el).hide();
+                        }
                     }
-                }
-            });
+                });
+            }
         });
 
         this.$('.timeago').timeago();

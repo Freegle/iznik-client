@@ -23,16 +23,34 @@ Iznik.Views.ModTools.User.History = IznikView.extend({
     template: 'modtools_user_history',
 
     events: {
-        'click .js-view': 'view'
+        'click .js-posts': 'posts',
+        'click .js-logs': 'logs'
     },
 
-    view: function() {
+    posts: function() {
         var v = new Iznik.Views.ModTools.User.PostSummary({
             model: this.model,
             collection: this.collection
         });
 
         v.render();
+    },
+
+    logs: function() {
+        var self = this;
+        this.$('.js-logs').fadeTo('slow', 0.5);
+        this.model.fetch({
+            data: {
+                logs: true
+            }
+        }).then(function() {
+            var v = new Iznik.Views.ModTools.User.Logs({
+                model: self.model
+            });
+
+            v.render();
+            self.$('.js-logs').fadeTo('slow', 1);
+        });
     },
 
     render: function() {
@@ -102,6 +120,40 @@ Iznik.Views.ModTools.User.SummaryEntry = IznikView.extend({
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
         var mom = new moment(this.model.get('arrival'));
         this.$('.js-date').html(mom.format('llll'));
+        return(this);
+    }
+});
+
+Iznik.Views.ModTools.User.Logs = Iznik.Views.Modal.extend({
+    template: 'modtools_user_logs',
+
+    render: function() {
+        var self = this;
+
+        console.log("Logs model", this.model);
+        this.$el.html(window.template(this.template)(this.model.toJSON2()));
+        var logs = this.model.get('logs');
+        _.each(logs, function(log) {
+            console.log("Got log", log);
+            var v = new Iznik.Views.ModTools.User.LogEntry({
+                model: new IznikModel(log)
+            });
+            self.$('.js-list').append(v.render().el);
+        });
+
+        this.open(null);
+
+        return(this);
+    }
+});
+
+Iznik.Views.ModTools.User.LogEntry = IznikView.extend({
+    template: 'modtools_user_logentry',
+
+    render: function() {
+        this.$el.html(window.template(this.template)(this.model.toJSON2()));
+        var mom = new moment(this.model.get('timestamp'));
+        this.$('.js-date').html(mom.format('DD-MMM-YY hh:mm'));
         return(this);
     }
 });

@@ -20,7 +20,7 @@ function message() {
             $m = NULL;
             $m = new Message($dbhr, $dbhm, $id);
 
-            if (!$m->getID()) {
+            if (!$m->getID() || $m->getDeleted()) {
                 $ret = ['ret' => 3, 'status' => 'Message does not exist'];
                 $m = NULL;
             } else {
@@ -43,7 +43,8 @@ function message() {
                             $ret = ['ret' => 1, 'status' => 'Not logged in'];
                             $m = NULL;
                         } else {
-                            if (!$me->isModOrOwner($m->getGroups()[0])) {
+                            $groups = $m->getGroups();
+                            if (count($groups) == 0 || !$me->isModOrOwner($groups[0])) {
                                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
                                 $m = NULL;
                             }

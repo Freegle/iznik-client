@@ -1,0 +1,51 @@
+<div class="row">
+    <div class="col-md-3">
+        <div class="js-date"></div>
+    </div>
+    <div class="col-md-2 forcebreak">
+        <% if (obj.user && obj.byuser && obj.byuser.id != obj.user.id) { %>
+            {{obj.byuser.displayname}}
+        <% } %>
+    </div>
+    <div class="col-md-7 forcebreak">
+        <% if (type == 'Group') { %>
+            <% if (subtype == 'Joined') { %>
+                    Joined {{group.namedisplay}}
+            <% } else if (subtype == 'Left') { %>
+                    Left {{group.namedisplay}}
+            <% } else { %>
+                <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
+            <% } %>
+        <% } else if (type == 'Message') { %>
+            <% if (subtype == 'Received') { %>
+                Posted {{message.subject}}
+            <% } else if (subtype == 'Approved') { %>
+                Approved #{{msgid}} <% if (obj.message) { %>{{message.subject}} <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
+            <% } else if (subtype == 'Deleted') { %>
+                Deleted #{{msgid}} <% if (obj.message) { %>{{message.subject}} <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
+            <% } else { %>
+                    <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
+            <% } %>
+        <% } else if (type == 'User') { %>
+            <% if (subtype == 'YahooDeliveryType') { %>
+            Set Yahoo Delivery Type to {{text}}
+            <% } else if (subtype == 'YahooPostingStatus') { %>
+            Set Yahoo Posting Status to {{text}}
+            <% } else if (subtype == 'Login') { %>
+            Login {{text}}
+            <% } else if (subtype == 'Created') { %>
+            Created
+            <% } else { %>
+                <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
+            <% } %>
+        <% } else if (type == 'Config') { %>
+            <% if (subtype == 'Created') { %>
+                Created config {{text}}
+            <% } else if (subtype == 'Deleted') { %>
+                Deleted config {{text}}
+            <% } else { %>
+            <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
+            <% } %>
+        <% } %>
+    </div>
+</div>

@@ -62,7 +62,15 @@ class Message
     private $id, $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr,
         $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
-        $parser, $arrival, $spamreason, $fromuser;
+        $parser, $arrival, $spamreason, $fromuser, $deleted;
+
+    /**
+     * @return mixed
+     */
+    public function getDeleted()
+    {
+        return $this->deleted;
+    }
 
     # The groupid is only used for parsing and saving incoming messages; after that a message can be on multiple
     # groups as is handled via the messages_groups table.
@@ -84,7 +92,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'type', 'arrival', 'date'
+        'id', 'subject', 'type', 'arrival', 'date', 'deleted'
     ];
 
     public $memberAtts = [
@@ -200,7 +208,7 @@ class Message
 
         # Add any groups that this message is on.
         $ret['groups'] = [];
-        $sql = "SELECT * FROM messages_groups WHERE msgid = ?;";
+        $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND deleted = 0;";
         $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ] );
 
         foreach ($ret['groups'] as &$group) {
@@ -805,7 +813,7 @@ class Message
 
     public function getGroups() {
         $ret = [];
-        $sql = "SELECT groupid FROM messages_groups WHERE msgid = ?;";
+        $sql = "SELECT groupid FROM messages_groups WHERE msgid = ? AND deleted = 0;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
         foreach ($groups as $group) {
             $ret[] = $group['groupid'];
@@ -842,7 +850,7 @@ class Message
 
         $handled = false;
 
-        $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ?;";
+        $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ? AND deleted = 0;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
         foreach ($groups as $group) {
             if ($group['yahooreject']) {
@@ -904,7 +912,7 @@ class Message
 
         $handled = false;
 
-        $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ?;";
+        $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ? AND deleted = 0;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
         foreach ($groups as $group) {
             if ($group['yahooapprove']) {
@@ -953,7 +961,17 @@ class Message
                 'groupid' => $groupid
             ]);
 
-            if ($groupid) {
+            # Delete from a specific or all groups that it's on.
+            $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND " . ($groupid ? " groupid = ?" : " ?") . ";";
+            $groups = $this->dbhr->preQuery($sql,
+                [
+                    $this->id,
+                    $groupid ? $groupid : 1
+                ]);
+
+            foreach ($groups as $group) {
+                $groupid = $group['groupid'];
+
                 # The message has been allocated to a group; mark it as deleted.  We keep deleted messages for
                 # PD.
                 $rc = $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid = ? AND groupid = ?;", [
@@ -962,27 +980,36 @@ class Message
                 ]);
 
                 # We might be deleting a pending or spam message, in which case it may also need rejecting on Yahoo.
-                $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ?;";
+                $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ? AND deleted = 0;";
                 $groups = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
 
-                foreach ($groups as $group) {
-                    if ($group['yahooreject']) {
-                        # We can trigger rejection by email - do so.
-                        $this->mailer($group['yahooreject'], "My name is Iznik and I reject this message", "", NULL, '-f' . MODERATOR_EMAIL);
-                    }
-
-                    if ($group['yahoopendingid']) {
-                        # We can trigger rejection via the plugin - do so.
-                        $p = new Plugin($this->dbhr, $this->dbhm);
-                        $p->add($groupid, [
-                            'type' => 'RejectPendingMessage',
-                            'id' => $group['yahoopendingid']
-                        ]);
-                    }
+                if ($group['yahooreject']) {
+                    # We can trigger rejection by email - do so.
+                    $this->mailer($group['yahooreject'], "My name is Iznik and I reject this message", "", NULL, '-f' . MODERATOR_EMAIL);
                 }
-            } else {
-                # The message has never reached a group.  We can fully deleted it.
-                $rc = $this->dbhm->preExec("DELETE FROM messages WHERE id = ?;", [ $this->id ]);
+
+                if ($group['yahoopendingid']) {
+                    # We can trigger rejection via the plugin - do so.
+                    $p = new Plugin($this->dbhr, $this->dbhm);
+                    $p->add($groupid, [
+                        'type' => 'RejectPendingMessage',
+                        'id' => $group['yahoopendingid']
+                    ]);
+                }
+            }
+
+            # If we have deleted this message from all groups, mark it as deleted in the messages table.
+            $extant = FALSE;
+            $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND deleted = 0;";
+            $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
+            foreach ($groups as $group) {
+                error_log("Found extant on group {$group['id']}");
+                $extant = TRUE;
+            }
+
+            if (!$extant) {
+                $rc = $this->dbhm->preExec("UPDATE messages SET deleted = NOW() WHERE id = ?;", [ $this->id ]);
+                error_log("Not extant, delete returned $rc");
             }
         }
 
@@ -993,7 +1020,7 @@ class Message
         # Try to find by message id.
         $msgid = $this->getMessageID();
         if ($msgid) {
-            $this->dbhm->preExec("DELETE FROM messages WHERE messageid LIKE ? AND messages.id IN (SELECT msgid FROM messages_groups WHERE messages_groups.groupid = ?);", [
+            $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid IN (SELECT id FROM messages WHERE messageid LIKE ?) AND messages_groups.groupid = ?;", [
                 $msgid,
                 $groupid
             ]);
@@ -1002,7 +1029,7 @@ class Message
         # Also try to find by TN post id
         $tnpostid = $this->getTnpostid();
         if ($tnpostid) {
-            $this->dbhm->preExec("DELETE FROM messages WHERE tnpostid LIKE ? AND messages.id IN (SELECT msgid FROM messages_groups WHERE messages_groups.groupid = ?);", [
+            $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid IN (SELECT id FROM messages WHERE tnpostid LIKE ?) AND messages_groups.groupid = ?;;", [
                 $tnpostid,
                 $groupid
             ]);

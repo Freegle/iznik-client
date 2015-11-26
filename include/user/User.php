@@ -4,6 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/session/Session.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
+require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 
 class User extends Entity
 {
@@ -390,7 +391,7 @@ class User extends Entity
             # We can only see logs for this user if we have a mod role on one of the groups of which they are
             # a member, or if we have appropriate system rights.
             # TODO
-            $sql = "SELECT * FROM logs WHERE user = ? OR byuser = ?;";
+            $sql = "SELECT DISTINCT * FROM logs WHERE user = ? OR byuser = ? ORDER BY timestamp DESC;";
             $logs = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
             $atts['logs'] = [];
 
@@ -410,6 +411,11 @@ class User extends Entity
                     $log['group'] = $g->getPublic();
                 }
 
+                if (pres('config', $log)) {
+                    $g = new ModConfig($this->dbhr, $this->dbhm, $log['configid']);
+                    $log['config'] = $g->getPublic();
+                }
+
                 if (pres('msgid', $log)) {
                     $g = new Message($this->dbhr, $this->dbhm, $log['msgid']);
                     $log['message'] = $g->getPublic();
@@ -419,6 +425,8 @@ class User extends Entity
                     unset($log['message']['htmlbody']);
                     unset($log['message']['message']);
                 }
+
+                $log['timestamp'] = ISODate($log['timestamp']);
 
                 $atts['logs'][] = $log;
             }

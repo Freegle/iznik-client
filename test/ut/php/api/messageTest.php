@@ -266,6 +266,13 @@ class messageTest extends IznikAPITest {
         ]);
         assertEquals(0, $ret['ret']);
 
+        # Message should now exist but approved.
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $groups = $m->getGroups();
+        assertEquals($group1, $groups[0]);
+        $p = $m->getPublic();
+        assertEquals('Approved', $p['groups'][0]['collection']);
+
         # Plugin work should exist
         $ret = $this->call('plugin', 'GET', []);
         assertEquals(0, $ret['ret']);

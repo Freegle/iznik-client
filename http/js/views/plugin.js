@@ -703,7 +703,7 @@ Iznik.Views.Plugin.Yahoo.ApprovePendingMessage = Iznik.Views.Plugin.Work.extend(
             type: "POST",
             url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/pending/messages",
             data: {
-                A: this.model.get('yahoopendingid'),
+                A: this.model.get('id'),
                 gapi_crumb: this.crumb
             }, success: function (ret) {
                 if (ret.hasOwnProperty('ygData') &&
@@ -717,6 +717,8 @@ Iznik.Views.Plugin.Yahoo.ApprovePendingMessage = Iznik.Views.Plugin.Work.extend(
                     } else {
                         self.fail();
                     }
+                } else {
+                    self.fail();
                 }
             }, error: function(a,b,c) {
                 self.fail();
@@ -738,7 +740,7 @@ Iznik.Views.Plugin.Yahoo.RejectPendingMessage = Iznik.Views.Plugin.Work.extend({
             type: "POST",
             url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/pending/messages",
             data: {
-                A: this.model.get('yahoopendingid'),
+                R: this.model.get('id'),
                 gapi_crumb: this.crumb
             }, success: function (ret) {
                 if (ret.hasOwnProperty('ygData') &&
@@ -752,6 +754,8 @@ Iznik.Views.Plugin.Yahoo.RejectPendingMessage = Iznik.Views.Plugin.Work.extend({
                     } else {
                         self.fail();
                     }
+                } else {
+                    self.fail();
                 }
             }, error: function() {
                 self.fail();

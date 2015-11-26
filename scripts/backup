@@ -34,15 +34,15 @@ if [ $? == 0 ]; then
     find $BACKUPDIR/$MOST_RECENT/* -exec gzip {} \;
 
     # Offsite - you might need to change this.
-    gsutil cp -r /backups/ gs://freegle_backup > /tmp/gsutil.out 2>&1
+    /root/gsutil/gsutil cp -r /backups/ gs://freegle_backup > /tmp/gsutil.out 2>&1
 
     if [ $? == 0 ]; then
-        mail -s "BACKUP SUCCESS: backed up to $BACKUPDIR/$MOST_RECENT" $EMAIL
+        cat /tmp/gsutil.out | mail -s "BACKUP SUCCESS: backed up to $BACKUPDIR/$MOST_RECENT" $EMAIL
 
         # Remove to keep local disk space down.
         rm -r $BACKUPDIR/*
     else
-        mail -s "BACKUP ERROR: gsutil copy failed" $EMAIL
+        cat /tmp/gsutil.out | mail -s "BACKUP ERROR: gsutil copy failed" $EMAIL
     fi
   else
     echo "Couldn't apply the binary logs to the backup $BACKUPDIR/$MOST_RECENT" | mail -s "BACKUP ERRO: Mysql binary log didn't get applied to backup" $EMAIL

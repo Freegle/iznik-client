@@ -2,10 +2,10 @@
 -- version 4.0.10deb1
 -- http://www.phpmyadmin.net
 --
--- Host: localhost:3306
--- Generation Time: Sep 11, 2015 at 02:41 PM
--- Server version: 5.6.25-73.1
--- PHP Version: 5.6.99-hhvm
+-- Host: localhost
+-- Generation Time: Nov 26, 2015 at 09:22 AM
+-- Server version: 5.6.26-74.0-56-log
+-- PHP Version: 5.5.9-1ubuntu4.14
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -27,11 +27,14 @@ CREATE TABLE IF NOT EXISTS `groups` (
   `nameabbr` varchar(5) DEFAULT NULL COMMENT 'An abbreviated name for the group',
   `settings` text NOT NULL COMMENT 'JSON-encoded settings for group',
   `type` set('Reuse','Freegle','Other') DEFAULT NULL COMMENT 'High-level characteristics of the group',
+  `onyahoo` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Whether this group is also on Yahoo Groups',
+  `lastyahoomembersync` timestamp NULL DEFAULT NULL COMMENT 'When we last synced approved members',
+  `lastyahoomessagesync` timestamp NULL DEFAULT NULL COMMENT 'When we last synced approved messages',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `nameshort` (`nameshort`),
   UNIQUE KEY `namefull` (`namefull`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='The different groups that we host' AUTO_INCREMENT=32167 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='The different groups that we host' AUTO_INCREMENT=40850 ;
 
 -- --------------------------------------------------------
 
@@ -48,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `locations_approved` (
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `location` (`location`,`groupid`),
   KEY `groupid` (`groupid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=12051 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=12049 ;
 
 -- --------------------------------------------------------
 
@@ -60,28 +63,25 @@ CREATE TABLE IF NOT EXISTS `logs` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique ID',
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Machine assumed set to GMT',
   `byuser` bigint(20) unsigned DEFAULT NULL COMMENT 'User responsible for action, if any',
-  `type` enum('Group','Message') DEFAULT NULL,
-  `subtype` enum('Created','Deleted','Received','Sent','Failure','ClassifiedSpam','Joined','Left') DEFAULT NULL,
-  `group` bigint(20) unsigned DEFAULT NULL COMMENT 'Any group this log is for',
-  `user` bigint(20) unsigned DEFAULT NULL COMMENT 'Any user that this log is for',
-  `message_approved` bigint(20) unsigned DEFAULT NULL COMMENT 'Any relevant message',
-  `message_incoming` bigint(20) unsigned DEFAULT NULL COMMENT 'Any relevant message',
-  `message_outgoing` bigint(20) unsigned DEFAULT NULL COMMENT 'Any relevant message',
-  `message_pending` bigint(20) unsigned DEFAULT NULL COMMENT 'Any relevant message',
+  `type` enum('Group','Message','User','Plugin','Config','StdMsg') DEFAULT NULL,
+  `subtype` enum('Created','Deleted','Received','Sent','Failure','ClassifiedSpam','Joined','Left','Approved','Rejected','YahooDeliveryType','YahooPostingStatus','NotSpam','Login') DEFAULT NULL,
+  `groupid` bigint(20) unsigned DEFAULT NULL COMMENT 'Any group this log is for',
+  `user` bigint(20) unsigned DEFAULT NULL COMMENT 'Any user that this log is about',
+  `msgid` bigint(20) unsigned DEFAULT NULL COMMENT 'id in the messages table',
+  `configid` bigint(20) unsigned DEFAULT NULL COMMENT 'id in the mod_configs table',
   `text` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `user` (`user`),
-  KEY `group` (`group`),
-  KEY `message_approved` (`message_approved`),
-  KEY `message_incoming` (`message_incoming`),
-  KEY `message_outgoing` (`message_outgoing`),
-  KEY `message_pending` (`message_pending`),
+  KEY `group` (`groupid`),
+  KEY `message_approved` (`msgid`),
   KEY `byuser` (`byuser`),
   KEY `type` (`type`,`subtype`),
   KEY `subtype` (`subtype`),
-  KEY `timestamp` (`timestamp`,`type`,`subtype`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Logs.  Not guaranteed against loss' AUTO_INCREMENT=125964 ;
+  KEY `timestamp` (`timestamp`,`type`,`subtype`),
+  KEY `timestamp_2` (`timestamp`,`groupid`),
+  KEY `configid` (`configid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Logs.  Not guaranteed against loss' AUTO_INCREMENT=5666306 ;
 
 -- --------------------------------------------------------
 
@@ -111,18 +111,12 @@ CREATE TABLE IF NOT EXISTS `logs_sql` (
   `duration` bigint(20) unsigned NOT NULL COMMENT 'How long in ms it took',
   `statement` longtext NOT NULL COMMENT 'The actual SQL statement',
   `user` bigint(20) unsigned DEFAULT NULL COMMENT 'Any user that this log is for',
-  `message_approved` bigint(20) unsigned DEFAULT NULL COMMENT 'Any relevant message',
-  `message_incoming` bigint(20) unsigned DEFAULT NULL COMMENT 'Any relevant message',
-  `message_pending` bigint(20) unsigned DEFAULT NULL COMMENT 'Any relevant message',
-  `message_outgoing` bigint(20) unsigned DEFAULT NULL COMMENT 'Any relevant message',
+  `msgid` bigint(20) unsigned DEFAULT NULL COMMENT 'id in the messages table',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `user` (`user`),
-  KEY `message_approved` (`message_approved`),
-  KEY `message_incoming` (`message_incoming`),
-  KEY `message_pending` (`message_pending`),
-  KEY `message_outgoing` (`message_outgoing`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=231827 ;
+  KEY `message_approved` (`msgid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=478696 ;
 
 -- --------------------------------------------------------
 
@@ -134,28 +128,37 @@ CREATE TABLE IF NOT EXISTS `memberships` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `userid` bigint(20) unsigned NOT NULL,
   `groupid` bigint(20) unsigned NOT NULL,
+  `role` enum('Member','Moderator','Owner') NOT NULL DEFAULT 'Member',
+  `configid` bigint(20) unsigned DEFAULT NULL COMMENT 'Configuration used to moderate this group if a moderator',
   `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `yahooPostingStatus` enum('MODERATED','DEFAULT','PROHIBITED','UNMODERATED') DEFAULT NULL COMMENT 'Yahoo mod status if applicable',
+  `yahooDeliveryType` enum('DIGEST','NONE','SINGLE','ANNOUNCEMENT') DEFAULT NULL COMMENT 'Yahoo delivery settings if applicable',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `userid_groupid` (`userid`,`groupid`),
-  KEY `userid` (`userid`),
-  KEY `groupid` (`groupid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Which groups users are members of' AUTO_INCREMENT=88 ;
+  KEY `groupid` (`groupid`),
+  KEY `groupid_2` (`groupid`,`role`),
+  KEY `userid` (`userid`,`role`),
+  KEY `role` (`role`),
+  KEY `configid` (`configid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Which groups users are members of' AUTO_INCREMENT=2783974 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `Approved`
+-- Table structure for table `messages`
 --
 
-CREATE TABLE IF NOT EXISTS `Approved` (
+CREATE TABLE IF NOT EXISTS `messages` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique iD',
   `arrival` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this message arrived at our server',
-  `groupid` bigint(20) unsigned DEFAULT NULL COMMENT 'Destination group, if identified',
-  `msgid` bigint(20) unsigned DEFAULT NULL,
-  `source` enum('Email','Yahoo Approved','Yahoo Pending') NOT NULL DEFAULT 'Email' COMMENT 'Source of incoming message',
+  `date` timestamp NULL DEFAULT NULL COMMENT 'When this message was created, e.g. Date header',
+  `deleted` timestamp NULL DEFAULT NULL COMMENT 'When this message was deleted',
+  `source` enum('Yahoo Approved','Yahoo Pending') DEFAULT NULL COMMENT 'Source of incoming message',
+  `sourceheader` varchar(80) DEFAULT NULL COMMENT 'Any source header, e.g. X-Freegle-Source',
   `fromip` varchar(40) DEFAULT NULL COMMENT 'IP we think this message came from',
   `message` longtext NOT NULL COMMENT 'The unparsed message',
+  `fromuser` bigint(20) unsigned DEFAULT NULL,
   `envelopefrom` varchar(255) DEFAULT NULL,
   `fromname` varchar(255) DEFAULT NULL,
   `fromaddr` varchar(255) DEFAULT NULL,
@@ -168,19 +171,26 @@ CREATE TABLE IF NOT EXISTS `Approved` (
   `htmlbody` longtext,
   `retrycount` int(11) NOT NULL DEFAULT '0' COMMENT 'We might fail to route, and later retry',
   `retrylastfailure` timestamp NULL DEFAULT NULL,
+  `spamreason` varchar(255) DEFAULT NULL COMMENT 'Why we think this message may be spam',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
-  KEY `fromaddr` (`fromaddr`),
   KEY `envelopefrom` (`envelopefrom`),
   KEY `envelopeto` (`envelopeto`),
   KEY `retrylastfailure` (`retrylastfailure`),
   KEY `message-id` (`messageid`),
-  KEY `groupid` (`groupid`),
   KEY `fromup` (`fromip`),
   KEY `tnpostid` (`tnpostid`),
-  KEY `msgid` (`msgid`),
-  KEY `type` (`type`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Messages which have been approved for members' AUTO_INCREMENT=80905 ;
+  KEY `type` (`type`),
+  KEY `sourceheader` (`sourceheader`),
+  KEY `arrival` (`arrival`,`sourceheader`),
+  KEY `arrival_2` (`arrival`,`fromaddr`),
+  KEY `arrival_3` (`arrival`),
+  KEY `fromaddr` (`fromaddr`,`subject`(767)),
+  KEY `date` (`date`),
+  KEY `subject` (`subject`(767)),
+  KEY `fromuser` (`fromuser`),
+  KEY `deleted` (`deleted`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8 COMMENT='All our messages' AUTO_INCREMENT=535520 ;
 
 -- --------------------------------------------------------
 
@@ -190,20 +200,38 @@ CREATE TABLE IF NOT EXISTS `Approved` (
 
 CREATE TABLE IF NOT EXISTS `messages_attachments` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `msgid` bigint(20) unsigned DEFAULT NULL,
-  `approvedid` bigint(20) unsigned DEFAULT NULL,
-  `pendingid` bigint(20) unsigned DEFAULT NULL,
-  `spamid` bigint(20) unsigned DEFAULT NULL,
+  `msgid` bigint(20) unsigned DEFAULT NULL COMMENT 'id in the messages table',
   `contenttype` varchar(80) NOT NULL,
-  `data` blob NOT NULL,
+  `data` longblob NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
-  KEY `msgid` (`msgid`),
-  KEY `approvedid` (`approvedid`),
-  KEY `pendingid` (`pendingid`),
-  KEY `spamid` (`spamid`),
-  KEY `msgid_2` (`msgid`,`approvedid`,`pendingid`,`spamid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Attachments parsed out from messages' AUTO_INCREMENT=694 ;
+  KEY `incomingid` (`msgid`),
+  KEY `incomingid_2` (`msgid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Attachments parsed out from messages' AUTO_INCREMENT=308356 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `messages_groups`
+--
+
+CREATE TABLE IF NOT EXISTS `messages_groups` (
+  `msgid` bigint(20) unsigned NOT NULL COMMENT 'id in the messages table',
+  `groupid` bigint(20) unsigned NOT NULL,
+  `collection` enum('Incoming','Pending','Approved','Spam') DEFAULT NULL,
+  `arrival` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint(1) NOT NULL DEFAULT '0',
+  `yahoopendingid` varchar(20) DEFAULT NULL COMMENT 'For Yahoo messages, pending id if relevant',
+  `yahooapprovedid` varchar(20) DEFAULT NULL COMMENT 'For Yahoo messages, approved id if relevant',
+  `yahooapprove` varchar(255) DEFAULT NULL COMMENT 'For Yahoo messages, email to trigger approve if relevant',
+  `yahooreject` varchar(255) DEFAULT NULL COMMENT 'For Yahoo messages, email to trigger reject if relevant',
+  UNIQUE KEY `msgid` (`msgid`,`groupid`),
+  KEY `messageid` (`msgid`,`groupid`,`collection`,`arrival`),
+  KEY `groupid` (`groupid`,`collection`,`deleted`),
+  KEY `collection` (`collection`),
+  KEY `groupid_2` (`groupid`,`yahoopendingid`),
+  KEY `groupid_3` (`groupid`,`yahooapprovedid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='The state of the message on each group';
 
 -- --------------------------------------------------------
 
@@ -213,12 +241,13 @@ CREATE TABLE IF NOT EXISTS `messages_attachments` (
 
 CREATE TABLE IF NOT EXISTS `messages_history` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique iD',
-  `msgid` bigint(20) unsigned DEFAULT NULL,
+  `msgid` bigint(20) unsigned DEFAULT NULL COMMENT 'id in the messages table',
   `arrival` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this message arrived at our server',
   `source` enum('Email','Yahoo Approved','Yahoo Pending') NOT NULL DEFAULT 'Email' COMMENT 'Source of incoming message',
   `fromip` varchar(40) DEFAULT NULL COMMENT 'IP we think this message came from',
   `fromhost` varchar(80) DEFAULT NULL COMMENT 'Hostname for fromip if resolvable, or NULL',
   `message` longtext NOT NULL COMMENT 'The unparsed message',
+  `fromuser` bigint(20) unsigned DEFAULT NULL,
   `envelopefrom` varchar(255) DEFAULT NULL,
   `fromname` varchar(255) DEFAULT NULL,
   `fromaddr` varchar(255) DEFAULT NULL,
@@ -237,142 +266,83 @@ CREATE TABLE IF NOT EXISTS `messages_history` (
   KEY `message-id` (`messageid`),
   KEY `groupid` (`groupid`),
   KEY `fromup` (`fromip`),
-  KEY `msgid` (`msgid`),
+  KEY `incomingid` (`msgid`),
   KEY `fromhost` (`fromhost`),
   KEY `arrival` (`arrival`),
   KEY `subject` (`subject`(767)),
-  KEY `prunedsubject` (`prunedsubject`(767))
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Message arrivals, used for spam checking' AUTO_INCREMENT=108512 ;
+  KEY `prunedsubject` (`prunedsubject`(767)),
+  KEY `fromname` (`fromname`),
+  KEY `fromuser` (`fromuser`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Message arrivals, used for spam checking' AUTO_INCREMENT=759546 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `Incoming`
+-- Table structure for table `mod_configs`
 --
 
-CREATE TABLE IF NOT EXISTS `Incoming` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique iD',
-  `arrival` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this message arrived at our server',
-  `source` enum('Email','Yahoo Approved','Yahoo Pending') NOT NULL DEFAULT 'Email' COMMENT 'Source of incoming message',
-  `fromip` varchar(40) DEFAULT NULL COMMENT 'IP we think this message came from',
-  `message` longtext NOT NULL COMMENT 'The unparsed message',
-  `envelopefrom` varchar(255) DEFAULT NULL,
-  `fromname` varchar(255) DEFAULT NULL,
-  `fromaddr` varchar(255) DEFAULT NULL,
-  `envelopeto` varchar(255) DEFAULT NULL,
-  `groupid` bigint(20) unsigned DEFAULT NULL COMMENT 'Destination group, if identified',
-  `subject` varchar(1024) DEFAULT NULL,
-  `type` enum('Offer','Taken','Wanted','Received','Admin','Other') DEFAULT NULL COMMENT 'For reuse groups, the message categorisation',
-  `messageid` varchar(255) DEFAULT NULL,
-  `tnpostid` varchar(80) DEFAULT NULL COMMENT 'If this message came from Trash Nothing, the unique post ID',
-  `textbody` longtext,
-  `htmlbody` longtext,
-  `retrycount` int(11) NOT NULL DEFAULT '0' COMMENT 'We might fail to route, and later retry',
-  `retrylastfailure` timestamp NULL DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `mod_configs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique ID of config',
+  `name` varchar(255) NOT NULL COMMENT 'Name of config set',
+  `createdby` bigint(20) DEFAULT NULL COMMENT 'Moderator ID who created it',
+  `fromname` enum('My name','Groupname Moderator') NOT NULL DEFAULT 'My name',
+  `ccrejectto` enum('Nobody','Me','Specific') NOT NULL DEFAULT 'Nobody',
+  `ccrejectaddr` varchar(255) NOT NULL,
+  `ccfollowupto` enum('Nobody','Me','Specific') NOT NULL DEFAULT 'Nobody',
+  `ccfollowupaddr` varchar(255) NOT NULL,
+  `ccrejmembto` enum('Nobody','Me','Specific') NOT NULL DEFAULT 'Nobody',
+  `ccrejmembaddr` varchar(255) NOT NULL,
+  `ccfollmembto` enum('Nobody','Me','Specific') NOT NULL DEFAULT 'Nobody',
+  `ccfollmembaddr` varchar(255) NOT NULL,
+  `protected` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Protect from edit?',
+  `messageorder` text NOT NULL COMMENT 'CSL of ids of standard messages in order in which they should appear',
+  `network` varchar(255) NOT NULL,
+  `coloursubj` tinyint(1) NOT NULL DEFAULT '1',
+  `subjreg` varchar(1024) NOT NULL DEFAULT '^(OFFER|WANTED|TAKEN|RECEIVED) *[\\:-].*\\(.*\\)',
+  `subjlen` int(11) NOT NULL DEFAULT '68',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
-  KEY `fromaddr` (`fromaddr`),
-  KEY `envelopefrom` (`envelopefrom`),
-  KEY `envelopeto` (`envelopeto`),
-  KEY `retrylastfailure` (`retrylastfailure`),
-  KEY `message-id` (`messageid`),
-  KEY `groupid` (`groupid`),
-  KEY `fromup` (`fromip`),
-  KEY `tnpostid` (`tnpostid`),
-  KEY `type` (`type`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Messages which have arrived, but not yet been processed' AUTO_INCREMENT=117821 ;
+  KEY `uniqueid` (`id`,`createdby`),
+  KEY `createdby` (`createdby`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Configurations for use by moderators' AUTO_INCREMENT=4820 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `messages_outgoing`
+-- Table structure for table `mod_stdmsgs`
 --
 
-CREATE TABLE IF NOT EXISTS `messages_outgoing` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique iD',
-  `source` enum('Email') NOT NULL COMMENT 'Source of incoming message',
-  `message` longtext NOT NULL COMMENT 'The unparsed message',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Messages which have arrived, but not yet been processed' AUTO_INCREMENT=1 ;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `Pending`
---
-
-CREATE TABLE IF NOT EXISTS `Pending` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique iD',
-  `arrival` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this message arrived at our server',
-  `groupid` bigint(20) unsigned DEFAULT NULL COMMENT 'Destination group, if identified',
-  `msgid` bigint(20) unsigned DEFAULT NULL,
-  `source` enum('Email','Yahoo Approved','Yahoo Pending') NOT NULL DEFAULT 'Email' COMMENT 'Source of incoming message',
-  `fromip` varchar(40) DEFAULT NULL COMMENT 'IP we think this message came from',
-  `message` longtext NOT NULL COMMENT 'The unparsed message',
-  `envelopefrom` varchar(255) DEFAULT NULL,
-  `fromname` varchar(255) DEFAULT NULL,
-  `fromaddr` varchar(255) DEFAULT NULL,
-  `envelopeto` varchar(255) DEFAULT NULL,
-  `subject` varchar(1024) DEFAULT NULL,
-  `type` enum('Offer','Taken','Wanted','Received','Admin','Other') DEFAULT NULL COMMENT 'For reuse groups, the message categorisation',
-  `messageid` varchar(255) DEFAULT NULL,
-  `tnpostid` varchar(80) DEFAULT NULL COMMENT 'If this message came from Trash Nothing, the unique post ID',
-  `textbody` longtext,
-  `htmlbody` longtext,
-  `retrycount` int(11) NOT NULL DEFAULT '0' COMMENT 'We might fail to route, and later retry',
-  `retrylastfailure` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
+CREATE TABLE IF NOT EXISTS `mod_stdmsgs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique ID of standard message',
+  `configid` bigint(20) unsigned DEFAULT NULL,
+  `title` varchar(255) NOT NULL COMMENT 'Title of standard message',
+  `action` enum('Approve','Reject','Leave','Approve Member','Reject Member','Leave Member','Leave Approved Message','Delete Approved Message','Leave Approved Member','Delete Approved Member','Edit') NOT NULL DEFAULT 'Reject' COMMENT 'What action to take',
+  `subjpref` varchar(255) NOT NULL COMMENT 'Subject prefix',
+  `subjsuff` varchar(255) NOT NULL COMMENT 'Subject suffix',
+  `body` text NOT NULL,
+  `rarelyused` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Rarely used messages may be hidden in the UI',
+  `autosend` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Send the message immediately rather than wait for user',
+  `newmodstatus` enum('UNCHANGED','MODERATED','DEFAULT','PROHIBITED','UNMODERATED') NOT NULL DEFAULT 'UNCHANGED' COMMENT 'Yahoo mod status afterwards',
+  `newdelstatus` enum('UNCHANGED','DIGEST','NONE','SINGLE','ANNOUNCEMENT') NOT NULL DEFAULT 'UNCHANGED' COMMENT 'Yahoo delivery status afterwards',
+  `edittext` enum('Unchanged','Correct Case') NOT NULL DEFAULT 'Unchanged',
   UNIQUE KEY `id` (`id`),
-  KEY `fromaddr` (`fromaddr`),
-  KEY `envelopefrom` (`envelopefrom`),
-  KEY `envelopeto` (`envelopeto`),
-  KEY `retrylastfailure` (`retrylastfailure`),
-  KEY `message-id` (`messageid`),
-  KEY `groupid` (`groupid`),
-  KEY `fromup` (`fromip`),
-  KEY `tnpostid` (`tnpostid`),
-  KEY `msgid` (`msgid`),
-  KEY `type` (`type`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Messages which have been approved for members' AUTO_INCREMENT=33477 ;
+  KEY `configid` (`configid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=27472 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `Spam`
+-- Table structure for table `plugin`
 --
 
-CREATE TABLE IF NOT EXISTS `Spam` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique iD',
-  `arrival` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this message arrived at our server',
-  `groupid` bigint(20) unsigned DEFAULT NULL COMMENT 'Destination group, if identified',
-  `msgid` bigint(20) unsigned DEFAULT NULL,
-  `source` enum('Email','Yahoo Approved','Yahoo Pending') NOT NULL DEFAULT 'Email' COMMENT 'Source of incoming message',
-  `fromip` varchar(40) DEFAULT NULL COMMENT 'IP we think this message came from',
-  `message` longtext NOT NULL COMMENT 'The unparsed message',
-  `envelopefrom` varchar(255) DEFAULT NULL,
-  `fromname` varchar(255) DEFAULT NULL,
-  `fromaddr` varchar(255) DEFAULT NULL,
-  `envelopeto` varchar(255) DEFAULT NULL,
-  `subject` varchar(1024) DEFAULT NULL,
-  `type` enum('Offer','Taken','Wanted','Received','Admin','Other') DEFAULT NULL COMMENT 'For reuse groups, the message categorisation',
-  `messageid` varchar(255) DEFAULT NULL,
-  `tnpostid` varchar(80) DEFAULT NULL COMMENT 'If this message came from Trash Nothing, the unique post ID',
-  `textbody` longtext,
-  `htmlbody` longtext,
-  `reason` varchar(255) NOT NULL COMMENT 'Reason we flagged this as spam',
+CREATE TABLE IF NOT EXISTS `plugin` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `groupid` bigint(20) unsigned NOT NULL,
+  `data` text NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`),
-  KEY `fromaddr` (`fromaddr`),
-  KEY `envelopefrom` (`envelopefrom`),
-  KEY `envelopeto` (`envelopeto`),
-  KEY `message-id` (`messageid`),
-  KEY `groupid` (`groupid`),
-  KEY `fromup` (`fromip`),
-  KEY `msgid` (`msgid`),
-  KEY `tnpostid` (`tnpostid`),
-  KEY `type` (`type`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Messages suspected as spam, for review' AUTO_INCREMENT=1804 ;
+  KEY `groupid` (`groupid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Outstanding work required to be performed by the plugin' AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -418,7 +388,7 @@ CREATE TABLE IF NOT EXISTS `spam_whitelist_ips` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `ip` (`ip`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Whitelisted IP addresses' AUTO_INCREMENT=434 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Whitelisted IP addresses' AUTO_INCREMENT=226 ;
 
 -- --------------------------------------------------------
 
@@ -434,7 +404,30 @@ CREATE TABLE IF NOT EXISTS `spam_whitelist_subjects` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `ip` (`subject`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Whitelisted subjects' AUTO_INCREMENT=2 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Whitelisted subjects' AUTO_INCREMENT=3 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `supporters`
+--
+
+CREATE TABLE IF NOT EXISTS `supporters` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) DEFAULT NULL,
+  `type` enum('Wowzer','Front Page','Supporter','Buyer') NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `display` varchar(255) DEFAULT NULL,
+  `voucher` varchar(255) NOT NULL COMMENT 'Voucher code',
+  `vouchercount` int(11) NOT NULL DEFAULT '1' COMMENT 'Number of licenses in this voucher',
+  `voucheryears` int(11) NOT NULL DEFAULT '1' COMMENT 'Number of years voucher licenses are valid for',
+  `anonymous` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `id` (`id`),
+  KEY `name` (`name`,`type`,`email`),
+  KEY `display` (`display`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='People who have supported this site' AUTO_INCREMENT=4100 ;
 
 -- --------------------------------------------------------
 
@@ -444,6 +437,7 @@ CREATE TABLE IF NOT EXISTS `spam_whitelist_subjects` (
 
 CREATE TABLE IF NOT EXISTS `users` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `yahooUserId` varchar(20) DEFAULT NULL COMMENT 'Unique ID of user on Yahoo if known',
   `firstname` varchar(255) DEFAULT NULL,
   `lastname` varchar(255) DEFAULT NULL,
   `fullname` varchar(255) DEFAULT NULL,
@@ -458,8 +452,9 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `fullname` (`fullname`),
   KEY `firstname` (`firstname`),
   KEY `lastname` (`lastname`),
-  KEY `firstname_2` (`firstname`,`lastname`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1072 ;
+  KEY `firstname_2` (`firstname`,`lastname`),
+  KEY `yahooUserId` (`yahooUserId`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3878566 ;
 
 -- --------------------------------------------------------
 
@@ -480,7 +475,7 @@ CREATE TABLE IF NOT EXISTS `users_emails` (
   KEY `userid` (`userid`),
   KEY `validated` (`validated`),
   KEY `userid_2` (`userid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1301 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3879574 ;
 
 -- --------------------------------------------------------
 
@@ -503,7 +498,7 @@ CREATE TABLE IF NOT EXISTS `users_logins` (
   KEY `userid` (`userid`),
   KEY `validated` (`lastaccess`),
   KEY `userid_2` (`userid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1245 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=5273 ;
 
 --
 -- Constraints for dumped tables
@@ -516,14 +511,6 @@ ALTER TABLE `locations_approved`
 ADD CONSTRAINT `locations_approved_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`);
 
 --
--- Constraints for table `logs`
---
-ALTER TABLE `logs`
-ADD CONSTRAINT `logs_ibfk_1` FOREIGN KEY (`message_approved`) REFERENCES `Approved` (`id`) ON DELETE SET NULL,
-ADD CONSTRAINT `logs_ibfk_2` FOREIGN KEY (`message_incoming`) REFERENCES `Incoming` (`id`) ON DELETE SET NULL,
-ADD CONSTRAINT `logs_ibfk_3` FOREIGN KEY (`message_pending`) REFERENCES `logs_sql` (`message_pending`) ON DELETE SET NULL;
-
---
 -- Constraints for table `logs_sql`
 --
 ALTER TABLE `logs_sql`
@@ -534,34 +521,27 @@ ADD CONSTRAINT `logs_sql_ibfk_1` FOREIGN KEY (`user`) REFERENCES `users` (`id`) 
 --
 ALTER TABLE `memberships`
 ADD CONSTRAINT `memberships_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-ADD CONSTRAINT `memberships_ibfk_2` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE;
+ADD CONSTRAINT `memberships_ibfk_2` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE,
+ADD CONSTRAINT `memberships_ibfk_3` FOREIGN KEY (`configid`) REFERENCES `mod_configs` (`id`) ON DELETE SET NULL;
 
 --
--- Constraints for table `Approved`
+-- Constraints for table `messages_groups`
 --
-ALTER TABLE `Approved`
-ADD CONSTRAINT `Approved_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE SET NULL;
+ALTER TABLE `messages_groups`
+ADD CONSTRAINT `messages_groups_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
+ADD CONSTRAINT `messages_groups_ibfk_2` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `messages_attachments`
+-- Constraints for table `mod_stdmsgs`
 --
-ALTER TABLE `messages_attachments`
-ADD CONSTRAINT `messages_attachments_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `Incoming` (`id`) ON DELETE SET NULL,
-ADD CONSTRAINT `messages_attachments_ibfk_2` FOREIGN KEY (`approvedid`) REFERENCES `Approved` (`id`) ON DELETE SET NULL,
-ADD CONSTRAINT `messages_attachments_ibfk_3` FOREIGN KEY (`pendingid`) REFERENCES `Pending` (`id`) ON DELETE SET NULL,
-ADD CONSTRAINT `messages_attachments_ibfk_4` FOREIGN KEY (`spamid`) REFERENCES `Spam` (`id`) ON DELETE SET NULL;
+ALTER TABLE `mod_stdmsgs`
+ADD CONSTRAINT `mod_stdmsgs_ibfk_1` FOREIGN KEY (`configid`) REFERENCES `mod_configs` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `Incoming`
+-- Constraints for table `plugin`
 --
-ALTER TABLE `Incoming`
-ADD CONSTRAINT `Incoming_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE SET NULL;
-
---
--- Constraints for table `Spam`
---
-ALTER TABLE `Spam`
-ADD CONSTRAINT `Spam_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE;
+ALTER TABLE `plugin`
+ADD CONSTRAINT `plugin_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `users_emails`
@@ -574,20 +554,3 @@ ADD CONSTRAINT `users_emails_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (
 --
 ALTER TABLE `users_logins`
 ADD CONSTRAINT `users_logins_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
-DELIMITER $$
---
--- Events
---
-CREATE DEFINER=`root`@`localhost` EVENT `pruneSessions` ON SCHEDULE EVERY 1 DAY STARTS '2015-09-04 05:00:00' ON COMPLETION NOT PRESERVE ENABLE DO DELETE FROM sessions WHERE DATEDIFF(NOW(), `date`) > 7$$
-
-CREATE DEFINER=`root`@`localhost` EVENT `pruneSpam` ON SCHEDULE EVERY 1 DAY STARTS '2015-08-28 11:13:05' ON COMPLETION NOT PRESERVE ENABLE COMMENT 'Delete old messages from spam' DO DELETE FROM Spam WHERE DATEDIFF(NOW(), arrival) > 7$$
-
-CREATE DEFINER=`root`@`localhost` EVENT `pruneHistory` ON SCHEDULE EVERY 1 DAY STARTS '2015-08-27 07:46:30' ON COMPLETION NOT PRESERVE ENABLE COMMENT 'Delete old records from the history table which we use for spam' DO DELETE FROM messages_history WHERE DATEDIFF(NOW(), arrival) > 7$$
-
-CREATE DEFINER=`root`@`localhost` EVENT `pruneAttachments` ON SCHEDULE EVERY 1 DAY STARTS '2015-09-11 03:00:00' ON COMPLETION NOT PRESERVE ENABLE DO DELETE FROM messages_attachments WHERE msgid IS NULL AND
-                                                                                                                                                                                            approvedid IS NULL AND
-                                                                                                                                                                                            pendingid IS NULL AND
-                                                                                                                                                                                            spamid IS NULL$$
-
-DELIMITER ;
