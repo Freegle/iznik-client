@@ -29,7 +29,7 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
 
         // Apply standard message settings
         var stdmsg = this.options.stdmsg.attributes;
-        var config = this.options.config.attributes;
+        var config = this.options.config ? this.options.config.attributes : null;
 
         var subj = this.model.get('subject');
         this.$('.js-subject').val((stdmsg.subjpref ? stdmsg.subjpref : 'Re') +
@@ -59,10 +59,12 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
     substitutionStrings: function(text, message, config, group) {
         var self = this;
 
-        text = text.replace(/\$networkname/g, config.network);
+        if (config) {
+            text = text.replace(/\$networkname/g, config.network);
+            text = text.replace(/\$groupnonetwork/g, group.nameshort.replace(config.network, ''));
+        }
 
         text = text.replace(/\$groupname/g, group.nameshort);
-        text = text.replace(/\$groupnonetwork/g, group.nameshort.replace(config.network, ''));
         text = text.replace(/\$owneremail/g, group.nameshort + "-owner@yahoogroups.com");
         text = text.replace(/\$groupemail/g, group.nameshort + "@yahoogroups.com");
         text = text.replace(/\$groupurl/g, "https://groups.yahoo.com/neo/groups/" + group.nameshort + "/info");
@@ -166,6 +168,20 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
 
         self.trigger(trigger);
         self.close();
+    },
+
+    render: function() {
+        var self = this;
+
+        // If the underlying message is approved, rejected or deleted then:
+        // - we may have actions to complete
+        // - this modal should close.
+        self.model.listenToOnce('approved, rejected, deleted', function() {
+            console.log("StdModal, approve/reject/delete", self);
+            self.maybeSettingsChange.call(self, 'rejected', self.options.stdmsg, self.model, group);
+            self.close();
+        });
+
     }
 });
 

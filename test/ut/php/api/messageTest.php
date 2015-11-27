@@ -547,5 +547,77 @@ class messageTest extends IznikAPITest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testHold() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+        $this->dbhm->preExec("UPDATE messages_groups SET yahooreject = 'test@test.com', yahoopendingid = 1 WHERE msgid = $id;");
+
+        # Shouldn't be able to hold logged out
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Hold'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Now join - shouldn't be able to hold as a member
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($group1);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Hold'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Promote to owner - should be able to hold it.
+        $u->setRole(User::ROLE_OWNER, $group1);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Hold',
+            'duplicate' => 1
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
+            'groupid' => $group1
+        ]);
+        assertEquals($uid, $ret['message']['heldby']['id']);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Release',
+            'duplicate' => 2
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
+            'groupid' => $group1
+        ]);
+        assertFalse(pres('heldby', $ret['message']));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

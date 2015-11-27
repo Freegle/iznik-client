@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 class User extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'settings', 'systemrole');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';

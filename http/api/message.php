@@ -78,32 +78,44 @@ function message() {
         case 'POST': {
             $m = new Message($dbhr, $dbhm, $id);
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
+            $role = $m ? $m->getRoleForMessage() : User::ROLE_NONMEMBER;
 
-            if ($m && $me && $me->isModOrOwner($groupid)) {
+            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
-                if ($action == 'Delete') {
-                    if ($m->isPending($groupid)) {
-                        # We have to reject on Yahoo, but without a reply.
-                        $m->reject($groupid, NULL, NULL);
-                    } else {
-                        $m->delete($reason);
-                    }
-                } else if ($action == 'Reject') {
-                    if (!$m->isPending($groupid)) {
-                        $ret = ['ret' => 3, 'status' => 'Message is not pending'];
-                    } else {
-                        $m->reject($groupid, $subject, $body);
-                    }
-                } else if ($action == 'Approve') {
-                    if (!$m->isPending($groupid)) {
-                        $ret = ['ret' => 3, 'status' => 'Message is not pending'];
-                    } else {
-                        $m->approve($groupid, $subject, $body);
-                    }
-                } else if ($action == 'NotSpam') {
-                    $r = new MailRouter($dbhr, $dbhm);
-                    $r->route($m, TRUE);
+                switch ($action) {
+                    case 'Delete':
+                        if ($m->isPending($groupid)) {
+                            # We have to reject on Yahoo, but without a reply.
+                            $m->reject($groupid, NULL, NULL);
+                        } else {
+                            $m->delete($reason);
+                        }
+                        break;
+                    case 'Reject':
+                        if (!$m->isPending($groupid)) {
+                            $ret = ['ret' => 3, 'status' => 'Message is not pending'];
+                        } else {
+                            $m->reject($groupid, $subject, $body);
+                        }
+                        break;
+                    case 'Approve':
+                        if (!$m->isPending($groupid)) {
+                            $ret = ['ret' => 3, 'status' => 'Message is not pending'];
+                        } else {
+                            $m->approve($groupid, $subject, $body);
+                        }
+                        break;
+                    case 'Hold':
+                        $m->hold();
+                        break;
+                    case 'Release':
+                        $m->release();
+                        break;
+                    case 'NotSpam':
+                        $r = new MailRouter($dbhr, $dbhm);
+                        $r->route($m, TRUE);
+                        break;
                 }
             }
         }

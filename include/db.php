@@ -281,7 +281,6 @@ class LoggedPDO {
         # PDO's commit() isn't reliable - it can return true
         $this->_db->query('COMMIT;');
         $rc = $this->_db->errorCode() == '0000';
-        error_log("Return from query commit " . $this->_db->errorCode() . ", " . var_export($rc, true) . " error " . var_export($this->_db->errorInfo(), true));
 
         # ...but issue it anyway to get the states in sync
         $this->_db->commit();

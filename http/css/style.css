@@ -757,3 +757,11 @@ a button {
 .rarelyused {
     width: 95% !important;
 }
+
+.usercounts li {
+    padding-left: 0px !important;
+}
+
+.usercounts li .badge {
+    padding-left: 7px !important;
+}

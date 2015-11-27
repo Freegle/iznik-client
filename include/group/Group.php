@@ -84,10 +84,10 @@ class Group extends Entity
 
     public function getWorkCounts() {
         $ret = [
-            'pending' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Pending' AND messages_groups.deleted = 0;", [
+            'pending' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Pending' AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
                 $this->id
             ])[0]['count'],
-            'spam' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Spam' AND messages_groups.deleted = 0;", [
+            'spam' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Spam' AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
                 $this->id
             ])[0]['count'],
             'plugin' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM plugin WHERE groupid = ?;", [
@@ -145,17 +145,11 @@ class Group extends Entity
         $rollback = true;
 
         $u = new User($this->dbhm, $this->dbhm);
-        $count = 0;
 
         foreach ($members as &$memb) {
             if (pres('email', $memb)) {
                 # First check if we already know about this user.
                 $uid = $u->findByEmail($memb['email']);
-
-                if ($count % 1000 == 0) {
-                    error_log("$count creation");
-                }
-                $count++;
 
                 if (!$uid) {
                     # We don't - create them.
@@ -202,20 +196,21 @@ class Group extends Entity
                         # batch them up into groups because that performs better in a cluster.
                         $yps = presdef('yahooPostingStatus', $member, NULL);
                         $ydt = presdef('yahooDeliveryType', $member, NULL);
-                        $sql = "INSERT INTO memberships (userid, groupid, role, yahooPostingStatus, yahooDeliveryType) VALUES (" .
+
+                        # Use REPLACE rather than INSERT because the input data might have duplicate memberships.
+                        $sql = "REPLACE INTO memberships (userid, groupid, role, yahooPostingStatus, yahooDeliveryType) VALUES (" .
                             "{$member['uid']}, {$this->id}, '{$role}', " . $this->dbhm->quote($yps) .
                             ", " . $this->dbhm->quote($ydt) . ");";
                         $bulksql .= $sql;
 
-                        if ($count % 1000 == 0) {
-                            error_log("$count membership");
+                        if ($count > 0 && $count % 1000 == 0) {
                             $rc = $this->dbhm->exec($bulksql);
                             $rollback = !$rc;
                             $bulksql = '';
-                        }
 
-                        // Cheat code coverage by putting on the same line.
-                        if ($rollback) { break; }
+                            // Cheat code coverage by putting on the same line.
+                            if ($rollback) { break; }
+                        }
                     }
                 }
 
@@ -236,6 +231,8 @@ class Group extends Entity
                 }
 
                 $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [ $this->id ]);
+
+                $mods = "SELECT * FROM memberships WHERE groupid = {$this->id} AND role in ('Moderator', 'Owner');";
             } catch (Exception $e) {
                 $rollback = TRUE;
             }
@@ -246,6 +243,8 @@ class Group extends Entity
             } else {
                 $rollback = !$this->dbhm->commit();
             }
+            $mods = "SELECT * FROM memberships WHERE groupid = {$this->id} AND role in ('Moderator', 'Owner');";
+            error_log(var_export($this->dbhm->query($mods)->fetchAll(), true));
         }
 
         return(!$rollback);

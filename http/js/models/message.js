@@ -3,6 +3,94 @@ Iznik.Models.Message = IznikModel.extend({
         return (API + 'message/' + this.get('id'));
     },
 
+    hold: function() {
+        var self = this;
+
+        $.ajax({
+            type: 'POST',
+            url: API + 'message',
+            data: {
+                id: self.get('id'),
+                action: 'Hold'
+            }, success: function(ret) {
+
+                self.set('heldby', Iznik.Session.get('me').id);
+            }
+        })
+    },
+
+    release: function() {
+        var self = this;
+
+        $.ajax({
+            type: 'POST',
+            url: API + 'message',
+            data: {
+                id: self.get('id'),
+                action: 'Release'
+            }, success: function(ret) {
+                self.set('heldby', null);
+            }
+        })
+    },
+
+    approve: function() {
+        var self = this;
+        // We approve the message on all groups.  Future enhancement?
+        _.each(self.get('groups'), function(group, index, list) {
+            $.ajax({
+                type: 'POST',
+                url: API + 'message',
+                data: {
+                    id: self.get('id'),
+                    groupid: group.id,
+                    action: 'Approve'
+                }, success: function(ret) {
+                    self.trigger('approved');
+                }
+            })
+        });
+    },
+
+    reject: function(subject, body) {
+        // We reject the message on all groups.  Future enhancement?
+        var self= this;
+        _.each(self.get('groups'), function(group, index, list) {
+            $.ajax({
+                type: 'POST',
+                url: API + 'message',
+                data: {
+                    id: self.get('id'),
+                    groupid: group.id,
+                    action: 'Reject',
+                    subject: subject,
+                    body: body
+                }, success: function(ret) {
+                    self.trigger('rejected');
+                }
+            })
+        });
+    },
+
+    delete: function() {
+        var self = this;
+
+        // We delete the message on all groups.  Future enhancement?
+        _.each(self.get('groups'), function(group, index, list) {
+            $.ajax({
+                type: 'POST',
+                url: API + 'message',
+                data: {
+                    id: self.get('id'),
+                    groupid: group.id,
+                    action: 'Delete'
+                }, success: function(ret) {
+                    self.trigger('deleted');
+                }
+            })
+        });
+    },
+
     parse: function(ret) {
         // We might either be called from a collection, where the message is at the top level, or
         // from getting an individual message, where it's not.

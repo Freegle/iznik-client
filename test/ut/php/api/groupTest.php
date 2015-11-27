@@ -163,6 +163,8 @@ class groupAPITest extends IznikAPITest {
     public function testLarge() {
         error_log(__METHOD__);
 
+        $size = 3100;
+
         assertTrue($this->user->login('testpw'));
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
 
@@ -178,7 +180,7 @@ class groupAPITest extends IznikAPITest {
             ]
         ];
 
-        for ($i = 0; $i < 50000; $i++) {
+        for ($i = 0; $i < $size; $i++) {
             $members[] = [
                 'email' => "test$i@test.com",
                 'yahooUserId' => 1,
@@ -194,6 +196,10 @@ class groupAPITest extends IznikAPITest {
             'members' => $members
         ]);
         assertEquals(0, $ret['ret']);
+
+        $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ?;";
+        $counts = $this->dbhr->preQuery($sql, [ $this->groupid ]);
+        assertEquals($size + 1, $counts[0]['count']);
 
         error_log(__METHOD__ . " end");
     }

@@ -94,12 +94,11 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
                 var v = new Iznik.Views.ModTools.Yahoo.User({
                     model: mod
                 });
-                self.$('.js-yahoo').append(v.render().el);
+                self.$('.js-yahoo').html(v.render().el);
             });
 
             // Add any attachments.
             _.each(self.model.get('attachments'), function(att) {
-                console.log("Attachment", att);
                 var v = new Iznik.Views.ModTools.Message.Photo({
                     model: new IznikModel(att)
                 });
@@ -109,82 +108,118 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
 
             // Add the default standard actions.
             var configs = Iznik.Session.get('configs');
+            console.log("configs", configs, group.id, Iznik.Session.get('groups'));
             var sessgroup = Iznik.Session.get('groups').get(group.id);
+            console.log("sessgroup", sessgroup);
             var config = configs.get(sessgroup.get('configid'));
 
-            self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
-                model: new IznikModel({
-                    title: 'Approve',
-                    action: 'Approve',
-                    message: self.model,
-                    messageView: self,
-                    config: config
-                })
-            }).render().el);
+            if (self.model.get('heldby')) {
+                // Message is held - just show Release button.
+                self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
+                    model: new IznikModel({
+                        title: 'Release',
+                        action: 'Release',
+                        message: self.model,
+                        messageView: self,
+                        config: config
+                    })
+                }).render().el);
+            } else {
+                // Message is not held - we see all buttons.
+                self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
+                    model: new IznikModel({
+                        title: 'Approve',
+                        action: 'Approve',
+                        message: self.model,
+                        messageView: self,
+                        config: config
+                    })
+                }).render().el);
 
-            self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
-                model: new IznikModel({
-                    title: 'Reject',
-                    action: 'Reject',
-                    message: self.model,
-                    messageView: self,
-                    config: config
-                })
-            }).render().el);
+                self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
+                    model: new IznikModel({
+                        title: 'Reject',
+                        action: 'Reject',
+                        message: self.model,
+                        messageView: self,
+                        config: config
+                    })
+                }).render().el);
 
-            self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
-                model: new IznikModel({
-                    title: 'Delete',
-                    action: 'Delete',
-                    message: self.model,
-                    messageView: self,
-                    config: config
-                })
-            }).render().el);
+                self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
+                    model: new IznikModel({
+                        title: 'Delete',
+                        action: 'Delete',
+                        message: self.model,
+                        messageView: self,
+                        config: config
+                    })
+                }).render().el);
 
-            if (config) {
-                // Add the other standard messages, in the order requested.
-                var stdmsgs = config.get('stdmsgs');
-                var order = JSON.parse(config.get('messageorder'));
-                var sortmsgs = [];
-                _.each(order, function (id) {
-                    var stdmsg = null;
-                    _.each(stdmsgs, function (thisone) {
-                        if (thisone.id == id) {
-                            stdmsg = thisone;
+                self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
+                    model: new IznikModel({
+                        title: 'Hold',
+                        action: 'Hold',
+                        message: self.model,
+                        messageView: self,
+                        config: config
+                    })
+                }).render().el);
+
+                if (config) {
+                    // Add the other standard messages, in the order requested.
+                    var stdmsgs = config.get('stdmsgs');
+                    var order = JSON.parse(config.get('messageorder'));
+                    var sortmsgs = [];
+                    _.each(order, function (id) {
+                        var stdmsg = null;
+                        _.each(stdmsgs, function (thisone) {
+                            if (thisone.id == id) {
+                                stdmsg = thisone;
+                            }
+                        });
+
+                        if (stdmsg) {
+                            sortmsgs.push(stdmsg);
+                            stdmsgs = _.without(stdmsgs, stdmsg);
                         }
                     });
 
-                    if (stdmsg) {
-                        sortmsgs.push(stdmsg);
-                        stdmsgs = _.without(stdmsgs, stdmsg);
-                    }
-                });
+                    sortmsgs = $.merge(sortmsgs, stdmsgs);
 
-                sortmsgs = $.merge(sortmsgs, stdmsgs);
+                    _.each(sortmsgs, function (stdmsg) {
+                        if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
+                            stdmsg.message = self.model;
+                            stdmsg.messageView = self;
+                            var v = new Iznik.Views.ModTools.StdMessage.Button({
+                                model: new IznikModel(stdmsg),
+                                config: config
+                            });
 
-                _.each(sortmsgs, function (stdmsg) {
-                    if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
-                        stdmsg.message = self.model;
-                        stdmsg.messageView = self;
-                        var v = new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new IznikModel(stdmsg),
-                            config: config
-                        });
+                            var el = v.render().el;
+                            self.$('.js-stdmsgs').append(el);
 
-                        var el = v.render().el;
-                        self.$('.js-stdmsgs').append(el);
-
-                        if (stdmsg.rarelyused) {
-                            $(el).hide();
+                            if (stdmsg.rarelyused) {
+                                $(el).hide();
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
+
+            // If the message is held or released, we re-render, showing the appropriate buttons.
+            self.listenToOnce(self.model, 'change:heldby', self.render);
         });
 
         this.$('.timeago').timeago();
         this.$el.fadeIn('slow');
+
+        // If we reject, approve or delete this message then the view should go.
+        this.listenToOnce(self.model, 'approved rejected deleted', function() {
+            self.$el.fadeOut('slow', function() {
+                self.remove();
+            });
+        });
 
         return(this);
     }
@@ -209,27 +244,10 @@ Iznik.Views.ModTools.StdMessage.Pending.Approve = Iznik.Views.ModTools.StdMessag
     },
 
     send: function() {
-        var self = this;
-
-        // We approve the message on all groups.  Future enhancement?
-        //
-        // If there's no subject prefix then there's no message to send along with the approval - it'll
-        // be the standard default button.
-        _.each(self.model.get('groups'), function(group, index, list) {
-            $.ajax({
-                type: 'POST',
-                url: API + 'message',
-                data: {
-                    id: self.model.get('id'),
-                    groupid: group.id,
-                    action: 'Approve',
-                    subject: self.options.stdmsg.get('subjpref') ? self.$('.js-subject').val() : null,
-                    body: self.options.stdmsg.get('subjpref') ? self.$('.js-text').val() : null
-                }, success: function(ret) {
-                    self.maybeSettingsChange.call(self, 'approved', self.options.stdmsg, self.model, group);
-                }
-            })
-        });
+        this.model.approve(
+            self.options.stdmsg.get('subjpref') ? self.$('.js-subject').val() : null,
+            self.options.stdmsg.get('subjpref') ? self.$('.js-text').val() : null
+        );
     },
 
     render: function() {
@@ -246,23 +264,10 @@ Iznik.Views.ModTools.StdMessage.Pending.Reject = Iznik.Views.ModTools.StdMessage
     },
 
     send: function() {
-        // We reject the message on all groups.  Future enhancement?
-        var self= this;
-        _.each(self.model.get('groups'), function(group, index, list) {
-            $.ajax({
-                type: 'POST',
-                url: API + 'message',
-                data: {
-                    id: self.model.get('id'),
-                    groupid: group.id,
-                    action: 'Reject',
-                    subject: self.$('.js-subject').val(),
-                    body: self.$('.js-text').val()
-                }, success: function(ret) {
-                    self.maybeSettingsChange.call(self, 'rejected', self.options.stdmsg, self.model, group);
-                }
-            })
-        });
+        this.model.reject(
+            self.$('.js-subject').val(),
+            self.$('.js-text').val()
+        );
     },
 
     render: function() {
@@ -299,26 +304,40 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
     events: {
         'click .js-approve': 'approve',
         'click .js-reject': 'reject',
-        'click .js-delete': 'deleteMe'
+        'click .js-delete': 'deleteMe',
+        'click .js-hold': 'hold',
+        'click .js-release': 'release'
+    },
+
+    hold: function() {
+        var self = this;
+        var message = self.model.get('message');
+        message.hold();
+    },
+
+    release: function() {
+        var self = this;
+        var message = self.model.get('message');
+        message.release();
     },
 
     approve: function() {
         var self = this;
         var message = self.model.get('message');
 
-        var v = new Iznik.Views.ModTools.StdMessage.Pending.Approve({
-            model: message,
-            stdmsg: this.model,
-            config: this.options.config
-        });
-
-        this.listenToOnce(v, 'approved', function() {
-            self.model.get('messageView').$el.fadeOut('slow', function() {
-                self.remove();
+        if (this.options.config) {
+            // This is a configured button; open the modal.
+            var v = new Iznik.Views.ModTools.StdMessage.Pending.Approve({
+                model: message,
+                stdmsg: this.model,
+                config: this.options.config
             });
-        });
 
-        v.render();
+            v.render();
+        } else {
+            // No popup to show.
+            message.approve();
+        }
     },
 
     reject: function() {
@@ -331,32 +350,12 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
             config: this.options.config
         });
 
-        this.listenToOnce(v, 'rejected', function() {
-            self.model.get('messageView').$el.fadeOut('slow', function() {
-                self.remove();
-            });
-        });
-
         v.render();
     },
 
     deleteMe: function() {
         var self = this;
         var message = self.model.get('message');
-
-        // We delete the message on all groups.  Future enhancement?
-        _.each(message.get('groups'), function(group, index, list) {
-            $.ajax({
-                type: 'POST',
-                url: API + 'message',
-                data: {
-                    id: message.get('id'),
-                    groupid: group.id,
-                    action: 'Delete'
-                }, success: function(ret) {
-                    self.model.get('messageView').$el.fadeOut('slow');
-                }
-            })
-        });
+        message.delete();
     }
 });

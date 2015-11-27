@@ -14,11 +14,8 @@ function image() {
             $w = intval(presdef('w', $_REQUEST, $i->width()));
             $h = intval(presdef('h', $_REQUEST, $i->height()));
 
-            error_log("Image $w x $h");
-
             if (($w > 0) || ($h > 0)) {
                 # Need to resize
-                error_log("Resize");
                 $i->scale($w, $h);
             }
 

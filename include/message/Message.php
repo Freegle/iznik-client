@@ -62,7 +62,7 @@ class Message
     private $id, $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr,
         $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
-        $parser, $arrival, $spamreason, $fromuser, $deleted;
+        $parser, $arrival, $spamreason, $fromuser, $deleted, $heldby;
 
     /**
      * @return mixed
@@ -92,7 +92,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'type', 'arrival', 'date', 'deleted'
+        'id', 'subject', 'type', 'arrival', 'date', 'deleted', 'heldby'
     ];
 
     public $memberAtts = [
@@ -226,6 +226,12 @@ class Message
             # Get the user details, relative to the groups this message appears on.
             $ret['fromuser'] = $u->getPublic($this->getGroups());
             filterResult($ret['fromuser']);
+        }
+
+        if (pres('heldby', $ret)) {
+            $u = new User($this->dbhr, $this->dbhm, $ret['heldby']);
+            $ret['heldby'] = $u->getPublic();
+            filterResult($ret['heldby']);
         }
 
         # Add any attachments - visible to non-members.
@@ -766,11 +772,10 @@ class Message
         }
 
         # Also save into the history table, for spam checking.
-        $sql = "INSERT INTO messages_history (groupid, source, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, subject, prunedsubject, messageid, textbody, htmlbody, msgid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages_history (groupid, source, fromuser, envelopefrom, envelopeto, fromname, fromaddr, subject, prunedsubject, messageid, msgid) VALUES(?,?,?,?,?,?,?,?,?,?,?);";
         $this->dbhm->preExec($sql, [
             $this->groupid,
             $this->source,
-            $this->message,
             $this->fromuser,
             $this->envelopefrom,
             $this->envelopeto,
@@ -779,8 +784,6 @@ class Message
             $this->subject,
             $this->getPrunedSubject(),
             $this->messageid,
-            $this->textbody,
-            $this->htmlbody,
             $this->id
         ]);
 
@@ -945,6 +948,38 @@ class Message
             ]);
 
             $this->maybeMail($groupid, $subject, $body);
+        }
+    }
+
+    function hold() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $sql = "UPDATE messages SET heldby = ? WHERE id = ?;";
+        $rc = $this->dbhm->preExec($sql, [ $me->getId(), $this->id ]);
+
+        if ($rc) {
+            $this->log->log([
+                'type' => Log::TYPE_MESSAGE,
+                'subtype' => Log::SUBTYPE_HOLD,
+                'msgid' => $this->id,
+                'byuser' => $me ? $me->getId() : NULL
+            ]);
+        }
+    }
+
+    function release() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $sql = "UPDATE messages SET heldby = NULL WHERE id = ?;";
+        $rc = $this->dbhm->preExec($sql, [ $this->id ]);
+
+        if ($rc) {
+            $this->log->log([
+                'type' => Log::TYPE_MESSAGE,
+                'subtype' => Log::SUBTYPE_RELEASE,
+                'msgid' => $this->id,
+                'byuser' => $me ? $me->getId() : NULL
+            ]);
         }
     }
 

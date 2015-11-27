@@ -6,6 +6,14 @@
 <div class="btn btn-warning js-reject">
     <div class="glyphicon glyphicon-remove"></div>&nbsp;{{obj.title}}
 </div>
+<% } else if (obj.action == 'Hold') { %>
+<div class="btn btn-warning js-hold">
+    <div class="glyphicon glyphicon-pause"></div>&nbsp;{{obj.title}}
+</div>
+<% } else if (obj.action == 'Release') { %>
+<div class="btn btn-warning js-release">
+    <div class="glyphicon glyphicon-play"></div>&nbsp;{{obj.title}}
+</div>
 <% } else if (obj.action == 'Delete') { %>
 <div class="btn btn-danger js-delete">
     <div class="glyphicon glyphicon-trash"></div>&nbsp;{{obj.title}}
