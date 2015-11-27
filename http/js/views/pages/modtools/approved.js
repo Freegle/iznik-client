@@ -98,7 +98,24 @@ Iznik.Views.ModTools.Message.Approved = IznikView.extend({
     template: 'modtools_approved_message',
 
     events: {
-        'click .js-delete' : 'deleteMe'
+        'click .js-delete' : 'deleteMe',
+        'click .js-viewsource': 'viewSource',
+        'click .js-rarelyused': 'rarelyUsed'
+    },
+
+    rarelyUsed: function() {
+        this.$('.js-rarelyused').fadeOut('slow');
+        this.$('.js-stdmsgs li').fadeIn('slow');
+    },
+
+    viewSource: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var v = new Iznik.Views.ModTools.Message.ViewSource({
+            model: this.model
+        });
+        v.render();
     },
 
     deleteMe: function() {
@@ -130,17 +147,17 @@ Iznik.Views.ModTools.Message.Approved = IznikView.extend({
             // Add in the message, because we need some values from that
             mod.set('message', self.model.toJSON());
 
+            var v = new Iznik.Views.ModTools.Message.Approved.Group({
+                model: mod
+            });
+            self.$('.js-grouplist').append(v.render().el);
+
             var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
             var v = new Iznik.Views.ModTools.User({
                 model: mod
             });
 
             self.$('.js-user').html(v.render().el);
-
-            var v = new Iznik.Views.ModTools.Message.Approved.Group({
-                model: mod
-            });
-            self.$('.js-grouplist').append(v.render().el);
 
             // The Yahoo part of the user
             var mod = IznikYahooUsers.findUser({
