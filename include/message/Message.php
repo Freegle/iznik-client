@@ -224,7 +224,7 @@ class Message
             $u = new User($this->dbhr, $this->dbhm, $ret['fromuser']);
 
             # Get the user details, relative to the groups this message appears on.
-            $ret['fromuser'] = $u->getPublic($this->getGroups());
+            $ret['fromuser'] = $u->getPublic($this->getGroups(), FALSE, FALSE);
             filterResult($ret['fromuser']);
         }
 

@@ -400,26 +400,45 @@ class User extends Entity
             $sql = "SELECT DISTINCT * FROM logs WHERE user = ? OR byuser = ? ORDER BY timestamp DESC;";
             $logs = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
             $atts['logs'] = [];
+            $groups = [];
+            $users = [];
+            $configs = [];
 
             foreach ($logs as $log) {
                 if (pres('byuser', $log)) {
-                    $u = new User($this->dbhr, $this->dbhm, $log['byuser']);
-                    $log['byuser'] = $u->getPublic();
+                    if (!pres($log['byuser'], $users)) {
+                        $u = new User($this->dbhr, $this->dbhm, $log['byuser']);
+                        $users[$log['byuser']] = $u->getPublic(NULL, FALSE, FALSE);
+                    }
+
+                    $log['byuser'] = $users[$log['byuser']];
                 }
 
                 if (pres('user', $log)) {
-                    $u = new User($this->dbhr, $this->dbhm, $log['user']);
-                    $log['user'] = $u->getPublic();
+                    if (!pres($log['user'], $users)) {
+                        $u = new User($this->dbhr, $this->dbhm, $log['user']);
+                        $users[$log['user']] = $u->getPublic(NULL, FALSE, FALSE);
+                    }
+
+                    $log['user'] = $users[$log['user']];
                 }
 
                 if (pres('groupid', $log)) {
-                    $g = new Group($this->dbhr, $this->dbhm, $log['groupid']);
-                    $log['group'] = $g->getPublic();
+                    if (!pres($log['usegroupid'], $groups)) {
+                        $g = new Group($this->dbhr, $this->dbhm, $log['groupid']);
+                        $groups[$log['groupid']] = $g->getPublic();
+                    }
+
+                    $log['group'] = $groups[$log['groupid']];
                 }
 
                 if (pres('config', $log)) {
-                    $g = new ModConfig($this->dbhr, $this->dbhm, $log['configid']);
-                    $log['config'] = $g->getPublic();
+                    if (!pres($log['configid'], $groups)) {
+                        $g = new ModConfig($this->dbhr, $this->dbhm, $log['configid']);
+                        $configs[$log['configid']] = $g->getPublic();
+                    }
+
+                    $log['config'] = $configs[$log['configid']];
                 }
 
                 if (pres('msgid', $log)) {
