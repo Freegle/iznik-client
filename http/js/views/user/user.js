@@ -139,15 +139,19 @@ Iznik.Views.ModTools.User.Logs = Iznik.Views.Modal.extend({
     render: function() {
         var self = this;
 
-        console.log("Logs model", this.model);
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
-        var logs = this.model.get('logs');
-        _.each(logs, function(log) {
-            console.log("Got log", log);
-            var v = new Iznik.Views.ModTools.User.LogEntry({
-                model: new IznikModel(log)
+
+        // Defer adding the logs so that the modal gets opened quickly; if we have a lot of
+        // logs then that might be slow.
+        _.defer(function() {
+            var logs = self.model.get('logs');
+
+            _.each(logs, function(log) {
+                var v = new Iznik.Views.ModTools.User.LogEntry({
+                    model: new IznikModel(log)
+                });
+                self.$('.js-list').append(v.render().el);
             });
-            self.$('.js-list').append(v.render().el);
         });
 
         this.open(null);

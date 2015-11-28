@@ -18,21 +18,21 @@
             <% } %>
         <% } else if (type == 'Message') { %>
             <% if (subtype == 'Received') { %>
-                Posted {{message.subject}}
+                Posted <em>{{message.subject}}</em> via {{message.sourceheader}}
             <% } else if (subtype == 'Approved') { %>
-                Approved #{{msgid}} <% if (obj.message) { %>{{message.subject}} <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
+                Approved #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else if (subtype == 'Rejected') { %>
                 <div class="nomargin alert alert-danger">
-                    Rejected #{{msgid}} <% if (obj.message) { %>{{message.subject}} <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
+                    Rejected #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
                 </div>
             <% } else if (subtype == 'Deleted') { %>
                 <div class="nomargin alert alert-danger">
-                    Deleted #{{msgid}} <% if (obj.message) { %>{{message.subject}} <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
+                    Deleted #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
                 </div>
             <% } else if (subtype == 'Hold') { %>
-                Held #{{msgid}} <% if (obj.message) { %>{{message.subject}} <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
+                Held #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else if (subtype == 'Release') { %>
-                Released #{{msgid}} <% if (obj.message) { %>{{message.subject}} <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
+                Released #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else { %>
                     <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>

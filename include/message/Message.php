@@ -843,9 +843,14 @@ class Message
             $to = $this->getEnvelopefrom();
             $to = $to ? $to : $this->getFromaddr();
             $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $atts = $g->getPublic();
             $me = whoAmI($this->dbhr, $this->dbhm);
 
             $name = $me->getName();
+
+            # We can do a siple substitution in the from name.
+            $name = str_replace('$groupname', $atts['namedisplay'], $name);
+
             $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
 
             $this->mailer(
