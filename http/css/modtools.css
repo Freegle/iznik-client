@@ -391,9 +391,6 @@ body, #bodyContent {
     color: #fff;
     background: none;
 }
-.no-margin{
-    margin:0;
-}
 
 @media(min-width:768px) {
     #wrapper {

@@ -89,6 +89,15 @@ Iznik.Views.ModTools.User.History = IznikView.extend({
             self.$('.js-' + key.toLowerCase() + 'count').html(value);
         });
 
+        var modcount = this.model.get('modmails');
+        self.$('.js-modmailcount').html(modcount);
+
+        if (modcount > 0) {
+            self.$('.js-modmailcount').closest('.badge').addClass('btn-danger');
+            self.$('.js-modmailcount').addClass('white');
+            self.$('.glyphicon-warning-sign').addClass('white');
+        }
+
         return(this);
     }
 });

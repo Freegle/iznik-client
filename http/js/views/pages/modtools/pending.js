@@ -22,6 +22,26 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
                 } );
 
                 self.collectionView.render();
+
+                // Unfortunately collectionView doesn't have an event for when the length changes.
+                function checkLength(self) {
+                    var lastlen = 0;
+                    return(function() {
+                        if (lastlen != self.collectionView.length) {
+                            console.log("Lengthchanged ", lastlen, self.collectionView.length);
+                            lastlen = self.collectionView.length;
+                            if (self.collectionView.length == 0) {
+                                self.$('.js-none').fadeIn('slow');
+                            } else {
+                                self.$('.js-none').hide();
+                            }
+                        }
+
+                        window.setTimeout(checkLength, 2000);
+                    });
+                }
+
+                window.setTimeout(checkLength, 2000);
             }
         });
     },

@@ -98,7 +98,7 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
 
             text = text.replace(new RegExp('\\$recent' + keyword.toLowerCase(), 'gim'),recentmsg);
             text = text.replace(new RegExp('\\$numrecent' + keyword.toLowerCase(), 'gim'), count);
-        })
+        });
 
         //if (message.hasOwnProperty('comment')) {
         //    text = text.replace(/\$memberreason/g, message['comment'].trim());
@@ -177,7 +177,6 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         // - we may have actions to complete
         // - this modal should close.
         self.model.listenToOnce('approved, rejected, deleted', function() {
-            console.log("StdModal, approve/reject/delete", self);
             self.maybeSettingsChange.call(self, 'rejected', self.options.stdmsg, self.model, group);
             self.close();
         });

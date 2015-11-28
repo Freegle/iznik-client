@@ -385,6 +385,12 @@ class User extends Entity
             ]);
         }
 
+        # Add in a count of recent "modmail" type logs which a mod might care about.
+        $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? AND type = 'Message' AND subtype IN ('Rejected', 'Deleted');";
+        $mysqltime = date ("Y-m-d", strtotime("Midnight 30 days ago"));
+        $alarms = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
+        $atts['modmails'] = $alarms[0]['count'];
+
         if ($logs) {
             # Add in the log entries we have for this user.
             #
