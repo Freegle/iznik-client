@@ -176,7 +176,7 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         // If the underlying message is approved, rejected or deleted then:
         // - we may have actions to complete
         // - this modal should close.
-        self.model.listenToOnce('approved, rejected, deleted', function() {
+        self.model.listenToOnce('approved rejected deleted', function() {
             self.maybeSettingsChange.call(self, 'rejected', self.options.stdmsg, self.model, group);
             self.close();
         });

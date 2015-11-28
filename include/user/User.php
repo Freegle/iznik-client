@@ -443,7 +443,7 @@ class User extends Entity
 
                 if (pres('msgid', $log)) {
                     $g = new Message($this->dbhr, $this->dbhm, $log['msgid']);
-                    $log['message'] = $g->getPublic();
+                    $log['message'] = $g->getPublic(FALSE);
 
                     # Prune large attributes.
                     unset($log['message']['textbody']);

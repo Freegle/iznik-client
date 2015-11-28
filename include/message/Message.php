@@ -177,7 +177,7 @@ class Message
         return($role);
     }
 
-    public function getPublic() {
+    public function getPublic($messagehistory = TRUE) {
         $ret = [];
         $role = $this->getRoleForMessage();
 
@@ -224,7 +224,7 @@ class Message
             $u = new User($this->dbhr, $this->dbhm, $ret['fromuser']);
 
             # Get the user details, relative to the groups this message appears on.
-            $ret['fromuser'] = $u->getPublic($this->getGroups(), FALSE, FALSE);
+            $ret['fromuser'] = $u->getPublic($this->getGroups(), $messagehistory, FALSE);
             filterResult($ret['fromuser']);
         }
 

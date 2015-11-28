@@ -14,7 +14,7 @@ Iznik.Models.Message = IznikModel.extend({
                 action: 'Hold'
             }, success: function(ret) {
 
-                self.set('heldby', Iznik.Session.get('me').id);
+                self.set('heldby', Iznik.Session.get('me'));
             }
         })
     },

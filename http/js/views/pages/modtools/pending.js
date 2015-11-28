@@ -265,8 +265,8 @@ Iznik.Views.ModTools.StdMessage.Pending.Approve = Iznik.Views.ModTools.StdMessag
 
     send: function() {
         this.model.approve(
-            self.options.stdmsg.get('subjpref') ? self.$('.js-subject').val() : null,
-            self.options.stdmsg.get('subjpref') ? self.$('.js-text').val() : null
+            this.options.stdmsg.get('subjpref') ? this.$('.js-subject').val() : null,
+            this.options.stdmsg.get('subjpref') ? this.$('.js-text').val() : null
         );
     },
 
@@ -285,8 +285,8 @@ Iznik.Views.ModTools.StdMessage.Pending.Reject = Iznik.Views.ModTools.StdMessage
 
     send: function() {
         this.model.reject(
-            self.$('.js-subject').val(),
-            self.$('.js-text').val()
+            this.$('.js-subject').val(),
+            this.$('.js-text').val()
         );
     },
 
