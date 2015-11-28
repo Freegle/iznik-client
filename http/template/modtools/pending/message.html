@@ -1,7 +1,12 @@
 <div class="panel panel-default">
     <div class="panel-heading">
         <div class="panel-title msgsubj js-details">
-            {{subject}}
+            <div class="inline nopad nomarg">
+                <div class="input-group input-group-lg">
+                    <input class="form-control" type="text" value="{{subject}}" />
+                    <span class="input-group-addon" class="js-savesubj"><div class="glyphicon glyphicon-floppy-save" /></span>
+                </div>
+            </div>
             <div class="pull-right dropdown">
                 <button class="btn btn-white dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                     <span class="caret"></span>
@@ -9,6 +14,12 @@
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
                     <li><a class="js-viewsource" href="#">View Source</a></li>
                 </ul>
+            </div>
+            <div class="pull-right margright">
+                <button class="btn btn-white">
+                    <div class="glyphicon glyphicon-pencil js-edit" />
+                    Edit
+                </button>
             </div>
         </div>
         <div class="js-grouplist">
@@ -53,7 +64,7 @@
         <% } %>
         <div class="panel-footer">
             <div class="pull-right dropdown">
-                <button class="btn btn-white js-rarelyused" type="button">
+                <button class="btn btn-white caretdropdown js-rarelyused" type="button">
                     <span class="caret"></span>
                 </button>
             </div>
