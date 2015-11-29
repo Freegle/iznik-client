@@ -100,7 +100,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                 $.ajaxq('plugin', {
                     type: "GET",
-                    url: "https://groups.yahoo.com/neo/groups/" + groupname + "/management/pendingmessages",
+                    url: "https://groups.yahoo.com/neo/groups/" + groupname + "/management/pendingmessages?" + Math.random(),
                     success: getCrumb,
                     error: function (request, status, error) {
                         self.retryWork(self.currentItem);

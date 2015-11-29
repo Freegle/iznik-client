@@ -111,6 +111,7 @@ class messageTest extends IznikAPITest {
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
+            'groupid' => $group1,
             'collection' => 'Pending'
         ]);
         assertEquals(2, $ret['ret']);
@@ -121,6 +122,7 @@ class messageTest extends IznikAPITest {
         assertTrue($u->login('testpw'));
         $ret = $this->call('message', 'GET', [
             'id' => $id,
+            'groupid' => $group1,
             'collection' => 'Pending'
         ]);
         assertEquals(0, $ret['ret']);
@@ -153,6 +155,7 @@ class messageTest extends IznikAPITest {
         # Shouldn't be able to see spam logged out
         $ret = $this->call('message', 'GET', [
             'id' => $id,
+            'groupid' => $group1,
             'collection' => 'Spam'
         ]);
         assertEquals(1, $ret['ret']);
@@ -167,6 +170,7 @@ class messageTest extends IznikAPITest {
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
+            'groupid' => $group1,
             'collection' => 'Spam'
         ]);
         assertEquals(2, $ret['ret']);
@@ -177,6 +181,7 @@ class messageTest extends IznikAPITest {
         assertTrue($u->login('testpw'));
         $ret = $this->call('message', 'GET', [
             'id' => $id,
+            'groupid' => $group1,
             'collection' => 'Spam'
         ]);
         assertEquals(0, $ret['ret']);
@@ -186,6 +191,7 @@ class messageTest extends IznikAPITest {
         $u->setRole(User::ROLE_MEMBER, $group1);
         $ret = $this->call('message', 'DELETE', [
             'id' => $id,
+            'groupid' => $group1,
             'collection' => 'Approved'
         ]);
         assertEquals(2, $ret['ret']);
@@ -193,6 +199,7 @@ class messageTest extends IznikAPITest {
         $u->setRole(User::ROLE_OWNER, $group1);
         $ret = $this->call('message', 'DELETE', [
             'id' => $id,
+            'groupid' => $group1,
             'collection' => 'Spam'
         ]);
         assertEquals(0, $ret['ret']);
@@ -200,6 +207,7 @@ class messageTest extends IznikAPITest {
         # Try again to see it - should be gone
         $ret = $this->call('message', 'GET', [
             'id' => $id,
+            'groupid' => $group1,
             'collection' => 'Spam'
         ]);
         assertEquals(3, $ret['ret']);
@@ -616,6 +624,87 @@ class messageTest extends IznikAPITest {
             'groupid' => $group1
         ]);
         assertFalse(pres('heldby', $ret['message']));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testEdit() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_OTHER);
+
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        # Shouldn't be able to edit logged out
+        $ret = $this->call('message', 'PUT', [
+            'id' => $id,
+            'groupid' => $group1,
+            'subject' => 'Test edit'
+        ]);
+
+        error_log(var_export($ret, true));
+        assertEquals(2, $ret['ret']);
+
+        # Now join - shouldn't be able to edit as a member
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($group1);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('message', 'PUT', [
+            'id' => $id,
+            'groupid' => $group1,
+            'subject' => 'Test edit'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Promote to owner - should be able to edit it.
+        $u->setRole(User::ROLE_OWNER, $group1);
+
+        $ret = $this->call('message', 'PUT', [
+            'id' => $id,
+            'groupid' => $group1,
+            'subject' => 'Test edit'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals('Test edit', $ret['message']['subject']);
+
+        $ret = $this->call('message', 'PUT', [
+            'id' => $id,
+            'groupid' => $group1,
+            'textbody' => 'Test edit'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals('Test edit', $ret['message']['textbody']);
+
+        $ret = $this->call('message', 'PUT', [
+            'id' => $id,
+            'groupid' => $group1,
+            'htmlbody' => 'Test edit'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals('Test edit', $ret['message']['htmlbody']);
 
         error_log(__METHOD__ . " end");
     }

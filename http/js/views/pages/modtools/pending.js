@@ -63,12 +63,41 @@ Iznik.Views.ModTools.Message.Pending = IznikView.extend({
 
     events: {
         'click .js-viewsource': 'viewSource',
-        'click .js-rarelyused': 'rarelyUsed'
+        'click .js-rarelyused': 'rarelyUsed',
+        'click .js-savesubj': 'saveSubject'
     },
 
     rarelyUsed: function() {
         this.$('.js-rarelyused').fadeOut('slow');
         this.$('.js-stdmsgs li').fadeIn('slow');
+    },
+
+    restoreEditSubject: function() {
+        var self = this;
+        window.setTimeout(function() {
+            self.$('.js-savesubj .glyphicon').removeClass('glyphicon-ok glyphicon-warning-sign error success').addClass('glyphicon-floppy-save');
+        }, 5000);
+    },
+
+    saveSubject: function() {
+        var self = this;
+        self.listenToOnce(self.model,'editfailed', function() {
+            console.log("Show failure");
+            self.$('.js-savesubj .glyphicon').removeClass('glyphicon-floppy-save').addClass('glyphicon-warning-sign error');
+            self.restoreEditSubject();
+        });
+
+        self.listenToOnce(self.model,'editsucceeded', function() {
+            console.log("Show success");
+            self.$('.js-savesubj .glyphicon').removeClass('glyphicon-floppy-save').addClass('glyphicon-ok success');
+            self.restoreEditSubject();
+        });
+
+        self.model.edit(
+            self.$('.js-subject').val(),
+            self.model.get('textbody'),
+            self.model.get('htmlbody')
+        );
     },
 
     viewSource: function(e) {

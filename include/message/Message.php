@@ -46,6 +46,13 @@ class Message
         $this->yahooapprovedid = $id;
     }
 
+    public function setPrivate($att, $val) {
+        $rc = $this->dbhm->preExec("UPDATE messages SET $att = ? WHERE id = {$this->id};", [$val]);
+        if ($rc) {
+            $this->$att = $val;
+        }
+    }
+
     /**
      * @return mixed
      */

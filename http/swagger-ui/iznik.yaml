@@ -199,6 +199,37 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+    put:
+      summary: Message Set
+      tags: [Messages]
+      description: |
+        Set attributes of a message
+      parameters:
+      - name: id
+        in: path
+        description: ID of the message
+        type: number
+      - name: subject
+        in: body
+        description: Any updated subject
+        type: string
+      - name: textbody
+        in: body
+        description: Any updated plain text body
+        type: string
+      - name: htmlbody
+        in: body
+        description: Any updated html body
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
   /messages:
     get:
       summary: Messages Get

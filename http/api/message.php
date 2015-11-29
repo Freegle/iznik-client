@@ -16,6 +16,7 @@ function message() {
 
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'GET':
+        case 'PUT':
         case 'DELETE': {
             $m = NULL;
             $m = new Message($dbhr, $dbhm, $id);
@@ -26,13 +27,15 @@ function message() {
             } else {
                 switch ($collection) {
                     case Collection::APPROVED:
+                        # No special checks for approved - we could even be logged out.
                         break;
                     case Collection::PENDING:
                         if (!$me) {
                             $ret = ['ret' => 1, 'status' => 'Not logged in'];
                             $m = NULL;
                         } else {
-                            if (!$me->isModOrOwner($m->getGroups()[0])) {
+                            $groups = $m->getGroups();
+                            if (count($groups) == 0 || !$groupid || !$me->isModOrOwner($m->getGroups()[0])) {
                                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
                                 $m = NULL;
                             }
@@ -44,11 +47,16 @@ function message() {
                             $m = NULL;
                         } else {
                             $groups = $m->getGroups();
-                            if (count($groups) == 0 || !$me->isModOrOwner($groups[0])) {
+                            error_log("Check groups " . count($groups) . " vs $groupid");
+                            if (count($groups) == 0 || !$groupid || !$me->isModOrOwner($groups[0])) {
                                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
                                 $m = NULL;
                             }
                         }
+                        break;
+                    default:
+                        # If they don't say what they're doing properly, they can't do it.
+                        $m = NULL;
                         break;
                 }
             }
@@ -58,10 +66,44 @@ function message() {
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
+                        'groups' => [],
                         'message' => $m->getPublic()
                     ];
+
+                    foreach ($ret['message']['groups'] as &$group) {
+                        $g = new Group($dbhr, $dbhm, $group['groupid']);
+                        $ret['groups'][$group['groupid']] = $g->getPublic();
+                    }
+
+                } else if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
+                    $role = $m->getRoleForMessage();
+                    if ($role != User::ROLE_OWNER && $role != User::ROLE_MODERATOR) {
+                        $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                    } else {
+                        $subject = presdef('subject', $_REQUEST, NULL);
+                        $textbody = presdef('textbody', $_REQUEST, NULL);
+                        $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
+
+                        if ($subject) {
+                            $m->setPrivate('subject', $subject);
+                        }
+
+                        if ($textbody) {
+                            $m->setPrivate('textbody', $textbody);
+                        }
+
+                        if ($htmlbody) {
+                            $m->setPrivate('htmlbody', $htmlbody);
+                        }
+
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                    }
                 } else if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
-                    if (!$me->isModOrOwner($m->getGroups()[0])) {
+                    $role = $m->getRoleForMessage();
+                    if ($role != User::ROLE_OWNER && $role != User::ROLE_MODERATOR) {
                         $ret = ['ret' => 2, 'status' => 'Permission denied'];
                     } else {
                         $m->delete($reason);

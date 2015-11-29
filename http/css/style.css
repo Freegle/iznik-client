@@ -690,6 +690,10 @@ a button {
     color: red;
 }
 
+.success {
+    color: green;
+}
+
 .signindisabled {
     opacity: 0.2;
 }
@@ -779,4 +783,8 @@ a button {
     padding-right: 12px !important;
     padding-top: 6px !important;
     padding-bottom: 6px !important;
+}
+
+.usercounts .badge {
+    margin-top: 2px;
 }

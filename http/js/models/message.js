@@ -46,6 +46,7 @@ Iznik.Models.Message = IznikModel.extend({
                     groupid: group.id,
                     action: 'Approve'
                 }, success: function(ret) {
+                    console.log("Trigger approved");
                     self.trigger('approved');
                 }
             })
@@ -91,14 +92,180 @@ Iznik.Models.Message = IznikModel.extend({
         });
     },
 
+    edit: function(subject, textbody, htmlbody) {
+        var self = this;
+        // Editing is complex.
+        // - We need a crumb from Yahoo to allow us to do it.
+        // - We have to construct the bodyparts for the full message.  We have to use the same msgPartId as
+        //   currently exists in the message (otherwise the edit fails), so we need to find what that is.
+        // - We don't know an API call to get the message parts for a specific message, so we need to fetch the
+        //   pending messages, and find the one we're interested in first.
+        // - Once we've constructed the edit, we post it off to Yahoo and hope for the best
+        // - We don't get a return code, exactly, but if it worked we get the message back again
+        // - We also need to update the copy on our server.
+        _.each(self.get('groups'), function(group, index, list) {
+            console.log("Edit on", group, self);
+            var groupname = group.nameshort;
+
+            $.ajax({
+                type: 'GET',
+                url: YAHOOAPI + 'groups/' + group.nameshort + "/pending/messages/1/parts?start=1&count=100&chrome=raw",
+                success: function(ret) {
+                    console.log("Got pending", ret);
+                    var found = false;
+                    if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('pendingMessages')) {
+                        _.each(ret.ygData.pendingMessages, function (msg) {
+                            console.log("Check message", msg);
+                            if (msg.msgId == group.yahoopendingid) {
+                                console.log("Found message");
+                                found = true;
+
+                                var parts = [];
+
+                                // We might be passed both an HTML and a text bodypart.  In this case we drop the
+                                // text one.  This is because Yahoo only seems to handle having one of them, and
+                                // tends to convert text/plain messages to text/html when you edit - so we follow
+                                // suit.
+                                if (htmlbody) {
+                                    parts.push({
+                                        msgPartId: msg.messageParts[0].msgPartId,
+                                        contentType: 'text/html',
+                                        textContent: htmlbody
+                                    });
+
+                                    textbody = null;
+                                } else if (textbody) {
+                                    parts.push({
+                                        msgPartId: msg.messageParts[0].msgPartId,
+                                        contentType: 'text/plain',
+                                        textContent: textbody
+                                    });
+                                }
+
+                                var data = {
+                                    subject: subject,
+                                    messageParts: parts
+                                }
+
+                                console.log("Edit with", data);
+
+                                // Get a crumb from Yahoo to do the work.
+                                function getCrumb(ret) {
+                                    var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
+
+                                    if (match) {
+                                        self.crumb = match[1];
+                                        new majax({
+                                            type: "POST",
+                                            url: YAHOOAPI + 'groups/' + groupname + "/pending/messages/" + group.yahoopendingid + "?gapi_crumb=" + self.crumb,
+                                            data: {
+                                                messageParts: JSON.stringify(data),
+                                                action: 'SAVE'
+                                            },
+                                            success: function (ret) {
+                                                console.log("Edit returned", ret);
+
+                                                if (ret.hasOwnProperty('ygData') &&
+                                                    ret.ygData.hasOwnProperty('msgId') &&
+                                                    ret.ygData.msgId == group.yahoopendingid) {
+                                                    // The edit on Yahoo worked.  Miracles never cease.  Now update the copy on our server.
+                                                    $.ajax({
+                                                        type: 'POST',
+                                                        url: API + 'message',
+                                                        data: {
+                                                            id: self.get('id'),
+                                                            subject: subject,
+                                                            textbody: textbody,
+                                                            htmlbody: htmlbody
+                                                        }, success: function (ret) {
+                                                            console.log("Server edit returned", ret);
+                                                            if (ret.ret == 0) {
+                                                                // Make sure we're up to date.
+                                                                self.fetch().then(function () {
+                                                                    self.trigger('editsucceeded');
+                                                                });
+                                                            } else {
+                                                                self.trigger('editfailed');
+                                                            }
+                                                        }, error: function (request, status, error) {
+                                                            console.log("Server edit failed", request, status, error)
+                                                            self.trigger('editfailed');
+                                                        }
+                                                    })
+                                                } else {
+                                                    self.trigger('editfailed');
+                                                }
+                                            }, error: function (request, status, error) {
+                                                console.log("Edit failed", request, status, error)
+                                                self.trigger('editfailed');
+                                            }
+                                        });
+                                    } else {
+                                        var match = /window.location.href = "(.*)"/.exec(ret);
+
+                                        if (match) {
+                                            var url = match[1];
+                                            $.ajaxq('plugin', {
+                                                type: "GET",
+                                                url: url,
+                                                success: getCrumb,
+                                                error: function (request, status, error) {
+                                                    console.log("Get crumb failed");
+                                                    self.trigger('editfailed');
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+
+                                $.ajaxq('plugin', {
+                                    type: "GET",
+                                    url: "https://groups.yahoo.com/neo/groups/" + self.get('') + "/management/pendingmessages?" + Math.random(),
+                                    success: getCrumb,
+                                    error: function (request, status, error) {
+                                        console.log("Get crumb failed");
+                                        self.trigger('editfailed');
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    if (!found) {
+                        console.log("Pending message not found");
+                        self.trigger('editfailed');
+                    }
+                }, error: function (request, status, error) {
+                    console.log("Get pending failed", request, status, error)
+                    self.trigger('editfailed');
+                }
+            })
+        });
+    },
+
     parse: function(ret) {
         // We might either be called from a collection, where the message is at the top level, or
-        // from getting an individual message, where it's not.
+        // from getting an individual message, where it's not.  In the latter case we need to fill in
+        // the groups; in the former, it's done in the collection code below.
+        var message;
+
         if (ret.hasOwnProperty('message')) {
-            return(ret.message);
+            message = ret.message;
+
+            // Fill in the groups - each message has the group object below it for our convenience, even though the server
+            // returns them in a separate object for bandwidth reasons.
+            var groups = [];
+            _.each(message.groups, function(group) {
+                var groupdata = ret.groups[group.groupid];
+                groups.push(_.extend([], groupdata, group));
+            });
+
+            message.groups = groups;
         } else {
-            return(ret);
+            message = ret;
         }
+
+        return(message);
     }
 });
 

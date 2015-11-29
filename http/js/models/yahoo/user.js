@@ -76,7 +76,7 @@ Iznik.Models.Yahoo.User = IznikModel.extend({
 
         $.ajax({
             type: "GET",
-            url: "https://groups.yahoo.com/neo/groups/" + self.get('group') + "/management/members",
+            url: "https://groups.yahoo.com/neo/groups/" + self.get('group') + "/management/members?" + Math.random(),
             success: getCrumb,
             error: function (request, status, error) {
                 // Couldn't get a crumb. Reset to old value.  This will trigger a change event and
