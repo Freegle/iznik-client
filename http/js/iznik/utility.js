@@ -13,6 +13,18 @@ function getURLParam(name) {
     return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
+function canonSubj(subj) {
+    console.log("Canon", subj);
+    subj = subj.toLocaleLowerCase();
+
+    // Remove any group tag
+    subj = subj.replace(/\[.*\](.*)/, "$1");
+
+    subj = subj.trim();
+    console.log("Canoned",subj);
+    return(subj);
+}
+
 function setURLParam(uri, key, value) {
     console.log("Set url param", uri, key, value);
     var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");

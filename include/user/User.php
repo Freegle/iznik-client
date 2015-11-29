@@ -383,6 +383,11 @@ class User extends Entity
                 Collection::APPROVED,
                 $this->id
             ]);
+
+            foreach ($atts['messagehistory'] as &$hist) {
+                $hist['arrival'] = ISODate($hist['arrival']);
+                $hist['date'] = ISODate($hist['date']);
+            }
         }
 
         # Add in a count of recent "modmail" type logs which a mod might care about.

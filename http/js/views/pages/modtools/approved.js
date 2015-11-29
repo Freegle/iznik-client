@@ -94,28 +94,13 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
     }
 });
 
-Iznik.Views.ModTools.Message.Approved = IznikView.extend({
+Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
     template: 'modtools_approved_message',
 
     events: {
         'click .js-delete' : 'deleteMe',
         'click .js-viewsource': 'viewSource',
         'click .js-rarelyused': 'rarelyUsed'
-    },
-
-    rarelyUsed: function() {
-        this.$('.js-rarelyused').fadeOut('slow');
-        this.$('.js-stdmsgs li').fadeIn('slow');
-    },
-
-    viewSource: function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        var v = new Iznik.Views.ModTools.Message.ViewSource({
-            model: this.model
-        });
-        v.render();
     },
 
     deleteMe: function() {
@@ -185,6 +170,7 @@ Iznik.Views.ModTools.Message.Approved = IznikView.extend({
 
         this.$('.timeago').timeago();
         //this.$el.fadeIn('slow');
+        this.checkDuplicates();
 
         return(this);
     }

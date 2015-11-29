@@ -1,3 +1,65 @@
+Iznik.Views.ModTools.Message = IznikView.extend({
+    rarelyUsed: function() {
+        this.$('.js-rarelyused').fadeOut('slow');
+        this.$('.js-stdmsgs li').fadeIn('slow');
+    },
+
+    restoreEditSubject: function() {
+        var self = this;
+        window.setTimeout(function() {
+            self.$('.js-savesubj .glyphicon').removeClass('glyphicon-ok glyphicon-warning-sign error success').addClass('glyphicon-floppy-save');
+        }, 5000);
+    },
+
+    saveSubject: function() {
+        var self = this;
+        self.listenToOnce(self.model,'editfailed', function() {
+            console.log("Show failure");
+            self.$('.js-savesubj .glyphicon').removeClass('glyphicon-floppy-save').addClass('glyphicon-warning-sign error');
+            self.restoreEditSubject();
+        });
+
+        self.listenToOnce(self.model,'editsucceeded', function() {
+            console.log("Show success");
+            self.$('.js-savesubj .glyphicon').removeClass('glyphicon-floppy-save').addClass('glyphicon-ok success');
+            self.restoreEditSubject();
+        });
+
+        self.model.edit(
+            self.$('.js-subject').val(),
+            self.model.get('textbody'),
+            self.model.get('htmlbody')
+        );
+    },
+
+    viewSource: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var v = new Iznik.Views.ModTools.Message.ViewSource({
+            model: this.model
+        });
+        v.render();
+    },
+
+    checkDuplicates: function() {
+        var self = this;
+        var id = self.model.get('id');
+        var subj = canonSubj(self.model.get('subject'));
+
+        _.each(self.model.get('fromuser').messagehistory, function(message) {
+            if (message.id != id) {
+                if (canonSubj(message.subject) == subj) {
+                    var v = new Iznik.Views.ModTools.Message.Duplicate({
+                        model: new IznikModel(message)
+                    });
+                    self.$('.js-duplist').append(v.render().el);
+                }
+            }
+        });
+    }
+});
+
 Iznik.Views.ModTools.Message.Photo = IznikView.extend({
     tagName: 'li',
 
@@ -178,10 +240,121 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         // - this modal should close.
         self.model.listenToOnce('approved rejected deleted', function() {
             console.log("Approved or something");
+        });
+
+        self.model.listenToOnce('approved', function() {
+            console.log("Approved only");
+            self.maybeSettingsChange.call(self, 'approved', self.options.stdmsg, self.model, group);
+            self.close();
+        });
+
+        self.model.listenToOnce('rejected', function() {
+            console.log("Rejected only");
             self.maybeSettingsChange.call(self, 'rejected', self.options.stdmsg, self.model, group);
             self.close();
         });
 
+        self.model.listenToOnce('deleted', function() {
+            console.log("Deleted only");
+            self.maybeSettingsChange.call(self, 'deleted', self.options.stdmsg, self.model, group);
+            self.close();
+        });
+    }
+});
+
+
+Iznik.Views.ModTools.Message.ViewSource = Iznik.Views.Modal.extend({
+    template: 'modtools_pending_viewsource',
+
+    render: function() {
+        var self = this;
+        this.open(this.template);
+
+        // Fetch the individual message, which gives us access to the full message (which isn't returned
+        // in the normal messages call to save bandwidth.
+        var m = new Iznik.Models.Message({
+            id: this.model.get('id')
+        });
+
+        m.fetch().then(function() {
+            self.$('.js-source').text(m.get('message'));
+        });
+        return(this);
+    }
+});
+
+Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
+    template: 'modtools_pending_stdmsg',
+
+    tagName: 'li',
+
+    events: {
+        'click .js-approve': 'approve',
+        'click .js-reject': 'reject',
+        'click .js-delete': 'deleteMe',
+        'click .js-hold': 'hold',
+        'click .js-release': 'release'
+    },
+
+    hold: function() {
+        var self = this;
+        var message = self.model.get('message');
+        message.hold();
+    },
+
+    release: function() {
+        var self = this;
+        var message = self.model.get('message');
+        message.release();
+    },
+
+    approve: function() {
+        var self = this;
+        var message = self.model.get('message');
+
+        if (this.options.config) {
+            // This is a configured button; open the modal.
+            var v = new Iznik.Views.ModTools.StdMessage.Pending.Approve({
+                model: message,
+                stdmsg: this.model,
+                config: this.options.config
+            });
+
+            v.render();
+        } else {
+            // No popup to show.
+            message.approve();
+        }
+    },
+
+    reject: function() {
+        var self = this;
+        var message = self.model.get('message');
+
+        var v = new Iznik.Views.ModTools.StdMessage.Pending.Reject({
+            model: message,
+            stdmsg: this.model,
+            config: this.options.config
+        });
+
+        v.render();
+    },
+
+    deleteMe: function() {
+        var self = this;
+        var message = self.model.get('message');
+        message.delete();
+    }
+});
+
+Iznik.Views.ModTools.Message.Duplicate = IznikView.extend({
+    template: 'modtools_message_duplicate',
+
+    render: function() {
+        var self = this;
+        self.$el.html(window.template(self.template)(self.model.toJSON2()));
+        this.$('.timeago').timeago();
+        return(this);
     }
 });
 
