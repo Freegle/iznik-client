@@ -50,6 +50,9 @@ Iznik.Views.ModTools.Message = IznikView.extend({
         _.each(self.model.get('fromuser').messagehistory, function(message) {
             if (message.id != id) {
                 if (canonSubj(message.subject) == subj) {
+                    // No point displaying any group tag in the duplicate.
+                    message.subject = message.subject.replace(/\[.*\](.*)/, "$1");
+
                     var v = new Iznik.Views.ModTools.Message.Duplicate({
                         model: new IznikModel(message)
                     });
@@ -238,23 +241,23 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         // If the underlying message is approved, rejected or deleted then:
         // - we may have actions to complete
         // - this modal should close.
-        self.model.listenToOnce('approved rejected deleted', function() {
+        self.listenToOnce(self.model, 'approved rejected deleted', function() {
             console.log("Approved or something");
         });
 
-        self.model.listenToOnce('approved', function() {
+        self.listenToOnce(self.model, 'approved', function() {
             console.log("Approved only");
             self.maybeSettingsChange.call(self, 'approved', self.options.stdmsg, self.model, group);
             self.close();
         });
 
-        self.model.listenToOnce('rejected', function() {
+        self.listenToOnce(self.model, 'rejected', function() {
             console.log("Rejected only");
             self.maybeSettingsChange.call(self, 'rejected', self.options.stdmsg, self.model, group);
             self.close();
         });
 
-        self.model.listenToOnce('deleted', function() {
+        self.listenToOnce(self.model, 'deleted', function() {
             console.log("Deleted only");
             self.maybeSettingsChange.call(self, 'deleted', self.options.stdmsg, self.model, group);
             self.close();

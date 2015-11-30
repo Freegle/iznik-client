@@ -153,6 +153,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         function checkResponse(self) {
             return(function(ret) {
                 if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
+                    $('.pluginonly').show();
+
                     if (!self.connected) {
                         self.resume();
                     }
@@ -161,6 +163,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                         $('#js-pluginconnected').fadeIn('slow');
                     })
                 } else {
+                    $('.pluginonly').hide();
+
                     if (self.connected) {
                         self.pause();
                     }
@@ -178,6 +182,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             url: 'https://groups.yahoo.com/api/v1/user/groups/all',
             success: checkResponse(self),
             error: function() {
+                $('.pluginonly').hide();
+
                 // If we got an error, we're not connected.
                 if (self.connected) {
                     self.pause();

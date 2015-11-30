@@ -581,6 +581,10 @@ a button {
     width: 280px;
 }
 
+.rightSidebar {
+    min-height: 200px;
+}
+
 .img-smallerthumbnail {
     min-height:50px !important;
     height:50px !important;

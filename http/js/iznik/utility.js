@@ -18,7 +18,7 @@ function canonSubj(subj) {
     subj = subj.toLocaleLowerCase();
 
     // Remove any group tag
-    subj = subj.replace(/\[.*\](.*)/, "$1");
+    subj = subj.replace(/^\[.*\](.*)/, "$1");
 
     subj = subj.trim();
     console.log("Canoned",subj);
