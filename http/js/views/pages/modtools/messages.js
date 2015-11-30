@@ -235,31 +235,33 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         self.close();
     },
 
-    render: function() {
+    closeWhenRequired: function() {
         var self = this;
 
         // If the underlying message is approved, rejected or deleted then:
         // - we may have actions to complete
         // - this modal should close.
-        self.listenToOnce(self.model, 'approved rejected deleted', function() {
-            console.log("Approved or something");
-        });
-
         self.listenToOnce(self.model, 'approved', function() {
             console.log("Approved only");
-            self.maybeSettingsChange.call(self, 'approved', self.options.stdmsg, self.model, group);
+            _.each(self.model.get('groups'), function(group, index, list) {
+                self.maybeSettingsChange.call(self, 'approved', self.options.stdmsg, self.model, group);
+            });
             self.close();
         });
 
         self.listenToOnce(self.model, 'rejected', function() {
             console.log("Rejected only");
-            self.maybeSettingsChange.call(self, 'rejected', self.options.stdmsg, self.model, group);
+            _.each(self.model.get('groups'), function(group, index, list) {
+                self.maybeSettingsChange.call(self, 'rejected', self.options.stdmsg, self.model, group);
+            });
             self.close();
         });
 
         self.listenToOnce(self.model, 'deleted', function() {
             console.log("Deleted only");
-            self.maybeSettingsChange.call(self, 'deleted', self.options.stdmsg, self.model, group);
+            _.each(self.model.get('groups'), function(group, index, list) {
+                self.maybeSettingsChange.call(self, 'deleted', self.options.stdmsg, self.model, group);
+            });
             self.close();
         });
     }
@@ -283,6 +285,57 @@ Iznik.Views.ModTools.Message.ViewSource = Iznik.Views.Modal.extend({
             self.$('.js-source').text(m.get('message'));
         });
         return(this);
+    }
+});
+
+Iznik.Views.ModTools.StdMessage.Edit = Iznik.Views.Modal.extend({
+    template: 'modtools_message_edit',
+
+    events: function () {
+        return _.extend({}, _.result(Iznik.Views.Modal, 'events'), {
+            'click .js-save': 'save'
+        });
+    },
+
+    save: function() {
+        var self = this;
+
+        self.listenToOnce(self.model, 'editsucceeded', function() {
+            self.close();
+        });
+
+        var html = tinyMCE.activeEditor.getContent({format : 'raw'});
+        console.log("Edited HTML", html);
+        var text = tinyMCE.activeEditor.getContent({format : 'text'});
+        console.log("Edited text", text);
+
+        self.model.edit(
+            self.$('.js-subject').val(),
+            text,
+            html
+        );
+    },
+
+    render: function() {
+        var self = this;
+        this.open(this.template, this.model);
+
+        var body = self.model.get('htmlbody');
+        body = body ? body : self.model.get('textbody');
+        self.$('.js-text').val(body);
+
+        tinymce.init({
+            selector: '.js-text',
+            height: 300,
+            plugins: [
+                'advlist autolink lists link image charmap print preview anchor',
+                'searchreplace visualblocks code fullscreen',
+                'insertdatetime media table contextmenu paste code'
+            ],
+            menubar: 'edit insert format tools',
+            statusbar: false,
+            toolbar: 'bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image'
+        });
     }
 });
 

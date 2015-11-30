@@ -123,17 +123,15 @@ Iznik.Models.Message = IznikModel.extend({
                                 var parts = [];
 
                                 // We might be passed both an HTML and a text bodypart.  In this case we drop the
-                                // text one.  This is because Yahoo only seems to handle having one of them, and
-                                // tends to convert text/plain messages to text/html when you edit - so we follow
-                                // suit.
+                                // text one when editing on Yahoo.  This is because Yahoo only seems to handle having
+                                // one of them, and tends to convert text/plain messages to text/html when you edit -
+                                // so we follow suit.
                                 if (htmlbody) {
                                     parts.push({
                                         msgPartId: msg.messageParts[0].msgPartId,
                                         contentType: 'text/html',
                                         textContent: htmlbody
                                     });
-
-                                    textbody = null;
                                 } else if (textbody) {
                                     parts.push({
                                         msgPartId: msg.messageParts[0].msgPartId,
@@ -170,7 +168,7 @@ Iznik.Models.Message = IznikModel.extend({
                                                     ret.ygData.msgId == group.yahoopendingid) {
                                                     // The edit on Yahoo worked.  Miracles never cease.  Now update the copy on our server.
                                                     $.ajax({
-                                                        type: 'POST',
+                                                        type: 'PUT',
                                                         url: API + 'message',
                                                         data: {
                                                             id: self.get('id'),

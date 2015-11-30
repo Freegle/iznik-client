@@ -89,7 +89,22 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
     events: {
         'click .js-viewsource': 'viewSource',
         'click .js-rarelyused': 'rarelyUsed',
-        'click .js-savesubj': 'saveSubject'
+        'click .js-savesubj': 'saveSubject',
+        'click .js-edit': 'edit'
+    },
+
+    edit: function() {
+        var self = this;
+
+        var v = new Iznik.Views.ModTools.StdMessage.Edit({
+            model: this.model
+        });
+
+        this.listenToOnce(self.model, 'editsucceeded', function() {
+            self.render();
+        });
+
+        v.render();
     },
 
     render: function() {
@@ -139,9 +154,7 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
 
             // Add the default standard actions.
             var configs = Iznik.Session.get('configs');
-            console.log("configs", configs, group.id, Iznik.Session.get('groups'));
             var sessgroup = Iznik.Session.get('groups').get(group.id);
-            console.log("sessgroup", sessgroup);
             var config = configs.get(sessgroup.get('configid'));
 
             if (self.model.get('heldby')) {
@@ -151,7 +164,6 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
                         title: 'Release',
                         action: 'Release',
                         message: self.model,
-                        messageView: self,
                         config: config
                     })
                 }).render().el);
@@ -162,7 +174,6 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
                         title: 'Approve',
                         action: 'Approve',
                         message: self.model,
-                        messageView: self,
                         config: config
                     })
                 }).render().el);
@@ -172,7 +183,6 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
                         title: 'Reject',
                         action: 'Reject',
                         message: self.model,
-                        messageView: self,
                         config: config
                     })
                 }).render().el);
@@ -182,7 +192,6 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
                         title: 'Delete',
                         action: 'Delete',
                         message: self.model,
-                        messageView: self,
                         config: config
                     })
                 }).render().el);
@@ -192,7 +201,6 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
                         title: 'Hold',
                         action: 'Hold',
                         message: self.model,
-                        messageView: self,
                         config: config
                     })
                 }).render().el);
@@ -221,7 +229,6 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
                     _.each(sortmsgs, function (stdmsg) {
                         if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
                             stdmsg.message = self.model;
-                            stdmsg.messageView = self;
                             var v = new Iznik.Views.ModTools.StdMessage.Button({
                                 model: new IznikModel(stdmsg),
                                 config: config
@@ -245,13 +252,6 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
         this.$('.timeago').timeago();
         this.checkDuplicates();
         this.$el.fadeIn('slow');
-
-        // If we reject, approve or delete this message then the view should go.
-        this.listenToOnce(self.model, 'approved rejected deleted', function() {
-            self.$el.fadeOut('slow', function() {
-                self.remove();
-            });
-        });
 
         return(this);
     }
@@ -284,6 +284,7 @@ Iznik.Views.ModTools.StdMessage.Pending.Approve = Iznik.Views.ModTools.StdMessag
 
     render: function() {
         this.expand();
+        this.closeWhenRequired();
         return(this);
     }
 });
@@ -304,6 +305,7 @@ Iznik.Views.ModTools.StdMessage.Pending.Reject = Iznik.Views.ModTools.StdMessage
 
     render: function() {
         this.expand();
+        this.closeWhenRequired();
         return(this);
     }
 });
