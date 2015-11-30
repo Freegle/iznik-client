@@ -8,8 +8,7 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
         self.$('.js-none').hide();
 
         var data = {
-            collection: 'Pending',
-            remove: self.selected != self.lastFetched
+            collection: 'Pending'
         };
 
         if (self.selected > 0) {
@@ -17,7 +16,8 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
         }
 
         this.msgs.fetch({
-            data: data
+            data: data,
+            remove: self.selected != self.lastFetched
         }).then(function() {
             self.lastFetched = self.selected;
 
@@ -252,6 +252,13 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
         this.$('.timeago').timeago();
         this.checkDuplicates();
         this.$el.fadeIn('slow');
+
+        // If we reject, approve or delete this message then the view should go.
+        this.listenToOnce(self.model, 'approved rejected deleted', function() {
+            self.$el.fadeOut('slow', function() {
+                self.remove();
+            });
+        });
 
         return(this);
     }

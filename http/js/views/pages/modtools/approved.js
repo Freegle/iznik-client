@@ -15,8 +15,7 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
             self.$('.js-none').hide();
 
             var data = {
-                collection: 'Approved',
-                remove: self.selected != self.lastFetched
+                collection: 'Approved'
             };
 
             if (self.selected > 0) {
@@ -30,7 +29,8 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
 
             // Fetch more messages - and leave the old ones in the collection
             this.msgs.fetch({
-                data: data
+                data: data,
+                remove: self.selected != self.lastFetched
             }).then(function() {
                 self.lastFetched = self.selected;
 

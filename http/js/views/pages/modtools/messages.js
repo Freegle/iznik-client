@@ -300,8 +300,14 @@ Iznik.Views.ModTools.StdMessage.Edit = Iznik.Views.Modal.extend({
     save: function() {
         var self = this;
 
+        self.$('.js-editfailed').hide();
+
         self.listenToOnce(self.model, 'editsucceeded', function() {
             self.close();
+        });
+
+        self.listenToOnce(self.model, 'editfailed', function() {
+            self.$('.js-editfailed').fadeIn('slow');
         });
 
         var html = tinyMCE.activeEditor.getContent({format : 'raw'});
