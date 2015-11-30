@@ -13,20 +13,27 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
         if (!self.fetching) {
             self.fetching = true;
             self.$('.js-none').hide();
+
             var data = {
-                collection: 'Approved'
+                collection: 'Approved',
+                remove: self.selected != self.lastFetched
             };
 
+            if (self.selected > 0) {
+                data.groupid = self.selected;
+            }
+
             if (self.start) {
-                data.start = self.startdate;
+                // If we're selecting a different group, reset the start.
+                data.start = self.selected != self.lastFetched ? null : self.startdate;
             }
 
             // Fetch more messages - and leave the old ones in the collection
             this.msgs.fetch({
-                data: data,
-                reset: false,
-                remove: false
+                data: data
             }).then(function() {
+                self.lastFetched = self.selected;
+
                 self.fetching = false;
                 if (!self.start) {
                     self.$('.js-none').fadeIn('slow');
@@ -87,10 +94,23 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
 
         self.collectionView.render();
 
+        var v = new Iznik.Views.Group.Select({
+            systemWide: false,
+            all: true,
+            id: 'groupSelect'
+        });
+
+        self.listenTo(v, 'selected', function(selected) {
+            self.selected = selected;
+            self.fetch();
+        });
+
+        // Render after the listen to as they are called during render.
+        self.$('.js-groupselect').html(v.render().el);
+
         // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
         // appropriately.
         this.listenTo(Iznik.Session, 'approvedcountschanged', this.fetch);
-        this.fetch();
     }
 });
 

@@ -662,7 +662,6 @@
     // Delays a function for the given number of milliseconds, and then calls
     // it with the arguments supplied.
     _.delay = function(func, wait) {
-        console.trace();
         var args = slice.call(arguments, 2);
         return setTimeout(function(){ return func.apply(null, args); }, wait);
     };

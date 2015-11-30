@@ -6,11 +6,21 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
     fetch: function() {
         var self = this;
         self.$('.js-none').hide();
+
+        var data = {
+            collection: 'Pending',
+            remove: self.selected != self.lastFetched
+        };
+
+        if (self.selected > 0) {
+            data.groupid = self.selected;
+        }
+
         this.msgs.fetch({
-            data: {
-                collection: 'Pending'
-            }
+            data: data
         }).then(function() {
+            self.lastFetched = self.selected;
+
             if (self.msgs.length == 0) {
                 self.$('.js-none').fadeIn('slow');
             } else {
@@ -47,14 +57,29 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
     },
 
     render: function() {
+        var self = this;
+
         Iznik.Views.Page.prototype.render.call(this);
 
         this.msgs = new Iznik.Collections.Message();
 
+        var v = new Iznik.Views.Group.Select({
+            systemWide: false,
+            all: true,
+            id: 'groupSelect'
+        });
+
+        self.listenTo(v, 'selected', function(selected) {
+            self.selected = selected;
+            self.fetch();
+        });
+
+        // Render after the listen to as they are called during render.
+        self.$('.js-groupselect').html(v.render().el);
+
         // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
         // appropriately.
         this.listenTo(Iznik.Session, 'pendingcountschanged', this.fetch);
-        this.fetch();
     }
 });
 

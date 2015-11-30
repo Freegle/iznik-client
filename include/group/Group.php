@@ -220,7 +220,8 @@ class Group extends Entity
                 }
 
                 foreach ($oldmods as $mod) {
-                    $sql = "UPDATE memberships SET configid = ? WHERE groupid = ? AND userid = ?;";
+                    # Restore any configids for current owners/mods.
+                    $sql = "UPDATE memberships SET configid = ? WHERE groupid = ? AND userid = ? AND role IN ('Owner', 'Moderator');";
                     $rollback = !$this->dbhm->preExec($sql, [
                         $mod['configid'],
                         $this->id,
@@ -243,8 +244,6 @@ class Group extends Entity
             } else {
                 $rollback = !$this->dbhm->commit();
             }
-            $mods = "SELECT * FROM memberships WHERE groupid = {$this->id} AND role in ('Moderator', 'Owner');";
-            error_log(var_export($this->dbhm->query($mods)->fetchAll(), true));
         }
 
         return(!$rollback);
