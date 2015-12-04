@@ -127,12 +127,8 @@ function message() {
 
                 switch ($action) {
                     case 'Delete':
-                        if ($m->isPending($groupid)) {
-                            # We have to reject on Yahoo, but without a reply.
-                            $m->reject($groupid, NULL, NULL);
-                        } else {
-                            $m->delete($reason);
-                        }
+                        # The delete call will handle any rejection on Yahoo if required.
+                        $m->delete($reason);
                         break;
                     case 'Reject':
                         if (!$m->isPending($groupid)) {

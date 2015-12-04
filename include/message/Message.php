@@ -906,14 +906,12 @@ class Message
             }
         }
 
-        if ($handled) {
-            $sql = "UPDATE messages_groups SET deleted = 1 WHERE msgid = ?;";
-            $this->dbhm->preExec($sql, [
-                $this->id
-            ]);
+        $sql = "UPDATE messages_groups SET deleted = 1 WHERE msgid = ?;";
+        $this->dbhm->preExec($sql, [
+            $this->id
+        ]);
 
-            $this->maybeMail($groupid, $subject, $body);
-        }
+        $this->maybeMail($groupid, $subject, $body);
     }
 
     public function approve($groupid, $subject, $body) {

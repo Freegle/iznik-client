@@ -391,7 +391,9 @@ class User extends Entity
         }
 
         # Add in a count of recent "modmail" type logs which a mod might care about.
-        $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? AND type = 'Message' AND subtype IN ('Rejected', 'Deleted');";
+        #
+        # Exclude the logs which are due to standard message syncing.
+        $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? AND type = 'Message' AND subtype IN ('Rejected', 'Deleted') AND text NOT IN ('Not present on Yahoo pending');";
         $mysqltime = date ("Y-m-d", strtotime("Midnight 30 days ago"));
         $alarms = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
         $atts['modmails'] = $alarms[0]['count'];
@@ -402,7 +404,7 @@ class User extends Entity
             # We can only see logs for this user if we have a mod role on one of the groups of which they are
             # a member, or if we have appropriate system rights.
             # TODO
-            $sql = "SELECT DISTINCT * FROM logs WHERE user = ? OR byuser = ? ORDER BY timestamp DESC;";
+            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) AND text NOT IN ('Not present on Yahoo pending') ORDER BY timestamp DESC;";
             $logs = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
             $atts['logs'] = [];
             $groups = [];
@@ -429,7 +431,7 @@ class User extends Entity
                 }
 
                 if (pres('groupid', $log)) {
-                    if (!pres($log['usegroupid'], $groups)) {
+                    if (!pres($log['groupid'], $groups)) {
                         $g = new Group($this->dbhr, $this->dbhm, $log['groupid']);
                         $groups[$log['groupid']] = $g->getPublic();
                     }

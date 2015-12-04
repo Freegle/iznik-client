@@ -17,7 +17,7 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
 
         this.msgs.fetch({
             data: data,
-            remove: self.selected != self.lastFetched
+            remove: true
         }).then(function() {
             self.lastFetched = self.selected;
 

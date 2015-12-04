@@ -112,7 +112,9 @@ class Collection
     }
 
     function findByYahooApprovedId($groupid, $id) {
-        $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahooapprovedid = ? AND deleted = 0;";
+        # We need to include deleted messages, otherwise we could delete something and then recreate it during a
+        # sync, before our delete had hit Yahoo.
+        $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahooapprovedid = ?;";
         $msglist = $this->dbhr->preQuery($sql, [
             $groupid,
             $id
@@ -126,7 +128,9 @@ class Collection
     }
 
     function findByYahooPendingId($groupid, $id) {
-        $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahoopendingid = ? AND collection = 'Pending' AND deleted = 0;";
+        # We need to include deleted messages, otherwise we could delete something and then recreate it during a
+        # sync, before our delete had hit Yahoo.
+        $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahoopendingid = ? AND collection = 'Pending';";
         $msglist = $this->dbhr->preQuery($sql, [
             $groupid,
             $id

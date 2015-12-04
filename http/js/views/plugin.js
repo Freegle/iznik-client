@@ -98,13 +98,15 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                     }
                 }
 
-                $.ajaxq('plugin', {
-                    type: "GET",
-                    url: "https://groups.yahoo.com/neo/groups/" + groupname + "/management/pendingmessages?" + Math.random(),
-                    success: getCrumb,
-                    error: function (request, status, error) {
-                        self.retryWork(self.currentItem);
-                    }
+                _.delay(function() {
+                    $.ajaxq('plugin', {
+                        type: "GET",
+                        url: "https://groups.yahoo.com/neo/groups/" + groupname + "/management/pendingmessages?" + Math.random(),
+                        success: getCrumb,
+                        error: function (request, status, error) {
+                            self.retryWork(self.currentItem);
+                        }
+                    }, 500);
                 });
             }
         }
@@ -141,10 +143,17 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     },
 
     retryWork: function(work) {
-        // Put at the back so as not to block other work.
-        this.currentItem = null;
-        this.work.push(work);
-        this.checkWork();
+        var self = this;
+
+        self.currentItem = null;
+
+        // We don't want to add the work back into the queue immediately, as this could mean that we hammer away
+        // retrying, which increases the chance of Yahoo 999s.
+        _.delay(function() {
+            // Put at the back so as not to block other work.
+            self.work.push(work);
+            self.checkWork();
+        }, 60000);
     },
 
     checkPluginStatus: function() {
