@@ -20,6 +20,7 @@ class Log
 
     const SUBTYPE_CREATED = 'Created';
     const SUBTYPE_DELETED = 'Deleted';
+    const SUBTYPE_EDIT = 'Edit';
     const SUBTYPE_APPROVED = 'Approved';
     const SUBTYPE_REJECTED = 'Rejected';
     const SUBTYPE_RECEIVED = 'Received';

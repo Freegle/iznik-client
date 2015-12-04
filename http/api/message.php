@@ -84,17 +84,7 @@ function message() {
                         $textbody = presdef('textbody', $_REQUEST, NULL);
                         $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
 
-                        if ($subject) {
-                            $m->setPrivate('subject', $subject);
-                        }
-
-                        if ($textbody) {
-                            $m->setPrivate('textbody', $textbody);
-                        }
-
-                        if ($htmlbody) {
-                            $m->setPrivate('htmlbody', $htmlbody);
-                        }
+                        $m->edit($subject, $textbody, $htmlbody);
 
                         $ret = [
                             'ret' => 0,

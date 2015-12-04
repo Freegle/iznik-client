@@ -53,6 +53,33 @@ class Message
         }
     }
 
+    public function edit($subject, $textbody, $htmlbody) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $text = ($subject ? "New subject $subject " : '');
+        $text .= $textbody ? ", text body changed" : '';
+        $text .= $htmlbody ? ", HTML body changed" : '';
+
+        $this->log->log([
+            'type' => Log::TYPE_MESSAGE,
+            'subtype' => Log::SUBTYPE_EDIT,
+            'msgid' => $this->id,
+            'byuser' => $me ? $me->getId() : NULL,
+            'text' => $text
+        ]);
+
+        if ($subject) {
+            $this->setPrivate('subject', $subject);
+        }
+
+        if ($textbody) {
+            $this->setPrivate('textbody', $textbody);
+        }
+
+        if ($htmlbody) {
+            $this->setPrivate('htmlbody', $htmlbody);
+        }
+    }
+
     /**
      * @return mixed
      */
