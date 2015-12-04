@@ -46,6 +46,7 @@ Iznik.Views.ModTools.Message = IznikView.extend({
         var self = this;
         var id = self.model.get('id');
         var subj = canonSubj(self.model.get('subject'));
+        var dups = [];
 
         _.each(self.model.get('fromuser').messagehistory, function(message) {
             if (message.id != id) {
@@ -57,9 +58,13 @@ Iznik.Views.ModTools.Message = IznikView.extend({
                         model: new IznikModel(message)
                     });
                     self.$('.js-duplist').append(v.render().el);
+
+                    dups.push(message);
                 }
             }
         });
+
+        self.model.set('duplicates', dups);
     }
 });
 
@@ -180,17 +185,17 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         //    text = text.replace(/\$membersubdate/g, formatDate(message['headerdate'], false, false));
         //}
         //
-        //if (message['duplicates']) {
-        //    var summ = '';
-        //
-        //    for (var m in message['duplicates']) {
-        //        var cmsg = message['duplicates'][m]['msg'];
-        //        summ += "#" + cmsg['id'] + ": " + formatDate(cmsg['date'], false, false) + " - " + cmsg['subject'] + "\n";
-        //    }
-        //
-        //    var regex = new RegExp("\\$duplicatemessages", "gim");
-        //    text = text.replace(regex, summ);
-        //}
+
+        var summ = '';
+
+        if (message.hasOwnProperty('duplicates')) {
+            _.each(message.duplicates, function(m) {
+                summ += moment(m.date).format('lll') + " - " + m.subject + "\n";
+            });
+
+            var regex = new RegExp("\\$duplicatemessages", "gim");
+            text = text.replace(regex, summ);
+        }
 
         return(text);
     },

@@ -56,8 +56,8 @@ class Message
     public function edit($subject, $textbody, $htmlbody) {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $text = ($subject ? "New subject $subject " : '');
-        $text .= $textbody ? ", text body changed" : '';
-        $text .= $htmlbody ? ", HTML body changed" : '';
+        $text .= $textbody ? "Text body changed " : '';
+        $text .= $htmlbody ? "HTML body changed " : '';
 
         $this->log->log([
             'type' => Log::TYPE_MESSAGE,
