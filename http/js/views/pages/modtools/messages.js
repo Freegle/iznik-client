@@ -65,6 +65,27 @@ Iznik.Views.ModTools.Message = IznikView.extend({
         });
 
         self.model.set('duplicates', dups);
+    },
+
+    checkMessage: function(config) {
+        var self = this;
+
+        this.checkDuplicates();
+
+        // We colour code subjects according to a regular expression in the config.
+        this.$('.js-coloursubj').addClass('success');
+
+        if (config.get('coloursubj')) {
+            var subjreg = config.get('subjreg');
+
+            if (subjreg) {
+                var re = new RegExp(subjreg);
+
+                if (!re.test(this.model.get('subject'))) {
+                    this.$('.js-coloursubj').removeClass('success').addClass('error');
+                }
+            }
+        }
     }
 });
 

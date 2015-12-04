@@ -206,6 +206,8 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
                 }).render().el);
 
                 if (config) {
+                    self.checkMessage(config);
+
                     // Add the other standard messages, in the order requested.
                     var stdmsgs = config.get('stdmsgs');
                     var order = JSON.parse(config.get('messageorder'));
@@ -250,7 +252,6 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
         });
 
         this.$('.timeago').timeago();
-        this.checkDuplicates();
         this.$el.fadeIn('slow');
 
         // If we reject, approve or delete this message then the view should go.
