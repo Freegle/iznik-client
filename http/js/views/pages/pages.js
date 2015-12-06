@@ -83,6 +83,20 @@ Iznik.Views.User.Pages.NotFound = Iznik.Views.Page.extend({
 Iznik.Views.LeftMenu = IznikView.extend({
     template: "layout_leftmenu",
 
+    events: {
+        'click .js-logout': 'logout'
+    },
+
+    logout: function() {
+        $.ajax({
+            url: API + 'session',
+            type: 'DELETE',
+            complete: function() {
+                Router.navigate('/modtools', true);
+            }
+        })
+    },
+
     render: function() {
         this.$el.html(window.template(this.template));
 
