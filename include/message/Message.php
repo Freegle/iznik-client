@@ -211,7 +211,7 @@ class Message
         return($role);
     }
 
-    public function getPublic($messagehistory = TRUE) {
+    public function getPublic($messagehistory = TRUE, $related = TRUE) {
         $ret = [];
         $role = $this->getRoleForMessage();
 
@@ -260,6 +260,18 @@ class Message
             # Get the user details, relative to the groups this message appears on.
             $ret['fromuser'] = $u->getPublic($this->getGroups(), $messagehistory, FALSE);
             filterResult($ret['fromuser']);
+        }
+
+        if ($related) {
+            # Add any related messages
+            $ret['related'] = [];
+            $sql = "SELECT * FROM messages_related WHERE id1 = ? OR id2 = ?;";
+            $rels = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
+            foreach ($rels as $rel) {
+                $id = $rel['id1'] == $this->id ? $rel['id2'] : $rel['id1'];
+                $m = new Message($this->dbhr, $this->dbhm, $id);
+                $ret['related'][] = $m->getPublic(FALSE, FALSE);
+            }
         }
 
         if (pres('heldby', $ret)) {
@@ -1121,5 +1133,60 @@ class Message
     public function getFromuser()
     {
         return $this->fromuser;
+    }
+
+    public function recordRelated() {
+        # Message A is related to message B if:
+        # - they are from the same underlying sender (people may post via multiple routes)
+        # - A is an OFFER and B a TAKEN, or A is a WANTED and B is a RECEIVED
+        # - the TAKEN/RECEIVED is more recent than the OFFER/WANTED (because if it's earlier, it can't be a TAKEN for this OFFER)
+        # - the OFFER/WANTED is more recent than any previous previous similar TAKEN/RECEIVED (because then we have a repost
+        #   or similar items scenario, and the earlier TAKEN will be related to still earlier OFFERs
+        #
+        # We might explicitly flag a message using X-Iznik-Related-To
+        switch ($this->type) {
+            case Message::TYPE_OFFER: $type = Message::TYPE_TAKEN; $datedir = 1; break;
+            case Message::TYPE_TAKEN: $type = Message::TYPE_OFFER; $datedir = -1; break;
+            case Message::TYPE_WANTED: $type = Message::TYPE_RECEIVED; $datedir = 1; break;
+            case Message::TYPE_RECEIVED: $type = Message::TYPE_WANTED; $datedir = -1; break;
+            default: $type = NULL;
+        }
+
+        $found = 0;
+        $sql = "SELECT id, subject, date FROM messages WHERE fromuser = ? AND type = ?;";
+        $messages = $this->dbhr->preQuery($sql, [ $this->fromuser, $type ]);
+
+        $thistime = strtotime($this->date);
+        # Ignore the first word; probably a subject keyword.
+        $subj1 = strtolower(preg_replace('/[A-Za-z]*(.*)/', "$1", $this->subject));
+
+        foreach ($messages as $message) {
+            error_log("{$message['subject']} vs {$this->subject}");
+            error_log("Compare {$message['date']} vs {$this->date}, " . strtotime($message['date']) . " vs $thistime");
+            $match = FALSE;
+
+            if ((($datedir == 1) && strtotime($message['date']) >= $thistime) ||
+                (($datedir == -1) && strtotime($message['date']) <= $thistime)) {
+                error_log("Date right way round");
+                $subj2 = strtolower(preg_replace('/[A-Za-z]*(.*)/', "$1", $message['subject']));
+                error_log("Compare subjects $subj1 vs $subj2");
+
+                if ($subj1 == $subj2) {
+                    # Exact match
+                    error_log("Exact match");
+                    $match = TRUE;
+                }
+            } else {
+                error_log("Date wrong way round");
+            }
+
+            if ($match) {
+                $sql = "INSERT INTO messages_related (id1, id2) VALUES (?,?);";
+                $this->dbhm->preExec($sql, [ $this->id, $message['id']] );
+                $found++;
+            }
+        }
+
+        return($found);
     }
 }

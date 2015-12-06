@@ -13,7 +13,7 @@ require_once IZNIK_BASE . '/include/message/Collection.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class messageTest extends IznikAPITest {
+class messageAPITest extends IznikAPITest {
     public $dbhr, $dbhm;
 
     protected function setUp() {
