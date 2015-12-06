@@ -123,9 +123,14 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         var config = this.options.config ? this.options.config.attributes : null;
 
         var subj = this.model.get('subject');
+
+        // Expand substitution strings in subject
+        subj = this.substitutionStrings(subj, this.model.attributes, config, this.model.get('groups')[0])
+
         this.$('.js-subject').val((stdmsg.subjpref ? stdmsg.subjpref : 'Re') +
         ': ' + subj +
         (stdmsg.subjsuff ? stdmsg.subjsuff : ''));
+
         this.$('.js-myname').html(Iznik.Session.get('me').displayname);
 
         // Quote original message.
@@ -135,7 +140,7 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         // Add text
         msg = (stdmsg.body ? (stdmsg.body + '\n\n') : '') + msg;
 
-        // Expand substitution strings
+        // Expand substitution strings in body
         msg = this.substitutionStrings(msg, this.model.attributes, config, this.model.get('groups')[0]);
 
         // Put it in
