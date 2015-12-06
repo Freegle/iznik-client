@@ -228,6 +228,8 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
 
                     sortmsgs = $.merge(sortmsgs, stdmsgs);
 
+                    var anyrare = false;
+
                     _.each(sortmsgs, function (stdmsg) {
                         if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
                             stdmsg.message = self.model;
@@ -240,10 +242,15 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
                             self.$('.js-stdmsgs').append(el);
 
                             if (stdmsg.rarelyused) {
+                                anyrare = true;
                                 $(el).hide();
                             }
                         }
                     });
+
+                    if (!anyrare) {
+                        self.$('.js-rarelyholder').hide();
+                    }
                 }
             }
 

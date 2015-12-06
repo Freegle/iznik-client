@@ -234,6 +234,8 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
 
             sortmsgs = $.merge(sortmsgs, stdmsgs);
 
+            var anyrare = false;
+
             _.each(sortmsgs, function (stdmsg) {
                 if (_.contains(['Leave Approved Message', 'Delete Approved Message'], stdmsg.action)) {
                     stdmsg.message = self.model;
@@ -246,10 +248,15 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
                     self.$('.js-stdmsgs').append(el);
 
                     if (stdmsg.rarelyused) {
+                        anyrare = true;
                         $(el).hide();
                     }
                 }
             });
+
+            if (!anyrare) {
+                self.$('.js-rarelyholder').hide();
+            }
         }
 
         this.$('.timeago').timeago();
