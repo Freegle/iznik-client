@@ -726,6 +726,7 @@ class Message
             }
         }
     }
+
     # Save a parsed message to the DB
     public function save() {
         # A message we are saving as approved may previously have been in system, for example as pending.  When it
@@ -773,6 +774,9 @@ class Message
                 'text' => $this->messageid,
                 'groupid' => $this->groupid
             ]);
+
+            # Now that we have a ID, record which messages are related to this one.
+            $this->recordRelated();
         }
 
         if ($this->groupid) {

@@ -86,6 +86,20 @@ Iznik.Views.ModTools.Message = IznikView.extend({
                 }
             }
         }
+    },
+
+    showRelated: function() {
+        var self = this;
+
+        _.each(self.model.get('related'), function(related) {
+            // No point displaying any group tag in the duplicate.
+            related.subject = related.subject.replace(/\[.*\](.*)/, "$1");
+
+            var v = new Iznik.Views.ModTools.Message.Related({
+                model: new IznikModel(related)
+            });
+            self.$('.js-relatedlist').append(v.render().el);
+        });
     }
 });
 
@@ -231,8 +245,6 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
 
         var dt = stdmsg.get('newdelstatus');
         var ps = stdmsg.get('newmodstatus');
-
-        console.log("Settings change?", stdmsg, dt, ps, trigger, message, group);
 
         if (dt != 'UNCHANGED') {
             $.ajax({
@@ -442,6 +454,17 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
 
 Iznik.Views.ModTools.Message.Duplicate = IznikView.extend({
     template: 'modtools_message_duplicate',
+
+    render: function() {
+        var self = this;
+        self.$el.html(window.template(self.template)(self.model.toJSON2()));
+        this.$('.timeago').timeago();
+        return(this);
+    }
+});
+
+Iznik.Views.ModTools.Message.Related = IznikView.extend({
+    template: 'modtools_message_related',
 
     render: function() {
         var self = this;

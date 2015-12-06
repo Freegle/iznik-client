@@ -202,6 +202,7 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
 
             if (config) {
                 self.checkMessage(config);
+                self.showRelated();
 
                 // Add the other standard messages, in the order requested.
                 var stdmsgs = config.get('stdmsgs');
@@ -227,7 +228,6 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
 
                 _.each(sortmsgs, function (stdmsg) {
                     if (_.contains(['Leave Approved Message', 'Delete Approved Message'], stdmsg.action)) {
-                        console.log(stdmsg);
                         stdmsg.message = self.model;
                         var v = new Iznik.Views.ModTools.StdMessage.Button({
                             model: new IznikModel(stdmsg),

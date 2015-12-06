@@ -38,7 +38,6 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
                     var lastlen = 0;
                     return(function() {
                         if (lastlen != self.collectionView.length) {
-                            console.log("Lengthchanged ", lastlen, self.collectionView.length);
                             lastlen = self.collectionView.length;
                             if (self.collectionView.length == 0) {
                                 self.$('.js-none').fadeIn('slow');
@@ -207,6 +206,7 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
 
                 if (config) {
                     self.checkMessage(config);
+                    self.showRelated();
 
                     // Add the other standard messages, in the order requested.
                     var stdmsgs = config.get('stdmsgs');
