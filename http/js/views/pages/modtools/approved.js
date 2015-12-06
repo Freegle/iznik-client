@@ -177,6 +177,77 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
                 });
                 self.$('.js-yahoo').append(v.render().el);
             });
+            // Add the default standard actions.
+            var configs = Iznik.Session.get('configs');
+            var sessgroup = Iznik.Session.get('groups').get(group.id);
+            var config = configs.get(sessgroup.get('configid'));
+
+            self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
+                model: new IznikModel({
+                    title: 'Reply',
+                    action: 'Leave Approved Message',
+                    message: self.model,
+                    config: config
+                })
+            }).render().el);
+
+            self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
+                model: new IznikModel({
+                    title: 'Delete',
+                    action: 'Delete Approved Message',
+                    message: self.model,
+                    config: config
+                })
+            }).render().el);
+
+            if (config) {
+                self.checkMessage(config);
+
+                // Add the other standard messages, in the order requested.
+                var stdmsgs = config.get('stdmsgs');
+                var order = JSON.parse(config.get('messageorder'));
+                var sortmsgs = [];
+                _.each(order, function (id) {
+                    var stdmsg = null;
+                    _.each(stdmsgs, function (thisone) {
+                        if (thisone.id == id) {
+                            stdmsg = thisone;
+                        }
+                    });
+
+                    if (stdmsg) {
+                        sortmsgs.push(stdmsg);
+                        stdmsgs = _.without(stdmsgs, stdmsg);
+                    }
+                });
+
+                sortmsgs = $.merge(sortmsgs, stdmsgs);
+
+                var anyrare = false;
+
+                _.each(sortmsgs, function (stdmsg) {
+                    if (_.contains(['Leave Approved Message', 'Delete Approved Message'], stdmsg.action)) {
+                        console.log(stdmsg);
+                        stdmsg.message = self.model;
+                        var v = new Iznik.Views.ModTools.StdMessage.Button({
+                            model: new IznikModel(stdmsg),
+                            config: config
+                        });
+
+                        var el = v.render().el;
+                        self.$('.js-stdmsgs').append(el);
+
+                        if (stdmsg.rarelyused) {
+                            anyrare = true;
+                            $(el).hide();
+                        }
+                    }
+                });
+
+                if (!anyrare) {
+                    self.$('.js-rarelyholder').hide();
+                }
+            }
         });
 
         // Add any attachments.
@@ -187,77 +258,6 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
 
             self.$('.js-attlist').append(v.render().el);
         });
-
-        // Add the default standard actions.
-        var configs = Iznik.Session.get('configs');
-        var sessgroup = Iznik.Session.get('groups').get(group.id);
-        var config = configs.get(sessgroup.get('configid'));
-
-        self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
-            model: new IznikModel({
-                title: 'Reply',
-                action: 'Leave Approved Message',
-                message: self.model,
-                config: config
-            })
-        }).render().el);
-
-        self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
-            model: new IznikModel({
-                title: 'Delete',
-                action: 'Delete Approved Message',
-                message: self.model,
-                config: config
-            })
-        }).render().el);
-
-        if (config) {
-            self.checkMessage(config);
-
-            // Add the other standard messages, in the order requested.
-            var stdmsgs = config.get('stdmsgs');
-            var order = JSON.parse(config.get('messageorder'));
-            var sortmsgs = [];
-            _.each(order, function (id) {
-                var stdmsg = null;
-                _.each(stdmsgs, function (thisone) {
-                    if (thisone.id == id) {
-                        stdmsg = thisone;
-                    }
-                });
-
-                if (stdmsg) {
-                    sortmsgs.push(stdmsg);
-                    stdmsgs = _.without(stdmsgs, stdmsg);
-                }
-            });
-
-            sortmsgs = $.merge(sortmsgs, stdmsgs);
-
-            var anyrare = false;
-
-            _.each(sortmsgs, function (stdmsg) {
-                if (_.contains(['Leave Approved Message', 'Delete Approved Message'], stdmsg.action)) {
-                    stdmsg.message = self.model;
-                    var v = new Iznik.Views.ModTools.StdMessage.Button({
-                        model: new IznikModel(stdmsg),
-                        config: config
-                    });
-
-                    var el = v.render().el;
-                    self.$('.js-stdmsgs').append(el);
-
-                    if (stdmsg.rarelyused) {
-                        anyrare = true;
-                        $(el).hide();
-                    }
-                }
-            });
-
-            if (!anyrare) {
-                self.$('.js-rarelyholder').hide();
-            }
-        }
 
         this.$('.timeago').timeago();
         //this.$el.fadeIn('slow');

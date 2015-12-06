@@ -377,7 +377,7 @@ Iznik.Views.ModTools.StdMessage.Edit = Iznik.Views.Modal.extend({
 });
 
 Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
-    template: 'modtools_pending_stdmsg',
+    template: 'modtools_message_stdmsg',
 
     tagName: 'li',
 
