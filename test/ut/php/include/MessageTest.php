@@ -64,6 +64,12 @@ class messageTest extends IznikTest {
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         assertEquals(0, $m->recordRelated());
 
+        # TAKEN with similar wording - should match
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_replace('Basic test', 'TAKEN: Test thing', $msg);
+        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        assertEquals(1, $m->recordRelated());
+
         error_log(__METHOD__ . " end");
     }
 }

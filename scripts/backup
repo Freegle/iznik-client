@@ -14,11 +14,21 @@ XTRABACKUP=/usr/bin/innobackupex
 # Get user and password
 SQLUSER=`grep user ~/.my.cnf | awk -F= '{print $2}'`
 SQLPASSWORD=`grep password ~/.my.cnf | awk -F= '{print $2}'`
-OPTIONS="--user=$SQLUSER --password=$SQLPASSWORD"
+OPTIONS="--compress --user=$SQLUSER --password=$SQLPASSWORD"
 
 APPLY_LOG_OPTIONS="--apply-log"
 BACKUP="$XTRABACKUP $OPTIONS $BACKUPDIR"
 APPLY_BINARY_LOG="$XTRABACKUP $OPTIONS $APPLY_LOG_OPTIONS"
+
+# Check if we have space
+free=`df -m / | awk '/[0-9]%/{print $(NF-2)}'`
+echo "Free is $free"
+
+if [ $free -lt 50000 ]
+then
+   echo "Skipped backup as insufficient spare disk space" | mail -s "BACKUP ERROR: Not enough disk space" $EMAIL
+   exit
+fi
 
 # run a backup
 $BACKUP
@@ -26,12 +36,16 @@ $BACKUP
 if [ $? == 0 ]; then
 
   # we got a backup, now we need to apply the binary logs
+  #
+  # Can't do this with --compress option.
   MOST_RECENT=`ls -rt $BACKUPDIR | tail -n1`
-  $APPLY_BINARY_LOG $BACKUPDIR/$MOST_RECENT
+  # $APPLY_BINARY_LOG $BACKUPDIR/$MOST_RECENT
 
   if [ $? == 0 ]; then
     # Compress
-    find $BACKUPDIR/$MOST_RECENT/* -exec gzip {} \;
+    #
+    # No point compressing with --compress option
+    # find $BACKUPDIR/$MOST_RECENT/* -exec gzip {} \;
 
     # Offsite - you might need to change this.
     /root/gsutil/gsutil cp -r /backups/ gs://freegle_backup > /tmp/gsutil.out 2>&1

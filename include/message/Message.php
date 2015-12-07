@@ -1157,31 +1157,35 @@ class Message
         }
 
         $found = 0;
-        $sql = "SELECT id, subject, date FROM messages WHERE fromuser = ? AND type = ?;";
-        $messages = $this->dbhr->preQuery($sql, [ $this->fromuser, $type ]);
+
+        # We get the Damerau-Levenshtein distance between the subjects, which we can use to
+        # find the closest match if there isn't an exact one.
+        $sql = "SELECT id, subject, date, DAMLEVLIM(subject, ?, 50) AS dist, MIN(DAMLEVLIM(subject, ?, 50)) AS mindist FROM messages WHERE fromuser = ? AND type = ?;";
+        $messages = $this->dbhr->preQuery($sql, [ $this->subject, $this->subject, $this->fromuser, $type ]);
 
         $thistime = strtotime($this->date);
         # Ignore the first word; probably a subject keyword.
         $subj1 = strtolower(preg_replace('/[A-Za-z]*(.*)/', "$1", $this->subject));
 
         foreach ($messages as $message) {
-            error_log("{$message['subject']} vs {$this->subject}");
-            error_log("Compare {$message['date']} vs {$this->date}, " . strtotime($message['date']) . " vs $thistime");
+            #error_log("{$message['subject']} vs {$this->subject} dist {$message['dist']} vs {$message['mindist']}");
+            #error_log("Compare {$message['date']} vs {$this->date}, " . strtotime($message['date']) . " vs $thistime");
             $match = FALSE;
 
             if ((($datedir == 1) && strtotime($message['date']) >= $thistime) ||
                 (($datedir == -1) && strtotime($message['date']) <= $thistime)) {
-                error_log("Date right way round");
                 $subj2 = strtolower(preg_replace('/[A-Za-z]*(.*)/', "$1", $message['subject']));
-                error_log("Compare subjects $subj1 vs $subj2");
+                #error_log("Compare subjects $subj1 vs $subj2 dist lim " . (strlen($subj1) * 3 / 4));
 
                 if ($subj1 == $subj2) {
                     # Exact match
                     error_log("Exact match");
                     $match = TRUE;
+                } else if ($message['dist'] == $message['mindist'] &&
+                            $message['dist'] <= strlen($subj1) * 3 / 4) {
+                    # This is the closest match, but not utterly different.
+                    $match = TRUE;
                 }
-            } else {
-                error_log("Date wrong way round");
             }
 
             if ($match) {
