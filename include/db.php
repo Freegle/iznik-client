@@ -319,7 +319,7 @@ class LoggedPDO {
                 $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
             }
 
-            if (strlen($sql) < 4000000) {
+            if (strlen($sql) < 2000000) {
                 # Anything larger than this is probably not worth logging, even if it's worth
                 # executing.
                 $this->pheanstalk->put(json_encode(array(

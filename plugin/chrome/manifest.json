@@ -3,7 +3,7 @@
 
   "name": "ModTools",
   "description": "Make moderating Yahoo Groups easier",
-  "version": "0.16",
+  "version": "0.17",
 
   "permissions": [
     "*://*.modtools.org/",

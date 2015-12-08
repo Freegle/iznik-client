@@ -46,7 +46,6 @@ Iznik.Models.Message = IznikModel.extend({
                     groupid: group.id,
                     action: 'Approve'
                 }, success: function(ret) {
-                    console.log("Trigger approved");
                     self.trigger('approved');
                 }
             })

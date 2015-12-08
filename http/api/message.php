@@ -47,7 +47,6 @@ function message() {
                             $m = NULL;
                         } else {
                             $groups = $m->getGroups();
-                            error_log("Check groups " . count($groups) . " vs $groupid");
                             if (count($groups) == 0 || !$groupid || !$me->isModOrOwner($groups[0])) {
                                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
                                 $m = NULL;

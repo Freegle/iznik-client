@@ -265,82 +265,84 @@ class Group extends Entity
     }
 
     public function correlate($collections, $messages) {
-        # Check whether any of the messages in $messages are not present on the server or vice-versa.
         $missingonserver = [];
-        $supplied = [];
         $missingonclient = [];
-        $cs = [];
 
-        # First find messages which are missing on the server, i.e. present in $messages but not
-        # present in any of $collections.
-        foreach ($collections as $collection)
-        {
-            $c = new Collection($this->dbhr, $this->dbhm, $collection);
-            $cs[] = $c;
+        if ($messages) {
+            # Check whether any of the messages in $messages are not present on the server or vice-versa.
+            $supplied = [];
+            $cs = [];
 
-            if ($collection = Collection::APPROVED) {
-                $this->dbhm->preExec("UPDATE groups SET lastyahoomessagesync = NOW() WHERE id = ?;", [
-                    $this->id
-                ]);
+            # First find messages which are missing on the server, i.e. present in $messages but not
+            # present in any of $collections.
+            foreach ($collections as $collection) {
+                $c = new Collection($this->dbhr, $this->dbhm, $collection);
+                $cs[] = $c;
+
+                if ($collection = Collection::APPROVED) {
+                    $this->dbhm->preExec("UPDATE groups SET lastyahoomessagesync = NOW() WHERE id = ?;", [
+                        $this->id
+                    ]);
+                }
             }
-        }
 
-        foreach ($messages as $message) {
-            $key = $this->getKey($message);
-            $supplied[$key] = true;
+            foreach ($messages as $message) {
+                $key = $this->getKey($message);
+                $supplied[$key] = true;
 
-            $missing = true;
+                $missing = true;
 
+                foreach ($cs as $c) {
+                    /** @var Collection $c */
+                    $id = NULL;
+
+                    switch (($c->getCollection())) {
+                        case Collection::APPROVED:
+                            $id = $c->findByYahooApprovedId($this->id, $message['yahooapprovedid']);
+                            break;
+                        case Collection::PENDING:
+                            $id = $c->findByYahooPendingId($this->id, $message['yahoopendingid']);
+                            break;
+                    }
+
+                    if ($id) {
+                        $missing = false;
+                    }
+                }
+
+                if ($missing) {
+                    $missingonserver[] = $message;
+                }
+            }
+
+            # Now find messages which are missing on the client, i.e. present in $collections but not present in
+            # $messages.
+            /** @var Collection $c */
             foreach ($cs as $c) {
-                /** @var Collection $c */
-                $id = NULL;
+                $sql = "SELECT id, fromaddr, yahoopendingid, yahooapprovedid, subject, date FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ?;";
+                $ourmsgs = $this->dbhr->preQuery(
+                    $sql,
+                    [
+                        $this->id,
+                        $c->getCollection()
+                    ]
+                );
 
-                switch (($c->getCollection())) {
-                    case Collection::APPROVED:
-                        $id = $c->findByYahooApprovedId($this->id, $message['yahooapprovedid']);
-                        break;
-                    case Collection::PENDING:
-                        $id = $c->findByYahooPendingId($this->id, $message['yahoopendingid']);
-                        break;
-                }
-
-                if ($id) {
-                    $missing = false;
-                }
-            }
-
-            if ($missing) {
-                $missingonserver[] = $message;
-            }
-        }
-
-        # Now find messages which are missing on the client, i.e. present in $collections but not present in
-        # $messages.
-        /** @var Collection $c */
-        foreach ($cs as $c) {
-            $sql = "SELECT id, fromaddr, yahoopendingid, yahooapprovedid, subject, date FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ?;";
-            $ourmsgs = $this->dbhr->preQuery(
-                $sql,
-                [
-                    $this->id,
-                    $c->getCollection()
-                ]
-            );
-
-            foreach ($ourmsgs as $msg) {
-                $key = $this->getKey($msg);
-                if (!array_key_exists($key, $supplied)) {
-                    $missingonclient[] = [
-                        'id' => $msg['id'],
-                        'email' => $msg['fromaddr'],
-                        'subject' => $msg['subject'],
-                        'collection' => $c->getCollection(),
-                        'date' => ISODate($msg['date'])
-                    ];
+                foreach ($ourmsgs as $msg) {
+                    $key = $this->getKey($msg);
+                    if (!array_key_exists($key, $supplied)) {
+                        $missingonclient[] = [
+                            'id' => $msg['id'],
+                            'email' => $msg['fromaddr'],
+                            'subject' => $msg['subject'],
+                            'collection' => $c->getCollection(),
+                            'date' => ISODate($msg['date'])
+                        ];
+                    }
                 }
             }
         }
 
-        return([$missingonserver, $missingonclient]);
+        return ([$missingonserver, $missingonclient]);
     }
 }

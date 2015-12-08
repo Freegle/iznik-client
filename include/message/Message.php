@@ -468,11 +468,9 @@ class Message
         return($atts);
     }
 
-    public static function determineType($subj) {
-        $type = Message::TYPE_OTHER;
-
+    private function keywords() {
         # We try various mis-spellings, and Welsh.  This is not to suggest that Welsh is a spelling error.
-        $keywords = [
+        return([
             Message::TYPE_OFFER => [
                 'ofer', 'offr', 'offrer', 'ffered', 'offfered', 'offrered', 'offered', 'offeer', 'cynnig', 'offred',
                 'offer', 'offering', 'reoffer', 're offer', 're-offer', 'reoffered', 're offered', 're-offered',
@@ -485,9 +483,13 @@ class Message
             Message::TYPE_RECEIVED => ['recieved', 'reiceved', 'receved', 'rcd', 'rec\'d', 'recevied',
                 'receive', 'derbynewid', 'derbyniwyd', 'received', 'recivered'],
             Message::TYPE_ADMIN => ['admin', 'sn']
-        ];
+        ]);
+    }
 
-        foreach ($keywords as $keyword => $vals) {
+    public static function determineType($subj) {
+        $type = Message::TYPE_OTHER;
+
+        foreach (Message::keywords() as $keyword => $vals) {
             foreach ($vals as $val) {
                 if (preg_match('/\b' . preg_quote($val) . '\b/i', $subj)) {
                     $type = $keyword;
@@ -1158,43 +1160,73 @@ class Message
 
         $found = 0;
 
-        # We get the Damerau-Levenshtein distance between the subjects, which we can use to
-        # find the closest match if there isn't an exact one.
-        $sql = "SELECT id, subject, date, DAMLEVLIM(subject, ?, 50) AS dist, MIN(DAMLEVLIM(subject, ?, 50)) AS mindist FROM messages WHERE fromuser = ? AND type = ?;";
-        $messages = $this->dbhr->preQuery($sql, [ $this->subject, $this->subject, $this->fromuser, $type ]);
+        if ($type) {
+            # We get the Damerau-Levenshtein distance between the subjects, which we can use to
+            # find the closest match if there isn't an exact one.
+            $sql = "SELECT id, subject, date, DAMLEVLIM(subject, ?, 50) AS dist, MIN(DAMLEVLIM(subject, ?, 50)) AS mindist FROM messages WHERE fromuser = ? AND type = ?;";
+            $messages = $this->dbhr->preQuery($sql, [ $this->subject, $this->subject, $this->fromuser, $type ]);
 
-        $thistime = strtotime($this->date);
-        # Ignore the first word; probably a subject keyword.
-        $subj1 = strtolower(preg_replace('/[A-Za-z]*(.*)/', "$1", $this->subject));
+            $thistime = strtotime($this->date);
+            # Ignore the first word; probably a subject keyword.
+            $subj1 = strtolower(preg_replace('/[A-Za-z]*(.*)/', "$1", $this->subject));
 
-        foreach ($messages as $message) {
-            #error_log("{$message['subject']} vs {$this->subject} dist {$message['dist']} vs {$message['mindist']}");
-            #error_log("Compare {$message['date']} vs {$this->date}, " . strtotime($message['date']) . " vs $thistime");
-            $match = FALSE;
+            foreach ($messages as $message) {
+                #error_log("{$message['subject']} vs {$this->subject} dist {$message['dist']} vs {$message['mindist']}");
+                #error_log("Compare {$message['date']} vs {$this->date}, " . strtotime($message['date']) . " vs $thistime");
+                $match = FALSE;
 
-            if ((($datedir == 1) && strtotime($message['date']) >= $thistime) ||
-                (($datedir == -1) && strtotime($message['date']) <= $thistime)) {
-                $subj2 = strtolower(preg_replace('/[A-Za-z]*(.*)/', "$1", $message['subject']));
-                #error_log("Compare subjects $subj1 vs $subj2 dist lim " . (strlen($subj1) * 3 / 4));
+                if ((($datedir == 1) && strtotime($message['date']) >= $thistime) ||
+                    (($datedir == -1) && strtotime($message['date']) <= $thistime)) {
+                    $subj2 = strtolower(preg_replace('/[A-Za-z]*(.*)/', "$1", $message['subject']));
+                    #error_log("Compare subjects $subj1 vs $subj2 dist lim " . (strlen($subj1) * 3 / 4));
 
-                if ($subj1 == $subj2) {
-                    # Exact match
-                    error_log("Exact match");
-                    $match = TRUE;
-                } else if ($message['dist'] == $message['mindist'] &&
-                            $message['dist'] <= strlen($subj1) * 3 / 4) {
-                    # This is the closest match, but not utterly different.
-                    $match = TRUE;
+                    if ($subj1 == $subj2) {
+                        # Exact match
+                        error_log("Exact match");
+                        $match = TRUE;
+                    } else if ($message['dist'] == $message['mindist'] &&
+                        $message['dist'] <= strlen($subj1) * 3 / 4) {
+                        # This is the closest match, but not utterly different.
+                        $match = TRUE;
+                    }
                 }
-            }
 
-            if ($match) {
-                $sql = "INSERT INTO messages_related (id1, id2) VALUES (?,?);";
-                $this->dbhm->preExec($sql, [ $this->id, $message['id']] );
-                $found++;
+                if ($match) {
+                    $sql = "INSERT INTO messages_related (id1, id2) VALUES (?,?);";
+                    $this->dbhm->preExec($sql, [ $this->id, $message['id']] );
+                    $found++;
+                }
             }
         }
 
         return($found);
+    }
+
+    static public function suggestSubject($subject) {
+        # This method is used to improve subjects.
+        $type = determineType($subject);
+        error_log("$subject has type $type");
+
+        switch ($type) {
+            case Message::TYPE_OFFER:
+            case Message::TYPE_TAKEN:
+            case Message::TYPE_WANTED:
+            case Message::TYPE_RECEIVED:
+                # Remove any subject tag.
+                $subject = preg_replace('/\[.*\]\s*/', '', $subject);
+                error_log("After tag $subject");
+
+                # Strip any of the keywords.
+                foreach (Message::$keywords[$type] as $keyword) {
+                    $subject = preg_replace('/(^|\b)' + preg_quote($keyword) . '\b/ig', '', $subject);
+                }
+                error_log("After keywords $subject");
+
+                # Shrink multiple spaces
+                $subject = preg_replace('/\s+/', ' ', $subject);
+                $subject = trim($subject);
+                error_log("After spaces $subject");
+                break;
+        }
     }
 }

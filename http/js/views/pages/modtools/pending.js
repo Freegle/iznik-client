@@ -110,6 +110,10 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
         var self = this;
 
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
+
+        // Set this here to avoid escaping issues.
+        self.$('.js-subject').val(self.model.get('subject'));
+
         _.each(self.model.get('groups'), function(group, index, list) {
             var mod = new IznikModel(group);
 
