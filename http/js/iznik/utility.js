@@ -19,6 +19,9 @@ function canonSubj(subj) {
     // Remove any group tag
     subj = subj.replace(/^\[.*\](.*)/, "$1");
 
+    // Remove duplicate spaces
+    subj = subj.replace(/\s+/g, ' ');
+
     subj = subj.trim();
 
     return(subj);
