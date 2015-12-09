@@ -62,18 +62,25 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         var self = this;
         this.updatePluginCount();
 
-        var groups = Iznik.Session.get('groups');
-        var groupname = groups && groups.length > 0 ? groups.at(0).get('nameshort') : null;
-
-        if (groupname && !this.currentItem) {
+        if (!this.currentItem) {
             // Get any first item of work to do.
             var first = this.work.shift();
 
             if (first) {
                 self.currentItem = first;
+                console.log("First item", first);
 
-                // Get a crumb from Yahoo to do the work.  It doesn't matter which of our groups we do this for -
-                // Yahoo returns the same crumb.
+                var groupname;
+
+                if (first.model.get('nameshort')) {
+                    // Get a crumb from the relevant group
+                    groupname = first.model.get('nameshort');
+                } else {
+                    // We're not acting on a specific group.  Get a crumb from one of ours.
+                    var groups = Iznik.Session.get('groups');
+                    groupname = groups && groups.length > 0 ? groups.at(0).get('nameshort') : null;
+                }
+
                 function getCrumb(ret) {
                     var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
 
