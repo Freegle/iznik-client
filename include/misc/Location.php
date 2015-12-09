@@ -58,7 +58,7 @@ class Location extends Entity
         $count = 0;
         $locs = $dbhr->preQuery("SELECT * FROM locations WHERE gridid IS NULL;");
         foreach ($locs as $loc) {
-            $sql = "SELECT locations_grids.id AS gridid FROM `locations` INNER JOIN locations_grids ON locations.id = ? AND MBRIntersects(locations.geometry, locations_grids.box);";
+            $sql = "SELECT locations_grids.id AS gridid FROM `locations` INNER JOIN locations_grids ON locations.id = ? AND MBRIntersects(locations.geometry, locations_grids.box) LIMIT 1;";
             $grids = $dbhr->preQuery($sql, [ $loc['id'] ]);
             foreach ($grids as $grid) {
                 $sql = "UPDATE locations SET gridid = ? WHERE id = ?;";

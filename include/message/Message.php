@@ -1205,7 +1205,6 @@ class Message
     static public function suggestSubject($subject) {
         # This method is used to improve subjects.
         $type = determineType($subject);
-        error_log("$subject has type $type");
 
         switch ($type) {
             case Message::TYPE_OFFER:
@@ -1214,19 +1213,18 @@ class Message
             case Message::TYPE_RECEIVED:
                 # Remove any subject tag.
                 $subject = preg_replace('/\[.*\]\s*/', '', $subject);
-                error_log("After tag $subject");
 
                 # Strip any of the keywords.
                 foreach (Message::$keywords[$type] as $keyword) {
                     $subject = preg_replace('/(^|\b)' + preg_quote($keyword) . '\b/ig', '', $subject);
                 }
-                error_log("After keywords $subject");
 
                 # Shrink multiple spaces
                 $subject = preg_replace('/\s+/', ' ', $subject);
                 $subject = trim($subject);
-                error_log("After spaces $subject");
                 break;
         }
+
+        return($subject);
     }
 }
