@@ -78,6 +78,31 @@ class messageAPITest extends IznikAPITest {
         error_log(__METHOD__ . " end");
     }
 
+    public function testBadColl()
+    {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        # Create a group with a message on it
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        # Shouldn't be able to see a bad collection
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
+            'collection' => 'BadColl'
+        ]);
+        assertEquals(101, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testPending() {
         error_log(__METHOD__);
 

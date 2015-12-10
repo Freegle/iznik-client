@@ -59,6 +59,6 @@ class Log
             implode(',', $p) . ");";
 
         # No need to check return code - if it doesn't work, nobody dies.
-        $this->dbhm->preExec($sql, $params);
+        $rc = $this->dbhm->preExec($sql, $params);
     }
 }

@@ -36,7 +36,7 @@ class userAPITest extends IznikAPITest {
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
-        $this->user->addMembership($this->groupid);
+        assertEquals(1, $this->user->addMembership($this->groupid));
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($this->user->login('testpw'));
 
@@ -130,11 +130,8 @@ class userAPITest extends IznikAPITest {
 
         error_log(var_export($ret, true));
 
-        assertEquals(3, count($ret['user']['logs']));
-        assertEquals('Group', $ret['user']['logs'][1]['type']);
-        assertEquals('Joined', $ret['user']['logs'][1]['subtype']);
-        assertEquals($this->groupid, $ret['user']['logs'][1]['group']['id']);
-        assertEquals($this->uid, $ret['user']['logs'][2]['byuser']['id']);
+        $log = $this->findLog('Group', 'Joined', $ret['user']['logs']);
+        assertEquals($this->groupid, $log['group']['id']);
 
         error_log(__METHOD__ . " end");
     }

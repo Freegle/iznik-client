@@ -48,9 +48,17 @@ class MailRouterTest extends IznikTest {
     public function testSpamSubject() {
         error_log(__METHOD__);
 
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+
+        # Test spam to no group
+        $msg = file_get_contents('msgs/spam');
+        $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
         $subj = "Test spam subject " . microtime();
         $groups = [];
-        $r = new MailRouter($this->dbhr, $this->dbhm);
 
         for ($i = 0; $i < Spam::SUBJECT_THRESHOLD + 2; $i++) {
             $g = new Group($this->dbhr, $this->dbhm);
@@ -494,7 +502,6 @@ class MailRouterTest extends IznikTest {
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($m->getGroupId());
         $id = $m->save();
-        error_log("Set up id $id");
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $r->routeAll();
@@ -564,6 +571,30 @@ class MailRouterTest extends IznikTest {
         assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals($uid, $m->getFromuser());
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testLargeAttachment() {
+        error_log(__METHOD__);
+
+        # Large attachments should get scaled down during the save.
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        assertGreaterThan(0, $u->addEmail('test@test.com'));
+
+        $msg = file_get_contents('msgs/attachment_large');
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
+        assertNotNull($id);
+
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $atts = $m->getAttachments();
+        assertEquals(1, count($atts));
+        assertEquals('image/jpeg', $atts[0]->getContentType());
+        assertLessThan(30000, strlen($atts[0]->getData()));
 
         error_log(__METHOD__ . " end");
     }

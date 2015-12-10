@@ -88,10 +88,9 @@ class messagesTest extends IznikAPITest {
             'logs' => TRUE
         ]);
         error_log("Logs".  var_export($ret, true));
-        assertEquals('Message', $ret['user']['logs'][3]['type']);
-        assertEquals('Received', $ret['user']['logs'][3]['subtype']);
-        assertEquals($group1, $ret['user']['logs'][3]['group']['id']);
-        assertEquals($a->getFromuser(), $ret['user']['logs'][3]['user']['id']);
+        $log = $this->findLog('Message', 'Received', $ret['user']['logs']);
+        assertEquals($group1, $log['group']['id']);
+        assertEquals($a->getFromuser(), $log['user']['id']);
 
         $a->delete();
 

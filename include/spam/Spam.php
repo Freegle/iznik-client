@@ -10,6 +10,12 @@ class Spam {
     CONST GROUP_THRESHOLD = 20;
     CONST SUBJECT_THRESHOLD = 30;  // SUBJECT_THRESHOLD must be > GROUP_THRESHOLD for UT
 
+    CONST REASON_COUNTRY_BLOCKED = 'CountryBlocked';
+    CONST REASON_IP_USED_FOR_DIFFERENT_USERS = 'IPUsedForDifferentUsers';
+    CONST REASON_IP_USED_FOR_DIFFERENT_GROUPS = 'IPUsedForDifferentGroups';
+    CONST REASON_SUBJECT_USED_FOR_DIFFERENT_GROUPS = 'SubjectUsedForDifferentGroups';
+    CONST REASON_SPAMASSASSIN = 'SpamAssassin';
+
     /** @var  $dbhr LoggedPDO */
     private $dbhr;
 
@@ -67,7 +73,7 @@ class Spam {
             $countries = $this->dbhr->preQuery("SELECT * FROM spam_countries WHERE country LIKE ?;", [$country]);
             foreach ($countries as $country) {
                 # Gotcha.
-                return(array(true, "Blocking IP $ip as it's in {$country['country']}"));
+                return(array(true, Spam::REASON_COUNTRY_BLOCKED, "Blocking IP $ip as it's in {$country['country']}"));
             }
 
             # Now see if this IP has been used for too many different users.  That is likely to
@@ -84,7 +90,7 @@ class Spam {
                 foreach ($users as $user) {
                     $list[] = $user['fromname'];
                 }
-                return(array(true, "IP $ip ($host) recently used for $numusers different users (" . implode(',', $list) . ")"));
+                return(array(true, Spam::REASON_IP_USED_FOR_DIFFERENT_USERS, "IP $ip ($host) recently used for $numusers different users (" . implode(',', $list) . ")"));
             }
 
             # Now see if this IP has been used for too many different groups.  That's likely to
@@ -98,7 +104,7 @@ class Spam {
                 foreach ($groups as $group) {
                     $list[] = $group['nameshort'];
                 }
-                return(array(true, "IP $ip ($host) recently used for $numgroups different groups (" . implode(',', $list) . ")"));
+                return(array(true, Spam::REASON_IP_USED_FOR_DIFFERENT_GROUPS, "IP $ip ($host) recently used for $numgroups different groups (" . implode(',', $list) . ")"));
             }
         }
 
@@ -124,7 +130,7 @@ class Spam {
                     }
 
                     if (!$found) {
-                        return (array(true, "Warning - subject $subj recently used on {$count['count']} groups"));
+                        return (array(true, Spam::REASON_SUBJECT_USED_FOR_DIFFERENT_GROUPS, "Warning - subject $subj recently used on {$count['count']} groups"));
                     }
                 }
             }

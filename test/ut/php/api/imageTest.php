@@ -13,7 +13,7 @@ require_once IZNIK_BASE . '/include/message/Collection.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class imageTest extends IznikAPITest {
+class imageAPITest extends IznikAPITest {
     public $dbhr, $dbhm;
 
     protected function setUp() {
@@ -55,6 +55,7 @@ class imageTest extends IznikAPITest {
             'id' => $id,
             'collection' => 'Approved'
         ]);
+        error_log(var_export($ret, true));
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['message']['id']);
         assertEquals(2, count($ret['message']['attachments']));
@@ -66,6 +67,13 @@ class imageTest extends IznikAPITest {
         ], FALSE);
 
         assertEquals(1031, strlen($ret));
+
+        $ret = $this->call('image', 'GET', [
+            'id' => $img1,
+            'h' => 100
+        ], FALSE);
+
+        assertEquals(1961, strlen($ret));
 
         $a->delete();
         $g->delete();

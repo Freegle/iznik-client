@@ -24,7 +24,7 @@ APPLY_BINARY_LOG="$XTRABACKUP $OPTIONS $APPLY_LOG_OPTIONS"
 free=`df -m / | awk '/[0-9]%/{print $(NF-2)}'`
 echo "Free is $free"
 
-if [ $free -lt 50000 ]
+if [ $free -lt 30000 ]
 then
    echo "Skipped backup as insufficient spare disk space" | mail -s "BACKUP ERROR: Not enough disk space" $EMAIL
    exit

@@ -56,6 +56,7 @@ function message() {
                     default:
                         # If they don't say what they're doing properly, they can't do it.
                         $m = NULL;
+                        $ret = [ 'ret' => 101, 'status' => 'Bad collection' ];
                         break;
                 }
             }

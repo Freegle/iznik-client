@@ -404,7 +404,7 @@ class User extends Entity
             # We can only see logs for this user if we have a mod role on one of the groups of which they are
             # a member, or if we have appropriate system rights.
             # TODO
-            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) AND text NOT IN ('Not present on Yahoo pending') ORDER BY timestamp DESC;";
+            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) AND (text IS NULL OR text NOT IN ('Not present on Yahoo pending')) ORDER BY timestamp DESC;";
             $logs = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
             $atts['logs'] = [];
             $groups = [];

@@ -806,6 +806,18 @@ class Message
 
             # Can't use LOAD_FILE as server may be remote.
             $data = file_get_contents($fn);
+
+            # Scale the image if it's large.  Ideally we'd store the full size image, but images can be many meg, and
+            # it chews up disk space.
+            if (strlen($data) > 300000) {
+                $i = new Image($data);
+                $w = $i->width();
+                $w = min(1024, $w);
+                $i->scale($w, NULL);
+                $data = $i->getData();
+                $ct = 'image/jpeg';
+            }
+
             $sql = "INSERT INTO messages_attachments (msgid, contenttype, data) VALUES (?,?,?);";
             $this->dbhm->preExec($sql, [
                 $this->id,

@@ -26,5 +26,17 @@ class IznikTest extends PHPUnit_Framework_TestCase {
 
     public function __construct() {
     }
+
+    public function findLog($type, $subtype, $logs) {
+        foreach ($logs as $log) {
+            if ($log['type'] == $type && $log['subtype'] == $subtype) {
+                error_log("Found log " . var_export($log, true));
+                return($log);
+            }
+        }
+
+        error_log("Failed to find log $type $subtype");
+        return(NULL);
+    }
 }
 

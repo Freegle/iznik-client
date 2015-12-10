@@ -68,10 +68,11 @@ class MailRouter
     }
 
     # Public for UT
-    public function markAsSpam($reason) {
-        error_log("Mark " . $this->msg->getID() . " as spam");
+    public function markAsSpam($type, $reason) {
+        error_log("Mark " . $this->msg->getID() . " as spam because $type $reason");
         return(
-            $this->dbhm->preExec("UPDATE messages SET spamreason = ? WHERE id = ?;", [
+            $this->dbhm->preExec("UPDATE messages SET spamtype = ?, spamreason = ? WHERE id = ?;", [
+                $type,
                 $reason,
                 $this->msg->getID()
             ]) &&
@@ -105,17 +106,30 @@ class MailRouter
             # First check if this message is spam based on our own checks.
             $rc = $this->spam->check($this->msg);
             if ($rc) {
-                $this->log->log([
-                    'type' => Log::TYPE_MESSAGE,
-                    'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
-                    'msgid' => $this->msg->getID(),
-                    'text' => "{$rc[1]}",
-                    'groupid' => $this->msg->getGroups()[0]
-                ]);
+                $groups = $this->msg->getGroups();
+
+                if (count($groups) > 0) {
+                    foreach ($groups as $groupid) {
+                        $this->log->log([
+                            'type' => Log::TYPE_MESSAGE,
+                            'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
+                            'msgid' => $this->msg->getID(),
+                            'text' => "{$rc[2]}",
+                            'groupid' => $this->msg->getGroups()[0]
+                        ]);
+                    }
+                } else {
+                    $this->log->log([
+                        'type' => Log::TYPE_MESSAGE,
+                        'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
+                        'msgid' => $this->msg->getID(),
+                        'text' => "{$rc[2]}"
+                    ]);
+                }
 
                 $ret = MailRouter::FAILURE;
 
-                if ($this->markAsSpam("{$rc[1]}")) {
+                if ($this->markAsSpam($rc[1], $rc[2])) {
                     $ret = MailRouter::INCOMING_SPAM;
                 }
             } else {
@@ -148,7 +162,7 @@ class MailRouter
                             ]);
                         }
 
-                        if ($this->markAsSpam("SpamAssassin flagged this as possible spam; score $spamscore (high is bad)")) {
+                        if ($this->markAsSpam(Spam::REASON_SPAMASSASSIN, "SpamAssassin flagged this as possible spam; score $spamscore (high is bad)")) {
                             $ret = MailRouter::INCOMING_SPAM;
                         } else {
                             $this->msg->recordFailure('Failed to mark spam');
@@ -187,7 +201,7 @@ class MailRouter
     }
 
     public function routeAll() {
-        $msgs = $this->dbhr->preQuery("SELECT msgid FROM messages_groups WHERE collection = 'Incoming';");
+        $msgs = $this->dbhr->preQuery("SELECT msgid FROM messages_groups WHERE collection = 'Incoming' AND deleted = 0;");
         foreach ($msgs as $m) {
             try {
                 // @codeCoverageIgnoreStart This seems to be needed due to a presumed bug in phpUnit.  This line
@@ -200,7 +214,7 @@ class MailRouter
                 }
             } catch (Exception $e) {
                 # Ignore this and continue routing the rest.
-                error_log("Route failed " . $e->getMessage());
+                error_log("Route failed " . $e->getMessage() . " stack " . $e->getTraceAsString());
                 $this->dbhm->rollBack();
             }
         }
