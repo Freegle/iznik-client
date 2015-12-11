@@ -151,7 +151,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
             if (BROWSERTRACKING && ($call != 'event_save')) {
                 # Save off the API call and result, except for the (very frequent) event tracking calls.
-                $sql = "INSERT INTO logs_api (`session`, `request`, `response`) VALUES (" . $dbhr->quote(session_id()) . ", " . $dbhr->quote(json_encode($_REQUEST)) . ", " . $dbhr->quote(json_encode($ret)) . ");";
+                #
+                # Beanstalk has a limit on the size of job that it accepts; no point trying to log absurdly large
+                # API requests.
+                $req = json_encode($_REQUEST);
+                $rsp = json_encode($ret);
+
+                if (strlen($req) + strlen($rsp) > 180000) {
+                    $req = substr($req, 0, 1000);
+                    $rsp = substr($rsp, 0, 1000);
+                }
+
+                $sql = "INSERT INTO logs_api (`session`, `request`, `response`) VALUES (" . $dbhr->quote(session_id()) .
+                    ", " . $dbhr->quote($req) . ", " . $dbhr->quote($rsp) . ");";
                 $dbhm->background($sql);
             }
 

@@ -319,16 +319,12 @@ class LoggedPDO {
                 $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
             }
 
-            if (strlen($sql) < 2000000) {
-                # Anything larger than this is probably not worth logging, even if it's worth
-                # executing.
-                $this->pheanstalk->put(json_encode(array(
-                    'type' => 'sql',
-                    'queued' => time(),
-                    'sql' => $sql,
-                    'ttr' => 300
-                )));
-            }
+            $this->pheanstalk->put(json_encode(array(
+                'type' => 'sql',
+                'queued' => time(),
+                'sql' => $sql,
+                'ttr' => 300
+            )));
         } catch (Exception $e) {
             error_log("Beanstalk exception " . $e->getMessage() . " on sql of len " . strlen($sql));
         }
