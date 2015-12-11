@@ -3,6 +3,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
     work: [],
     currentItem: null,
+    yahooGroups: [],
 
     render: function() {
         window.setTimeout(_.bind(this.checkPluginStatus, this), 3000);
@@ -183,6 +184,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                     if (!self.connected) {
                         self.resume();
+                        self.listYahooGroups();
                     }
 
                     $('#js-plugindisconnected').fadeOut('slow', function() {
@@ -294,6 +296,55 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 }
             }
         })
+    },
+
+    listYahooGroups: function() {
+        // We get a list of all the groups on Yahoo so that we can see whether there are groups on the server
+        // for which we need to update our mod status.
+        this.yahooGroupStart = 1;
+        this.getYahooGroupChunk();
+    },
+
+    getYahooGroupChunk: function() {
+        // If this fails, we just won't finish checking, and therefore won't make any changes, which is probably
+        // the best option.
+        $.ajaxq('plugin', {
+            type: "GET",
+            context: this,
+            url: YAHOOAPI + 'user/groups/all?start=' + this.yahooGroupStart + "&count=20&sortOrder=asc&orderBy=name&chrome=raw",
+            success: this.processYahooGroupChunk
+        });
+    },
+
+    processYahooGroupChunk: function(ret) {
+        var self = this;
+
+        if (ret.hasOwnProperty('ygData')) {
+            if (ret.ygData.hasOwnProperty('allMyGroups')) {
+                _.each(ret.ygData.allMyGroups, function(group) {
+                    if (group.membership == "MOD" || group.membership == "OWN") {
+                        self.yahooGroups.push(group.groupName.toLocaleLowerCase());
+                    }
+                });
+
+                if (ret.ygData.allMyGroups.length > 0) {
+                    this.yahooGroupStart += 20;
+                    this.getYahooGroupChunk();
+                }
+            } else {
+                // We've got all the groups we're an owner/mod on.
+                console.log("Got them all", self.yahooGroups);
+                var serverGroups = [];
+                Iznik.Session.get('groups').each(function (group) {
+                    serverGroups.push(group.get('nameshort').toLowerCase());
+                });
+
+                var serverMissing = _.difference(self.yahooGroups, serverGroups);
+                var yahooMissing = _.difference(serverGroups, self.yahooGroups);
+                console.log("Mod on Yahoo but not server", serverMissing);
+                console.log("Mod on server but but not Yahoo", yahooMissing);
+            }
+        }
     }
 });
 
