@@ -8,6 +8,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
 require_once(IZNIK_BASE . '/include/message/Collection.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
+require_once(IZNIK_BASE . '/include/misc/Location.php');
 
 class Message
 {
@@ -246,6 +247,7 @@ class Message
         $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ] );
 
         foreach ($ret['groups'] as &$group) {
+            $ret['suggestedsubject'] = $this->suggestSubject($group['groupid'], $this->subject);
             $group['arrival'] = ISODate($group['arrival']);
         }
 
@@ -1224,9 +1226,12 @@ class Message
         # We leave the spamreason and type set in the message, because it can be useful for later PD.
     }
 
-    static public function suggestSubject($subject) {
+    public function suggestSubject($groupid, $subject) {
+        $newsubj = $subject;
+
         # This method is used to improve subjects.
-        $type = determineType($subject);
+        $type = $this->determineType($subject);
+        error_log("Type is $type");
 
         switch ($type) {
             case Message::TYPE_OFFER:
@@ -1236,17 +1241,48 @@ class Message
                 # Remove any subject tag.
                 $subject = preg_replace('/\[.*\]\s*/', '', $subject);
 
+                $pretag = $subject;
+
                 # Strip any of the keywords.
-                foreach (Message::$keywords[$type] as $keyword) {
-                    $subject = preg_replace('/(^|\b)' + preg_quote($keyword) . '\b/ig', '', $subject);
+                foreach ($this->keywords()[$type] as $keyword) {
+                    $subject = preg_replace('/(^|\b)' . preg_quote($keyword) . '\b/i', '', $subject);
                 }
 
-                # Shrink multiple spaces
-                $subject = preg_replace('/\s+/', ' ', $subject);
-                $subject = trim($subject);
-                break;
+                # Only proceed if we found the subject tag.
+                if ($subject != $pretag) {
+                    # Shrink multiple spaces
+                    $subject = preg_replace('/\s+/', ' ', $subject);
+                    $subject = trim($subject);
+                    error_log("After tidy $subject");
+
+                    # Find a location in the subject.
+                    if (preg_match('/(.*)\((.*)\)/', $subject, $matches)) {
+                        # Find the residue, which will be the item, and tidy it.
+                        $residue = trim($matches[1]);
+                        $punc = '\(|\)|\[|\]|\,|\.|\-|\{|\}|\:|\;| ';
+                        $residue = preg_replace('/^(' . $punc . '){2,}/','', $residue);
+                        $residue = preg_replace('/(' . $punc . '){2,}$/','', $residue);
+
+                        $loc = $matches[2];
+
+                        # Check if it's a good location.
+                        $l = new Location($this->dbhr, $this->dbhm);
+                        $locs = $l->search($loc, $groupid, 1);
+
+                        error_log("Search for $loc returned " . var_export($locs, true));
+
+                        if (count($locs) == 1) {
+                            # Take the name we found, which may be better than the one we have, if only in capitalisation.
+                            $loc = $locs[0]['name'];
+                        }
+
+                        $newsubj = strtoupper($type) . ": $residue ($loc)";
+                        error_log("New subject $newsubj");
+                    }
+                }
+               break;
         }
 
-        return($subject);
+        return($newsubj);
     }
 }
