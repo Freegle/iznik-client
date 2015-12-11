@@ -454,88 +454,92 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.Work.extend({
                     success: function(ret) {
                         var self = this;
 
-                        if (ret.ret == 0) {
-                            // If there are messages which we don't have but the server does, then the server
-                            // is wrong and we need to delete them.
-                            self.promises = [];
-                            _.each(ret.missingonclient, function(missing, index, list) {
-                                self.promises.push($.ajaxq('plugin', {
-                                    type: "DELETE",
-                                    url: API + 'message',
-                                    context: self,
-                                    data: {
-                                        id: missing.id,
-                                        collection:  missing.collection,
-                                        reason: 'Not present on Yahoo pending'
-                                    }
-                                }));
-                            });
+                        // Defer as ajaxq plays up when you queue items from within a callback.
+                        _.defer(function() {
+                            if (ret.ret == 0) {
+                                // If there are messages which we don't have but the server does, then the server
+                                // is wrong and we need to delete them.
+                                self.promises = [];
+                                _.each(ret.missingonclient, function(missing, index, list) {
+                                    self.promises.push($.ajaxq('plugin', {
+                                        type: "DELETE",
+                                        url: API + 'message',
+                                        context: self,
+                                        data: {
+                                            id: missing.id,
+                                            groupid: self.model.get('id'),
+                                            collection:  missing.collection,
+                                            reason: 'Not present on Yahoo pending'
+                                        }
+                                    }));
+                                });
 
-                            // If there are messages which we have but the server doesn't, then the server is
-                            // wrong and we need to add them.
-                            _.each(ret.missingonserver, function(missing, index, list) {
-                                missing.deferred = new $.Deferred();
-                                self.promises.push(missing.deferred.promise());
+                                // If there are messages which we have but the server doesn't, then the server is
+                                // wrong and we need to add them.
+                                _.each(ret.missingonserver, function(missing, index, list) {
+                                    missing.deferred = new $.Deferred();
+                                    self.promises.push(missing.deferred.promise());
 
-                                $.ajaxq('plugin', {
-                                    type: "GET",
-                                    url: self.sourceurl(missing[self.idField]),
-                                    context: self,
-                                    success: function(ret) {
-                                        if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
-                                            var source = decodeEntities(ret.ygData.rawEmail);
-                                            var data = {
-                                                groupid: self.model.get('id'),
-                                                from: ret.ygData.email,
-                                                message: source,
-                                                source: self.source
-                                            };
+                                    $.ajaxq('plugin', {
+                                        type: "GET",
+                                        url: self.sourceurl(missing[self.idField]),
+                                        context: self,
+                                        success: function(ret) {
+                                            if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
+                                                var source = decodeEntities(ret.ygData.rawEmail);
+                                                var data = {
+                                                    groupid: self.model.get('id'),
+                                                    from: ret.ygData.email,
+                                                    message: source,
+                                                    source: self.source
+                                                };
 
-                                            data[self.idField] = missing[self.idField];
+                                                data[self.idField] = missing[self.idField];
 
-                                            $.ajaxq('plugin', {
-                                                type: "PUT",
-                                                url: API + 'messages',
-                                                data: data,
-                                                context: self,
-                                                success: function(ret) {
-                                                    missing.deferred.resolve();
-                                                }
-                                            });
-                                        } else {
+                                                $.ajaxq('plugin', {
+                                                    type: "PUT",
+                                                    url: API + 'messages',
+                                                    data: data,
+                                                    context: self,
+                                                    success: function(ret) {
+                                                        missing.deferred.resolve();
+                                                    }
+                                                });
+                                            } else {
+                                                // Couldn't fetch.  Not much we can do - Yahoo has some messages
+                                                // which are not accessible.
+                                                missing.deferred.resolve();
+                                            }
+                                        }, error: function(req, status, error) {
                                             // Couldn't fetch.  Not much we can do - Yahoo has some messages
                                             // which are not accessible.
                                             missing.deferred.resolve();
                                         }
-                                    }, error: function(req, status, error) {
-                                        // Couldn't fetch.  Not much we can do - Yahoo has some messages
-                                        // which are not accessible.
-                                        missing.deferred.resolve();
-                                    }
+                                    });
                                 });
-                            });
 
-                            // Record how many there are and update progress bar
-                            self.promisesLen = self.promises.length;
-                            self.promisesCount = 0;
-                            _.each(self.promises, function(promise) {
-                                promise.done(function() {
-                                    self.promisesCount++;
-                                    self.ourSyncProgressBar.apply(self);
+                                // Record how many there are and update progress bar
+                                self.promisesLen = self.promises.length;
+                                self.promisesCount = 0;
+                                _.each(self.promises, function(promise) {
+                                    promise.done(function() {
+                                        self.promisesCount++;
+                                        self.ourSyncProgressBar.apply(self);
 
-                                    if (self.promisesCount >= self.promisesLen) {
-                                        // Once they're all done, we have succeeded.
-                                        self.succeed();
-                                    }
+                                        if (self.promisesCount >= self.promisesLen) {
+                                            // Once they're all done, we have succeeded.
+                                            self.succeed();
+                                        }
+                                    });
                                 });
-                            });
 
-                            if (self.promisesLen == 0) {
-                                self.succeed();
+                                if (self.promisesLen == 0) {
+                                    self.succeed();
+                                }
+                            } else {
+                                self.failChunk();
                             }
-                        } else {
-                            self.failChunk();
-                        }
+                        });
                     },
                     error: self.failChunk
                 });
