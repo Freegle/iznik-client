@@ -96,7 +96,7 @@ class Message
     private $id, $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr,
         $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
-        $parser, $arrival, $spamreason, $fromuser, $deleted, $heldby;
+        $parser, $arrival, $spamreason, $spamtype, $fromuser, $deleted, $heldby;
 
     /**
      * @return mixed
@@ -135,7 +135,7 @@ class Message
 
     public $moderatorAtts = [
         'source', 'sourceheader', 'fromaddr', 'envelopeto', 'envelopefrom', 'messageid', 'tnpostid',
-        'fromip', 'message', 'spamreason'
+        'fromip', 'message', 'spamreason', 'spamtype'
     ];
 
     public $ownerAtts = [
@@ -1212,6 +1212,16 @@ class Message
         }
 
         return($found);
+    }
+
+    public function notSpam() {
+        if ($this->spamtype == Spam::REASON_SUBJECT_USED_FOR_DIFFERENT_GROUPS) {
+            # This subject is probably fine, then.
+            $s = new Spam($this->dbhr, $this->dbhm);
+            $s->notSpamSubject($this->getPrunedSubject());
+        }
+
+        # We leave the spamreason and type set in the message, because it can be useful for later PD.
     }
 
     static public function suggestSubject($subject) {

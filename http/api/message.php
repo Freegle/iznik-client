@@ -141,6 +141,7 @@ function message() {
                         $m->release();
                         break;
                     case 'NotSpam':
+                        $m->notSpam();
                         $r = new MailRouter($dbhr, $dbhm);
                         $r->route($m, TRUE);
                         break;

@@ -139,4 +139,9 @@ class Spam {
         # It's fine.  So far as we know.
         return(NULL);
     }
+
+    public function notSpamSubject($subj) {
+        $sql = "INSERT IGNORE INTO spam_whitelist_subjects (subject, comment) VALUES (?, 'Marked as not spam');";
+        $this->dbhm->preExec($sql, [ $subj ]);
+    }
 }

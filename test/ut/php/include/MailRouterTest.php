@@ -32,6 +32,9 @@ class MailRouterTest extends IznikTest {
 
         # Whitelist this IP
         $this->dbhm->preExec("INSERT IGNORE INTO spam_whitelist_ips (ip, comment) VALUES ('1.2.3.4', 'UT whitelist');", []);
+
+        # Tidy test subjects
+        $this->dbhm->preExec("DELETE FROM spam_whitelist_subjects WHERE subject LIKE 'Test spam subject%';");
     }
 
     protected function tearDown() {
@@ -71,7 +74,7 @@ class MailRouterTest extends IznikTest {
                     "To: \"testgroup$i\" <testgroup$i@yahoogroups.com>",
                     $msg);
 
-            $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+            $msgid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
             $rc = $r->route();
 
             if ($i < Spam::SUBJECT_THRESHOLD - 1) {
@@ -80,6 +83,13 @@ class MailRouterTest extends IznikTest {
                 assertEquals(MailRouter::INCOMING_SPAM, $rc);
             }
         }
+
+        # Now mark the last subject as not spam.  Once we've done that, we should be able to route it ok.
+        $m = new Message($this->dbhr, $this->dbhm, $msgid);
+        $m->notSpam();
+        $msgid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
 
         foreach ($groups as $group) {
             $group->delete();
