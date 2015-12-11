@@ -8,25 +8,27 @@ require_once(IZNIK_BASE . '/include/misc/Location.php');
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
 
-# Zap any existing configs.  The old DB is the master until we migrate.
-$dbhm->preExec("DELETE FROM locations;");
-
 $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$c = new Location($dbhr, $dbhm);
+$l = new Location($dbhr, $dbhm);
 $g = new Group($dbhr, $dbhm);
 
-$oldlocs = $dbhold->query("SELECT locations.*, groups.groupname FROM locations INNER JOIN groups ON locations.groupid = groups.groupid AND groups.groupname = 'EdinburghFreegle';");
+$oldlocs = $dbhold->query("SELECT locations_approved.*, groups.groupname FROM locations_approved INNER JOIN groups ON locations_approved.groupid = groups.groupid;");
 foreach ($oldlocs as $loc) {
     # Check whether the data looks worth migrating.
     $gid = $g->findByShortName($loc['groupname']);
-    error_log("Found $gid for {$loc['groupname']}");
 
     if ($gid) {
-
+        # Find the top match
+        $res = $l->search($loc['location'], $gid, 1);
+        if (count($res) > 0 && strtolower($loc['location']) == strtolower($res[0]['name'])) {
+            error_log("{$loc['location']} => {$res[0]['name']} {$loc['popularity']}");
+            $sql = "UPDATE locations SET popularity = ? WHERE id = ?;";
+            $dbhm->preExec($sql, [$loc['popularity'], $res[0]['id']]);
+        }
     }
 }
 

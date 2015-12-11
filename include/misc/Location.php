@@ -105,10 +105,12 @@ class Location extends Entity
                 # locations, so we don't need a fuzzy search.  This will scan quite a lot of locations, because that
                 # kind of search can't use the name index, but it is restricted by grids and therefore won't be
                 # appalling.
+                #
+                # We want the most shortest matches first, then ordered by most popular
                 $term = $this->dbhr->quote($term);
                 $term = preg_replace('/\'$/', '%\'', $term);
                 $term = preg_replace('/^\'/', '\'%', $term);
-                $sql = "SELECT * FROM locations WHERE name LIKE $term AND gridid IN (" . implode(',', $gridids) . ") ORDER BY popularity DESC LIMIT $limit;";
+                $sql = "SELECT * FROM locations WHERE name LIKE $term AND gridid IN (" . implode(',', $gridids) . ") ORDER BY LENGTH(name) ASC, popularity DESC LIMIT $limit;";
                 $locs = $this->dbhr->query($sql);
 
                 foreach ($locs as $loc) {
