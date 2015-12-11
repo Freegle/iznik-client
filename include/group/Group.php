@@ -246,6 +246,10 @@ class Group extends Entity
             }
         }
 
+        # Update the system role for any new mods/owners.
+        $sql = "UPDATE users SET systemrole = 'Moderator' WHERE id IN (SELECT userid FROM memberships WHERE role IN ('Owner', 'Moderator'));";
+        $this->dbhm-preExec($sql);
+
         return(!$rollback);
     }
 

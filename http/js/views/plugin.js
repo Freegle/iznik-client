@@ -120,6 +120,16 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     },
 
     addWork: function(work) {
+        var id = work.model ? work.model.get('id') : null;
+        _.each(this.work, function(item) {
+            var itemid = item.model ? item.model.get('id') : null;
+
+            if (id == itemid) {
+                // We already have this item of work - no need to add it.
+                return;
+            }
+        });
+
         this.work.push(work);
         this.updatePluginCount();
         this.checkWork();

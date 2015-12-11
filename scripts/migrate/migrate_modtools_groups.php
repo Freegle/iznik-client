@@ -12,6 +12,13 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
+$dsn = "mysql:host={$dbconfig['host']};dbname=ilovefreegle;charset=utf8";
+
+$dbhf = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_EMULATE_PREPARES => FALSE
+));
+
 $g = new Group($dbhr, $dbhm);
 
 $oldgroups = $dbhold->query("SELECT * FROM groups WHERE groupname != '';");
@@ -28,5 +35,18 @@ foreach ($oldgroups as $group) {
         $group['groupname'],
         $type
     );
+
+    $id = $g->findByShortName($group['groupname']);
+    $g = new Group($dbhr, $dbhm, $id);
+
+    if ($group['freeglegroupid']) {
+        $sql = "SELECT * FROM perch_groups WHERE groupURL LIKE '%{$group['groupname']}';";
+        $fgroups = $dbhf->preQuery($sql, []);
+        foreach ($fgroups as $fgroup) {
+            $g->setPrivate('lat', $fgroup['groupLatitude']);
+            $g->setPrivate('lng', $fgroup['groupLongitude']);
+            $g->setPrivate('type', 'Freegle');
+        }
+    }
 }
 
