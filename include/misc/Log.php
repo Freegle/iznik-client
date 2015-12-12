@@ -36,6 +36,7 @@ class Log
     const SUBTYPE_SENT = 'Sent';
     const SUBTYPE_YAHOO_DELIVERY_TYPE = 'YahooDeliveryType';
     const SUBTYPE_YAHOO_POSTING_STATUS = 'YahooPostingStatus';
+    const SUBTYPE_ROLE_CHANGE = 'RoleChange';
 
     function __construct($dbhr, $dbhm)
     {

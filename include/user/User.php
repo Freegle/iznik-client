@@ -355,6 +355,18 @@ class User extends Entity
     }
 
     public function setRole($role, $groupid) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $l = new Log($this->dbhr, $this->dbhm);
+        $l->log([
+            'type' => Log::TYPE_USER,
+            'byuser' => $me->getId(),
+            'subtype' => Log::SUBTYPE_ROLE_CHANGE,
+            'groupid' => $groupid,
+            'user' => $this->id,
+            'text' => $role
+        ]);
+
         $sql = "UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;";
         $rc = $this->dbhm->preExec($sql, [
             $role,

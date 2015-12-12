@@ -22,6 +22,7 @@ require_once(IZNIK_BASE . '/http/api/session.php');
 require_once(IZNIK_BASE . '/http/api/dashboard.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
 require_once(IZNIK_BASE . '/http/api/message.php');
+require_once(IZNIK_BASE . '/http/api/memberships.php');
 require_once(IZNIK_BASE . '/http/api/supporters.php');
 require_once(IZNIK_BASE . '/http/api/group.php');
 require_once(IZNIK_BASE . '/http/api/plugin.php');
@@ -93,6 +94,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
                     break;
                 case 'message':
                     $ret = message();
+                    break;
+                case 'memberships':
+                    $ret = memberships();
                     break;
                 case 'plugin':
                     $ret = plugin();

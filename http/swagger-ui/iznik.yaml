@@ -514,7 +514,35 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
-
+  /memberships:
+    put:
+      summary: Membership change
+      tags: [Memberships]
+      description: |
+        Change membership
+      parameters:
+      - name: userid
+        in: path
+        description: User ID to modify
+        type: number
+      - name: groupid
+        in: path
+        description: Group ID to modify
+        type: number
+      - name: role
+        in: path
+        description: User role to set
+        type: string
+        enum: ['Member', 'Moderator', 'Owner', 'Banned']
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
 definitions:
   Response:
     properties: 
