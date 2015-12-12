@@ -6,6 +6,10 @@ Iznik.Views.ModTools.Pages.Spam = Iznik.Views.Page.extend({
     render: function() {
         Iznik.Views.Page.prototype.render.call(this);
 
+        var v = new Iznik.Views.Help.Box();
+        v.template = 'modtools_spam_info';
+        this.$('.js-help').html(v.render().el);
+
         self.msgs = new Iznik.Collections.Message();
         self.$('.js-none').hide();
 

@@ -22,7 +22,8 @@ window.Iznik = {
         User: {
             Pages: {}
         },
-        Group: {}
+        Group: {},
+        Help: {}
     },
     Collections: {
         ModTools: {},
