@@ -47,6 +47,8 @@
             Login {{text}}
             <% } else if (subtype == 'Created') { %>
             Created
+            <% } else if (subtype == 'RoleChange') { %>
+            Role on {{group.namedisplay}} changed to {{text}}
             <% } else { %>
                 <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>
