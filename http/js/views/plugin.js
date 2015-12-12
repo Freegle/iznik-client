@@ -333,16 +333,29 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 }
             } else {
                 // We've got all the groups we're an owner/mod on.
-                console.log("Got them all", self.yahooGroups);
                 var serverGroups = [];
+                var nameToId = [];
                 Iznik.Session.get('groups').each(function (group) {
-                    serverGroups.push(group.get('nameshort').toLowerCase());
+                    var lname = group.get('nameshort').toLowerCase();
+                    serverGroups.push(lname);
+                    nameToId[lname] = group.get('id');
                 });
 
                 var serverMissing = _.difference(self.yahooGroups, serverGroups);
                 var yahooMissing = _.difference(serverGroups, self.yahooGroups);
-                console.log("Mod on Yahoo but not server", serverMissing);
-                console.log("Mod on server but but not Yahoo", yahooMissing);
+
+                // If we're a mod on the server but not on Yahoo, then we need to demote ourselves.
+                _.each(yahooMissing, function(demote) {
+                    $.ajax({
+                        url: API + 'memberships',
+                        type: 'PUT',
+                        data: {
+                            userid: Iznik.Session.get('me').id,
+                            groupid: nameToId[demote],
+                            role: 'Member'
+                        }
+                    })
+                });
             }
         }
     }
