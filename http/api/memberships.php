@@ -22,6 +22,9 @@ function memberships() {
                     'ret' => 0,
                     'status' => 'Success'
                 ];
+            } else {
+                $ret['me'] = $me->getPublic();
+                $ret['mod'] = $me->isModOrOwner($groupid);
             }
         }
     }

@@ -15,6 +15,9 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
             data.groupid = self.selected;
         }
 
+        // For pending messages we don't do paging so put a high limit.
+        data.limit = 100;
+
         this.msgs.fetch({
             data: data,
             remove: true
@@ -65,6 +68,7 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
         var v = new Iznik.Views.Group.Select({
             systemWide: false,
             all: true,
+            mod: true,
             id: 'groupSelect'
         });
 

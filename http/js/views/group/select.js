@@ -56,12 +56,16 @@ Iznik.Views.Group.Select = IznikView.extend({
             }
 
             Iznik.Session.get('groups').each(function(group) {
-                self.dropdown.add({
-                    text: group.get('namedisplay'),
-                    value: group.get('id'),
-                    title: group.get('namedisplay'),
-                    image: group.get('grouplogo')
-                });
+                var role = group.get('role');
+
+                if (!self.options.mod || role == 'Owner' || role ==  'Moderator') {
+                    self.dropdown.add({
+                        text: group.get('namedisplay'),
+                        value: group.get('id'),
+                        title: group.get('namedisplay'),
+                        image: group.get('grouplogo')
+                    });
+                }
             });
 
             if (self.options.hasOwnProperty('selected') && self.options.selected) {

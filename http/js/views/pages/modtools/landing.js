@@ -84,6 +84,7 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
         var v = new Iznik.Views.Group.Select({
             systemWide: true,
             all: true,
+            mod: true,
             id: 'statsGroupDropdown'
         });
 

@@ -97,7 +97,7 @@ class Message
     private $id, $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr,
         $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
-        $parser, $arrival, $spamreason, $spamtype, $fromuser, $deleted, $heldby;
+        $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby;
 
     /**
      * @return mixed
@@ -136,7 +136,7 @@ class Message
 
     public $moderatorAtts = [
         'source', 'sourceheader', 'fromaddr', 'envelopeto', 'envelopefrom', 'messageid', 'tnpostid',
-        'fromip', 'message', 'spamreason', 'spamtype'
+        'fromip', 'fromcountry', 'message', 'spamreason', 'spamtype'
     ];
 
     public $ownerAtts = [
@@ -515,6 +515,10 @@ class Message
         }
 
         $subj = trim($subj);
+
+        # Remove any odd characters.
+        $subj = @iconv('UTF-8', 'UTF-8//IGNORE', $subj);
+
         return($subj);
     }
 

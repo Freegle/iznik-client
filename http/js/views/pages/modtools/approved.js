@@ -97,6 +97,7 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
         var v = new Iznik.Views.Group.Select({
             systemWide: false,
             all: true,
+            mod: true,
             id: 'groupSelect'
         });
 

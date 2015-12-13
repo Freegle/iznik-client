@@ -16,7 +16,9 @@
         <div class="text-muted small">
             #{{id}} via {{sourceheader}}
             <% if (obj.fromip) { %>
-            from IP {{fromip}}
+            from IP {{fromip}} <% if (obj.fromcountry) { %>in {{fromcountry}}<% } %>
+            <% } else { %>
+            IP unavailable
             <% } %>
         </div>
         <div class="js-duplist" />

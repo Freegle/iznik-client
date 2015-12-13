@@ -19,6 +19,14 @@
         </div>
         <div class="js-grouplist">
         </div>
+        <div class="text-muted small">
+            #{{id}} via {{sourceheader}}
+            <% if (obj.fromip) { %>
+            from IP {{fromip}} <% if (obj.fromcountry) { %>in {{fromcountry}}<% } %>
+            <% } else { %>
+            IP unavailable
+            <% } %>
+        </div>
         <div class="text-muted small">#{{id}} via {{sourceheader}}</div>
         <div class="clearfix"></div>
     </div>
