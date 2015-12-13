@@ -107,14 +107,29 @@ class Location extends Entity
                 # appalling.
                 #
                 # We want the most shortest matches first, then ordered by most popular
-                $term = $this->dbhr->quote($term);
-                $term = preg_replace('/\'$/', '%\'', $term);
-                $term = preg_replace('/^\'/', '\'%', $term);
-                $sql = "SELECT * FROM locations WHERE name LIKE $term AND gridid IN (" . implode(',', $gridids) . ") ORDER BY LENGTH(name) ASC, popularity DESC LIMIT $limit;";
+                $term2 = $this->dbhr->quote($term);
+                $term2 = preg_replace('/\'$/', '%\'', $term2);
+                $term2 = preg_replace('/^\'/', '\'%', $term2);
+                $sql = "SELECT * FROM locations WHERE name LIKE $term2 AND gridid IN (" . implode(',', $gridids) . ") ORDER BY LENGTH(name) ASC, popularity DESC LIMIT $limit;";
                 $locs = $this->dbhr->query($sql);
 
                 foreach ($locs as $loc) {
                     $ret[] = $loc;
+                    $limit--;
+                }
+
+                if ($limit > 0) {
+                    # We didn't find as many results as we wanted.  Do a (slower) search using a Damerau-Levenshtein
+                    # distance function to spot typos, transpositions, spurious spaces etc.
+
+                    $sql = "SELECT * FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND DAMLEVLIM(`name`, " .
+                        $this->dbhr->quote($term) . ", " . strlen($term) . ") < 2 ORDER BY LENGTH(name) ASC, popularity DESC LIMIT $limit;";
+                    $locs = $this->dbhr->query($sql);
+
+                    foreach ($locs as $loc) {
+                        $ret[] = $loc;
+                        $limit--;
+                    }
                 }
             }
         }
