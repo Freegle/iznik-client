@@ -33,6 +33,13 @@ class Group extends Entity
 
     public function create($shortname, $type) {
         try {
+            # Check for duplicate.  Might still occur in a timing window but in that rare case we'll get an exception
+            # and catch that, failing the call.
+            $groups = $this->dbhm->preQuery("SELECT id FROM groups WHERE nameshort LIKE ?;", [ $shortname ]);
+            foreach ($groups as $group) {
+                return(NULL);
+            }
+
             $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type) VALUES (?, ?)", [$shortname, $type]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
@@ -246,9 +253,13 @@ class Group extends Entity
             }
         }
 
-        # Update the system role for any new mods/owners.
-        $sql = "UPDATE users SET systemrole = 'Moderator' WHERE id IN (SELECT userid FROM memberships WHERE role IN ('Owner', 'Moderator')) AND systemrole = 'User';";
-        $this->dbhm->preExec($sql);
+        try {
+            # Update the system role for any new mods/owners.
+            $sql = "UPDATE users SET systemrole = 'Moderator' WHERE id IN (SELECT userid FROM memberships WHERE role IN ('Owner', 'Moderator')) AND systemrole = 'User';";
+            $this->dbhm->preExec($sql);
+        } catch (Exception $e) {
+            # No need to do anything; we'll try again next time.
+        }
 
         return(!$rollback);
     }

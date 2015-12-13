@@ -77,7 +77,6 @@ class Collection
             # Put a limit on this query to stop it being stupid, though we enforce the $limit parameter in the loop.
             $sql = "SELECT msgid, groupid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $startq $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC LIMIT 1000";
             $msglist = $this->dbhr->preQuery($sql, $args);
-            error_log("Collection query $sql " . var_export($args, true));
 
             # Don't return the message attribute as it will be huge.  They can get that via a call to the
             # message API call.

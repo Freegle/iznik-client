@@ -360,7 +360,7 @@ class User extends Entity
         $l = new Log($this->dbhr, $this->dbhm);
         $l->log([
             'type' => Log::TYPE_USER,
-            'byuser' => $me->getId(),
+            'byuser' => $me ? $me->getId() : NULL,
             'subtype' => Log::SUBTYPE_ROLE_CHANGE,
             'groupid' => $groupid,
             'user' => $this->id,

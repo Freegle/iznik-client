@@ -122,6 +122,7 @@ class locationTest extends IznikTest {
         $l = new Location($this->dbhr, $this->dbhm, $id);
 
         $res = $l->search("tuvulu", $gid);
+        error_log(var_export($res, true));
         assertEquals(1, count($res));
         assertEquals($id, $res[0]['id']);
 
