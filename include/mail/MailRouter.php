@@ -63,8 +63,8 @@ class MailRouter
         # We have a groupid override because it's possible that we are syncing a message
         # from a group which has changed name and the To field might therefore not match
         # a current group name.
-        $this->msg->parse($source, $from, $to, $msg, $groupid);
-        return($this->msg->save());
+        $rc = $this->msg->parse($source, $from, $to, $msg, $groupid);
+        return($rc ? $this->msg->save() : NULL);
     }
 
     # Public for UT

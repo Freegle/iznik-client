@@ -589,6 +589,12 @@ class Message
 
         $this->fromname = $from[0]['display'];
         $this->fromaddr = $from[0]['address'];
+
+        if (!$this->fromaddr) {
+            # We have failed to parse out this message.
+            return(FALSE);
+        }
+
         $this->date = gmdate("Y-m-d H:i:s", strtotime($Parser->getHeader('date')));
 
         $this->sourceheader = $Parser->getHeader('x-freegle-source');
@@ -733,6 +739,8 @@ class Message
                 }
             }
         }
+
+        return(TRUE);
     }
 
     # Save a parsed message to the DB

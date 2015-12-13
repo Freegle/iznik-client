@@ -557,24 +557,31 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.Work.extend({
                                         success: function(ret) {
                                             if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
                                                 var source = decodeEntities(ret.ygData.rawEmail);
-                                                var data = {
-                                                    groupid: self.model.get('id'),
-                                                    from: ret.ygData.email,
-                                                    message: source,
-                                                    source: self.source
-                                                };
 
-                                                data[self.idField] = missing[self.idField];
+                                                if (source.indexOf('X-eGroups-Edited-By:') == -1) {
+                                                    var data = {
+                                                        groupid: self.model.get('id'),
+                                                        from: ret.ygData.email,
+                                                        message: source,
+                                                        source: self.source
+                                                    };
 
-                                                $.ajaxq('plugin', {
-                                                    type: "PUT",
-                                                    url: API + 'messages',
-                                                    data: data,
-                                                    context: self,
-                                                    success: function(ret) {
-                                                        missing.deferred.resolve();
-                                                    }
-                                                });
+                                                    data[self.idField] = missing[self.idField];
+
+                                                    $.ajaxq('plugin', {
+                                                        type: "PUT",
+                                                        url: API + 'messages',
+                                                        data: data,
+                                                        context: self,
+                                                        success: function (ret) {
+                                                            missing.deferred.resolve();
+                                                        }
+                                                    });
+                                                } else {
+                                                    // This is an edited message, which is all messed up and difficult
+                                                    // to sync.  Ignore it.
+                                                    missing.deferred.resolve();
+                                                }
                                             } else {
                                                 // Couldn't fetch.  Not much we can do - Yahoo has some messages
                                                 // which are not accessible.

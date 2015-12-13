@@ -63,7 +63,7 @@ class Spam {
             try {
                 $record = $this->reader->country($ip);
                 $country = $record->country->name;
-                $msg->setPrivate('fromcountry', $country);
+                $msg->setPrivate('fromcountry', $record->country->isoCode);
             } catch (Exception $e) {
                 # Failed to look it up.
                 $country = NULL;
