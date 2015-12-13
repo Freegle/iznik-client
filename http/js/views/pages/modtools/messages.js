@@ -15,15 +15,17 @@ Iznik.Views.ModTools.Message = IznikView.extend({
         var self = this;
         self.listenToOnce(self.model,'editfailed', function() {
             console.log("Show failure");
-            self.$('.js-savesubj .glyphicon').removeClass('glyphicon-floppy-save').addClass('glyphicon-warning-sign error');
+            self.$('.js-savesubj .glyphicon').removeClass('glyphicon-refresh rotate').addClass('glyphicon-warning-sign error');
             self.restoreEditSubject();
         });
 
         self.listenToOnce(self.model,'editsucceeded', function() {
             console.log("Show success");
-            self.$('.js-savesubj .glyphicon').removeClass('glyphicon-floppy-save').addClass('glyphicon-ok success');
+            self.$('.js-savesubj .glyphicon').removeClass('glyphicon-refresh rotate').addClass('glyphicon-ok success');
             self.restoreEditSubject();
         });
+
+        self.$('.js-savesubj .glyphicon').removeClass('glyphicon-floppy-save').addClass('glyphicon-refresh rotate');
 
         self.model.edit(
             self.$('.js-subject').val(),
