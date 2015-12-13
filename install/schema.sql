@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Nov 26, 2015 at 09:22 AM
+-- Generation Time: Dec 13, 2015 at 11:58 AM
 -- Server version: 5.6.26-74.0-56-log
 -- PHP Version: 5.5.9-1ubuntu4.14
 
@@ -30,28 +30,51 @@ CREATE TABLE IF NOT EXISTS `groups` (
   `onyahoo` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Whether this group is also on Yahoo Groups',
   `lastyahoomembersync` timestamp NULL DEFAULT NULL COMMENT 'When we last synced approved members',
   `lastyahoomessagesync` timestamp NULL DEFAULT NULL COMMENT 'When we last synced approved messages',
+  `lat` decimal(10,6) DEFAULT NULL,
+  `lng` decimal(10,6) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `nameshort` (`nameshort`),
-  UNIQUE KEY `namefull` (`namefull`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='The different groups that we host' AUTO_INCREMENT=40850 ;
+  UNIQUE KEY `namefull` (`namefull`),
+  KEY `lat` (`lat`,`lng`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='The different groups that we host' AUTO_INCREMENT=122910 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `locations_approved`
+-- Table structure for table `locations`
 --
 
-CREATE TABLE IF NOT EXISTS `locations_approved` (
+CREATE TABLE IF NOT EXISTS `locations` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `location` varchar(255) NOT NULL,
-  `groupid` bigint(20) unsigned NOT NULL,
-  `popularity` bigint(20) unsigned NOT NULL DEFAULT '1',
+  `osm_id` varchar(50) DEFAULT NULL,
+  `name` varchar(255) NOT NULL,
+  `type` enum('Road','Polygon','Line','Point','Postcode') NOT NULL,
+  `geometry` geometry DEFAULT NULL,
+  `gridid` bigint(20) unsigned DEFAULT NULL,
+  `popularity` bigint(20) unsigned DEFAULT '0',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`),
-  UNIQUE KEY `location` (`location`,`groupid`),
-  KEY `groupid` (`groupid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=12049 ;
+  KEY `name` (`name`),
+  KEY `osm_id` (`osm_id`),
+  KEY `gridid` (`gridid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Location data, the bulk derived from OSM' AUTO_INCREMENT=9008268 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `locations_grids`
+--
+
+CREATE TABLE IF NOT EXISTS `locations_grids` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `swlat` decimal(10,6) NOT NULL,
+  `swlng` decimal(10,6) NOT NULL,
+  `nelat` decimal(10,6) NOT NULL,
+  `nelng` decimal(10,6) NOT NULL,
+  `box` geometry NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `swlat` (`swlat`,`swlng`,`nelat`,`nelng`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Used to map lat/lng to gridid for location searches' AUTO_INCREMENT=140467 ;
 
 -- --------------------------------------------------------
 
@@ -63,8 +86,8 @@ CREATE TABLE IF NOT EXISTS `logs` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique ID',
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Machine assumed set to GMT',
   `byuser` bigint(20) unsigned DEFAULT NULL COMMENT 'User responsible for action, if any',
-  `type` enum('Group','Message','User','Plugin','Config','StdMsg') DEFAULT NULL,
-  `subtype` enum('Created','Deleted','Received','Sent','Failure','ClassifiedSpam','Joined','Left','Approved','Rejected','YahooDeliveryType','YahooPostingStatus','NotSpam','Login') DEFAULT NULL,
+  `type` enum('Group','Message','User','Plugin','Config','StdMsg','Location') DEFAULT NULL,
+  `subtype` enum('Created','Deleted','Received','Sent','Failure','ClassifiedSpam','Joined','Left','Approved','Rejected','YahooDeliveryType','YahooPostingStatus','NotSpam','Login','Hold','Release','Edit','RoleChange') DEFAULT NULL,
   `groupid` bigint(20) unsigned DEFAULT NULL COMMENT 'Any group this log is for',
   `user` bigint(20) unsigned DEFAULT NULL COMMENT 'Any user that this log is about',
   `msgid` bigint(20) unsigned DEFAULT NULL COMMENT 'id in the messages table',
@@ -72,7 +95,6 @@ CREATE TABLE IF NOT EXISTS `logs` (
   `text` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
-  KEY `user` (`user`),
   KEY `group` (`groupid`),
   KEY `message_approved` (`msgid`),
   KEY `byuser` (`byuser`),
@@ -80,8 +102,9 @@ CREATE TABLE IF NOT EXISTS `logs` (
   KEY `subtype` (`subtype`),
   KEY `timestamp` (`timestamp`,`type`,`subtype`),
   KEY `timestamp_2` (`timestamp`,`groupid`),
-  KEY `configid` (`configid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Logs.  Not guaranteed against loss' AUTO_INCREMENT=5666306 ;
+  KEY `configid` (`configid`),
+  KEY `user` (`user`,`timestamp`,`type`,`subtype`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Logs.  Not guaranteed against loss' AUTO_INCREMENT=7356416 ;
 
 -- --------------------------------------------------------
 
@@ -98,25 +121,6 @@ CREATE TABLE IF NOT EXISTS `logs_api` (
   UNIQUE KEY `id` (`id`),
   KEY `session` (`session`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Log of all API requests and responses' AUTO_INCREMENT=1 ;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `logs_sql`
---
-
-CREATE TABLE IF NOT EXISTS `logs_sql` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique ID',
-  `result` varchar(255) DEFAULT NULL COMMENT 'The result of the op',
-  `duration` bigint(20) unsigned NOT NULL COMMENT 'How long in ms it took',
-  `statement` longtext NOT NULL COMMENT 'The actual SQL statement',
-  `user` bigint(20) unsigned DEFAULT NULL COMMENT 'Any user that this log is for',
-  `msgid` bigint(20) unsigned DEFAULT NULL COMMENT 'id in the messages table',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`),
-  KEY `user` (`user`),
-  KEY `message_approved` (`msgid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=478696 ;
 
 -- --------------------------------------------------------
 
@@ -141,7 +145,7 @@ CREATE TABLE IF NOT EXISTS `memberships` (
   KEY `userid` (`userid`,`role`),
   KEY `role` (`role`),
   KEY `configid` (`configid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Which groups users are members of' AUTO_INCREMENT=2783974 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Which groups users are members of' AUTO_INCREMENT=20230028 ;
 
 -- --------------------------------------------------------
 
@@ -154,9 +158,11 @@ CREATE TABLE IF NOT EXISTS `messages` (
   `arrival` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this message arrived at our server',
   `date` timestamp NULL DEFAULT NULL COMMENT 'When this message was created, e.g. Date header',
   `deleted` timestamp NULL DEFAULT NULL COMMENT 'When this message was deleted',
+  `heldby` bigint(20) unsigned DEFAULT NULL COMMENT 'If this message is held by a moderator',
   `source` enum('Yahoo Approved','Yahoo Pending') DEFAULT NULL COMMENT 'Source of incoming message',
   `sourceheader` varchar(80) DEFAULT NULL COMMENT 'Any source header, e.g. X-Freegle-Source',
   `fromip` varchar(40) DEFAULT NULL COMMENT 'IP we think this message came from',
+  `fromcountry` varchar(2) DEFAULT NULL COMMENT 'fromip geocoded to country',
   `message` longtext NOT NULL COMMENT 'The unparsed message',
   `fromuser` bigint(20) unsigned DEFAULT NULL,
   `envelopefrom` varchar(255) DEFAULT NULL,
@@ -171,26 +177,28 @@ CREATE TABLE IF NOT EXISTS `messages` (
   `htmlbody` longtext,
   `retrycount` int(11) NOT NULL DEFAULT '0' COMMENT 'We might fail to route, and later retry',
   `retrylastfailure` timestamp NULL DEFAULT NULL,
+  `spamtype` enum('CountryBlocked','IPUsedForDifferentUsers','IPUsedForDifferentGroups','SubjectUsedForDifferentGroups','SpamAssassin') DEFAULT NULL,
   `spamreason` varchar(255) DEFAULT NULL COMMENT 'Why we think this message may be spam',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`),
-  KEY `envelopefrom` (`envelopefrom`),
-  KEY `envelopeto` (`envelopeto`),
-  KEY `retrylastfailure` (`retrylastfailure`),
-  KEY `message-id` (`messageid`),
-  KEY `fromup` (`fromip`),
-  KEY `tnpostid` (`tnpostid`),
-  KEY `type` (`type`),
-  KEY `sourceheader` (`sourceheader`),
-  KEY `arrival` (`arrival`,`sourceheader`),
-  KEY `arrival_2` (`arrival`,`fromaddr`),
-  KEY `arrival_3` (`arrival`),
-  KEY `fromaddr` (`fromaddr`,`subject`(767)),
-  KEY `date` (`date`),
-  KEY `subject` (`subject`(767)),
-  KEY `fromuser` (`fromuser`),
-  KEY `deleted` (`deleted`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8 COMMENT='All our messages' AUTO_INCREMENT=535520 ;
+  PRIMARY KEY (`id`) KEY_BLOCK_SIZE=8,
+  UNIQUE KEY `id` (`id`) KEY_BLOCK_SIZE=8,
+  KEY `envelopefrom` (`envelopefrom`) KEY_BLOCK_SIZE=8,
+  KEY `envelopeto` (`envelopeto`) KEY_BLOCK_SIZE=8,
+  KEY `retrylastfailure` (`retrylastfailure`) KEY_BLOCK_SIZE=8,
+  KEY `message-id` (`messageid`) KEY_BLOCK_SIZE=8,
+  KEY `fromup` (`fromip`) KEY_BLOCK_SIZE=8,
+  KEY `tnpostid` (`tnpostid`) KEY_BLOCK_SIZE=8,
+  KEY `type` (`type`) KEY_BLOCK_SIZE=8,
+  KEY `sourceheader` (`sourceheader`) KEY_BLOCK_SIZE=8,
+  KEY `arrival` (`arrival`,`sourceheader`) KEY_BLOCK_SIZE=8,
+  KEY `arrival_2` (`arrival`,`fromaddr`) KEY_BLOCK_SIZE=8,
+  KEY `arrival_3` (`arrival`) KEY_BLOCK_SIZE=8,
+  KEY `fromaddr` (`fromaddr`,`subject`(767)) KEY_BLOCK_SIZE=8,
+  KEY `date` (`date`) KEY_BLOCK_SIZE=8,
+  KEY `subject` (`subject`(767)) KEY_BLOCK_SIZE=8,
+  KEY `fromuser` (`fromuser`) KEY_BLOCK_SIZE=8,
+  KEY `deleted` (`deleted`) KEY_BLOCK_SIZE=8,
+  KEY `heldby` (`heldby`) KEY_BLOCK_SIZE=8
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='All our messages' AUTO_INCREMENT=829438 ;
 
 -- --------------------------------------------------------
 
@@ -207,7 +215,7 @@ CREATE TABLE IF NOT EXISTS `messages_attachments` (
   UNIQUE KEY `id` (`id`),
   KEY `incomingid` (`msgid`),
   KEY `incomingid_2` (`msgid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Attachments parsed out from messages' AUTO_INCREMENT=308356 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Attachments parsed out from messages and resized' AUTO_INCREMENT=426738 ;
 
 -- --------------------------------------------------------
 
@@ -246,7 +254,6 @@ CREATE TABLE IF NOT EXISTS `messages_history` (
   `source` enum('Email','Yahoo Approved','Yahoo Pending') NOT NULL DEFAULT 'Email' COMMENT 'Source of incoming message',
   `fromip` varchar(40) DEFAULT NULL COMMENT 'IP we think this message came from',
   `fromhost` varchar(80) DEFAULT NULL COMMENT 'Hostname for fromip if resolvable, or NULL',
-  `message` longtext NOT NULL COMMENT 'The unparsed message',
   `fromuser` bigint(20) unsigned DEFAULT NULL,
   `envelopefrom` varchar(255) DEFAULT NULL,
   `fromname` varchar(255) DEFAULT NULL,
@@ -256,8 +263,6 @@ CREATE TABLE IF NOT EXISTS `messages_history` (
   `subject` varchar(1024) DEFAULT NULL,
   `prunedsubject` varchar(1024) DEFAULT NULL COMMENT 'For spam detection',
   `messageid` varchar(255) DEFAULT NULL,
-  `textbody` longtext,
-  `htmlbody` longtext,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `fromaddr` (`fromaddr`),
@@ -273,7 +278,20 @@ CREATE TABLE IF NOT EXISTS `messages_history` (
   KEY `prunedsubject` (`prunedsubject`(767)),
   KEY `fromname` (`fromname`),
   KEY `fromuser` (`fromuser`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Message arrivals, used for spam checking' AUTO_INCREMENT=759546 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Message arrivals, used for spam checking' AUTO_INCREMENT=1042908 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `messages_related`
+--
+
+CREATE TABLE IF NOT EXISTS `messages_related` (
+  `id1` bigint(20) unsigned NOT NULL,
+  `id2` bigint(20) unsigned NOT NULL,
+  KEY `id1` (`id1`),
+  KEY `id2` (`id2`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Messages which are related to each other';
 
 -- --------------------------------------------------------
 
@@ -304,7 +322,7 @@ CREATE TABLE IF NOT EXISTS `mod_configs` (
   UNIQUE KEY `id` (`id`),
   KEY `uniqueid` (`id`,`createdby`),
   KEY `createdby` (`createdby`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Configurations for use by moderators' AUTO_INCREMENT=4820 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Configurations for use by moderators' AUTO_INCREMENT=5415 ;
 
 -- --------------------------------------------------------
 
@@ -327,7 +345,7 @@ CREATE TABLE IF NOT EXISTS `mod_stdmsgs` (
   `edittext` enum('Unchanged','Correct Case') NOT NULL DEFAULT 'Unchanged',
   UNIQUE KEY `id` (`id`),
   KEY `configid` (`configid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=27472 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=38094 ;
 
 -- --------------------------------------------------------
 
@@ -342,7 +360,21 @@ CREATE TABLE IF NOT EXISTS `plugin` (
   `data` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Outstanding work required to be performed by the plugin' AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Outstanding work required to be performed by the plugin' AUTO_INCREMENT=2288 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `postcodelatlng`
+--
+
+CREATE TABLE IF NOT EXISTS `postcodelatlng` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `postcode` varchar(8) NOT NULL,
+  `latitude` decimal(18,15) NOT NULL,
+  `longitude` decimal(18,15) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1812403 ;
 
 -- --------------------------------------------------------
 
@@ -388,7 +420,7 @@ CREATE TABLE IF NOT EXISTS `spam_whitelist_ips` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `ip` (`ip`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Whitelisted IP addresses' AUTO_INCREMENT=226 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Whitelisted IP addresses' AUTO_INCREMENT=916 ;
 
 -- --------------------------------------------------------
 
@@ -404,7 +436,7 @@ CREATE TABLE IF NOT EXISTS `spam_whitelist_subjects` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `ip` (`subject`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Whitelisted subjects' AUTO_INCREMENT=3 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Whitelisted subjects' AUTO_INCREMENT=109 ;
 
 -- --------------------------------------------------------
 
@@ -427,7 +459,7 @@ CREATE TABLE IF NOT EXISTS `supporters` (
   UNIQUE KEY `id` (`id`),
   KEY `name` (`name`,`type`,`email`),
   KEY `display` (`display`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='People who have supported this site' AUTO_INCREMENT=4100 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='People who have supported this site' AUTO_INCREMENT=5618 ;
 
 -- --------------------------------------------------------
 
@@ -454,7 +486,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `lastname` (`lastname`),
   KEY `firstname_2` (`firstname`,`lastname`),
   KEY `yahooUserId` (`yahooUserId`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3878566 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=5139116 ;
 
 -- --------------------------------------------------------
 
@@ -475,7 +507,7 @@ CREATE TABLE IF NOT EXISTS `users_emails` (
   KEY `userid` (`userid`),
   KEY `validated` (`validated`),
   KEY `userid_2` (`userid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3879574 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=5175166 ;
 
 -- --------------------------------------------------------
 
@@ -498,23 +530,17 @@ CREATE TABLE IF NOT EXISTS `users_logins` (
   KEY `userid` (`userid`),
   KEY `validated` (`lastaccess`),
   KEY `userid_2` (`userid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=5273 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=9124 ;
 
 --
 -- Constraints for dumped tables
 --
 
 --
--- Constraints for table `locations_approved`
+-- Constraints for table `locations`
 --
-ALTER TABLE `locations_approved`
-ADD CONSTRAINT `locations_approved_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`);
-
---
--- Constraints for table `logs_sql`
---
-ALTER TABLE `logs_sql`
-ADD CONSTRAINT `logs_sql_ibfk_1` FOREIGN KEY (`user`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+ALTER TABLE `locations`
+ADD CONSTRAINT `locations_ibfk_1` FOREIGN KEY (`gridid`) REFERENCES `locations_grids` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `memberships`
@@ -525,11 +551,24 @@ ADD CONSTRAINT `memberships_ibfk_2` FOREIGN KEY (`groupid`) REFERENCES `groups` 
 ADD CONSTRAINT `memberships_ibfk_3` FOREIGN KEY (`configid`) REFERENCES `mod_configs` (`id`) ON DELETE SET NULL;
 
 --
+-- Constraints for table `messages`
+--
+ALTER TABLE `messages`
+ADD CONSTRAINT `_messages_ibfk_1` FOREIGN KEY (`heldby`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
 -- Constraints for table `messages_groups`
 --
 ALTER TABLE `messages_groups`
-ADD CONSTRAINT `messages_groups_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
+ADD CONSTRAINT `_messages_groups_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
 ADD CONSTRAINT `messages_groups_ibfk_2` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `messages_related`
+--
+ALTER TABLE `messages_related`
+ADD CONSTRAINT `_messages_related_ibfk_1` FOREIGN KEY (`id1`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
+ADD CONSTRAINT `_messages_related_ibfk_2` FOREIGN KEY (`id2`) REFERENCES `messages` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `mod_stdmsgs`
