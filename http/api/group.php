@@ -6,45 +6,75 @@ function group() {
 
     $me = whoAmI($dbhr, $dbhm);
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
-    $g = new Group($dbhr, $dbhm, $groupid);
+    $nameshort = presdef('nameshort', $_REQUEST, NULL);
+    $action = presdef('action', $_REQUEST, 'UpdateMembers');
 
-    switch ($_SERVER['REQUEST_METHOD']) {
-        case 'GET': {
-            $members = array_key_exists('members', $_REQUEST) ? filter_var($_REQUEST['members'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    if ($nameshort) {
+        $g = new Group($dbhr, $dbhm);
+        $groupid = $g->findByShortName($nameshort);
+    }
 
-            $ret = [
-                'ret' => 0,
-                'status' => 'Success',
-                'group' => $g->getPublic(),
-                'myrole' => $me ? $me->getRole($groupid) : User::ROLE_NONMEMBER
-            ];
+    if ($groupid) {
+        $g = new Group($dbhr, $dbhm, $groupid);
 
-            if ($members && $me && $me->isModOrOwner($groupid)) {
-                $ret['members'] = $g->getMembers();
-            }
+        switch ($_SERVER['REQUEST_METHOD']) {
+            case 'GET': {
+                $members = array_key_exists('members', $_REQUEST) ? filter_var($_REQUEST['members'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
-            break;
-        }
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'group' => $g->getPublic(),
+                    'myrole' => $me ? $me->getRole($groupid) : User::ROLE_NONMEMBER
+                ];
 
-        case 'POST': {
-            $members = presdef('members', $_REQUEST, NULL);
-
-            $ret = [
-                'ret' => 1,
-                'status' => 'Failed or permission denied',
-            ];
-
-            if ($members && $me && $me->isModOrOwner($groupid)) {
-                if ($g->setMembers($members)) {
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success',
-                    ];
+                if ($members && $me && $me->isModOrOwner($groupid)) {
+                    $ret['members'] = $g->getMembers();
                 }
+
+                break;
             }
 
-            break;
+            case 'POST': {
+                switch ($action) {
+                    case 'UpdateMembers': {
+                        $members = presdef('members', $_REQUEST, NULL);
+
+                        $ret = [
+                            'ret' => 1,
+                            'status' => 'Failed or permission denied',
+                        ];
+
+                        if ($members && $me && $me->isModOrOwner($groupid)) {
+                            if ($g->setMembers($members)) {
+                                $ret = [
+                                    'ret' => 0,
+                                    'status' => 'Success',
+                                ];
+                            }
+                        }
+                        break;
+                    }
+
+                    case 'ConfirmKey': {
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'key' => $g->getConfirmKey()
+                        ];
+
+                        break;
+                    }
+                }
+
+                break;
+            }
         }
+    } else {
+        $ret = [
+            'ret' => 2,
+            'status' => 'We don\'t host that group'
+        ];
     }
 
     return($ret);

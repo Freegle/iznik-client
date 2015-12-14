@@ -2,6 +2,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     connected: false,
 
     work: [],
+    retrying: [],
     currentItem: null,
     yahooGroups: [],
 
@@ -69,7 +70,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
             if (first) {
                 self.currentItem = first;
-                console.log("First item", first);
+                //console.log("First item", first);
 
                 var groupname;
 
@@ -122,7 +123,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
     addWork: function(work) {
         var id = work.model ? work.model.get('id') : null;
-        _.each(this.work, function(item) {
+        _.each(_.union(this.work, this.retrying), function(item) {
             var itemid = item.model ? item.model.get('id') : null;
 
             if (id == itemid) {
@@ -164,10 +165,13 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         var self = this;
 
         self.currentItem = null;
+        self.retrying.push(work);
 
         // We don't want to add the work back into the queue immediately, as this could mean that we hammer away
         // retrying, which increases the chance of Yahoo 999s.
         _.delay(function() {
+            self.retrying = _.without(self.retrying, work);
+
             // Put at the back so as not to block other work.
             self.work.push(work);
             self.checkWork();
@@ -336,7 +340,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 var serverGroups = [];
                 var nameToId = [];
                 Iznik.Session.get('groups').each(function (group) {
-                    if (group.role == 'Moderator' || group.role == 'Owner') {
+                    var role = group.get('role');
+                    if (role == 'Moderator' || role == 'Owner') {
                         var lname = group.get('nameshort').toLowerCase();
                         serverGroups.push(lname);
                         nameToId[lname] = group.get('id');
@@ -345,10 +350,12 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                 var serverMissing = _.difference(self.yahooGroups, serverGroups);
                 var yahooMissing = _.difference(serverGroups, self.yahooGroups);
-                console.log("Mod on Yahoo but not server", serverMissing);
-                console.log("Mod on server but but not Yahoo", yahooMissing);
-                console.log("NameToId", nameToId);
-                console.log("Session", Iznik.Session);
+                //console.log("Yahoo groups", self.yahooGroups);
+                //console.log("Server groups", serverGroups);
+                //console.log("Mod on Yahoo but not server", serverMissing);
+                //console.log("Mod on server but but not Yahoo", yahooMissing);
+                //console.log("NameToId", nameToId);
+                //console.log("Session", Iznik.Session);
 
                 // If we're a mod on the server but not on Yahoo, then we need to demote ourselves.
                 _.each(yahooMissing, function(demote) {
@@ -361,6 +368,49 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                             role: 'Member'
                         }
                     })
+                });
+
+                // If we're a mod on Yahoo but not on the server, and it's a group the server knows about,
+                // then we need to prove to the server that we're a mod so that we can auto-add it to
+                // our list of groups.  We do this by triggering an invitation, which is something only mods
+                // can do.
+                _.each(serverMissing, function(group) {
+                    $.ajax({
+                        url: API + 'group',
+                        type: 'GET',
+                        data: {
+                            nameshort: group
+                        },
+                        success: function(ret) {
+                            if (ret.ret == 0) {
+                                // The group is hosted by the server; trigger a confirm.  First we need a confirm key.
+                                var groupid = ret.group.id;
+                                console.log("Confirm group", group, groupid);
+
+                                $.ajax({
+                                    url: API + 'group',
+                                    type: 'POST',
+                                    data: {
+                                        groupid: ret.group.id,
+                                        action: 'ConfirmKey'
+                                    },
+                                    success: function(ret) {
+                                        console.log("Confirm group with key", group, groupid, ret.key);
+                                        var email = 'modconfirm-' + groupid + '-' +
+                                            Iznik.Session.get('me').id + '-' + ret.key + '@' + location.host;
+                                        console.log("Confirm mail", email);
+
+                                        (new Iznik.Views.Plugin.Yahoo.ConfirmMod({
+                                            model: new IznikModel({
+                                                nameshort: group,
+                                                email: email
+                                            })
+                                        }).render());
+                                    }
+                                })
+                            }
+                        }
+                    });
                 });
             }
         }
@@ -377,6 +427,16 @@ Iznik.Views.Plugin.Work = IznikView.extend({
     startBusy: function() {
         // Change icon
         this.$('.glyphicon-time, glyphicon-warning-sign').removeClass('glyphicon-time, glyphicon-warning-sign').addClass('glyphicon-refresh rotate');
+    },
+
+    drop: function() {
+        var self = this;
+
+        // Don't even retry
+        IznikPlugin.completedWork();
+        this.$el.fadeOut('slow', function() {
+            self.$el.remove();
+        });
     },
 
     fail: function() {
@@ -430,7 +490,7 @@ Iznik.Views.Plugin.Work = IznikView.extend({
 
     render: function() {
         // Render our template and add it to the visible work queue.
-        this.$el.html(window.template(this.template)(this.model.toJSON2()));
+        this.$el.html(window.template(this.template)(this.model ? this.model.toJSON2() : null));
         $('#js-work').append(this.$el).fadeIn('slow');
 
         // Queue this item of work.
@@ -919,6 +979,73 @@ Iznik.Views.Plugin.Yahoo.DeliveryType  = Iznik.Views.Plugin.Yahoo.ChangeAttribut
 Iznik.Views.Plugin.Yahoo.PostingStatus = Iznik.Views.Plugin.Yahoo.ChangeAttribute.extend({
     template: 'plugin_yahoo_posting',
     attr: 'postingStatus'
+});
+
+Iznik.Views.Plugin.Yahoo.Invite = Iznik.Views.Plugin.Work.extend({
+    template: 'plugin_invite',
+
+    start: function() {
+        var self = this;
+        this.startBusy();
+
+        $.ajax({
+            type: "POST",
+            url: YAHOOAPI + "groups/" + self.model.get('nameshort') +
+                "/members?actionType=MAILINGLIST_INVITE&gapi_crumb=" + self.crumb,
+            data: 'members=[{"email":"' + self.model.get('email') + '"}]',
+            success: function (ret) {
+                console.log("Invite returned", ret);
+
+                if (ret.hasOwnProperty('ygData') &&
+                    ret.ygData.hasOwnProperty('numSuccessfulInvites')) {
+                    // If the invite worked, numSuccessfulInvites == 1.
+                    if (ret.ygData.numSuccessfulInvites == 1) {
+                        self.succeed();
+                    } else {
+                        self.fail();
+                    }
+                } else {
+                    self.fail();
+                }
+            }, error: function() {
+                self.fail();
+            }
+        });
+    }
+});
+
+Iznik.Views.Plugin.Yahoo.ConfirmMod = Iznik.Views.Plugin.Yahoo.Invite.extend({
+    template: 'plugin_confirmmod',
+
+    start: function() {
+        // For this we drop if we fail - because we might not have those mod permissions on Yahoo.
+        var self = this;
+        this.startBusy();
+
+        $.ajax({
+            type: "POST",
+            url: YAHOOAPI + "groups/" + self.model.get('nameshort') +
+            "/members?actionType=MAILINGLIST_INVITE&gapi_crumb=" + self.crumb,
+            data: 'members=[{"email":"' + self.model.get('email') + '"}]',
+            success: function (ret) {
+                console.log("Invite returned", ret);
+
+                if (ret.hasOwnProperty('ygData') &&
+                    ret.ygData.hasOwnProperty('numSuccessfulInvites')) {
+                    // If the invite worked, numSuccessfulInvites == 1.
+                    if (ret.ygData.numSuccessfulInvites == 1) {
+                        self.succeed();
+                    } else {
+                        self.drop();
+                    }
+                } else {
+                    self.drop();
+                }
+            }, error: function() {
+                self.drop();
+            }
+        });
+    }
 });
 
 var IznikPlugin = new Iznik.Views.Plugin.Main();

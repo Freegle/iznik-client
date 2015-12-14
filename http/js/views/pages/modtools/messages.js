@@ -309,6 +309,11 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
             });
             self.close();
         });
+
+        console.log("Autosend?", self.model.get('autosend'));
+        if (self.model.get('autosend')) {
+            self.$('.js-send').click();
+        }
     }
 });
 

@@ -48,6 +48,69 @@ class MailRouterTest extends IznikTest {
     public function __construct() {
     }
 
+    public function testConfirmMod() {
+        error_log(__METHOD__);
+
+        $msg = file_get_contents('msgs/confirmmod_fake');
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $g = new Group($this->dbhr, $this->dbhm, $gid);
+
+        # Try with an invalid key
+        error_log("Invalid key");
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->received(Message::YAHOO_SYSTEM, NULL, "modconfirm-$gid-88-hmnXWqaGKir0fNTXgveSuj7ULOn44SEm@iznik.modtools.org", $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::DROPPED, $rc);
+
+        # Try with a valid key but not a valid user
+        error_log("Invalid user");
+        $key = $g->getConfirmKey();
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->received(Message::YAHOO_SYSTEM, NULL, "modconfirm-$gid-0-$key@iznik.modtools.org", $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::DROPPED, $rc);
+
+        # A user who is not a member
+        error_log("Not member");
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $key = $g->getConfirmKey();
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->received(Message::YAHOO_SYSTEM, NULL, "modconfirm-$gid-$uid-$key@iznik.modtools.org", $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
+
+        # A user who is a member
+        error_log("Already member");
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($gid, User::ROLE_MEMBER);
+        $key = $g->getConfirmKey();
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->received(Message::YAHOO_SYSTEM, NULL, "modconfirm-$gid-$uid-$key@iznik.modtools.org", $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        assertEquals(User::ROLE_MODERATOR, $u->getRole($gid));
+
+        # A user who is an owner - shouldn't be demoted
+        error_log("Owner");
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($gid, User::ROLE_OWNER);
+        $key = $g->getConfirmKey();
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->received(Message::YAHOO_SYSTEM, NULL, "modconfirm-$gid-$uid-$key@iznik.modtools.org", $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        assertEquals(User::ROLE_OWNER, $u->getRole($gid));
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testSpamSubject() {
         error_log(__METHOD__);
 

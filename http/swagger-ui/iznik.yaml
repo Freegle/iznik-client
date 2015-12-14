@@ -338,8 +338,12 @@ paths:
       parameters:
       - name: groupid
         in: query
-        description: Groupid to query; default is all for current user
+        description: Groupid to query; supply this or nameshort.
         type: number
+      - name: nameshort
+        in: query
+        description: Shortname of group to query; supply this or groupid
+        type: string
       - name: members
         in: query
         description: Whether to return membership list; default is false.
@@ -364,6 +368,11 @@ paths:
         description: Groupid to update
         required: true,
         type: number
+      - name: action
+        in: query
+        description: What action to perform; default is update members
+        type: string
+        enum: ['UpdateMembers', 'ConfirmKey']
       - name: members
         in: body
         description: Array of members.  This is a complete replacement of the membership list for this group, and is intended only for sync with Yahoo.

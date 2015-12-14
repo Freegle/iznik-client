@@ -364,6 +364,7 @@ class Message
     const EMAIL = 'Email';
     const YAHOO_APPROVED = 'Yahoo Approved';
     const YAHOO_PENDING = 'Yahoo Pending';
+    const YAHOO_SYSTEM = 'Yahoo System';
 
     /**
      * @return null

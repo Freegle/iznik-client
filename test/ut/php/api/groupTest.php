@@ -59,7 +59,24 @@ class groupAPITest extends IznikAPITest {
             'members' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
+        assertEquals($this->groupid, $ret['group']['id']);
         assertFalse(pres('members', $ret));
+
+        # By short name
+        $ret = $this->call('group', 'GET', [
+            'nameshort' => 'testgroup',
+            'members' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($this->groupid, $ret['group']['id']);
+        assertFalse(pres('members', $ret));
+
+        # Duff shortname
+        $ret = $this->call('group', 'GET', [
+            'nameshort' => 'testinggroup',
+            'members' => TRUE
+        ]);
+        assertEquals(2, $ret['ret']);
 
         # Member - shouldn't see members list
         assertTrue($this->user->login('testpw'));
@@ -200,6 +217,23 @@ class groupAPITest extends IznikAPITest {
         $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ?;";
         $counts = $this->dbhr->preQuery($sql, [ $this->groupid ]);
         assertEquals($size + 1, $counts[0]['count']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testConfirmMod() {
+        error_log(__METHOD__);
+
+        $ret = $this->call('group', 'POST', [
+            'action' => 'ConfirmKey',
+            'groupid' => $this->groupid
+        ]);
+        error_log(var_export($ret, true));
+        assertEquals(0, $ret['ret']);
+        $key = $ret['key'];
+
+
+
 
         error_log(__METHOD__ . " end");
     }

@@ -1,0 +1,17 @@
+#!/bin/bash
+export MESSAGE_ID
+echo "Message ID " $MESSAGE_ID >> /tmp/iznik_incoming.out
+cd /var/www/iznik
+nice php -q /var/www/iznik/scripts/incoming/incoming.php >> /tmp/iznik_incoming.out 2>&1
+rc=$?;
+echo "`date` Returned $rc for " $MESSAGE_ID >> /tmp/iznik_incoming.out
+
+if [ "$rc" -ne "0" ]
+then
+  echo "`date` Failed with $rc" >> /tmp/iznik_incoming.out
+  php /var/www/iznik/scripts/incomingerr.php $rc $MESSAGE_ID
+  exit 1
+fi
+
+exit 0
+

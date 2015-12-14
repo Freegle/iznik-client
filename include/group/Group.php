@@ -334,7 +334,7 @@ class Group extends Entity
             # $messages.
             /** @var Collection $c */
             foreach ($cs as $c) {
-                $sql = "SELECT id, fromaddr, yahoopendingid, yahooapprovedid, subject, date FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ?;";
+                $sql = "SELECT id, fromaddr, yahoopendingid, yahooapprovedid, subject, date FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0;";
                 $ourmsgs = $this->dbhr->preQuery(
                     $sql,
                     [
@@ -359,5 +359,13 @@ class Group extends Entity
         }
 
         return ([$missingonserver, $missingonclient]);
+    }
+
+    public function getConfirmKey() {
+        $key = randstr(32);
+        $sql = "UPDATE groups SET confirmkey = ? WHERE id = ?;";
+        $rc = $this->dbhm->preExec($sql, [ $key, $this->id ]);
+        error_log("Set new key $key returned $rc");
+        return($key);
     }
 }

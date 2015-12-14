@@ -27,7 +27,6 @@ class Entity
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
         $this->name = $name;
-        $this->id = $id;
         $this->publicatts = $publicatts;
         $this->table = $table;
 
@@ -35,6 +34,7 @@ class Entity
             $entities = $dbhr->preQuery("SELECT * FROM $table WHERE id = ?;", [$id]);
             foreach ($entities as $entity) {
                 $this->$name = $entity;
+                $this->id = $id;
             }
         }
     }

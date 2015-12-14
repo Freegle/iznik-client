@@ -311,7 +311,7 @@ class User extends Entity
         return($rc);
     }
 
-    public function getRole($groupid) {
+    public function getRole($groupid, $overrides = TRUE) {
         # We can have a number of roles on a group
         # - none, we can only see what is member
         # - member, we are a group member and can see some extra info
@@ -321,13 +321,15 @@ class User extends Entity
         # If our system role is support then we get moderator status; if it's admin we get owner status.
         $role = User::ROLE_NONMEMBER;
 
-        switch ($this->getPrivate('systemrole')) {
-            case User::ROLE_SUPPORT:
-                $role = User::ROLE_MODERATOR;
-                break;
-            case User::ROLE_ADMIN:
-                $role = User::ROLE_OWNER;
-                break;
+        if ($overrides) {
+            switch ($this->getPrivate('systemrole')) {
+                case User::ROLE_SUPPORT:
+                    $role = User::ROLE_MODERATOR;
+                    break;
+                case User::ROLE_ADMIN:
+                    $role = User::ROLE_OWNER;
+                    break;
+            }
         }
 
         # Now find if we have any membership of the group which might also give us a role.
