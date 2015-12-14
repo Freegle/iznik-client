@@ -32,6 +32,7 @@ class Spam {
 
     public function check(Message $msg) {
         $ip = $msg->getHeader('x-freegle-ip');
+        $ip = $ip ? $ip : $msg->getHeader('x-trash-nothing-user-ip');
         $ip = $ip ? $ip : $msg->getHeader('x-yahoo-post-ip');
         $ip = $ip ? $ip : $msg->getHeader('x-originating-ip');
         $ip = preg_replace('/[\[\]]/', '', $ip);

@@ -163,7 +163,8 @@ class Message
                 }
             }
 
-            # TODO We don't need to parse each time.
+            # We parse each time because sometimes we will ask for headers.  Note that if we're not in the initial parse/save of
+            # the message we might be parsing from a modified version of the source.
             $this->parser = new PhpMimeMailParser\Parser();
             $this->parser->setText($this->message);
         }
@@ -747,6 +748,64 @@ class Message
         return(TRUE);
     }
 
+    public function pruneMessage() {
+        # We are only interested in image attachments; those are what we hive off into the attachments table,
+        # and what we display.  They bulk up the message source considerably, which chews up disk space.  Worse,
+        # we might have message attachments which are not even image attachments, just for messages we are
+        # moderating on groups.
+        #
+        # So we remove all attachment data within the message.  We do this with a handrolled lame parser, as we
+        # don't have a full MIME reassembler.
+        $current = $this->message;
+
+        # Might have wrong LF format.
+        $current = preg_replace('~\R~u', "\r\n", $current);
+        $p = 0;
+
+        do {
+            $found = FALSE;
+            $p = stripos($current, 'Content-Type:', $p);
+            if ($p) {
+                $crpos = strpos($current, "\r\n", $p);
+                $ct = substr($current, $p, $crpos - $p);
+
+                $found = TRUE;
+
+                # We don't want to prune a multipart, only the bottom level parts.
+                if (stripos($ct, "multipart") === FALSE) {
+                    # Find the boundary before it.
+                    $boundpos = strrpos(substr($current, 0, $p), "\r\n--");
+
+                    if ($boundpos) {
+                        $crpos = strpos($current, "\r\n", $boundpos + 2);
+                        $boundary = substr($current, $boundpos + 2, $crpos - ($boundpos + 2));
+
+                        # Find the end of the bodypart headers.
+                        $breakpos = strpos($current, "\r\n\r\n", $boundpos);
+
+                        # Find the end of the bodypart.
+                        $nextboundpos = strpos($current, $boundary, $breakpos);
+
+                        # Keep a max of 10K.
+                        #
+                        # Observant readers may wish to comment on this definition of K.
+                        if ($breakpos && $nextboundpos && $nextboundpos - $breakpos > 10000) {
+                            # Strip out the bodypart data and replace it with some short text.
+                            $current = substr($current, 0, $breakpos + 2) .
+                                "\r\n...Content of size " . ($nextboundpos - $breakpos + 2) . " removed...\r\n\r\n" .
+                                substr($current, $nextboundpos);
+                            #error_log($this->id . " Content of size " . ($nextboundpos - $breakpos + 2) . " removed...");
+                        }
+                    }
+                }
+            }
+
+            $p++;
+        } while ($found);
+
+        return($current);
+    }
+
     # Save a parsed message to the DB
     public function save() {
         # A message we are saving as approved may previously have been in system, for example as pending.  When it
@@ -757,6 +816,9 @@ class Message
         # We don't need a transaction for this - transactions aren't great for scalability and worst case we
         # leave a spurious message around which a mod will handle.
         $this->removeByMessageID($this->groupid);
+
+        # Reduce the size of the message source
+        $this->pruneMessage();
 
         # Save into the messages table.
         $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
@@ -1212,7 +1274,6 @@ class Message
 
                     if ($subj1 == $subj2) {
                         # Exact match
-                        error_log("Exact match");
                         $match = TRUE;
                     } else if ($message['dist'] == $message['mindist'] &&
                         $message['dist'] <= strlen($subj1) * 3 / 4) {
