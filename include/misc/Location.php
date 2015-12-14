@@ -134,7 +134,8 @@ class Location extends Entity
             }
         }
 
-        return($ret);
+        # Don't return duplicates.
+        return(array_unique($ret, SORT_REGULAR));
     }
 
     public function delete()

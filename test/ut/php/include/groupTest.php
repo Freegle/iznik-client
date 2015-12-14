@@ -73,6 +73,13 @@ class groupTest extends IznikTest {
     public function testErrors() {
         error_log(__METHOD__);
 
+        $dbconfig = array (
+            'host' => '127.0.0.1',
+            'user' => SQLUSER,
+            'pass' => SQLPASSWORD,
+            'database' => SQLDB
+        );
+
         # Create duplicate group
         $g = new Group($this->dbhr, $this->dbhm);
         $id = $g->create('testgroup', Group::GROUP_REUSE);
@@ -80,6 +87,19 @@ class groupTest extends IznikTest {
         $id2 = $g->create('testgroup', Group::GROUP_REUSE);
         assertNull($id2);
 
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->setConstructorArgs([
+                "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
+                $dbconfig['user'], $dbconfig['pass'], array(), TRUE
+            ])
+            ->setMethods(array('lastInsertId'))
+            ->getMock();
+        $mock->method('lastInsertId')->willThrowException(new Exception());
+        $g->setDbhm($mock);
+        $id2 = $g->create('testgroup2', Group::GROUP_REUSE);
+        assertNull($id2);
+
+        $g = new Group($this->dbhr, $this->dbhm);
         $id2 = $g->findByShortName('zzzz');
         assertNull($id2);
 
@@ -90,13 +110,6 @@ class groupTest extends IznikTest {
         $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
         $this->user->addMembership($id);
-
-        $dbconfig = array (
-            'host' => '127.0.0.1',
-            'user' => SQLUSER,
-            'pass' => SQLPASSWORD,
-            'database' => SQLDB
-        );
 
         $g = new Group($this->dbhr, $this->dbhm, $id);
         $mock = $this->getMockBuilder('LoggedPDO')

@@ -123,6 +123,12 @@ class userAPITest extends IznikAPITest {
     public function testLog() {
         error_log(__METHOD__);
 
+        $ret = $this->call('session', 'POST', [
+            'email' => 'test@test.com',
+            'password' => 'testpw'
+        ]);
+        assertEquals(0, $ret['ret']);
+
         $ret = $this->call('user', 'GET', [
             'id' => $this->uid,
             'logs' => TRUE

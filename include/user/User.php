@@ -153,6 +153,7 @@ class User extends Entity
 
     public function addMembership($groupid, $role = User::ROLE_MEMBER) {
         $me = whoAmI($this->dbhr, $this->dbhm);
+        error_log("Add membership " . var_export($me, true));
 
         $rc = $this->dbhm->preExec("REPLACE INTO memberships (userid, groupid, role) VALUES (?,?,?);",
             [
