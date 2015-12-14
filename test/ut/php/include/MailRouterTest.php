@@ -51,7 +51,7 @@ class MailRouterTest extends IznikTest {
     public function testConfirmMod() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/confirmmod_fake');
+        $msg = file_get_contents('msgs/confirmmod_real');
 
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
@@ -107,6 +107,14 @@ class MailRouterTest extends IznikTest {
         $rc = $r->route();
         assertEquals(MailRouter::TO_SYSTEM, $rc);
         assertEquals(User::ROLE_OWNER, $u->getRole($gid));
+
+        # Try a fake confirm
+        $msg = file_get_contents('msgs/confirmmod_fake');
+        error_log("Fake confirm");
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->received(Message::YAHOO_SYSTEM, NULL, "modconfirm-$gid-$uid-$key@iznik.modtools.org", $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::DROPPED, $rc);
 
         error_log(__METHOD__ . " end");
     }

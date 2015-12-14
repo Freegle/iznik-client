@@ -119,43 +119,50 @@ class MailRouter
                 $key = $matches[3];
                 error_log("Confirm moderation status for $userid on $groupid using $key");
 
-                # See if we can find the group with this key.  If not then we just drop it - it's either a fake
-                # or obsolete.
-                $sql = "SELECT id FROM groups WHERE id = ? AND confirmkey = ?;";
-                $groups = $this->dbhr->preQuery($sql, [ $groupid, $key ]);
+                # Get the first header.  This is added by our local EXIM and therefore can't be faked by a remote
+                # system.  Check that it comes from Yahoo.
+                $rcvd = $this->msg->getHeader('received');
+                error_log("Headers " . var_export($rcvd, true));
 
-                error_log("Check key $key for group $groupid");
+                if (preg_match('/from .*yahoo\.com \(/', $rcvd)) {
+                    # See if we can find the group with this key.  If not then we just drop it - it's either a fake
+                    # or obsolete.
+                    $sql = "SELECT id FROM groups WHERE id = ? AND confirmkey = ?;";
+                    $groups = $this->dbhr->preQuery($sql, [ $groupid, $key ]);
 
-                foreach ($groups as $group) {
-                    error_log("Confirm key is valid");
-                    # The confirm looks valid.  Promote this user.  We only promote to moderator because we can't
-                    # distinguish between owner and moderator via this route.
-                    $u = new User($this->dbhr, $this->dbhm, $userid);
+                    error_log("Check key $key for group $groupid");
 
-                    if ($u->getPublic()['id'] == $userid) {
-                        error_log("Userid $userid is valid");
-                        $role = $u->getRole($groupid, FALSE);
-                        error_log("Role is $role");
+                    foreach ($groups as $group) {
+                        error_log("Confirm key is valid");
+                        # The confirm looks valid.  Promote this user.  We only promote to moderator because we can't
+                        # distinguish between owner and moderator via this route.
+                        $u = new User($this->dbhr, $this->dbhm, $userid);
 
-                        if ($role == User::ROLE_NONMEMBER) {
-                            # We aren't a member yet.  Add ourselves.
-                            error_log("Not a member yet");
-                            $u->addMembership($groupid, User::ROLE_MODERATOR);
-                            $ret = MailRouter::TO_SYSTEM;
-                        } else if ($role == User::ROLE_MEMBER) {
-                            # We're already a member.  Promote.
-                            error_log("We were a member, promote");
-                            $u->setRole(User::ROLE_MODERATOR, $groupid);
-                            $ret = MailRouter::TO_SYSTEM;
-                        } else {
-                            # Mod or owner.  Don't demote owner to a mod!
-                            error_log("Already a mod/owner, no action");
-                            $ret = MailRouter::TO_SYSTEM;
+                        if ($u->getPublic()['id'] == $userid) {
+                            error_log("Userid $userid is valid");
+                            $role = $u->getRole($groupid, FALSE);
+                            error_log("Role is $role");
+
+                            if ($role == User::ROLE_NONMEMBER) {
+                                # We aren't a member yet.  Add ourselves.
+                                error_log("Not a member yet");
+                                $u->addMembership($groupid, User::ROLE_MODERATOR);
+                                $ret = MailRouter::TO_SYSTEM;
+                            } else if ($role == User::ROLE_MEMBER) {
+                                # We're already a member.  Promote.
+                                error_log("We were a member, promote");
+                                $u->setRole(User::ROLE_MODERATOR, $groupid);
+                                $ret = MailRouter::TO_SYSTEM;
+                            } else {
+                                # Mod or owner.  Don't demote owner to a mod!
+                                error_log("Already a mod/owner, no action");
+                                $ret = MailRouter::TO_SYSTEM;
+                            }
                         }
-                    }
 
-                    # Key is single user
-                    $this->dbhm->preExec("UPDATE groups SET confirmkey = NULL WHERE id = ?;", [ $groupid ]);
+                        # Key is single use
+                        $this->dbhm->preExec("UPDATE groups SET confirmkey = NULL WHERE id = ?;", [$groupid]);
+                    }
                 }
             } else {
                 $ret = MailRouter::FAILURE;
