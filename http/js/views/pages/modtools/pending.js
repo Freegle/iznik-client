@@ -65,7 +65,7 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
 
         this.msgs = new Iznik.Collections.Message();
 
-        var v = new Iznik.Views.Group.Select({
+        this.groupSelect = new Iznik.Views.Group.Select({
             systemWide: false,
             all: true,
             mod: true,
@@ -73,17 +73,19 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
             id: 'groupSelect'
         });
 
-        self.listenTo(v, 'selected', function(selected) {
+        self.listenTo(this.groupSelect, 'selected', function(selected) {
             self.selected = selected;
             self.fetch();
         });
 
         // Render after the listen to as they are called during render.
-        self.$('.js-groupselect').html(v.render().el);
+        self.$('.js-groupselect').html(self.groupSelect.render().el);
 
         // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
         // appropriately.
         this.listenTo(Iznik.Session, 'pendingcountschanged', this.fetch);
+        this.listenTo(Iznik.Session, 'pendingcountschanged', this.groupSelect.render());
+        this.listenTo(Iznik.Session, 'pendingothercountschanged', this.groupSelect.render());
     }
 });
 

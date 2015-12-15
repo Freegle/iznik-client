@@ -8,6 +8,7 @@ Iznik.Views.Group.Select = IznikView.extend({
     persist: false,
 
     render: function() {
+        console.log("select render");
         var self = this;
 
         if (self.options.hasOwnProperty('id') && !self.options.hasOwnProperty('selected')) {
@@ -27,15 +28,15 @@ Iznik.Views.Group.Select = IznikView.extend({
         // The library needs the element to have an id
         self.$el.prop('id', self.options.id);
 
-        if (self.dropdown) {
-            // Remove old ones.
-            do {
-                self.dropdown.remove(0);
-            } while (self.dropdown.options.length > 0);
-        }
-
         // Needs to be in DOM.
         _.defer(function() {
+            if (self.dropdown) {
+                // Remove old ones.
+                do {
+                    self.dropdown.remove(0);
+                } while (self.dropdown.options.length > 0);
+            }
+
             self.dropdown = self.$el.msDropdown().data("dd");
 
             if (self.options.all) {

@@ -94,24 +94,27 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
 
         self.collectionView.render();
 
-        var v = new Iznik.Views.Group.Select({
+        self.groupSelect = new Iznik.Views.Group.Select({
             systemWide: false,
             all: true,
             mod: true,
+            counts: [ 'approved', 'approvedother' ],
             id: 'groupSelect'
         });
 
-        self.listenTo(v, 'selected', function(selected) {
+        self.listenTo(self.groupSelect, 'selected', function(selected) {
             self.selected = selected;
             self.fetch();
         });
 
         // Render after the listen to as they are called during render.
-        self.$('.js-groupselect').html(v.render().el);
+        self.$('.js-groupselect').html(self.groupSelect.render().el);
 
         // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
         // appropriately.
         this.listenTo(Iznik.Session, 'approvedcountschanged', this.fetch);
+        this.listenTo(Iznik.Session, 'approvedcountschanged', this.groupSelect.render());
+        this.listenTo(Iznik.Session, 'approvedothercountschanged', this.groupSelect.render());
     }
 });
 

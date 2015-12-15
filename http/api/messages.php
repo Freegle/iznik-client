@@ -32,7 +32,7 @@ function messages() {
                 $mygroups = $me->getMemberships();
                 foreach ($mygroups as $group) {
                     $settings = $me->getGroupSettings($group['id']);
-                    if (array_key_exists('showmessages', $settings) &&
+                    if (!array_key_exists('showmessages', $settings) ||
                         $settings['showmessages']) {
                         $groups[] = $group['id'];
                     }
