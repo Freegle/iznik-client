@@ -15,7 +15,8 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 
 $g = new Group($dbhr, $dbhm);
 
-$mods = $dbhold->query("SELECT groups.groupname, moderators.email, moderators.name, moderators.yahooid
+$mods = $dbhold->query("SELECT groups.groupname, moderators.email, moderators.name, moderators.yahooid,
+ groupsmoderated.showinallmessages, groupsmoderated.showinallmembers
 FROM groups
 INNER JOIN groupsmoderated ON groups.groupid = groupsmoderated.groupid
 INNER JOIN moderators ON moderators.uniqueid = groupsmoderated.moderatorid;");
@@ -40,6 +41,11 @@ foreach ($mods as $mod) {
 
             # Assume we're at least a mod - old ModTools doesn't know if we're an owner.
             $u->addMembership($gid, User::ROLE_MODERATOR);
+
+            $u->setGroupSettings($gid, [
+                'showmessages' => intval($mod['showinallmessages']),
+                'showmembers' => intval($mod['showinallmembers'])
+            ]);
         }
     }
 }

@@ -89,12 +89,17 @@ class Group extends Entity
         return(NULL);
     }
 
-    public function getWorkCounts() {
+    public function getWorkCounts($mysettings) {
+        # Depending on our group settings we might not want to show this work as primary; "other" work is displayed
+        # less prominently in the client.
+        $pend = array_key_exists('showmessages', $mysettings) && $mysettings['showmessages'] ? 'pending' : 'pendingother';
+        $spam = array_key_exists('showmessages', $mysettings) && $mysettings['showmessages'] ? 'spam' : 'spamother';
+
         $ret = [
-            'pending' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Pending' AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
+            $pend => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Pending' AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
                 $this->id
             ])[0]['count'],
-            'spam' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Spam' AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
+            $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Spam' AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
                 $this->id
             ])[0]['count'],
             'plugin' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM plugin WHERE groupid = ?;", [

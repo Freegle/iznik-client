@@ -25,8 +25,6 @@ Iznik.Models.Session = IznikModel.extend({
                         self.set('configs', new IznikCollection(ret.configs));
                     }
 
-                    var total = 0;
-
                     self.trigger('isLoggedIn', true);
 
                     // Update our various counts.
@@ -40,8 +38,20 @@ Iznik.Models.Session = IznikModel.extend({
                             fi: 'spam',
                             el: '.js-spamcount',
                             ev: 'spamcountschanged'
+                        },
+                        {
+                            fi: 'pendingother',
+                            el: '.js-pendingcountother',
+                            ev: 'pendingcountsotherchanged'
+                        },
+                        {
+                            fi: 'spamother',
+                            el: '.js-spamcountother',
+                            ev: 'spamcountsotherchanged'
                         }
                     ];
+
+                    var total = 0;
 
                     _.each(counts, function(count) {
                         if (ret.work[count.fi]) {

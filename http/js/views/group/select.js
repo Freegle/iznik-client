@@ -59,8 +59,24 @@ Iznik.Views.Group.Select = IznikView.extend({
                 var role = group.get('role');
 
                 if (!self.options.mod || role == 'Owner' || role ==  'Moderator') {
+                    var name = group.get('namedisplay');
+                    if (self.options.hasOwnProperty('counts')) {
+                        // We need to annotate the name with counts.
+                        var total = 0;
+                        var work = group.get('work');
+                        _.each(self.options.counts, function(count) {
+                            if (work.hasOwnProperty(count)) {
+                                total += work[count];
+                            }
+                        });
+
+                        if (total > 0) {
+                            name += ' (' + total + ')';
+                        }
+                    }
+
                     self.dropdown.add({
-                        text: group.get('namedisplay'),
+                        text: name,
                         value: group.get('id'),
                         title: group.get('namedisplay'),
                         image: group.get('grouplogo')

@@ -167,6 +167,11 @@ class userTest extends IznikTest {
         $u->addMembership($group1, User::ROLE_MEMBER);
         assertEquals($u->getRole($group1), User::ROLE_MEMBER);
         assertFalse($u->isModOrOwner($group1));
+        $u->setGroupSettings($group1, [
+            'testsetting' => 'test'
+        ]);
+        assertEquals('test', $u->getGroupSettings($group1)['testsetting']);
+
         $u->addMembership($group1, User::ROLE_OWNER);
         assertEquals($u->getRole($group1), User::ROLE_OWNER);
         assertTrue($u->isModOrOwner($group1));

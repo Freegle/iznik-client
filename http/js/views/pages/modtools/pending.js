@@ -69,6 +69,7 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
             systemWide: false,
             all: true,
             mod: true,
+            counts: [ 'pending', 'pendingother' ],
             id: 'groupSelect'
         });
 

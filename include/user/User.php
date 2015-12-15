@@ -220,9 +220,11 @@ class User extends Entity
             $one['role'] = $group['role'];
             $one['configid'] = $group['configid'];
 
+            $one['mysettings'] = $this->getGroupSettings($group['groupid']);
+
             if ($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER) {
                 # Give a summary of outstanding work.
-                $one['work'] = $g->getWorkCounts();
+                $one['work'] = $g->getWorkCounts($one['mysettings']);
             }
 
             $ret[] = $one;
@@ -356,6 +358,27 @@ class User extends Entity
         }
 
         return($role);
+    }
+
+    public function setGroupSettings($groupid, $settings) {
+        $sql = "UPDATE memberships SET settings = ? WHERE userid = ? AND groupid = ?;";
+        $this->dbhm->preExec($sql, [
+            json_encode($settings),
+            $this->id,
+            $groupid
+        ]);
+    }
+
+    public function getGroupSettings($groupid) {
+        $sql = "SELECT settings FROM memberships WHERE userid = ? AND groupid = ?;";
+        $sets = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
+        $settings = NULL;
+
+        foreach ($sets as $set) {
+            $settings = $set['settings'];
+        }
+
+        return($settings ? json_decode($settings, true) : []);
     }
 
     public function setRole($role, $groupid) {
@@ -494,7 +517,7 @@ class User extends Entity
                 'type' => Log::TYPE_USER,
                 'subtype' => Log::SUBTYPE_DELETED,
                 'user' => $this->id,
-                'byuser' => $me->getId(),
+                'byuser' => $me ? $me->getId() : NULL,
                 'text' => $this->getName()
             ]);
         }
