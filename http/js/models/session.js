@@ -32,22 +32,26 @@ Iznik.Models.Session = IznikModel.extend({
                         {
                             fi: 'pending',
                             el: '.js-pendingcount',
-                            ev: 'pendingcountschanged'
+                            ev: 'pendingcountschanged',
+                            window: true
                         },
                         {
                             fi: 'spam',
                             el: '.js-spamcount',
-                            ev: 'spamcountschanged'
+                            ev: 'spamcountschanged',
+                            window: true
                         },
                         {
                             fi: 'pendingother',
                             el: '.js-pendingcountother',
-                            ev: 'pendingcountsotherchanged'
+                            ev: 'pendingcountsotherchanged',
+                            window: false
                         },
                         {
                             fi: 'spamother',
                             el: '.js-spamcountother',
-                            ev: 'spamcountsotherchanged'
+                            ev: 'spamcountsotherchanged',
+                            window: false
                         }
                     ];
 
@@ -55,7 +59,11 @@ Iznik.Models.Session = IznikModel.extend({
 
                     _.each(counts, function(count) {
                         if (ret.work[count.fi]) {
-                            total += ret.work[count.fi];
+
+                            if (count.window) {
+                                total += ret.work[count.fi];
+                            }
+
                             var countel = $(count.el);
                             if (ret.work[count.fi] != countel.html()) {
                                 countel.html(ret.work[count.fi]);
