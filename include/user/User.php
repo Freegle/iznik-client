@@ -5,6 +5,7 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/session/Session.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
+require_once(IZNIK_BASE . '/include/message/Collection.php');
 
 class User extends Entity
 {
@@ -454,10 +455,10 @@ class User extends Entity
                     $log['group'] = $groups[$log['groupid']];
                 }
 
-                if (pres('config', $log)) {
-                    if (!pres($log['configid'], $groups)) {
-                        $g = new ModConfig($this->dbhr, $this->dbhm, $log['configid']);
-                        $configs[$log['configid']] = $g->getPublic();
+                if (pres('configid', $log)) {
+                    if (!pres($log['configid'], $configs)) {
+                        $c = new ModConfig($this->dbhr, $this->dbhm, $log['configid']);
+                        $configs[$log['configid']] = $c->getPublic();
                     }
 
                     $log['config'] = $configs[$log['configid']];

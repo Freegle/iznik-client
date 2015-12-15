@@ -112,7 +112,7 @@ class MailRouter
             $to = $this->msg->getEnvelopeto();
             $from = $this->msg->getEnvelopefrom();
 
-            if (preg_match('/modconfirm-(.*)-(.*)-(.*)@/', $to, $matches) !== FALSE) {
+            if (preg_match('/modconfirm-(.*)-(.*)-(.*)@/', $to, $matches) !== FALSE && count($matches) == 4) {
                 # This purports to be a mail to confirm moderation status on Yahoo.
                 $groupid = $matches[1];
                 $userid = $matches[2];
@@ -165,7 +165,7 @@ class MailRouter
                     }
                 }
             } else {
-                $ret = MailRouter::FAILURE;
+                $ret = MailRouter::DROPPED;
             }
         } else {
             if (!$notspam) {

@@ -77,6 +77,9 @@ class configTest extends IznikTest {
         assertNotNull($c);
         assertEquals($this->uid, $c->getPrivate('createdby'));
 
+        $configs = $this->user->getConfigs();
+        assertEquals($id, $configs[0]['id']);
+
         $logs = $this->user->getPublic(NULL, FALSE, TRUE);
         error_log("USer logs " . var_export($logs, true));
         assertEquals(Log::TYPE_CONFIG, $logs['logs'][2]['type']);

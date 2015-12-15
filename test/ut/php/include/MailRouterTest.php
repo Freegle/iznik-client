@@ -57,6 +57,13 @@ class MailRouterTest extends IznikTest {
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g = new Group($this->dbhr, $this->dbhm, $gid);
 
+        # Try with an invalid from
+        error_log("Invalid key");
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->received(Message::YAHOO_SYSTEM, NULL, "wibble-$gid-88-hmnXWqaGKir0fNTXgveSuj7ULOn44SEm@iznik.modtools.org", $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::DROPPED, $rc);
+
         # Try with an invalid key
         error_log("Invalid key");
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -123,12 +130,6 @@ class MailRouterTest extends IznikTest {
         error_log(__METHOD__);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-
-        # Test spam to no group
-        $msg = file_get_contents('msgs/spam');
-        $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
-        assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $subj = "Test spam subject " . microtime();
@@ -370,6 +371,7 @@ class MailRouterTest extends IznikTest {
 
         # Sorry, Cameroon folk.
         $msg = file_get_contents('msgs/cameroon');
+        $msg = str_replace('"freegleplayground@yahoogroups.com" <freegleplayground@yahoogroups.com>', '"a" <b.com>', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
