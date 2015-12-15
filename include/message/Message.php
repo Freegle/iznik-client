@@ -1309,7 +1309,6 @@ class Message
 
         # This method is used to improve subjects.
         $type = $this->determineType($subject);
-        error_log("Type is $type");
 
         switch ($type) {
             case Message::TYPE_OFFER:
@@ -1331,7 +1330,6 @@ class Message
                     # Shrink multiple spaces
                     $subject = preg_replace('/\s+/', ' ', $subject);
                     $subject = trim($subject);
-                    error_log("After tidy $subject");
 
                     # Find a location in the subject.
                     if (preg_match('/(.*)\((.*)\)/', $subject, $matches)) {
@@ -1347,15 +1345,12 @@ class Message
                         $l = new Location($this->dbhr, $this->dbhm);
                         $locs = $l->search($loc, $groupid, 1);
 
-                        error_log("Search for $loc returned " . var_export($locs, true));
-
                         if (count($locs) == 1) {
                             # Take the name we found, which may be better than the one we have, if only in capitalisation.
                             $loc = $locs[0]['name'];
                         }
 
                         $newsubj = strtoupper($type) . ": $residue ($loc)";
-                        error_log("New subject $newsubj");
                     }
                 }
                break;

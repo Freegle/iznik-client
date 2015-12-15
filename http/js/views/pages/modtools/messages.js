@@ -8,7 +8,7 @@ Iznik.Views.ModTools.Message = IznikView.extend({
         var self = this;
         window.setTimeout(function() {
             self.$('.js-savesubj .glyphicon').removeClass('glyphicon-ok glyphicon-warning-sign error success').addClass('glyphicon-floppy-save');
-        }, 5000);
+        }, 30000);
     },
 
     saveSubject: function() {

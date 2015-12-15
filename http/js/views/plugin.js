@@ -57,7 +57,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         // that someone will delete messages directly on Yahoo which we need to notice have gone.
         //
         // Delay doesn't set the right context by default.
-        _.delay(_.bind(this.startSyncs, this), 1200000);
+        // TODO don't do this until we stop them starting while the last lot are still running.
+        //_.delay(_.bind(this.startSyncs, this), 1200000);
     },
 
     checkWork: function() {
@@ -350,10 +351,10 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                 var serverMissing = _.difference(self.yahooGroups, serverGroups);
                 var yahooMissing = _.difference(serverGroups, self.yahooGroups);
-                //console.log("Yahoo groups", self.yahooGroups);
-                //console.log("Server groups", serverGroups);
-                //console.log("Mod on Yahoo but not server", serverMissing);
-                //console.log("Mod on server but but not Yahoo", yahooMissing);
+                console.log("Yahoo groups", self.yahooGroups);
+                console.log("Server groups", serverGroups);
+                console.log("Mod on Yahoo but not server", serverMissing);
+                console.log("Mod on server but but not Yahoo", yahooMissing);
                 //console.log("NameToId", nameToId);
                 //console.log("Session", Iznik.Session);
 

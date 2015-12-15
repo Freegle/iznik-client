@@ -1,0 +1,4 @@
+content modtools      content/
+locale  modtools      en-US   locale/en-US/
+skin    modtools      skin skin/
+overlay chrome://browser/content/browser.xul    chrome://modtools/content/modtools.xul

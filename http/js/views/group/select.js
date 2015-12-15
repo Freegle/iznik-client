@@ -8,7 +8,6 @@ Iznik.Views.Group.Select = IznikView.extend({
     persist: false,
 
     render: function() {
-        console.log("select render");
         var self = this;
 
         if (self.options.hasOwnProperty('id') && !self.options.hasOwnProperty('selected')) {

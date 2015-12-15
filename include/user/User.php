@@ -139,9 +139,19 @@ class User extends Entity
 
     public function addEmail($email, $primary = 1)
     {
-        # If the email already exists in the table, then that's fine.
-        $rc = $this->dbhm->preExec("INSERT IGNORE INTO users_emails (userid, email, `primary`) VALUES (?, ?, ?)",
-            [$this->id, $email, $primary]);
+        # If the email already exists in the table, then that's fine.  But we don't want to use INSERT IGNORE as
+        # that scales badly for clusters.
+        $rc = 1;
+        $emails = $this->dbhm->preQuery("SELECT id FROM users_emails WHERE userid = ? AND $email = ?;", [
+            $this->id,
+            $email
+        ]);
+
+        if (count($emails) == 0) {
+            $rc = $this->dbhm->preExec("INSERT INTO users_emails (userid, email, `primary`) VALUES (?, ?, ?)",
+                [$this->id, $email, $primary]);
+        }
+
         return($rc);
     }
 

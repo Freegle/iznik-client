@@ -438,6 +438,10 @@ body, #bodyContent {
     #sidebar-wrapper {
         width: 200px;
     }
+
+    .sidebar-nav {
+        width: 200px;
+    }
 }
 /*Side menu end*/
 

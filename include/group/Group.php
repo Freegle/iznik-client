@@ -92,8 +92,8 @@ class Group extends Entity
     public function getWorkCounts($mysettings) {
         # Depending on our group settings we might not want to show this work as primary; "other" work is displayed
         # less prominently in the client.
-        $pend = array_key_exists('showmessages', $mysettings) && $mysettings['showmessages'] ? 'pending' : 'pendingother';
-        $spam = array_key_exists('showmessages', $mysettings) && $mysettings['showmessages'] ? 'spam' : 'spamother';
+        $pend = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'] ? 'pending' : 'pendingother';
+        $spam = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'] ? 'spam' : 'spamother';
 
         $ret = [
             $pend => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Pending' AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
@@ -158,6 +158,9 @@ class Group extends Entity
 
         $u = new User($this->dbhm, $this->dbhm);
 
+        # The input might have duplicate members; find out how many are distinct.
+        $distinctmembers = [];
+
         foreach ($members as &$memb) {
             if (pres('email', $memb)) {
                 # First check if we already know about this user.
@@ -178,23 +181,25 @@ class Group extends Entity
 
                 # Remember the uid for inside the transaction below.
                 $memb['uid'] = $uid;
+                $distinctmembers[$uid] = TRUE;
             }
         }
 
-        # First save off any configs used by existing moderators, so that we can restore them after the member sync.
-        $sql = "SELECT userid, configid FROM memberships WHERE groupid = ? AND role IN ('Moderator', 'Owner') AND configid IS NOT NULL;";
-        $oldmods = $this->dbhr->preQuery($sql, [ $this->id ]);
+        $distinct = count($distinctmembers);
+        $distinctmembers = NULL;
 
         if ($this->dbhm->beginTransaction()) {
             try {
                 # If this doesn't work we'd get an exception
-                $sql = "DELETE FROM memberships WHERE groupid = {$this->id};";
-                $rc = $this->dbhm->exec($sql);
+                $sql = "UPDATE memberships SET syncdelete = 1 WHERE groupid = {$this->id};";
+                $this->dbhm->exec($sql);
                 $bulksql = '';
+                $tried = 0;
 
                 for ($count = 0; $count < count($members); $count++) {
                     $member = $members[$count];
                     if (pres('uid', $member)) {
+                        $tried++;
                         $role = User::ROLE_MEMBER;
                         if (pres('yahooModeratorStatus', $member)) {
                             if ($member['yahooModeratorStatus'] == 'MODERATOR') {
@@ -209,44 +214,55 @@ class Group extends Entity
                         $yps = presdef('yahooPostingStatus', $member, NULL);
                         $ydt = presdef('yahooDeliveryType', $member, NULL);
 
-                        # Use REPLACE rather than INSERT because the input data might have duplicate memberships.
-                        $sql = "REPLACE INTO memberships (userid, groupid, role, yahooPostingStatus, yahooDeliveryType) VALUES (" .
-                            "{$member['uid']}, {$this->id}, '{$role}', " . $this->dbhm->quote($yps) .
-                            ", " . $this->dbhm->quote($ydt) . ");";
+                        # Make sure the membership is present.  We don't want to REPLACE as that might lose settings.
+                        # We also don't want to do INSERT IGNORE as that doesn't perform well in clusters.
+                        $sql = "SELECT id FROM memberships WHERE userid = ? AND groupid = ?;";
+                        $membs = $this->dbhm->preQuery($sql, [ $member['uid'], $this->id] );
+                        if (count($membs) == 0) {
+                            $sql = "INSERT IGNORE INTO memberships (userid, groupid) VALUES ({$member['uid']}, {$this->id});";
+                            $bulksql .= $sql;
+                        }
+
+                        # Now update with new settings.  Also set syncdelete so that we know this member still exists
+                        # in the input data and therefore doesn't need deleting.
+                        $sql = "UPDATE memberships SET role = '$role', yahooPostingStatus = " . $this->dbhm->quote($yps) .
+                               ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", syncdelete = 0 WHERE userid = " .
+                                "{$member['uid']} AND groupid = {$this->id};";
                         $bulksql .= $sql;
 
                         if ($count > 0 && $count % 1000 == 0) {
-                            $rc = $this->dbhm->exec($bulksql);
-                            $rollback = !$rc;
+                            # Do a chunk of work.  If this doesn't work correctly we'll end up with fewer members
+                            # and fail the count below.  Or we'll have incorrect settings until the next sync, but
+                            # that's ok - better than failing it.
+                            $this->dbhm->exec($bulksql);
                             $bulksql = '';
-
-                            // Cheat code coverage by putting on the same line.
-                            if ($rollback) { break; }
                         }
                     }
                 }
 
                 if ($bulksql != '') {
-                    $rc = $this->dbhm->exec($bulksql);
-                    $rollback = !$rc;
+                    # Do remaining SQL.  If this fails then we'll fail the count check below.
+                    $this->dbhm->exec($bulksql);
                 }
 
-                foreach ($oldmods as $mod) {
-                    # Restore any configids for current owners/mods.
-                    $sql = "UPDATE memberships SET configid = ? WHERE groupid = ? AND userid = ? AND role IN ('Owner', 'Moderator');";
-                    $rollback = !$this->dbhm->preExec($sql, [
-                        $mod['configid'],
-                        $this->id,
-                        $mod['userid']
-                    ]);
+                # Delete any residual members.  If this fails we have old members left over - so no need to rollback.
+                $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = ? AND syncdelete = 1;", [ $this->id ]);
 
-                    if ($rollback) { break; }
+                # Now do a check on the number of members.  It should match the distinct number; if not then
+                # something has gone wrong and we should abort.
+                $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ?";
+                $counts = $this->dbhm->preQuery($sql, [ $this->id ]);
+                $count = $counts[0]['count'];
+
+                $rollback = ($count != $distinct);
+                error_log("Synced $count vs $distinct");
+
+                if (!$rollback) {
+                    # Record the sync.  If this fails it's not worth a rollback.
+                    $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [$this->id]);
                 }
-
-                $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [ $this->id ]);
-
-                $mods = "SELECT * FROM memberships WHERE groupid = {$this->id} AND role in ('Moderator', 'Owner');";
             } catch (Exception $e) {
+                error_log("Exception, sync fail");
                 $rollback = TRUE;
             }
 
@@ -266,6 +282,7 @@ class Group extends Entity
             # No need to do anything; we'll try again next time.
         }
 
+        error_log("setMembers for {$this->id} returned "  . (!$rollback));
         return(!$rollback);
     }
 
@@ -370,7 +387,6 @@ class Group extends Entity
         $key = randstr(32);
         $sql = "UPDATE groups SET confirmkey = ? WHERE id = ?;";
         $rc = $this->dbhm->preExec($sql, [ $key, $this->id ]);
-        error_log("Set new key $key returned $rc");
         return($key);
     }
 }
