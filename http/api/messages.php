@@ -18,7 +18,7 @@ function messages() {
 
     $ret = [ 'ret' => 1, 'status' => 'Unknown verb' ];
 
-    switch ($_SERVER['REQUEST_METHOD']) {
+    switch ($_REQUEST['type']) {
         case 'GET': {
             # Check if we're logged in
             $groups = [];

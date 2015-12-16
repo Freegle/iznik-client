@@ -14,7 +14,7 @@ function message() {
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
-    switch ($_SERVER['REQUEST_METHOD']) {
+    switch ($_REQUEST['type']) {
         case 'GET':
         case 'PUT':
         case 'DELETE': {
@@ -62,7 +62,7 @@ function message() {
             }
 
             if ($m) {
-                if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+                if ($_REQUEST['type'] == 'GET') {
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
@@ -75,7 +75,7 @@ function message() {
                         $ret['groups'][$group['groupid']] = $g->getPublic();
                     }
 
-                } else if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
+                } else if ($_REQUEST['type'] == 'PUT') {
                     $role = $m->getRoleForMessage();
                     if ($role != User::ROLE_OWNER && $role != User::ROLE_MODERATOR) {
                         $ret = ['ret' => 2, 'status' => 'Permission denied'];
@@ -91,7 +91,7 @@ function message() {
                             'status' => 'Success'
                         ];
                     }
-                } else if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
+                } else if ($_REQUEST['type'] == 'DELETE') {
                     $role = $m->getRoleForMessage();
                     if ($role != User::ROLE_OWNER && $role != User::ROLE_MODERATOR) {
                         $ret = ['ret' => 2, 'status' => 'Permission denied'];

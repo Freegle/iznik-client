@@ -4,7 +4,7 @@ function supporters() {
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
-    switch ($_SERVER['REQUEST_METHOD']) {
+    switch ($_REQUEST['type']) {
         case 'GET': {
             $s = new Supporters($dbhr, $dbhm);
 

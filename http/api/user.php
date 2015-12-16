@@ -27,7 +27,7 @@ function user() {
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
-    switch ($_SERVER['REQUEST_METHOD']) {
+    switch ($_REQUEST['type']) {
         case 'GET': {
             $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 

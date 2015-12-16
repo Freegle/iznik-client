@@ -177,7 +177,9 @@ class Group extends Entity
                     $u = new User($this->dbhm, $this->dbhm, $uid);
                 }
 
-                $u->setPrivate('yahooUserId', $memb['yahooUserId']);
+                if (pres('yahooUserId', $memb)) {
+                    $u->setPrivate('yahooUserId', $memb['yahooUserId']);
+                }
 
                 # Remember the uid for inside the transaction below.
                 $memb['uid'] = $uid;
@@ -246,7 +248,7 @@ class Group extends Entity
                 }
 
                 # Delete any residual members.  If this fails we have old members left over - so no need to rollback.
-                $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = ? AND syncdelete = 1;", [ $this->id ]);
+                $rc = $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = ? AND syncdelete = 1;", [ $this->id ]);
 
                 # Now do a check on the number of members.  It should match the distinct number; if not then
                 # something has gone wrong and we should abort.

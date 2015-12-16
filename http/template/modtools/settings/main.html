@@ -1,0 +1,40 @@
+<div class="panel-group" id="settings" role="tablist" aria-multiselectable="true">
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="personalhead">
+            <h4 class="panel-title">
+                <a role="button" data-toggle="collapse" data-parent="#settings" href="#personal" aria-expanded="true" aria-controls="personal">
+                    Personal Settings
+                </a>
+            </h4>
+        </div>
+        <div id="personal" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="personalhead">
+            <div class="panel-body">
+                <form id="personalform" />
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="grouphead">
+            <h4 class="panel-title">
+                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#group" aria-expanded="false" aria-controls="collapseTwo">
+                    Group Settings
+                </a>
+            </h4>
+        </div>
+        <div id="group" class="panel-collapse collapse" role="tabpanel" aria-labelledby="grouphead">
+            <div class="panel-body">
+                <div class="botspace js-groupselect" />
+                <div>
+                    <h3>Your Settings for this Group</h3>
+                    <p class="text-muted">These settings affect how this group behaves for you on ModTools.</p>
+                    <form id="mygroupform" class="row" />
+                </div>
+                <div>
+                    <h3>Global Settings for this Group</h3>
+                    <p class="text-muted">These settings affect how this group behaves for everyone.</p>
+                    <form id="groupform" class="row" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -98,7 +98,11 @@ class Yahoo
                 }
 
                 if ($id) {
-                    // We are logged in.
+                    # Make sure that we have the Yahoo email recorded as one of the emails for this user.
+                    $u = new User($this->dbhr, $this->dbhm, $id);
+                    $u->addEmail($attrs['contact/email']);
+
+                    # We are logged in.
                     $s = new Session($this->dbhr, $this->dbhm);
                     $s->create($id);
 

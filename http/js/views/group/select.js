@@ -46,6 +46,14 @@ Iznik.Views.Group.Select = IznikView.extend({
                 });
             }
 
+            if (self.options.choose) {
+                self.dropdown.add({
+                    text: 'Please choose a group...',
+                    value: -1,
+                    title: 'Please choose a group...'
+                });
+            }
+
             if ((Iznik.Session.get('me').systemrole == 'Support' || Iznik.Session.get('me').systemrole == 'Admin') &&
                 (self.options.systemWide)) {
                 self.dropdown.add({

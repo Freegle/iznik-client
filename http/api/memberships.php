@@ -9,7 +9,7 @@ function memberships() {
     $role = presdef('role', $_REQUEST, NULL);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
-    switch ($_SERVER['REQUEST_METHOD']) {
+    switch ($_REQUEST['type']) {
         case 'PUT': {
             $u = new User($dbhr, $dbhm, $userid);
 

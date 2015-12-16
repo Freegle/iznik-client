@@ -25,6 +25,7 @@ class groupTest extends IznikTest {
 
         $this->dbhm->exec("DELETE FROM groups WHERE nameshort = 'testgroup';");
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
+        $this->dbhm->preExec("DELETE FROM users WHERE id IN (SELECT userid FROM users_emails WHERE email LIKE '%test.com');", []);
     }
 
     protected function tearDown() {
@@ -50,18 +51,21 @@ class groupTest extends IznikTest {
         $cid = $c->create('TestConfig');
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->user->addEmail('test@test.com');
         $this->user->addMembership($g->getId(), User::ROLE_MODERATOR);
         $this->user->setMembershipAtt($g->getId(), 'configid', $cid);
         $rc = $g->setMembers([
             [
                 'uid' => $this->uid,
-                'yahooModeratorStatus' => 'OWNER'
+                'yahooModeratorStatus' => 'OWNER',
+                'email' => 'test@test.com'
             ]
         ]);
         assertTrue($rc);
         $membs = $g->getMembers();
         assertEquals(User::ROLE_OWNER, $membs[0]['role']);
         $membs = $this->user->getMemberships();
+        error_log("Got members" . var_export($membs, true));
         assertEquals($cid, $membs[0]['configid']);
 
         assertGreaterThan(0 ,$g->delete());
@@ -126,6 +130,7 @@ class groupTest extends IznikTest {
 
         $members = $g->getMembers();
         assertEquals(1, count($members));
+        error_log("Members " . var_export($members, true));
         assertEquals('test@test.com', $members[0]['emails'][0]['email']);
 
         $mock = $this->getMockBuilder('LoggedPDO')

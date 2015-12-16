@@ -36,7 +36,21 @@ $call = pres('call', $_REQUEST);
 $_SERVER['REQUEST_METHOD'] = strtoupper($_SERVER['REQUEST_METHOD']);
 $_REQUEST['type'] = $_SERVER['REQUEST_METHOD'];
 
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+if (array_key_exists('HTTP_X_HTTP_METHOD_OVERRIDE', $_SERVER)) {
+    # Used by Backbone's emulateHTTP to work around servers which don't handle verbs like PATCH very well.
+    #
+    # We use this because when we issue a PATCH we don't seem to be able to get the body parameters.
+    $_REQUEST['type'] = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
+    error_log("Request method override to {$_REQUEST['type']}");
+}
+
+if (array_key_exists('model', $_REQUEST)) {
+    # Used by Backbone's emulateJSON to work around servers which don't handle requests encoded as
+    # application/json.
+    $_REQUEST = array_merge($_REQUEST, json_decode($_REQUEST['model'], true));
+}
+
+if ($_REQUEST['type'] == 'OPTIONS') {
     # We don't bother returning different values for different calls.
     http_response_code(204);
     @header('Allow: POST, GET, DELETE, PUT');
@@ -53,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
     do {
         # Duplicate POST protection
-        if ((DUPLICATE_POST_PROTECTION > 0) && array_key_exists('REQUEST_METHOD', $_SERVER) && ($_SERVER['REQUEST_METHOD'] == 'POST')) {
+        if ((DUPLICATE_POST_PROTECTION > 0) && array_key_exists('REQUEST_METHOD', $_SERVER) && ($_REQUEST['type'] == 'POST')) {
             $req = $_SERVER['REQUEST_URI'] . serialize($_REQUEST);
 
             # Repeat logins are OK.
@@ -136,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             } else {
                 # This is a normal API call.  Add profiling info.
                 $ret['call'] = $call;
-                $ret['type'] = $_SERVER['REQUEST_METHOD'];
+                $ret['type'] = $_REQUEST['type'];
                 $ret['session'] = session_id();
                 $ret['duration'] = (microtime(true) - $scriptstart);
                 $ret['cpucost'] = getCpuUsage();

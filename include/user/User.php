@@ -142,7 +142,8 @@ class User extends Entity
         # If the email already exists in the table, then that's fine.  But we don't want to use INSERT IGNORE as
         # that scales badly for clusters.
         $rc = 1;
-        $emails = $this->dbhm->preQuery("SELECT id FROM users_emails WHERE userid = ? AND $email = ?;", [
+        $sql = "SELECT id FROM users_emails WHERE userid = ? AND email LIKE ?;";
+        $emails = $this->dbhm->preQuery($sql, [
             $this->id,
             $email
         ]);
@@ -164,7 +165,6 @@ class User extends Entity
 
     public function addMembership($groupid, $role = User::ROLE_MEMBER) {
         $me = whoAmI($this->dbhr, $this->dbhm);
-        error_log("Add membership " . var_export($me, true));
 
         $rc = $this->dbhm->preExec("REPLACE INTO memberships (userid, groupid, role) VALUES (?,?,?);",
             [
@@ -223,7 +223,9 @@ class User extends Entity
 
     public function getMemberships() {
         $ret = [];
-        $groups = $this->dbhr->preQuery("SELECT groupid, role, configid FROM memberships WHERE userid = ?;", [ $this->id ]);
+        $sql = "SELECT groupid, role, configid FROM memberships WHERE userid = ?;";
+        $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
+
         foreach ($groups as $group) {
             $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
             $one = $g->getPublic();
@@ -372,11 +374,13 @@ class User extends Entity
 
     public function setGroupSettings($groupid, $settings) {
         $sql = "UPDATE memberships SET settings = ? WHERE userid = ? AND groupid = ?;";
+        error_log("Update settings for group $groupid");
         $this->dbhm->preExec($sql, [
             json_encode($settings),
             $this->id,
             $groupid
         ]);
+        return(true);
     }
 
     public function getGroupSettings($groupid) {
@@ -388,7 +392,10 @@ class User extends Entity
             $settings = $set['settings'];
         }
 
-        return($settings ? json_decode($settings, true) : []);
+        return($settings ? json_decode($settings, true) : [
+            'showmessages' => 1,
+            'showmembers' => 1
+        ]);
     }
 
     public function setRole($role, $groupid) {

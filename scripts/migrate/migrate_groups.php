@@ -70,7 +70,9 @@ foreach ($oldgroups as $group) {
         'wanted' => intval($group['wanteddupperiod']),
         'received' => intval($group['receiveddupperiod'])
     ];
-    $settings['autoapprove'] = intval($group['autoapprove']);
+    $settings['autoapprove'] = [
+        'members' => intval($group['autoapprove'])
+    ];
 
     # If it's a Freegle group pick up the lat/lng.
     if ($group['freeglegroupid']) {
@@ -108,7 +110,7 @@ foreach ($fgroups as $fgroup) {
     $settings = json_decode($g->getPublic()['settings'], true);
 
     foreach (['offerkeyword', 'takenkeyword', 'wantedkeyword', 'receivedkeyword'] as $attr) {
-        $settings[$attr] = $fgroup[$attr];
+        $settings['keywords'][$attr] = $fgroup[$attr];
     }
 
     $settings['reposts'] = [

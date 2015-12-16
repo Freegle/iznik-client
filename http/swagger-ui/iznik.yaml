@@ -336,13 +336,9 @@ paths:
       description:
         Retrieve group details
       parameters:
-      - name: groupid
+      - name: id
         in: query
-        description: Groupid to query; supply this or nameshort.
-        type: number
-      - name: nameshort
-        in: query
-        description: Shortname of group to query; supply this or groupid
+        description: Groupid or nameshort to query.
         type: string
       - name: members
         in: query

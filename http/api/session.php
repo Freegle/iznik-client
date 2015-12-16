@@ -6,13 +6,14 @@ function session() {
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
-    switch ($_SERVER['REQUEST_METHOD']) {
+    switch ($_REQUEST['type']) {
         case 'GET': {
             # Check if we're logged in
             if ($me) {
                 $ret = array('ret' => 0, 'status' => 'Success', 'me' => $me->getPublic());
                 $ret['groups'] = $me->getMemberships();
                 $ret['configs'] = $me->getConfigs();
+                $ret['emails'] = $me->getEmails();
                 $ret['work'] = [];
 
                 foreach ($ret['groups'] as $group) {

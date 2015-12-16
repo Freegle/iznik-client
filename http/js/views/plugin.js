@@ -351,10 +351,10 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                 var serverMissing = _.difference(self.yahooGroups, serverGroups);
                 var yahooMissing = _.difference(serverGroups, self.yahooGroups);
-                console.log("Yahoo groups", self.yahooGroups);
-                console.log("Server groups", serverGroups);
-                console.log("Mod on Yahoo but not server", serverMissing);
-                console.log("Mod on server but but not Yahoo", yahooMissing);
+                //console.log("Yahoo groups", self.yahooGroups);
+                //console.log("Server groups", serverGroups);
+                //console.log("Mod on Yahoo but not server", serverMissing);
+                //console.log("Mod on server but but not Yahoo", yahooMissing);
                 //console.log("NameToId", nameToId);
                 //console.log("Session", Iznik.Session);
 
@@ -376,41 +376,28 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 // our list of groups.  We do this by triggering an invitation, which is something only mods
                 // can do.
                 _.each(serverMissing, function(group) {
-                    $.ajax({
-                        url: API + 'group',
-                        type: 'GET',
-                        data: {
-                            nameshort: group
-                        },
-                        success: function(ret) {
-                            if (ret.ret == 0) {
-                                // The group is hosted by the server; trigger a confirm.  First we need a confirm key.
-                                var groupid = ret.group.id;
-                                console.log("Confirm group", group, groupid);
+                    var g = new Iznik.Models.Group({ id: group});
+                    g.fetch().then(function() {
+                        // The group is hosted by the server; trigger a confirm.  First we need a confirm key.
+                        $.ajax({
+                            url: API + 'group',
+                            type: 'POST',
+                            data: {
+                                id: g.get('id'),
+                                action: 'ConfirmKey'
+                            },
+                            success: function(ret) {
+                                var email = 'modconfirm-' + g.get('id') + '-' +
+                                    Iznik.Session.get('me').id + '-' + ret.key + '@' + location.host;
 
-                                $.ajax({
-                                    url: API + 'group',
-                                    type: 'POST',
-                                    data: {
-                                        groupid: ret.group.id,
-                                        action: 'ConfirmKey'
-                                    },
-                                    success: function(ret) {
-                                        console.log("Confirm group with key", group, groupid, ret.key);
-                                        var email = 'modconfirm-' + groupid + '-' +
-                                            Iznik.Session.get('me').id + '-' + ret.key + '@' + location.host;
-                                        console.log("Confirm mail", email);
-
-                                        (new Iznik.Views.Plugin.Yahoo.ConfirmMod({
-                                            model: new IznikModel({
-                                                nameshort: group,
-                                                email: email
-                                            })
-                                        }).render());
-                                    }
-                                })
+                                (new Iznik.Views.Plugin.Yahoo.ConfirmMod({
+                                    model: new IznikModel({
+                                        nameshort: group,
+                                        email: email
+                                    })
+                                }).render());
                             }
-                        }
+                        })
                     });
                 });
             }
@@ -813,11 +800,11 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
             if (total == 0 || members.length < this.chunkSize) {
                 // Finished.  Now pass these members to the server.
                 $.ajaxq('plugin', {
-                    type: "POST",
+                    type: 'PATCH',
                     url: API + 'group',
                     context: self,
                     data: {
-                        'groupid': this.model.get('id'),
+                        'id': this.model.get('id'),
                         'members': this.members
                     },
                     success: function(ret) {

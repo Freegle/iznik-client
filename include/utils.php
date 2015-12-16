@@ -390,7 +390,7 @@ function code_to_country( $code ){
         'ZW' => 'Zimbabwe'
     );
 
-    if( !$countryList[$code] ) return $code;
+    if( !array_key_exists($code, $countryList)) return $code;
     else return $countryList[$code];
 }
 

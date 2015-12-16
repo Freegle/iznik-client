@@ -12,7 +12,7 @@ function plugin() {
     if (!$me) {
         $ret = ['ret' => 1, 'status' => 'Not logged in'];
     } else {
-        switch ($_SERVER['REQUEST_METHOD']) {
+        switch ($_REQUEST['type']) {
             case 'GET': {
                 $groups = $me->getModeratorships();
                 $work = [];

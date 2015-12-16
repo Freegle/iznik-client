@@ -94,6 +94,7 @@ class sessionTest extends IznikAPITest {
         $ret = $this->call('session','GET', []);
         assertEquals(0, $ret['ret']);
         assertEquals($group1, $ret['groups'][0]['id']);
+        assertEquals('test@test.com', $ret['emails'][0]['email']);
 
         $g->delete();
 

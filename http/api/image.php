@@ -5,7 +5,7 @@ function image() {
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
     $id = intval(presdef('id', $_REQUEST, 0));
 
-    switch ($_SERVER['REQUEST_METHOD']) {
+    switch ($_REQUEST['type']) {
         case 'GET': {
             $a = new Attachment($dbhr, $dbhm, $id);
             $data = $a->getData();

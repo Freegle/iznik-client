@@ -1193,13 +1193,11 @@ class Message
             $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND deleted = 0;";
             $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
             foreach ($groups as $group) {
-                error_log("Found extant on group {$group['id']}");
                 $extant = TRUE;
             }
 
             if (!$extant) {
                 $rc = $this->dbhm->preExec("UPDATE messages SET deleted = NOW() WHERE id = ?;", [ $this->id ]);
-                error_log("Not extant, delete returned $rc");
             }
         }
 

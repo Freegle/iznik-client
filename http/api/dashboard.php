@@ -10,7 +10,7 @@ function dashboard() {
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
-    switch ($_SERVER['REQUEST_METHOD']) {
+    switch ($_REQUEST['type']) {
         case 'GET': {
             # Check if we're logged in
             if ($me) {

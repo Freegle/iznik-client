@@ -17,6 +17,7 @@ function scriptInclude($minify)
         "js/lib/jquery.ui.touch-punch.js",
         "js/lib/backbone-1.1.2.js",
         "js/lib/backbone.collectionView.js",
+        "js/lib/backform.js",
         "js/lib/jquery.dotdotdot.min.js",
         "js/lib/json2.js",
         "js/lib/flowtype.js",
@@ -52,6 +53,7 @@ function scriptInclude($minify)
         "js/iznik/majax.js",
         "js/models/session.js",
         "js/models/message.js",
+        "js/models/group.js",
         "js/models/user/user.js",
         "js/models/yahoo/user.js",
         "js/views/plugin.js",
@@ -68,6 +70,7 @@ function scriptInclude($minify)
         "js/views/pages/modtools/spam.js",
         "js/views/pages/modtools/pending.js",
         "js/views/pages/modtools/approved.js",
+        "js/views/pages/modtools/settings.js",
         "js/views/group/select.js",
         "js/iznik/router.js",
     );
