@@ -374,7 +374,6 @@ class User extends Entity
 
     public function setGroupSettings($groupid, $settings) {
         $sql = "UPDATE memberships SET settings = ? WHERE userid = ? AND groupid = ?;";
-        error_log("Update settings for group $groupid");
         $this->dbhm->preExec($sql, [
             json_encode($settings),
             $this->id,

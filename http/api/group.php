@@ -49,8 +49,6 @@ function group() {
             case 'PATCH': {
                 $members = presdef('members', $_REQUEST, NULL);
                 $mysettings = presdef('mysettings', $_REQUEST, NULL);
-                error_log("PATCH " . var_export($_REQUEST, true));
-                error_log("POST " . var_export($_POST, true));
 
                 $ret = [
                     'ret' => 1,
@@ -58,7 +56,6 @@ function group() {
                 ];
 
                 if ($me) {
-                    error_log("Logged in");
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
@@ -73,7 +70,6 @@ function group() {
                         ];
                     }
 
-                    error_log("After perms {$ret['ret']}");
                     if ($ret['ret'] == 0) {
                         if ($members && !$g->setMembers($members)) {
                             $ret = [ 'ret' => 2, 'status' => 'Set members failed' ];

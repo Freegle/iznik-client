@@ -111,7 +111,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 _.delay(function() {
                     $.ajaxq('plugin', {
                         type: "GET",
-                        url: "https://groups.yahoo.com/neo/groups/" + groupname + "/management/pendingmessages?" + Math.random(),
+                        url: "https://groups.yahoo.com/neo/groups/" + groupname + first.crumbLocation + "?" + Math.random(),
                         success: getCrumb,
                         error: function (request, status, error) {
                             self.retryWork(self.currentItem);
@@ -387,15 +387,17 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                                 action: 'ConfirmKey'
                             },
                             success: function(ret) {
-                                var email = 'modconfirm-' + g.get('id') + '-' +
-                                    Iznik.Session.get('me').id + '-' + ret.key + '@' + location.host;
+                                if (ret.ret == 0) {
+                                    var email = 'modconfirm-' + g.get('id') + '-' +
+                                        Iznik.Session.get('me').id + '-' + ret.key + '@' + location.host;
 
-                                (new Iznik.Views.Plugin.Yahoo.ConfirmMod({
-                                    model: new IznikModel({
-                                        nameshort: group,
-                                        email: email
-                                    })
-                                }).render());
+                                    (new Iznik.Views.Plugin.Yahoo.ConfirmMod({
+                                        model: new IznikModel({
+                                            nameshort: group,
+                                            email: email
+                                        })
+                                    }).render());
+                                }
                             }
                         })
                     });
@@ -494,6 +496,8 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.Work.extend({
     chunkSize: 100,
 
     ageLimit: 31,
+
+    crumbLocation: "/management/pendingmessages",
 
     start: function() {
         var self = this;
@@ -679,6 +683,7 @@ Iznik.Views.Plugin.Yahoo.SyncMessages.Pending = Iznik.Views.Plugin.Yahoo.SyncMes
     template: 'plugin_sync_pending',
 
     messageLocation: 'pendingMessages',
+    crumbLocation: "/management/pendingmessages",
 
     numField: 'numResults',
     idField: 'yahoopendingid',
@@ -708,6 +713,7 @@ Iznik.Views.Plugin.Yahoo.SyncMessages.Approved = Iznik.Views.Plugin.Yahoo.SyncMe
     template: 'plugin_sync_approved',
 
     messageLocation: 'messages',
+    crumbLocation: "/management/pendingmessages",
 
     numField: 'numRecords',
     idField: 'yahooapprovedid',
@@ -738,8 +744,9 @@ Iznik.Views.Plugin.Yahoo.SyncMessages.Approved = Iznik.Views.Plugin.Yahoo.SyncMe
 Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
     offset: 1,
 
-    chunkSize: 100,
+    crumbLocation: "/members/all",
 
+    chunkSize: 100,
     promisesCount: 0,
 
     start: function() {
@@ -830,6 +837,7 @@ Iznik.Views.Plugin.Yahoo.SyncMembers.Approved = Iznik.Views.Plugin.Yahoo.SyncMem
 
     template: 'plugin_sync_approved_members',
 
+    crumbLocation: "/members/all",
     memberLocation: 'members',
 
     numField: 'total',
@@ -853,6 +861,7 @@ Iznik.Views.Plugin.Yahoo.SyncMembers.Approved = Iznik.Views.Plugin.Yahoo.SyncMem
 
 Iznik.Views.Plugin.Yahoo.ApprovePendingMessage = Iznik.Views.Plugin.Work.extend({
     template: 'plugin_pending_approve',
+    crumbLocation: "/management/pendingmessages",
 
     server: true,
 
@@ -890,6 +899,7 @@ Iznik.Views.Plugin.Yahoo.ApprovePendingMessage = Iznik.Views.Plugin.Work.extend(
 
 Iznik.Views.Plugin.Yahoo.RejectPendingMessage = Iznik.Views.Plugin.Work.extend({
     template: 'plugin_pending_reject',
+    crumbLocation: "/management/pendingmessages",
 
     server: true,
 
@@ -926,6 +936,8 @@ Iznik.Views.Plugin.Yahoo.RejectPendingMessage = Iznik.Views.Plugin.Work.extend({
 });
 
 Iznik.Views.Plugin.Yahoo.ChangeAttribute  = Iznik.Views.Plugin.Work.extend({
+    crumbLocation: "/members/all",
+
     server: true,
 
     start: function() {
@@ -960,16 +972,19 @@ Iznik.Views.Plugin.Yahoo.ChangeAttribute  = Iznik.Views.Plugin.Work.extend({
 });
 
 Iznik.Views.Plugin.Yahoo.DeliveryType  = Iznik.Views.Plugin.Yahoo.ChangeAttribute.extend({
+    crumbLocation: "/members/all",
     template: 'plugin_yahoo_delivery',
     attr: 'deliveryType'
 });
 
 Iznik.Views.Plugin.Yahoo.PostingStatus = Iznik.Views.Plugin.Yahoo.ChangeAttribute.extend({
+    crumbLocation: "/members/all",
     template: 'plugin_yahoo_posting',
     attr: 'postingStatus'
 });
 
 Iznik.Views.Plugin.Yahoo.Invite = Iznik.Views.Plugin.Work.extend({
+    crumbLocation: "/members/all",
     template: 'plugin_invite',
 
     start: function() {
