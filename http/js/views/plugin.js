@@ -139,7 +139,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     },
 
     updatePluginCount: function() {
-        var count = this.work.length + (this.currentItem !== null ? 1 : 0 );
+        var count = this.work.length + (this.currentItem !== null ? 1 : 0 ) + this.retryWork.length;
 
         if (count > 0) {
             $('.js-plugincount').html(count).show();
