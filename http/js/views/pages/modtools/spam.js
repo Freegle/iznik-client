@@ -74,7 +74,7 @@ Iznik.Views.ModTools.Pages.Spam = Iznik.Views.Page.extend({
             all: true,
             mod: true,
             counts: [ 'spam', 'spamother' ],
-            id: 'groupSelect'
+            id: 'spamGroupSelect'
         });
 
         self.listenTo(this.groupSelect, 'selected', function(selected) {
@@ -87,9 +87,9 @@ Iznik.Views.ModTools.Pages.Spam = Iznik.Views.Page.extend({
 
         // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
         // appropriately.
-        this.listenTo(Iznik.Session, 'spamcountschanged', this.fetch);
-        this.listenTo(Iznik.Session, 'spamcountschanged', this.groupSelect.render());
-        this.listenTo(Iznik.Session, 'spamothercountschanged', this.groupSelect.render());
+        this.listenTo(Iznik.Session, 'spamcountschanged', _.bind(this.fetch, this));
+        this.listenTo(Iznik.Session, 'spamcountschanged', _.bind(this.groupSelect.render, this.groupSelect));
+        this.listenTo(Iznik.Session, 'spamcountsotherchanged', _.bind(this.groupSelect.render, this.groupSelect));
     }
 });
 

@@ -1189,14 +1189,10 @@ class Message
             }
 
             # If we have deleted this message from all groups, mark it as deleted in the messages table.
-            $extant = FALSE;
             $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND deleted = 0;";
             $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
-            foreach ($groups as $group) {
-                $extant = TRUE;
-            }
 
-            if (!$extant) {
+            if (count($groups) === 0) {
                 $rc = $this->dbhm->preExec("UPDATE messages SET deleted = NOW() WHERE id = ?;", [ $this->id ]);
             }
         }

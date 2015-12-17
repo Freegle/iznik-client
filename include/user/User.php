@@ -88,6 +88,8 @@ class User extends Entity
     }
 
     public function create($firstname, $lastname, $fullname) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
         try {
             $rc = $this->dbhm->preExec("INSERT INTO users (firstname, lastname, fullname) VALUES (?, ?, ?)",
                 [$firstname, $lastname, $fullname]);
@@ -103,6 +105,7 @@ class User extends Entity
                 'type' => Log::TYPE_USER,
                 'subtype' => Log::SUBTYPE_CREATED,
                 'user' => $id,
+                'byuser' => $me ? $me->getId() : NULL,
                 'text' => $this->getName()
             ]);
 
@@ -373,13 +376,19 @@ class User extends Entity
     }
 
     public function setGroupSettings($groupid, $settings) {
-        $sql = "UPDATE memberships SET settings = ? WHERE userid = ? AND groupid = ?;";
-        $this->dbhm->preExec($sql, [
-            json_encode($settings),
-            $this->id,
-            $groupid
+        if ($settings) {
+            $sql = "UPDATE memberships SET settings = ? WHERE userid = ? AND groupid = ?;";
+            $this->dbhm->preExec($sql, [
+                json_encode($settings),
+                $this->id,
+                $groupid
+            ]);
+        }
+
+        return([
+            'ret' => 0,
+            'status' => 'Success'
         ]);
-        return(true);
     }
 
     public function getGroupSettings($groupid) {

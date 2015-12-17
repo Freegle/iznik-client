@@ -21,7 +21,6 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
             });
 
             group.fetch().then(function() {
-                console.log("Fetched", group);
                 var mysettings = group.get('mysettings');
                 console.log("mysettings", mysettings);
                 self.myGroupModel = new IznikModel(mysettings);
@@ -69,26 +68,27 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                 self.myGroupForm.render();
 
                 var settings = JSON.parse(group.get('settings'));
+                console.log("Settings", settings);
                 self.groupModel = new IznikModel(settings);
 
                 self.groupFields = [
                     {
-                        name: 'keywords.offerkeyword',
+                        name: 'keywords.offer',
                         label: 'OFFER keyword',
                         control: 'input'
                     },
                     {
-                        name: 'keywords.takenkeyword',
+                        name: 'keywords.taken',
                         label: 'TAKEN keyword',
                         control: 'input'
                     },
                     {
-                        name: 'keywords.wantedkeyword',
+                        name: 'keywords.wanted',
                         label: 'WANTED keyword',
                         control: 'input'
                     },
                     {
-                        name: 'keywords.receivedkeyword',
+                        name: 'keywords.received',
                         label: 'RECEIVED keyword',
                         control: 'input'
                     },
@@ -97,6 +97,36 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                         label: 'Auto-approve pending members?',
                         control: 'radio',
                         options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                    },
+                    {
+                        name: 'duplicates.check',
+                        label: 'Flag duplicate messages?',
+                        control: 'radio',
+                        options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                    },
+                    {
+                        name: 'duplicates.offer',
+                        label: 'OFFER duplicate period',
+                        control: 'input',
+                        type: 'number'
+                    },
+                    {
+                        name: 'duplicates.taken',
+                        label: 'TAKEN duplicate period',
+                        control: 'input',
+                        type: 'number'
+                    },
+                    {
+                        name: 'duplicates.wanted',
+                        label: 'WWANTED duplicate period',
+                        control: 'input',
+                        type: 'number'
+                    },
+                    {
+                        name: 'duplicates.received',
+                        label: 'RECEIVED duplicate period',
+                        control: 'input',
+                        type: 'number'
                     },
                     {
                         control: 'button',
@@ -113,13 +143,17 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     events: {
                         'submit': function(e) {
                             e.preventDefault();
-                            console.log("Save");
+                            var newdata = self.groupModel.toJSON();
+                            console.log("Save settings", group, group.isNew(), newdata);
                             return(false);
                         }
                     }
                 });
 
                 self.groupForm.render();
+
+                // Layout messes up a bit for radio buttons.
+                self.groupForm.$(':radio').closest('.form-group').addClass('clearfix');
             });
         }
     },
@@ -134,10 +168,11 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
             all: false,
             mod: true,
             choose: true,
-            id: 'groupSelect'
+            id: 'settingsGroupSelect'
         });
 
         self.listenTo(this.groupSelect, 'selected', function(selected) {
+            console.log("Selected", self);
             self.selected = selected;
             self.settingsGroup();
         });

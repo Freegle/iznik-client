@@ -65,7 +65,12 @@ Iznik.Models.Session = IznikModel.extend({
                             }
 
                             var countel = $(count.el);
-                            if (ret.work[count.fi] != countel.html()) {
+                            if (ret.work[count.fi] > countel.html() || ret.work[count.fi] == 0) {
+                                // Only trigger this when the counts increase.  This will pick up new messages
+                                // without screen flicker due to re-rendering when we're processing messages and
+                                // deleting them.  There's a minor timing window where a message could arrive as
+                                // one is deleted, leaving the counts the same, but this will resolve itself when
+                                // our current count drops to zero, or worst case when we refresh.
                                 countel.html(ret.work[count.fi]);
                                 Iznik.Session.trigger(count.ev);
                             }

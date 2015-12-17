@@ -49,6 +49,7 @@ function group() {
             case 'PATCH': {
                 $members = presdef('members', $_REQUEST, NULL);
                 $mysettings = presdef('mysettings', $_REQUEST, NULL);
+                #error_log("mysettings " . var_export($mysettings, true));
 
                 $ret = [
                     'ret' => 1,
@@ -71,13 +72,11 @@ function group() {
                     }
 
                     if ($ret['ret'] == 0) {
-                        if ($members && !$g->setMembers($members)) {
-                            $ret = [ 'ret' => 2, 'status' => 'Set members failed' ];
-                        }
+                        $ret = $g->setMembers($members);
+                    }
 
-                        if ($mysettings && !$me->setGroupSettings($id, $mysettings)) {
-                            $ret = [ 'ret' => 2, 'status' => 'mysettings failed' ];
-                        }
+                    if ($ret['ret'] == 0) {
+                        $ret = $me->setGroupSettings($id, $mysettings);
                     }
                 }
             }

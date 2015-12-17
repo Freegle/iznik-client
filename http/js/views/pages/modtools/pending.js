@@ -70,7 +70,7 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
             all: true,
             mod: true,
             counts: [ 'pending', 'pendingother' ],
-            id: 'groupSelect'
+            id: 'pendingGroupSelect'
         });
 
         self.listenTo(this.groupSelect, 'selected', function(selected) {
@@ -83,9 +83,9 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
 
         // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
         // appropriately.
-        this.listenTo(Iznik.Session, 'pendingcountschanged', this.fetch);
-        this.listenTo(Iznik.Session, 'pendingcountschanged', this.groupSelect.render());
-        this.listenTo(Iznik.Session, 'pendingothercountschanged', this.groupSelect.render());
+        this.listenTo(Iznik.Session, 'pendingcountschanged', _.bind(this.fetch, this));
+        this.listenTo(Iznik.Session, 'pendingcountschanged', _.bind(this.groupSelect.render, this.groupSelect));
+        this.listenTo(Iznik.Session, 'pendingcountsotherchanged', _.bind(this.groupSelect.render, this.groupSelect));
     }
 });
 

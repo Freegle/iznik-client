@@ -330,8 +330,8 @@ body, #bodyContent {
     position: absolute;
     width: 100%;
     overflow-x: hidden;
-    min-height: 600px;
 }
+
 .xyz{
     min-width: 360px;
 }

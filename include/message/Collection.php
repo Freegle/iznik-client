@@ -111,9 +111,7 @@ class Collection
                         break;
                 }
 
-                if ($limit <= 0) {
-                    break;
-                }
+                if ($limit <= 0) { break; }
             }
         }
 

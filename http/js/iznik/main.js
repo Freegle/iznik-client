@@ -73,7 +73,7 @@ var IznikView = (function(View) {
     });
 })(Backbone.View);
 
-Backbone.emulateHTTP = true;
+//Backbone.emulateHTTP = true;
 Backbone.emulateJSON = true;
 
 // Ensure we can log.

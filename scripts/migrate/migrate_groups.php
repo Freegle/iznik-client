@@ -110,7 +110,7 @@ foreach ($fgroups as $fgroup) {
     $settings = json_decode($g->getPublic()['settings'], true);
 
     foreach (['offerkeyword', 'takenkeyword', 'wantedkeyword', 'receivedkeyword'] as $attr) {
-        $settings['keywords'][$attr] = $fgroup[$attr];
+        $settings['keywords'][str_replace('keyword', '', $attr)] = $fgroup[$attr];
     }
 
     $settings['reposts'] = [

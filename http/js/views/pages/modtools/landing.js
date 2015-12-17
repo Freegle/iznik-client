@@ -85,7 +85,7 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
             systemWide: true,
             all: true,
             mod: true,
-            id: 'statsGroupDropdown'
+            id: 'landingGroupSelect'
         });
 
         self.listenTo(v, 'selected', function(selected) {

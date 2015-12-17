@@ -99,6 +99,7 @@ function messages() {
                 if ($me->isModOrOwner($groupid)) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
                     list($ret['missingonserver'], $ret['missingonclient']) = $g->correlate($collections, $messages);
+                    error_log(var_export($_REQUEST, true));
                 }
             }
         }

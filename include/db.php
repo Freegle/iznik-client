@@ -44,14 +44,6 @@ class LoggedPDO {
     private $readconn;
 
     /**
-     * @param LoggedPDO $readconn
-     */
-    public function setReadconn($readconn)
-    {
-        $this->readconn = $readconn;
-    }
-
-    /**
      * @param null $pheanstalk
      */
     public function setPheanstalk($pheanstalk)

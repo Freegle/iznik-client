@@ -134,10 +134,20 @@ class userAPITest extends IznikAPITest {
             'logs' => TRUE
         ]);
 
-        error_log(var_export($ret, true));
-
         $log = $this->findLog('Group', 'Joined', $ret['user']['logs']);
         assertEquals($this->groupid, $log['group']['id']);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid,
+            'logs' => TRUE
+        ]);
+
+        error_log(var_export($ret, true));
+        $log = $this->findLog('User', 'Created', $ret['user']['logs']);
+        assertEquals($this->uid, $log['byuser']['id']);
 
         error_log(__METHOD__ . " end");
     }
