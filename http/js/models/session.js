@@ -176,24 +176,28 @@ Iznik.Models.Session = IznikModel.extend({
 
     catsForGroup: function(groupid) {
         var all = [1,2,3,4,5,6,7,8,9,10,11];
-        if (this.get('myGroups')) {
-            var ret = all;
-            this.get('myGroups').each(function(group) {
-                //console.log("Compare ", groupid, group.get('groupid'), group.get('categories'));
-                if (group.get('groupid') == groupid) {
-                    // We have a list of categories if we have a list, and the list isn't all of them (there are 11).
-                    ret = group.get('categories') && group.get('categories').length > 0  && group.get('categories').split(',').length < all.length ? group.get('categories').split(',') : all;
-                    //console.log("catsForGroup, found", groupid, ret, group);
-                }
-            });
+        var ret = all;
+        this.get('groups').each(function(group) {
+            if (group.get('groupid') == groupid) {
+                // We have a list of categories if we have a list, and the list isn't all of them (there are 11).
+                ret = group.get('categories') && group.get('categories').length > 0  && group.get('categories').split(',').length < all.length ? group.get('categories').split(',') : all;
+            }
+        });
 
-            //console.log("return cats", ret);
-            return(ret);
-        }
+        //console.log("return cats", ret);
+        return(ret);
+    },
 
-        //console.log("catsForGroup", groupid, null);
+    getSettings: function(groupid) {
+        var settings = [];
 
-        return(all);
+        this.get('groups').each(function(group) {
+            if (group.get('groupid') == groupid) {
+                settings = JSON.parse(group.get('settings'));
+            }
+        });
+
+        return(settings);
     }
 });
 

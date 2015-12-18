@@ -177,7 +177,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
         Iznik.Views.Page.prototype.render.call(this);
 
-        this.groupSelect = new Iznik.Views.Group.Select({
+        self.groupSelect = new Iznik.Views.Group.Select({
             systemWide: false,
             all: false,
             mod: true,
@@ -185,8 +185,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
             id: 'settingsGroupSelect'
         });
 
-        self.listenTo(this.groupSelect, 'selected', function(selected) {
-            console.log("Selected", self);
+        self.listenTo(self.groupSelect, 'selected', function(selected) {
             self.selected = selected;
             self.settingsGroup();
         });

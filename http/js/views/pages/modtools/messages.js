@@ -46,25 +46,39 @@ Iznik.Views.ModTools.Message = IznikView.extend({
 
     checkDuplicates: function() {
         var self = this;
-        var id = self.model.get('id');
-        var subj = canonSubj(self.model.get('subject'));
-        var dups = [];
 
-        _.each(self.model.get('fromuser').messagehistory, function(message) {
-            if (message.id != id) {
-                if (canonSubj(message.subject) == subj) {
-                    // No point displaying any group tag in the duplicate.
-                    message.subject = message.subject.replace(/\[.*\](.*)/, "$1");
-
-                    var v = new Iznik.Views.ModTools.Message.Duplicate({
-                        model: new IznikModel(message)
-                    });
-                    self.$('.js-duplist').append(v.render().el);
-
-                    dups.push(message);
-                }
+        // Decide if we need to check for duplicates.
+        var check = true;
+        var groups = Iznik.Session.get('groups');
+        _.each(self.model.get('groups'), function(group) {
+            var dupsettings = Iznik.Session.getSettings(group.groupid);
+            if (dupsettings.hasOwnProperty('duplicates') && !dupsettings.duplicates.check) {
+                check = false;
             }
         });
+
+        var dups = [];
+
+        if (check) {
+            var id = self.model.get('id');
+            var subj = canonSubj(self.model.get('subject'));
+
+            _.each(self.model.get('fromuser').messagehistory, function (message) {
+                if (message.id != id) {
+                    if (canonSubj(message.subject) == subj) {
+                        // No point displaying any group tag in the duplicate.
+                        message.subject = message.subject.replace(/\[.*\](.*)/, "$1");
+
+                        var v = new Iznik.Views.ModTools.Message.Duplicate({
+                            model: new IznikModel(message)
+                        });
+                        self.$('.js-duplist').append(v.render().el);
+
+                        dups.push(message);
+                    }
+                }
+            });
+        }
 
         self.model.set('duplicates', dups);
     },

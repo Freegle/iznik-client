@@ -69,6 +69,13 @@ var IznikView = (function(View) {
             }
 
             return self;
+        },
+
+        destroyIt: function() {
+            this.undelegateEvents();
+            this.$el.removeData().unbind();
+            this.remove();
+            Backbone.View.prototype.remove.call(this);
         }
     });
 })(Backbone.View);

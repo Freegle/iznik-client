@@ -10,19 +10,29 @@ Iznik.Views.Group.Select = IznikView.extend({
     render: function() {
         var self = this;
 
+        if (self.dropdown) {
+            // We have previously rendered this select.
+            if (!$.contains(document, self.$el)) {
+                // ...but it is no longer in the DOM, because we've switched page.  Kill ourselves.
+                self.destroyIt();
+                return;
+            }
+        }
+
         if (self.options.hasOwnProperty('id') && !self.options.hasOwnProperty('selected')) {
             // We have a specified id.  We try to remember this in local storage
             try {
                 self.persist = true;
                 self.options.selected = localStorage.getItem('groupselect.' + self.options.id);
-                console.log("Restore selected", self.options.selected)
             } catch (e) {}
         }
+
+        var id = "gs" + groupSelectIdCounter++;
 
         self.options = _.extend({}, {
             systemWide: false,
             all: true,
-            id: "gs" + groupSelectIdCounter++
+            id: id
         }, this.options);
 
         // The library needs the element to have an id
