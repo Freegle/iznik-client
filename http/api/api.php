@@ -32,7 +32,6 @@ require_once(IZNIK_BASE . '/http/api/image.php');
 $includetime = microtime(true) - $scriptstart;
 
 # All API calls come through here.
-$call = pres('call', $_REQUEST);
 $_SERVER['REQUEST_METHOD'] = strtoupper($_SERVER['REQUEST_METHOD']);
 $_REQUEST['type'] = $_SERVER['REQUEST_METHOD'];
 
@@ -49,6 +48,8 @@ if (array_key_exists('model', $_REQUEST)) {
     # application/json.
     $_REQUEST = array_merge($_REQUEST, json_decode($_REQUEST['model'], true));
 }
+
+$call = pres('call', $_REQUEST);
 
 if ($_REQUEST['type'] == 'OPTIONS') {
     # We don't bother returning different values for different calls.
@@ -126,6 +127,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'user':
                     $ret = user();
+                    break;
+                case 'echo':
+                    $ret = array_merge($_REQUEST, $_SERVER);
                     break;
                 case 'DBexceptionWork':
                     # For UT

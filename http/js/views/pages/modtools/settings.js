@@ -73,6 +73,18 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
                 self.groupFields = [
                     {
+                        name: 'autoapprove.members',
+                        label: 'Auto-approve pending members?',
+                        control: 'radio',
+                        options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                    },
+                    {
+                        name: 'duplicates.check',
+                        label: 'Flag duplicate messages?',
+                        control: 'radio',
+                        options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                    },
+                    {
                         name: 'keywords.offer',
                         label: 'OFFER keyword',
                         control: 'input'
@@ -91,18 +103,6 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                         name: 'keywords.received',
                         label: 'RECEIVED keyword',
                         control: 'input'
-                    },
-                    {
-                        name: 'autoapprove.members',
-                        label: 'Auto-approve pending members?',
-                        control: 'radio',
-                        options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
-                    },
-                    {
-                        name: 'duplicates.check',
-                        label: 'Flag duplicate messages?',
-                        control: 'radio',
-                        options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
                     },
                     {
                         name: 'duplicates.offer',

@@ -65,5 +65,32 @@ class apiTest extends IznikAPITest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testOverride() {
+        error_log(__METHOD__);
+
+        $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] = 'get';
+        $ret = $this->call('echo', 'GET', []);
+        unset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);
+        assertEquals('get', $ret['type']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testModel() {
+        error_log(__METHOD__);
+
+        $ret = $this->call('wibble', 'GET', [
+            'model' => json_encode([
+                'call' => 'echo'
+            ])
+        ]);
+
+        error_log(var_export($ret, true));
+
+        assertEquals('echo', $ret['call']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

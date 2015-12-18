@@ -15,6 +15,7 @@ Iznik.Views.Group.Select = IznikView.extend({
             try {
                 self.persist = true;
                 self.options.selected = localStorage.getItem('groupselect.' + self.options.id);
+                console.log("Restore selected", self.options.selected)
             } catch (e) {}
         }
 
@@ -102,6 +103,7 @@ Iznik.Views.Group.Select = IznikView.extend({
                 if (self.persist) {
                     // We want to try to save the selected value in local storage to restore next time.
                     try {
+                        console.log("Save value", self.dropdown);
                         self.options.selected = localStorage.setItem('groupselect.' + self.options.id,
                             self.dropdown.value);
                     } catch (e) {
