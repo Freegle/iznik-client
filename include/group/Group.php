@@ -355,32 +355,34 @@ class Group extends Entity
             }
         }
 
-        foreach ($messages as $message) {
-            $key = $this->getKey($message);
-            $supplied[$key] = true;
+        if ($messages) {
+            foreach ($messages as $message) {
+                $key = $this->getKey($message);
+                $supplied[$key] = true;
 
-            $missing = true;
+                $missing = true;
 
-            foreach ($cs as $c) {
-                /** @var Collection $c */
-                $id = NULL;
+                foreach ($cs as $c) {
+                    /** @var Collection $c */
+                    $id = NULL;
 
-                switch (($c->getCollection())) {
-                    case Collection::APPROVED:
-                        $id = $c->findByYahooApprovedId($this->id, $message['yahooapprovedid']);
-                        break;
-                    case Collection::PENDING:
-                        $id = $c->findByYahooPendingId($this->id, $message['yahoopendingid']);
-                        break;
+                    switch (($c->getCollection())) {
+                        case Collection::APPROVED:
+                            $id = $c->findByYahooApprovedId($this->id, $message['yahooapprovedid']);
+                            break;
+                        case Collection::PENDING:
+                            $id = $c->findByYahooPendingId($this->id, $message['yahoopendingid']);
+                            break;
+                    }
+
+                    if ($id) {
+                        $missing = false;
+                    }
                 }
 
-                if ($id) {
-                    $missing = false;
+                if ($missing) {
+                    $missingonserver[] = $message;
                 }
-            }
-
-            if ($missing) {
-                $missingonserver[] = $message;
             }
         }
 

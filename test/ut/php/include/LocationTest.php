@@ -138,7 +138,15 @@ class locationTest extends IznikTest {
         assertEquals(1, count($res));
         assertEquals($id, $res[0]['id']);
 
-        //assertEquals(1, $l->delete());
+        # Make sure that exact matches trump prefix matches
+        $id2 = $l->create(NULL, 'Tuvulu High', 'Road', 'POINT(179.2167 8.53333)', NULL);
+        Location::setGrids($this->dbhr, $this->dbhm);
+
+        $res = $l->search("tuvulu high", $gid, 1);
+        assertEquals(1, count($res));
+        assertEquals($id2, $res[0]['id']);
+
+        assertEquals(1, $l->delete());
 
         error_log(__METHOD__ . " end");
     }
