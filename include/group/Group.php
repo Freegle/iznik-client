@@ -256,6 +256,12 @@ class Group extends Entity
                                 "{$member['uid']} AND groupid = {$this->id};";
                         $bulksql .= $sql;
 
+                        # If this is a mod/owner, make sure the systemrole reflects that.
+                        if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+                            $sql = "UPDATE users SET systemrole = 'Moderator' WHERE id = {$member['uid']} AND systemrole = 'User';";
+                            $bulksql .= $sql;
+                        }
+
                         if ($count > 0 && $count % 1000 == 0) {
                             # Do a chunk of work.  If this doesn't work correctly we'll end up with fewer members
                             # and fail the count below.  Or we'll have incorrect settings until the next sync, but
@@ -308,14 +314,6 @@ class Group extends Entity
                     ];
                 }
             }
-        }
-
-        try {
-            # Update the system role for any new mods/owners.
-            $sql = "UPDATE users SET systemrole = 'Moderator' WHERE id IN (SELECT userid FROM memberships WHERE role IN ('Owner', 'Moderator')) AND systemrole = 'User';";
-            $this->dbhm->preExec($sql);
-        } catch (Exception $e) {
-            # No need to do anything; we'll try again next time.
         }
 
         return($ret);
@@ -391,7 +389,6 @@ class Group extends Entity
         /** @var Collection $c */
         foreach ($cs as $c) {
             $sql = "SELECT id, fromaddr, yahoopendingid, yahooapprovedid, subject, date FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0;";
-            error_log($sql . $this->id . " " . $c->getCollection());
             $ourmsgs = $this->dbhr->preQuery(
                 $sql,
                 [

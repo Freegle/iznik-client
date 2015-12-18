@@ -137,6 +137,7 @@ class groupTest extends IznikTest {
         $this->user->addEmail('test@test.com');
         $this->user->addMembership($id);
 
+        # Error in preExec
         $g = new Group($this->dbhr, $this->dbhm, $id);
         $mock = $this->getMockBuilder('LoggedPDO')
             ->setConstructorArgs([
@@ -154,8 +155,28 @@ class groupTest extends IznikTest {
                 'email' => 'test@test.com'
             ]
         ]);
-         assertNotEquals(0, $rc['ret']);
+        assertNotEquals(0, $rc['ret']);
 
+        # Error in commit
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->setConstructorArgs([
+                "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
+                $dbconfig['user'], $dbconfig['pass'], array(), TRUE
+            ])
+            ->setMethods(array('commit'))
+            ->getMock();
+        $mock->method('commit')->willReturn(false);
+        $g->setDbhm($mock);
+        $rc = $g->setMembers([
+            [
+                'uid' => $this->uid,
+                'yahooModeratorStatus' => 'OWNER',
+                'email' => 'test@test.com'
+            ]
+        ]);
+        assertNotEquals(0, $rc['ret']);
+
+        # Error in exec
         $members = $g->getMembers();
         assertEquals(1, count($members));
         error_log("Members " . var_export($members, true));

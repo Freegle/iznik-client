@@ -593,8 +593,8 @@ class Message
             $from = mailparse_rfc822_parse_addresses($Parser->getHeader('from'));
         }
 
-        $this->fromname = $from[0]['display'];
-        $this->fromaddr = $from[0]['address'];
+        $this->fromname = count($from) > 0 ? $from[0]['display'] : NULL;
+        $this->fromaddr = count($from) > 0 ? $from[0]['address'] : NULL;
 
         if (!$this->fromaddr) {
             # We have failed to parse out this message.

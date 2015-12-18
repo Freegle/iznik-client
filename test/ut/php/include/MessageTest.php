@@ -94,6 +94,20 @@ class messageTest extends IznikTest {
         error_log(__METHOD__ . " end");
     }
 
+
+    public function testNoSender() {
+        error_log(__METHOD__);
+
+        $msg = file_get_contents('msgs/nosender');
+        $msg = str_replace('Basic test', 'OFFER: Test item', $msg);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $rc = $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertFalse($rc);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testSuggest() {
         error_log(__METHOD__);
 
