@@ -122,8 +122,8 @@ class groupAPITest extends IznikAPITest {
         assertEquals(1, $ret['ret']);
         assertFalse(pres('members', $ret));
 
-        # Moderator - should see members list
-        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+        # Owner - should see members list
+        $this->user->setRole(User::ROLE_OWNER, $this->groupid);
         $members = [
             [
                 'email' => 'test@test.com',

@@ -16,7 +16,7 @@ Iznik.Views.Group.Select = IznikView.extend({
                 self.persist = true;
                 self.options.selected = localStorage.getItem('groupselect.' + self.options.id);
             } catch (e) {}
-        } else
+        }
 
         self.options = _.extend({}, {
             systemWide: false,

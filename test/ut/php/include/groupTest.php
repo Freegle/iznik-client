@@ -39,7 +39,8 @@ class groupTest extends IznikTest {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
-        $g->create('testgroup', Group::GROUP_REUSE);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        $g = new Group($this->dbhr, $this->dbhm, $gid);
         $atts = $g->getPublic();
         assertEquals('testgroup', $atts['nameshort']);
         assertEquals($atts['id'], $g->getPrivate('id'));
@@ -61,9 +62,30 @@ class groupTest extends IznikTest {
                 'email' => 'test@test.com'
             ]
         ]);
-        assertTrue($rc);
+        assertEquals(0, $rc['ret']);
+        $membs = $g->getMembers();
+
+        # Can't set owner status as not logged in as an owner.
+        assertEquals(User::ROLE_MODERATOR, $membs[0]['role']);
+
+        # Now try as an owner.
+        $u = new User($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $u->addMembership($gid, User::ROLE_OWNER);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $rc = $g->setMembers([
+            [
+                'uid' => $this->uid,
+                'yahooModeratorStatus' => 'OWNER',
+                'email' => 'test@test.com'
+            ]
+        ]);
+        assertEquals(0, $rc['ret']);
         $membs = $g->getMembers();
         assertEquals(User::ROLE_OWNER, $membs[0]['role']);
+
         $membs = $this->user->getMemberships();
         error_log("Got members" . var_export($membs, true));
         assertEquals($cid, $membs[0]['configid']);
@@ -125,8 +147,14 @@ class groupTest extends IznikTest {
             ->getMock();
         $mock->method('preExec')->willThrowException(new Exception());
         $g->setDbhm($mock);
-        $rc = $g->setMembers([]);
-        assertFalse($rc);
+        $rc = $g->setMembers([
+            [
+                'uid' => $this->uid,
+                'yahooModeratorStatus' => 'OWNER',
+                'email' => 'test@test.com'
+            ]
+        ]);
+         assertNotEquals(0, $rc['ret']);
 
         $members = $g->getMembers();
         assertEquals(1, count($members));
@@ -143,8 +171,14 @@ class groupTest extends IznikTest {
         $mock->method('exec')->willThrowException(new Exception());
         $g->setDbhm($mock);
 
-        $rc = $g->setMembers([]);
-        assertFalse($rc);
+        $rc = $g->setMembers([
+            [
+                'uid' => $this->uid,
+                'yahooModeratorStatus' => 'OWNER',
+                'email' => 'test@test.com'
+            ]
+        ]);
+        assertNotEquals(0, $rc['ret']);
 
         $members = $g->getMembers();
         assertEquals(1, count($members));

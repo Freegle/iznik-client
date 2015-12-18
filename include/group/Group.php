@@ -152,7 +152,7 @@ class Group extends Entity
             'status' => 'Success'
         ];
 
-        if (!$members) { return; }
+        if (!$members) { return($ret); }
 
         # This is used to set the whole of the membership list for a group.  It's only used when the group is
         # mastered on Yahoo, rather than by us.
@@ -198,6 +198,9 @@ class Group extends Entity
         $distinct = count($distinctmembers);
         $distinctmembers = NULL;
 
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myrole = $me ? $me->getRole($this->id) : User::ROLE_NONMEMBER;
+
         if ($this->dbhm->beginTransaction()) {
             try {
                 # If this doesn't work we'd get an exception
@@ -226,11 +229,24 @@ class Group extends Entity
 
                         # Make sure the membership is present.  We don't want to REPLACE as that might lose settings.
                         # We also don't want to do INSERT IGNORE as that doesn't perform well in clusters.
-                        $sql = "SELECT id FROM memberships WHERE userid = ? AND groupid = ?;";
+                        $sql = "SELECT id, role FROM memberships WHERE userid = ? AND groupid = ?;";
                         $membs = $this->dbhm->preQuery($sql, [ $member['uid'], $this->id] );
                         if (count($membs) == 0) {
                             $sql = "INSERT IGNORE INTO memberships (userid, groupid) VALUES ({$member['uid']}, {$this->id});";
                             $bulksql .= $sql;
+                            $membs = [
+                                [
+                                    'role' => User::ROLE_MEMBER
+                                ]
+                            ];
+                        }
+
+                        # If we are promoting a member, then we can only promote as high as we are.  This prevents
+                        # moderators setting owner status.
+                        if ($role == User::ROLE_OWNER &&
+                            $myrole != User::ROLE_OWNER &&
+                            $membs[0]['role'] != User::ROLE_OWNER) {
+                            $role = User::ROLE_MODERATOR;
                         }
 
                         # Now update with new settings.  Also set syncdelete so that we know this member still exists
@@ -271,6 +287,7 @@ class Group extends Entity
                     $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [$this->id]);
                 }
             } catch (Exception $e) {
+                error_log("Exception");
                 $rollback = TRUE;
             }
 
@@ -283,6 +300,13 @@ class Group extends Entity
                 ];
             } else {
                 $rollback = !$this->dbhm->commit();
+
+                if ($rollback) {
+                    $ret = [
+                        'ret' => 3,
+                        'status' => 'Commit failed'
+                    ];
+                }
             }
         }
 

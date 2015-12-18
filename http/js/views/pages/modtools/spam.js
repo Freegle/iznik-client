@@ -150,6 +150,36 @@ Iznik.Views.ModTools.Message.Spam = Iznik.Views.ModTools.Message.extend({
                 model: mod
             });
             self.$('.js-grouplist').append(v.render().el);
+
+            var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
+            var v = new Iznik.Views.ModTools.User({
+                model: mod
+            });
+
+            self.$('.js-user').html(v.render().el);
+
+            // The Yahoo part of the user
+            var mod = IznikYahooUsers.findUser({
+                email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
+                group: group.nameshort,
+                groupid: group.id
+            });
+
+            mod.fetch().then(function() {
+                var v = new Iznik.Views.ModTools.Yahoo.User({
+                    model: mod
+                });
+                self.$('.js-yahoo').html(v.render().el);
+            });
+        });
+
+        // Add any attachments.
+        _.each(self.model.get('attachments'), function(att) {
+            var v = new Iznik.Views.ModTools.Message.Photo({
+                model: new IznikModel(att)
+            });
+
+            self.$('.js-attlist').append(v.render().el);
         });
 
         this.$('.timeago').timeago();
