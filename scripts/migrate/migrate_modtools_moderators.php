@@ -27,7 +27,7 @@ foreach ($mods as $mod) {
 
     if ($gid) {
         $u = new User($dbhr, $dbhm);
-        $uid = $u->findByLogin('Yahoo', $mod['yahooid']);
+        $uid = $u->findByEmail($mod['email']);
 
         if (!$uid) {
             $uid = $u->create(NULL, NULL, $mod['name']);

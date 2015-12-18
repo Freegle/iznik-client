@@ -229,11 +229,13 @@ class User extends Entity
         $sql = "SELECT groupid, role, configid FROM memberships WHERE userid = ?;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
 
+        $c = new ModConfig($this->dbhr, $this->dbhm);
+
         foreach ($groups as $group) {
             $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
             $one = $g->getPublic();
             $one['role'] = $group['role'];
-            $one['configid'] = $group['configid'];
+            $one['configid'] = $c->getForGroup($this->id, $group['groupid']);
 
             $one['mysettings'] = $this->getGroupSettings($group['groupid']);
 
@@ -464,10 +466,7 @@ class User extends Entity
 
         if ($logs) {
             # Add in the log entries we have for this user.
-            #
-            # We can only see logs for this user if we have a mod role on one of the groups of which they are
-            # a member, or if we have appropriate system rights.
-            # TODO
+            $me = whoAmI($this->dbhr, $this->dbhm);
             $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) AND (text IS NULL OR text NOT IN ('Not present on Yahoo pending')) ORDER BY timestamp DESC;";
             $logs = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
             $atts['logs'] = [];
@@ -498,6 +497,14 @@ class User extends Entity
                     if (!pres($log['groupid'], $groups)) {
                         $g = new Group($this->dbhr, $this->dbhm, $log['groupid']);
                         $groups[$log['groupid']] = $g->getPublic();
+                        $groups[$log['groupid']]['myrole'] = $me->getRole($log['groupid']);
+                    }
+
+                    if ($groups[$log['groupid']]['myrole'] != User::ROLE_OWNER &&
+                        $groups[$log['groupid']]['myrole'] != User::ROLE_MODERATOR) {
+                        # We can only see logs for this group if we have a mod role, or if we have appropriate system
+                        # rights.  Skip this log.
+                        break;
                     }
 
                     $log['group'] = $groups[$log['groupid']];

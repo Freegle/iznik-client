@@ -134,6 +134,16 @@ class userAPITest extends IznikAPITest {
             'logs' => TRUE
         ]);
 
+        # Can't see logs when not not a mod on the group
+        $log = $this->findLog('Group', 'Joined', $ret['user']['logs']);
+        assertNull($log);
+
+        # Promote.
+        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+        $ret = $this->call('user', 'GET', [
+            'id' => $this->uid,
+            'logs' => TRUE
+        ]);
         $log = $this->findLog('Group', 'Joined', $ret['user']['logs']);
         assertEquals($this->groupid, $log['group']['id']);
 

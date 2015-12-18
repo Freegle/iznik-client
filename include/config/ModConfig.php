@@ -95,6 +95,16 @@ class ModConfig extends Entity
             $configid = $conf['configid'];
         }
 
+        if ($configid == NULL) {
+            # This user has no config.  If there is another mod with one, then we use that.  This handles the case
+            # of a new floundering mod who doesn't quite understand what's going on.  Well, partially.
+            $sql = "SELECT configid FROM memberships WHERE groupid = ? AND role IN ('Moderator', 'Owner') AND configid IS NOT NULL;";
+            $others = $this->dbhr->preQuery($sql, [ $groupid ]);
+            foreach ($others as $other) {
+                $configid = $other['configid'];
+            }
+        }
+
         return $configid;
     }
 

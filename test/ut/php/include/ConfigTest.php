@@ -58,6 +58,14 @@ class configTest extends IznikTest {
         $c->useOnGroup($uid, $group1);
         assertEquals($id, $c->getForGroup($uid, $group1));
 
+        # Another mod on this group with no config set up should pick this one up as a default.
+        $u2 = new User($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $u2 = new User($this->dbhr, $this->dbhm, $uid2);
+        $u2->addMembership($group1, User::ROLE_OWNER);
+        assertEquals($id, $c->getForGroup($uid, $group1));
+        assertEquals($id, $c->getForGroup($uid2, $group1));
+
         $m = new StdMessage($this->dbhr, $this->dbhm);
         $mid = $m->create("TestStdMessage", $id);
         assertNotNull($mid);
