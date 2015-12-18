@@ -23,8 +23,22 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
             group.fetch().then(function() {
                 var mysettings = group.get('mysettings');
                 console.log("mysettings", mysettings);
+                var configoptions = [];
+                var configs = Iznik.Session.get('configs');
+                configs.each(function(config) {
+                    configoptions.push({
+                        label: config.get('name'),
+                        value: config.get('id')
+                    });
+                });
                 self.myGroupModel = new IznikModel(mysettings);
                 self.myGroupFields = [
+                    {
+                        name: 'configid',
+                        label: 'Configuration to use for this Group',
+                        control: 'select',
+                        options: configoptions
+                    },
                     {
                         name: 'showmessages',
                         label: 'Show messages in All Groups?',

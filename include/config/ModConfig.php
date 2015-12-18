@@ -85,6 +85,7 @@ class ModConfig extends Entity
 
     public function getForGroup($modid, $groupid) {
         $sql = "SELECT configid FROM memberships WHERE userid = ? AND groupid = ?;";
+        error_log($sql . ", $modid, $groupid");
         $confs = $this->dbhr->preQuery($sql, [
             $modid,
             $groupid

@@ -29,6 +29,7 @@ function group() {
         switch ($_REQUEST['type']) {
             case 'GET': {
                 $members = array_key_exists('members', $_REQUEST) ? filter_var($_REQUEST['members'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+                $c = new ModConfig($dbhr, $dbhm);
 
                 $ret = [
                     'ret' => 0,
@@ -38,6 +39,7 @@ function group() {
 
                 $ret['group']['myrole'] = $me ? $me->getRole($id) : User::ROLE_NONMEMBER;
                 $ret['group']['mysettings'] = $me ? $me->getGroupSettings($id) : NULL;
+                $ret['group']['mysettings']['configid'] = $me ? $c->getForGroup($me->getId(), $id) : NULL;
 
                 if ($members && $me && $me->isModOrOwner($id)) {
                     $ret['group']['members'] = $g->getMembers();
@@ -76,6 +78,21 @@ function group() {
                     }
 
                     if ($ret['ret'] == 0) {
+                        if (pres('configid', $mysettings)) {
+                            # We want to change the config that we use to mod this group.  Check that the config id
+                            # passed is one to which we have access.
+                            $configs = $me->getConfigs();
+
+                            foreach ($configs as $config) {
+                                if ($config['id'] == $mysettings['configid']) {
+                                    $c = new ModConfig($dbhr, $dbhm, $config['id']);
+                                    $c->useOnGroup($me->getId(), $id);
+                                }
+                            }
+
+                            unset($mysettings['configid']);
+                        }
+
                         $ret = $me->setGroupSettings($id, $mysettings);
                     }
                 }

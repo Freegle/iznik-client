@@ -74,10 +74,12 @@ foreach ($oldconfs as $config) {
         }
 
         # Map the order
-        $order = json_decode($config['messageorder']);
         $neworder = [];
-        foreach ($order as $id) {
-            $neworder[] = $msgidmap[$id];
+        if ($config['messageorder']) {
+            $order = json_decode($config['messageorder']);
+            foreach ($order as $id) {
+                $neworder[] = $msgidmap[$id];
+            }
         }
 
         $c->setPrivate('messageorder', json_encode($neworder));

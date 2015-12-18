@@ -8,6 +8,7 @@ require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 require_once IZNIK_BASE . '/include/message/Collection.php';
+require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 
 /**
  * @backupGlobals disabled
@@ -174,7 +175,22 @@ class groupAPITest extends IznikAPITest {
         assertEquals('test3@test.com', $ret['group']['members'][2]['emails'][0]['email']);
         assertEquals('Owner', $ret['group']['members'][2]['role']);
         assertEquals(2, $ret['group']['nummods']);
-        
+
+        # Set a config
+        $c = new ModConfig($this->dbhr, $this->dbhm);
+        $cid = $c->create('testconfig');
+        assertNotNull($cid);
+        $ret = $this->call('group', 'PATCH', [
+            'id' => $this->groupid,
+            'mysettings' => [
+                'configid' => $cid
+            ]
+        ]);
+        $ret = $this->call('group', 'GET', [
+            'id' => $this->groupid
+        ]);
+        assertEquals($cid, $ret['group']['mysettings']['configid']);
+
         error_log(__METHOD__ . " end");
     }
 
