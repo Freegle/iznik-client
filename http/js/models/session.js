@@ -73,6 +73,8 @@ Iznik.Models.Session = IznikModel.extend({
                                 // our current count drops to zero, or worst case when we refresh.
                                 countel.html(ret.work[count.fi]);
                                 Iznik.Session.trigger(count.ev);
+                                var sound = new Audio("/sounds/alert.wav");
+                                sound.play();
                             }
                         } else {
                             $(count.el).empty();

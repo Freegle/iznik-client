@@ -25,7 +25,7 @@ Iznik.Views.ModTools.Message = IznikView.extend({
             self.restoreEditSubject();
         });
 
-        self.$('.js-savesubj .glyphicon').removeClass('glyphicon-floppy-save').addClass('glyphicon-refresh rotate');
+        self.$('.js-savesubj .glyphicon').removeClass('glyphicon-floppy-save glyphicon-warning-sign').addClass('glyphicon-refresh rotate');
 
         self.model.edit(
             self.$('.js-subject').val(),
@@ -324,8 +324,8 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
             self.close();
         });
 
-        console.log("Autosend?", self.model.get('autosend'));
-        if (self.model.get('autosend')) {
+        console.log("Autosend?", self.options.stdmsg.get('autosend'));
+        if (self.options.stdmsg.get('autosend')) {
             self.$('.js-send').click();
         }
     }

@@ -1326,22 +1326,55 @@ class Message
                     $subject = trim($subject);
 
                     # Find a location in the subject.
+                    $l = new Location($this->dbhr, $this->dbhm);
+
                     if (preg_match('/(.*)\((.*)\)/', $subject, $matches)) {
                         # Find the residue, which will be the item, and tidy it.
                         $residue = trim($matches[1]);
-                        $punc = '\(|\)|\[|\]|\,|\.|\-|\{|\}|\:|\;| ';
-                        $residue = preg_replace('/^(' . $punc . '){2,}/','', $residue);
-                        $residue = preg_replace('/(' . $punc . '){2,}$/','', $residue);
 
-                        $loc = $matches[2];
+                        $aloc = $matches[2];
 
                         # Check if it's a good location.
-                        $l = new Location($this->dbhr, $this->dbhm);
-                        $locs = $l->search($loc, $groupid, 1);
+                        $locs = $l->search($aloc, $groupid, 1);
 
                         if (count($locs) == 1) {
                             # Take the name we found, which may be better than the one we have, if only in capitalisation.
                             $loc = $locs[0]['name'];
+                        }
+                    } else {
+                        # The subject is not well-formed.  But we can try anyway.
+                        #
+                        # Look for an exact match for a known location in the subject.
+                        $locs = $l->locsForGroup($groupid);
+                        $bestpos = 0;
+                        $bestlen = 0;
+                        $loc = NULL;
+
+                        foreach ($locs as $aloc) {
+                            $p = stripos($subject, $aloc['name']);
+                            if ($p !== FALSE &&
+                                (strlen($aloc['name']) > $bestlen ||
+                                 (strlen($aloc['name']) == $bestlen && $p > $bestpos))) {
+                                # The longer a location is, the more likely it is to be the correct one.  If we get a
+                                # tie, then the further right it is, the more likely to be a location.
+                                $loc = $aloc['name'];
+                                $bestpos = $p;
+                                $bestlen = strlen($loc);
+                            }
+                        }
+
+                        $residue = preg_replace('/' . preg_quote($loc) . '/i', '', $subject);
+                    }
+
+                    if ($loc) {
+                        $punc = '\(|\)|\[|\]|\,|\.|\-|\{|\}|\:|\;| ';
+                        $residue = preg_replace('/^(' . $punc . '){2,}/','', $residue);
+                        $residue = preg_replace('/(' . $punc . '){2,}$/','', $residue);
+                        $residue = trim($residue);
+
+                        if ($residue == strtoupper($residue)) {
+                            # All upper case.  Stop it being shouty.
+                            $residue = strtolower($residue);
                         }
 
                         $newsubj = strtoupper($type) . ": $residue ($loc)";

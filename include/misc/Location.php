@@ -138,6 +138,39 @@ class Location extends Entity
         return(array_unique($ret, SORT_REGULAR));
     }
 
+    public function locsForGroup($groupid) {
+        # We have a large table of locations.  We want to return the ones which are close to this group, so
+        # we look in the same or adjacent grid squares.
+        $gridids = [];
+        $ret = [];
+
+        # Find the gridid for the group.
+        $sql = "SELECT locations_grids.* FROM locations_grids INNER JOIN groups ON groups.id = ? AND swlat <= groups.lat AND swlng <= groups.lng AND nelat > groups.lat AND nelng > groups.lng;";
+        $grids = $this->dbhr->preQuery($sql, [
+            $groupid
+        ]);
+
+        foreach ($grids as $grid) {
+            $gridids[] = $grid['id'];
+
+            # Now find grids which touch that.  That avoids issues where our group is near the boundary of a grid square.
+            $sql = "SELECT id FROM locations_grids WHERE MBRTouches (GeomFromText('POLYGON(({$grid['swlng']} {$grid['swlat']}, {$grid['swlng']} {$grid['nelat']}, {$grid['nelng']} {$grid['nelat']}, {$grid['nelng']} {$grid['swlat']}, {$grid['swlng']} {$grid['swlat']}))'), box);";
+            $neighbours = $this->dbhr->query($sql);
+            foreach ($neighbours as $neighbour) {
+                $gridids[] = $neighbour['id'];
+            }
+
+            # Now we have a list of gridids within which we want to find locations.
+            if (count($gridids) > 0) {
+                $sql = "SELECT * FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") ORDER BY popularity ASC;";
+                $ret = $this->dbhr->query($sql);
+            }
+        }
+
+        # Don't return duplicates.
+        return($ret);
+    }
+
     public function delete()
     {
         $me = whoAmI($this->dbhr, $this->dbhm);

@@ -10,6 +10,17 @@ Iznik.Views.Group.Select = IznikView.extend({
     render: function() {
         var self = this;
 
+        if (self.options.hasOwnProperty('id') && !self.options.hasOwnProperty('selected')) {
+            // We have a specified id.  We try to remember this in local storage
+            try {
+                self.persist = true;
+                self.options.selected = localStorage.getItem('groupselect.' + self.options.id);
+            } catch (e) {}
+
+            // Make sure it's not in the DOM any more.
+            $('#' + self.options.id).remove();
+        }
+
         if (self.dropdown) {
             // We have previously rendered this select.
             if (!$.contains(document, self.$el)) {
@@ -17,14 +28,6 @@ Iznik.Views.Group.Select = IznikView.extend({
                 self.destroyIt();
                 return;
             }
-        }
-
-        if (self.options.hasOwnProperty('id') && !self.options.hasOwnProperty('selected')) {
-            // We have a specified id.  We try to remember this in local storage
-            try {
-                self.persist = true;
-                self.options.selected = localStorage.getItem('groupselect.' + self.options.id);
-            } catch (e) {}
         }
 
         var id = "gs" + groupSelectIdCounter++;

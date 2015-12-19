@@ -129,6 +129,9 @@ class messageTest extends IznikTest {
         assertEquals($goodsubj, $m->suggestSubject($gid, $goodsubj));
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test (High Street)"));
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR - Test  - (High Street)"));
+        assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test Tuvulu High Street"));
+        assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test TUVULU HIGH STREET"));
+        assertEquals("OFFER: test (Tuvulu High Street)", $m->suggestSubject($gid, "OFFR TEST TUVULU HIGH STREET"));
 
         error_log(__METHOD__ . " end");
     }

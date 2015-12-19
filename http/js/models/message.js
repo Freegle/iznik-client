@@ -215,10 +215,14 @@ Iznik.Models.Message = IznikModel.extend({
                                     }
                                 }
 
+                                // Do this synchronously to increase the chance that the crumb will still be valid
+                                // when we use it.  If we have background work happening the crumb might be invalidated
+                                // under our feet.
                                 $.ajaxq('plugin', {
                                     type: "GET",
                                     url: "https://groups.yahoo.com/neo/groups/" + self.get('') + "/management/pendingmessages?" + Math.random(),
                                     success: getCrumb,
+                                    async: false,
                                     error: function (request, status, error) {
                                         console.log("Get crumb failed");
                                         self.trigger('editfailed');
