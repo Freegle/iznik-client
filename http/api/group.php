@@ -51,6 +51,7 @@ function group() {
             case 'PATCH': {
                 $members = presdef('members', $_REQUEST, NULL);
                 $mysettings = presdef('mysettings', $_REQUEST, NULL);
+                $settings = presdef('settings', $_REQUEST, NULL);
                 #error_log("mysettings " . var_export($mysettings, true));
 
                 $ret = [
@@ -94,6 +95,10 @@ function group() {
                         }
 
                         $ret = $me->setGroupSettings($id, $mysettings);
+                    }
+
+                    if ($ret['ret'] == 0 && $settings) {
+                        $g->setSettings($settings);
                     }
                 }
             }

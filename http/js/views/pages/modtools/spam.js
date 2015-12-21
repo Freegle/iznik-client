@@ -139,7 +139,15 @@ Iznik.Views.ModTools.Message.Spam = Iznik.Views.ModTools.Message.extend({
     render: function() {
         var self = this;
 
+        self.model.set('mapicon', window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif');
+
+        // Get a zoom level for the map.
+        _.each(self.model.get('groups'), function(group) {
+            self.model.set('mapzoom', group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 12);
+        });
+
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
+
         _.each(self.model.get('groups'), function(group, index, list) {
             var mod = new IznikModel(group);
 

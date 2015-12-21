@@ -1,5 +1,6 @@
 Iznik.Views.Plugin.Main = IznikView.extend({
     connected: false,
+    everConnected: false,
 
     work: [],
     retrying: [],
@@ -189,7 +190,14 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                     if (!self.connected) {
                         self.resume();
-                        self.listYahooGroups();
+
+                        if (!self.everConnected) {
+                            // The plugin state might flipflop between connected and disconnected.  We don't want
+                            // to trigger invitations each time.
+                            self.listYahooGroups();
+                        }
+
+                        self.everConnected = true;
                     }
 
                     $('#js-plugindisconnected').fadeOut('slow', function() {

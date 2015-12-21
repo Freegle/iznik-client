@@ -94,10 +94,10 @@ class Message
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
 
-    private $id, $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $fromname, $fromaddr,
+    private $id, $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $suggestedsubject, $fromname, $fromaddr,
         $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
-        $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby;
+        $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL;
 
     /**
      * @return mixed
@@ -127,7 +127,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'type', 'arrival', 'date', 'deleted', 'heldby'
+        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'lat', 'lng', 'locationid'
     ];
 
     public $memberAtts = [
@@ -240,7 +240,8 @@ class Message
         }
 
         # Remove any group subject tag.
-        $ret['subject'] = preg_replace('/\[.*\]\s*/', '', $ret['subject']);
+        $ret['subject'] = preg_replace('/\[.*?\]\s*/', '', $ret['subject']);
+        $ret['subject'] = preg_replace('/\[.*Attachment.*\]\s*/', '', $ret['subject']);
 
         # Add any groups that this message is on.
         $ret['groups'] = [];
@@ -249,6 +250,10 @@ class Message
 
         foreach ($ret['groups'] as &$group) {
             $ret['suggestedsubject'] = $this->suggestSubject($group['groupid'], $this->subject);
+            $ret['lat'] = $this->lat;
+            $ret['lng'] = $this->lng;
+            $ret['locationid'] = $this->locationid;
+
             $group['arrival'] = ISODate($group['arrival']);
         }
 
@@ -256,6 +261,11 @@ class Message
         $ret['arrival'] = ISODate($ret['arrival']);
         $ret['date'] = ISODate($ret['date']);
         $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
+
+        if ($ret['locationid']) {
+            $l = new Location($this->dbhr, $this->dbhm, $ret['locationid']);
+            $ret['location'] = $l->getPublic();
+        }
 
         if (pres('fromcountry', $ret)) {
             $ret['fromcountry'] = code_to_country($ret['fromcountry']);
@@ -822,7 +832,7 @@ class Message
         $this->pruneMessage();
 
         # Save into the messages table.
-        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->date,
             $this->source,
@@ -838,7 +848,10 @@ class Message
             $this->tnpostid,
             $this->textbody,
             $this->htmlbody,
-            $this->type
+            $this->type,
+            $this->lat,
+            $this->lng,
+            $this->locationid
         ]);
 
         $id = NULL;
@@ -1301,7 +1314,8 @@ class Message
     public function suggestSubject($groupid, $subject) {
         $newsubj = $subject;
 
-        # This method is used to improve subjects.
+        # This method is used to improve subjects, and also to map - because we need to make sure we understand the
+        # subject format before can map.
         $type = $this->determineType($subject);
 
         switch ($type) {
@@ -1310,7 +1324,7 @@ class Message
             case Message::TYPE_WANTED:
             case Message::TYPE_RECEIVED:
                 # Remove any subject tag.
-                $subject = preg_replace('/\[.*\]\s*/', '', $subject);
+                $subject = preg_replace('/\[.*?\]\s*/', '', $subject);
 
                 $pretag = $subject;
 
@@ -1319,13 +1333,14 @@ class Message
                     $subject = preg_replace('/(^|\b)' . preg_quote($keyword) . '\b/i', '', $subject);
                 }
 
-                # Only proceed if we found the subject tag.
+                # Only proceed if we found the type tag.
                 if ($subject != $pretag) {
                     # Shrink multiple spaces
                     $subject = preg_replace('/\s+/', ' ', $subject);
                     $subject = trim($subject);
 
                     # Find a location in the subject.
+                    $loc = NULL;
                     $l = new Location($this->dbhr, $this->dbhm);
 
                     if (preg_match('/(.*)\((.*)\)/', $subject, $matches)) {
@@ -1339,7 +1354,7 @@ class Message
 
                         if (count($locs) == 1) {
                             # Take the name we found, which may be better than the one we have, if only in capitalisation.
-                            $loc = $locs[0]['name'];
+                            $loc = $locs[0];
                         }
                     } else {
                         # The subject is not well-formed.  But we can try anyway.
@@ -1357,13 +1372,13 @@ class Message
                                  (strlen($aloc['name']) == $bestlen && $p > $bestpos))) {
                                 # The longer a location is, the more likely it is to be the correct one.  If we get a
                                 # tie, then the further right it is, the more likely to be a location.
-                                $loc = $aloc['name'];
+                                $loc = $aloc;
                                 $bestpos = $p;
-                                $bestlen = strlen($loc);
+                                $bestlen = strlen($loc['name']);
                             }
                         }
 
-                        $residue = preg_replace('/' . preg_quote($loc) . '/i', '', $subject);
+                        $residue = preg_replace('/' . preg_quote($loc['name']) . '/i', '', $subject);
                     }
 
                     if ($loc) {
@@ -1377,7 +1392,11 @@ class Message
                             $residue = strtolower($residue);
                         }
 
-                        $newsubj = strtoupper($type) . ": $residue ($loc)";
+                        $newsubj = strtoupper($type) . ": $residue ({$loc['name']})";
+
+                        $this->lat = $loc['lat'];
+                        $this->lng = $loc['lng'];
+                        $this->locationid = $loc['id'];
                     }
                 }
                break;

@@ -243,6 +243,10 @@ body {
     margin-right: 10px;
 }
 
+.margleft {
+    margin-left: 10px;
+}
+
 .margtop {
     margin-top: 20px;
 }

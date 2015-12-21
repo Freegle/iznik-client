@@ -121,6 +121,7 @@ class Group extends Entity
         $atts['membercount'] = $counts[0]['count'];
         $atts['lastyahoomembersync'] = ISODate($this->group['lastyahoomembersync']);
         $atts['lastyahoomessagesync'] = ISODate($this->group['lastyahoomessagesync']);
+        $atts['settings'] = json_decode($atts['settings'], true);
 
         $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = {$this->id} AND role IN ('Owner', 'Moderator');";
         $counts = $this->dbhr->preQuery($sql);
@@ -317,6 +318,12 @@ class Group extends Entity
         }
 
         return($ret);
+    }
+
+    public function setSettings($settings)
+    {
+        $this->dbhm->preExec("UPDATE groups SET settings = ? WHERE id = ?;", [ json_encode($settings), $this->id ]);
+        return(true);
     }
 
     private function getKey($message) {

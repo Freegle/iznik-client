@@ -28,11 +28,15 @@ class Location extends Entity
         $this->dbhm = $dbhm;
     }
 
+    public function canon($str) {
+        return(strtolower(preg_replace("/[^A-Za-z0-9]/", '', $str)));
+    }
+
     public function create($osm_id, $name, $type, $geometry, $gridid)
     {
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO locations (osm_id, name, type, geometry, gridid) VALUES (?, ?, ?, GeomFromText(?), ?)",
-                [$osm_id, $name, $type, $geometry, $gridid]);
+            $rc = $this->dbhm->preExec("INSERT INTO locations (osm_id, name, type, geometry, gridid, canon) VALUES (?, ?, ?, GeomFromText(?), ?, ?)",
+                [$osm_id, $name, $type, $geometry, $gridid, $this->canon($name)]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
             $id = NULL;
@@ -92,8 +96,9 @@ class Location extends Entity
         foreach ($grids as $grid) {
             $gridids[] = $grid['id'];
 
-            # Now find grids which touch that.  That avoids issues where our group is near the boundary of a grid square.
-            $sql = "SELECT id FROM locations_grids WHERE MBRTouches (GeomFromText('POLYGON(({$grid['swlng']} {$grid['swlat']}, {$grid['swlng']} {$grid['nelat']}, {$grid['nelng']} {$grid['nelat']}, {$grid['nelng']} {$grid['swlat']}, {$grid['swlng']} {$grid['swlat']}))'), box);";
+            # Now find grids within approximately 30 miles of that.
+            #$sql = "SELECT id FROM locations_grids WHERE haversine(" . ($grid['swlat'] + 0.05) . ", " . ($grid['swlng'] + 0.05) . ", swlat + 0.05, swlng + 0.05) < 30;";
+            $sql = "SELECT id FROM locations_grids WHERE ABS(" . $grid['swlat'] . " - swlat) <= 0.4 AND ABS(" . $grid['swlng']. " - swlng) <= 0.4;";
             $neighbours = $this->dbhr->query($sql);
             foreach ($neighbours as $neighbour) {
                 $gridids[] = $neighbour['id'];
@@ -101,16 +106,9 @@ class Location extends Entity
 
             # Now we have a list of gridids within which we want to search.
             if (count($gridids) > 0) {
-                # We do a simple %...% match.  We only use this search for autocomplete or identification of popular
-                # locations, so we don't need a fuzzy search.  This will scan quite a lot of locations, because that
-                # kind of search can't use the name index, but it is restricted by grids and therefore won't be
-                # appalling.
-                #
-                # We want the most shortest matches first, then ordered by most popular
-                $term2 = $this->dbhr->quote($term);
-                $term2 = preg_replace('/\'$/', '%\'', $term2);
-                $term2 = preg_replace('/^\'/', '\'%', $term2);
-                $sql = "SELECT * FROM locations WHERE name LIKE $term2 AND gridid IN (" . implode(',', $gridids) . ") ORDER BY LENGTH(name) ASC, popularity DESC LIMIT $limit;";
+                # First we do a simple match.  If the location is correct, that will find it quickly.
+                $term2 = $this->dbhr->quote($this->canon($term));
+                $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE canon = $term2 AND gridid IN (" . implode(',', $gridids) . ") ORDER BY LENGTH(name) ASC, popularity DESC LIMIT $limit;";
                 $locs = $this->dbhr->query($sql);
 
                 foreach ($locs as $loc) {
@@ -118,12 +116,21 @@ class Location extends Entity
                     $limit--;
                 }
 
+                # We do a simple %...% match.  We only use this search for autocomplete or identification of popular
+                # locations, so we don't need a fuzzy search.  This will scan quite a lot of locations, because that
+                # kind of search can't use the name index, but it is restricted by grids and therefore won't be
+                # appalling.
+                #
+                # We want the shortest matches first (you might have 'Stockbridge' and 'Stockbridge Church Of England
+                # Primary School'), then ordered by most popular.
+                #
+                # Exclude all numeric locations (there are some in OSM).
                 if ($limit > 0) {
-                    # We didn't find as many results as we wanted.  Do a (slower) search using a Damerau-Levenshtein
-                    # distance function to spot typos, transpositions, spurious spaces etc.
-
-                    $sql = "SELECT * FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND DAMLEVLIM(`name`, " .
-                        $this->dbhr->quote($term) . ", " . strlen($term) . ") < 2 ORDER BY LENGTH(name) ASC, popularity DESC LIMIT $limit;";
+                    $term2 = $this->dbhr->quote($this->canon($term));
+                    $term2 = preg_replace('/\'$/', '%\'', $term2);
+                    $term2 = preg_replace('/^\'/', '\'%', $term2);
+                    $term2 = trim($term2);
+                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE canon LIKE $term2 AND gridid IN (" . implode(',', $gridids) . ") AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY LENGTH(name) ASC, popularity DESC LIMIT $limit;";
                     $locs = $this->dbhr->query($sql);
 
                     foreach ($locs as $loc) {
@@ -131,11 +138,47 @@ class Location extends Entity
                         $limit--;
                     }
                 }
+
+                if ($limit > 0) {
+                    # We didn't find as many as we wanted.  It's possible that the location text actually contains
+                    # two locations, most commonly a place and a postcode.  So do an (even slower) search to find
+                    # locations in our table which appear somewhere in the subject.  Ignore very short ones.
+                    #
+                    # We order in ascending order of the size of what we find, so that we pick the most specific first.
+                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND LENGTH(canon) > 2 AND LOCATE(canon, " .
+                        $this->dbhr->quote($this->canon($term)) . ") AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY GetMaxDimension(locations.geometry) ASC, popularity DESC LIMIT $limit;";
+                    $locs = $this->dbhr->query($sql);
+
+                    foreach ($locs as $loc) {
+                        $ret[] = $loc;
+                        $limit--;
+                    }
+                }
+
+                if ($limit > 0) {
+                    # We still didn't find as many results as we wanted.  Do a (slow) search using a Damerau-Levenshtein
+                    # distance function to spot typos, transpositions, spurious spaces etc.
+                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND DAMLEVLIM(`canon`, " .
+                        $this->dbhr->quote($this->canon($term)) . ", " . strlen($term) . ") < 2 AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY LENGTH(name) ASC, popularity DESC LIMIT $limit;";
+                    $locs = $this->dbhr->query($sql);
+
+                    foreach ($locs as $loc) {
+                        error_log("Got embedded {$loc['name']}");
+                        $ret[] = $loc;
+                        $limit--;
+                    }
+                }
+
             }
         }
 
         # Don't return duplicates.
-        return(array_unique($ret, SORT_REGULAR));
+        $ret = array_unique($ret, SORT_REGULAR);
+
+        # We might have acquired a few too many.
+        $ret = array_slice($ret, 0, 10);
+
+        return($ret);
     }
 
     public function locsForGroup($groupid) {
@@ -162,7 +205,7 @@ class Location extends Entity
 
             # Now we have a list of gridids within which we want to find locations.
             if (count($gridids) > 0) {
-                $sql = "SELECT * FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") ORDER BY popularity ASC;";
+                $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") ORDER BY popularity ASC;";
                 $ret = $this->dbhr->query($sql);
             }
         }

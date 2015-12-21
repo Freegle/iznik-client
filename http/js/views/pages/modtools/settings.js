@@ -81,9 +81,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
                 self.myGroupForm.render();
 
-                var settings = JSON.parse(group.get('settings'));
-                console.log("Settings", settings);
-                self.groupModel = new IznikModel(settings);
+                self.groupModel = new IznikModel(group.get('settings'));
 
                 self.groupFields = [
                     {
@@ -132,13 +130,19 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     },
                     {
                         name: 'duplicates.wanted',
-                        label: 'WWANTED duplicate period',
+                        label: 'WANTED duplicate period',
                         control: 'input',
                         type: 'number'
                     },
                     {
                         name: 'duplicates.received',
                         label: 'RECEIVED duplicate period',
+                        control: 'input',
+                        type: 'number'
+                    },
+                    {
+                        name: 'map.zoom',
+                        label: 'Default zoom for maps',
                         control: 'input',
                         type: 'number'
                     },
@@ -159,6 +163,9 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                             e.preventDefault();
                             var newdata = self.groupModel.toJSON();
                             console.log("Save settings", group, group.isNew(), newdata);
+                            group.save({
+                                'settings': newdata
+                            }, { patch: true });
                             return(false);
                         }
                     }

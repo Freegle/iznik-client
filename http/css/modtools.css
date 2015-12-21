@@ -22,6 +22,14 @@
     color: #000080 !important
 }
 
+.msgsubj small, .msgsubj .small {
+    font-size: 12px !important;
+}
+
+.msgsubj .text-muted {
+    color: #777 !important;
+}
+
 /*Start custom navbar*/
 
 .navbar-custom {
@@ -393,7 +401,15 @@ body, #bodyContent {
     background: none;
 }
 
+.mapimage {
+    display: none;
+}
+
 @media(min-width:768px) {
+    .mapimage {
+        display: block;
+    }
+
     #wrapper {
         padding-left: 150px;
     }

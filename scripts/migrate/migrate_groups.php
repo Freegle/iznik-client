@@ -76,7 +76,7 @@ foreach ($oldgroups as $group) {
 
     # If it's a Freegle group pick up the lat/lng.
     if ($group['freeglegroupid']) {
-        $sql = "SELECT * FROM perch_groups WHERE groupURL LIKE '%{$group['groupname']}';";
+        $sql = "SELECT * FROM perch_groups WHERE groupURL LIKE '%/{$group['groupname']}';";
         $fgroups = $dbhf->preQuery($sql, []);
         foreach ($fgroups as $fgroup) {
             $g->setPrivate('lat', $fgroup['groupLatitude']);

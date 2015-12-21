@@ -1,28 +1,43 @@
 <div class="panel panel-default">
     <div class="panel-heading">
-        <div class="panel-title msgsubj js-details">
-            {{subject}}
-            <div class="pull-right dropdown">
-                <button class="btn btn-white dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                    <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                    <li><a class="js-viewsource" href="#">View Source</a></li>
-                </ul>
+        <div class="row">
+            <div class="panel-title msgsubj js-details">
+                <div class="col-md-10">
+                    <span class="js-coloursubj">{{subject}}</span>
+                    <div class="pull-right dropdown">
+                        <button class="btn btn-white dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                            <li><a class="js-viewsource" href="#">View Source</a></li>
+                        </ul>
+                    </div>
+                    <div class="js-grouplist">
+                    </div>
+                    <div class="text-muted small">
+                        #{{id}} via {{sourceheader}}
+                        <% if (obj.fromip) { %>
+                        from IP {{fromip}} <% if (obj.fromcountry) { %>in {{fromcountry}}<% } %>
+                        <% } else { %>
+                        IP unavailable
+                        <% } %>
+                    </div>
+                    <div class="js-duplist" />
+                    <div class="js-relatedlist" />
+                </div>
+                <div class="col-md-2">
+                    <% if (obj.lat) { %>
+                    <div class="mapimage margleft pull-right">
+                        <a href="http://maps.google.com/?q={{lat}},{{lng}}" target="_blank">
+                            <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&center={{lat}},{{lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{lat}},{{lng}}&sensor=false&key=ABQIAAAAAyUaY1FKIkI6jwTLHSuqHRTcugeqTEOS_cyuGgQ6MrEjaY5jBBS5RPvdvs6JRF4agE7X2R2Z0ux2gg&zoom={{mapzoom}}" style="cursor:pointer" />
+                        </a>
+                        <div class="clearfix" />
+                        <span class="text-muted"><small>{{location.name}}</small></span>
+                    </div>
+                    <% } %>
+                </div>
             </div>
         </div>
-        <div class="js-grouplist">
-        </div>
-        <div class="text-muted small">
-            #{{id}} via {{sourceheader}}
-            <% if (obj.fromip) { %>
-            from IP {{fromip}} <% if (obj.fromcountry) { %>in {{fromcountry}}<% } %>
-            <% } else { %>
-            IP unavailable
-            <% } %>
-        </div>
-        <div class="js-duplist" />
-        <div class="js-relatedlist" />
     </div>
     <div class="panel-body">
         <div class="completefull nomargin">
