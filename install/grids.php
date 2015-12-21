@@ -23,6 +23,3 @@ for ($swlat = 49; $swlat < 61; $swlat += 0.1) {
             ]);
     }
 }
-
-error_log("Set up grids for locs");
-Location::setGrids($dbhr, $dbhm);

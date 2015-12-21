@@ -112,8 +112,7 @@ class messageTest extends IznikTest {
         error_log(__METHOD__);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $id = $l->create(NULL, 'Tuvulu High Street', 'Road', 'POINT(179.2167 8.53333)', NULL);
-        Location::setGrids($this->dbhr, $this->dbhm);
+        $id = $l->create(NULL, 'Tuvulu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);

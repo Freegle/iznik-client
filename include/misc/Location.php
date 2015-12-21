@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/session/Session.php');
 class Location extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'osm_id', 'name', 'type', 'geometry', 'popularity', 'gridid');
+    var $publicatts = array('id', 'osm_id', 'name', 'type', 'geometry', 'popularity', 'gridid', 'postcodeid', 'areaid');
 
     /** @var  $log Log */
     private $log;
@@ -29,16 +29,36 @@ class Location extends Entity
     }
 
     public function canon($str) {
+        # There are some commom abbreviations which people might use, which we should expand.
+        $str = preg_replace('/\bSt\b/', 'Street', $str);
+        $str = preg_replace('/\bRd\b/', 'Road', $str);
+        $str = preg_replace('/\bAvenue\b/', 'Av', $str);
+        $str = preg_replace('/\Dr\b/', 'Drive', $str);
+        $str = preg_replace('/\bLn\b/', 'Lane', $str);
+        $str = preg_replace('/\bPl\b/', 'Place', $str);
+        $str = preg_replace('/\bSq\b/', 'Square', $str);
+
         return(strtolower(preg_replace("/[^A-Za-z0-9]/", '', $str)));
     }
 
-    public function create($osm_id, $name, $type, $geometry, $gridid)
+    public function create($osm_id, $name, $type, $geometry)
     {
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO locations (osm_id, name, type, geometry, gridid, canon) VALUES (?, ?, ?, GeomFromText(?), ?, ?)",
-                [$osm_id, $name, $type, $geometry, $gridid, $this->canon($name)]);
+            $rc = $this->dbhm->preExec("INSERT INTO locations (osm_id, name, type, geometry, canon) VALUES (?, ?, ?, GeomFromText(?), ?)",
+                [$osm_id, $name, $type, $geometry, $this->canon($name)]);
             $id = $this->dbhm->lastInsertId();
+
+            $sql = "SELECT locations_grids.id AS gridid FROM `locations` INNER JOIN locations_grids ON locations.id = ? AND MBRIntersects(locations.geometry, locations_grids.box) LIMIT 1;";
+            $grids = $this->dbhr->preQuery($sql, [ $id ]);
+            foreach ($grids as $grid) {
+                $gridid = $grid['gridid'];
+                $sql = "UPDATE locations SET gridid = ? WHERE id = ?;";
+                $this->dbhm->preExec($sql, [ $grid['gridid'], $id ]);
+            }
+
+            $this->setParents($id, $gridid);
         } catch (Exception $e) {
+            error_log("Location create exception");
             $id = NULL;
             $rc = 0;
         }
@@ -58,16 +78,70 @@ class Location extends Entity
         }
     }
 
-    public static function setGrids($dbhr, $dbhm) {
-        # Set grid IDs for all locations which need it.
-        $locs = $dbhr->preQuery("SELECT * FROM locations WHERE gridid IS NULL;");
-        foreach ($locs as $loc) {
-            $sql = "SELECT locations_grids.id AS gridid FROM `locations` INNER JOIN locations_grids ON locations.id = ? AND MBRIntersects(locations.geometry, locations_grids.box) LIMIT 1;";
-            $grids = $dbhr->preQuery($sql, [ $loc['id'] ]);
+    public function setParents($id, $gridid) {
+        # For each location, we also want to store the area and first-part-postcode which this location is within.
+        #
+        # This allows us to standardise subjects on groups.
+        $locs = $this->dbhr->preQuery("SELECT name, type, gridid, geometry, AsText(geometry) AS geomtext FROM locations WHERE id = ?;", [ $id ]);
+
+        if (count($locs) > 0) {
+            echo "{$locs[0]['name']} {$locs[0]['geomtext']}\n";
+
+            # We can speed up our query if we restrict the search to this grid square and adjacent ones.
+            $gridids = [];
+
+            # Find the gridid for the group.
+            $sql = "SELECT locations_grids.* FROM locations_grids WHERE id = ?;";
+            $grids = $this->dbhr->preQuery($sql, [
+                $locs[0]['gridid']
+            ]);
+
             foreach ($grids as $grid) {
-                $sql = "UPDATE locations SET gridid = ? WHERE id = ?;";
-                $dbhm->preExec($sql, [ $grid['gridid'], $loc['id'] ]);
+                $gridids[] = $grid['id'];
+
+                # Now find grids which touch that.  That avoids issues where our group is near the boundary of a grid square.
+                $sql = "SELECT id FROM locations_grids WHERE MBRTouches (GeomFromText('POLYGON(({$grid['swlng']} {$grid['swlat']}, {$grid['swlng']} {$grid['nelat']}, {$grid['nelng']} {$grid['nelat']}, {$grid['nelng']} {$grid['swlat']}, {$grid['swlng']} {$grid['swlat']}))'), box);";
+                $neighbours = $this->dbhr->query($sql);
+                foreach ($neighbours as $neighbour) {
+                    $gridids[] = $neighbour['id'];
+                }
             }
+
+            if ($locs[0]['type'] == 'Postcode' && strlen($locs[0]['name']) <= 4) {
+                # This location is itself what we want.
+                echo("  postcode {$locs[0]['name']}");
+                $rc = $this->dbhm->preExec("UPDATE locations SET postcodeid = ? WHERE id = ?;", [ $id, $id ]);
+            } else {
+                $sql = "SELECT id, name FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND type = 'Postcode' AND LENGTH(name) <= 4 ORDER BY ST_Distance(?, geometry) ASC LIMIT 1;";
+                #echo ("Check postcode $sql " . implode(',', $gridids) . " {$locs[0]['geomtext']}\n");
+                $intersects = $this->dbhr->preQuery($sql, [ $locs[0]['geometry']]);
+                if (count($intersects) > 0) {
+                    # TODO We might choose one which overlaps, but not as much as another one would.
+                    echo("  postcode {$intersects[0]['name']}");
+                    $rc = $this->dbhm->preExec("UPDATE locations SET postcodeid = ? WHERE id = ?;", [ $intersects[0]['id'], $id ]);
+                }
+            }
+
+            if ($locs[0]['type'] == 'Polygon') {
+                # This location is itself what we want.
+                echo("  area {$locs[0]['name']}\n");
+                $rc = $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [ $id, $id ]);
+            } else {
+                # Search for an area which intersects this one.  We want the smallest such.
+                $sql = "SELECT id, name, AsText(geometry) AS geomtext, GetMaxDimension(locations.geometry) AS span FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND type = 'Polygon' AND MBRIntersects(geometry, ?) ORDER BY GetMaxDimension(locations.geometry) ASC LIMIT 10;";
+                $intersects = $this->dbhr->preQuery($sql, [ $locs[0]['geometry']]);
+                if (count($intersects) > 0) {
+//                    foreach ($intersects as $intersect) {
+//                        echo "...intesects {$intersect['id']} {$intersect['name']} {$intersect['span']}\n";
+//                    }
+
+                    # TODO We might choose one which overlaps, but not as much as another one would.
+                    echo("  area {$intersects[0]['name']}\n");
+                    $rc = $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [ $intersects[0]['id'], $id ]);
+                }
+            }
+        } else {
+            error_log("Can't find $id");
         }
     }
 
@@ -163,7 +237,6 @@ class Location extends Entity
                     $locs = $this->dbhr->query($sql);
 
                     foreach ($locs as $loc) {
-                        error_log("Got embedded {$loc['name']}");
                         $ret[] = $loc;
                         $limit--;
                     }

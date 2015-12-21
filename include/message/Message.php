@@ -776,18 +776,23 @@ class Message
         do {
             $found = FALSE;
             $p = stripos($current, 'Content-Type:', $p);
+            #error_log("Found content type at $p");
+
             if ($p) {
                 $crpos = strpos($current, "\r\n", $p);
                 $ct = substr($current, $p, $crpos - $p);
+                #error_log($ct);
 
                 $found = TRUE;
 
                 # We don't want to prune a multipart, only the bottom level parts.
                 if (stripos($ct, "multipart") === FALSE) {
+                    #error_log("Prune it");
                     # Find the boundary before it.
                     $boundpos = strrpos(substr($current, 0, $p), "\r\n--");
 
                     if ($boundpos) {
+                        #error_log("Found bound");
                         $crpos = strpos($current, "\r\n", $boundpos + 2);
                         $boundary = substr($current, $boundpos + 2, $crpos - ($boundpos + 2));
 
@@ -800,6 +805,7 @@ class Message
                         # Keep a max of 10K.
                         #
                         # Observant readers may wish to comment on this definition of K.
+                        #error_log("breakpos $breakpos nextboundpos $nextboundpos size " . ($nextboundpos - $breakpos));
                         if ($breakpos && $nextboundpos && $nextboundpos - $breakpos > 10000) {
                             # Strip out the bodypart data and replace it with some short text.
                             $current = substr($current, 0, $breakpos + 2) .
@@ -829,7 +835,7 @@ class Message
         $this->removeByMessageID($this->groupid);
 
         # Reduce the size of the message source
-        $this->pruneMessage();
+        $this->message = $this->pruneMessage();
 
         # Save into the messages table.
         $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";

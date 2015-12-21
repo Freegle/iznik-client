@@ -41,8 +41,21 @@ if (!$groupname) {
             foreach ($msgs as $msg) {
                 $loc = pres('locationid', $msg) ? $msg['location']['name'] : '-';
                 $locid = pres('locationid', $msg) ? $msg['locationid']  : '-';
-                $area = '-';
-                $postcode = '-';
+                $l = new Location($dbhr, $dbhm, $locid);
+                $atts = $l->getPublic();
+                $postcode = $atts['postcodeid'];
+                $area = $atts['areaid'];
+
+                if ($postcode) {
+                    $l = new Location($dbhr, $dbhm, $postcode);
+                    $postcode = $l->getPrivate('name');
+                }
+
+                if ($area) {
+                    $l = new Location($dbhr, $dbhm, $area);
+                    $area = $l->getPrivate('name');
+                }
+
                 $lat = pres('locationid', $msg) ? round($msg['lat'], 2) : '-';
                 $lng = pres('locationid', $msg) ? round($msg['lng'], 2) : '-';
                 $img = pres('locationid', $msg) ? "<img src=\"https://maps.google.com/maps/api/staticmap?zoom=12&size=110x110&center=$lat,$lng&maptype=roadmap&sensor=false" : '';

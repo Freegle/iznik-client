@@ -438,14 +438,11 @@ Iznik.Views.Plugin.Work = IznikView.extend({
     },
 
     fail: function() {
+        this.$('.glyphicon-refresh').removeClass('glyphicon-refresh rotate').addClass('glyphicon-warning-sign');
+
         // Failed - put to the back of the queue.
         IznikPlugin.retryWork(this);
         IznikPlugin.completedWork();
-
-        // Move to the end of the list.
-        this.$('.glyphicon-refresh').removeClass('glyphicon-refresh rotate').addClass('glyphicon-warning-sign');
-        this.$el.detach();
-        $('#js-work').append(this.$el);
     },
 
     succeed: function() {
