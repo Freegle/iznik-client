@@ -85,6 +85,16 @@ class LoggedPDO {
         return($this->_db->prepare($sql));
     }
 
+    public function getErrorInfo($sth) {
+        # Split into function for UT
+        return($sth->errorInfo());
+    }
+
+    public function executeStatement($sth, $params) {
+        # Split into function for UT
+        return($sth->execute($params));
+    }
+
     private function prex($sql, $params = NULL, $select, $log) {
         $try = 0;
         $ret = NULL;
@@ -95,7 +105,7 @@ class LoggedPDO {
         do {
             try {
                 $sth = $this->parentPrepare($sql);
-                $rc = $sth->execute($params);
+                $rc = $this->executeStatement($sth, $params);
 
                 if (!$select) {
                     $this->lastInsert = $this->_db->lastInsertId();
@@ -110,7 +120,7 @@ class LoggedPDO {
                         $duration = microtime(true) - $start;
                     }
                 } else {
-                    $msg = var_export($sth->errorInfo(), true);
+                    $msg = var_export($this->getErrorInfo($sth), true);
                     if (stripos($msg, 'has gone away') !== FALSE) {
                         # This can happen if we have issues with the DB, e.g. one server dies or the connection is
                         # timed out.  We re-open the connection and try again.

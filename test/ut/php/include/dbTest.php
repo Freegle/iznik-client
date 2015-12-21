@@ -318,6 +318,20 @@ class dbTest extends IznikTest {
 
         $mock->retryExec('INSERT INTO test VALUES ();');
 
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+            ), TRUE))
+            ->setMethods(array('executeStatement', 'getErrorInfo'))
+            ->getMock();
+        $this->count = 2;
+        $mock->method('executeStatement')->will($this->returnCallback(function() {
+            return($this->falseUntil());
+        }));
+        error_log("Test gone away");
+        $mock->method('getErrorInfo')->willReturn('Test server has gone away');
+        $mock->preExec('INSERT INTO test VALUES ();');
+
         error_log(__METHOD__ . " end");
     }
 
@@ -407,7 +421,7 @@ class dbTest extends IznikTest {
     }
 
     public function prepareUntil() {
-        error_log("parepareUntil count " . $this->count);
+        error_log("prepareUntil count " . $this->count);
         $this->count--;
         if ($this->count > 0) {
             error_log("Exception");

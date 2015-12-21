@@ -57,6 +57,7 @@ class locationTest extends IznikTest {
 
         $l = new Location($this->dbhr, $this->dbhm);
         $id = $l->create(NULL, 'Tuvulu High Street', 'Road', 'POINT(179.2167 8.53333)', NULL);
+        assertNotNull($id);
         $l = new Location($this->dbhr, $this->dbhm, $id);
         assertNull($l->getGrid());
 

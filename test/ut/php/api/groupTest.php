@@ -201,8 +201,7 @@ class groupAPITest extends IznikAPITest {
         $ret = $this->call('group', 'GET', [
             'id' => $this->groupid
         ]);
-        assertEquals(12, json_decode($ret['group']['settings'], true)['mapzoom']);
-
+        assertEquals(12, $ret['group']['settings']['mapzoom']);
 
         error_log(__METHOD__ . " end");
     }
