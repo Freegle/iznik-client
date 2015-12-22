@@ -19,17 +19,13 @@ Iznik.Views.Group.Select = IznikView.extend({
             } catch (e) {}
 
             // Make sure it's not in the DOM any more.
-            console.log("Remove from DOM", self.options.id);
             $('#' + self.options.id).remove();
         }
 
         if (self.dropdown) {
             // We have previously rendered this select.
-            console.log("Previously rendered", self.options.id, self.dropdown);
-
             if (!$.contains(document, self.$el)) {
                 // ...but it is no longer in the DOM, because we've switched page.  Kill ourselves.
-                console.log("Not in DOM");
                 self.destroyIt();
                 return;
             }

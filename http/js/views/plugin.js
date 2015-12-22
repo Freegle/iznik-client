@@ -124,19 +124,25 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     },
 
     addWork: function(work) {
-        var id = work.model ? work.model.get('id') : null;
-        _.each(_.union(this.work, this.retrying), function(item) {
-            var itemid = item.model ? item.model.get('id') : null;
+        var id = work.model ? work.model.get('workid') : null;
+        var add = true;
+        _.each(_.union([this.currentItem],this.work, this.retrying), function(item) {
+            if (item) {
+                var itemid = item.model ? item.model.get('workid') : null;
 
-            if (id == itemid) {
-                // We already have this item of work - no need to add it.
-                return;
+                if (id == itemid) {
+                    // We already have this item of work - no need to add it.
+                    add = false;
+                    work.destroyIt();
+                }
             }
         });
 
-        this.work.push(work);
-        this.updatePluginCount();
-        this.checkWork();
+        if (add) {
+            this.work.push(work);
+            this.updatePluginCount();
+            this.checkWork();
+        }
     },
 
     updatePluginCount: function() {
@@ -950,7 +956,7 @@ Iznik.Views.Plugin.Yahoo.RejectPendingMessage = Iznik.Views.Plugin.Work.extend({
     }
 });
 
-Iznik.Views.Plugin.Yahoo.ChangeAttribute  = Iznik.Views.Plugin.Work.extend({
+Iznik.Views.Plugin.Yahoo.ChangeAttribute = Iznik.Views.Plugin.Work.extend({
     crumbLocation: "/members/all",
 
     server: true,
@@ -983,6 +989,18 @@ Iznik.Views.Plugin.Yahoo.ChangeAttribute  = Iznik.Views.Plugin.Work.extend({
                 mod.changeAttr(self.attr, self.model.get(self.attr));
             }
         });
+    }
+});
+
+Iznik.Views.Plugin.FakeFail = Iznik.Views.Plugin.Work.extend({
+    template: 'plugin_fakefail',
+
+    start: function() {
+        var self = this;
+        this.startBusy();
+        _.delay(function() {
+            self.fail();
+        }, 5000);
     }
 });
 
@@ -1068,3 +1086,9 @@ Iznik.Views.Plugin.Yahoo.ConfirmMod = Iznik.Views.Plugin.Yahoo.Invite.extend({
 
 var IznikPlugin = new Iznik.Views.Plugin.Main();
 
+//_.delay(function() {
+//    var v = new Iznik.Views.Plugin.FakeFail({
+//        model: new IznikModel()
+//    });
+//    v.render();
+//}, 10000);

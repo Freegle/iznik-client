@@ -79,7 +79,6 @@ Iznik.Models.Session = IznikModel.extend({
                                 Iznik.Session.trigger(count.ev);
 
                                 if (ret.work[count.fi] > 0 && count.sound) {
-                                    console.log("Work", ret.work, count);
                                     var sound = new Audio("/sounds/alert.wav");
                                     sound.play();
                                 }
@@ -91,7 +90,6 @@ Iznik.Models.Session = IznikModel.extend({
 
                     document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
                 } else {
-                    //console.log("Not logged in");
                     self.trigger('isLoggedIn', false);
                 }
             },
