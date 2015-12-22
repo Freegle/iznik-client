@@ -443,6 +443,10 @@ Iznik.Views.Plugin.Work = IznikView.extend({
         // Failed - put to the back of the queue.
         IznikPlugin.retryWork(this);
         IznikPlugin.completedWork();
+
+        // Move to the end of the list.
+        this.$el.detach();
+        $('#js-work').append(this.$el);
     },
 
     succeed: function() {
@@ -483,10 +487,16 @@ Iznik.Views.Plugin.Work = IznikView.extend({
         }, this), 1);
     },
 
+    rendered: false,
     render: function() {
-        // Render our template and add it to the visible work queue.
-        this.$el.html(window.template(this.template)(this.model ? this.model.toJSON2() : null));
-        $('#js-work').append(this.$el).fadeIn('slow');
+        if (!this.rendered) {
+            // Render our template and add it to the visible work queue.
+            //
+            // Only render once otherwise we get duplicates in the fail case.
+            this.$el.html(window.template(this.template)(this.model ? this.model.toJSON2() : null));
+            $('#js-work').append(this.$el).fadeIn('slow');
+            this.rendered = true;
+        }
 
         // Queue this item of work.
         IznikPlugin.addWork(this);

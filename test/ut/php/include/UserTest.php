@@ -197,9 +197,9 @@ class userTest extends IznikTest {
         assertEquals($group2, $membs[0]['id']);
 
         // Support and admin users have a mod role on the group even if not a member
-        $u->setPrivate('systemrole', User::ROLE_SUPPORT);
+        $u->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         assertEquals($u->getRole($group1), User::ROLE_MODERATOR);
-        $u->setPrivate('systemrole', User::ROLE_ADMIN);
+        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         assertEquals($u->getRole($group1), User::ROLE_OWNER);
 
         $g = new Group($this->dbhr, $this->dbhm, $group1);

@@ -1377,12 +1377,12 @@ class Message
 
                         foreach ($locs as $aloc) {
                             #error_log($aloc['name']);
-                            $xp = '/\b' . preg_quote($aloc['name'],'/') . '\b/';
+                            $xp = '/\b' . preg_quote($aloc['name'],'/') . '\b/i';
                             #error_log($xp);
                             $p = preg_match($xp, $subject, $matches, PREG_OFFSET_CAPTURE);
-                            #error_log("p $p");
+                            #error_log("$subject matches as $p with $xp");
                             $p = $p ? $matches[0][1] : FALSE;
-                            #error_log("p2 $p");
+                            error_log("p2 $p");
 
                             if ($p !== FALSE &&
                                 (strlen($aloc['name']) > $bestlen ||

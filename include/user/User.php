@@ -19,8 +19,10 @@ class User extends Entity
     const ROLE_OWNER = 'Owner';
 
     # Role on site
-    const ROLE_SUPPORT = 'Support';
-    const ROLE_ADMIN = 'Admin';
+    const SYSTEMROLE_SUPPORT = 'Support';
+    const SYSTEMROLE_ADMIN = 'Admin';
+    const SYSTEMROLE_USER = 'User';
+    const SYSTEMROLE_MODERATOR = 'Moderator';
 
     const LOGIN_YAHOO = 'Yahoo';
     const LOGIN_FACEBOOK = 'Facebook';
@@ -344,10 +346,10 @@ class User extends Entity
 
         if ($overrides) {
             switch ($this->getPrivate('systemrole')) {
-                case User::ROLE_SUPPORT:
+                case User::SYSTEMROLE_SUPPORT:
                     $role = User::ROLE_MODERATOR;
                     break;
-                case User::ROLE_ADMIN:
+                case User::SYSTEMROLE_ADMIN:
                     $role = User::ROLE_OWNER;
                     break;
             }
@@ -427,6 +429,16 @@ class User extends Entity
             $this->id,
             $groupid
         ]);
+
+        # We might need to update the systemrole.
+        #
+        # Not the end of the world if this fails.
+        if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+            $sql = "UPDATE users SET systemrole = ? WHERE id = ? AND systemrole = ?;";
+            $this->dbhm->preExec($sql, [ User::SYSTEMROLE_MODERATOR, $this->id, User::SYSTEMROLE_USER ]);
+            $this->user['systemrole'] = $this->user['systemrole'] == User::SYSTEMROLE_USER ?
+                User::SYSTEMROLE_MODERATOR : $this->user['systemrole'];
+        }
 
         return($rc);
     }

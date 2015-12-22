@@ -29,12 +29,11 @@ if (!$groupname) {
                 <tr>
                     <th>ID</th>
                     <th>Subject</th>
-                    <th>Mapped Location</th>
                     <th>Map</th>
                     <th>Lat</th>
                     <th>Lng</th>
                     <th>Location ID</th>
-                    <th>Area</th>
+                    <th>Mapped Location</th>
                     <th>Postcode</th>
                 </tr>
             <?php
@@ -60,7 +59,7 @@ if (!$groupname) {
                 $lng = pres('locationid', $msg) ? round($msg['lng'], 2) : '-';
                 $img = pres('locationid', $msg) ? "<img src=\"https://maps.google.com/maps/api/staticmap?zoom=12&size=110x110&center=$lat,$lng&maptype=roadmap&sensor=false" : '';
 
-                echo "<tr><td>{$msg['id']}</td><td>" . htmlentities($msg['subject']) . "</td><td>$loc</td><td>$img</td><td>$lat</td><td>$lng</td><td>$locid</td><td>$area</td><td>$postcode</td></tr>";
+                echo "<tr><td>{$msg['id']}</td><td>" . htmlentities($msg['subject']) . "</td><td>$img</td><td>$lat</td><td>$lng</td><td>$locid</td><td>$loc</td><td>$postcode</td></tr>";
             }
             ?>
             </tbody>

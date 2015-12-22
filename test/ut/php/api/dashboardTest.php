@@ -41,7 +41,7 @@ class dashboardTest extends IznikAPITest {
         assertFalse(array_key_exists('messagehistory', $dash));
 
         # But should as an admin
-        $u->setPrivate('systemrole', User::ROLE_ADMIN);
+        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         $ret = $this->call('dashboard', 'GET', [
             'systemwide' => true
         ]);

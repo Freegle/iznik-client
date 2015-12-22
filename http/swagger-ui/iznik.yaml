@@ -353,11 +353,26 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
-    post:
-      summary: Update group settings
+    patch:
+      summary: Update a group settings
       tags: [Group]
       description:
-        Correlate messages on server to determine any missing
+        Doesn't work in Swagger.
+      parameters:
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    post:
+      summary: Perform group actions
+      tags: [Group]
+      description:
+        Various odd things we might want to do on a group
       parameters:
       - name: groupid
         in: query
@@ -368,12 +383,7 @@ paths:
         in: query
         description: What action to perform; default is update members
         type: string
-        enum: ['UpdateMembers', 'ConfirmKey']
-      - name: members
-        in: body
-        description: Array of members.  This is a complete replacement of the membership list for this group, and is intended only for sync with Yahoo.
-        schema:
-          $ref: '#/definitions/members'
+        enum: ['ConfirmKey']
       responses:
           "200":
             description: "Successful response"
@@ -539,6 +549,60 @@ paths:
         description: User role to set
         type: string
         enum: ['Member', 'Moderator', 'Owner', 'Banned']
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+  /config:
+    get:
+      summary: ModConfig Get
+      tags: [ModConfig]
+      description:
+        Retrieve config details
+      parameters:
+      - name: id
+        in: query
+        description: Configid to query.
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    patch:
+      summary: Update a config settings
+      tags: [ModConfig]
+      description:
+        Doesn't work in Swagger.
+      parameters:
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    post:
+      summary: Create a config
+      tags: [ModConfig]
+      description:
+        Doesn't work in Swagger.
+      parameters:
+      - name: id
+        in: query
+        description: Any configid to copy
+        type: string
       responses:
           "200":
             description: "Successful response"

@@ -27,6 +27,8 @@ class Entity
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
         $this->name = $name;
+        $this->$name = NULL;
+        $this->id = NULL;
         $this->publicatts = $publicatts;
         $this->table = $table;
 

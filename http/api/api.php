@@ -19,6 +19,7 @@ require_once(IZNIK_BASE . '/include/config/StdMessage.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/session.php');
+require_once(IZNIK_BASE . '/http/api/modconfig.php');
 require_once(IZNIK_BASE . '/http/api/dashboard.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
 require_once(IZNIK_BASE . '/http/api/message.php');
@@ -124,6 +125,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'group':
                     $ret = group();
+                    break;
+                case 'modconfig':
+                    $ret = modconfig();
                     break;
                 case 'user':
                     $ret = user();
