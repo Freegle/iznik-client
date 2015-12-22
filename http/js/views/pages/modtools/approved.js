@@ -218,25 +218,7 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
                 self.showRelated();
 
                 // Add the other standard messages, in the order requested.
-                var stdmsgs = config.get('stdmsgs');
-                var order = JSON.parse(config.get('messageorder'));
-                var sortmsgs = [];
-                _.each(order, function (id) {
-                    var stdmsg = null;
-                    _.each(stdmsgs, function (thisone) {
-                        if (thisone.id == id) {
-                            stdmsg = thisone;
-                        }
-                    });
-
-                    if (stdmsg) {
-                        sortmsgs.push(stdmsg);
-                        stdmsgs = _.without(stdmsgs, stdmsg);
-                    }
-                });
-
-                sortmsgs = $.merge(sortmsgs, stdmsgs);
-
+                var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
                 var anyrare = false;
 
                 _.each(sortmsgs, function (stdmsg) {

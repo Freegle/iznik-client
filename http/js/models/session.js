@@ -33,25 +33,29 @@ Iznik.Models.Session = IznikModel.extend({
                             fi: 'pending',
                             el: '.js-pendingcount',
                             ev: 'pendingcountschanged',
-                            window: true
+                            window: true,
+                            sound: true
                         },
                         {
                             fi: 'spam',
                             el: '.js-spamcount',
                             ev: 'spamcountschanged',
-                            window: true
+                            window: true,
+                            sound: true
                         },
                         {
                             fi: 'pendingother',
                             el: '.js-pendingcountother',
                             ev: 'pendingcountsotherchanged',
-                            window: false
+                            window: false,
+                            sound: false
                         },
                         {
                             fi: 'spamother',
                             el: '.js-spamcountother',
                             ev: 'spamcountsotherchanged',
-                            window: false
+                            window: false,
+                            sound: false
                         }
                     ];
 
@@ -65,7 +69,7 @@ Iznik.Models.Session = IznikModel.extend({
                             }
 
                             var countel = $(count.el);
-                            if (ret.work[count.fi] > countel.html() || ret.work[count.fi] == 0) {
+                            if (ret.work[count.fi] > countel.html() || countel.html() == 0) {
                                 // Only trigger this when the counts increase.  This will pick up new messages
                                 // without screen flicker due to re-rendering when we're processing messages and
                                 // deleting them.  There's a minor timing window where a message could arrive as
@@ -73,8 +77,12 @@ Iznik.Models.Session = IznikModel.extend({
                                 // our current count drops to zero, or worst case when we refresh.
                                 countel.html(ret.work[count.fi]);
                                 Iznik.Session.trigger(count.ev);
-                                var sound = new Audio("/sounds/alert.wav");
-                                sound.play();
+
+                                if (ret.work[count.fi] > 0 && count.sound) {
+                                    console.log("Work", ret.work, count);
+                                    var sound = new Audio("/sounds/alert.wav");
+                                    sound.play();
+                                }
                             }
                         } else {
                             $(count.el).empty();

@@ -268,6 +268,66 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
                 self.modConfigFormGeneral.render();
 
+                // Add buttons for the standard messages in the various places.
+                var sortmsgs = orderedMessages(self.modConfigModel.get('stdmsgs'), self.modConfigModel.get('messageorder'));
+
+                _.each(sortmsgs, function (stdmsg) {
+                    // Find the right place to add the button.
+                    var container = null;
+                    switch (stdmsg.action) {
+                        case 'Approve':
+                        case 'Reject':
+                        case 'Delete':
+                        case 'Leave':
+                        case 'Edit':
+                            container = ".js-stdmsgspending";
+                            break;
+                        case 'Leave Approved Message':
+                        case 'Delete Approved Message':
+                            container = ".js-stdmsgsapproved";
+                            break;
+                        case 'Approve Member':
+                        case 'Reject Member':
+                        case 'Leave Member':
+                            container = ".js-stdmsgspendingmembers";
+                            break;
+                        case 'Delete Approved Member':
+                            container = ".js-stdmsgsmembers";
+                        case 'Leave Approved Member':
+                            break;
+                    }
+
+                    var v = new Iznik.Views.ModTools.StdMessage.Button({
+                        model: new IznikModel(stdmsg),
+                        config: self.modConfigModel
+                    });
+
+                    var el = v.render().el;
+                    $(el).data('buttonid', stdmsg.id);
+                    self.$(container).append(el);
+                });
+
+                // Make the buttons sortable.
+                self.$('.js-sortable').each(function(index, value) {
+                    Sortable. create(value, {
+                        onEnd: function(evt) {
+                            // We've dragged a button.  Find the New Order.
+                            var order = [];
+                            self.$('.js-stdbutton').each(function(index, button) {
+                                var id = $(button).data('buttonid');
+                                order.push(id);
+                            });
+
+                            // We have the New Order.  Undivided joy.
+                            var neworder = JSON.stringify(order);
+                            self.modConfigModel.set('messageorder', neworder);
+                            self.modConfigModel.save({
+                                'messageorder': neworder
+                            }, {patch: true});
+                        }
+                    });
+                });
+
                 // Layout messes up a bit for radio buttons.
                 self.$(':radio').closest('.form-group').addClass('clearfix');
             });

@@ -414,6 +414,8 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
 
     tagName: 'li',
 
+    className: 'js-stdbutton',
+
     events: {
         'click .js-approve': 'approve',
         'click .js-reject': 'reject',

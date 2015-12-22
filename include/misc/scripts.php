@@ -21,6 +21,7 @@ function scriptInclude($minify)
         "js/lib/jquery.dotdotdot.min.js",
         "js/lib/json2.js",
         "js/lib/flowtype.js",
+        "js/lib/Sortable.js",
         "js/lib/pushstream.js",
         "js/lib/FormRepo.js",
         "js/lib/canvasResize.js",
