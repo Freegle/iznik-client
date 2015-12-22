@@ -122,6 +122,20 @@ class messageTest extends IznikTest {
         $g->setPrivate('lat', 8.4);
 
         $m = new Message($this->dbhr, $this->dbhm);
+
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_replace('Basic test', 'OFFER: Test item (Tuvulu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        error_log($msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
+        $mid = $m->save();
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        $atts = $m->getPublic();
+        error_log("Public " . var_export($atts, true));
+        assertEquals($id, $atts['locationid']);
+        assertEquals($id, $atts['location']['id']);
+
         $goodsubj = "OFFER: Test (Tuvulu High Street)";
 
         # Test variants which should all get corrected to the same value

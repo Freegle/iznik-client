@@ -87,6 +87,12 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
                 self.groupModel = new IznikModel(group.get('settings'));
 
+                if (!self.groupModel.get('map')) {
+                    self.groupModel.set('map', {
+                        'zoom' : 12
+                    });
+                }
+
                 self.groupFields = [
                     {
                         name: 'autoapprove.members',
@@ -188,42 +194,52 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
         // Because we switch the form based on our config select we need to remove old events to avoid saving new
         // changes to the previous config.
-        if (self.modConfigForm) {
-            self.modConfigForm.undelegateEvents();
+        if (self.modConfigFormGeneral) {
+            self.modConfigFormGeneral.undelegateEvents();
         }
 
         var selected = self.$('.js-configselect').val();
 
-        console.log("Selected config", selected);
-
         if (selected > 0) {
-            var config = new Iznik.Models.Config({
-                id: selectged
+            self.modConfigModel = new Iznik.Models.ModConfig({
+                id: selected
             });
 
-            config.fetch().then(function() {
-                var general = group.get('mysettings');
-                self.myGroupModel = new IznikModel(mysettings);
-                self.myGroupFields = [
+            self.modConfigModel.fetch().then(function() {
+                console.log("Got model", self.modConfigModel);
+                self.modConfigFieldsGeneral = [
                     {
-                        name: 'configid',
-                        label: 'Configuration to use for this Group',
+                        name: 'name',
+                        label: 'ModConfig name',
+                        control: 'input'
+                    },
+                    {
+                        name: 'fromname',
+                        label: '"From:" name in messages',
                         control: 'select',
-                        options: configoptions
+                        options: [{label: 'My name', value: 'My display name (above)'}, {label: '$groupname Moderator', value: 'Groupname Moderator' }]
                     },
                     {
-                        name: 'showmessages',
-                        label: 'Show messages in All Groups?',
-                        control: 'radio',
-                        extraClasses: [ 'row' ],
-                        options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                        name: 'coloursubj',
+                        label: 'Colour-code subjects?',
+                        control: 'select',
+                        options: [{label: 'Yes', value: 1}, {label: 'No', value: 0 }]
                     },
                     {
-                        name: 'showmembers',
-                        label: 'Show members in All Groups?',
-                        control: 'radio',
-                        extraClasses: [ 'row' ],
-                        options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                        name: 'subjreg',
+                        label: 'Regular expression for colour-coding',
+                        control: 'input'
+                    },
+                    {
+                        name: 'subjlen',
+                        label: 'Subject length warning',
+                        control: 'input',
+                        type: 'number'
+                    },
+                    {
+                        name: 'network',
+                        label: 'Network name for $network',
+                        control: 'input'
                     },
                     {
                         control: 'button',
@@ -233,120 +249,27 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     }
                 ];
 
-                self.myGroupForm = new Backform.Form({
-                    el: $('#mygroupform'),
-                    model: self.myGroupModel,
-                    fields: self.myGroupFields,
+                self.modConfigFormGeneral = new Backform.Form({
+                    el: $('#modconfiggeneral'),
+                    model: self.modConfigModel,
+                    fields: self.modConfigFieldsGeneral,
                     events: {
                         'submit': function(e) {
-                            // Send a PATCH to the server for mysettings.
                             e.preventDefault();
-                            var newdata = self.myGroupModel.toJSON();
-                            console.log("Save mysettings", group, group.isNew(), newdata);
-                            group.save({
-                                'mysettings': newdata
-                            }, { patch: true });
+                            var newdata = self.modConfigModel.toJSON();
+                            var attrs = self.modConfigModel.changedAttributes();
+                            if (attrs) {
+                                self.modConfigModel.save(attrs, {patch: true});
+                            }
                             return(false);
                         }
                     }
                 });
 
-                self.myGroupForm.render();
-
-                self.groupModel = new IznikModel(group.get('settings'));
-
-                self.groupFields = [
-                    {
-                        name: 'autoapprove.members',
-                        label: 'Auto-approve pending members?',
-                        control: 'radio',
-                        options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
-                    },
-                    {
-                        name: 'duplicates.check',
-                        label: 'Flag duplicate messages?',
-                        control: 'radio',
-                        options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
-                    },
-                    {
-                        name: 'keywords.offer',
-                        label: 'OFFER keyword',
-                        control: 'input'
-                    },
-                    {
-                        name: 'keywords.taken',
-                        label: 'TAKEN keyword',
-                        control: 'input'
-                    },
-                    {
-                        name: 'keywords.wanted',
-                        label: 'WANTED keyword',
-                        control: 'input'
-                    },
-                    {
-                        name: 'keywords.received',
-                        label: 'RECEIVED keyword',
-                        control: 'input'
-                    },
-                    {
-                        name: 'duplicates.offer',
-                        label: 'OFFER duplicate period',
-                        control: 'input',
-                        type: 'number'
-                    },
-                    {
-                        name: 'duplicates.taken',
-                        label: 'TAKEN duplicate period',
-                        control: 'input',
-                        type: 'number'
-                    },
-                    {
-                        name: 'duplicates.wanted',
-                        label: 'WANTED duplicate period',
-                        control: 'input',
-                        type: 'number'
-                    },
-                    {
-                        name: 'duplicates.received',
-                        label: 'RECEIVED duplicate period',
-                        control: 'input',
-                        type: 'number'
-                    },
-                    {
-                        name: 'map.zoom',
-                        label: 'Default zoom for maps',
-                        control: 'input',
-                        type: 'number'
-                    },
-                    {
-                        control: 'button',
-                        label: 'Save',
-                        type: 'submit',
-                        extraClasses: [ 'btn-success topspace botspace' ]
-                    }
-                ];
-
-                self.groupForm = new Backform.Form({
-                    el: $('#groupform'),
-                    model: self.groupModel,
-                    fields: self.groupFields,
-                    events: {
-                        'submit': function(e) {
-                            e.preventDefault();
-                            var newdata = self.groupModel.toJSON();
-                            console.log("Save settings", group, group.isNew(), newdata);
-                            group.save({
-                                'settings': newdata
-                            }, { patch: true });
-                            return(false);
-                        }
-                    }
-                });
-
-                self.groupForm.render();
+                self.modConfigFormGeneral.render();
 
                 // Layout messes up a bit for radio buttons.
-                self.groupForm.$(':radio').closest('.form-group').addClass('clearfix');
+                self.$(':radio').closest('.form-group').addClass('clearfix');
             });
         }
     },
@@ -424,5 +347,6 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         });
 
         self.$(".js-configselect").val($(".js-configselect option:first").val());
+        self.configSelect();
     }
 });

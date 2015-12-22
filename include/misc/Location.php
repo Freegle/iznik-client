@@ -145,13 +145,14 @@ class Location extends Entity
     }
 
     public function getGrid() {
+        $ret = NULL;
         $sql = "SELECT * FROM locations_grids WHERE id = ?;";
         $locs = $this->dbhr->preQuery($sql, [ $this->loc['gridid'] ]);
         foreach ($locs as $loc) {
-            return($loc);
+            $ret = $loc;
         }
 
-        return(NULL);
+        return($ret);
     }
 
     public function search($term, $groupid, $limit = 10) {

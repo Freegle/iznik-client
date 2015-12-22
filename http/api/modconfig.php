@@ -42,8 +42,6 @@ function modconfig() {
                             'status' => 'Don\t have rights to create configs'
                         ];
                     } else {
-                        $c = new ModConfig($dbhr, $dbhm);
-
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
@@ -56,58 +54,43 @@ function modconfig() {
             }
 
             case 'PATCH': {
-//                $members = presdef('members', $_REQUEST, NULL);
-//                $mysettings = presdef('mysettings', $_REQUEST, NULL);
-//                $settings = presdef('settings', $_REQUEST, NULL);
-//                #error_log("mysettings " . var_export($mysettings, true));
-//
-//                $ret = [
-//                    'ret' => 1,
-//                    'status' => 'Not logged in',
-//                ];
-//
-//                if ($me) {
-//                    $ret = [
-//                        'ret' => 0,
-//                        'status' => 'Success',
-//                        'groupid' => $id
-//                    ];
-//
-//                    if (!$me->isModOrOwner($id) &&
-//                        ($members)) {
-//                        $ret = [
-//                            'ret' => 1,
-//                            'status' => 'Failed or permission denied'
-//                        ];
-//                    }
-//
-//                    if ($ret['ret'] == 0) {
-//                        $ret = $g->setMembers($members);
-//                    }
-//
-//                    if ($ret['ret'] == 0) {
-//                        if (pres('configid', $mysettings)) {
-//                            # We want to change the config that we use to mod this group.  Check that the config id
-//                            # passed is one to which we have access.
-//                            $configs = $me->getConfigs();
-//
-//                            foreach ($configs as $config) {
-//                                if ($config['id'] == $mysettings['configid']) {
-//                                    $c = new ModConfig($dbhr, $dbhm, $config['id']);
-//                                    $c->useOnGroup($me->getId(), $id);
-//                                }
-//                            }
-//
-//                            unset($mysettings['configid']);
-//                        }
-//
-//                        $ret = $me->setGroupSettings($id, $mysettings);
-//                    }
-//
-//                    if ($ret['ret'] == 0 && $settings) {
-//                        $g->setSettings($settings);
-//                    }
-//                }
+                if (!$me) {
+                    $ret = ['ret' => 1, 'status' => 'Not logged in'];
+                } else {
+                    $systemrole = $me->getPublic()['systemrole'];
+                    error_log("Systemrole is $systemrole");
+
+                    if ($systemrole != User::SYSTEMROLE_MODERATOR &&
+                        $systemrole != User::SYSTEMROLE_SUPPORT &&
+                        $systemrole != User::SYSTEMROLE_ADMIN) {
+                        $ret = [
+                            'ret' => 4,
+                            'status' => 'Don\t have rights to modify configs'
+                        ];
+                    } else {
+                        $myconfigs = $me->getConfigs();
+                        $found = FALSE;
+                        foreach ($myconfigs as $config) {
+                            if ($config['id'] == $id) {
+                                $found = TRUE;
+                            }
+                        }
+
+                        if ($found) {
+                            $c->setAttributes($_REQUEST);
+                            $ret = [
+                                'ret' => 0,
+                                'status' => 'Success',
+                            ];
+                        } else {
+                            $c->setAttributes($_REQUEST);
+                            $ret = [
+                                'ret' => 5,
+                                'status' => 'You don\'t have rights to edit this config',
+                            ];
+                        }
+                    }
+                }
             }
         }
     } else {

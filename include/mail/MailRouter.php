@@ -117,12 +117,12 @@ class MailRouter
                 $groupid = $matches[1];
                 $userid = $matches[2];
                 $key = $matches[3];
-                error_log("Confirm moderation status for $userid on $groupid using $key");
+                #error_log("Confirm moderation status for $userid on $groupid using $key");
 
                 # Get the first header.  This is added by our local EXIM and therefore can't be faked by a remote
                 # system.  Check that it comes from Yahoo.
                 $rcvd = $this->msg->getHeader('received');
-                error_log("Headers " . var_export($rcvd, true));
+                #error_log("Headers " . var_export($rcvd, true));
 
                 if (preg_match('/from .*yahoo\.com \(/', $rcvd)) {
                     # See if we can find the group with this key.  If not then we just drop it - it's either a fake
@@ -130,7 +130,7 @@ class MailRouter
                     $sql = "SELECT id FROM groups WHERE id = ? AND confirmkey = ?;";
                     $groups = $this->dbhr->preQuery($sql, [ $groupid, $key ]);
 
-                    error_log("Check key $key for group $groupid");
+                    #error_log("Check key $key for group $groupid");
 
                     foreach ($groups as $group) {
                         error_log("Confirm key is valid");
@@ -139,23 +139,23 @@ class MailRouter
                         $u = new User($this->dbhr, $this->dbhm, $userid);
 
                         if ($u->getPublic()['id'] == $userid) {
-                            error_log("Userid $userid is valid");
+                            #error_log("Userid $userid is valid");
                             $role = $u->getRole($groupid, FALSE);
-                            error_log("Role is $role");
+                            #error_log("Role is $role");
 
                             if ($role == User::ROLE_NONMEMBER) {
                                 # We aren't a member yet.  Add ourselves.
-                                error_log("Not a member yet");
+                                #error_log("Not a member yet");
                                 $u->addMembership($groupid, User::ROLE_MODERATOR);
                                 $ret = MailRouter::TO_SYSTEM;
                             } else if ($role == User::ROLE_MEMBER) {
                                 # We're already a member.  Promote.
-                                error_log("We were a member, promote");
+                                #error_log("We were a member, promote");
                                 $u->setRole(User::ROLE_MODERATOR, $groupid);
                                 $ret = MailRouter::TO_SYSTEM;
                             } else {
                                 # Mod or owner.  Don't demote owner to a mod!
-                                error_log("Already a mod/owner, no action");
+                                #error_log("Already a mod/owner, no action");
                                 $ret = MailRouter::TO_SYSTEM;
                             }
                         }

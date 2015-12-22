@@ -322,7 +322,19 @@ class Group extends Entity
 
     public function setSettings($settings)
     {
-        $this->dbhm->preExec("UPDATE groups SET settings = ? WHERE id = ?;", [ json_encode($settings), $this->id ]);
+        $str = json_encode($settings);
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $this->dbhm->preExec("UPDATE groups SET settings = ? WHERE id = ?;", [ $str, $this->id ]);
+        $this->log->log([
+            'type' => Log::TYPE_GROUP,
+            'subtype' => Log::SUBTYPE_EDIT,
+            'groupid' => $this->id,
+            'byuser' => $me ? $me->getId() : NULL,
+            'text' => $this->getEditLog([
+                'settings' => $settings
+            ])
+        ]);
+
         return(true);
     }
 

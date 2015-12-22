@@ -168,6 +168,29 @@ class User extends Entity
         return($rc);
     }
 
+    private function updateSystemRole($role) {
+        if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+            $sql = "UPDATE users SET systemrole = ? WHERE id = ? AND systemrole = ?;";
+            $this->dbhm->preExec($sql, [ User::SYSTEMROLE_MODERATOR, $this->id, User::SYSTEMROLE_USER ]);
+            $this->user['systemrole'] = $this->user['systemrole'] == User::SYSTEMROLE_USER ?
+                User::SYSTEMROLE_MODERATOR : $this->user['systemrole'];
+        } else if ($this->user['systemrole'] == User::SYSTEMROLE_MODERATOR) {
+            # Check that we are still a mod on a group, otherwise we need to demote ourselves.
+            $sql = "SELECT id FROM memberships WHERE userid = ? AND role IN (?,?);";
+            $roles = $this->dbhr->preQuery($sql, [
+                $this->id,
+                User::ROLE_MODERATOR,
+                User::ROLE_OWNER
+            ]);
+
+            if (count($roles) == 0) {
+                $sql = "UPDATE users SET systemrole = ? WHERE id = ?;";
+                $this->dbhm->preExec($sql, [ User::SYSTEMROLE_USER, $this->id ]);
+                $this->user['systemrole'] = User::SYSTEMROLE_USER;
+            }
+        }
+    }
+
     public function addMembership($groupid, $role = User::ROLE_MEMBER) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
@@ -177,6 +200,11 @@ class User extends Entity
                 $groupid,
                 $role
             ]);
+
+        # We might need to update the systemrole.
+        #
+        # Not the end of the world if this fails.
+        $this->updateSystemRole($role);
 
         if ($rc) {
             $l = new Log($this->dbhr, $this->dbhm);
@@ -433,12 +461,7 @@ class User extends Entity
         # We might need to update the systemrole.
         #
         # Not the end of the world if this fails.
-        if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
-            $sql = "UPDATE users SET systemrole = ? WHERE id = ? AND systemrole = ?;";
-            $this->dbhm->preExec($sql, [ User::SYSTEMROLE_MODERATOR, $this->id, User::SYSTEMROLE_USER ]);
-            $this->user['systemrole'] = $this->user['systemrole'] == User::SYSTEMROLE_USER ?
-                User::SYSTEMROLE_MODERATOR : $this->user['systemrole'];
-        }
+        $this->updateSystemRole($role);
 
         return($rc);
     }

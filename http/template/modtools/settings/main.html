@@ -52,9 +52,6 @@
                         <select class="form-control js-configselect" />
                     </div>
                     <div class="col-md-6">
-                        <button class="btn btn-white botspace js-addconfig"><div class="glyphicon glyphicon-plus" />&nbsp;Add</button>
-                        <button class="btn btn-white botspace js-copyconfig"><div class="glyphicon glyphicon-plus-sign" />&nbsp;Copy</button>
-                        <button class="btn btn-white botspace js-deleteconfig"><div class="glyphicon glyphicon-trash" />&nbsp;Delete</button>
                     </div>
                 </div>
                 <div>
@@ -80,6 +77,28 @@
                 <div>
                     <h3>Bulk Operations</h3>
                     <form id="modconfigbulk" class="row" />
+                </div>
+                <div>
+                    <h3>Operations</h3>
+                    <br />
+                    <h4>Copy this config</h4>
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Enter new config name" aria-describedby="configcopy" />
+                        <span class="input-group-addon js-copyconfig" id="configcopy">
+                            <div class="glyphicon glyphicon-plus-sign" />&nbsp;Copy
+                        </span>
+                    </div>
+                    <h4>Delete this config</h4>
+                    <button class="btn btn-white botspace js-deleteconfig">
+                        <div class="glyphicon glyphicon-trash" />&nbsp;Delete {{name}}
+                    </button>
+                    <h4>Add new config</h4>
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Enter new config name" aria-describedby="configadd" />
+                        <span class="input-group-addon js-addconfig" id="configadd">
+                            <div class="glyphicon glyphicon-plus" />&nbsp;Add
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>

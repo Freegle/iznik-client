@@ -10,6 +10,10 @@ class ModConfig extends Entity
         'ccfollowupaddr', 'ccrejmembto', 'ccrejmembaddr', 'ccfollmembto', 'ccfollmembaddr', 'protected',
         'messageorder', 'network', 'coloursubj', 'subjreg', 'subjlen');
 
+    var $settableatts = array('name', 'fromname', 'ccrejectto', 'ccrejectaddr', 'ccfollowupto',
+        'ccfollowupaddr', 'ccrejmembto', 'ccrejmembaddr', 'ccfollmembto', 'ccfollmembaddr', 'protected',
+        'messageorder', 'network', 'coloursubj', 'subjreg', 'subjlen');
+
     /** @var  $log Log */
     private $log;
 
@@ -106,6 +110,26 @@ class ModConfig extends Entity
         }
 
         return $configid;
+    }
+
+    public function setAttributes($settings) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        error_log("setAttrs " . var_export($settings, true));
+        foreach ($this->settableatts as $att) {
+            $val = pres($att, $settings);
+            if ($val) {
+                error_log("Set $att = " . json_encode($val));
+                $this->setPrivate($att, $val);
+            }
+        }
+
+        $this->log->log([
+            'type' => Log::TYPE_CONFIG,
+            'subtype' => Log::SUBTYPE_EDIT,
+            'configid' => $this->id,
+            'byuser' => $me ? $me->getId() : NULL,
+            'text' => $this->getEditLog($settings)
+        ]);
     }
 
     public function delete() {

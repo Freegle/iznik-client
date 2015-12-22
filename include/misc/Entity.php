@@ -67,6 +67,27 @@ class Entity
         }
     }
 
+    public function getEditLog($new) {
+        $old = $this->{$this->name};
+
+        $edit = [];
+        foreach ($new as $att => $val) {
+            $oldval = json_encode(pres($att, $old) ? $old[$att] : NULL);
+            if ($oldval != json_encode($val)) {
+                $edit[] = [
+                    $att => [
+                        'old' => pres($att, $old) ? $old[$att] : NULL,
+                        'new' => $val
+                    ]
+                ];
+            }
+        }
+
+        $str = json_encode($edit);
+
+        return($str);
+    }
+
     public function setPrivate($att, $val) {
         $rc = $this->dbhm->preExec("UPDATE {$this->table} SET $att = ? WHERE id = {$this->id};", [$val]);
         if ($rc) {
