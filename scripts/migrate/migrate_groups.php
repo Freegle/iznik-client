@@ -107,7 +107,14 @@ foreach ($fgroups as $fgroup) {
         $type = Group::GROUP_REUSE;
     }
 
-    $settings = json_decode($g->getPublic()['settings'], true);
+    $sql = "SELECT * FROM perch_groups WHERE groupURL LIKE '%/{$fgroup['groupname']}';";
+    $pgroups = $dbhf->preQuery($sql, []);
+    foreach ($pgroups as $pgroup) {
+        $g->setPrivate('lat', $pgroup['groupLatitude']);
+        $g->setPrivate('lng', $pgroup['groupLongitude']);
+    }
+
+    $settings = $g->getPublic()['settings'];
 
     foreach (['offerkeyword', 'takenkeyword', 'wantedkeyword', 'receivedkeyword'] as $attr) {
         $settings['keywords'][str_replace('keyword', '', $attr)] = $fgroup[$attr];

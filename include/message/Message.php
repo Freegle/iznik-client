@@ -837,6 +837,9 @@ class Message
         # Reduce the size of the message source
         $this->message = $this->pruneMessage();
 
+        # Trigger mapping.
+        $this->suggestSubject($this->groupid, $this->subject);
+
         # Save into the messages table.
         $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
@@ -1349,7 +1352,8 @@ class Message
                     $loc = NULL;
                     $l = new Location($this->dbhr, $this->dbhm);
 
-                    if (preg_match('/(.*)\((.*)\)/', $subject, $matches)) {
+                    if (preg_match('/(.*)\((.*)\)/', $subject, $matches) ||
+                        preg_match('/(.*)\-(.*)/', $subject, $matches)) {
                         # Find the residue, which will be the item, and tidy it.
                         $residue = trim($matches[1]);
 
@@ -1372,7 +1376,14 @@ class Message
                         $loc = NULL;
 
                         foreach ($locs as $aloc) {
-                            $p = stripos($subject, $aloc['name']);
+                            #error_log($aloc['name']);
+                            $xp = '/\b' . preg_quote($aloc['name'],'/') . '\b/';
+                            #error_log($xp);
+                            $p = preg_match($xp, $subject, $matches, PREG_OFFSET_CAPTURE);
+                            #error_log("p $p");
+                            $p = $p ? $matches[0][1] : FALSE;
+                            #error_log("p2 $p");
+
                             if ($p !== FALSE &&
                                 (strlen($aloc['name']) > $bestlen ||
                                  (strlen($aloc['name']) == $bestlen && $p > $bestpos))) {

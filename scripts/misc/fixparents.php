@@ -12,12 +12,12 @@ $dbhm->preExec("UPDATE locations SET postcodeid = NULL, areaid = NULL WHERE post
 
 #$locs = $dbhm->query("SELECT id, name, gridid FROM locations WHERE postcodeid IS NULL;");
 error_log("Find locs to correct");
-$locs = $dbhm->query("SELECT id, name, gridid FROM locations WHERE postcodeid IS NULL AND id in (SELECT DISTINCT locationid FROM messages INNER JOIN messages_groups ON messages_groups.groupid = 21354 AND messages_groups.msgid = messages.id) LIMIT 20;");
+$locs = $dbhm->query("SELECT id, name, gridid FROM locations WHERE postcodeid IS NULL AND id in (SELECT DISTINCT locationid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id);");
 
 $count = 0;
 
 foreach ($locs as $loc) {
-    echo "{$loc['id']} - {$loc['name']} => ";
+    #echo "{$loc['id']} - {$loc['name']} => ";
     $l->setParents($loc['id'], $loc['gridid']);
     $count++;
 

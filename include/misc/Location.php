@@ -30,6 +30,7 @@ class Location extends Entity
 
     public function canon($str) {
         # There are some commom abbreviations which people might use, which we should expand.
+        $str = preg_replace('/^St\b/', 'Saint', $str);
         $str = preg_replace('/\bSt\b/', 'Street', $str);
         $str = preg_replace('/\bRd\b/', 'Road', $str);
         $str = preg_replace('/\bAvenue\b/', 'Av', $str);
@@ -85,7 +86,7 @@ class Location extends Entity
         $locs = $this->dbhr->preQuery("SELECT name, type, gridid, geometry, AsText(geometry) AS geomtext FROM locations WHERE id = ?;", [ $id ]);
 
         if (count($locs) > 0) {
-            echo "{$locs[0]['name']} {$locs[0]['geomtext']}\n";
+            #echo "{$locs[0]['name']} ";
 
             # We can speed up our query if we restrict the search to this grid square and adjacent ones.
             $gridids = [];
@@ -109,7 +110,7 @@ class Location extends Entity
 
             if ($locs[0]['type'] == 'Postcode' && strlen($locs[0]['name']) <= 4) {
                 # This location is itself what we want.
-                echo("  postcode {$locs[0]['name']}");
+                #echo("  postcode {$locs[0]['name']}\n");
                 $rc = $this->dbhm->preExec("UPDATE locations SET postcodeid = ? WHERE id = ?;", [ $id, $id ]);
             } else {
                 $sql = "SELECT id, name FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND type = 'Postcode' AND LENGTH(name) <= 4 ORDER BY ST_Distance(?, geometry) ASC LIMIT 1;";
@@ -117,14 +118,14 @@ class Location extends Entity
                 $intersects = $this->dbhr->preQuery($sql, [ $locs[0]['geometry']]);
                 if (count($intersects) > 0) {
                     # TODO We might choose one which overlaps, but not as much as another one would.
-                    echo("  postcode {$intersects[0]['name']}");
+                    #echo("  postcode {$intersects[0]['name']}\n");
                     $rc = $this->dbhm->preExec("UPDATE locations SET postcodeid = ? WHERE id = ?;", [ $intersects[0]['id'], $id ]);
                 }
             }
 
             if ($locs[0]['type'] == 'Polygon') {
                 # This location is itself what we want.
-                echo("  area {$locs[0]['name']}\n");
+                #echo("  area {$locs[0]['name']}\n");
                 $rc = $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [ $id, $id ]);
             } else {
                 # Search for an area which intersects this one.  We want the smallest such.
@@ -136,12 +137,10 @@ class Location extends Entity
 //                    }
 
                     # TODO We might choose one which overlaps, but not as much as another one would.
-                    echo("  area {$intersects[0]['name']}\n");
+                    #echo("  area {$intersects[0]['name']}\n");
                     $rc = $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [ $intersects[0]['id'], $id ]);
                 }
             }
-        } else {
-            error_log("Can't find $id");
         }
     }
 
@@ -163,6 +162,7 @@ class Location extends Entity
         
         # Find the gridid for the group.
         $sql = "SELECT locations_grids.* FROM locations_grids INNER JOIN groups ON groups.id = ? AND swlat <= groups.lat AND swlng <= groups.lng AND nelat > groups.lat AND nelng > groups.lng;";
+        #error_log("$sql $groupid");
         $grids = $this->dbhr->preQuery($sql, [
             $groupid
         ]);
@@ -179,10 +179,12 @@ class Location extends Entity
             }
 
             # Now we have a list of gridids within which we want to search.
+            #error_log("Check grids " . implode(',', $gridids));
             if (count($gridids) > 0) {
                 # First we do a simple match.  If the location is correct, that will find it quickly.
                 $term2 = $this->dbhr->quote($this->canon($term));
                 $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE canon = $term2 AND gridid IN (" . implode(',', $gridids) . ") ORDER BY LENGTH(name) ASC, popularity DESC LIMIT $limit;";
+                #error_log("Simple match $sql");
                 $locs = $this->dbhr->query($sql);
 
                 foreach ($locs as $loc) {
@@ -205,6 +207,7 @@ class Location extends Entity
                     $term2 = preg_replace('/^\'/', '\'%', $term2);
                     $term2 = trim($term2);
                     $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE canon LIKE $term2 AND gridid IN (" . implode(',', $gridids) . ") AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY LENGTH(name) ASC, popularity DESC LIMIT $limit;";
+                    #error_log("%..% $sql");
                     $locs = $this->dbhr->query($sql);
 
                     foreach ($locs as $loc) {
@@ -271,6 +274,7 @@ class Location extends Entity
 
             # Now find grids which touch that.  That avoids issues where our group is near the boundary of a grid square.
             $sql = "SELECT id FROM locations_grids WHERE MBRTouches (GeomFromText('POLYGON(({$grid['swlng']} {$grid['swlat']}, {$grid['swlng']} {$grid['nelat']}, {$grid['nelng']} {$grid['nelat']}, {$grid['nelng']} {$grid['swlat']}, {$grid['swlng']} {$grid['swlat']}))'), box);";
+            #error_log("Get neighbours $sql");
             $neighbours = $this->dbhr->query($sql);
             foreach ($neighbours as $neighbour) {
                 $gridids[] = $neighbour['id'];
@@ -283,7 +287,6 @@ class Location extends Entity
             }
         }
 
-        # Don't return duplicates.
         return($ret);
     }
 

@@ -3,6 +3,10 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
     template: "modtools_settings_main",
 
+    events: {
+        'change .js-configselect': 'configSelect'
+    },
+
     settingsGroup: function() {
         var self = this;
 
@@ -179,6 +183,10 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         }
     },
 
+    configSelect: function() {
+
+    },
+
     render: function() {
         var self = this;
 
@@ -244,5 +252,11 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         });
 
         personalForm.render();
+
+        var configs = Iznik.Session.get('configs');
+        configs.each(function(config) {
+            self.$('.js-configselect').append('<option value=' + config.get('id') + '>' +
+                $('<div />').text(config.get('name')).html() + '</option>');
+        });
     }
 });

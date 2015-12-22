@@ -47,7 +47,16 @@
         </div>
         <div id="modconfig" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="modconfighead">
             <div class="panel-body">
-                <div class="botspace js-configselect" />
+                <div class="botspace row">
+                    <div class="col-md-6">
+                        <select class="form-control js-configselect" />
+                    </div>
+                    <div class="col-md-6">
+                        <button class="btn btn-white botspace js-addconfig"><div class="glyphicon glyphicon-plus" />&nbsp;Add</button>
+                        <button class="btn btn-white botspace js-copyconfig"><div class="glyphicon glyphicon-plus-sign" />&nbsp;Copy</button>
+                        <button class="btn btn-white botspace js-deleteconfig"><div class="glyphicon glyphicon-trash" />&nbsp;Delete</button>
+                    </div>
+                </div>
                 <div>
                     <h3>General Settings</h3>
                     <form id="modconfiggeneral" class="row" />
