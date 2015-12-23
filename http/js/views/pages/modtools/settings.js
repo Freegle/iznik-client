@@ -197,6 +197,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         }
 
         var selected = self.$('.js-configselect').val();
+        console.log("configSelect", selected);
 
         if (selected > 0) {
             self.modConfigModel = new Iznik.Models.ModConfig({
@@ -208,7 +209,8 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     {
                         name: 'name',
                         label: 'ModConfig name',
-                        control: 'input'
+                        control: 'input',
+                        helpMessage: 'If you want to change the name of the ModConfig, edit it in here.'
                     },
                     {
                         name: 'fromname',
@@ -267,6 +269,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
                 // Add buttons for the standard messages in the various places.
                 var sortmsgs = orderedMessages(self.modConfigModel.get('stdmsgs'), self.modConfigModel.get('messageorder'));
+                self.$('.js-stdmsgspending, .js-stdmsgsapproved, .js-stdmsgspendingmembers, .js-stdmsgsmembers').empty();
 
                 _.each(sortmsgs, function (stdmsg) {
                     // Find the right place to add the button.
@@ -400,6 +403,9 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
         self.$(".js-configselect").val($(".js-configselect option:first").val());
         self.configSelect();
+
+        // We seem to need to redelegate, otherwise the change event is not caught.
+        self.delegateEvents();
     }
 });
 
@@ -410,7 +416,8 @@ Iznik.Views.ModTools.StdMessage.SettingsButton = Iznik.Views.ModTools.StdMessage
         'click .js-reject': 'edit',
         'click .js-delete': 'edit',
         'click .js-hold': 'edit',
-        'click .js-release': 'edit'
+        'click .js-release': 'edit',
+        'click .js-edit': 'edit'
     },
 
     edit: function() {

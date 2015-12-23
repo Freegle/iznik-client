@@ -310,18 +310,23 @@ Iznik.Collections.Message = IznikCollection.extend({
     parse: function(ret) {
         var self = this;
 
-        // Fill in the groups - each message has the group object below it for our convenience, even though the server
-        // returns them in a separate object for bandwidth reasons.
-        _.each(ret.messages, function(message, index, list) {
-            var groups = [];
-            _.each(message.groups, function(group, index2, list2) {
-                var groupdata = ret.groups[group.groupid];
-                groups.push(_.extend([], groupdata, group));
+        if (ret.hasOwnProperty('messages')) {
+            // Fill in the groups - each message has the group object below it for our convenience, even though the server
+            // returns them in a separate object for bandwidth reasons.
+            _.each(ret.messages, function(message, index, list) {
+                var groups = [];
+                _.each(message.groups, function(group, index2, list2) {
+                    var groupdata = ret.groups[group.groupid];
+                    groups.push(_.extend([], groupdata, group));
+                });
+
+                message.groups = groups;
             });
 
-            message.groups = groups;
-        });
-
-        return ret.messages;
+            return ret.messages;
+        } else {
+            console.log("No messages to return", ret);
+            return(null);
+        }
     }
 });

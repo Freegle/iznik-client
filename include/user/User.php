@@ -285,7 +285,8 @@ class User extends Entity
         # We can see configs which
         # - we created
         # - are used by mods on groups on which we are a mod
-        $sql = "(SELECT DISTINCT configid AS id FROM memberships WHERE groupid IN (SELECT groupid FROM memberships WHERE userid = {$this->id} AND role IN ('Moderator', 'Owner')) AND configid IS NOT NULL) UNION (SELECT id FROM mod_configs WHERE createdby = {$this->id});";
+        # - defaults
+        $sql = "(SELECT DISTINCT configid AS id FROM memberships WHERE groupid IN (SELECT groupid FROM memberships WHERE userid = {$this->id} AND role IN ('Moderator', 'Owner')) AND configid IS NOT NULL) UNION (SELECT id FROM mod_configs WHERE createdby = {$this->id} OR `default` = 1);";
         $ids = $this->dbhr->query($sql);
 
         foreach ($ids as $id) {
