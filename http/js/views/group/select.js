@@ -17,18 +17,6 @@ Iznik.Views.Group.Select = IznikView.extend({
                 self.persist = true;
                 self.options.selected = localStorage.getItem('groupselect.' + self.options.id);
             } catch (e) {}
-
-            // Make sure it's not in the DOM any more.
-            $('#' + self.options.id).remove();
-        }
-
-        if (self.dropdown) {
-            // We have previously rendered this select.
-            if (!$.contains(document, self.$el)) {
-                // ...but it is no longer in the DOM, because we've switched page.  Kill ourselves.
-                self.destroyIt();
-                return;
-            }
         }
 
         var id = "gs" + groupSelectIdCounter++;
@@ -45,13 +33,14 @@ Iznik.Views.Group.Select = IznikView.extend({
         // Needs to be in DOM.
         _.defer(function() {
             if (self.dropdown) {
-                // Remove old ones.
+                // Remove old values.
                 do {
                     self.dropdown.remove(0);
                 } while (self.dropdown.options.length > 0);
+            } else {
+                // Create dropdown from scratch.
+                self.dropdown = self.$el.msDropdown().data("dd");
             }
-
-            self.dropdown = self.$el.msDropdown().data("dd");
 
             if (self.options.all) {
                 self.dropdown.add({

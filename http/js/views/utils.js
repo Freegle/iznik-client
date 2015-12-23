@@ -43,6 +43,90 @@ Iznik.Views.MessageGraph = IznikView.extend({
     }
 });
 
+Iznik.Views.TypeChart = IznikView.extend({
+    template: 'utils_type_chart',
+
+    render: function() {
+        var self = this;
+
+        // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+        _.defer(function() {
+            self.$el.html(window.template(self.template)());
+            var arr = [['Type', 'Count']];
+
+            self.options.data.each(function(count) {
+                arr.push([count.get('type'), count.get('count')]);
+            });
+
+            self.data = google.visualization.arrayToDataTable(arr);
+            self.chart = new google.visualization.PieChart(self.options.target);
+            self.chartOptions = {
+                title: self.options.title,
+                chartArea: {'width': '80%', 'height': '80%'},
+                colors: [
+                    '#40004b',
+                    '#762a83',
+                    '#9970ab',
+                    '#c2a5cf',
+                    '#e7d4e8',
+                    '#d9f0d3',
+                    '#a6dba0',
+                    '#5aae61',
+                    '#1b7837',
+                    '#00441b'
+                ],
+                slices2: {
+                    1: {offset: 0.2},
+                    2: {offset: 0.2}
+                }
+            };
+            self.chart.draw(self.data, self.chartOptions);
+        });
+    }
+});
+
+Iznik.Views.DeliveryChart = IznikView.extend({
+    template: 'utils_delivery_chart',
+
+    render: function() {
+        var self = this;
+
+        // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+        _.defer(function() {
+            self.$el.html(window.template(self.template)());
+            var arr = [['Email Delivery', 'Count']];
+
+            self.options.data.each(function(count) {
+                arr.push([count.get('yahooDeliveryType'), count.get('count')]);
+            });
+
+            self.data = google.visualization.arrayToDataTable(arr);
+            self.chart = new google.visualization.PieChart(self.options.target);
+            self.chartOptions = {
+                title: self.options.title,
+                chartArea: {'width': '80%', 'height': '80%'},
+                colors: [
+                    '#8e0152',
+                    '#c51b7d',
+                    '#de77ae',
+                    '#f1b6da',
+                    '#fde0ef',
+                    '#e6f5d0',
+                    '#b8e186',
+                    '#7fbc41',
+                    '#4d9221',
+                    '#276419'
+                ],
+                slices2: {
+                    1: {offset: 0.2},
+                    2: {offset: 0.2}
+                }
+            };
+            self.chart.draw(self.data, self.chartOptions);
+        });
+    }
+});
+
 Iznik.Views.DomainChart = IznikView.extend({
     template: 'utils_domain_chart',
 

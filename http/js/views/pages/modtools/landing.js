@@ -25,16 +25,11 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
             url: API + 'dashboard',
             data: data,
             success: function(ret) {
-                var messagetitle = 'Message History';
-                var spamtitle = 'Spam Detection';
-                var domaintitle = 'Email domains people use';
-                var sourcetitle = 'How people send messages';
-
                 var coll = new Iznik.Collections.DateCounts(ret.dashboard.messagehistory);
                 var graph = new Iznik.Views.MessageGraph({
                     target: self.$('.js-messagegraph').get()[0],
                     data: coll,
-                    title: messagetitle
+                    title: 'Message History'
                 });
 
                 graph.render();
@@ -43,7 +38,25 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
                 graph = new Iznik.Views.MessageGraph({
                     target: self.$('.js-spamgraph').get()[0],
                     data: coll,
-                    title: spamtitle
+                    title: 'Spam Detection'
+                });
+
+                graph.render();
+
+                coll = new Iznik.Collections.DateCounts(ret.dashboard.typehistory);
+                graph = new Iznik.Views.TypeChart({
+                    target: self.$('.js-typechart').get()[0],
+                    data: coll,
+                    title: 'Message Types'
+                });
+
+                graph.render();
+
+                coll = new Iznik.Collections.DateCounts(ret.dashboard.deliveryhistory);
+                graph = new Iznik.Views.DeliveryChart({
+                    target: self.$('.js-deliverychart').get()[0],
+                    data: coll,
+                    title: 'Yahoo Delivery settings (excludes FD and TN)'
                 });
 
                 graph.render();
@@ -52,7 +65,7 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
                 graph = new Iznik.Views.DomainChart({
                     target: self.$('.js-domainchart').get()[0],
                     data: coll,
-                    title: domaintitle
+                    title: 'Email domains people use'
                 });
 
                 graph.render();
@@ -61,7 +74,7 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
                 graph = new Iznik.Views.SourceChart({
                     target: self.$('.js-sourcechart').get()[0],
                     data: coll,
-                    title: sourcetitle
+                    title: 'How people send messages'
                 });
 
                 graph.render();
