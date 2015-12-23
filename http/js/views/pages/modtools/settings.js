@@ -39,7 +39,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                 self.myGroupFields = [
                     {
                         name: 'configid',
-                        label: 'Configuration to use for this Group',
+                        label: 'ModConfig to use for this Group',
                         control: 'select',
                         options: configoptions
                     },
