@@ -1,5 +1,31 @@
 Iznik.Collections.DateCounts = IznikCollection.extend({});
 
+var leftColours = [
+    '#8e0152',
+    '#c51b7d',
+    '#de77ae',
+    '#f1b6da',
+    '#fde0ef',
+    '#e6f5d0',
+    '#b8e186',
+    '#7fbc41',
+    '#4d9221',
+    '#276419'
+];
+
+var rightColours = [
+    '#40004b',
+    '#762a83',
+    '#9970ab',
+    '#c2a5cf',
+    '#e7d4e8',
+    '#d9f0d3',
+    '#a6dba0',
+    '#5aae61',
+    '#1b7837',
+    '#00441b'
+];
+
 Iznik.Views.MessageGraph = IznikView.extend({
     template: 'utils_message_graph',
 
@@ -63,18 +89,7 @@ Iznik.Views.TypeChart = IznikView.extend({
             self.chartOptions = {
                 title: self.options.title,
                 chartArea: {'width': '80%', 'height': '80%'},
-                colors: [
-                    '#40004b',
-                    '#762a83',
-                    '#9970ab',
-                    '#c2a5cf',
-                    '#e7d4e8',
-                    '#d9f0d3',
-                    '#a6dba0',
-                    '#5aae61',
-                    '#1b7837',
-                    '#00441b'
-                ],
+                colors: leftColours,
                 slices2: {
                     1: {offset: 0.2},
                     2: {offset: 0.2}
@@ -105,18 +120,7 @@ Iznik.Views.DeliveryChart = IznikView.extend({
             self.chartOptions = {
                 title: self.options.title,
                 chartArea: {'width': '80%', 'height': '80%'},
-                colors: [
-                    '#8e0152',
-                    '#c51b7d',
-                    '#de77ae',
-                    '#f1b6da',
-                    '#fde0ef',
-                    '#e6f5d0',
-                    '#b8e186',
-                    '#7fbc41',
-                    '#4d9221',
-                    '#276419'
-                ],
+                colors: leftColours,
                 slices2: {
                     1: {offset: 0.2},
                     2: {offset: 0.2}
@@ -147,18 +151,7 @@ Iznik.Views.DomainChart = IznikView.extend({
             self.chartOptions = {
                 title: self.options.title,
                 chartArea: {'width': '80%', 'height': '80%'},
-                colors: [
-                    '#40004b',
-                    '#762a83',
-                    '#9970ab',
-                    '#c2a5cf',
-                    '#e7d4e8',
-                    '#d9f0d3',
-                    '#a6dba0',
-                    '#5aae61',
-                    '#1b7837',
-                    '#00441b'
-                ],
+                colors: leftColours,
                 slices2: {
                     1: {offset: 0.2},
                     2: {offset: 0.2}
@@ -189,18 +182,7 @@ Iznik.Views.SourceChart = IznikView.extend({
             self.chartOptions = {
                 title: self.options.title,
                 chartArea: {'width': '80%', 'height': '80%'},
-                colors: [
-                    '#8e0152',
-                    '#c51b7d',
-                    '#de77ae',
-                    '#f1b6da',
-                    '#fde0ef',
-                    '#e6f5d0',
-                    '#b8e186',
-                    '#7fbc41',
-                    '#4d9221',
-                    '#276419'
-                ],
+                colors: rightColours,
                 slices2: {
                     1: {offset: 0.2},
                     2: {offset: 0.2}

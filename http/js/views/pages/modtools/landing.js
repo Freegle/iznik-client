@@ -47,7 +47,7 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
                 graph = new Iznik.Views.TypeChart({
                     target: self.$('.js-typechart').get()[0],
                     data: coll,
-                    title: 'Message Types'
+                    title: 'Message Balance'
                 });
 
                 graph.render();
@@ -56,7 +56,7 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
                 graph = new Iznik.Views.DeliveryChart({
                     target: self.$('.js-deliverychart').get()[0],
                     data: coll,
-                    title: 'Yahoo Delivery settings (excludes FD and TN)'
+                    title: 'How Yahoo users get mail (excludes FD/TN)'
                 });
 
                 graph.render();
