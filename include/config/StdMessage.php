@@ -60,9 +60,8 @@ class StdMessage extends Entity
     public function setAttributes($settings) {
         $me = whoAmI($this->dbhr, $this->dbhm);
         foreach ($this->settableatts as $att) {
-            $val = pres($att, $settings);
-            if ($val) {
-                $this->setPrivate($att, $val);
+            if (array_key_exists($att, $settings)) {
+                $this->setPrivate($att, $settings[$att]);
             }
         }
 

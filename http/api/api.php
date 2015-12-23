@@ -49,6 +49,7 @@ if (array_key_exists('model', $_REQUEST)) {
     # Used by Backbone's emulateJSON to work around servers which don't handle requests encoded as
     # application/json.
     $_REQUEST = array_merge($_REQUEST, json_decode($_REQUEST['model'], true));
+    unset($_REQUEST['model']);
 }
 
 $call = pres('call', $_REQUEST);

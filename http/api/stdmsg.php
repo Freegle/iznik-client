@@ -77,7 +77,6 @@ function stdmsg() {
                         $myconfigs = $me->getConfigs();
                         $found = FALSE;
                         foreach ($myconfigs as $config) {
-                            error_log("Compare {$config['id']} to " . $s->getPrivate('configid'));
                             if ($config['id'] == $s->getPrivate('configid')) {
                                 $found = TRUE;
                             }

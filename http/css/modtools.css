@@ -464,3 +464,7 @@ body, #bodyContent {
 #wrapper, #page-content-wrapper {
     height: 100%;
 }
+
+.stdmsgmodalbody {
+    min-height: 700px !important;
+}

@@ -73,12 +73,14 @@
                 <div>
                     <h3>Pending Members</h3>
                     <p class="text-muted">Click on a button to edit the message.  Drag and drop to change the order.</p>
+                    <p class="text-muted">Not implemented yet</p>
                     <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgspendingmembers">
                     </ul>
                 </div>
                 <div>
                     <h3>Members</h3>
                     <p class="text-muted">Click on a button to edit the message.  Drag and drop to change the order.</p>
+                    <p class="text-muted">Not implemented yet</p>
                     <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgsmembers">
                     </ul>
                 </div>
@@ -97,10 +99,6 @@
                             <div class="glyphicon glyphicon-plus-sign" />&nbsp;Copy
                         </span>
                     </div>
-                    <h4>Delete this config</h4>
-                    <button class="btn btn-white botspace js-deleteconfig">
-                        <div class="glyphicon glyphicon-trash" />&nbsp;Delete {{name}}
-                    </button>
                     <h4>Add new config</h4>
                     <div class="input-group">
                         <input type="text" class="form-control" placeholder="Enter new config name" aria-describedby="configadd" />
@@ -108,6 +106,10 @@
                             <div class="glyphicon glyphicon-plus" />&nbsp;Add
                         </span>
                     </div>
+                    <h4>Delete this config</h4>
+                    <button class="btn btn-danger botspace js-deleteconfig">
+                        <div class="glyphicon glyphicon-trash" />&nbsp;Delete {{name}}
+                    </button>
                 </div>
             </div>
         </div>

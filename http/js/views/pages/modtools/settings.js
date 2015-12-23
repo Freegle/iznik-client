@@ -74,7 +74,6 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                             // Send a PATCH to the server for mysettings.
                             e.preventDefault();
                             var newdata = self.myGroupModel.toJSON();
-                            console.log("Save mysettings", group, group.isNew(), newdata);
                             group.save({
                                 'mysettings': newdata
                             }, { patch: true });
@@ -172,7 +171,6 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                         'submit': function(e) {
                             e.preventDefault();
                             var newdata = self.groupModel.toJSON();
-                            console.log("Save settings", group, group.isNew(), newdata);
                             group.save({
                                 'settings': newdata
                             }, { patch: true });
@@ -206,7 +204,6 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
             });
 
             self.modConfigModel.fetch().then(function() {
-                console.log("Got model", self.modConfigModel);
                 self.modConfigFieldsGeneral = [
                     {
                         name: 'name',
@@ -297,8 +294,8 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                             break;
                     }
 
-                    var v = new Iznik.Views.ModTools.StdMessage.Button({
-                        model: new IznikModel(stdmsg),
+                    var v = new Iznik.Views.ModTools.SettingsButton({
+                        model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
                         config: self.modConfigModel
                     });
 
@@ -391,8 +388,8 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
             fields: personalFields,
             events: {
                 'submit': function(e) {
+                    // TODO
                     e.preventDefault();
-                    console.log("Save");
                     return(false);
                 }
             }
@@ -410,3 +407,197 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         self.configSelect();
     }
 });
+
+Iznik.Views.ModTools.SettingsButton = Iznik.Views.ModTools.StdMessage.Button.extend({
+    // We override the events, so we get the same visual display but when we click do an edit of the settings.
+    events: {
+        'click .js-approve': 'edit',
+        'click .js-reject': 'edit',
+        'click .js-delete': 'edit',
+        'click .js-hold': 'edit',
+        'click .js-release': 'edit'
+    },
+
+    edit: function() {
+        var v = new Iznik.Views.ModTools.StdMessage({
+            model: this.model
+        });
+        v.render();
+    }
+});
+
+Iznik.Views.ModTools.StdMessage = Iznik.Views.Modal.extend({
+    template: 'modtools_settings_stdmsg',
+
+    events: {
+        'click .js-save': 'save',
+        'click .js-delete': 'delete'
+    },
+
+    save: function() {
+        var self = this;
+
+        self.model.save(
+            self.model.changedAttributes(),
+            {patch: true}
+        ).then(function() {
+                self.close();
+        });
+    },
+
+    render: function() {
+        var self = this;
+
+        this.$el.html(window.template(this.template)(this.model.toJSON2()));
+
+        // We want to refetch the model to make sure we edit the most up to date settings.
+        self.model.fetch().then(function() {
+            self.fields = [
+                {
+                    name: 'title',
+                    label: 'Title',
+                    control: 'input'
+                },
+                {
+                    name: 'action',
+                    label: 'Action',
+                    control: 'select',
+                    options: [
+                        {
+                            label: 'Approve Pending Message',
+                            value: 'Approve'
+                        },
+                        {
+                            label: 'Reject Pending Message',
+                            value: 'Reject'
+                        },
+                        {
+                            label: 'Reply to Pending Message',
+                            value: 'Leave'
+                        },
+                        {
+                            label: 'Edit Pending Message',
+                            value: 'Edit'
+                        },
+                        {
+                            label: 'Delete Approved Message',
+                            value: 'Delete Approved Message'
+                        },
+                        {
+                            label: 'Reply to Approved Message',
+                            value: 'Leave Approved Message'
+                        },
+                        {
+                            label: 'Reply to Pending Message',
+                            value: 'Leave'
+                        },
+                        {
+                            label: 'Approve Pending Member',
+                            value: 'Approve Member'
+                        },
+                        {
+                            label: 'Reject Pending Member',
+                            value: 'Reject Member'
+                        },
+                        {
+                            label: 'Mail Pending Member',
+                            value: 'Leave Member'
+                        },
+                        {
+                            label: 'Remove Member',
+                            value: 'Delete Approved Member'
+                        },
+                        {
+                            label: 'Mail Member',
+                            value: 'Leave Approved Member'
+                        }
+                    ]
+                },
+                {
+                    name: 'autosend',
+                    label: 'Edit Text (only for Edits)',
+                    options: [{label: 'Unchanged', value: 'Unchanged'}, {label: 'Correct Case', value: 'Correct Case' }],
+                    disabled: function(model) { return(model.get('action') != 'Edit')},
+                    control: Backform.SelectControl.extend({
+                        initialize: function() {
+                            Backform.InputControl.prototype.initialize.apply(this, arguments);
+                            this.listenTo(this.model, "change:action", this.render);
+                        }
+                    })
+                },
+                {
+                    name: 'autosend',
+                    label: 'Autosend',
+                    control: 'select',
+                    options: [{label: 'Send immediately', value: 1}, {label: 'Edit before send', value: 0 }]
+                },
+                {
+                    name: 'rarelyused',
+                    label: 'How often do you use this?',
+                    control: 'select',
+                    options: [{label: 'Frequently', value: 1}, {label: 'Rarely', value: 0 }]
+                },
+                {
+                    name: 'newmodstatus',
+                    label: 'Change Yahoo Moderation Status?',
+                    control: 'select',
+                    options: [
+                        {label: 'Unchanged', value: 'UNCHANGED'},
+                        {label: 'Moderated', value: 'MODERATED'},
+                        {label: 'Group Settings', value: 'DEFAULT'},
+                        {label: 'Can\'t Post', value: 'PROHIBITED'},
+                        {label: 'Unmoderated', value: 'UNMODERATED'},
+                    ]
+                },
+                {
+                    name: 'newdelstatus',
+                    label: 'Change Yahoo Delivery Settings?',
+                    control: 'select',
+                    options: [
+                        {label: 'Unchanged', value: 'UNCHANGED'},
+                        {label: 'Daily Digest', value: 'DIGEST'},
+                        {label: 'Web Only', value: 'NONE'},
+                        {label: 'Individual Emails', value: 'SINGLE'},
+                        {label: 'Special Notices', value: 'ANNOUNCEMENT'},
+                    ]
+                },
+                {
+                    name: 'subjpref',
+                    label: 'Subject Prefix',
+                    control: 'input'
+                },
+                {
+                    name: 'subjsuff',
+                    label: 'Subject Suffix',
+                    control: 'input'
+                },
+                {
+                    name: 'body',
+                    label: 'Message Body',
+                    control: 'textarea',
+                    extraClasses: [ 'js-textarea' ]
+                }
+            ];
+
+            self.form = new Backform.Form({
+                el: $('#js-form'),
+                model: self.model,
+                fields: self.fields
+            });
+
+            self.form.render();
+
+            // Layout messes up a bit.
+            self.$('.form-group').addClass('clearfix');
+            self.$('.js-textarea').attr('rows', 10);
+
+            // Turn on spell-checking
+            self.$('textarea, input:text').attr('spellcheck', true);
+        });
+
+        this.open(null);
+
+        return(this);
+    }
+});
+
