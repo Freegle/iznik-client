@@ -94,6 +94,33 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+    patch:
+      summary: Session Modify
+      tags: [Session]
+      description: |
+        Modify logged in user details
+      parameters:
+      - name: displayname
+        in: body
+        description: Name as displayed in public
+        type: string
+      - name: firstname
+        in: body
+        description: First name
+        type: string
+      - name: lastname
+        in: body
+        description: Last name
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
     delete:
       summary: Session Logout
       tags: [Session]

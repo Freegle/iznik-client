@@ -101,6 +101,37 @@ class sessionTest extends IznikAPITest {
         error_log(__METHOD__ . " end");
     }
 
+    public function testPatch() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        assertTrue($u->addEmail('test@test.com'));
+        $u = new User($this->dbhm, $this->dbhm, $id);
+
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $ret = $this->call('session', 'POST', [
+            'email' => 'test@test.com',
+            'password' => 'testpw'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('session', 'PATCH', [
+            'firstname' => 'Test2',
+            'lastname' => 'User2'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('session','GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals('Test2', $ret['me']['firstname']);
+        assertEquals('User2', $ret['me']['lastname']);
+
+        $u->delete();
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testWork() {
         error_log(__METHOD__);
 

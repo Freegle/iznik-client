@@ -1,4 +1,5 @@
 Iznik.Models.Session = IznikModel.extend({
+    url: API + 'session',
 
     initialize: function() {
     },

@@ -235,7 +235,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     },
                     {
                         name: 'network',
-                        label: 'Network name for $network',
+                        label: 'Network name for $network substitution string',
                         control: 'input'
                     },
                     {
@@ -355,7 +355,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         // Personal settings
         var me = Iznik.Session.get('me');
 
-        var personalModel = new IznikModel({
+        self.personalModel = new IznikModel({
             id: me.id,
             displayname: me.displayname,
             fullname: me.fullname
@@ -366,13 +366,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                 name: 'displayname',
                 label: 'Display Name',
                 control: 'input',
-                helpMessage: 'This is your name as displayed publicly to other users.'
-            },
-            {
-                name: 'fullname',
-                label: 'Full Name',
-                control: 'input',
-                helpMessage: 'This is your name as recorded privately on the system.'
+                helpMessage: 'This is your name as displayed publicly to other users, including in the $myname substitution string.'
             },
             {
                 control: 'button',
@@ -384,12 +378,13 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
         var personalForm = new Backform.Form({
             el: $('#personalform'),
-            model: personalModel,
+            model: self.personalModel,
             fields: personalFields,
             events: {
                 'submit': function(e) {
-                    // TODO
                     e.preventDefault();
+                    var newdata = self.personalModel.toJSON();
+                    Iznik.Session.save(newdata, { patch: true });
                     return(false);
                 }
             }

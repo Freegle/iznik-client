@@ -96,6 +96,18 @@ function session() {
             break;
         }
 
+        case 'PATCH': {
+            if (!$me) {
+                $ret = ['ret' => 1, 'status' => 'Not logged in'];
+            } else {
+                $me->setPrivate('fullname', presdef('displayname', $_REQUEST, NULL));
+                $me->setPrivate('firstname', presdef('firstname', $_REQUEST, NULL));
+                $me->setPrivate('lastname', presdef('lastname', $_REQUEST, NULL));
+                $ret = ['ret' => 0, 'status' => 'Success' ];
+            }
+            break;
+        }
+
         case 'DELETE': {
             # Logout
             $id = pres('id', $_SESSION);
