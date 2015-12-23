@@ -75,7 +75,7 @@ Iznik.Views.Modal = IznikView.extend({
             backdrop: 'static'
         });
 
-        this.$el.find('.modal').on('hidden.bs.modal', function () {console.log("Modal hidden"); self.cancel.call(self);});
+        this.$el.find('.modal').on('hidden.bs.modal', function () {self.cancel.call(self);});
 
         //console.log(this.$el.html());
 

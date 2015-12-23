@@ -294,7 +294,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                             break;
                     }
 
-                    var v = new Iznik.Views.ModTools.SettingsButton({
+                    var v = new Iznik.Views.ModTools.StdMessage.SettingsButton({
                         model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
                         config: self.modConfigModel
                     });
@@ -408,7 +408,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
     }
 });
 
-Iznik.Views.ModTools.SettingsButton = Iznik.Views.ModTools.StdMessage.Button.extend({
+Iznik.Views.ModTools.StdMessage.SettingsButton = Iznik.Views.ModTools.StdMessage.Button.extend({
     // We override the events, so we get the same visual display but when we click do an edit of the settings.
     events: {
         'click .js-approve': 'edit',
@@ -419,14 +419,14 @@ Iznik.Views.ModTools.SettingsButton = Iznik.Views.ModTools.StdMessage.Button.ext
     },
 
     edit: function() {
-        var v = new Iznik.Views.ModTools.StdMessage({
+        var v = new Iznik.Views.ModTools.Settings.StdMessage({
             model: this.model
         });
         v.render();
     }
 });
 
-Iznik.Views.ModTools.StdMessage = Iznik.Views.Modal.extend({
+Iznik.Views.ModTools.Settings.StdMessage = Iznik.Views.Modal.extend({
     template: 'modtools_settings_stdmsg',
 
     events: {

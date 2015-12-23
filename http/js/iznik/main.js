@@ -13,6 +13,7 @@ window.Iznik = {
                 PendingMember: {},
                 ApprovedMember: {}
             },
+            Settings: {},
             User: {},
             Yahoo: {}
         },
