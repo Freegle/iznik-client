@@ -114,11 +114,9 @@ class ModConfig extends Entity
 
     public function setAttributes($settings) {
         $me = whoAmI($this->dbhr, $this->dbhm);
-        error_log("setAttrs " . var_export($settings, true));
         foreach ($this->settableatts as $att) {
             $val = pres($att, $settings);
             if ($val) {
-                error_log("Set $att = " . json_encode($val));
                 $this->setPrivate($att, $val);
             }
         }

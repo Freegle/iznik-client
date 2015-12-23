@@ -1,5 +1,5 @@
 <?php
-function modconfig() {
+function stdmsg() {
     global $dbhr, $dbhm;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -8,15 +8,16 @@ function modconfig() {
 
     # The id parameter can be an ID or a nameshort.
     $id = presdef('id', $_REQUEST, NULL);
-    $c = new ModConfig($dbhr, $dbhm, $id);
+    $configid = presdef('configid', $_REQUEST, NULL);
+    $s = new StdMessage($dbhr, $dbhm, $id);
 
-    if ($id && $c->getId() || $_REQUEST['type'] == 'POST') {
+    if ($id && $s->getId() || $_REQUEST['type'] == 'POST') {
         switch ($_REQUEST['type']) {
             case 'GET': {
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
-                    'config' => $c->getPublic()
+                    'stdmsg' => $s->getPublic()
                 ];
 
                 break;
@@ -26,14 +27,19 @@ function modconfig() {
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
                 } else {
-                    $name = presdef('name', $_REQUEST, NULL);
+                    $name = presdef('title', $_REQUEST, NULL);
                     $systemrole = $me->getPublic()['systemrole'];
 
                     if (!$name) {
                         $ret = [
                             'ret' => 3,
-                            'status' => 'Must supply name'
+                            'status' => 'Must supply title'
                         ];
+                    } else if (!$configid) {
+                            $ret = [
+                                'ret' => 3,
+                                'status' => 'Must supply configid'
+                            ];
                     } else if ($systemrole != User::SYSTEMROLE_MODERATOR &&
                         $systemrole != User::SYSTEMROLE_SUPPORT &&
                         $systemrole != User::SYSTEMROLE_ADMIN) {
@@ -45,7 +51,7 @@ function modconfig() {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
-                            'id' => $c->create($name, $me->getId())
+                            'id' => $s->create($name, $configid)
                         ];
                     }
                 }
@@ -67,22 +73,24 @@ function modconfig() {
                             'status' => 'Don\t have rights to modify configs'
                         ];
                     } else {
+                        # We can only edit this standard message if we have access to the modconfig which owns it.
                         $myconfigs = $me->getConfigs();
                         $found = FALSE;
                         foreach ($myconfigs as $config) {
-                            if ($config['id'] == $id) {
+                            error_log("Compare {$config['id']} to " . $s->getPrivate('configid'));
+                            if ($config['id'] == $s->getPrivate('configid')) {
                                 $found = TRUE;
                             }
                         }
 
                         if ($found) {
-                            $c->setAttributes($_REQUEST);
+                            $s->setAttributes($_REQUEST);
                             $ret = [
                                 'ret' => 0,
                                 'status' => 'Success',
                             ];
                         } else {
-                            $c->setAttributes($_REQUEST);
+                            $s->setAttributes($_REQUEST);
                             $ret = [
                                 'ret' => 5,
                                 'status' => 'You don\'t have rights to edit this config',
@@ -95,7 +103,7 @@ function modconfig() {
     } else {
         $ret = [
             'ret' => 2,
-            'status' => 'Invalid config id'
+            'status' => 'Invalid stdmsg id'
         ];
     }
 

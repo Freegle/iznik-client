@@ -6,7 +6,10 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 class StdMessage extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'title', 'action', 'subjpref', 'subjsuff', 'body', 'rarelyused',
+    var $publicatts = array('id', 'configid', 'title', 'action', 'subjpref', 'subjsuff', 'body', 'rarelyused',
+        'autosend', 'newmodstatus', 'newdelstatus', 'edittext');
+
+    var $settableatts = array('configid', 'title', 'action', 'subjpref', 'subjsuff', 'body', 'rarelyused',
         'autosend', 'newmodstatus', 'newdelstatus', 'edittext');
 
     /** @var  $log Log */
@@ -52,6 +55,24 @@ class StdMessage extends Entity
         } else {
             return(NULL);
         }
+    }
+
+    public function setAttributes($settings) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        foreach ($this->settableatts as $att) {
+            $val = pres($att, $settings);
+            if ($val) {
+                $this->setPrivate($att, $val);
+            }
+        }
+
+        $this->log->log([
+            'type' => Log::TYPE_STDMSG,
+            'subtype' => Log::SUBTYPE_EDIT,
+            'configid' => $this->id,
+            'byuser' => $me ? $me->getId() : NULL,
+            'text' => $this->getEditLog($settings)
+        ]);
     }
 
     public function delete() {

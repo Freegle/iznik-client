@@ -612,6 +612,64 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+  /stdmsg:
+    get:
+      summary: Standard Message Get
+      tags: [StdMessage]
+      description:
+        Retrieve stdmsg details
+      parameters:
+      - name: id
+        in: query
+        description: StdMessage id to query.
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    patch:
+      summary: Update a standard mesage settings
+      tags: [StdMessage]
+      description:
+        Doesn't work in Swagger.
+      parameters:
+      - name: id
+        in: query
+        description: StdMessage id to query.
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    post:
+      summary: Create a standard message
+      tags: [StdMessage]
+      description:
+        Doesn't work in Swagger.
+      parameters:
+      - name: title
+        in: query
+        description: StdMessage
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
 definitions:
   Response:
     properties: 
