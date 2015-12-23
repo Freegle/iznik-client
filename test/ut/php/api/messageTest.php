@@ -420,6 +420,73 @@ class messageAPITest extends IznikAPITest {
         error_log(__METHOD__ . " end");
     }
 
+    public function testReply() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_OTHER);
+
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        # Suppress mails.
+        $m = $this->getMockBuilder('Message')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+        $m->method('mailer')->willReturn(false);
+
+        assertEquals(Message::TYPE_OTHER, $m->getType());
+
+        # Shouldn't be able to mail logged out
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Reply'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Now join - shouldn't be able to mail as a member
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($group1);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Reply'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Promote to owner - should be able to reply.  Suppress the mail.
+        $u->setRole(User::ROLE_OWNER, $group1);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Reply',
+            'subject' => 'Test reply',
+            'body' => 'Test body',
+            'duplicate' => 1
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Plugin work shouldn't exist
+        $ret = $this->call('plugin', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['plugin']));
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testDelete() {
         error_log(__METHOD__);
 

@@ -72,7 +72,27 @@ Iznik.Models.Message = IznikModel.extend({
         });
     },
 
-    delete: function() {
+    reply: function(subject, body) {
+        // We mail on only one group, otherwise the user will get multiple copies.
+        var self = this;
+        var group = _.first(self.get('groups'));
+
+        $.ajax({
+            type: 'POST',
+            url: API + 'message',
+            data: {
+                id: self.get('id'),
+                groupid: group.id,
+                action: 'Reply',
+                subject: subject,
+                body: body
+            }, success: function(ret) {
+                self.trigger('replied');
+            }
+        });
+    },
+
+    delete: function(subject, body) {
         var self = this;
 
         // We delete the message on all groups.  Future enhancement?
@@ -83,7 +103,9 @@ Iznik.Models.Message = IznikModel.extend({
                 data: {
                     id: self.get('id'),
                     groupid: group.id,
-                    action: 'Delete'
+                    action: 'Delete',
+                    subject: subject,
+                    body: body
                 }, success: function(ret) {
                     self.trigger('deleted');
                 }

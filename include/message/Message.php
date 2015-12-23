@@ -1015,7 +1015,7 @@ class Message
 
             $name = $me->getName();
 
-            # We can do a siple substitution in the from name.
+            # We can do a simple substitution in the from name.
             $name = str_replace('$groupname', $atts['namedisplay'], $name);
 
             $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
@@ -1121,6 +1121,22 @@ class Message
         }
     }
 
+    public function reply($groupid, $subject, $body) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $this->log->log([
+            'type' => Log::TYPE_MESSAGE,
+            'subtype' => Log::SUBTYPE_REPLIED,
+            'msgid' => $this->id,
+            'user' => $this->fromuser,
+            'byuser' => $me ? $me->getId() : NULL,
+            'groupid' => $groupid,
+            'text' => $subject
+        ]);
+
+        $this->maybeMail($groupid, $subject, $body);
+    }
+
     function hold() {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
@@ -1153,7 +1169,7 @@ class Message
         }
     }
 
-    function delete($reason = NULL, $groupid = NULL)
+    function delete($reason = NULL, $groupid = NULL, $subject, $body)
     {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $rc = true;
@@ -1217,6 +1233,8 @@ class Message
             if (count($groups) === 0) {
                 $rc = $this->dbhm->preExec("UPDATE messages SET deleted = NOW() WHERE id = ?;", [ $this->id ]);
             }
+
+            $this->maybeMail($groupid, $subject, $body);
         }
 
         return($rc);

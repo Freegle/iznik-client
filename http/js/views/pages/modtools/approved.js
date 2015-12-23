@@ -255,7 +255,13 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
         });
 
         this.$('.timeago').timeago();
-        //this.$el.fadeIn('slow');
+
+        // If we reject, approve or delete this message then the view should go.
+        this.listenToOnce(self.model, 'deleted', function() {
+            self.$el.fadeOut('slow', function() {
+                self.remove();
+            });
+        });
 
         return(this);
     }

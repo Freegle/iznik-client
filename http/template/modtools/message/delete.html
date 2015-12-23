@@ -1,0 +1,22 @@
+<div class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title js-modal-title">Delete <em>{{subject}}</em></h4>
+            </div>
+            <div class="modal-body js-modal-body">
+                <p>
+                    <span class="text-muted">From: <span class="js-myname" /> &lt;{{obj.groups[0].nameshort}}-owner@yahoogroups.com&gt;</span><br>
+                    To: {{obj.fromname}} &lt{{obj.fromaddr}}&gt;
+                </p>
+                <input type="text" class="botspace form-control js-subject" value="{{subject}}" />
+                <textarea class="form-control js-text" rows="10"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success js-send">Send and Delete</button>
+                <button type="button" class="btn btn-white js-close" data-dismiss="modal">Cancel</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

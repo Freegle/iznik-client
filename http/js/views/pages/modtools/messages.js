@@ -301,7 +301,6 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         // - we may have actions to complete
         // - this modal should close.
         self.listenToOnce(self.model, 'approved', function() {
-            console.log("Approved only");
             _.each(self.model.get('groups'), function(group, index, list) {
                 self.maybeSettingsChange.call(self, 'approved', self.options.stdmsg, self.model, group);
             });
@@ -309,7 +308,6 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         });
 
         self.listenToOnce(self.model, 'rejected', function() {
-            console.log("Rejected only");
             _.each(self.model.get('groups'), function(group, index, list) {
                 self.maybeSettingsChange.call(self, 'rejected', self.options.stdmsg, self.model, group);
             });
@@ -317,9 +315,15 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         });
 
         self.listenToOnce(self.model, 'deleted', function() {
-            console.log("Deleted only");
             _.each(self.model.get('groups'), function(group, index, list) {
                 self.maybeSettingsChange.call(self, 'deleted', self.options.stdmsg, self.model, group);
+            });
+            self.close();
+        });
+
+        self.listenToOnce(self.model, 'replied', function() {
+            _.each(self.model.get('groups'), function(group, index, list) {
+                self.maybeSettingsChange.call(self, 'replied', self.options.stdmsg, self.model, group);
             });
             self.close();
         });
@@ -421,7 +425,8 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
         'click .js-reject': 'reject',
         'click .js-delete': 'deleteMe',
         'click .js-hold': 'hold',
-        'click .js-release': 'release'
+        'click .js-release': 'release',
+        'click .js-leave': 'leave'
     },
 
     hold: function() {
@@ -468,10 +473,37 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
         v.render();
     },
 
+    leave: function() {
+        var self = this;
+        var message = self.model.get('message');
+
+        var v = new Iznik.Views.ModTools.StdMessage.Leave({
+            model: message,
+            stdmsg: this.model,
+            config: this.options.config
+        });
+
+        v.render();
+    },
+
     deleteMe: function() {
         var self = this;
         var message = self.model.get('message');
-        message.delete();
+
+        if (this.options.config) {
+            // This is a configured button; open the modal.
+            var v = new Iznik.Views.ModTools.StdMessage.Delete({
+                model: message,
+                stdmsg: this.model,
+                config: this.options.config
+            });
+
+            v.render();
+        } else {
+            // No popup to show.
+            message.delete();
+        }
+
     }
 });
 
@@ -497,3 +529,44 @@ Iznik.Views.ModTools.Message.Related = IznikView.extend({
     }
 });
 
+Iznik.Views.ModTools.StdMessage.Leave = Iznik.Views.ModTools.StdMessage.Modal.extend({
+    template: 'modtools_message_leave',
+
+    events: {
+        'click .js-send': 'send'
+    },
+
+    send: function() {
+        this.model.reply(
+            this.$('.js-subject').val(),
+            this.$('.js-text').val()
+        );
+    },
+
+    render: function() {
+        this.expand();
+        this.closeWhenRequired();
+        return(this);
+    }
+});
+
+Iznik.Views.ModTools.StdMessage.Delete = Iznik.Views.ModTools.StdMessage.Modal.extend({
+    template: 'modtools_message_delete',
+
+    events: {
+        'click .js-send': 'send'
+    },
+
+    send: function() {
+        this.model.reply(
+            this.$('.js-subject').val(),
+            this.$('.js-text').val()
+        );
+    },
+
+    render: function() {
+        this.expand();
+        this.closeWhenRequired();
+        return(this);
+    }
+});
