@@ -59,7 +59,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     },
                     {
                         control: 'button',
-                        label: 'Save',
+                        label: 'Save changes',
                         type: 'submit',
                         extraClasses: [ 'btn-success topspace botspace' ]
                     }
@@ -158,7 +158,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     },
                     {
                         control: 'button',
-                        label: 'Save',
+                        label: 'Save changes',
                         type: 'submit',
                         extraClasses: [ 'btn-success topspace botspace' ]
                     }
@@ -243,7 +243,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     },
                     {
                         control: 'button',
-                        label: 'Save',
+                        label: 'Save changes',
                         type: 'submit',
                         extraClasses: [ 'btn-success topspace botspace' ]
                     }
@@ -379,7 +379,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
             },
             {
                 control: 'button',
-                label: 'Save',
+                label: 'Save changes',
                 type: 'submit',
                 extraClasses: [ 'btn-success' ]
             }

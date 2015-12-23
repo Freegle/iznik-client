@@ -75,17 +75,21 @@ foreach ($oldgroups as $group) {
     ];
 
     # If it's a Freegle group pick up the lat/lng.
-    if ($group['freeglegroupid']) {
-        $sql = "SELECT * FROM perch_groups WHERE groupURL LIKE '%/{$group['groupname']}';";
-        $fgroups = $dbhf->preQuery($sql, []);
-        foreach ($fgroups as $fgroup) {
-            $g->setPrivate('lat', $fgroup['groupLatitude']);
-            $g->setPrivate('lng', $fgroup['groupLongitude']);
-            $g->setPrivate('type', 'Freegle');
-        }
+    $sql = "SELECT * FROM perch_groups WHERE groupURL LIKE '%/{$group['groupname']}';";
+    $fgroups = $dbhf->preQuery($sql, []);
+    foreach ($fgroups as $fgroup) {
+        # Freegle groups are free.
+        $g->setPrivate('licenserequired', 0);
+
+        $g->setPrivate('lat', $fgroup['groupLatitude']);
+        $g->setPrivate('lng', $fgroup['groupLongitude']);
+        $g->setPrivate('type', 'Freegle');
     }
 
     $g->setPrivate('settings', json_encode($settings));
+    $g->setPrivate('trial', $group['trial'] == '0000-00-00 00:00:00' ? NULL :  $group['trial']);
+    $g->setPrivate('licensed', $group['licensed'] == '0000-00-00 00:00:00' ? NULL :  $group['licensed']);
+    $g->setPrivate('licenseduntil', $group['licenseduntil'] == '0000-00-00 00:00:00' ? NULL :  $group['licenseduntil']);
 }
 
 # Now get FD groups not on ModTools

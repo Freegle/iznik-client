@@ -7,7 +7,7 @@ class Group extends Entity
 {
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'logo',
-        'onyahoo');
+        'onyahoo', 'trial', 'licensed', 'licenseduntil');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
