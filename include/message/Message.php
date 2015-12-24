@@ -1169,7 +1169,7 @@ class Message
         }
     }
 
-    function delete($reason = NULL, $groupid = NULL, $subject, $body)
+    function delete($reason = NULL, $groupid = NULL, $subject = NULL, $body = NULL)
     {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $rc = true;

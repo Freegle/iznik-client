@@ -62,28 +62,23 @@ class Yahoo
                 $yahooid = substr($yahooid, 0, $p);
 
                 # See if we know this user already.
-                $users = $this->dbhr->preQuery(
-                    "SELECT userid FROM users_logins WHERE type = 'Yahoo' AND uid = ?;",
-                    [ $yahooid ]
-                );
-
-                $id = NULL;
-                foreach ($users as $user) {
-                    # We found them.
-                    $id = $user['userid'];
-                }
+                $u = new User($this->dbhr, $this->dbhm);
+                $id = $u->findByEmail($attrs['contact/email']);
 
                 if (!$id) {
                     # We don't know them.  Create a user.
                     #
                     # There's a timing window here, where if we had two first-time logins for the same user,
                     # one would fail.  Bigger fish to fry.
-                    $u = new User($this->dbhr, $this->dbhm);
-
+                    #
                     # We don't have the firstname/lastname split, only a single name.  Way two go.
                     $id = $u->create(NULL, NULL, $attrs['name']);
 
                     if ($id) {
+                        # Make sure that we have the Yahoo email recorded as one of the emails for this user.
+                        $u = new User($this->dbhr, $this->dbhm, $id);
+                        $u->addEmail($attrs['contact/email']);
+
                         # Now Set up a login entry.
                         $rc = $this->dbhm->preExec(
                             "INSERT INTO users_logins (userid, type, uid) VALUES (?,'Yahoo',?);",
@@ -98,10 +93,6 @@ class Yahoo
                 }
 
                 if ($id) {
-                    # Make sure that we have the Yahoo email recorded as one of the emails for this user.
-                    $u = new User($this->dbhr, $this->dbhm, $id);
-                    $u->addEmail($attrs['contact/email']);
-
                     # We are logged in.
                     $s = new Session($this->dbhr, $this->dbhm);
                     $s->create($id);

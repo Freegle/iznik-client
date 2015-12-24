@@ -49,15 +49,16 @@
                     <div class="panel panel-default">
                         <div class="panel-body small">
                             <div class="ellipsis">
-                                <span data-toggle="tooltip" title="Email address is <% if (obj.envelopefrom) { %>{{envelopefrom}}<% } else { %>{{fromaddr}}<% } %>">
+                                <span data-toggle="tooltip" title="Email was sent from <% if (obj.envelopefrom) { %>{{envelopefrom}}<% } else { %>{{fromaddr}}<% } %>">
                                     <div class="glyphicon glyphicon-envelope" />&nbsp;<% if (obj.envelopefrom) { %>{{envelopefrom}}<% } else { %>{{fromaddr}}<% } %>
                                 </span>
                             </div>
                             <div class="ellipsis">
-                                <span data-toggle="tooltip" title="Friendly name is {{fromname}}">
+                                <span data-toggle="tooltip" title="Friendly name is {{fromuser.displayname}}, in message was {{fromname}}">
                                     <div class="glyphicon glyphicon-user" />&nbsp;{{fromname}}
                                 </span>
                             </div>
+                            <div class="js-otheremails" />
                             <div class="yahoouserinfo js-yahoo"></div>
                             <div class="js-user"></div>
                         </div>

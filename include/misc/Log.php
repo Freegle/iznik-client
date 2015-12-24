@@ -37,6 +37,7 @@ class Log
     const SUBTYPE_YAHOO_DELIVERY_TYPE = 'YahooDeliveryType';
     const SUBTYPE_YAHOO_POSTING_STATUS = 'YahooPostingStatus';
     const SUBTYPE_ROLE_CHANGE = 'RoleChange';
+    const SUBTYPE_MERGED = 'Merged';
 
     function __construct($dbhr, $dbhm)
     {
@@ -52,7 +53,6 @@ class Log
         foreach ($params as $key => $val) {
             $p[] = ":$key";
         }
-
 
         $atts = implode('`,`', array_keys($params));
 

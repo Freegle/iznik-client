@@ -154,7 +154,7 @@ class User extends Entity
         ]);
 
         if (count($emails) == 0) {
-            $rc = $this->dbhm->preExec("INSERT INTO users_emails (userid, email, `primary`) VALUES (?, ?, ?)",
+            $rc = $this->dbhm->preExec("INSERT INTO users_emails (userid, email, preferred) VALUES (?, ?, ?)",
                 [$this->id, $email, $primary]);
         }
 
@@ -503,7 +503,7 @@ class User extends Entity
         if ($logs) {
             # Add in the log entries we have for this user.
             $me = whoAmI($this->dbhr, $this->dbhm);
-            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) AND (text IS NULL OR text NOT IN ('Not present on Yahoo pending')) ORDER BY timestamp DESC;";
+            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) AND (text IS NULL OR text NOT IN ('Not present on Yahoo pending')) ORDER BY id DESC;";
             $logs = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
             $atts['logs'] = [];
             $groups = [];
@@ -533,7 +533,7 @@ class User extends Entity
                     if (!pres($log['groupid'], $groups)) {
                         $g = new Group($this->dbhr, $this->dbhm, $log['groupid']);
                         $groups[$log['groupid']] = $g->getPublic();
-                        $groups[$log['groupid']]['myrole'] = $me->getRole($log['groupid']);
+                        $groups[$log['groupid']]['myrole'] = $me ? $me->getRole($log['groupid']) : User::ROLE_NONMEMBER;
                     }
 
                     if ($groups[$log['groupid']]['myrole'] != User::ROLE_OWNER &&
@@ -574,6 +574,177 @@ class User extends Entity
         $atts['displayname'] = $this->getName();
 
         return($atts);
+    }
+
+    private function roleMax($role1, $role2) {
+        $role = User::ROLE_NONMEMBER;
+
+        if ($role1 == User::ROLE_MEMBER || $role2 == User::ROLE_MEMBER) {
+            $role = User::ROLE_MEMBER;
+        }
+
+        if ($role1 == User::ROLE_MODERATOR || $role2 == User::ROLE_MODERATOR) {
+            $role = User::ROLE_MODERATOR;
+        }
+
+        if ($role1 == User::ROLE_OWNER || $role2 == User::ROLE_OWNER) {
+            $role = User::ROLE_OWNER;
+        }
+
+        return($role);
+    }
+
+    public function merge($id1, $id2) {
+        # We want to merge two users.  At present we just merge the memberships, emails and logs; we don't try to
+        # merge any conflicting settings.
+        #
+        # Both users might have membership of the same group, including at different levels.
+        #error_log("Merge $id2 into $id1");
+        $l = new Log($this->dbhr, $this->dbhm);
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $rc = $this->dbhm->beginTransaction();
+        $rollback = FALSE;
+
+        if ($rc) {
+            try {
+                #error_log("Started transaction");
+                $rollback = TRUE;
+
+                # Merge the memberships
+                $id2membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = ?;", [ $id2 ]);
+                foreach ($id2membs as $id2memb) {
+                    # Jiggery-pokery with $rc for UT purposes.
+                    $rc2 = $rc;
+                    #error_log("$id2 member of {$id2memb['groupid']} ");
+                    $id1membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = ? AND groupid = ?;", [
+                        $id1,
+                        $id2memb['groupid']
+                    ]);
+
+                    if (count($id1membs) == 0) {
+                        # id1 is not already a member.  Just change our id2 membership to id1.
+                        #error_log("...$id1 not a member, UPDATE");
+                        $rc2 = $this->dbhm->preExec("UPDATE memberships SET userid = ? WHERE userid = ? AND groupid = ?;", [
+                            $id1,
+                            $id2,
+                            $id2memb['groupid']
+                        ]);
+
+                        #error_log("Membership UPDATE merge returned $rc2");
+                    } else {
+                        # id1 is already a member.  Our new membership has the highest role.
+                        #error_log("...as is $id1");
+                        $role = User::roleMax($id1membs[0]['role'], $id2memb['role']);
+
+                        if ($role != $id1membs[0]['role']) {
+                            $rc2 = $this->dbhm->preExec("UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;", [
+                                $role,
+                                $id1,
+                                $id2memb['groupid']
+                            ]);
+                            #error_log("Role update returned $rc2");
+                        }
+
+                        if ($rc2) {
+                            # Now we just need to delete the id2 one.
+                            $rc2 = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = ? AND groupid = ?;", [
+                                $id2,
+                                $id2memb['groupid']
+                            ]);
+
+                            #error_log("Membership DELETE returned $rc2");
+                        }
+                    }
+
+                    $rc = $rc2 && $rc ? $rc2 : 0;
+                }
+
+                # Merge the emails.  Both might have a primary address; id1 wins.  There is a unique index, so there
+                # can't be a conflict on email.
+                if ($rc) {
+                    #error_log("Merge emails");
+                    $sql = "UPDATE users_emails SET userid = ?, preferred = 0 WHERE userid = ?;";
+                    $rc = $this->dbhm->preExec($sql, [
+                        $id1,
+                        $id2
+                    ]);
+
+                    #error_log("Emails now " . var_export($this->dbhm->preQuery("SELECT * FROM users_emails WHERE userid = $id1;"), true));
+                    #error_log("Email merge returned $rc");
+                }
+
+                # Merge the logs.  There should be logs both about and by each user, so we can use the rc to check success.
+                if ($rc) {
+                    $rc = $this->dbhm->preExec("UPDATE logs SET user = ? WHERE user = ?;", [
+                        $id1,
+                        $id2
+                    ]);
+
+                    #error_log("Log merge 1 returned $rc");
+                }
+
+                if ($rc) {
+                    $rc = $this->dbhm->preExec("UPDATE logs SET byuser = ? WHERE byuser = ?;", [
+                        $id1,
+                        $id2
+                    ]);
+
+                    #error_log("Log merge 2 returned $rc");
+                }
+
+                # Merge the fromuser in messages.  There might not be any, and it's not the end of the world
+                # if this info isn't correct, so ignore the rc.
+                if ($rc) {
+                    $this->dbhm->preExec("UPDATE messages SET fromuser = ? WHERE fromuser = ?;", [
+                        $id1,
+                        $id2
+                    ]);
+                }
+
+                if ($rc) {
+                    # Log the merge - before the delete otherwise we will fail to log it.
+                    $l->log([
+                        'type' => Log::TYPE_USER,
+                        'subtype' => Log::SUBTYPE_MERGED,
+                        'user' => $id2,
+                        'byuser' => $me ? $me->getId() : NULL,
+                        'text' => "Merged $id1 into $id2"
+                    ]);
+
+                    # Log under both users to make sure we can trace it.
+                    $l->log([
+                        'type' => Log::TYPE_USER,
+                        'subtype' => Log::SUBTYPE_MERGED,
+                        'user' => $id1,
+                        'byuser' => $me ? $me->getId() : NULL,
+                        'text' => "Merged $id1 into $id2"
+                    ]);
+
+                    # Finally, delete id2.
+                    #error_log("Delete $id2");
+                    $deleteme = new User($this->dbhr, $this->dbhm, $id2);
+                    $rc = $deleteme->delete();
+                }
+
+                if ($rc) {
+                    # Everything worked.
+                    $rollback = FALSE;
+                }
+            } catch (Exception $e) {
+                $rollback = TRUE;
+            }
+        }
+
+        if ($rollback) {
+            # Something went wrong.
+            $this->dbhm->rollBack();
+            $ret = FALSE;
+        } else {
+            $ret = $this->dbhm->commit();
+       }
+
+        return($ret);
     }
 
     public function delete() {

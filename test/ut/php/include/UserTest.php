@@ -27,6 +27,7 @@ class userTest extends IznikTest {
         $dbhm->preExec("DELETE FROM users WHERE firstname = 'Test' AND lastname = 'User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup1';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup2';");
+        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup3';");
     }
 
     protected function tearDown() {
@@ -85,7 +86,7 @@ class userTest extends IznikTest {
         assertGreaterThan(0, $u->addEmail('test2@test.com', 0));
         $emails = $u->getEmails();
         assertEquals(2, count($emails));
-        assertEquals(0, $emails[1]['primary']);
+        assertEquals(0, $emails[1]['preferred']);
         assertEquals($id, $u->findByEmail('test2@test.com'));
         assertGreaterThan(0, $u->removeEmail('test2@test.com'));
         assertNull($u->findByEmail('test2@test.com'));
@@ -209,6 +210,122 @@ class userTest extends IznikTest {
 
         $membs = $u->getMemberships();
         assertEquals(0, count($membs));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testMerge() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
+        $group3 = $g->create('testgroup3', Group::GROUP_REUSE);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $id1 = $u->create(NULL, NULL, 'Test User');
+        $id2 = $u->create(NULL, NULL, 'Test User');
+        $u1 = new User($this->dbhr, $this->dbhm, $id1);
+        $u2 = new User($this->dbhr, $this->dbhm, $id2);
+        assertGreaterThan(0, $u1->addEmail('test1@test.com'));
+        assertGreaterThan(0, $u1->addEmail('test2@test.com', 0));
+
+        # Set up various memberships
+        $u1->addMembership($group1, User::ROLE_MODERATOR);
+        $u2->addMembership($group1, User::ROLE_MEMBER);
+        $u2->addMembership($group2, User::ROLE_OWNER);
+        $u1->addMembership($group3, User::ROLE_MEMBER);
+        $u2->addMembership($group3, User::ROLE_MODERATOR);
+
+        # Merge u2 into u1
+        assertTrue($u1->merge($id1, $id2));
+
+        # Pick up new settings.
+        $u1 = new User($this->dbhr, $this->dbhm, $id1);
+        $u2 = new User($this->dbhr, $this->dbhm, $id2);
+
+        # u2 doesn't exist
+        assertNull($u2->getId());
+
+        # Now u1 is a member of all three
+        $membs = $u1->getMemberships();
+        assertEquals(3, count($membs));
+        assertEquals($group1, $membs[0]['id']);
+        assertEquals($group2, $membs[1]['id']);
+        assertEquals($group3, $membs[2]['id']);
+
+        # The merge should have preserved the highest setting.
+        assertEquals(User::ROLE_MODERATOR, $membs[0]['role']);
+        assertEquals(User::ROLE_OWNER, $membs[1]['role']);
+        assertEquals(User::ROLE_MODERATOR, $membs[2]['role']);
+
+        $emails = $u1->getEmails();
+        error_log("Emails " . var_export($emails, true));
+        assertEquals(2, count($emails));
+        assertEquals('test1@test.com', $emails[0]['email']);
+        assertEquals(1, $emails[0]['preferred']);
+        assertEquals('test2@test.com', $emails[1]['email']);
+        assertEquals(0, $emails[1]['preferred']);
+
+        $atts = $u1->getPublic(NULL, FALSE, TRUE);
+        error_log("ID is " . $u1->getId() . " public " . var_export($atts, true));
+        $log = $this->findLog('User', 'Merged', $atts['logs']);
+        assertEquals($id1, $log['user']['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testMergeError() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
+        $group3 = $g->create('testgroup3', Group::GROUP_REUSE);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $id1 = $u->create(NULL, NULL, 'Test User');
+        $id2 = $u->create(NULL, NULL, 'Test User');
+        $u1 = new User($this->dbhr, $this->dbhm, $id1);
+        $u2 = new User($this->dbhr, $this->dbhm, $id2);
+        assertGreaterThan(0, $u1->addEmail('test1@test.com'));
+        assertGreaterThan(0, $u1->addEmail('test2@test.com', 1));
+
+        # Set up various memberships
+        $u1->addMembership($group1, User::ROLE_MODERATOR);
+        $u2->addMembership($group1, User::ROLE_MEMBER);
+        $u2->addMembership($group2, User::ROLE_OWNER);
+        $u1->addMembership($group3, User::ROLE_MEMBER);
+        $u2->addMembership($group3, User::ROLE_MODERATOR);
+
+        $dbconfig = array (
+            'host' => '127.0.0.1',
+            'user' => SQLUSER,
+            'pass' => SQLPASSWORD,
+            'database' => SQLDB
+        );
+
+        $dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8";
+
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+            ), TRUE))
+            ->setMethods(array('preExec'))
+            ->getMock();
+        $mock->method('preExec')->willThrowException(new Exception());
+        $u1->setDbhm($mock);
+
+        # Merge u2 into u1
+        assertFalse($u1->merge($id1, $id2));
+
+        # Pick up new settings.
+        $u1 = new User($this->dbhr, $this->dbhm, $id1);
+        $u2 = new User($this->dbhr, $this->dbhm, $id2);
+
+        # Both exist
+        assertNotNull($u1->getId());
+        assertNotNull($u2->getId());
 
         error_log(__METHOD__ . " end");
     }
