@@ -109,6 +109,12 @@ class sessionTest extends IznikAPITest {
         assertTrue($u->addEmail('test@test.com'));
         $u = new User($this->dbhm, $this->dbhm, $id);
 
+        $ret = $this->call('session', 'PATCH', [
+            'firstname' => 'Test2',
+            'lastname' => 'User2'
+        ]);
+        assertEquals(1, $ret['ret']);
+
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $ret = $this->call('session', 'POST', [
             'email' => 'test@test.com',

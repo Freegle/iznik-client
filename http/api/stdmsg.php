@@ -98,6 +98,7 @@ function stdmsg() {
                         }
                     }
                 }
+                break;
             }
 
             case 'DELETE': {

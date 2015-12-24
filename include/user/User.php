@@ -576,7 +576,7 @@ class User extends Entity
         return($atts);
     }
 
-    private function roleMax($role1, $role2) {
+    public function roleMax($role1, $role2) {
         $role = User::ROLE_NONMEMBER;
 
         if ($role1 == User::ROLE_MEMBER || $role2 == User::ROLE_MEMBER) {

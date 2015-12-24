@@ -15,33 +15,45 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 
 $u = new User($dbhr, $dbhm);
 
+function handle($dbhr, $dbhm, $u, $realmail, $user) {
+    # We have found the real email corresponding to this membership.  It might be that this real email is already
+    # attached to an existing user.
+    $id = $u->findByEmail($realmail);
+
+    if (!$id) {
+        # But it doesn't.  Add it as the primary, and make sure the groups email is secondary.
+        error_log("Add $realmail} to {$user['id']} {$user['email']}");
+        $u = new User($dbhr, $dbhm, $user['id']);
+        $u->addEmail($realmail, 1);
+        $u->removeEmail($user['email']);
+        $u->addEmail($user['email'], 0);
+        $u->setPrivate('gotrealemail', 1);
+    } else {
+        # It does, so we have to do some merging.  Then make sure the useremail is the prerred
+        error_log("Merge of {$user['id']} {$user['email']} and $id $realmail required");
+        $u = new User($dbhr, $dbhm, $user['id']);
+        $u->merge($user['id'], $id);
+        $dbhm->preQuery("UPDATE users_emails SET preferred = 0 WHERE userid = ?;", [ $user['id'] ]);
+        $dbhm->preQuery("UPDATE users_emails SET preferred = 1 WHERE email = ?;", [ $realmail ]);
+        $u->setPrivate('gotrealemail', 1);
+    }
+}
+
 $users = $dbhr->preQuery("SELECT DISTINCT users.id, users_emails.email FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE gotrealemail = 0 AND email LIKE 'FBUser%';");
 foreach ($users as $user) {
     $sql = "SELECT useremail FROM users WHERE groupsemail LIKE " . $dbhold->quote($user['email']) . ";";
     $fdusers = $dbhold->query($sql);
     foreach ($fdusers as $fduser) {
-        # We have found the real email corresponding to this membership.  It might be that this real email is already
-        # attached to an existing user.
-        $id = $u->findByEmail($fduser['useremail']);
-
-        if (!$id) {
-            # But it doesn't.  Add it as the primary, and make sure the groups email is secondary.
-            error_log("Add {$fduser['useremail']} to {$user['id']} {$user['email']}");
-            $u = new User($dbhr, $dbhm, $user['id']);
-            $u->addEmail($fduser['useremail'], 1);
-            $u->removeEmail($user['email']);
-            $u->addEmail($user['email'], 0);
-            $u->setPrivate('gotrealemail', 1);
-        } else {
-            # It does, so we have to do some merging.  Then make sure the useremail is the prerred
-            error_log("Merge of {$user['id']} {$user['email']} and $id {$fduser['useremail']} required");
-            $u = new User($dbhr, $dbhm, $user['id']);
-            $u->merge($user['id'], $id);
-            $dbhm->preQuery("UPDATE users_emails SET preferred = 0 WHERE userid = ?;", [ $user['id'] ]);
-            $dbhm->preQuery("UPDATE users_emails SET preferred = 1 WHERE email = ?;", [ $fduser['useremail'] ]);
-            $u->setPrivate('gotrealemail', 1);
-        }
+        handle($dbhr, $dbhm, $u, $fduser['useremail'], $user);
     }
 }
 
-$users = $dbhr->preQuery("SELECT DISTINCT users.id, users_emails.email FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE gotrealemail = 0 AND (email LIKE 'FBUser%' OR email LIKE '%trashnothing.com');");
+//$users = $dbhr->preQuery("SELECT DISTINCT users.id, users_emails.email FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE gotrealemail = 0 AND email LIKE '%trashnothing.com';");
+//foreach ($users as $user) {
+//    $url = "https://trashnothing.com/modtools/api/subscriptions?key=" . TNKEY . "&email=" . urlencode($user['email']);
+//    error_log($url);
+//    $rsp = file_get_contents($url);
+//    error_log(var_export($rsp, true));
+//    exit(0);
+//    #handle($dbhr, $dbhm, $u, $realmail, $user);
+//}

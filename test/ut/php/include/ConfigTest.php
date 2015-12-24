@@ -86,13 +86,20 @@ class configTest extends IznikTest {
         assertEquals($this->uid, $c->getPrivate('createdby'));
 
         $configs = $this->user->getConfigs();
-        assertEquals($id, $configs[0]['id']);
 
-        $logs = $this->user->getPublic(NULL, FALSE, TRUE);
+        # Have to scan as there are defaults.
+        $found = FALSE;
+        foreach ($configs as $config) {
+            if ($id == $config['id']) {
+                $found = TRUE;
+            }
+        }
+        assertTrue($found);
+
+        $logs = $this->user->getPublic(NULL, FALSE, TRUE)['logs'];
         error_log("USer logs " . var_export($logs, true));
-        assertEquals(Log::TYPE_CONFIG, $logs['logs'][2]['type']);
-        assertEquals(Log::SUBTYPE_CREATED, $logs['logs'][2]['subtype']);
-        assertEquals($this->uid, $logs['logs'][2]['byuser']['id']);
+        $log = $this->findLog(Log::TYPE_CONFIG, Log::SUBTYPE_CREATED, $logs);
+        assertEquals($this->uid, $log['byuser']['id']);
 
         $c->delete();
 

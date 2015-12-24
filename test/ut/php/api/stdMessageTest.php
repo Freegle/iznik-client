@@ -41,8 +41,10 @@ class stdMessageAPITest extends IznikAPITest {
         # Create an empty config
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         assertTrue($this->user->login('testpw'));
+        #error_log("Last post {$_SESSION['POSTLASTDATA']}");
         $ret = $this->call('modconfig', 'POST', [
-            'name' => 'UTTest'
+            'name' => 'UTTest',
+            'dup' => time()
         ]);
         assertEquals(0, $ret['ret']);
         $this->cid = $ret['id'];
