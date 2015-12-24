@@ -59,6 +59,7 @@ function stdmsg() {
                 break;
             }
 
+            case 'PUT':
             case 'PATCH': {
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
@@ -90,6 +91,45 @@ function stdmsg() {
                             ];
                         } else {
                             $s->setAttributes($_REQUEST);
+                            $ret = [
+                                'ret' => 5,
+                                'status' => 'You don\'t have rights to edit this config',
+                            ];
+                        }
+                    }
+                }
+            }
+
+            case 'DELETE': {
+                if (!$me) {
+                    $ret = ['ret' => 1, 'status' => 'Not logged in'];
+                } else {
+                    $systemrole = $me->getPublic()['systemrole'];
+
+                    if ($systemrole != User::SYSTEMROLE_MODERATOR &&
+                        $systemrole != User::SYSTEMROLE_SUPPORT &&
+                        $systemrole != User::SYSTEMROLE_ADMIN) {
+                        $ret = [
+                            'ret' => 4,
+                            'status' => 'Don\t have rights to modify configs'
+                        ];
+                    } else {
+                        # We can only delete this standard message if we have access to the modconfig which owns it.
+                        $myconfigs = $me->getConfigs();
+                        $found = FALSE;
+                        foreach ($myconfigs as $config) {
+                            if ($config['id'] == $s->getPrivate('configid')) {
+                                $found = TRUE;
+                            }
+                        }
+
+                        if ($found) {
+                            $s->delete();
+                            $ret = [
+                                'ret' => 0,
+                                'status' => 'Success',
+                            ];
+                        } else {
                             $ret = [
                                 'ret' => 5,
                                 'status' => 'You don\'t have rights to edit this config',

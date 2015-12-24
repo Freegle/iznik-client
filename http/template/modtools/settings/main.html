@@ -72,30 +72,39 @@
                     <form id="modconfiggeneral" class="row" />
                 </div>
                 <div>
-                    <h3>Pending Messages</h3>
+                    <h3>Standard Messages</h3>
+                    <p class="text-muted">
+                        Standard messages appear as buttons on other pages, and allow you to quickly
+                        send a mail to a user, and perform common operations on them such as changing their moderation
+                        status.
+                    </p>
                     <p class="text-muted">Click on a button to edit the message.  Drag and drop to change the order.</p>
-                    <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgspending">
-                    </ul>
-                </div>
-                <div>
-                    <h3>Messages</h3>
-                    <p class="text-muted">Click on a button to edit the message.  Drag and drop to change the order.</p>
-                    <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgsapproved">
-                    </ul>
-                </div>
-                <div>
-                    <h3>Pending Members</h3>
-                    <p class="text-muted">Click on a button to edit the message.  Drag and drop to change the order.</p>
-                    <p class="text-muted">Not implemented yet</p>
-                    <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgspendingmembers">
-                    </ul>
-                </div>
-                <div>
-                    <h3>Members</h3>
-                    <p class="text-muted">Click on a button to edit the message.  Drag and drop to change the order.</p>
-                    <p class="text-muted">Not implemented yet</p>
-                    <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgsmembers">
-                    </ul>
+                    <button class="btn btn-white js-addstdmsg">
+                        <div class="glyphicon glyphicon-plus" />
+                        Add new standard message
+                    </button>
+                    <div>
+                        <h4>Pending Messages</h4>
+                        <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgspending">
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Messages</h4>
+                        <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgsapproved">
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Pending Members</h4>
+                        <p class="text-muted">Not implemented yet</p>
+                        <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgspendingmembers">
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Members</h4>
+                        <p class="text-muted">Not implemented yet</p>
+                        <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgsmembers">
+                        </ul>
+                    </div>
                 </div>
                 <div>
                     <h3>Bulk Operations</h3>

@@ -4,7 +4,8 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
     template: "modtools_settings_main",
 
     events: {
-        'change .js-configselect': 'configSelect'
+        'change .js-configselect': 'configSelect',
+        'click .js-addstdmsg': 'addStdMsg'
     },
 
     settingsGroup: function() {
@@ -187,6 +188,21 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         }
     },
 
+    addStdMsg: function() {
+        // Having no id in the model means we will do a POST when we save it, and therefore create it on the server.
+        var model = new Iznik.Models.ModConfig.StdMessage({
+            configid: self.$('.js-configselect').val()
+        });
+        var v = new Iznik.Views.ModTools.Settings.StdMessage({
+            model: model
+        });
+
+        // When we close, update what's shown.
+        this.listenToOnce(v, 'modalClosed', this.configSelect);
+
+        v.render();
+    },
+
     configSelect: function() {
         var self = this;
 
@@ -197,7 +213,6 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         }
 
         var selected = self.$('.js-configselect').val();
-        console.log("configSelect", selected);
 
         if (selected > 0) {
             self.modConfigModel = new Iznik.Models.ModConfig({
@@ -302,6 +317,8 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                         config: self.modConfigModel
                     });
 
+                    self.listenTo(v, 'buttonChange', self.configSelect);
+
                     var el = v.render().el;
                     $(el).data('buttonid', stdmsg.id);
                     self.$(container).append(el);
@@ -401,6 +418,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                 $('<div />').text(config.get('name')).html() + '</option>');
         });
 
+        // Load the first config
         self.$(".js-configselect").val($(".js-configselect option:first").val());
         self.configSelect();
 
@@ -417,12 +435,19 @@ Iznik.Views.ModTools.StdMessage.SettingsButton = Iznik.Views.ModTools.StdMessage
         'click .js-delete': 'edit',
         'click .js-hold': 'edit',
         'click .js-release': 'edit',
-        'click .js-edit': 'edit'
+        'click .js-edit': 'edit',
+        'click .js-leave': 'edit'
     },
 
     edit: function() {
+        var self = this;
         var v = new Iznik.Views.ModTools.Settings.StdMessage({
             model: this.model
+        });
+
+        // If we close a modal we might need to refresh.
+        this.listenToOnce(v, 'modalClosed', function() {
+            self.trigger('buttonChange');
         });
         v.render();
     }
@@ -439,12 +464,17 @@ Iznik.Views.ModTools.Settings.StdMessage = Iznik.Views.Modal.extend({
     save: function() {
         var self = this;
 
-        self.model.save(
-            self.model.changedAttributes(),
-            {patch: true}
-        ).then(function() {
-                self.close();
+        self.model.save().then(function() {
+            self.close();
         });
+    },
+
+    delete: function() {
+        var self = this;
+
+        self.model.destroy().then(function() {
+            self.close();
+        })
     },
 
     render: function() {
@@ -531,7 +561,7 @@ Iznik.Views.ModTools.Settings.StdMessage = Iznik.Views.Modal.extend({
                     name: 'autosend',
                     label: 'Autosend',
                     control: 'select',
-                    options: [{label: 'Send immediately', value: 1}, {label: 'Edit before send', value: 0 }]
+                    options: [{label: 'Edit before send', value: 0 }, {label: 'Send immediately', value: 1}]
                 },
                 {
                     name: 'rarelyused',
