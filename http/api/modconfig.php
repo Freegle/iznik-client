@@ -56,39 +56,17 @@ function modconfig() {
             case 'PATCH': {
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
+                } else if (!$c->canModify()) {
+                    $ret = [
+                        'ret' => 4,
+                        'status' => 'You don\'t have rights to edit this config',
+                    ];
                 } else {
-                    $systemrole = $me->getPublic()['systemrole'];
-
-                    if ($systemrole != User::SYSTEMROLE_MODERATOR &&
-                        $systemrole != User::SYSTEMROLE_SUPPORT &&
-                        $systemrole != User::SYSTEMROLE_ADMIN) {
-                        $ret = [
-                            'ret' => 4,
-                            'status' => 'Don\t have rights to modify configs'
-                        ];
-                    } else {
-                        $myconfigs = $me->getConfigs();
-                        $found = FALSE;
-                        foreach ($myconfigs as $config) {
-                            if ($config['id'] == $id) {
-                                $found = TRUE;
-                            }
-                        }
-
-                        if ($found) {
-                            $c->setAttributes($_REQUEST);
-                            $ret = [
-                                'ret' => 0,
-                                'status' => 'Success',
-                            ];
-                        } else {
-                            $c->setAttributes($_REQUEST);
-                            $ret = [
-                                'ret' => 5,
-                                'status' => 'You don\'t have rights to edit this config',
-                            ];
-                        }
-                    }
+                    $c->setAttributes($_REQUEST);
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                    ];
                 }
 
                 break;
@@ -97,39 +75,17 @@ function modconfig() {
             case 'DELETE': {
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
+                } else if (!$c->canModify()) {
+                    $ret = [
+                        'ret' => 4,
+                        'status' => 'You don\'t have rights to delete this config',
+                    ];
                 } else {
-                    $systemrole = $me->getPublic()['systemrole'];
-
-                    if ($systemrole != User::SYSTEMROLE_MODERATOR &&
-                        $systemrole != User::SYSTEMROLE_SUPPORT &&
-                        $systemrole != User::SYSTEMROLE_ADMIN) {
-                        $ret = [
-                            'ret' => 4,
-                            'status' => 'Don\t have rights to modify configs'
-                        ];
-                    } else {
-                        $myconfigs = $me->getConfigs();
-                        $found = FALSE;
-                        foreach ($myconfigs as $config) {
-                            if ($config['id'] == $id) {
-                                $found = TRUE;
-                            }
-                        }
-
-                        if ($found) {
-                            $c->delete();
-                            $ret = [
-                                'ret' => 0,
-                                'status' => 'Success',
-                            ];
-                        } else {
-                            $c->setAttributes($_REQUEST);
-                            $ret = [
-                                'ret' => 5,
-                                'status' => 'You don\'t have rights to delete this config',
-                            ];
-                        }
-                    }
+                    $c->delete();
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                    ];
                 }
 
                 break;

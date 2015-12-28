@@ -169,6 +169,29 @@ class ModConfig extends Entity
         ]);
     }
 
+    public function canModify() {
+        $ret = FALSE;
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $systemrole = $me->getPublic()['systemrole'];
+
+        if ($systemrole == User::SYSTEMROLE_MODERATOR ||
+            $systemrole == User::SYSTEMROLE_SUPPORT ||
+            $systemrole == User::SYSTEMROLE_ADMIN) {
+            $myconfigs = $me->getConfigs();
+            foreach ($myconfigs as $config) {
+                # Check that this is one of our configs and either we created it, or it's not protected against
+                # changes by others.
+                if ($config['id'] == $this->id &&
+                    ($config['createdby'] == $me->getId() || !$config['protected'])) {
+                    $ret = TRUE;
+                }
+            }
+        }
+
+        return($ret);
+    }
+
     public function delete() {
         $name = $this->modconfig['name'];
         $rc = $this->dbhm->preExec("DELETE FROM mod_configs WHERE id = ?;", [$this->id]);

@@ -153,7 +153,7 @@ class configAPITest extends IznikAPITest {
             'id' => $id,
             'name' => 'UTTest3'
         ]);
-        assertEquals(5, $ret['ret']);
+        assertEquals(4, $ret['ret']);
 
         error_log(__METHOD__ . " end");
     }
@@ -203,7 +203,7 @@ class configAPITest extends IznikAPITest {
         $ret = $this->call('modconfig', 'DELETE', [
             'id' => $id
         ]);
-        assertEquals(5, $ret['ret']);
+        assertEquals(4, $ret['ret']);
 
         # Promote back
         $this->user->setRole(User::ROLE_OWNER, $this->groupid);

@@ -74,6 +74,12 @@ class StdMessage extends Entity
         ]);
     }
 
+
+    public function canModify() {
+        $c = new ModConfig($this->dbhr, $this->dbhm, $this->configid);
+        return($c->canModify());
+    }
+
     public function delete() {
         $rc = $this->dbhm->preExec("DELETE FROM mod_stdmsgs WHERE id = ?;", [$this->id]);
         if ($rc) {
