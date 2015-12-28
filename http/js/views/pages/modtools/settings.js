@@ -374,6 +374,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                         case 'Delete Approved Member':
                             container = ".js-stdmsgsmembers";
                         case 'Leave Approved Member':
+                            container = ".js-stdmsgsmembers";
                             break;
                     }
 
