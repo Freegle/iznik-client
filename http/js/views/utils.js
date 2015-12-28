@@ -145,7 +145,6 @@ Iznik.Views.PostingChart = IznikView.extend({
             self.options.data.each(function(count) {
                 arr.push([count.get('yahooPostingStatus'), count.get('count')]);
             });
-            console.log("posting chart", arr);
 
             self.data = google.visualization.arrayToDataTable(arr);
             self.chart = new google.visualization.PieChart(self.options.target);

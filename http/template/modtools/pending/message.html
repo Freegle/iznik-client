@@ -65,6 +65,13 @@
                                     <div class="glyphicon glyphicon-envelope" />&nbsp;<% if (obj.envelopefrom) { %>{{envelopefrom}}<% } else { %>{{fromaddr}}<% } %>
                                 </span>
                             </div>
+                            <% if (obj.replyto) { %>
+                            <div class="ellipsis">
+                                <span data-toggle="tooltip" title="Email was sent reqesting replies to {{replyto}}">
+                                    <div class="glyphicon glyphicon-share-alt icon-flipped-y" />&nbsp;{{replyto}}
+                                </span>
+                            </div>
+                            <% } %>
                             <div class="ellipsis">
                                 <span data-toggle="tooltip" title="Friendly name is {{fromuser.displayname}}, in message was {{fromname}}">
                                     <div class="glyphicon glyphicon-user" />&nbsp;{{fromuser.displayname}}

@@ -95,7 +95,7 @@ class Message
     private $dbhm;
 
     private $id, $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $suggestedsubject, $fromname, $fromaddr,
-        $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
+        $replyto, $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
         $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL;
 
@@ -136,7 +136,7 @@ class Message
 
     public $moderatorAtts = [
         'source', 'sourceheader', 'fromaddr', 'envelopeto', 'envelopefrom', 'messageid', 'tnpostid',
-        'fromip', 'fromcountry', 'message', 'spamreason', 'spamtype'
+        'fromip', 'fromcountry', 'message', 'spamreason', 'spamtype', 'replyto'
     ];
 
     public $ownerAtts = [
@@ -624,6 +624,11 @@ class Message
         $this->sourceheader = $Parser->getHeader('x-freegle-source');
         $this->sourceheader = ($this->sourceheader == 'Unknown' ? NULL : $this->sourceheader);
 
+        # Store Reply-To only if different from fromaddr.
+        $rh = $this->getReplyTo();
+        $rh = $rh ? $rh[0]['address'] : NULL;
+        $this->replyto = ($rh && strtolower($rh) != strtolower($this->fromaddr)) ? $rh : NULL;
+
         if (!$this->sourceheader) {
             $this->sourceheader = $Parser->getHeader('x-trash-nothing-source');
             if ($this->sourceheader) {
@@ -849,7 +854,7 @@ class Message
         $this->suggestSubject($this->groupid, $this->subject);
 
         # Save into the messages table.
-        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, fromip, subject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->date,
             $this->source,
@@ -860,6 +865,7 @@ class Message
             $this->envelopeto,
             $this->fromname,
             $this->fromaddr,
+            $this->replyto,
             $this->fromip,
             $this->subject,
             $this->messageid,
@@ -948,7 +954,7 @@ class Message
         }
 
         # Also save into the history table, for spam checking.
-        $sql = "INSERT INTO messages_history (groupid, source, fromuser, envelopefrom, envelopeto, fromname, fromaddr, subject, prunedsubject, messageid, msgid) VALUES(?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages_history (groupid, source, fromuser, envelopefrom, envelopeto, fromname, fromaddr, fromip, subject, prunedsubject, messageid, msgid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?);";
         $this->dbhm->preExec($sql, [
             $this->groupid,
             $this->source,
@@ -957,6 +963,7 @@ class Message
             $this->envelopeto,
             $this->fromname,
             $this->fromaddr,
+            $this->fromip,
             $this->subject,
             $this->getPrunedSubject(),
             $this->messageid,
@@ -988,6 +995,14 @@ class Message
 
     public function getTo() {
         return(mailparse_rfc822_parse_addresses($this->parser->getHeader('to')));
+    }
+
+    public function getReplyTo() {
+        $rt = mailparse_rfc822_parse_addresses($this->parser->getHeader('reply-to'));
+
+        # Yahoo can save off the original Reply-To header field.
+        $rt = $rt ? $rt : mailparse_rfc822_parse_addresses($this->parser->getHeader('x-original-reply-to'));
+        return($rt);
     }
 
     public function getGroups() {

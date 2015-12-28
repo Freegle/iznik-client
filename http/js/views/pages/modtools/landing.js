@@ -65,7 +65,7 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
                 graph = new Iznik.Views.PostingChart({
                     target: self.$('.js-postingchart').get()[0],
                     data: coll,
-                    title: 'Yahoo users posting status'
+                    title: 'Yahoo users\' posting status'
                 });
 
                 graph.render();
