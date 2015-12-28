@@ -167,22 +167,22 @@ class locationTest extends IznikTest {
 
         error_log(__METHOD__ . " end");
     }
-
-    public function testSpecial() {
-        error_log(__METHOD__);
-
-        $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->findByShortName('EdinburghFreegle');
-        $g = new Group($this->dbhr, $this->dbhm, $gid);
-
-        $l = new Location($this->dbhr, $this->dbhm);
-        $res = $l->search("WANTED: drawers of any kind (Stockbridge EH4)", $gid);
-
-        foreach ($res as $ares) {
-            error_log("{$ares['id']} {$ares['name']}");
-        }
-
-        error_log(__METHOD__ . " end");
-    }
+//
+//    public function testSpecial() {
+//        error_log(__METHOD__);
+//
+//        $g = new Group($this->dbhr, $this->dbhm);
+//        $gid = $g->findByShortName('EdinburghFreegle');
+//        $g = new Group($this->dbhr, $this->dbhm, $gid);
+//
+//        $l = new Location($this->dbhr, $this->dbhm);
+//        $res = $l->search("WANTED: drawers of any kind (Stockbridge EH4)", $gid);
+//
+//        foreach ($res as $ares) {
+//            error_log("{$ares['id']} {$ares['name']}");
+//        }
+//
+//        error_log(__METHOD__ . " end");
+//    }
 }
 

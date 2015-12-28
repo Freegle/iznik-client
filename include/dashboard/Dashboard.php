@@ -56,6 +56,10 @@ class Dashboard {
             # Get delivery settings breakdown, excluding FD and TN which generate their own email.
             $sql = "SELECT yahooDeliveryType, COUNT(*) AS count FROM memberships $typeq3 INNER JOIN users_emails ON memberships.userid = users_emails.userid AND email NOT LIKE 'FBUser%' AND email NOT LIKE '%trashnothing%' GROUP BY yahooDeliveryType ORDER BY count DESC;";
             $ret['deliveryhistory'] = $this->dbhr->preQuery($sql, [ $type ] );
+
+            # Get moderation status breakdown.
+            $sql = "SELECT yahooPostingStatus, COUNT(*) AS count FROM memberships $typeq3 INNER JOIN users_emails ON memberships.userid = users_emails.userid GROUP BY yahooPostingStatus ORDER BY count DESC;";
+            $ret['postinghistory'] = $this->dbhr->preQuery($sql, [ $type ] );
         } else {
             # We want the summaries for one or more groups.  Get the list.
             $groups = [];
@@ -101,6 +105,10 @@ class Dashboard {
                 # Get delivery settings breakdown, excluding FD and TN which generate their own email.
                 $sql = "SELECT yahooDeliveryType, COUNT(*) AS count FROM memberships $typeq3 INNER JOIN users_emails ON memberships.userid = users_emails.userid AND email NOT LIKE 'FBUser%' AND email NOT LIKE '%trashnothing%' WHERE groupid IN $groups GROUP BY yahooDeliveryType ORDER BY count DESC;";
                 $ret['deliveryhistory'] = $this->dbhr->preQuery($sql, [ $type ]);
+
+                # Get posting status breakdown.
+                $sql = "SELECT yahooPostingStatus, COUNT(*) AS count FROM memberships $typeq3 INNER JOIN users_emails ON memberships.userid = users_emails.userid WHERE groupid IN $groups GROUP BY yahooPostingStatus ORDER BY count DESC;";
+                $ret['postinghistory'] = $this->dbhr->preQuery($sql, [ $type ]);
             }
         }
 

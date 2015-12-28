@@ -1,0 +1,78 @@
+Return-Path: <Luton-Freegle-noreply@yahoogroups.co.uk>
+X-Sender: Luton-Freegle-noreply@yahoogroups.co.uk
+X-Apparently-To: luton-freegle@yahoogroups.co.uk
+X-Received: (qmail 29490 invoked by uid 102); 27 Dec 2015 06:45:53 -0000
+X-Received: from unknown (HELO mtaq4.grp.bf1.yahoo.com) (10.193.84.143)
+by m6.grp.bf1.yahoo.com with SMTP; 27 Dec 2015 06:45:53 -0000
+X-Received: (qmail 12128 invoked from network); 27 Dec 2015 06:45:53 -0000
+X-Received: from unknown (HELO mta1002.groups.mail.bf1.yahoo.com) (98.139.170.166)
+by mtaq4.grp.bf1.yahoo.com with SMTP; 27 Dec 2015 06:45:53 -0000
+X-Original-Return-Path: <Luton-Freegle-noreply@yahoogroups.co.uk>
+X-Received-SPF: pass (domain of yahoogroups.co.uk designates 72.30.234.134 as permitted sender)
+X-YMailISG: 7CSGWs8WLDucC7aZE8WQ5PMyLzNMlZOVVkdu9yGTJ5M_yHfT
+8fh7EfjlINXeW_vzqN5F5mBDOwx9Zc.i6mDBRPmzaxYm0EqjhLXPacVA2Sdh
+DUMyTo4iX2..Jylw9h8FHQ97Z7HgcCx5OmigI3RGM8LCq_J9hf8QXvNSKuhh
+NxBSyAkAVs42D5S7rKdxbI4Qx4rKXuO1Z8QPqOkkSozJZ50PlpWLZNSv61ix
+uN_mqDYhg6Oa39oePFD_7CvYsjXDDn1kVFBhbdMIhr72aBgF86fgohInPtNf
+tMQV3AyXmkMNGRr8oElx7jfNRJfA79KucBjRReojKQApjNdX3r2ivBbOcwIg
+KLsuowKzxUYI6gdVdeMrQOpYqQiftBjezQPI_n2KLlLEJtpWCpWCXLLxqmRF
+fMRq0DWzokaDDMZj9fGrSUBUZlqvkh9K3tSrzJ9vUUy72TH_VHeYZdCyB2aF
+4oLDAzobkfeuhn.Y2WIbYImsw6pflmK.1qTHPFfSxzDvkAS1Oij5luRE9rp5
+37hpHwS2jgSM6hnuhOeBl6NBsJ.ASOWiV6hN_hguiPo5B1xcLVbXqeozJYS7
+ZL4iSO76u4gIMENhUs5WHn9yK9dy3bAqhPknpNOMyWAZWSW7ONWOxLVTlaRW
+ReAhGk.Kl5u6pKmc9ZXAXJPTmxQQidzdfRBUqUiyXyQdK1TkfRykCrRvrMyh
+edUZ0lXYMNscR5zC1BcmTCzvUJSdZMtiZgfANj5isfXdj2qoUCJqie0R7Bxq
+S1xUCjl9BfR9uLlePH_1mgTYYKYR4dh3V1t9dLJxS0I1VGcSquhs2R.NXDF5
+J0k9hUOrbRyLN.JEksFr._9Y__wg0GYTh3txGD8_ZY3jtKh3QC7v6BJuPh71
+MVZMCNe4ELt9yOSeUzziYILO31OOqkSqEwTQH0xHltnv7JHqHs.35JeGIK9k
+1MJTQVKuVsZ_fKFI99QpzwlAsERcdbZ1RUKNLeBMgpiX7XtXyGY90sGkv1p3
+w9okQbdJdPhTfksjfsAoTcVsLP3sDPwy2A175V4yMEUG.zXvjBS2l_ngk.Xs
+inrZ5ilOGS6tKmEoRf_03uGNr___PN162.rmdL2zawNOEAZpA2r_Zkx.2nGn
+gB.Ri47LFW5KUo90yg79gUzjR8vivhWBFE9qQkELTjX3dDqMeJtazkSc2xUH
+lxDjvnaY9_BSvT9nOpSNu5.iLrHC8ZWc7NorEiI6qEGj3eDbotNwetZLgxfS
+Xx_DY8_DJ_YNlZwniVgu398t9z_h6dmqVOIe6ZJsXiszc.MIdlt.8rVtkJ68
+Dv84xJes9.aP3B_ihCM_o2DraZ.fcZFwEEJR6lMdFz3JpGVt8PVaXT7doIci
+knxWxsAApEBrG3je_MK1DsYDEdpTHz5_Zb1JyvfiSVq3fpYXIgCDAj_h
+Authentication-Results: mta1002.groups.mail.bf1.yahoo.com from=yahoogroups.co.uk; domainkeys=neutral (no sig); from=yahoogroups.co.uk; dkim=pass (ok)
+X-Received: from 127.0.0.1 (EHLO n7-vm8.bullet.mail.bf1.yahoo.com) (72.30.234.134)
+by mta1002.groups.mail.bf1.yahoo.com with SMTPS; Sun, 27 Dec 2015 06:45:53 +0000
+X-Received: from [66.196.81.176] by n7.bullet.mail.bf1.yahoo.com with NNFMP; 27 Dec 2015 06:45:53 -0000
+X-Received: from [10.193.242.235] by t6.bullet.mail.bf1.yahoo.com with NNFMP; 27 Dec 2015 06:45:53 -0000
+Date: 26 Dec 2015 22:45:53 -0800
+X-Received: from [127.0.0.1] by gapi8.grp.bf1.yahoo.com with NNFMP; 27 Dec 2015 06:45:53 -0000
+To: <Luton-Freegle@yahoogroups.co.uk>
+X-Original-Return-Path: mary_russell62@yahoo.com
+X-Mailer: Yahoo Groups Message Poster
+X-Yahoo-Newman-Property: groups-compose
+Message-ID: <n5o1f1+1bfgprj@YahooGroups.com>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="9nlWnTS9ocNmxdhsK3FKVLWiM6a5jwOaA8HvrLV"
+X-Originating-IP: 41.205.25.232
+X-Yahoo-Post-IP: 41.205.25.232
+X-Original-Reply-To: mary_russell62@yahoo.com
+Subject: OFFER:Indusrial Sewing Machine(Luton)
+X-Yahoo-Group-Post: member; u=577561361; y=B57KCoXrBW0_4exuIg5_8fJwg3l1_YSlKWQhMzDvy08KHCv7t0JB7mU
+X-Yahoo-Profile: mary_russell62
+From: mary_russell62@yahoo.com
+X-YGroups-SubInfo: t=0;f=512;g=0GZCPoRZJtNEQZA98NbaZHqBzbkYwxQTMw13nndzWyWMKnNVHiGbm16-fUBLPCXcV5w;
+
+
+--9nlWnTS9ocNmxdhsK3FKVLWiM6a5jwOaA8HvrLV
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+
+SW5kdXNyaWFsIFNld2luZyBNYWNoaW5lIHBlcmZlY3RseSBpbiBnb29kIHNoYXBlIGZvciB0aG9z
+ZSBpbnRlcmVzdGVkLg0KDQogDQoNCg==
+
+
+--9nlWnTS9ocNmxdhsK3FKVLWiM6a5jwOaA8HvrLV
+Content-Transfer-Encoding: base64
+Content-Type: text/html; charset="UTF-8"
+
+PHA+PHNwYW4+SW5kdXNyaWFsIFNld2luZyBNYWNoaW5lIHBlcmZlY3RseSBpbiBnb29kIHNoYXBl
+IGZvciB0aG9zZSBpbnRlcmVzdGVkLjxiciBjbGFzcz0ieXVpLWN1cnNvciI+PC9zcGFuPjwvcD48
+cD48c3Bhbj48YnIgY2xhc3M9Inl1aS1jdXJzb3IiPjwvc3Bhbj48L3A+
+
+
+--9nlWnTS9ocNmxdhsK3FKVLWiM6a5jwOaA8HvrLV--
+

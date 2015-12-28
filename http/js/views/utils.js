@@ -131,6 +131,38 @@ Iznik.Views.DeliveryChart = IznikView.extend({
     }
 });
 
+Iznik.Views.PostingChart = IznikView.extend({
+    template: 'utils_posting_chart',
+
+    render: function() {
+        var self = this;
+
+        // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+        _.defer(function() {
+            self.$el.html(window.template(self.template)());
+            var arr = [['Posting Status', 'Count']];
+
+            self.options.data.each(function(count) {
+                arr.push([count.get('yahooPostingStatus'), count.get('count')]);
+            });
+            console.log("posting chart", arr);
+
+            self.data = google.visualization.arrayToDataTable(arr);
+            self.chart = new google.visualization.PieChart(self.options.target);
+            self.chartOptions = {
+                title: self.options.title,
+                chartArea: {'width': '80%', 'height': '80%'},
+                colors: leftColours,
+                slices2: {
+                    1: {offset: 0.2},
+                    2: {offset: 0.2}
+                }
+            };
+            self.chart.draw(self.data, self.chartOptions);
+        });
+    }
+});
+
 Iznik.Views.DomainChart = IznikView.extend({
     template: 'utils_domain_chart',
 
@@ -182,7 +214,7 @@ Iznik.Views.SourceChart = IznikView.extend({
             self.chartOptions = {
                 title: self.options.title,
                 chartArea: {'width': '80%', 'height': '80%'},
-                colors: rightColours,
+                colors: leftColours,
                 slices2: {
                     1: {offset: 0.2},
                     2: {offset: 0.2}

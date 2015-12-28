@@ -61,6 +61,15 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
 
                 graph.render();
 
+                coll = new Iznik.Collections.DateCounts(ret.dashboard.postinghistory);
+                graph = new Iznik.Views.PostingChart({
+                    target: self.$('.js-postingchart').get()[0],
+                    data: coll,
+                    title: 'Yahoo users posting status'
+                });
+
+                graph.render();
+
                 coll = new Iznik.Collections.DateCounts(ret.dashboard.domainhistory);
                 graph = new Iznik.Views.DomainChart({
                     target: self.$('.js-domainchart').get()[0],

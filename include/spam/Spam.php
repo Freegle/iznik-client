@@ -31,16 +31,10 @@ class Spam {
     }
 
     public function check(Message $msg) {
-        $ip = $msg->getHeader('x-freegle-ip');
-        $ip = $ip ? $ip : $msg->getHeader('x-trash-nothing-user-ip');
-        $ip = $ip ? $ip : $msg->getHeader('x-yahoo-post-ip');
-        $ip = $ip ? $ip : $msg->getHeader('x-originating-ip');
-        $ip = preg_replace('/[\[\]]/', '', $ip);
+        $ip = $msg->getFromIP();
         $host = NULL;
 
         if ($ip) {
-            $msg->setFromIP($ip);
-
             $host = $msg->getFromhost();
             if (preg_match('/mail.*yahoo\.com/', $host)) {
                 # Posts submitted by email to Yahoo show up with an X-Originating-IP of one of Yahoo's MTAs.  We don't
@@ -64,6 +58,7 @@ class Spam {
             try {
                 $record = $this->reader->country($ip);
                 $country = $record->country->name;
+                error_log("Country " . var_export($country, true));
                 $msg->setPrivate('fromcountry', $record->country->isoCode);
             } catch (Exception $e) {
                 # Failed to look it up.

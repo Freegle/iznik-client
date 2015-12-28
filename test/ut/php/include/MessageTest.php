@@ -6,6 +6,7 @@ if (!defined('UT_DIR')) {
 require_once UT_DIR . '/IznikTest.php';
 require_once IZNIK_BASE . '/include/message/Message.php';
 require_once IZNIK_BASE . '/include/misc/Location.php';
+require_once IZNIK_BASE . '/include/spam/Spam.php';
 
 /**
  * @backupGlobals disabled
@@ -94,7 +95,6 @@ class messageTest extends IznikTest {
         error_log(__METHOD__ . " end");
     }
 
-
     public function testNoSender() {
         error_log(__METHOD__);
 
@@ -148,5 +148,25 @@ class messageTest extends IznikTest {
 
         error_log(__METHOD__ . " end");
     }
+
+    // For manual testing
+//    public function testSpecial() {
+//        error_log(__METHOD__);
+//
+//        $msg = file_get_contents('msgs/special');
+//
+//        $m = new Message($this->dbhr, $this->dbhm);
+//        $rc = $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+//        assertTrue($rc);
+//        $id = $m->save();
+//        $m = new Message($this->dbhr, $this->dbhm, $id);
+//        error_log("IP " . $m->getFromIP());
+//        $s = new Spam($this->dbhr, $this->dbhm);
+//        $s->check($m);
+//
+//
+//        error_log(__METHOD__ . " end");
+//    }
+//
 }
 

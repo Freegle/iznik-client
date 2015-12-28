@@ -593,6 +593,14 @@ class Message
             $this->yahooapprovedid = $matches[1];
         }
 
+        # Get IP
+        $ip = $this->getHeader('x-freegle-ip');
+        $ip = $ip ? $ip : $this->getHeader('x-trash-nothing-user-ip');
+        $ip = $ip ? $ip : $this->getHeader('x-yahoo-post-ip');
+        $ip = $ip ? $ip : $this->getHeader('x-originating-ip');
+        $ip = preg_replace('/[\[\]]/', '', $ip);
+        $this->fromip = $ip;
+
         # Yahoo posts messages from the group address, but with a header showing the
         # original from address.
         $originalfrom = $Parser->getHeader('x-original-from');
@@ -841,7 +849,7 @@ class Message
         $this->suggestSubject($this->groupid, $this->subject);
 
         # Save into the messages table.
-        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, subject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, fromip, subject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->date,
             $this->source,
@@ -852,6 +860,7 @@ class Message
             $this->envelopeto,
             $this->fromname,
             $this->fromaddr,
+            $this->fromip,
             $this->subject,
             $this->messageid,
             $this->tnpostid,
