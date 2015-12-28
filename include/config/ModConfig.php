@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
+require_once(IZNIK_BASE . '/include/config/StdMessage.php');
 
 class ModConfig extends Entity
 {
@@ -32,7 +33,7 @@ class ModConfig extends Entity
         $this->dbhm = $dbhm;
     }
 
-    public function create($name, $createdby = NULL) {
+    public function create($name, $createdby = NULL, $copyid = NULL) {
         try {
             if (!$createdby) {
                 # Create as current user
@@ -40,8 +41,47 @@ class ModConfig extends Entity
                 $createdby = $me ? $me->getId() : NULL;
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO mod_configs (name, createdby) VALUES (?, ?)", [$name, $createdby]);
-            $id = $this->dbhm->lastInsertId();
+            if (!$copyid) {
+                # Simple create of an empty config.
+                $rc = $this->dbhm->preExec("INSERT INTO mod_configs (name, createdby) VALUES (?, ?)", [$name, $createdby]);
+                $id = $this->dbhm->lastInsertId();
+            } else {
+                # We need to copy an existing config.  No need for a transaction as worst case we leave a bad config,
+                # which a mod is likely to spot and not use.
+                #
+                # First copy the basic settings.
+                $cfrom = new ModConfig($this->dbhr, $this->dbhm, $copyid);
+                $rc = $this->dbhm->preExec("INSERT INTO mod_configs (ccrejectto, ccrejectaddr, ccfollowupto, ccfollowupaddr, ccrejmembto, ccrejmembaddr, ccfollmembto, ccfollmembaddr, network, coloursubj, subjlen) SELECT ccrejectto, ccrejectaddr, ccfollowupto, ccfollowupaddr, ccrejmembto, ccrejmembaddr, ccfollmembto, ccfollmembaddr, network, coloursubj, subjlen FROM mod_configs WHERE id = ?;", [ $copyid ]);
+                $toid = $this->dbhm->lastInsertId();
+                $cto = new ModConfig($this->dbhr, $this->dbhm, $toid);
+
+                # Now set up the new name and the fact that we created it.
+                $cto->setPrivate('name', $name);
+                $cto->setPrivate('createdby', $createdby);
+
+                # Now copy the existing standard messages.  Doing it this way will preserve any custom order.
+                $stdmsgs = $cfrom->getPublic()['stdmsgs'];
+                $order = [];
+                foreach ($stdmsgs as $stdmsg) {
+                    $sfrom = new StdMessage($this->dbhr, $this->dbhm, $stdmsg['id']);
+                    $atts = $sfrom->getPublic();
+                    $sid = $sfrom->create($atts['title'], $toid);
+                    $sto = new StdMessage($this->dbhr, $this->dbhm, $sid);
+                    unset($atts['id']);
+                    unset($atts['title']);
+                    unset($atts['configid']);
+
+                    foreach ($atts as $att => $val) {
+                        $sto->setPrivate($att, $val);
+                    }
+
+                    $order[] = $sid;
+                }
+
+                $cto->setPrivate('messageorder', json_encode($order, true));
+
+                $id = $toid;
+            }
         } catch (Exception $e) {
             $id = NULL;
             $rc = 0;

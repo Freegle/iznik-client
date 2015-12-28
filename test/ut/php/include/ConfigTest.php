@@ -97,9 +97,39 @@ class configTest extends IznikTest {
         assertTrue($found);
 
         $logs = $this->user->getPublic(NULL, FALSE, TRUE)['logs'];
-        error_log("USer logs " . var_export($logs, true));
         $log = $this->findLog(Log::TYPE_CONFIG, Log::SUBTYPE_CREATED, $logs);
         assertEquals($this->uid, $log['byuser']['id']);
+
+        # Copy
+        $m = new StdMessage($this->dbhr, $this->dbhm);
+        $sid1 = $m->create("TestStdMessage1", $id);
+        $sid2 = $m->create("TestStdMessage2", $id);
+        $m = new StdMessage($this->dbhr, $this->dbhm, $sid1);
+        $m->setPrivate('action', 'Approve');
+        $id2 = $c->create('TestConfig (Copy)', $this->user->getId(), $id);
+        error_log("Copied $id to $id2");
+        $c = new ModConfig($this->dbhr, $this->dbhm, $id);
+        $c2 = new ModConfig($this->dbhr, $this->dbhm, $id2);
+        $oldatts = $c->getPublic();
+        error_log("Old " . var_export($oldatts, true));
+        $newatts = $c2->getPublic();
+        error_log("New " . var_export($newatts, true));
+
+        # Should have created a message order during the copy.
+        assertNull($oldatts['messageorder']);
+        assertNotNull($newatts['messageorder']);
+
+        assertEquals('TestConfig (Copy)', $newatts['name']);
+        unset($oldatts['id']);
+        unset($oldatts['name']);
+        unset($oldatts['messageorder']);
+        unset($oldatts['stdmsgs']);
+
+        foreach ($oldatts as $att => $val) {
+            assertEquals($val, $newatts[$att]);
+        }
+
+        assertEquals('Approve', $newatts['stdmsgs'][0]['action']);
 
         $c->delete();
 

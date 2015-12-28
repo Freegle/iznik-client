@@ -7,7 +7,8 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         'change .js-configselect': 'configSelect',
         'click .js-addstdmsg': 'addStdMsg',
         'click .js-addconfig': 'addConfig',
-        'click .js-deleteconfig': 'deleteConfig'
+        'click .js-deleteconfig': 'deleteConfig',
+        'click .js-copyconfig': 'copyConfig'
     },
 
     deleteConfig: function() {
@@ -37,6 +38,30 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                 type: 'POST',
                 url: API + 'modconfig',
                 data: {
+                    name: name
+                },
+                success: function(ret) {
+                    if (ret.ret == 0) {
+                        $('.js-configselect').selectPersist('set', ret.id);
+                        self.render();
+                    }
+                }
+            });
+        }
+    },
+
+    copyConfig: function() {
+        var self = this;
+        var name = this.$('.js-copyconfigname').val();
+        var configid = self.$('.js-configselect').val();
+
+        if (name.length > 0) {
+            // Create a new config copied from the currently selected one, and then reload.  Not very backboney.
+            $.ajax({
+                type: 'POST',
+                url: API + 'modconfig',
+                data: {
+                    id: configid,
                     name: name
                 },
                 success: function(ret) {

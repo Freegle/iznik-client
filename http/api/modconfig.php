@@ -45,7 +45,7 @@ function modconfig() {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
-                            'id' => $c->create($name, $me->getId())
+                            'id' => $c->create($name, $me->getId(), $id)
                         ];
                     }
                 }
