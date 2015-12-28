@@ -292,8 +292,12 @@ class User extends Entity
         foreach ($ids as $id) {
             $c = new ModConfig($this->dbhr, $this->dbhm, $id['id']);
             $thisone = $c->getPublic();
+
             $u = new User($this->dbhr, $this->dbhm, $thisone['createdby']);
-            $thisone['createdby'] = $u->getPublic();
+
+            if ($u->getId()) {
+                $thisone['createdby'] = $u->getPublic();
+            }
 
             $ret[] = $thisone;
         }

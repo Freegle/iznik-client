@@ -67,75 +67,81 @@
                     <div class="col-md-6">
                     </div>
                 </div>
-                <hr />
-                <div>
-                    <h3>General Settings</h3>
-                    <form id="modconfiggeneral" class="row" />
+                <div class="alert alert-info js-locked" style="display: none">
+                    This config is locked by its creator.  You can use, view or copy it, but you can't change or delete
+                    it.
                 </div>
                 <hr />
-                <div>
-                    <h3>Standard Messages</h3>
-                    <p class="text-muted">
-                        Standard messages appear as buttons on other pages, and allow you to quickly
-                        send a mail to a user, and perform common operations on them such as changing their moderation
-                        status.
-                    </p>
-                    <p class="text-muted">Click on a button to edit the message.  Drag and drop to change the order.</p>
-                    <button class="btn btn-white js-addstdmsg">
-                        <div class="glyphicon glyphicon-plus" />
-                        Add new standard message
-                    </button>
+                <div class="js-notconfigselect">
                     <div>
-                        <h4>Pending Messages</h4>
-                        <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgspending">
-                        </ul>
+                        <h3>General Settings</h3>
+                        <form id="modconfiggeneral" class="row" />
                     </div>
+                    <hr />
                     <div>
-                        <h4>Messages</h4>
-                        <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgsapproved">
-                        </ul>
+                        <h3>Standard Messages</h3>
+                        <p class="text-muted">
+                            Standard messages appear as buttons on other pages, and allow you to quickly
+                            send a mail to a user, and perform common operations on them such as changing their moderation
+                            status.
+                        </p>
+                        <p class="text-muted">Click on a button to edit the message.  Drag and drop to change the order.</p>
+                        <button class="btn btn-white js-addstdmsg">
+                            <div class="glyphicon glyphicon-plus" />
+                            Add new standard message
+                        </button>
+                        <div>
+                            <h4>Pending Messages</h4>
+                            <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgspending">
+                            </ul>
+                        </div>
+                        <div>
+                            <h4>Messages</h4>
+                            <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgsapproved">
+                            </ul>
+                        </div>
+                        <div>
+                            <h4>Pending Members</h4>
+                            <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgspendingmembers">
+                            </ul>
+                        </div>
+                        <div>
+                            <h4>Members</h4>
+                            <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgsmembers">
+                            </ul>
+                        </div>
                     </div>
+                    <hr />
                     <div>
-                        <h4>Pending Members</h4>
-                        <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgspendingmembers">
-                        </ul>
+                        <h3>Bulk Operations</h3>
+                        <p class="text-muted">Not implemented yet</p>
+                        <form id="modconfigbulk" class="row" />
                     </div>
+                    <hr />
                     <div>
-                        <h4>Members</h4>
-                        <ul class="list-inline list-unstyled stdmsgs js-sortable js-stdmsgsmembers">
-                        </ul>
-                    </div>
-                </div>
-                <hr />
-                <div>
-                    <h3>Bulk Operations</h3>
-                    <p class="text-muted">Not implemented yet</p>
-                    <form id="modconfigbulk" class="row" />
-                </div>
-                <hr />
-                <div>
-                    <h3>Actions</h3>
-                    <p class="text-muted">
-                        You can do various things to this ModConfig.
-                    </p>
-                    <h4>Copy this config</h4>
-                    <div class="input-group">
-                        <input type="text" class="form-control js-copyconfigname" placeholder="Enter new config name" aria-describedby="configcopy" />
+                        <h3>Actions</h3>
+                        <p class="text-muted">
+                            You can do various things to this ModConfig.
+                        </p>
+                        <h4>Copy this config</h4>
+                        <div class="input-group">
+                            <input type="text" class="form-control js-copyconfigname" placeholder="Enter new config name" aria-describedby="configcopy" />
                         <span class="input-group-addon js-copyconfig" id="configcopy">
                             <div class="glyphicon glyphicon-plus-sign" />&nbsp;Copy
                         </span>
-                    </div>
-                    <h4>Add new config</h4>
-                    <div class="input-group">
-                        <input type="text" class="form-control js-addconfigname" placeholder="Enter new config name" aria-describedby="configadd" />
+                        </div>
+                        <h4>Add new config</h4>
+                        <div class="input-group">
+                            <input type="text" class="form-control js-addconfigname" placeholder="Enter new config name" aria-describedby="configadd" />
                         <span class="input-group-addon js-addconfig" id="configadd">
                             <div class="glyphicon glyphicon-plus" />&nbsp;Add
                         </span>
+                        </div>
+                        <h4>Delete this config</h4>
+                        <button class="btn btn-danger botspace js-deleteconfig">
+                            <div class="glyphicon glyphicon-trash" />&nbsp;Delete {{name}}
+                        </button>
                     </div>
-                    <h4>Delete this config</h4>
-                    <button class="btn btn-danger botspace js-deleteconfig">
-                        <div class="glyphicon glyphicon-trash" />&nbsp;Delete {{name}}
-                    </button>
                 </div>
             </div>
         </div>

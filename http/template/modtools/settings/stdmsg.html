@@ -13,9 +13,13 @@
                 <div id="js-form"></div>
             </div>
             <div class="modal-footer">
+                <% if (!obj.protected) { %>
                 <button type="button" class="btn btn-success js-save">Save Changes</button>
                 <button type="button" class="btn btn-danger js-delete">Delete</button>
                 <button type="button" class="btn btn-white js-close" data-dismiss="modal">Cancel</button>
+                <% } else { %>
+                <button type="button" class="btn btn-white js-close" data-dismiss="modal">Close</button>
+                <% } %>
             </div>
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->

@@ -268,6 +268,16 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         v.render();
     },
 
+    locked: function(model) {
+        // Whether we can make changes to this config.
+        if (!this.modConfigModel) {
+            return(false);
+        }
+        var createdby = this.modConfigModel.get('createdby');
+        var disabled = !createdby || createdby!= Iznik.Session.get('me').id;
+        return(disabled);
+    },
+
     configSelect: function() {
         var self = this;
 
@@ -307,18 +317,29 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     {
                         name: 'subjreg',
                         label: 'Regular expression for colour-coding',
+                        disabled: self.locked,
                         control: 'input'
                     },
                     {
                         name: 'subjlen',
                         label: 'Subject length warning',
                         control: 'input',
+                        disabled: self.locked,
                         type: 'number'
                     },
                     {
                         name: 'network',
                         label: 'Network name for $network substitution string',
                         control: 'input'
+                    },
+                    {
+                        name: 'protected',
+                        label: 'Locked to only allow changes by creator?',
+                        control: 'select',
+                        options: [
+                            {label: 'Locked', value: 1},
+                            {label: 'Unlocked', value: 'Unlocked' }
+                        ]
                     },
                     {
                         control: 'button',
@@ -346,6 +367,8 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                 });
 
                 self.modConfigFormGeneral.render();
+
+                var locked = self.locked();
 
                 // Add buttons for the standard messages in the various places.
                 var sortmsgs = orderedMessages(self.modConfigModel.get('stdmsgs'), self.modConfigModel.get('messageorder'));
@@ -377,6 +400,8 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                             container = ".js-stdmsgsmembers";
                             break;
                     }
+
+                    stdmsg.protected = locked;
 
                     var v = new Iznik.Views.ModTools.StdMessage.SettingsButton({
                         model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
@@ -411,8 +436,18 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     });
                 });
 
+                if (locked) {
+                    // We can't change anything, except to select another config, copy or add
+                    self.$('.js-notconfigselect input,.js-notconfigselect select,.js-notconfigselect button').prop('disabled', true).addClass('disabled');
+                    self.$('.js-copyconfigname, .js-copyconfig, .js-addconfigname, .js-addconfig').prop('disabled', false).removeClass('disabled');
+                    self.$('.js-locked').show();
+                } else {
+                    self.$('.js-notconfigselect input,.js-notconfigselect select,.js-notconfigselect button').prop('disabled', false).removeClass('disabled');
+                    self.$('.js-locked').hide();
+                }
+
                 // Layout messes up a bit for radio buttons.
-                self.$(':radio').closest('.form-group').addClass('clearfix');
+                self.$('input').closest('.form-group').addClass('clearfix');
             });
         }
     },
