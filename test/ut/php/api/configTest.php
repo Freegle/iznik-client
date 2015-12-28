@@ -157,5 +157,68 @@ class configAPITest extends IznikAPITest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testDelete() {
+        error_log(__METHOD__);
+
+        assertTrue($this->user->login('testpw'));
+        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+        $ret = $this->call('modconfig', 'POST', [
+            'name' => 'UTTest'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+
+        # Log out
+        unset($_SESSION['id']);
+
+        # When not logged in
+        $ret = $this->call('modconfig', 'DELETE', [
+            'id' => $id
+        ]);
+        assertEquals(1, $ret['ret']);
+
+        # Log back in
+        assertTrue($this->user->login('testpw'));
+
+        # As a non-mod
+        error_log("Demote");
+        $this->user->setRole(User::ROLE_MEMBER, $this->groupid);
+        $ret = $this->call('modconfig', 'DELETE', [
+            'id' => $id
+        ]);
+        assertEquals(4, $ret['ret']);
+
+        # Try as a mod, but the wrong one.
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup2', Group::GROUP_REUSE);
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $user = new User($this->dbhr, $this->dbhm, $uid);
+        $user->addEmail('test2@test.com');
+        $user->addMembership($gid, User::ROLE_OWNER);
+        assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($user->login('testpw'));
+
+        $ret = $this->call('modconfig', 'DELETE', [
+            'id' => $id
+        ]);
+        assertEquals(5, $ret['ret']);
+
+        # Promote back
+        $this->user->setRole(User::ROLE_OWNER, $this->groupid);
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('modconfig', 'DELETE', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('modconfig', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

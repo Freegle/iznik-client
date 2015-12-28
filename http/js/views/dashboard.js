@@ -27,7 +27,7 @@ var rightColours = [
 ];
 
 Iznik.Views.MessageGraph = IznikView.extend({
-    template: 'utils_message_graph',
+    template: 'dashboard_message_graph',
 
     render: function() {
         var self = this;
@@ -70,7 +70,7 @@ Iznik.Views.MessageGraph = IznikView.extend({
 });
 
 Iznik.Views.TypeChart = IznikView.extend({
-    template: 'utils_type_chart',
+    template: 'dashboard_type_chart',
 
     render: function() {
         var self = this;
@@ -101,7 +101,7 @@ Iznik.Views.TypeChart = IznikView.extend({
 });
 
 Iznik.Views.DeliveryChart = IznikView.extend({
-    template: 'utils_delivery_chart',
+    template: 'dashboard_delivery_chart',
 
     render: function() {
         var self = this;
@@ -132,7 +132,7 @@ Iznik.Views.DeliveryChart = IznikView.extend({
 });
 
 Iznik.Views.PostingChart = IznikView.extend({
-    template: 'utils_posting_chart',
+    template: 'dashboard_posting_chart',
 
     render: function() {
         var self = this;
@@ -163,7 +163,7 @@ Iznik.Views.PostingChart = IznikView.extend({
 });
 
 Iznik.Views.DomainChart = IznikView.extend({
-    template: 'utils_domain_chart',
+    template: 'dashboard_domain_chart',
 
     render: function() {
         var self = this;
@@ -194,7 +194,7 @@ Iznik.Views.DomainChart = IznikView.extend({
 });
 
 Iznik.Views.SourceChart = IznikView.extend({
-    template: 'utils_source_chart',
+    template: 'dashboard_source_chart',
 
     render: function() {
         var self = this;

@@ -89,3 +89,27 @@ Iznik.Views.Modal = IznikView.extend({
         this.open(this.template, this.model);
     }
 });
+
+Iznik.Views.Confirm = Iznik.Views.Modal.extend({
+    template: 'confirm',
+
+    events: {
+        'click .js-confirm': 'confirm',
+        'click .js-cancel': 'cancel'
+    },
+
+    confirm: function() {
+        this.trigger('confirmed');
+        this.close();
+    },
+
+    cancel: function() {
+        this.trigger('cancelled');
+        this.close();
+    },
+
+    render: function() {
+        this.open(this.template);
+    }
+});
+

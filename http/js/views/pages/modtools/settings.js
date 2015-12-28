@@ -5,7 +5,48 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
     events: {
         'change .js-configselect': 'configSelect',
-        'click .js-addstdmsg': 'addStdMsg'
+        'click .js-addstdmsg': 'addStdMsg',
+        'click .js-addconfig': 'addConfig',
+        'click .js-deleteconfig': 'deleteConfig'
+    },
+
+    deleteConfig: function() {
+        var self = this;
+        var v = new Iznik.Views.Confirm({
+            model: self.modConfigModel
+        });
+        v.template = 'modtools_settings_delconfconfirm';
+
+        self.listenToOnce(v, 'confirmed', function() {
+            var configid = self.$('.js-configselect').val();
+            self.modConfigModel.destroy().then(function() {
+                self.render();
+            });
+        });
+
+        v.render();
+    },
+
+    addConfig: function() {
+        var self = this;
+        var name = this.$('.js-addconfigname').val();
+
+        if (name.length > 0) {
+            // Create a new config and then reload.  Not very backboney.
+            $.ajax({
+                type: 'POST',
+                url: API + 'modconfig',
+                data: {
+                    name: name
+                },
+                success: function(ret) {
+                    if (ret.ret == 0) {
+                        $('.js-configselect').selectPersist('set', ret.id);
+                        self.render();
+                    }
+                }
+            });
+        }
     },
 
     settingsGroup: function() {
@@ -27,7 +68,6 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
             group.fetch().then(function() {
                 var mysettings = group.get('mysettings');
-                console.log("mysettings", mysettings);
                 var configoptions = [];
                 var configs = Iznik.Session.get('configs');
                 configs.each(function(config) {
@@ -356,74 +396,78 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
         Iznik.Views.Page.prototype.render.call(this);
 
-        self.groupSelect = new Iznik.Views.Group.Select({
-            systemWide: false,
-            all: false,
-            mod: true,
-            choose: true,
-            id: 'settingsGroupSelect'
-        });
+        // Fetch the session to pick up any changes in the list of configs etc.
+        self.listenToOnce(Iznik.Session, 'isLoggedIn', function() {
+            self.groupSelect = new Iznik.Views.Group.Select({
+                systemWide: false,
+                all: false,
+                mod: true,
+                choose: true,
+                id: 'settingsGroupSelect'
+            });
 
-        self.listenTo(self.groupSelect, 'selected', function(selected) {
-            self.selected = selected;
-            self.settingsGroup();
-        });
+            self.listenTo(self.groupSelect, 'selected', function(selected) {
+                self.selected = selected;
+                self.settingsGroup();
+            });
 
-        // Render after the listen to as they are called during render.
-        self.$('.js-groupselect').html(self.groupSelect.render().el);
+            // Render after the listen to as they are called during render.
+            self.$('.js-groupselect').html(self.groupSelect.render().el);
 
-        // Personal settings
-        var me = Iznik.Session.get('me');
+            // Personal settings
+            var me = Iznik.Session.get('me');
 
-        self.personalModel = new IznikModel({
-            id: me.id,
-            displayname: me.displayname,
-            fullname: me.fullname
-        });
+            self.personalModel = new IznikModel({
+                id: me.id,
+                displayname: me.displayname,
+                fullname: me.fullname
+            });
 
-        var personalFields = [
-            {
-                name: 'displayname',
-                label: 'Display Name',
-                control: 'input',
-                helpMessage: 'This is your name as displayed publicly to other users, including in the $myname substitution string.'
-            },
-            {
-                control: 'button',
-                label: 'Save changes',
-                type: 'submit',
-                extraClasses: [ 'btn-success' ]
-            }
-        ];
-
-        var personalForm = new Backform.Form({
-            el: $('#personalform'),
-            model: self.personalModel,
-            fields: personalFields,
-            events: {
-                'submit': function(e) {
-                    e.preventDefault();
-                    var newdata = self.personalModel.toJSON();
-                    Iznik.Session.save(newdata, { patch: true });
-                    return(false);
+            var personalFields = [
+                {
+                    name: 'displayname',
+                    label: 'Display Name',
+                    control: 'input',
+                    helpMessage: 'This is your name as displayed publicly to other users, including in the $myname substitution string.'
+                },
+                {
+                    control: 'button',
+                    label: 'Save changes',
+                    type: 'submit',
+                    extraClasses: [ 'btn-success' ]
                 }
-            }
-        });
+            ];
 
-        personalForm.render();
+            var personalForm = new Backform.Form({
+                el: $('#personalform'),
+                model: self.personalModel,
+                fields: personalFields,
+                events: {
+                    'submit': function(e) {
+                        e.preventDefault();
+                        var newdata = self.personalModel.toJSON();
+                        Iznik.Session.save(newdata, { patch: true });
+                        return(false);
+                    }
+                }
+            });
 
-        var configs = Iznik.Session.get('configs');
-        configs.each(function(config) {
-            self.$('.js-configselect').append('<option value=' + config.get('id') + '>' +
+            personalForm.render();
+
+            var configs = Iznik.Session.get('configs');
+            configs.each(function(config) {
+                self.$('.js-configselect').append('<option value=' + config.get('id') + '>' +
                 $('<div />').text(config.get('name')).html() + '</option>');
+            });
+
+            self.$(".js-configselect").selectpicker();
+            self.$(".js-configselect").selectPersist();
+
+            self.configSelect();
+
+            // We seem to need to redelegate, otherwise the change event is not caught.
+            self.delegateEvents();
         });
-
-        // Load the first config
-        self.$(".js-configselect").val($(".js-configselect option:first").val());
-        self.configSelect();
-
-        // We seem to need to redelegate, otherwise the change event is not caught.
-        self.delegateEvents();
     }
 });
 
