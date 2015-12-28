@@ -147,8 +147,9 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
             self.$('.js-user').html(v.render().el);
 
             // The Yahoo part of the user
+            var fromemail = self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr');
             var mod = IznikYahooUsers.findUser({
-                email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
+                email: fromemail,
                 group: group.nameshort,
                 groupid: group.id
             });
@@ -159,6 +160,8 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
                 });
                 self.$('.js-yahoo').html(v.render().el);
             });
+
+            self.addOtherEmails();
 
             // Add any attachments.
             _.each(self.model.get('attachments'), function(att) {

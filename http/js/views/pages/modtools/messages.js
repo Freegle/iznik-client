@@ -116,7 +116,28 @@ Iznik.Views.ModTools.Message = IznikView.extend({
             });
             self.$('.js-relatedlist').append(v.render().el);
         });
+    },
+
+    addOtherEmails: function() {
+        var self = this;
+        var fromemail = self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr');
+
+        // Add any other emails
+        self.$('.js-otheremails').empty();
+        _.each(self.model.get('fromuser').emails, function(email) {
+            if (email.email != fromemail) {
+                var mod = new IznikModel(email);
+                var v = new Iznik.Views.ModTools.Message.OtherEmail({
+                    model: mod
+                });
+                self.$('.js-otheremails').append(v.render().el);
+            }
+        });
     }
+});
+
+Iznik.Views.ModTools.Message.OtherEmail = IznikView.extend({
+    template: 'modtools_message_otheremail'
 });
 
 Iznik.Views.ModTools.Message.Photo = IznikView.extend({

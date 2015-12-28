@@ -276,6 +276,12 @@ class Message
 
             # Get the user details, relative to the groups this message appears on.
             $ret['fromuser'] = $u->getPublic($this->getGroups(), $messagehistory, FALSE);
+
+            if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
+                # We can see their emails.
+                $ret['fromuser']['emails'] = $u->getEmails();
+            }
+
             filterResult($ret['fromuser']);
         }
 

@@ -57,6 +57,7 @@ class messageAPITest extends IznikAPITest {
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['message']['id']);
+        assertFalse(array_key_exists('emails', $ret['message']['fromuser']));
 
         # When logged in should be able to see message history.
         $u = new User($this->dbhr, $this->dbhm);
@@ -65,6 +66,7 @@ class messageAPITest extends IznikAPITest {
         $u->addMembership($group1);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
+        assertFalse(array_key_exists('emails', $ret['message']['fromuser']));
 
         $atts = $a->getPublic();
         assertEquals(1, count($atts['fromuser']['messagehistory']));
