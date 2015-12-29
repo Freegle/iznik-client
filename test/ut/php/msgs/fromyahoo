@@ -63,7 +63,7 @@ User-Agent: eM_Client/6.0.22344.0
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
  boundary="------=_MB3F4E24FD-EFD6-48C1-97A3-F6120856B490"
-X-Originating-IP: 98.139.170.166
+X-Originating-IP: 1.2.3.4
 From: "Test User" <test@test.com>
 X-Original-From: Test User <test@test.com>
 X-Original-Reply-To: "Test User" <test@test.com>

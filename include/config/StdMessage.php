@@ -18,7 +18,6 @@ class StdMessage extends Entity
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->fetch($dbhr, $dbhm, $id, 'mod_stdmsgs', 'stdmsg', $this->publicatts);
-
         $this->log = new Log($dbhr, $dbhm);
     }
 
@@ -76,7 +75,7 @@ class StdMessage extends Entity
 
 
     public function canModify() {
-        $c = new ModConfig($this->dbhr, $this->dbhm, $this->configid);
+        $c = new ModConfig($this->dbhr, $this->dbhm, $this->stdmsg['configid']);
         return($c->canModify());
     }
 

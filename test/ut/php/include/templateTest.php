@@ -28,7 +28,7 @@ class templateTest extends IznikTest {
 
         $ret = addTemplate(IZNIK_BASE . '/http/template/', IZNIK_BASE . '/http/template/');
         var_dump($ret);
-        assertTrue(strpos($ret[1], 'landing_main') !== FALSE);
+        assertTrue(strpos($ret[8], 'landing_main') !== FALSE);
 
         error_log(__METHOD__ . " end");
     }

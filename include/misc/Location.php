@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/session/Session.php');
 class Location extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'osm_id', 'name', 'type', 'geometry', 'popularity', 'gridid', 'postcodeid', 'areaid');
+    var $publicatts = array('id', 'osm_id', 'name', 'type', 'popularity', 'gridid', 'postcodeid', 'areaid');
 
     /** @var  $log Log */
     private $log;

@@ -118,12 +118,14 @@ class stdMessageAPITest extends IznikAPITest {
 
         assertTrue($this->user->login('testpw'));
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+        error_log("Create stdmsg for {$this->cid}");
         $ret = $this->call('stdmsg', 'POST', [
             'configid' => $this->cid,
             'title' => 'UTTest'
         ]);
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
+        error_log("Created $id");
 
         # Log out
         unset($_SESSION['id']);
@@ -175,7 +177,7 @@ class stdMessageAPITest extends IznikAPITest {
             'id' => $id,
             'title' => 'UTTest3'
         ]);
-        assertEquals(5, $ret['ret']);
+        assertEquals(4, $ret['ret']);
 
         error_log(__METHOD__ . " end");
     }
@@ -226,7 +228,7 @@ class stdMessageAPITest extends IznikAPITest {
         $ret = $this->call('stdmsg', 'DELETE', [
             'id' => $id
         ]);
-        assertEquals(5, $ret['ret']);
+        assertEquals(4, $ret['ret']);
 
         # Promote back
         $this->user->setRole(User::ROLE_OWNER, $this->groupid);

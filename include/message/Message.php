@@ -9,6 +9,7 @@ require_once(IZNIK_BASE . '/include/message/Attachment.php');
 require_once(IZNIK_BASE . '/include/message/Collection.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
+require_once(IZNIK_BASE . '/include/misc/Search.php');
 
 class Message
 {
@@ -97,7 +98,8 @@ class Message
     private $id, $source, $sourceheader, $message, $textbody, $htmlbody, $subject, $suggestedsubject, $fromname, $fromaddr,
         $replyto, $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
-        $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL;
+        $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL,
+        $s;
 
     /**
      * @return mixed
@@ -168,6 +170,16 @@ class Message
             $this->parser = new PhpMimeMailParser\Parser();
             $this->parser->setText($this->message);
         }
+
+        $this->s = new Search($dbhr, $dbhm, 'messages_index', 'msgid', 'arrival', 'words');
+    }
+
+    /**
+     * @param Search $search
+     */
+    public function setSearch($search)
+    {
+        $this->s = $search;
     }
 
     # Default mailer is to use the standard PHP one, but this can be overridden in UT.
@@ -374,6 +386,14 @@ class Message
      */
     public function getFromhost()
     {
+        if (!$this->fromhost && $this->fromip) {
+            # If the call returns a hostname which is the same as the IP, then it's
+            # not resolvable.
+            $name = gethostbyaddr($this->fromip);
+            $name = ($name == $this->fromip) ? NULL : $name;
+            $this->fromhost = $name;
+        }
+
         return $this->fromhost;
     }
 
@@ -976,6 +996,9 @@ class Message
             $this->id
         ]);
 
+        # Add into the search index.
+        $this->s->add($this->id, $this->subject, strtotime($this->date));
+
         return($id);
     }
 
@@ -1260,8 +1283,12 @@ class Message
             $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND deleted = 0;";
             $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
 
+            error_log("Delete, groups " . count($groups));
             if (count($groups) === 0) {
                 $rc = $this->dbhm->preExec("UPDATE messages SET deleted = NOW() WHERE id = ?;", [ $this->id ]);
+
+                # Remove from the search index.
+                $this->s->delete($this->id);
             }
 
             $this->maybeMail($groupid, $subject, $body);
@@ -1468,5 +1495,9 @@ class Message
         }
 
         return($newsubj);
+    }
+
+    public function search($string, &$context, $limit = Search::Limit, $restrict = NULL) {
+        return($this->s->search($string, $context, $limit, $restrict));
     }
 }

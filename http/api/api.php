@@ -172,8 +172,8 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 $ret['whoamitime'] = $whoamitime;
 
                 filterResult($ret);
-
-                echo json_encode($ret);
+                $str = json_encode($ret);
+                echo $str;
             }
 
             if ($apicallretries > 0) {
