@@ -57,6 +57,17 @@ class messageTest extends IznikTest {
     public function __construct() {
     }
 
+    public function testSetFromIP() {
+        error_log(__METHOD__);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->setFromIP('8.8.8.8');
+        assertEquals('google-public-dns-a.google.com', $m->getFromhost());
+
+        error_log(__METHOD__ . " end");
+
+    }
+
     public function testRelated() {
         error_log(__METHOD__);
 

@@ -110,13 +110,11 @@ class Collection
                     # this group.
                     if (($role == User::ROLE_MEMBER || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) ||
                         ($atts['type'] == Group::GROUP_FREEGLE)) {
-                        $cansee = TRUE;
                         $groups[$groupid] = $g->getPublic();
                     }
-                } else {
-                    # We've previously got info for this group so we must be able to see it.
-                    $cansee = TRUE;
                 }
+
+                $cansee = array_key_exists($groupid, $groups);
             }
 
             if ($cansee) {
