@@ -2,7 +2,7 @@
 <div class="btn btn-success js-approve">
     <div class="glyphicon glyphicon-ok"></div>&nbsp;{{obj.title}}
 </div>
-<% } else if (obj.action == 'Reject') { %>
+<% } else if (obj.action == 'Reject' || obj.action == 'Reject Member') { %>
 <div class="btn btn-warning js-reject">
     <div class="glyphicon glyphicon-remove"></div>&nbsp;{{obj.title}}
 </div>
@@ -14,11 +14,11 @@
 <div class="btn btn-warning js-release">
     <div class="glyphicon glyphicon-play"></div>&nbsp;{{obj.title}}
 </div>
-<% } else if (obj.action == 'Leave' || obj.action == 'Leave Approved Message' || obj.action == 'Leave Approved Member') { %>
+<% } else if (obj.action == 'Leave' || obj.action == 'Leave Approved Message' || obj.action == 'Leave Approved Member' || obj.action == 'Leave Member') { %>
 <div class="btn btn-warning js-leave">
     <div class="glyphicon glyphicon-envelope"></div>&nbsp;{{obj.title}}
 </div>
-<% } else if (obj.action == 'Delete' || obj.action == 'Delete Approved Message') { %>
+<% } else if (obj.action == 'Delete' || obj.action == 'Delete Approved Message' || obj.action == 'Delete Approved Member') { %>
 <div class="btn btn-danger js-delete">
     <div class="glyphicon glyphicon-trash"></div>&nbsp;{{obj.title}}
 </div>
