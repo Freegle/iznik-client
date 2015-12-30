@@ -126,17 +126,20 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     addWork: function(work) {
         var id = work.model ? work.model.get('workid') : null;
         var add = true;
-        _.each(_.union([this.currentItem],this.work, this.retrying), function(item) {
-            if (item) {
-                var itemid = item.model ? item.model.get('workid') : null;
 
-                if (id == itemid) {
-                    // We already have this item of work - no need to add it.
-                    add = false;
-                    work.destroyIt();
+        if (id) {
+            _.each(_.union([this.currentItem], this.work, this.retrying), function (item) {
+                if (item) {
+                    var itemid = item.model ? item.model.get('workid') : null;
+
+                    if (id == itemid) {
+                        // We already have this item of work - no need to add it.
+                        add = false;
+                        work.destroyIt();
+                    }
                 }
-            }
-        });
+            });
+        }
 
         if (add) {
             this.work.push(work);

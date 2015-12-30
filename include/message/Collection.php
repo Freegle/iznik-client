@@ -64,8 +64,6 @@ class Collection
         }
 
         foreach ($groupfilter as $groupid) {
-            $g = new Group($this->dbhr, $this->dbhm, $groupid);
-            $groups[$groupid] = $g->getPublic();
             $groupids[] = $groupid;
         }
 
@@ -75,18 +73,56 @@ class Collection
             # At the moment we only support ordering by date DESC.
             #
             # Put a limit on this query to stop it being stupid, though we enforce the $limit parameter in the loop.
-            $sql = "SELECT msgid, groupid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $startq $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC LIMIT 1000";
+            $sql = "SELECT msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $startq $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC LIMIT 1000";
             $msglist = $this->dbhr->preQuery($sql, $args);
 
-            # Don't return the message attribute as it will be huge.  They can get that via a call to the
-            # message API call.
+            # Get an array of just the message ids.
+            $msgids = [];
             foreach ($msglist as $msg) {
-                $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
-                $role = $m->getRoleForMessage();
+                $msgids[] = $msg['msgid'];
+            }
+            list($groups, $msgs) = $this->fillIn($msgids, $limit);
+        }
 
+        return([$groups, $msgs]);
+    }
+
+    public function fillIn($msglist, $limit) {
+        $msgs = [];
+        $groups = [];
+
+        # Don't return the message attribute as it will be huge.  They can get that via a call to the
+        # message API call.
+        foreach ($msglist as $msg) {
+            $m = new Message($this->dbhr, $this->dbhm, $msg);
+            $role = $m->getRoleForMessage();
+
+            $thisgroups = $m->getGroups();
+            $cansee = FALSE;
+
+            foreach ($thisgroups as $groupid) {
+                if (!array_key_exists($groupid, $groups)) {
+                    $g = new Group($this->dbhr, $this->dbhm, $groupid);
+                    $atts = $g->getPublic();
+
+                    # For Freegle groups, we can see the message even if not a member.  For other groups using ModTools,
+                    # that isn't true, and we don't even want to return the information that there was a match on
+                    # this group.
+                    if (($role == User::ROLE_MEMBER || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) ||
+                        ($atts['type'] == Group::GROUP_FREEGLE)) {
+                        $cansee = TRUE;
+                        $groups[$groupid] = $g->getPublic();
+                    }
+                } else {
+                    # We've previously got info for this group so we must be able to see it.
+                    $cansee = TRUE;
+                }
+            }
+
+            if ($cansee) {
                 switch ($this->collection) {
                     case Collection::APPROVED:
-                        $n = $m->getPublic();
+                        $n = $m->getPublic(TRUE, TRUE, FALSE);
                         unset($n['message']);
                         $msgs[] = $n;
                         $limit--;
@@ -94,7 +130,7 @@ class Collection
                     case Collection::PENDING:
                         if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                             # Only visible to moderators or owners
-                            $n = $m->getPublic();
+                            $n = $m->getPublic(TRUE, TRUE, TRUE);
                             unset($n['message']);
                             $msgs[] = $n;
                             $limit--;
@@ -103,16 +139,16 @@ class Collection
                     case Collection::SPAM:
                         if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                             # Only visible to moderators or owners
-                            $n = $m->getPublic();
+                            $n = $m->getPublic(TRUE, TRUE, FALSE);
                             unset($n['message']);
                             $msgs[] = $n;
                             $limit--;
                         }
                         break;
                 }
-
-                if ($limit <= 0) { break; }
             }
+
+            if ($limit <= 0) { break; }
         }
 
         return([$groups, $msgs]);

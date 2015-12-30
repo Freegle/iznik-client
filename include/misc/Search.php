@@ -25,10 +25,11 @@ class Search
     # wouldn't be useful in indexing.  This reduces the index size .
 
     private $common = array(
-        'the', 'old', 'please', 'thanks', 'with', 'offer', 'taken', 'wanted', 'received', 'attachment'
+        'the', 'old', 'new', 'please', 'thanks', 'with', 'offer', 'taken', 'wanted', 'received', 'attachment', 'offered', 'and',
+        'freegle', 'freecycle', 'for'
     );
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $table, $idatt, $sortatt, $wordtab)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $table, $idatt, $sortatt, $wordtab, $filtatt)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -36,6 +37,7 @@ class Search
         $this->idatt = $idatt;
         $this->sortatt = $sortatt;
         $this->wordtab = $wordtab;
+        $this->filtatt = $filtatt;
     }
 
     private function getWords($string)
@@ -47,7 +49,17 @@ class Search
         $words = preg_split('/\s+/', $string);
 
         # Filter
-        return (array_diff($words, $this->common));
+        $words = array_diff($words, $this->common);
+
+        $ret = [];
+
+        foreach ($words as $word) {
+            if (strlen($word) > 2) {
+                $ret[] = $word;
+            }
+        }
+
+        return($ret);
     }
 
     private function getWordIdExact($word) {
@@ -132,7 +144,7 @@ class Search
         return(count($res) > 0 ? implode(',', $res) : '0');
     }
 
-    public function add($extid, $string, $sortval)
+    public function add($extid, $string, $sortval, $filtval)
     {
         $words = $this->getWords($string);
 
@@ -141,11 +153,12 @@ class Search
                 $id = $this->getWordIdExact($word);
                 if ($id) {
                     # We use a - value because MySQL doesn't support DESC indexing.
-                    $sql = "INSERT IGNORE INTO {$this->table} (`{$this->idatt}`, `wordid`, `{$this->sortatt}`) VALUES (?,?,?);";
+                    $sql = "INSERT IGNORE INTO {$this->table} (`{$this->idatt}`, `wordid`, `{$this->sortatt}`, `{$this->filtatt}`) VALUES (?,?,?,?);";
                     $rc = $this->dbhm->preExec($sql, [
                         $extid,
                         $id,
-                        -$sortval
+                        -$sortval,
+                        $filtval
                     ]);
 
                     $sql = "UPDATE {$this->wordtab} SET popularity = -(SELECT COUNT(*) FROM {$this->table} WHERE `wordid` = ?) WHERE `id` = ?;";
@@ -174,7 +187,7 @@ class Search
         }
     }
 
-    public function search($string, &$context, $limit = Search::Limit, $restrict = NULL)
+    public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $filts = NULL)
     {
         if (empty($restrict)) {
             $exclude = NULL;
@@ -184,6 +197,16 @@ class Search
             $exclfilt = " AND {$this->idatt} IN (" . implode(',', $restrict) . ") ";
         } else {
             $exclfilt = '';
+        }
+
+        if ($filts) {
+            foreach ($filts as &$filt) {
+                $filt = $this->dbhr->quote($filt);
+            }
+
+            $filtfilt = " AND {$this->filtatt} IN (" . implode(',', $filts) . ") ";
+        } else {
+            $filtfilt = "";
         }
 
         # We get search results from different ways of searching.  That means we need to return a context that
@@ -196,7 +219,8 @@ class Search
             if (strlen($word) > 0) {
                 # Check for exact matches even for short words
                 $startq = pres('Exact', $context) ? " AND {$this->idatt} > {$context['Exact']} " : "";
-                $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt} FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsExact($word, $limit * Search::Depth) . ") $exclfilt $startq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt} FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsExact($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                error_log($sql);
                 $batch = $this->dbhr->preQuery($sql, [
                     $this->sortatt,
                     $this->idatt
@@ -207,7 +231,7 @@ class Search
             if (strlen($word) >= 2) {
                 # Check for starts matches with two characters
                 $startq = pres('StartsWith', $context) ? " AND {$this->idatt} > {$context['StartsWith']} " : "";
-                $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt} FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsStartsWith($word, $limit * Search::Depth) . ") $exclfilt $startq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt} FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsStartsWith($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                 $batch = $this->dbhr->preQuery($sql, [
                     $this->sortatt,
                     $this->idatt
@@ -223,7 +247,7 @@ class Search
                 # Add in sounds like.  We add these in because it's quick, and some of the extra matches might be
                 # better matches overall than some of the ones we already have.
                 $startq = pres('SoundsLike', $context) ? " AND {$this->idatt} > {$context['SoundsLike']} " : "";
-                $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt} FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsSoundsLike($word, $limit * Search::Depth) . ") $exclfilt $startq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt} FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsSoundsLike($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                 $batch = $this->dbhr->preQuery($sql, [
                     $this->sortatt,
                     $this->idatt
@@ -234,7 +258,7 @@ class Search
                     # We still didn't find enough to be comfortable that we have a decent set of matches.
                     # Search for typos.  This is slow, so we need to stick a limit on it.
                     $startq = pres('Typo', $context) ? " AND {$this->idatt} > {$context['Typo']} " : "";
-                    $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt} FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsTypo($word, $limit * Search::Depth) . ") $exclfilt $startq  ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                    $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt} FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsTypo($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                     $batch = $this->dbhr->preQuery($sql, [
                         $this->sortatt,
                         $this->idatt

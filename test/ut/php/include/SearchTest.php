@@ -25,14 +25,15 @@ class searchTest extends IznikTest
 
         $this->dbhm->preExec("DROP TABLE IF EXISTS test_index");
         $this->dbhm->preExec("CREATE TABLE test_index LIKE messages_index");
-        $this->s = new Search($this->dbhr, $this->dbhm, 'test_index', 'msgid', 'arrival', 'words');
+        $this->s = new Search($this->dbhr, $this->dbhm, 'test_index', 'msgid', 'arrival', 'words', 'groupid');
         $this->dbhm->preExec("DELETE FROM words WHERE word = 'zzzutzzz';");
+        $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
     }
 
     protected function tearDown()
     {
         parent::tearDown();
-        #$this->dbhm->preExec("DROP TABLE IF EXISTS test_index");
+        $this->dbhm->preExec("DROP TABLE IF EXISTS test_index");
     }
 
     public function __construct()
@@ -43,7 +44,11 @@ class searchTest extends IznikTest
     {
         error_log(__METHOD__);
 
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+
         $msg = file_get_contents('msgs/basic');
+        $msg = str_replace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'OFFER: Test zzzutzzz', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setSearch($this->s);
@@ -65,6 +70,16 @@ class searchTest extends IznikTest
         $ctx = NULL;
         $ret = $m->search("zzzutzzz", $ctx);
         assertEquals($id1, $ret[0]);
+
+        # Test restricting by filter.
+        $ctx = NULL;
+        error_log("Restrict to $gid");
+        $ret = $m->search("Test", $ctx, Search::Limit, NULL, [ $gid ]);
+        assertEquals($id1, $ret[0]);
+
+        $ctx = NULL;
+        $ret = $m->search("Test", $ctx, Search::Limit, NULL, [ $gid+1 ]);
+        assertEquals(0, count($ret));
 
         # Test fuzzy
         $ctx = NULL;

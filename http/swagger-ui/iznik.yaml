@@ -257,6 +257,34 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+  /messages/search/{term}:
+    get:
+      summary: Messages Search
+      tags: [Messages]
+      description: |
+        Search messages
+      parameters:
+      - name: term
+        in: path
+        description: What to search for
+        type: string
+      - name: context
+        in: query
+        description: Context from previous search if any
+        type: string
+      - name: limit
+        in: query
+        description: Max number of results to return
+        type: number
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
   /messages:
     get:
       summary: Messages Get

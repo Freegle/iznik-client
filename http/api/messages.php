@@ -4,7 +4,7 @@ function messages() {
 
     $me = whoAmI($dbhr, $dbhm);
 
-    $groupid = presdef('groupid', $_REQUEST, NULL);
+    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
     $collection = presdef('collection', $_REQUEST, Collection::APPROVED);
     $start = presdef('start', $_REQUEST, NULL);
     $limit = intval(presdef('limit', $_REQUEST, 10));
@@ -15,6 +15,7 @@ function messages() {
     $yahooapprovedid = presdef('yahooapprovedid', $_REQUEST, NULL);
     $collections = presdef('collections', $_REQUEST, [ Collection::APPROVED, Collection::SPAM ]);
     $messages = presdef('messages', $_REQUEST, NULL);
+    $subaction = presdef('subaction', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 1, 'status' => 'Unknown verb' ];
 
@@ -39,15 +40,35 @@ function messages() {
                 }
             }
 
+            $msgs = NULL;
             $c = new Collection($dbhr, $dbhm, $collection);
-            list($groups, $msgs) = $c->get($start, $limit, $groups);
+
 
             $ret = [
                 'ret' => 0,
-                'status' => 'Success',
-                'groups' => $groups,
-                'messages' => $msgs
+                'status' => 'Success'
             ];
+
+            switch ($subaction) {
+                case NULL:
+                    # Just a normal fetch.
+                    list($groups, $msgs) = $c->get($start, $limit, $groups);
+                    break;
+                case 'search':
+                    # A search.
+                    $search = presdef('search', $_REQUEST, NULL);
+                    $ctx = presdef('context', $_REQUEST, NULL);
+                    $limit = presdef('limit', $_REQUEST, Search::Limit);
+
+                    $m = new Message($dbhr, $dbhm);
+                    $msgs = $m->search($search, $ctx, $limit, NULL, $groups);
+                    list($groups, $msgs) = $c->fillIn($msgs, $limit);
+                    $ret['context'] = $ctx;
+                    break;
+            }
+
+            $ret['groups'] = $groups;
+            $ret['messages'] = $msgs;
         }
         break;
 

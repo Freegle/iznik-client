@@ -38,7 +38,7 @@ class messagesTest extends IznikAPITest {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+        $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
 
         # Create a group with a message on it
         $msg = file_get_contents('msgs/basic');
@@ -52,7 +52,7 @@ class messagesTest extends IznikAPITest {
         $c = new Collection($this->dbhr, $this->dbhm, Collection::APPROVED);
         $a = new Message($this->dbhr, $this->dbhm, $id);
 
-        # Should be able to see this message even logged out.
+        # Should be able to see this message even logged out, as this is a Freegle group.
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1
         ]);

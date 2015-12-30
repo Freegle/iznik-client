@@ -38,6 +38,7 @@ class Location extends Entity
         $str = preg_replace('/\bLn\b/', 'Lane', $str);
         $str = preg_replace('/\bPl\b/', 'Place', $str);
         $str = preg_replace('/\bSq\b/', 'Square', $str);
+        $str = preg_replace('/\bCls\b/', 'Close', $str);
 
         return(strtolower(preg_replace("/[^A-Za-z0-9]/", '', $str)));
     }

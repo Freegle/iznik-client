@@ -8,16 +8,16 @@ require_once(IZNIK_BASE . '/include/message/Message.php');
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
 $at = 0;
 
-$s = new Search($dbhr, $dbhm, 'messages_index', 'msgid', 'arrival', 'words');
+$s = new Search($dbhr, $dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid');
 
 do {
     $found = FALSE;
-    $sql = "SELECT id, subject, date FROM messages ORDER BY arrival DESC LIMIT $at, " . ($at + 1000) . ";";
+    $sql = "SELECT messages.id, messages.subject, messages.date, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE id NOT IN (SELECT DISTINCT msgid FROM messages_index) ORDER BY messages.arrival DESC LIMIT $at, " . ($at + 1000) . ";";
 
     $msgs = $dbhr->query($sql);
 
     foreach ($msgs as $msg) {
-        $s->add($msg['id'], $msg['subject'], strtotime($msg['date']));
+        $s->add($msg['id'], $msg['subject'], strtotime($msg['date']), $msg['groupid']);
         $found = TRUE;
     }
 

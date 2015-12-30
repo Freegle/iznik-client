@@ -325,8 +325,15 @@ Iznik.Collections.Message = IznikCollection.extend({
 
             return ret.messages;
         } else {
-            console.log("No messages to return", ret);
             return(null);
         }
+    }
+});
+
+Iznik.Collections.Search = Iznik.Collections.Message.extend({
+    url: function() {
+        var url = API + 'messages/search/' + encodeURIComponent(this.options.search);
+        console.log("get url for search", url);
+        return(url);
     }
 });

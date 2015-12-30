@@ -171,7 +171,7 @@ class Message
             $this->parser->setText($this->message);
         }
 
-        $this->s = new Search($dbhr, $dbhm, 'messages_index', 'msgid', 'arrival', 'words');
+        $this->s = new Search($dbhr, $dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid');
     }
 
     /**
@@ -225,7 +225,7 @@ class Message
         return($role);
     }
 
-    public function getPublic($messagehistory = TRUE, $related = TRUE) {
+    public function getPublic($messagehistory = TRUE, $related = TRUE, $suggested = FALSE) {
         $ret = [];
         $role = $this->getRoleForMessage();
 
@@ -261,7 +261,11 @@ class Message
         $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ] );
 
         foreach ($ret['groups'] as &$group) {
-            $ret['suggestedsubject'] = $this->suggestSubject($group['groupid'], $this->subject);
+            if ($suggested) {
+                # This might be slow.
+                $ret['suggestedsubject'] = $this->suggestSubject($group['groupid'], $this->subject);
+            }
+
             $ret['lat'] = $this->lat;
             $ret['lng'] = $this->lng;
             $ret['locationid'] = $this->locationid;
@@ -997,7 +1001,7 @@ class Message
         ]);
 
         # Add into the search index.
-        $this->s->add($this->id, $this->subject, strtotime($this->date));
+        $this->s->add($this->id, $this->subject, strtotime($this->date), $this->groupid);
 
         return($id);
     }
@@ -1497,7 +1501,7 @@ class Message
         return($newsubj);
     }
 
-    public function search($string, &$context, $limit = Search::Limit, $restrict = NULL) {
-        return($this->s->search($string, $context, $limit, $restrict));
+    public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL) {
+        return($this->s->search($string, $context, $limit, $restrict, $groups));
     }
 }

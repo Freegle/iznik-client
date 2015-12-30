@@ -29,6 +29,12 @@ class LoggedPDO {
     protected $_db;
     private $inTransaction = FALSE;
     private $tries = 10;
+    private $errorLog = FALSE;
+    private $lastInsert = NULL;
+    private $transactionStart = NULL;
+    private $dbwaittime = 0;
+    private $pheanstalk = NULL;
+    private $readconn;
 
     /**
      * @param int $tries
@@ -37,11 +43,14 @@ class LoggedPDO {
     {
         $this->tries = $tries;
     }
-    private $lastInsert = NULL;
-    private $transactionStart = NULL;
-    private $dbwaittime = 0;
-    private $pheanstalk = NULL;
-    private $readconn;
+
+    /**
+     * @param boolean $errorLog
+     */
+    public function setErrorLog($errorLog)
+    {
+        $this->errorLog = $errorLog;
+    }
 
     /**
      * @param null $pheanstalk
@@ -149,6 +158,10 @@ class LoggedPDO {
             $this->giveUp($msg . " for $sql " . var_export($params, true) . " " . var_export($this->_db->errorInfo(), true));
 
         $this->dbwaittime += microtime(true) - $start;
+
+        if ($this->errorLog) {
+            error_log(((microtime(true) - $start) * 1000) . "ms for $sql");
+        }
 
         return($ret);
     }

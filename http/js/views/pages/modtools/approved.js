@@ -1,11 +1,24 @@
 Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
     modtools: true,
+    search: false,
 
     template: "modtools_approved_main",
+
+    events: {
+        'click .js-search': 'search',
+        'keyup .js-searchterm': 'keyup'
+    },
 
     fetching: false,
     start: null,
     startdate: null,
+
+    keyup: function(e) {
+        // Search on enter.
+        if (e.which == 13) {
+            this.$('.js-search').click();
+        }
+    },
 
     fetch: function(start) {
         var self = this;
@@ -22,7 +35,7 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
                 data.groupid = self.selected;
             }
 
-            if (self.start) {
+            if (self.start && !self.search) {
                 // If we're selecting a different group, reset the start.
                 data.start = self.selected != self.lastFetched ? null : self.startdate;
             }
@@ -40,7 +53,9 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
                 }
 
                 if (self.msgs.length > 0) {
+                    console.log("Fetched collection", self.msgs);
                     self.msgs.each(function(msg) {
+                        console.log("Fetched", msg);
                         var thisone = (new Date(msg.get('date'))).getTime();
                         if (self.start == null || thisone < self.start) {
                             self.start = thisone;
@@ -72,6 +87,33 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
                 }
             });
         }
+    },
+
+    search: function() {
+        // We do a search by swapping out the collection.
+        var self = this;
+        self.search = true;
+
+        self.collectionView.remove();
+
+        this.msgs = new Iznik.Collections.Search({
+            search: this.$('.js-searchterm').val()
+        });
+
+        self.collectionView.initialize({
+            el : self.$('.js-list'),
+            modelView : Iznik.Views.ModTools.Message.Approved,
+            modelViewOptions: {
+                collection: self.msgs,
+                page: self
+            },
+            collection: self.msgs
+        });
+
+        self.collectionView.render();
+
+        this.lastFetched = null;
+        this.fetch();
     },
 
     render: function() {
@@ -115,6 +157,9 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
         this.listenTo(Iznik.Session, 'approvedcountschanged', _.bind(this.fetch, this));
         this.listenTo(Iznik.Session, 'approvedcountschanged', _.bind(this.groupSelect.render, this.groupSelect));
         this.listenTo(Iznik.Session, 'approvedothercountschanged', _.bind(this.groupSelect.render, this.groupSelect));
+
+        // We seem to need to redelegate
+        self.delegateEvents();
     }
 });
 
