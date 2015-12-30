@@ -499,7 +499,7 @@ class User extends Entity
         # Add in a count of recent "modmail" type logs which a mod might care about.
         #
         # Exclude the logs which are due to standard message syncing.
-        $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? AND type = 'Message' AND subtype IN ('Rejected', 'Deleted') AND text NOT IN ('Not present on Yahoo pending');";
+        $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? AND type = 'Message' AND subtype IN ('Rejected', 'Deleted') AND text NOT IN ('Not present on Yahoo');";
         $mysqltime = date ("Y-m-d", strtotime("Midnight 30 days ago"));
         $alarms = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
         $atts['modmails'] = $alarms[0]['count'];
@@ -507,7 +507,7 @@ class User extends Entity
         if ($logs) {
             # Add in the log entries we have for this user.
             $me = whoAmI($this->dbhr, $this->dbhm);
-            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) AND (text IS NULL OR text NOT IN ('Not present on Yahoo pending')) ORDER BY id DESC;";
+            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) AND (text IS NULL OR text NOT IN ('Not present on Yahoo')) ORDER BY id DESC;";
             $logs = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
             $atts['logs'] = [];
             $groups = [];

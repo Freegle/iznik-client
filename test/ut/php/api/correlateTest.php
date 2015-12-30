@@ -126,6 +126,7 @@ class correlateTest extends IznikAPITest {
 
         # Create a group with a message on it
         $msg = file_get_contents('msgs/fromyahoo');
+        $origmsg = $msg;
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $msgid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -193,6 +194,129 @@ class correlateTest extends IznikAPITest {
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['missingonserver']));
         assertEquals('test1@test.com', $ret['missingonserver'][0]['email']);
+
+        # Test missing on client
+        $ret = $this->call('messages', 'POST', [
+            'groupid' => $group1,
+            'collections' => [
+                'Approved',
+                'Spam'
+            ],
+            'messages' => [
+            ],
+            'wibble' => 'bypass dup check'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['missingonserver']));
+        assertEquals(1, count($ret['missingonclient']));
+        assertEquals(isodate('Sat, 22 Aug 2015 10:45:58 +0000'), $ret['missingonclient'][0]['date']);
+
+        # Now test with multiple messages.
+        $msg = str_ireplace('freegleplayground', 'testgroup', $origmsg);
+        $msg = str_ireplace('Date: Sat, 22 Aug 2015 10:45:58 +0000', 'Date: Sat, 20 Aug 2015 10:45:58 +0000', $msg);
+        $msg = str_ireplace('X-Yahoo-Newman-ID: 19440136-m1', 'X-Yahoo-Newman-ID: 19440136-m2', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $msgid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $msg = str_ireplace('freegleplayground', 'testgroup', $origmsg);
+        $msg = str_ireplace('Date: Sat, 22 Aug 2015 10:45:58 +0000', 'Date: Sat, 21 Aug 2015 10:45:58 +0000', $msg);
+        $msg = str_ireplace('X-Yahoo-Newman-ID: 19440136-m1', 'X-Yahoo-Newman-ID: 19440136-m3', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $msgid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Now test one missing in the middle.
+        $ret = $this->call('messages', 'POST', [
+            'groupid' => $group1,
+            'collections' => [
+                'Approved',
+                'Spam'
+            ],
+            'messages' => [
+                [
+                    'email' => 'test1@test.com',
+                    'subject' => 'Basic test',
+                    'yahooapprovedid' => 2,
+                    'date' => isodate('Sat, 20 Aug 2015 10:45:58 +0000')
+                ],
+                [
+                    'email' => 'test1@test.com',
+                    'subject' => 'Basic test',
+                    'yahooapprovedid' => 2,
+                    'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
+                ]
+            ]
+        ]);
+        error_log(var_export($ret, true));
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['missingonserver']));
+        assertEquals(1, count($ret['missingonclient']));
+        assertEquals(isodate('Sat, 21 Aug 2015 10:45:58 +0000'), $ret['missingonclient'][0]['date']);
+
+        # Now test one missing from the end.
+        $ret = $this->call('messages', 'POST', [
+            'groupid' => $group1,
+            'collections' => [
+                'Approved',
+                'Spam'
+            ],
+            'messages' => [
+                [
+                    'email' => 'test1@test.com',
+                    'subject' => 'Basic test',
+                    'yahooapprovedid' => 2,
+                    'date' => isodate('Sat, 20 Aug 2015 10:45:58 +0000')
+                ],
+                [
+                    'email' => 'test1@test.com',
+                    'subject' => 'Basic test',
+                    'yahooapprovedid' => 2,
+                    'date' => isodate('Sat, 21 Aug 2015 10:45:58 +0000')
+                ]
+            ],
+            'wibble' => "Defeat dup"
+        ]);
+        error_log(var_export($ret, true));
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['missingonserver']));
+        assertEquals(1, count($ret['missingonclient']));
+        assertEquals(isodate('Sat, 22 Aug 2015 10:45:58 +0000'), $ret['missingonclient'][0]['date']);
+
+        # Now test one missing from the start.
+        $ret = $this->call('messages', 'POST', [
+            'groupid' => $group1,
+            'collections' => [
+                'Approved',
+                'Spam'
+            ],
+            'messages' => [
+                [
+                    'email' => 'test1@test.com',
+                    'subject' => 'Basic test',
+                    'yahooapprovedid' => 2,
+                    'date' => isodate('Sat, 21 Aug 2015 10:45:58 +0000')
+                ],
+                [
+                    'email' => 'test1@test.com',
+                    'subject' => 'Basic test',
+                    'yahooapprovedid' => 2,
+                    'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
+                ]
+            ],
+            'wibble' => "Defeat dup2"
+        ]);
+        error_log(var_export($ret, true));
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['missingonserver']));
+        assertEquals(1, count($ret['missingonclient']));
+        assertEquals(isodate('Sat, 20 Aug 2015 10:45:58 +0000'), $ret['missingonclient'][0]['date']);
 
         $u->delete();
         $g->delete();

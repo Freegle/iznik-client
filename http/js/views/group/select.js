@@ -11,6 +11,9 @@ Iznik.Views.Group.Select = IznikView.extend({
     render: function() {
         var self = this;
 
+        // We hide the raw select now otherwise it shows briefly.  We set visibility on the dropdown once it's built.
+        self.$el.css('visibility', 'hidden');
+
         if (self.options.hasOwnProperty('id') && !self.options.hasOwnProperty('selected')) {
             // We have a specified id.  We try to remember this in local storage
             try {
@@ -117,6 +120,9 @@ Iznik.Views.Group.Select = IznikView.extend({
             });
 
             self.trigger('selected', self.dropdown.value);
+
+            // We've built the dropdown so we can show it now.
+            $('.dd').css('visibility', 'visible');
         });
 
         return this;

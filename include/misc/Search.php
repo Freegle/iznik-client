@@ -220,7 +220,7 @@ class Search
                 # Check for exact matches even for short words
                 $startq = pres('Exact', $context) ? " AND {$this->idatt} > {$context['Exact']} " : "";
                 $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt} FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsExact($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
-                error_log($sql);
+                #error_log(" $sql  {$this->sortatt} {$this->idatt}");
                 $batch = $this->dbhr->preQuery($sql, [
                     $this->sortatt,
                     $this->idatt

@@ -1,6 +1,7 @@
 Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
     modtools: true,
     search: false,
+    context: null,
 
     template: "modtools_approved_main",
 
@@ -32,12 +33,18 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
             };
 
             if (self.selected > 0) {
+                // Specific group
                 data.groupid = self.selected;
             }
 
-            if (self.start && !self.search) {
-                // If we're selecting a different group, reset the start.
-                data.start = self.selected != self.lastFetched ? null : self.startdate;
+            if (self.options.search) {
+                // We're searching.  Pass any previous search results context so that we get the next set of results.
+                if (self.msgs.ret) {
+                    data.context = self.msgs.ret.context;
+                }
+            } else {
+                // We're not searching. We page using the date.
+                data.start = self.startdate;
             }
 
             // Fetch more messages - and leave the old ones in the collection
@@ -53,13 +60,15 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
                 }
 
                 if (self.msgs.length > 0) {
-                    console.log("Fetched collection", self.msgs);
+                    var gotsome = false;
+
                     self.msgs.each(function(msg) {
-                        console.log("Fetched", msg);
+                        //console.log("Fetched", msg.get('id'), msg.get('date'));
                         var thisone = (new Date(msg.get('date'))).getTime();
                         if (self.start == null || thisone < self.start) {
                             self.start = thisone;
                             self.startdate = msg.get('date');
+                            gotsome = true;
                         }
                     });
 
@@ -68,21 +77,29 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
                         self.lastWaypoint.destroy();
                     }
 
-                    var vm = self.collectionView.viewManager;
-                    var lastView = vm.last();
+                    if (gotsome) {
+                        // We got some different messages, so set up a scroll handler.  If we didn't get any different
+                        // messages, then there's no point - we could keep hitting the server with more requests
+                        // and not getting any.
+                        var vm = self.collectionView.viewManager;
+                        var lastView = vm.last();
 
-                    if (lastView) {
-                        self.lastMessage = lastView;
-                        self.lastWaypoint = new Waypoint({
-                            element: lastView.el,
-                            handler: function(direction) {
-                                if (direction == 'down') {
-                                    // We have scrolled to the last view.  Fetch more.
-                                    self.fetch();
-                                }
-                            },
-                            offset: '99%' // Fire as soon as this view becomes visible
-                        });
+                        if (lastView) {
+                            self.lastMessage = lastView;
+                            self.lastWaypoint = new Waypoint({
+                                element: lastView.el,
+                                handler: function(direction) {
+                                    if (direction == 'down') {
+                                        // We have scrolled to the last view.  Fetch more as long as we've not switched
+                                        // away to another page.
+                                        if (jQuery.contains(document.documentElement, lastView.el)) {
+                                            self.fetch();
+                                        }
+                                    }
+                                },
+                                offset: '99%' // Fire as soon as this view becomes visible
+                            });
+                        }
                     }
                 }
             });
@@ -90,30 +107,13 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
     },
 
     search: function() {
-        // We do a search by swapping out the collection.
-        var self = this;
-        self.search = true;
+        var term = this.$('.js-searchterm').val();
 
-        self.collectionView.remove();
-
-        this.msgs = new Iznik.Collections.Search({
-            search: this.$('.js-searchterm').val()
-        });
-
-        self.collectionView.initialize({
-            el : self.$('.js-list'),
-            modelView : Iznik.Views.ModTools.Message.Approved,
-            modelViewOptions: {
-                collection: self.msgs,
-                page: self
-            },
-            collection: self.msgs
-        });
-
-        self.collectionView.render();
-
-        this.lastFetched = null;
-        this.fetch();
+        if (term != '') {
+            Router.navigate('/modtools/approved/' + encodeURIComponent(term), true);
+        } else {
+            Router.navigate('/modtools/approved', true);
+        }
     },
 
     render: function() {
@@ -121,7 +121,16 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
 
         Iznik.Views.Page.prototype.render.call(this);
 
-        this.msgs = new Iznik.Collections.Message();
+        // The type of collection we're using depends on whether we're searching.  It controls how we fetch.
+        if (self.options.search) {
+            self.msgs = new Iznik.Collections.Search(null, {
+                search: self.options.search
+            });
+
+            self.$('.js-searchterm').val(self.options.search);
+        } else {
+            self.msgs = new Iznik.Collections.Message();
+        }
 
         // CollectionView handles adding/removing/sorting for us.
         self.collectionView = new Backbone.CollectionView( {
@@ -145,7 +154,13 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
         });
 
         self.listenTo(self.groupSelect, 'selected', function(selected) {
+            // Change the group selected.
             self.selected = selected;
+
+            // We haven't fetched anything for this group yet.
+            self.lastFetched = null;
+
+            // Do so.
             self.fetch();
         });
 
@@ -193,7 +208,6 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
 
     render: function() {
         var self = this;
-
         self.model.set('mapicon', window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif');
 
         // Get a zoom level for the map.

@@ -749,6 +749,10 @@ a button {
     opacity: 0.3;
 }
 
+.completedlyfaded {
+    opacity: 0;
+}
+
 .panel-footer .btn {
     padding: 5px;
 }

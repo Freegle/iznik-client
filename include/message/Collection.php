@@ -96,8 +96,10 @@ class Collection
         foreach ($msglist as $msg) {
             $m = new Message($this->dbhr, $this->dbhm, $msg);
             $role = $m->getRoleForMessage();
+            error_log("Role for $msg is $role");
 
             $thisgroups = $m->getGroups();
+            error_log("Groups " . var_export($thisgroups, true));
             $cansee = FALSE;
 
             foreach ($thisgroups as $groupid) {
@@ -118,6 +120,8 @@ class Collection
                     $cansee = TRUE;
                 }
             }
+
+            error_log("Fill in $msg of " . count($msglist) . " can see $cansee limit $limit");
 
             if ($cansee) {
                 switch ($this->collection) {

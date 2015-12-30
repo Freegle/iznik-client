@@ -294,8 +294,9 @@ Iznik.Models.Message = IznikModel.extend({
 
 Iznik.Collections.Message = IznikCollection.extend({
     model: Iznik.Models.Message,
+    ret: null,
 
-    initialize: function (options) {
+    initialize: function (models, options) {
         this.options = options;
 
         // Use a comparator to show in most recent first order
@@ -309,6 +310,9 @@ Iznik.Collections.Message = IznikCollection.extend({
 
     parse: function(ret) {
         var self = this;
+
+        // Save off the return in case we need any info from it, e.g. context for searches.
+        self.ret = ret;
 
         if (ret.hasOwnProperty('messages')) {
             // Fill in the groups - each message has the group object below it for our convenience, even though the server
@@ -333,7 +337,6 @@ Iznik.Collections.Message = IznikCollection.extend({
 Iznik.Collections.Search = Iznik.Collections.Message.extend({
     url: function() {
         var url = API + 'messages/search/' + encodeURIComponent(this.options.search);
-        console.log("get url for search", url);
         return(url);
     }
 });

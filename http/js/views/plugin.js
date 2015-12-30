@@ -615,7 +615,7 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.Work.extend({
                                             id: missing.id,
                                             groupid: self.model.get('id'),
                                             collection:  missing.collection,
-                                            reason: 'Not present on Yahoo pending'
+                                            reason: 'Not present on Yahoo'
                                         }
                                     }));
                                 });

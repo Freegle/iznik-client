@@ -12,7 +12,7 @@ $s = new Search($dbhr, $dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'gr
 
 do {
     $found = FALSE;
-    $sql = "SELECT messages.id, messages.subject, messages.date, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE id NOT IN (SELECT DISTINCT msgid FROM messages_index) ORDER BY messages.arrival DESC LIMIT $at, " . ($at + 1000) . ";";
+    $sql = "SELECT messages.id, messages.subject, messages.date, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE id NOT IN (SELECT DISTINCT msgid FROM messages_index) AND messages.deleted IS NULL ORDER BY messages.arrival DESC LIMIT $at, " . ($at + 1000) . ";";
 
     $msgs = $dbhr->query($sql);
 
