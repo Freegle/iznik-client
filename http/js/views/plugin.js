@@ -521,6 +521,8 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.Work.extend({
 
     ageLimit: 31,
 
+    earlist: null,
+
     crumbLocation: "/management/pendingmessages",
 
     start: function() {
@@ -563,6 +565,12 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.Work.extend({
 
             for (var i = 0; i < total; i++) {
                 var message = messages[i];
+
+                // Keep track of the earliest message we're going to pass - we may use that later to decide whether
+                // to delete.
+                self.earliest = (self.earliest == null || message[self.dateField] < self.earliest) ?
+                    message[self.dateField] : self.earliest;
+
                 var d = moment(message[this.dateField] * 1000);
                 var age = now.diff(d) / 1000 / 60 / 60 / 24;
                 maxage = age > maxage ? age : maxage;
@@ -605,19 +613,27 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.Work.extend({
                             if (ret.ret == 0) {
                                 // If there are messages which we don't have but the server does, then the server
                                 // is wrong and we need to delete them.
+                                //
+                                // We might be deleting all such messages (for Pending, where we do a sync of all
+                                // of them) or only ones which are later than the earlier message we passed and where
+                                // we therefore know they must have been deleted from Yahoo (Approved).
                                 self.promises = [];
                                 _.each(ret.missingonclient, function(missing, index, list) {
-                                    self.promises.push($.ajaxq('plugin', {
-                                        type: "DELETE",
-                                        url: API + 'message',
-                                        context: self,
-                                        data: {
-                                            id: missing.id,
-                                            groupid: self.model.get('id'),
-                                            collection:  missing.collection,
-                                            reason: 'Not present on Yahoo'
-                                        }
-                                    }));
+                                    console.log("Consider delete", self.deleteAllMissing, missing[self.dateField], self.earliest);
+                                    if (self.deleteAllMissing || missing[self.dateField] > self.earliest) {
+                                        console.log("Delete");
+                                        self.promises.push($.ajaxq('plugin', {
+                                            type: "DELETE",
+                                            url: API + 'message',
+                                            context: self,
+                                            data: {
+                                                id: missing.id,
+                                                groupid: self.model.get('id'),
+                                                collection: missing.collection,
+                                                reason: 'Not present on Yahoo'
+                                            }
+                                        }));
+                                    }
                                 });
 
                                 // If there are messages which we have but the server doesn't, then the server is
@@ -713,6 +729,8 @@ Iznik.Views.Plugin.Yahoo.SyncMessages.Pending = Iznik.Views.Plugin.Yahoo.SyncMes
     idField: 'yahoopendingid',
     dateField: 'postDate',
 
+    deleteAllMissing: true,
+
     collections: [
         'Pending',
         'Spam'
@@ -742,6 +760,8 @@ Iznik.Views.Plugin.Yahoo.SyncMessages.Approved = Iznik.Views.Plugin.Yahoo.SyncMe
     numField: 'numRecords',
     idField: 'yahooapprovedid',
     dateField: 'date',
+
+    deleteAllMissing: false,
 
     collections: [
         'Approved',

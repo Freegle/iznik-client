@@ -310,6 +310,10 @@ class MailRouterTest extends IznikTest {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
+        # The pending message should now have been deleted
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertNull($m->getID());
+
         # Now the same, but with a TN post which has no messageid.
         error_log("Now TN post");
         $msg = file_get_contents('msgs/tn');

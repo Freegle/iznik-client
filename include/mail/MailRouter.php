@@ -85,7 +85,21 @@ class MailRouter
 
     # Public for UT
     public function markApproved() {
-        return($this->dbhm->preExec("UPDATE messages_groups SET collection = 'Approved' WHERE msgid = ?;", [ $this->msg->getID() ]));
+        # It's possible that we had the message in Pending.  Ensure it's gone.
+        $sql = "DELETE FROM messages WHERE messageid = ? AND fromaddr LIKE ? AND source = ?;";
+        $this->dbhm->preExec($sql, [
+            $this->msg->getMessageID(),
+            $this->msg->getFromaddr(),
+            Message::YAHOO_PENDING
+        ]);
+        error_log("$sql " . $this->msg->getMessageID() . " " . $this->msg->getFromaddr());
+
+        # Now set this message to be in the Approved collection.
+        $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Approved' WHERE msgid = ?;", [
+            $this->msg->getID()
+        ]);
+
+        return($rc);
     }
 
     # Public for UT
@@ -98,7 +112,7 @@ class MailRouter
 
         # We route messages to one of the following destinations:
         # - to a handler for system messages
-        # - to a group
+        # - to a group, either pending or approved
         # - to a user
         # - to a spam queue
         if ($msg) {
@@ -133,7 +147,6 @@ class MailRouter
                     #error_log("Check key $key for group $groupid");
 
                     foreach ($groups as $group) {
-                        error_log("Confirm key is valid");
                         # The confirm looks valid.  Promote this user.  We only promote to moderator because we can't
                         # distinguish between owner and moderator via this route.
                         $u = new User($this->dbhr, $this->dbhm, $userid);
@@ -245,19 +258,16 @@ class MailRouter
 
             if (!$ret) {
                 # Not obviously spam.
-                #
-                # For now move all pending messages into the pending queue.  This will change when we know the
-                # moderation status of the member and the group settings.
-                # TODO
                 $ret = MailRouter::FAILURE;
-                if ($this->msg->getSource() == Message::YAHOO_PENDING &&
-                    $this->markPending()
-                ) {
-                    $ret = MailRouter::PENDING;
-                } else if ($this->markApproved()) {
-                    $ret = MailRouter::APPROVED;
-                } else {
-                    $ret = MailRouter::FAILURE;
+
+                if ($this->msg->getSource() == Message::YAHOO_PENDING) {
+                    if ($this->markPending()) {
+                        $ret = MailRouter::PENDING;
+                    }
+                } else if ($this->msg->getSource() == Message::YAHOO_APPROVED) {
+                    if ($this->markApproved()) {
+                        $ret = MailRouter::APPROVED;
+                    }
                 }
             }
         }
