@@ -125,8 +125,13 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
 
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
 
-        // Set this here to avoid escaping issues.
-        self.$('.js-subject').val(self.model.get('suggestedsubject'));
+        // Set the suggested subject here to avoid escaping issues.  Highlight it if it's different.
+        if (self.model.get('suggestedsubject') != self.model.get('subject')) {
+            self.$('.js-subject').closest('.input-group').addClass('redborder');
+            self.$('.js-subject').val(self.model.get('suggestedsubject'));
+        } else {
+            self.$('.js-subject').closest('.input-group').removeClass('redborder');
+        }
 
         _.each(self.model.get('groups'), function(group) {
             var mod = new IznikModel(group);

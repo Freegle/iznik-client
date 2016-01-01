@@ -875,6 +875,7 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
         }
     }
 });
+
 Iznik.Views.Plugin.Yahoo.SyncMembers.Approved = Iznik.Views.Plugin.Yahoo.SyncMembers.extend({
     // Setting offset to 0 omits start from first one
     offset: 0,
