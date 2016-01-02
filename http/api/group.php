@@ -75,6 +75,7 @@ function group() {
                     }
 
                     if ($ret['ret'] == 0) {
+                        $fh = fopen("/tmp/sync", "wa"); fwrite($fh, var_export($_REQUEST, TRUE)); fclose($fh);
                         $ret = $g->setMembers($members);
                     }
 

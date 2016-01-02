@@ -18,10 +18,15 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
         // For pending messages we don't do paging so put a high limit.
         data.limit = 100;
 
+        var v = new Iznik.Views.PleaseWait();
+        v.render();
+
         this.msgs.fetch({
             data: data,
             remove: true
         }).then(function() {
+            v.close();
+
             self.lastFetched = self.selected;
 
             if (self.msgs.length == 0) {
@@ -127,11 +132,12 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
 
         // Set the suggested subject here to avoid escaping issues.  Highlight it if it's different.
         if (self.model.get('suggestedsubject') != self.model.get('subject')) {
-            self.$('.js-subject').closest('.input-group').addClass('redborder');
-            self.$('.js-subject').val(self.model.get('suggestedsubject'));
+            self.$('.js-subject').closest('.input-group').addClass('subjectdifference');
         } else {
-            self.$('.js-subject').closest('.input-group').removeClass('redborder');
+            self.$('.js-subject').closest('.input-group').removeClass('subjectdifference');
         }
+
+        self.$('.js-subject').val(self.model.get('suggestedsubject'));
 
         _.each(self.model.get('groups'), function(group) {
             var mod = new IznikModel(group);

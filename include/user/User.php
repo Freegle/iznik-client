@@ -254,9 +254,10 @@ class User extends Entity
         return($rc);
     }
 
-    public function getMemberships() {
+    public function getMemberships($modonly = FALSE) {
         $ret = [];
-        $sql = "SELECT groupid, role, configid FROM memberships WHERE userid = ?;";
+        $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
+        $sql = "SELECT groupid, role, configid FROM memberships WHERE userid = ? $modq;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
 
         $c = new ModConfig($this->dbhr, $this->dbhm);

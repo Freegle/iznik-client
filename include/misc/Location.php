@@ -34,13 +34,14 @@ class Location extends Entity
         $str = preg_replace('/\bSt\b/', 'Street', $str);
         $str = preg_replace('/\bRd\b/', 'Road', $str);
         $str = preg_replace('/\bAvenue\b/', 'Av', $str);
-        $str = preg_replace('/\Dr\b/', 'Drive', $str);
+        $str = preg_replace('/\bDr\b/', 'Drive', $str);
         $str = preg_replace('/\bLn\b/', 'Lane', $str);
         $str = preg_replace('/\bPl\b/', 'Place', $str);
         $str = preg_replace('/\bSq\b/', 'Square', $str);
         $str = preg_replace('/\bCls\b/', 'Close', $str);
+        $str = strtolower(preg_replace("/[^A-Za-z0-9]/", '', $str));
 
-        return(strtolower(preg_replace("/[^A-Za-z0-9]/", '', $str)));
+        return($str);
     }
 
     public function create($osm_id, $name, $type, $geometry)
@@ -185,7 +186,7 @@ class Location extends Entity
             if (count($gridids) > 0) {
                 # First we do a simple match.  If the location is correct, that will find it quickly.
                 $term2 = $this->dbhr->quote($this->canon($term));
-                $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE canon = $term2 AND gridid IN (" . implode(',', $gridids) . ") ORDER BY LENGTH(name) ASC, popularity DESC LIMIT $limit;";
+                $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE canon = $term2 AND gridid IN (" . implode(',', $gridids) . ") ORDER BY LENGTH(canon) ASC, popularity DESC LIMIT $limit;";
                 #error_log("Simple match $sql");
                 $locs = $this->dbhr->query($sql);
 
@@ -199,8 +200,9 @@ class Location extends Entity
                 # kind of search can't use the name index, but it is restricted by grids and therefore won't be
                 # appalling.
                 #
-                # We want the shortest matches first (you might have 'Stockbridge' and 'Stockbridge Church Of England
-                # Primary School'), then ordered by most popular.
+                # We want the matches that are closest in length to the term we're trying to match first
+                # (you might have 'Stockbridge' and 'Stockbridge Church Of England Primary School'), then ordered
+                # by most popular.
                 #
                 # Exclude all numeric locations (there are some in OSM).
                 if ($limit > 0) {
@@ -208,7 +210,7 @@ class Location extends Entity
                     $term2 = preg_replace('/\'$/', '%\'', $term2);
                     $term2 = preg_replace('/^\'/', '\'%', $term2);
                     $term2 = trim($term2);
-                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE canon LIKE $term2 AND gridid IN (" . implode(',', $gridids) . ") AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY LENGTH(name) ASC, popularity DESC LIMIT $limit;";
+                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE canon LIKE $term2 AND gridid IN (" . implode(',', $gridids) . ") AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
                     #error_log("%..% $sql");
                     $locs = $this->dbhr->query($sql);
 
@@ -223,9 +225,11 @@ class Location extends Entity
                     # two locations, most commonly a place and a postcode.  So do an (even slower) search to find
                     # locations in our table which appear somewhere in the subject.  Ignore very short ones.
                     #
-                    # We order in ascending order of the size of what we find, so that we pick the most specific first.
+                    # We also order in ascending order of the size of what we find, so that we pick the most specific
+                    # first.
                     $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND LENGTH(canon) > 2 AND LOCATE(canon, " .
-                        $this->dbhr->quote($this->canon($term)) . ") AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY GetMaxDimension(locations.geometry) ASC, popularity DESC LIMIT $limit;";
+                        $this->dbhr->quote($this->canon($term)) . ") AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY ABS(LENGTH(canon) - " . strlen($term) . "), GetMaxDimension(locations.geometry) ASC, popularity DESC LIMIT $limit;";
+                    #error_log("Substring $sql");
                     $locs = $this->dbhr->query($sql);
 
                     foreach ($locs as $loc) {
@@ -238,7 +242,8 @@ class Location extends Entity
                     # We still didn't find as many results as we wanted.  Do a (slow) search using a Damerau-Levenshtein
                     # distance function to spot typos, transpositions, spurious spaces etc.
                     $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND DAMLEVLIM(`canon`, " .
-                        $this->dbhr->quote($this->canon($term)) . ", " . strlen($term) . ") < 2 AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY LENGTH(name) ASC, popularity DESC LIMIT $limit;";
+                        $this->dbhr->quote($this->canon($term)) . ", " . strlen($term) . ") < 2 AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY ABS(LENGTH(canon) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
+                    #error_log("DamLeve $sql");
                     $locs = $this->dbhr->query($sql);
 
                     foreach ($locs as $loc) {

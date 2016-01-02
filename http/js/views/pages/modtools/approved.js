@@ -48,10 +48,15 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
             }
 
             // Fetch more messages - and leave the old ones in the collection
+            var v = new Iznik.Views.PleaseWait();
+            v.render();
+
             this.msgs.fetch({
                 data: data,
                 remove: self.selected != self.lastFetched
             }).then(function() {
+                v.close();
+
                 self.lastFetched = self.selected;
 
                 self.fetching = false;

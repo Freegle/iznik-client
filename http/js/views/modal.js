@@ -113,3 +113,32 @@ Iznik.Views.Confirm = Iznik.Views.Modal.extend({
     }
 });
 
+// Please wait popup.  Need to avoid nesting issues.
+var waitCount = 0;
+
+Iznik.Views.PleaseWait = Iznik.Views.Modal.extend({
+    template: 'wait',
+
+    timeout: null,
+
+    render: function() {
+        var self = this;
+        this.waitCount = waitCount++;
+
+        if (this.waitCount == 0) {
+            this.timeout = setTimeout(function() {
+                self.open(self.template);
+            }, 3000);
+        }
+    },
+
+    close: function() {
+        if (this.waitCount == 0) {
+            if (this.timeout) {
+                clearTimeout(this.timeout);
+            } else {
+                Iznik.Views.Modal.prototype.close.call(this);
+            }
+        }
+    }
+});

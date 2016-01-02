@@ -187,7 +187,7 @@ class Message
         call_user_func_array('mail', func_get_args());
     }
 
-    public function getRoleForMessage() {
+    public function getRoleForMessage($overrides = TRUE) {
         # Our role for a message is the highest role we have on any group that this message is on.  That means that
         # we have limited access to information on other groups of which we are not a moderator, but that is legitimate
         # if the message is on our group.
@@ -217,6 +217,17 @@ class Message
                     case User::ROLE_MEMBER:
                         # Just a member
                         $role = User::ROLE_MEMBER;
+                        break;
+                }
+            }
+
+            if ($overrides) {
+                switch ($me->getPrivate('systemrole')) {
+                    case User::SYSTEMROLE_SUPPORT:
+                        $role = User::ROLE_MODERATOR;
+                        break;
+                    case User::SYSTEMROLE_ADMIN:
+                        $role = User::ROLE_OWNER;
                         break;
                 }
             }

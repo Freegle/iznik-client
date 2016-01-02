@@ -63,7 +63,7 @@ class Dashboard {
         } else {
             # We want the summaries for one or more groups.  Get the list.
             $groups = [];
-            $membs = $this->me->getMemberships();
+            $membs = $this->me->getMemberships(TRUE);
             foreach ($membs as $memb) {
                 # We want groups of the appropriate type on which we are a mod or owner
                 if (($memb['role'] == User::ROLE_OWNER || $memb['role'] == User::ROLE_MODERATOR) &&

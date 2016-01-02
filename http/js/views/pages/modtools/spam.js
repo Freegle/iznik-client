@@ -18,10 +18,15 @@ Iznik.Views.ModTools.Pages.Spam = Iznik.Views.Page.extend({
         // For spam messages we don't do paging so put a high limit.
         data.limit = 100;
 
+        var v = new Iznik.Views.PleaseWait();
+        v.render();
+
         this.msgs.fetch({
             data: data,
             remove: true
         }).then(function() {
+            v.close();
+
             self.lastFetched = self.selected;
 
             if (self.msgs.length == 0) {
