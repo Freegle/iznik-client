@@ -195,9 +195,8 @@ class Location extends Entity
                     $limit--;
                 }
 
-                # We do a simple %...% match.  We only use this search for autocomplete or identification of popular
-                # locations, so we don't need a fuzzy search.  This will scan quite a lot of locations, because that
-                # kind of search can't use the name index, but it is restricted by grids and therefore won't be
+                # Look for a known location which contains the location we've specified.  This will scan quite a lot of
+                # locations, because that kind of search can't use the name index, but it is restricted by grids and therefore won't be
                 # appalling.
                 #
                 # We want the matches that are closest in length to the term we're trying to match first
@@ -206,11 +205,7 @@ class Location extends Entity
                 #
                 # Exclude all numeric locations (there are some in OSM).
                 if ($limit > 0) {
-                    $term2 = $this->dbhr->quote($this->canon($term));
-                    $term2 = preg_replace('/\'$/', '%\'', $term2);
-                    $term2 = preg_replace('/^\'/', '\'%', $term2);
-                    $term2 = trim($term2);
-                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE canon LIKE $term2 AND gridid IN (" . implode(',', $gridids) . ") AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
+                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE canon REGEXP CONCAT('[[:<:]]', " . $this->dbhr->quote(trim($term)) . ", '[[:>:]]') AND gridid IN (" . implode(',', $gridids) . ") AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
                     #error_log("%..% $sql");
                     $locs = $this->dbhr->query($sql);
 
@@ -227,8 +222,7 @@ class Location extends Entity
                     #
                     # We also order in ascending order of the size of what we find, so that we pick the most specific
                     # first.
-                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND LENGTH(canon) > 2 AND LOCATE(canon, " .
-                        $this->dbhr->quote($this->canon($term)) . ") AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY ABS(LENGTH(canon) - " . strlen($term) . "), GetMaxDimension(locations.geometry) ASC, popularity DESC LIMIT $limit;";
+                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND LENGTH(canon) > 2 AND " . $this->dbhr->quote(trim($term)) . " REGEXP CONCAT('[[:<:]]', name, '[[:>:]]') AND NOT name REGEXP '^-?[0-9]+$' ORDER BY ABS(LENGTH(name) - " . strlen($term) . "), GetMaxDimension(locations.geometry) ASC, popularity DESC LIMIT $limit;";
                     #error_log("Substring $sql");
                     $locs = $this->dbhr->query($sql);
 
@@ -243,7 +237,7 @@ class Location extends Entity
                     # distance function to spot typos, transpositions, spurious spaces etc.
                     $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND DAMLEVLIM(`canon`, " .
                         $this->dbhr->quote($this->canon($term)) . ", " . strlen($term) . ") < 2 AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY ABS(LENGTH(canon) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
-                    #error_log("DamLeve $sql");
+                    error_log("DamLeve $sql");
                     $locs = $this->dbhr->query($sql);
 
                     foreach ($locs as $loc) {

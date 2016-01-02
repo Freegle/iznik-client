@@ -619,9 +619,7 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.Work.extend({
                                 // we therefore know they must have been deleted from Yahoo (Approved).
                                 self.promises = [];
                                 _.each(ret.missingonclient, function(missing, index, list) {
-                                    console.log("Consider delete", self.deleteAllMissing, missing[self.dateField], self.earliest);
                                     if (self.deleteAllMissing || missing[self.dateField] > self.earliest) {
-                                        console.log("Delete");
                                         self.promises.push($.ajaxq('plugin', {
                                             type: "DELETE",
                                             url: API + 'message',

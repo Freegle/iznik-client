@@ -10,7 +10,7 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
         'keyup .js-searchterm': 'keyup'
     },
 
-    fetching: false,
+    fetching: null,
     start: null,
     startdate: null,
 
@@ -24,91 +24,95 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
     fetch: function(start) {
         var self = this;
 
-        if (!self.fetching) {
-            self.fetching = true;
-            self.$('.js-none').hide();
+        self.$('.js-none').hide();
 
-            var data = {
-                collection: 'Approved'
-            };
+        var data = {
+            collection: 'Approved'
+        };
 
-            if (self.selected > 0) {
-                // Specific group
-                data.groupid = self.selected;
-            }
-
-            if (self.options.search) {
-                // We're searching.  Pass any previous search results context so that we get the next set of results.
-                if (self.msgs.ret) {
-                    data.context = self.msgs.ret.context;
-                }
-            } else {
-                // We're not searching. We page using the date.
-                data.start = self.startdate;
-            }
-
-            // Fetch more messages - and leave the old ones in the collection
-            var v = new Iznik.Views.PleaseWait();
-            v.render();
-
-            this.msgs.fetch({
-                data: data,
-                remove: self.selected != self.lastFetched
-            }).then(function() {
-                v.close();
-
-                self.lastFetched = self.selected;
-
-                self.fetching = false;
-                if (!self.start) {
-                    self.$('.js-none').fadeIn('slow');
-                }
-
-                if (self.msgs.length > 0) {
-                    var gotsome = false;
-
-                    self.msgs.each(function(msg) {
-                        //console.log("Fetched", msg.get('id'), msg.get('date'));
-                        var thisone = (new Date(msg.get('date'))).getTime();
-                        if (self.start == null || thisone < self.start) {
-                            self.start = thisone;
-                            self.startdate = msg.get('date');
-                            gotsome = true;
-                        }
-                    });
-
-                    // Waypoints allow us to see when we have scrolled to the bottom.
-                    if (self.lastWaypoint) {
-                        self.lastWaypoint.destroy();
-                    }
-
-                    if (gotsome) {
-                        // We got some different messages, so set up a scroll handler.  If we didn't get any different
-                        // messages, then there's no point - we could keep hitting the server with more requests
-                        // and not getting any.
-                        var vm = self.collectionView.viewManager;
-                        var lastView = vm.last();
-
-                        if (lastView) {
-                            self.lastMessage = lastView;
-                            self.lastWaypoint = new Waypoint({
-                                element: lastView.el,
-                                handler: function(direction) {
-                                    if (direction == 'down') {
-                                        // We have scrolled to the last view.  Fetch more as long as we've not switched
-                                        // away to another page.
-                                        if (jQuery.contains(document.documentElement, lastView.el)) {
-                                            self.fetch();
-                                        }
-                                    }
-                                },
-                                offset: '99%' // Fire as soon as this view becomes visible
-                            });
-                        }
-                    }
-                }
-            });
+        if (self.selected > 0) {
+            // Specific group
+            data.groupid = self.selected;
         }
+
+        if (self.options.search) {
+            // We're searching.  Pass any previous search results context so that we get the next set of results.
+            if (self.msgs.ret) {
+                data.context = self.msgs.ret.context;
+            }
+        } else {
+            // We're not searching. We page using the date.
+            data.start = self.startdate;
+        }
+
+        // Fetch more messages - and leave the old ones in the collection
+        var v = new Iznik.Views.PleaseWait();
+        v.render();
+
+        if (self.fetching == self.selected) {
+            // Already fetching the right group.
+            return;
+        } else {
+            self.fetching = self.selected;
+        }
+
+        this.msgs.fetch({
+            data: data,
+            remove: self.selected != self.lastFetched
+        }).then(function() {
+            v.close();
+
+            self.fetching = null;
+            self.lastFetched = self.selected;
+
+            if (!self.start) {
+                self.$('.js-none').fadeIn('slow');
+            }
+
+            if (self.msgs.length > 0) {
+                var gotsome = false;
+
+                self.msgs.each(function(msg) {
+                    //console.log("Fetched", msg.get('id'), msg.get('date'));
+                    var thisone = (new Date(msg.get('date'))).getTime();
+                    if (self.start == null || thisone < self.start) {
+                        self.start = thisone;
+                        self.startdate = msg.get('date');
+                        gotsome = true;
+                    }
+                });
+
+                // Waypoints allow us to see when we have scrolled to the bottom.
+                if (self.lastWaypoint) {
+                    self.lastWaypoint.destroy();
+                }
+
+                if (gotsome) {
+                    // We got some different messages, so set up a scroll handler.  If we didn't get any different
+                    // messages, then there's no point - we could keep hitting the server with more requests
+                    // and not getting any.
+                    var vm = self.collectionView.viewManager;
+                    var lastView = vm.last();
+
+                    if (lastView) {
+                        self.lastMessage = lastView;
+                        self.lastWaypoint = new Waypoint({
+                            element: lastView.el,
+                            handler: function(direction) {
+                                if (direction == 'down') {
+                                    // We have scrolled to the last view.  Fetch more as long as we've not switched
+                                    // away to another page.
+                                    if (jQuery.contains(document.documentElement, lastView.el)) {
+                                        self.fetch();
+                                    }
+                                }
+                            },
+                            offset: '99%' // Fire as soon as this view becomes visible
+                        });
+                    }
+                }
+            }
+        });
     },
 
     search: function() {

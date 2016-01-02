@@ -3,6 +3,8 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
 
     template: "modtools_pending_main",
 
+    fetching: null,
+
     fetch: function() {
         var self = this;
         self.$('.js-none').hide();
@@ -21,6 +23,13 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
         var v = new Iznik.Views.PleaseWait();
         v.render();
 
+        if (self.fetching == self.selected) {
+            // Already fetching the right group.
+            return;
+        } else {
+            self.fetching = self.selected;
+        }
+
         this.msgs.fetch({
             data: data,
             remove: true
@@ -28,6 +37,7 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
             v.close();
 
             self.lastFetched = self.selected;
+            self.fetching = null;
 
             if (self.msgs.length == 0) {
                 self.$('.js-none').fadeIn('slow');
@@ -79,6 +89,7 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
         });
 
         self.listenTo(this.groupSelect, 'selected', function(selected) {
+            console.log("Group select selected", selected);
             self.selected = selected;
             self.fetch();
         });
@@ -87,8 +98,7 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
         self.$('.js-groupselect').html(self.groupSelect.render().el);
 
         // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
-        // appropriately.
-        this.listenTo(Iznik.Session, 'pendingcountschanged', _.bind(this.fetch, this));
+        // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
         this.listenTo(Iznik.Session, 'pendingcountschanged', _.bind(this.groupSelect.render, this.groupSelect));
         this.listenTo(Iznik.Session, 'pendingcountsotherchanged', _.bind(this.groupSelect.render, this.groupSelect));
     }
@@ -187,7 +197,6 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
             var configs = Iznik.Session.get('configs');
             var sessgroup = Iznik.Session.get('groups').get(group.id);
             var config = configs.get(sessgroup.get('configid'));
-            console.log("Config", config);
 
             if (!_.isUndefined(config) &&
                 config.get('subjlen') &&

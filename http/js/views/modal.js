@@ -127,6 +127,7 @@ Iznik.Views.PleaseWait = Iznik.Views.Modal.extend({
 
         if (this.waitCount == 0) {
             this.timeout = setTimeout(function() {
+                self.timeout = null;
                 self.open(self.template);
             }, 3000);
         }

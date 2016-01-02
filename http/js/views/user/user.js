@@ -166,7 +166,7 @@ Iznik.Views.ModTools.User.LogEntry = IznikView.extend({
     render: function() {
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
         var mom = new moment(this.model.get('timestamp'));
-        this.$('.js-date').html(mom.format('DD-MMM-YY hh:mm'));
+        this.$('.js-date').html(mom.format('DD-MMM-YY HH:mm'));
         return(this);
     }
 });

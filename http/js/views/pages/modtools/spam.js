@@ -3,6 +3,9 @@ Iznik.Views.ModTools.Pages.Spam = Iznik.Views.Page.extend({
 
     template: "modtools_spam_main",
 
+    selected: -1,
+    fetching: null,
+
     fetch: function() {
         var self = this;
         self.$('.js-none').hide();
@@ -21,12 +24,20 @@ Iznik.Views.ModTools.Pages.Spam = Iznik.Views.Page.extend({
         var v = new Iznik.Views.PleaseWait();
         v.render();
 
+        if (self.fetching == self.selected) {
+            // Already fetching the right group.
+            return;
+        } else {
+            self.fetching = self.selected;
+        }
+
         this.msgs.fetch({
             data: data,
             remove: true
         }).then(function() {
             v.close();
 
+            self.fetching = false;
             self.lastFetched = self.selected;
 
             if (self.msgs.length == 0) {
