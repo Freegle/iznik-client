@@ -130,7 +130,7 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
 
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
 
-        // Set the suggested subject here to avoid escaping issues.  Highlight it if it's different.
+        // Set the suggested subject here to avoid escaping issues.  Highlight it if it's different
         if (self.model.get('suggestedsubject') != self.model.get('subject')) {
             self.$('.js-subject').closest('.input-group').addClass('subjectdifference');
         } else {
@@ -187,6 +187,14 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
             var configs = Iznik.Session.get('configs');
             var sessgroup = Iznik.Session.get('groups').get(group.id);
             var config = configs.get(sessgroup.get('configid'));
+            console.log("Config", config);
+
+            if (!_.isUndefined(config) &&
+                config.get('subjlen') &&
+                (self.model.get('suggestedsubject').length > config.get('subjlen'))) {
+                // This subject is too long, and we want to flag that.
+                self.$('.js-subject').closest('.input-group').addClass('subjectdifference');
+            }
 
             if (self.model.get('heldby')) {
                 // Message is held - just show Release button.
