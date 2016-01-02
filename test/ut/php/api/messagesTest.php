@@ -73,10 +73,12 @@ class messagesTest extends IznikAPITest {
 
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'search',
+            'groupid' => $group1,
             'search' => 'basic'
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
+        error_log(var_export($msgs, true));
         assertEquals(1, count($msgs));
         assertEquals($a->getID(), $msgs[0]['id']);
         assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att

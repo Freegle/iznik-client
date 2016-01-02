@@ -222,6 +222,19 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
 
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
 
+        // We handle the subject as a special case rather than a template expansion.  We might be doing a search, in
+        // which case we want to highlight the matched words.  So we split out the subject string into a sequence of
+        // spans, which then allows us to highlight any matched ones.
+        self.$('.js-subject').html(self.wordify(self.model.get('subject')));
+        var matched = self.model.get('matchedon');
+        if (matched) {
+            self.$('.js-subject span').each(function() {
+                if ($(this).html().toLowerCase().indexOf(matched.word) != -1) {
+                    $(this).addClass('searchmatch');
+                }
+            });
+        }
+
         _.each(self.model.get('groups'), function(group, index, list) {
             var mod = new IznikModel(group);
 

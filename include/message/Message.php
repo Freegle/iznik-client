@@ -112,7 +112,7 @@ class Message
         $replyto, $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
         $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL,
-        $s;
+        $s, $editedby, $editedat;
 
     /**
      * @return mixed
@@ -724,10 +724,13 @@ class Message
             $src = $img->getAttribute('src');
 
             # We only want to get images from http or https to avoid the security risk of fetching a local file.
+            #
+            # Wait for 60 seconds to fetch.  We don't want to wait forever, but we see occasional timeouts from Yahoo
+            # at 30 seconds.
             if (stripos($src, 'http://') === 0 || stripos($src, 'https://') === 0) {
                 $ctx = stream_context_create(array('http'=>
                     array(
-                        'timeout' => 30,  # Only wait for 30 seconds to fetch an image.
+                        'timeout' => 60
                     )
                 ));
                 $data = file_get_contents($src, false, $ctx);

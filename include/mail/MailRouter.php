@@ -92,7 +92,6 @@ class MailRouter
             $this->msg->getFromaddr(),
             Message::YAHOO_PENDING
         ]);
-        error_log("$sql " . $this->msg->getMessageID() . " " . $this->msg->getFromaddr());
 
         # Now set this message to be in the Approved collection.
         $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Approved' WHERE msgid = ?;", [

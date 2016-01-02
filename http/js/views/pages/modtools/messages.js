@@ -133,6 +133,11 @@ Iznik.Views.ModTools.Message = IznikView.extend({
                 self.$('.js-otheremails').append(v.render().el);
             }
         });
+    },
+
+    wordify: function(str) {
+        str = str.replace(/\b(\w*)/g, "<span>$1</span>");
+        return(str);
     }
 });
 

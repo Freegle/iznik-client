@@ -73,13 +73,13 @@ class Collection
             # At the moment we only support ordering by date DESC.
             #
             # Put a limit on this query to stop it being stupid, though we enforce the $limit parameter in the loop.
-            $sql = "SELECT msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $startq $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC LIMIT 1000";
+            $sql = "SELECT msgid AS id FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $startq $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC LIMIT 1000";
             $msglist = $this->dbhr->preQuery($sql, $args);
 
             # Get an array of just the message ids.
             $msgids = [];
             foreach ($msglist as $msg) {
-                $msgids[] = $msg['msgid'];
+                $msgids[] = [ 'id' => $msg['id'] ];
             }
             list($groups, $msgs) = $this->fillIn($msgids, $limit);
         }
@@ -94,7 +94,7 @@ class Collection
         # Don't return the message attribute as it will be huge.  They can get that via a call to the
         # message API call.
         foreach ($msglist as $msg) {
-            $m = new Message($this->dbhr, $this->dbhm, $msg);
+            $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
             $role = $m->getRoleForMessage();
 
             $thisgroups = $m->getGroups();
@@ -122,6 +122,7 @@ class Collection
                     case Collection::APPROVED:
                         $n = $m->getPublic(TRUE, TRUE, FALSE);
                         unset($n['message']);
+                        $n['matchedon'] = presdef('matchedon', $msg, NULL);
                         $msgs[] = $n;
                         $limit--;
                         break;
@@ -130,6 +131,7 @@ class Collection
                             # Only visible to moderators or owners
                             $n = $m->getPublic(TRUE, TRUE, TRUE);
                             unset($n['message']);
+                            $n['matchedon'] = presdef('matchedon', $msg, NULL);
                             $msgs[] = $n;
                             $limit--;
                         }
@@ -139,6 +141,7 @@ class Collection
                             # Only visible to moderators or owners
                             $n = $m->getPublic(TRUE, TRUE, FALSE);
                             unset($n['message']);
+                            $n['matchedon'] = presdef('matchedon', $msg, NULL);
                             $msgs[] = $n;
                             $limit--;
                         }

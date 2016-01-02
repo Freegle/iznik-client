@@ -171,17 +171,39 @@ class Search
         }
     }
 
+    private function getWord($id, $tag) {
+        $words = $this->dbhr->preQuery("SELECT * FROM words WHERE id = ?;", [ $id ]);
+        return([
+            'id' => $words[0]['id'],
+            'word' => $words[0]['word'],
+            'type' => $tag
+        ]);
+    }
+
     private function processResults(&$results, $batch, $word, $tag, $weight)
     {
-        $starttime = microtime(true);
         $added = 0;
         foreach ($batch as $result) {
             if (!array_key_exists($result[$this->idatt], $results)) {
-                $results[$result[$this->idatt]] = array('count' => $weight, 'searchword' => $word, 'items' => array(array('item' => $result, 'tag' => $tag)));
+                $results[$result[$this->idatt]] = [
+                    'count' => $weight,
+                    'searchword' => $word,
+                    'items' => [
+                        [
+                            'item' => $result,
+                            'tag' => $tag,
+                            'matchedon' => $this->getWord($result['wordid'], $tag)
+                        ]
+                    ]
+                ];
                 $added++;
             } else if ($word != $results[$result[$this->idatt]]['searchword']) {
                 # If we have encountered the same result for a different word, it counts extra.
-                $results[$result[$this->idatt]]['items'][] = array('item' => $result, 'tag' => $tag);
+                $results[$result[$this->idatt]]['items'][] = [
+                    'item' => $result,
+                    'tag' => $tag,
+                    'matchedon' => $this->getWord($result['wordid'], $tag)
+                ];
                 $results[$result[$this->idatt]]['count'] += $weight;
             }
         }
@@ -219,7 +241,7 @@ class Search
             if (strlen($word) > 0) {
                 # Check for exact matches even for short words
                 $startq = pres('Exact', $context) ? " AND {$this->idatt} > {$context['Exact']} " : "";
-                $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt} FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsExact($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsExact($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                 #error_log(" $sql  {$this->sortatt} {$this->idatt}");
                 $batch = $this->dbhr->preQuery($sql, [
                     $this->sortatt,
@@ -231,7 +253,7 @@ class Search
             if (strlen($word) >= 2) {
                 # Check for starts matches with two characters
                 $startq = pres('StartsWith', $context) ? " AND {$this->idatt} > {$context['StartsWith']} " : "";
-                $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt} FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsStartsWith($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsStartsWith($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                 $batch = $this->dbhr->preQuery($sql, [
                     $this->sortatt,
                     $this->idatt
@@ -247,7 +269,7 @@ class Search
                 # Add in sounds like.  We add these in because it's quick, and some of the extra matches might be
                 # better matches overall than some of the ones we already have.
                 $startq = pres('SoundsLike', $context) ? " AND {$this->idatt} > {$context['SoundsLike']} " : "";
-                $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt} FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsSoundsLike($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsSoundsLike($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                 $batch = $this->dbhr->preQuery($sql, [
                     $this->sortatt,
                     $this->idatt
@@ -258,7 +280,7 @@ class Search
                     # We still didn't find enough to be comfortable that we have a decent set of matches.
                     # Search for typos.  This is slow, so we need to stick a limit on it.
                     $startq = pres('Typo', $context) ? " AND {$this->idatt} > {$context['Typo']} " : "";
-                    $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt} FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsTypo($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                    $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsTypo($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                     $batch = $this->dbhr->preQuery($sql, [
                         $this->sortatt,
                         $this->idatt
@@ -291,7 +313,10 @@ class Search
 
             # Find max value of the id att to return in the context.
             $thislot = $results[$key]['items'];
-            $ret[] = $key;
+            $ret[] = [
+                'id' => $key,
+                'matchedon' => $thislot[0]['matchedon']
+            ];
 
             foreach ($thislot as $thisone) {
                 $results[$key][] = $thisone['item'];

@@ -61,21 +61,21 @@ class searchTest extends IznikTest
         # Search for various terms
         $ctx = NULL;
         $ret = $m->search("Test", $ctx);
-        assertEquals($id1, $ret[0]);
+        assertEquals($id1, $ret[0]['id']);
 
         $ctx = NULL;
         $ret = $m->search("Test zzzutzzz", $ctx);
-        assertEquals($id1, $ret[0]);
+        assertEquals($id1, $ret[0]['id']);
 
         $ctx = NULL;
         $ret = $m->search("zzzutzzz", $ctx);
-        assertEquals($id1, $ret[0]);
+        assertEquals($id1, $ret[0]['id']);
 
         # Test restricting by filter.
         $ctx = NULL;
         error_log("Restrict to $gid");
         $ret = $m->search("Test", $ctx, Search::Limit, NULL, [ $gid ]);
-        assertEquals($id1, $ret[0]);
+        assertEquals($id1, $ret[0]['id']);
 
         $ctx = NULL;
         $ret = $m->search("Test", $ctx, Search::Limit, NULL, [ $gid+1 ]);
@@ -86,14 +86,14 @@ class searchTest extends IznikTest
         error_log("Test fuzzy");
         $ret = $m->search("tuesday", $ctx);
         error_log("Fuzzy " . var_export($ctx, true));
-        assertEquals($id1, $ret[0]);
+        assertEquals($id1, $ret[0]['id']);
         assertEquals($id1, $ctx['SoundsLike']);
 
         # Test typo
         $ctx = NULL;
         $ret = $m->search("Tets", $ctx);
         error_log("Typo " . var_export($ctx, true));
-        assertEquals($id1, $ret[0]);
+        assertEquals($id1, $ret[0]['id']);
         assertEquals($id1, $ctx['Typo']);
 
         # Too far
@@ -104,24 +104,24 @@ class searchTest extends IznikTest
         # Test restricted search
         $ctx = NULL;
         $ret = $m->search("zzzutzzz", $ctx, Search::Limit, [ $id1 ]);
-        assertEquals($id1, $ret[0]);
+        assertEquals($id1, $ret[0]['id']);
 
         $ctx = NULL;
         $ret = $m->search("zzzutzzz", $ctx, Search::Limit, []);
-        assertEquals($id1, $ret[0]);
+        assertEquals($id1, $ret[0]['id']);
 
         # Search again using the same context - will find starts with
         error_log("CTX " . var_export($ctx, true));
         $ret = $m->search("zzzutzzz", $ctx);
-        assertEquals($id1, $ret[0]);
+        assertEquals($id1, $ret[0]['id']);
 
         # And again - will find sounds like
         $ret = $m->search("zzzutzzz", $ctx);
-        assertEquals($id1, $ret[0]);
+        assertEquals($id1, $ret[0]['id']);
 
         # And again - will find typo
         $ret = $m->search("zzzutzzz", $ctx);
-        assertEquals($id1, $ret[0]);
+        assertEquals($id1, $ret[0]['id']);
 
         $ret = $m->search("zzzutzzz", $ctx);
         assertEquals(0, count($ret));
@@ -164,36 +164,36 @@ class searchTest extends IznikTest
         $ctx = NULL;
         $ret = $m->search("Test", $ctx);
         assertEquals(2, count($ret));
-        assertEquals($id2, $ret[0]);
-        assertEquals($id1, $ret[1]);
+        assertEquals($id2, $ret[0]['id']);
+        assertEquals($id1, $ret[1]['id']);
 
         $ctx = NULL;
         $ret = $m->search("Test zzzutzzz", $ctx);
         assertEquals(2, count($ret));
-        assertEquals($id1, $ret[0]);
-        assertEquals($id2, $ret[1]);
+        assertEquals($id1, $ret[0]['id']);
+        assertEquals($id2, $ret[1]['id']);
 
         $ctx = NULL;
         $ret = $m->search("Test yyyutyyy", $ctx);
         assertEquals(2, count($ret));
-        assertEquals($id2, $ret[0]);
-        assertEquals($id1, $ret[1]);
+        assertEquals($id2, $ret[0]['id']);
+        assertEquals($id1, $ret[1]['id']);
 
         $ctx = NULL;
         $ret = $m->search("zzzutzzz", $ctx);
         assertEquals(1, count($ret));
-        assertEquals($id1, $ret[0]);
+        assertEquals($id1, $ret[0]['id']);
 
         $ctx = NULL;
         $ret = $m->search("yyyutyyy", $ctx);
         assertEquals(1, count($ret));
-        assertEquals($id2, $ret[0]);
+        assertEquals($id2, $ret[0]['id']);
 
         # Test restricted search
         $ctx = NULL;
         $ret = $m->search("test", $ctx, Search::Limit, [ $id1 ]);
         assertEquals(1, count($ret));
-        assertEquals($id1, $ret[0]);
+        assertEquals($id1, $ret[0]['id']);
 
         $m1->delete();
         $m2->delete();
