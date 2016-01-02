@@ -80,6 +80,19 @@ class Message
         if ($htmlbody) {
             $this->setPrivate('htmlbody', $htmlbody);
         }
+
+        $sql = "UPDATE messages SET editedby = ?, editedat = NOW() WHERE id = ?;";
+        $this->dbhm->preExec($sql, [
+            $me->getId(),
+            $this->id
+        ]);
+
+        # If we edit a message and then approve it by email, Yahoo breaks the message.  So prevent that happening by
+        # removing the email approval info.
+        $sql = "UPDATE messages_groups SET yahooapprove = NULL, yahooreject = NULL WHERE msgid = ?;";
+        $this->dbhm->preExec($sql, [
+            $this->id
+        ]);
     }
 
     /**
@@ -138,7 +151,7 @@ class Message
 
     public $moderatorAtts = [
         'source', 'sourceheader', 'fromaddr', 'envelopeto', 'envelopefrom', 'messageid', 'tnpostid',
-        'fromip', 'fromcountry', 'message', 'spamreason', 'spamtype', 'replyto'
+        'fromip', 'fromcountry', 'message', 'spamreason', 'spamtype', 'replyto', 'editedby', 'editedat'
     ];
 
     public $ownerAtts = [
