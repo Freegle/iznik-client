@@ -45,7 +45,7 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
         }
     },
 
-    fetch: function(start) {
+    fetch: function() {
         var self = this;
 
         self.$('.js-none').hide();
@@ -57,14 +57,9 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
             data.groupid = self.selected;
         }
 
-        if (self.options.search) {
-            // We're searching.  Pass any previous search results context so that we get the next set of results.
-            if (self.members.ret) {
-                data.context = self.members.ret.context;
-            }
-        } else {
-            // We're not searching. We page using the email.
-            data.start = self.start;
+        // Pass any previous search results context so that we get the next set of results.
+        if (self.members.ret) {
+            data.context = self.members.ret.context;
         }
 
         // Fetch more members - and leave the old ones in the collection
@@ -79,9 +74,7 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
         v.render();
 
         this.members.fetch({
-            data: {
-                context: self.context
-            },
+            data: data,
             remove: self.selected != self.lastFetched
         }).then(function() {
             v.close();
@@ -93,15 +86,6 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
                 // Peek into the underlying response to see if it returned anything and therefore whether it is
                 // worth asking for more if we scroll that far.
                 var gotsome = self.members.ret.group.members.length > 0;
-
-                self.members.each(function(member) {
-                    //console.log("Fetched", msg.get('id'), msg.get('date'));
-                    var thisone = member.get('email');
-                    if (self.start == null || thisone > self.start) {
-                        self.start = thisone;
-                        gotsome = true;
-                    }
-                });
 
                 // Waypoints allow us to see when we have scrolled to the bottom.
                 if (self.lastWaypoint) {

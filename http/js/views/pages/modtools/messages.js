@@ -354,7 +354,6 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
             self.close();
         });
 
-        console.log("Autosend?", self.options.stdmsg.get('autosend'));
         if (self.options.stdmsg.get('autosend')) {
             self.$('.js-send').click();
         }
