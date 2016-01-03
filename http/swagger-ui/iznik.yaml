@@ -399,6 +399,14 @@ paths:
         in: query
         description: Whether to return membership list; default is false.
         type: boolean
+      - name: context
+        in: query
+        description: Any context from previous request
+        type: string
+      - name: limit
+        in: query
+        description: Max number of members to return, defaults to 10
+        type: number
       responses:
           "200":
             description: "Successful response"

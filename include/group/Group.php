@@ -130,13 +130,23 @@ class Group extends Entity
         return($atts);
     }
 
-    public function getMembers($limit = 10) {
+    public function getMembers($limit = 10, &$ctx) {
         $ret = [];
-        $sql = "SELECT memberships.userid FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid WHERE groupid = ? ORDER BY memberships.added DESC LIMIT $limit;";
+        $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d", $ctx['Added']));
+        $addq = $ctx == NULL ? '' : (" AND (memberships.added < $date OR memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ") ");
+        $sql = "SELECT memberships.id, memberships.userid, memberships.added FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid WHERE groupid = ? $addq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
         $members = $this->dbhr->preQuery($sql, [ $this->id ]);
+        $ctx = [ 'Added' => NULL ];
         foreach ($members as $member) {
             $u = new User($this->dbhr, $this->dbhm, $member['userid']);
             $thisone = $u->getPublic(NULL, FALSE);
+            $thisepoch = strtotime($member['added']);
+
+            if ($ctx['Added'] == NULL || $thisepoch < $ctx['Added']) {
+                $ctx['Added'] = $thisepoch;
+            }
+
+            $ctx['id'] = $member['id'];
 
             # We want to return both the email used on this group and any others we have.
             $emails = $u->getEmails();

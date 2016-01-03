@@ -46,6 +46,9 @@ Iznik.Collections.Members = IznikCollection.extend({
     },
 
     parse: function(ret) {
+        // Save off the return in case we need any info from it, e.g. context for searches.
+        this.ret = ret;
+
         return(ret.group.members);
     }
 });

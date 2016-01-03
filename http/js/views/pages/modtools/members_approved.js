@@ -36,8 +36,7 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
     },
 
     fetching: null,
-    start: null,
-    startdate: null,
+    context: null,
 
     keyup: function(e) {
         // Search on enter.
@@ -80,6 +79,9 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
         v.render();
 
         this.members.fetch({
+            data: {
+                context: self.context
+            },
             remove: self.selected != self.lastFetched
         }).then(function() {
             v.close();
@@ -88,7 +90,9 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
             self.lastFetched = self.selected;
 
             if (self.members.length > 0) {
-                var gotsome = false;
+                // Peek into the underlying response to see if it returned anything and therefore whether it is
+                // worth asking for more if we scroll that far.
+                var gotsome = self.members.ret.group.members.length > 0;
 
                 self.members.each(function(member) {
                     //console.log("Fetched", msg.get('id'), msg.get('date'));
@@ -108,6 +112,7 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
                     // We got some different members, so set up a scroll handler.  If we didn't get any different
                     // members, then there's no point - we could keep hitting the server with more requests
                     // and not getting any.
+                    self.context = self.members.ret.context;
                     var vm = self.collectionView.viewManager;
                     var lastView = vm.last();
 
