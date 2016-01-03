@@ -23,7 +23,7 @@
                 Approved #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else if (subtype == 'Rejected') { %>
                 <div class="nomargin alert alert-danger">
-                    Rejected #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
+                    Rejected #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.text) { %>with <em>{{obj.text}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
                 </div>
             <% } else if (subtype == 'Deleted') { %>
                 <div class="nomargin alert alert-danger">

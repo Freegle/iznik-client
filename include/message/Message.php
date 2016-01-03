@@ -796,15 +796,6 @@ class Message
                             $u = new User($this->dbhr, $this->dbhm, $userid);
                             $emailid = $u->addEmail($this->fromaddr, TRUE);
                             $l = new Log($this->dbhr, $this->dbhm);
-                            $l->log([
-                                'type' => Log::TYPE_USER,
-                                'subtype' => Log::SUBTYPE_CREATED,
-                                'msgid' => $this->id,
-                                'user' => $userid,
-                                'text' => 'First seen on incoming message',
-                                'groupid' => $this->groupid
-                            ]);
-
                             $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid);
                         }
                     }
