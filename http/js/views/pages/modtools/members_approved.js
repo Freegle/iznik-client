@@ -171,7 +171,7 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
 
                 self.$('.js-searchterm').val(self.options.search);
             } else {
-                self.members = new Iznik.Collections.Members({
+                self.members = new Iznik.Collections.Members(null, {
                     groupid: self.selected,
                     group: Iznik.Session.get('groups').get(self.selected)
                 });
@@ -226,7 +226,6 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
     render: function() {
         var self = this;
 
-        console.log("User", self.model);
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
 
         self.addOtherEmails();
@@ -234,11 +233,18 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
         // Get the group from the collection.
         var group = self.model.collection.options.group;
 
+        // Our user
+        var v = new Iznik.Views.ModTools.User({
+            model: self.model
+        });
+
+        self.$('.js-user').html(v.render().el);
+
         // The Yahoo part of the user
         var mod = IznikYahooUsers.findUser({
             email: self.model.get('email'),
-            group: group.nameshort,
-            groupid: group.id
+            group: group.get('nameshort'),
+            groupid: group.get('id')
         });
 
         mod.fetch().then(function() {
@@ -264,7 +270,7 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
 
         self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
             model: new IznikModel({
-                title: 'Delete',
+                title: 'Remove',
                 action: 'Delete Approved Member',
                 message: self.model,
                 config: config

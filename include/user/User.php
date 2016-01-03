@@ -567,11 +567,15 @@ class User extends Entity
                 if (pres('groupid', $log)) {
                     if (!pres($log['groupid'], $groups)) {
                         $g = new Group($this->dbhr, $this->dbhm, $log['groupid']);
-                        $groups[$log['groupid']] = $g->getPublic();
-                        $groups[$log['groupid']]['myrole'] = $me ? $me->getRole($log['groupid']) : User::ROLE_NONMEMBER;
+
+                        if ($g->getId()) {
+                            $groups[$log['groupid']] = $g->getPublic();
+                            $groups[$log['groupid']]['myrole'] = $me ? $me->getRole($log['groupid']) : User::ROLE_NONMEMBER;
+                        }
                     }
 
-                    if ($groups[$log['groupid']]['myrole'] != User::ROLE_OWNER &&
+                    if ($g->getId() &&
+                        $groups[$log['groupid']]['myrole'] != User::ROLE_OWNER &&
                         $groups[$log['groupid']]['myrole'] != User::ROLE_MODERATOR) {
                         # We can only see logs for this group if we have a mod role, or if we have appropriate system
                         # rights.  Skip this log.
@@ -579,6 +583,7 @@ class User extends Entity
                     }
 
                     $log['group'] = $groups[$log['groupid']];
+                    error_log("Logged for group {$log['groupid']}");
                 }
 
                 if (pres('configid', $log)) {

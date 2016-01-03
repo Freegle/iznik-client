@@ -2,11 +2,17 @@
     <div class="panel-heading">
         <div class="row">
             <div class="panel-title">
-                <div class="padleft ellipsis">
-                    <div class="glyphicon glyphicon-envelope" />&nbsp;{{email}}
-                </div>
-                <div class="padleft ellipsis">
-                    <div class="glyphicon glyphicon-user" />&nbsp;{{displayname}}
+                <div class="row-fluid">
+                    <div class="col-md-4">
+                        <div class="ellipsis">
+                            <div class="glyphicon glyphicon-envelope" />&nbsp;{{email}}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="ellipsis">
+                            <div class="glyphicon glyphicon-user" />&nbsp;<% if (obj.displayname && displayname.trim().length > 0) { %>{{displayname}}<% } else { %><em>Blank name</em><% } %>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -19,11 +25,17 @@
                         <div class="panel-body small">
                             <div class="yahoouserinfo js-yahoo"></div>
                             <div class="js-otheremails" />
+                        </div>
+                    </div>
+                </div>
+                <div class="noleftpad col-md-4">
+                    <div class="panel panel-default">
+                        <div class="panel-body small">
                             <div class="js-user"></div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-8">
+                <div class="col-md-4">
                 </div>
             </div>
         </div>

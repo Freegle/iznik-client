@@ -130,7 +130,7 @@ class Group extends Entity
         return($atts);
     }
 
-    public function getMembers($limit = 100) {
+    public function getMembers($limit = 10) {
         $ret = [];
         $sql = "SELECT memberships.userid FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid WHERE groupid = ? LIMIT $limit;";
         $members = $this->dbhr->preQuery($sql, [ $this->id ]);
