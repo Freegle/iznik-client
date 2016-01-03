@@ -205,7 +205,7 @@ class Location extends Entity
                 #
                 # Exclude all numeric locations (there are some in OSM).
                 if ($limit > 0) {
-                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE canon REGEXP CONCAT('[[:<:]]', " . $this->dbhr->quote(trim($term)) . ", '[[:>:]]') AND gridid IN (" . implode(',', $gridids) . ") AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
+                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE name REGEXP CONCAT('[[:<:]]', " . $this->dbhr->quote(trim($term)) . ", '[[:>:]]') AND gridid IN (" . implode(',', $gridids) . ") AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
                     #error_log("%..% $sql");
                     $locs = $this->dbhr->query($sql);
 
@@ -237,7 +237,7 @@ class Location extends Entity
                     # distance function to spot typos, transpositions, spurious spaces etc.
                     $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND DAMLEVLIM(`canon`, " .
                         $this->dbhr->quote($this->canon($term)) . ", " . strlen($term) . ") < 2 AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY ABS(LENGTH(canon) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
-                    error_log("DamLeve $sql");
+                    #error_log("DamLeve $sql");
                     $locs = $this->dbhr->query($sql);
 
                     foreach ($locs as $loc) {

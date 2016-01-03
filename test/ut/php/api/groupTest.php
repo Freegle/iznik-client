@@ -37,8 +37,8 @@ class groupAPITest extends IznikAPITest {
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
-        $this->user->addEmail('test@test.com');
-        $this->user->addMembership($this->groupid);
+        $emailid = $this->user->addEmail('test@test.com');
+        $this->user->addMembership($this->groupid, User::ROLE_MEMBER, $emailid);
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
     }
 
@@ -95,10 +95,11 @@ class groupAPITest extends IznikAPITest {
             'id' => $this->groupid,
             'members' => TRUE
         ]);
+        error_log("Members " . var_export($ret, true));
         assertEquals(0, $ret['ret']);
 
         assertEquals(1, count($ret['group']['members']));
-        assertEquals('test@test.com', $ret['group']['members'][0]['emails'][0]['email']);
+        assertEquals('test@test.com', $ret['group']['members'][0]['email']);
 
         error_log(__METHOD__ . " end");
     }
@@ -168,11 +169,11 @@ class groupAPITest extends IznikAPITest {
         error_log(var_export($ret, true));
 
         assertEquals(3, count($ret['group']['members']));
-        assertEquals('test@test.com', $ret['group']['members'][0]['emails'][0]['email']);
+        assertEquals('test@test.com', $ret['group']['members'][0]['email']);
         assertEquals('Moderator', $ret['group']['members'][0]['role']);
-        assertEquals('test2@test.com', $ret['group']['members'][1]['emails'][0]['email']);
+        assertEquals('test2@test.com', $ret['group']['members'][1]['email']);
         assertEquals('Member', $ret['group']['members'][1]['role']);
-        assertEquals('test3@test.com', $ret['group']['members'][2]['emails'][0]['email']);
+        assertEquals('test3@test.com', $ret['group']['members'][2]['email']);
         assertEquals('Owner', $ret['group']['members'][2]['role']);
         assertEquals(2, $ret['group']['nummods']);
 

@@ -1,4 +1,4 @@
-Iznik.Views.ModTools.Pages.Spam = Iznik.Views.Page.extend({
+Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
     modtools: true,
 
     template: "modtools_spam_main",
@@ -21,15 +21,15 @@ Iznik.Views.ModTools.Pages.Spam = Iznik.Views.Page.extend({
         // For spam messages we don't do paging so put a high limit.
         data.limit = 100;
 
-        var v = new Iznik.Views.PleaseWait();
-        v.render();
-
         if (self.fetching == self.selected) {
             // Already fetching the right group.
             return;
         } else {
             self.fetching = self.selected;
         }
+
+        var v = new Iznik.Views.PleaseWait();
+        v.render();
 
         this.msgs.fetch({
             data: data,

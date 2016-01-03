@@ -794,7 +794,7 @@ class Message
                             # If any of these fail, then we'll pick it up later when we do a sync with the source group,
                             # so no need for a transaction.
                             $u = new User($this->dbhr, $this->dbhm, $userid);
-                            $u->addEmail($this->fromaddr, TRUE);
+                            $emailid = $u->addEmail($this->fromaddr, TRUE);
                             $l = new Log($this->dbhr, $this->dbhm);
                             $l->log([
                                 'type' => Log::TYPE_USER,
@@ -805,7 +805,7 @@ class Message
                                 'groupid' => $this->groupid
                             ]);
 
-                            $u->addMembership($this->groupid);
+                            $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid);
                         }
                     }
 

@@ -104,14 +104,14 @@ foreach ($oldconfs as $config) {
                     error_log("Don't know {$mod['email']}");
                     # Create a membership for this mod
                     $u2 = new User($dbhr, $dbhm, $modid);
-                    $u2->addEmail($mod['email']);
-                    $u2->addMembership($group['groupid'], User::ROLE_MODERATOR);
+                    $emailid = $u2->addEmail($mod['email']);
+                    $u2->addMembership($group['groupid'], User::ROLE_MODERATOR, $emailid);
                 } else {
                     error_log("Already know {$mod['email']} as $modid");
                     $u2 = new User($dbhr, $dbhm, $modid);
                     if (!$u2->isModOrOwner($gid)) {
                         error_log("But not mod");
-                        $u2->addMembership($gid, User::ROLE_MODERATOR);
+                        $u2->addMembership($gid, User::ROLE_MODERATOR, $u2->getIdForEmail($mod['email']));
                     } else {
                         error_log("Already mod or owner");
                     }

@@ -130,14 +130,29 @@ class Group extends Entity
         return($atts);
     }
 
-    public function getMembers() {
+    public function getMembers($limit = 100) {
         $ret = [];
-        $sql = "SELECT userid FROM memberships WHERE groupid = ?;";
+        $sql = "SELECT memberships.userid FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid WHERE groupid = ? LIMIT $limit;";
         $members = $this->dbhr->preQuery($sql, [ $this->id ]);
         foreach ($members as $member) {
             $u = new User($this->dbhr, $this->dbhm, $member['userid']);
             $thisone = $u->getPublic(NULL, FALSE);
-            $thisone['emails'] = $u->getEmails();
+
+            # We want to return both the email used on this group and any others we have.
+            $emails = $u->getEmails();
+            $emailid = $u->getEmailForGroup($this->id);
+            $email = NULL;
+            $others = [];
+            foreach ($emails as $anemail) {
+                if ($anemail['id'] == $emailid) {
+                    $email = $anemail['email'];
+                } else {
+                    $others[] = $anemail;
+                }
+            }
+
+            $thisone['email'] = $email;
+            $thisone['otheremails'] = $others;
             $thisone['yahooDeliveryType'] = $u->getPrivate('yahooDeliveryType');
             $thisone['yahooPostingStatus'] = $u->getPrivate('yahooPostingStatus');
             $thisone['role'] = $u->getRole($this->id);
@@ -167,8 +182,10 @@ class Group extends Entity
 
         $u = new User($this->dbhm, $this->dbhm);
 
-        # The input might have duplicate members; find out how many are distinct.
+        # The input might have duplicate members; find out how many are distinct, save off the uid, and work out
+        # the role.
         $distinctmembers = [];
+        $roles = [];
 
         foreach ($members as &$memb) {
             if (pres('email', $memb)) {
@@ -181,10 +198,11 @@ class Group extends Entity
                     $name = presdef('name', $memb, $matches[1]);
                     $uid = $u->create(NULL, NULL, $name);
                     $u = new User($this->dbhm, $this->dbhm, $uid);
-                    $u->addEmail($memb['email']);
                 } else {
                     $u = new User($this->dbhm, $this->dbhm, $uid);
                 }
+
+                $memb['emailid'] = $u->addEmail($memb['email']);
 
                 if (pres('yahooUserId', $memb)) {
                     $u->setPrivate('yahooUserId', $memb['yahooUserId']);
@@ -193,6 +211,21 @@ class Group extends Entity
                 # Remember the uid for inside the transaction below.
                 $memb['uid'] = $uid;
                 $distinctmembers[$uid] = TRUE;
+
+                # Get the role.  We might have the same underlying user who is a member using multiple email addresses
+                # so we need to take the max role that they have.
+                $thisrole = User::ROLE_MEMBER;
+                if (pres('yahooModeratorStatus', $memb)) {
+                    if ($memb['yahooModeratorStatus'] == 'MODERATOR') {
+                        $thisrole = User::ROLE_MODERATOR;
+                    } else if ($memb['yahooModeratorStatus'] == 'OWNER') {
+                        $thisrole = User::ROLE_OWNER;
+                    }
+                }
+
+                $role = pres($uid, $roles) ? $u->roleMax($roles[$uid], $thisrole) : $thisrole;
+
+                $roles[$uid] = $role;
             }
         }
 
@@ -214,14 +247,7 @@ class Group extends Entity
                     $member = $members[$count];
                     if (pres('uid', $member)) {
                         $tried++;
-                        $role = User::ROLE_MEMBER;
-                        if (pres('yahooModeratorStatus', $member)) {
-                            if ($member['yahooModeratorStatus'] == 'MODERATOR') {
-                                $role = User::ROLE_MODERATOR;
-                            } else if ($member['yahooModeratorStatus'] == 'OWNER') {
-                                $role = User::ROLE_OWNER;
-                            }
-                        }
+                        $role = $roles[$member['uid']];
 
                         # Use a single SQL statement rather than the usual methods for performance reasons.  And then
                         # batch them up into groups because that performs better in a cluster.
@@ -233,7 +259,7 @@ class Group extends Entity
                         $sql = "SELECT id, role FROM memberships WHERE userid = ? AND groupid = ?;";
                         $membs = $this->dbhm->preQuery($sql, [ $member['uid'], $this->id] );
                         if (count($membs) == 0) {
-                            $sql = "INSERT IGNORE INTO memberships (userid, groupid) VALUES ({$member['uid']}, {$this->id});";
+                            $sql = "INSERT IGNORE INTO memberships (userid, groupid, emailid) VALUES ({$member['uid']}, {$this->id}, {$member['emailid']});";
                             $bulksql .= $sql;
                             $membs = [
                                 [
@@ -253,7 +279,7 @@ class Group extends Entity
                         # Now update with new settings.  Also set syncdelete so that we know this member still exists
                         # in the input data and therefore doesn't need deleting.
                         $sql = "UPDATE memberships SET role = '$role', yahooPostingStatus = " . $this->dbhm->quote($yps) .
-                               ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", syncdelete = 0 WHERE userid = " .
+                               ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", emailid = {$member['emailid']}, syncdelete = 0 WHERE userid = " .
                                 "{$member['uid']} AND groupid = {$this->id};";
                         $bulksql .= $sql;
 
@@ -279,7 +305,22 @@ class Group extends Entity
                 }
 
                 # Delete any residual members.  If this fails we have old members left over - so no need to rollback.
-                $rc = $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = ? AND syncdelete = 1;", [ $this->id ]);
+                #
+                # We need to log these deletes so that we can see why memberships disappear.
+                $todeletes = $this->dbhm->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND syncdelete = 1;", [ $this->id ]);
+                $meid = $me ? $me->getId() : NULL;
+                foreach ($todeletes as $todelete) {
+                    $this->log->log([
+                        'type' => Log::TYPE_GROUP,
+                        'subtype' => Log::SUBTYPE_LEFT,
+                        'user' => $todelete['userid'],
+                        'byuser' => $meid,
+                        'groupid' => $this->id,
+                        'text' => 'setMembers'
+                    ]);
+                }
+
+                $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = ? AND syncdelete = 1;", [ $this->id ]);
 
                 # Now do a check on the number of members.  It should match the distinct number; if not then
                 # something has gone wrong and we should abort.

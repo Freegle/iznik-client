@@ -363,7 +363,7 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
 
 
 Iznik.Views.ModTools.Message.ViewSource = Iznik.Views.Modal.extend({
-    template: 'modtools_pending_viewsource',
+    template: 'modtools_messages_pending_viewsource',
 
     render: function() {
         var self = this;

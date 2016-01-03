@@ -80,7 +80,7 @@ class userTest extends IznikTest {
         assertEquals('test@test.com', $emails[0]['email']);
 
         # Add it again - should work
-        assertEquals(1, $u->addEmail('test@test.com'));
+        assertGreaterThan(0, $u->addEmail('test@test.com'));
 
         # Add a second
         assertGreaterThan(0, $u->addEmail('test2@test.com', 0));
@@ -93,6 +93,19 @@ class userTest extends IznikTest {
 
         assertEquals($id, $u->findByEmail('test@test.com'));
         assertNull($u->findByEmail('testinvalid@test.com'));
+
+        # Add them as memberships and check we get the right ones.
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $emailid1 = $u->getIdForEmail('test@test.com');
+        $emailid2 = $u->getIdForEmail('test2@test.com');
+        $u->addMembership($group1, User::ROLE_MEMBER, $emailid1);
+        assertEquals($emailid1, $u->getEmailForGroup($group1));
+        $u->addMembership($group1, User::ROLE_MEMBER, $emailid2);
+        $u->addMembership($group1, User::ROLE_MEMBER, $emailid2);
+        assertEquals($emailid2, $u->getEmailForGroup($group1));
+        assertNull($u->getIdForEmail('wibble@test.com'));
+        assertNull($u->getEmailForGroup(-1));
 
         error_log(__METHOD__ . " end");
     }

@@ -1,7 +1,7 @@
-Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
+Iznik.Views.ModTools.Pages.PendingMessages = Iznik.Views.Page.extend({
     modtools: true,
 
-    template: "modtools_pending_main",
+    template: "modtools_messages_pending_main",
 
     fetching: null,
 
@@ -20,15 +20,15 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
         // For pending messages we don't do paging so put a high limit.
         data.limit = 100;
 
-        var v = new Iznik.Views.PleaseWait();
-        v.render();
-
         if (self.fetching == self.selected) {
             // Already fetching the right group.
             return;
         } else {
             self.fetching = self.selected;
         }
+
+        var v = new Iznik.Views.PleaseWait();
+        v.render();
 
         this.msgs.fetch({
             data: data,
@@ -89,7 +89,6 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
         });
 
         self.listenTo(this.groupSelect, 'selected', function(selected) {
-            console.log("Group select selected", selected);
             self.selected = selected;
             self.fetch();
         });
@@ -105,7 +104,7 @@ Iznik.Views.ModTools.Pages.Pending = Iznik.Views.Page.extend({
 });
 
 Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
-    template: 'modtools_pending_message',
+    template: 'modtools_messages_pending_message',
 
     events: {
         'click .js-viewsource': 'viewSource',
@@ -200,6 +199,7 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
 
             if (!_.isUndefined(config) &&
                 config.get('subjlen') &&
+                self.model.get('suggestedsubject') &&
                 (self.model.get('suggestedsubject').length > config.get('subjlen'))) {
                 // This subject is too long, and we want to flag that.
                 self.$('.js-subject').closest('.input-group').addClass('subjectdifference');
@@ -304,7 +304,7 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
 });
 
 Iznik.Views.ModTools.Message.Pending.Group = IznikView.extend({
-    template: 'modtools_pending_group',
+    template: 'modtools_messages_pending_group',
 
     render: function() {
         var self = this;
@@ -315,7 +315,7 @@ Iznik.Views.ModTools.Message.Pending.Group = IznikView.extend({
 });
 
 Iznik.Views.ModTools.StdMessage.Pending.Approve = Iznik.Views.ModTools.StdMessage.Modal.extend({
-    template: 'modtools_pending_approve',
+    template: 'modtools_messages_pending_approve',
 
     events: {
         'click .js-send': 'send'
@@ -336,7 +336,7 @@ Iznik.Views.ModTools.StdMessage.Pending.Approve = Iznik.Views.ModTools.StdMessag
 });
 
 Iznik.Views.ModTools.StdMessage.Pending.Reject = Iznik.Views.ModTools.StdMessage.Modal.extend({
-    template: 'modtools_pending_reject',
+    template: 'modtools_messages_pending_reject',
 
     events: {
         'click .js-send': 'send'

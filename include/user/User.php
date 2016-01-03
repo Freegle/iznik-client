@@ -132,6 +132,33 @@ class User extends Entity
         return($emails);
     }
 
+    public function getEmailForGroup($groupid) {
+        $emails = $this->dbhr->preQuery("SELECT emailid FROM memberships WHERE userid = ? AND groupid = ?;", [
+            $this->id,
+            $groupid
+        ]);
+
+        foreach ($emails as $email) {
+            return($email['emailid']);
+        }
+
+        return(NULL);
+    }
+
+    public function getIdForEmail($email) {
+        # Email is a unique key but conceivably we could be called with an email for another user.
+        $ids = $this->dbhr->preQuery("SELECT id FROM users_emails WHERE email LIKE ? AND userid = ?;", [
+            $email,
+            $this->id
+        ]);
+
+        foreach ($ids as $id) {
+            return($id['id']);
+        }
+
+        return(NULL);
+    }
+
     public function findByEmail($email) {
         $users = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;",
             [ $email ]);
@@ -146,7 +173,6 @@ class User extends Entity
     {
         # If the email already exists in the table, then that's fine.  But we don't want to use INSERT IGNORE as
         # that scales badly for clusters.
-        $rc = 1;
         $sql = "SELECT id FROM users_emails WHERE userid = ? AND email LIKE ?;";
         $emails = $this->dbhm->preQuery($sql, [
             $this->id,
@@ -154,8 +180,11 @@ class User extends Entity
         ]);
 
         if (count($emails) == 0) {
-            $rc = $this->dbhm->preExec("INSERT INTO users_emails (userid, email, preferred) VALUES (?, ?, ?)",
+            $this->dbhm->preExec("INSERT INTO users_emails (userid, email, preferred) VALUES (?, ?, ?)",
                 [$this->id, $email, $primary]);
+            $rc = $this->dbhm->lastInsertId();
+        } else {
+            $rc = $emails[0]['id'];
         }
 
         return($rc);
@@ -191,14 +220,15 @@ class User extends Entity
         }
     }
 
-    public function addMembership($groupid, $role = User::ROLE_MEMBER) {
+    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
-        $rc = $this->dbhm->preExec("REPLACE INTO memberships (userid, groupid, role) VALUES (?,?,?);",
+        $rc = $this->dbhm->preExec("REPLACE INTO memberships (userid, groupid, role, emailid) VALUES (?,?,?,?);",
             [
                 $this->id,
                 $groupid,
-                $role
+                $role,
+                $emailid
             ]);
 
         # We might need to update the systemrole.

@@ -157,8 +157,10 @@ class MailRouter
 
                             if ($role == User::ROLE_NONMEMBER) {
                                 # We aren't a member yet.  Add ourselves.
+                                #
+                                # We don't know which email we use but it'll get set on the next sync.
                                 #error_log("Not a member yet");
-                                $u->addMembership($groupid, User::ROLE_MODERATOR);
+                                $u->addMembership($groupid, User::ROLE_MODERATOR, NULL);
                                 $ret = MailRouter::TO_SYSTEM;
                             } else if ($role == User::ROLE_MEMBER) {
                                 # We're already a member.  Promote.

@@ -144,13 +144,14 @@ class locationTest extends IznikTest {
         assertEquals(1, count($res));
         assertEquals($id, $res[0]['id']);
 
+        # Find something which matches a word.
         $res = $l->search("high", $gid);
         assertEquals(1, count($res));
         assertEquals($id, $res[0]['id']);
 
+        # Fail to find something which doesn't match a word.
         $res = $l->search("stre", $gid);
-        assertEquals(1, count($res));
-        assertEquals($id, $res[0]['id']);
+        assertEquals(0, count($res));
 
         $res = $l->search("high street", $gid);
         assertEquals(1, count($res));

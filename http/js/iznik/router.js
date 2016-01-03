@@ -38,9 +38,12 @@ var IznikRouter = Backbone.Router.extend({
         "yahoologin": "yahoologin",
         "modtools": "modtools",
         "modtools/supporters": "supporters",
-        "modtools/pending": "pending",
-        "modtools/approved(/:search)": "approved",
-        "modtools/spam": "spam",
+        "modtools/messages/pending": "pendingMessages",
+        "modtools/messages/approved(/:search)": "approvedMessages",
+        "modtools/messages/spam": "spamMessages",
+        "modtools/members/pending": "pendingMembers",
+        "modtools/members/approved(/:search)": "approvedMembers",
+        "modtools/members/spam": "spamMembers",
         "modtools/settings": "settings",
         "*path": "home"
     },
@@ -123,27 +126,41 @@ var IznikRouter = Backbone.Router.extend({
         this.loadRoute({page: page});
     },
 
-    pending: function() {
+    pendingMessages: function() {
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
-            var page = new Iznik.Views.ModTools.Pages.Pending();
+            var page = new Iznik.Views.ModTools.Pages.PendingMessages();
             this.loadRoute({page: page, modtools: true});
         });
 
         Iznik.Session.forceLogin();
     },
 
-    spam: function() {
+    spamMessages: function() {
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
-            var page = new Iznik.Views.ModTools.Pages.Spam();
+            var page = new Iznik.Views.ModTools.Pages.SpamMembers();
             this.loadRoute({page: page, modtools: true});
         });
 
         Iznik.Session.forceLogin();
     },
 
-    approved: function(search) {
+    approvedMessages: function(search) {
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
-            var page = new Iznik.Views.ModTools.Pages.Approved({
+            var page = new Iznik.Views.ModTools.Pages.ApprovedMessages({
+                search: search
+            });
+            this.loadRoute({
+                page: page,
+                modtools: true
+            });
+        });
+
+        Iznik.Session.forceLogin();
+    },
+
+    approvedMembers: function(search) {
+        this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
+            var page = new Iznik.Views.ModTools.Pages.ApprovedMembers({
                 search: search
             });
             this.loadRoute({

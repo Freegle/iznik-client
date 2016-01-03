@@ -180,7 +180,7 @@ class groupTest extends IznikTest {
         $members = $g->getMembers();
         assertEquals(1, count($members));
         error_log("Members " . var_export($members, true));
-        assertEquals('test@test.com', $members[0]['emails'][0]['email']);
+        assertEquals('test@test.com', $members[0]['otheremails'][0]['email']);
 
         $mock = $this->getMockBuilder('LoggedPDO')
             ->setConstructorArgs([
@@ -203,7 +203,7 @@ class groupTest extends IznikTest {
 
         $members = $g->getMembers();
         assertEquals(1, count($members));
-        assertEquals('test@test.com', $members[0]['emails'][0]['email']);
+        assertEquals('test@test.com', $members[0]['otheremails'][0]['email']);
 
         error_log(__METHOD__ . " end");
     }

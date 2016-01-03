@@ -1,9 +1,9 @@
-Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
+Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Page.extend({
     modtools: true,
     search: false,
     context: null,
 
-    template: "modtools_approved_main",
+    template: "modtools_messages_approved_main",
 
     events: {
         'click .js-search': 'search',
@@ -46,15 +46,15 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
         }
 
         // Fetch more messages - and leave the old ones in the collection
-        var v = new Iznik.Views.PleaseWait();
-        v.render();
-
         if (self.fetching == self.selected) {
             // Already fetching the right group.
             return;
         } else {
             self.fetching = self.selected;
         }
+
+        var v = new Iznik.Views.PleaseWait();
+        v.render();
 
         this.msgs.fetch({
             data: data,
@@ -119,9 +119,9 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
         var term = this.$('.js-searchterm').val();
 
         if (term != '') {
-            Router.navigate('/modtools/approved/' + encodeURIComponent(term), true);
+            Router.navigate('/modtools/messages/approved/' + encodeURIComponent(term), true);
         } else {
-            Router.navigate('/modtools/approved', true);
+            Router.navigate('/modtools/messages/approved', true);
         }
     },
 
@@ -132,7 +132,7 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
 
         // The type of collection we're using depends on whether we're searching.  It controls how we fetch.
         if (self.options.search) {
-            self.msgs = new Iznik.Collections.Search(null, {
+            self.msgs = new Iznik.Collections.Messages.Search(null, {
                 search: self.options.search
             });
 
@@ -188,7 +188,7 @@ Iznik.Views.ModTools.Pages.Approved = Iznik.Views.Page.extend({
 });
 
 Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
-    template: 'modtools_approved_message',
+    template: 'modtools_messages_approved_message',
 
     events: {
         'click .js-delete' : 'deleteMe',
@@ -349,7 +349,7 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
 });
 
 Iznik.Views.ModTools.Message.Approved.Group = IznikView.extend({
-    template: 'modtools_approved_group',
+    template: 'modtools_messages_approved_group',
 
     render: function() {
         var self = this;

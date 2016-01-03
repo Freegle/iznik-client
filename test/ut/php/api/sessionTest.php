@@ -76,7 +76,7 @@ class sessionTest extends IznikAPITest {
 
         $u = new User($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        assertTrue($u->addEmail('test@test.com'));
+        assertNotNull($u->addEmail('test@test.com'));
         $u = new User($this->dbhm, $this->dbhm, $id);
 
         $g = new Group($this->dbhr, $this->dbhm);
@@ -106,7 +106,7 @@ class sessionTest extends IznikAPITest {
 
         $u = new User($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        assertTrue($u->addEmail('test@test.com'));
+        assertNotNull($u->addEmail('test@test.com'));
         $u = new User($this->dbhm, $this->dbhm, $id);
 
         $ret = $this->call('session', 'PATCH', [
@@ -143,7 +143,7 @@ class sessionTest extends IznikAPITest {
 
         $u = new User($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        assertTrue($u->addEmail('test@test.com'));
+        assertNotNull($u->addEmail('test@test.com'));
         $u = new User($this->dbhm, $this->dbhm, $id);
 
         $g = new Group($this->dbhr, $this->dbhm);

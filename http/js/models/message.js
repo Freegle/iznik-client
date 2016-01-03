@@ -334,7 +334,7 @@ Iznik.Collections.Message = IznikCollection.extend({
     }
 });
 
-Iznik.Collections.Search = Iznik.Collections.Message.extend({
+Iznik.Collections.Messages.Search = Iznik.Collections.Message.extend({
     url: function() {
         var url = API + 'messages/search/' + encodeURIComponent(this.options.search);
         return(url);

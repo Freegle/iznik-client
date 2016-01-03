@@ -37,10 +37,10 @@ foreach ($mods as $mod) {
             error_log("Found group $gid mod $uid {$mod['yahooid']}");
             $u = new User($dbhr, $dbhm, $uid);
             $u->addLogin('Yahoo', $mod['yahooid']);
-            $u->addEmail($mod['email'], 1);
+            $emailid = $u->addEmail($mod['email'], 1);
 
             # Assume we're at least a mod - old ModTools doesn't know if we're an owner.
-            $u->addMembership($gid, User::ROLE_MODERATOR);
+            $u->addMembership($gid, User::ROLE_MODERATOR, $emailid);
 
             $u->setGroupSettings($gid, [
                 'showmessages' => intval($mod['showinallmessages']),
