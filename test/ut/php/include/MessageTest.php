@@ -137,7 +137,6 @@ class messageTest extends IznikTest {
         $msg = file_get_contents('msgs/basic');
         $msg = str_replace('Basic test', 'OFFER: Test item (Tuvulu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
-        error_log($msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
         $mid = $m->save();

@@ -6,6 +6,7 @@ if (!defined('UT_DIR')) {
 require_once UT_DIR . '/IznikTest.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
+require_once IZNIK_BASE . '/include/message/Message.php';
 
 /**
  * @backupGlobals disabled
@@ -211,10 +212,22 @@ class userTest extends IznikTest {
         assertEquals($group2, $membs[0]['id']);
 
         // Support and admin users have a mod role on the group even if not a member
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_replace('Basic test', 'OFFER: Test item (Tuvulu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
+        $mid = $m->save();
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+
         $u->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         assertEquals($u->getRole($group1), User::ROLE_MODERATOR);
+        assertEquals(User::ROLE_MODERATOR, $m->getRoleForMessage());
         $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         assertEquals($u->getRole($group1), User::ROLE_OWNER);
+        assertEquals(User::ROLE_OWNER, $m->getRoleForMessage());
 
         $g = new Group($this->dbhr, $this->dbhm, $group1);
         $g->delete();

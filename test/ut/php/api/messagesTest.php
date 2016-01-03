@@ -71,6 +71,14 @@ class messagesTest extends IznikAPITest {
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
+        # Omit groupid - should use groups for currently logged in user but we're only a member so this shouldn't
+        # work.
+        $ret = $this->call('messages', 'GET', [
+        ]);
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(0, count($msgs));
+
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'search',
             'groupid' => $group1,
@@ -78,13 +86,21 @@ class messagesTest extends IznikAPITest {
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        error_log(var_export($msgs, true));
         assertEquals(1, count($msgs));
         assertEquals($a->getID(), $msgs[0]['id']);
         assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
         # Check the log.
         $u->setRole(User::ROLE_MODERATOR, $group1);
+
+        # Get messages for our logged in groups.
+        $ret = $this->call('messages', 'GET', [
+        ]);
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($a->getID(), $msgs[0]['id']);
+        assertTrue(array_key_exists('source', $msgs[0]));
 
         error_log("Fromuser is " . $a->getFromuser());
         $ret = $this->call('user', 'GET', [
