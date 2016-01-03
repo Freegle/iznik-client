@@ -42,7 +42,11 @@ Iznik.Collections.Members = IznikCollection.extend({
         this.options = options;
 
         // Use a comparator to show in most recent first order
-        this.comparator = 'email'
+        this.comparator = function(a, b) {
+            var epocha = (new Date(a.get('joined'))).getTime();
+            var epochb = (new Date(b.get('joined'))).getTime();
+            return(epochb - epocha);
+        }
     },
 
     parse: function(ret) {

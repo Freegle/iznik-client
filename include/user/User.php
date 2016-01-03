@@ -583,7 +583,6 @@ class User extends Entity
                     }
 
                     $log['group'] = $groups[$log['groupid']];
-                    error_log("Logged for group {$log['groupid']}");
                 }
 
                 if (pres('configid', $log)) {

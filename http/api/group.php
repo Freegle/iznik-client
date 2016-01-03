@@ -41,7 +41,7 @@ function group() {
                 $ret['group']['mysettings'] = $me ? $me->getGroupSettings($id) : NULL;
                 $ret['group']['mysettings']['configid'] = $me ? $c->getForGroup($me->getId(), $id) : NULL;
                 $ctx = presdef('context', $_REQUEST, NULL);
-                $limit = presdef('limit', $_REQUEST, 10);
+                $limit = presdef('limit', $_REQUEST, 5);
 
                 if ($members && $me && $me->isModOrOwner($id)) {
 

@@ -216,6 +216,8 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
         var self = this;
 
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
+        var mom = new moment(this.model.get('joined'));
+        this.$('.js-joined').html(mom.format('llll'));
 
         self.addOtherEmails();
 
@@ -237,6 +239,8 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
         });
 
         mod.fetch().then(function() {
+            // We don't want to show the Yahoo joined date because we have our own.
+            mod.clear('date');
             var v = new Iznik.Views.ModTools.Yahoo.User({
                 model: mod
             });

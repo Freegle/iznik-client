@@ -22,8 +22,13 @@ Iznik.Views.ModTools.Yahoo.User = IznikView.extend({
 
         self.$('.js-posting').val(self.model.get('postingStatus'));
         self.$('.js-delivery').val(self.model.get('deliveryType'));
-        var mom = new moment(self.model.get('date') * 1000);
-        self.$('.js-joined').html(mom.format('ll'));
+
+        if (self.model.get('date')) {
+            var mom = new moment(self.model.get('date') * 1000);
+            self.$('.js-joined').html(mom.format('ll'));
+        } else {
+            self.$('.js-joinholder').hide();
+        }
 
         self.listenToOnce(self.model, 'change:postingStatus change:deliveryType', self.render);
 
