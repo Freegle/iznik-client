@@ -1,5 +1,5 @@
 /*!
- * Backbone.CollectionView, v0.13.0
+ * Backbone.CollectionView, v1.0.2
  * Copyright (c)2013 Rotunda Software, LLC.
  * Distributed under MIT license
  * http://github.com/rotundasoftware/backbone-collection-view
@@ -35,8 +35,8 @@
         tagName : "ul",
 
         events : {
-            "mousedown li, td" : "_listItem_onMousedown",
-            "dblclick li, td" : "_listItem_onDoubleClick",
+            "mousedown > li, tbody > tr > td" : "_listItem_onMousedown",
+            "dblclick > li, tbody > tr > td" : "_listItem_onDoubleClick",
             "click" : "_listBackground_onClick",
             "click ul.collection-list, table.collection-list" : "_listBackground_onClick",
             "keydown" : "_onKeydown"
@@ -401,17 +401,33 @@
 
         // Render a single model view in container object "parentElOrDocumentFragment", which is either
         // a documentFragment or a jquery object. optional arg atIndex is not support for document fragments.
-        _insertAndRenderModelView : function( modelView, parentElOrDocumentFragment, atIndex ) {
+        _insertAndRenderModelView : function( modelView, parentElOrDocumentFragment) {
             var thisModelViewWrapped = this._wrapModelView( modelView );
+            $(thisModelViewWrapped).data('collectionViewModel', modelView.model);
 
             if( parentElOrDocumentFragment.nodeType === 11 ) // if we are inserting into a document fragment, we need to use the DOM appendChild method
                 parentElOrDocumentFragment.appendChild( thisModelViewWrapped.get( 0 ) );
             else {
-                if( ! _.isUndefined( atIndex ) && atIndex >= 0 && atIndex < parentElOrDocumentFragment.children().length )
-                // note this.collection.length might be greater than parentElOrDocumentFragment.children().length here
-                    parentElOrDocumentFragment.children().eq( atIndex ).before( thisModelViewWrapped );
-                else
+                // We don't really know which of the models in the collection are currently present in our DOM,
+                // because add events can happen in strange orders, so we loop through the ones we have comparing
+                // the models.
+                var inserted = false;
+                var modind = this.collection.indexOf(modelView.model);
+                var self = this;
+
+                parentElOrDocumentFragment.children().each(function() {
+                    if (!inserted) {
+                        var thisind = self.collection.indexOf($(this).data('collectionViewModel'));
+                        if (thisind > modind) {
+                            $(this).before(thisModelViewWrapped);
+                            inserted = true;
+                        }
+                    }
+                })
+
+                if (!inserted) {
                     parentElOrDocumentFragment.append( thisModelViewWrapped );
+                }
             }
 
             // we have to render the modelView after it has been put in context, as opposed to in the
@@ -483,7 +499,7 @@
 
                 if( this._hasBeenRendered ) {
                     modelView = this._createNewModelView( model, this._getModelViewOptions( model ) );
-                    this._insertAndRenderModelView( modelView, this._getContainerEl(), this.collection.indexOf( model ) );
+                    this._insertAndRenderModelView( modelView, this._getContainerEl());
                 }
 
                 if( this._isBackboneCourierAvailable() )
@@ -928,7 +944,7 @@
                             sel.removeAllRanges();
                     }
                 }
-                else if( this.selectMultiple && ( this.clickToToggle || theEvent.metaKey ) )
+                else if( ( this.selectMultiple || _.contains( this.selectedItems, clickedItemId ) ) && ( this.clickToToggle || theEvent.metaKey || theEvent.ctrlKey ) )
                 {
                     if( _.contains( this.selectedItems, clickedItemId ) )
                         this.setSelectedModels( _.without( this.selectedItems, clickedItemId ), { by : "cid" } );
