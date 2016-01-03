@@ -132,7 +132,7 @@ class Group extends Entity
 
     public function getMembers($limit = 10) {
         $ret = [];
-        $sql = "SELECT memberships.userid FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid WHERE groupid = ? LIMIT $limit;";
+        $sql = "SELECT memberships.userid FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid WHERE groupid = ? ORDER BY memberships.added DESC LIMIT $limit;";
         $members = $this->dbhr->preQuery($sql, [ $this->id ]);
         foreach ($members as $member) {
             $u = new User($this->dbhr, $this->dbhm, $member['userid']);
@@ -278,8 +278,10 @@ class Group extends Entity
 
                         # Now update with new settings.  Also set syncdelete so that we know this member still exists
                         # in the input data and therefore doesn't need deleting.
+                        $added = date ("Y-m-d", strtotime($member['date']));
+
                         $sql = "UPDATE memberships SET role = '$role', yahooPostingStatus = " . $this->dbhm->quote($yps) .
-                               ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", emailid = {$member['emailid']}, syncdelete = 0 WHERE userid = " .
+                               ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", emailid = {$member['emailid']}, added = '$added', syncdelete = 0 WHERE userid = " .
                                 "{$member['uid']} AND groupid = {$this->id};";
                         $bulksql .= $sql;
 
