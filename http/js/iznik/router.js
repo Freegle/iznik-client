@@ -11,8 +11,11 @@ var IznikRouter = Backbone.Router.extend({
                 if (self.modtools) {
                     // This is a ModTools page - start any plugin work.
                     if (loggedIn) {
-                        IznikPlugin.startSyncs();
-                        IznikPlugin.checkWork();
+                        // Delay starting this work slightly to allow main part of page to load.
+                        _.delay(function() {
+                            IznikPlugin.startSyncs();
+                            IznikPlugin.checkWork();
+                        }, 500);
                     }
                 }
             });

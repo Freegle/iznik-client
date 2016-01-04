@@ -231,21 +231,24 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
 
         self.$('.js-user').html(v.render().el);
 
-        // The Yahoo part of the user
-        var mod = IznikYahooUsers.findUser({
-            email: self.model.get('email'),
-            group: group.get('nameshort'),
-            groupid: group.get('id')
-        });
-
-        mod.fetch().then(function() {
-            // We don't want to show the Yahoo joined date because we have our own.
-            mod.clear('date');
-            var v = new Iznik.Views.ModTools.Yahoo.User({
-                model: mod
+        // Delay getting the Yahoo info slightly to improve apparent render speed.
+        _.delay(function() {
+            // The Yahoo part of the user
+            var mod = IznikYahooUsers.findUser({
+                email: self.model.get('email'),
+                group: group.get('nameshort'),
+                groupid: group.get('id')
             });
-            self.$('.js-yahoo').append(v.render().el);
-        });
+
+            mod.fetch().then(function() {
+                // We don't want to show the Yahoo joined date because we have our own.
+                mod.clear('date');
+                var v = new Iznik.Views.ModTools.Yahoo.User({
+                    model: mod
+                });
+                self.$('.js-yahoo').append(v.render().el);
+            });
+        }, 200);
 
         // Add the default standard actions.
         var configs = Iznik.Session.get('configs');
