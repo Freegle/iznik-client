@@ -130,7 +130,7 @@ class Group extends Entity
         return($atts);
     }
 
-    public function getMembers($limit = 10, $search = NULL, &$ctx) {
+    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL) {
         $ret = [];
         $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d", $ctx['Added']));
         $addq = $ctx == NULL ? '' : (" AND (memberships.added < $date OR memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ") ");
@@ -292,7 +292,7 @@ class Group extends Entity
 
                         # Now update with new settings.  Also set syncdelete so that we know this member still exists
                         # in the input data and therefore doesn't need deleting.
-                        $added = date ("Y-m-d", strtotime($member['date']));
+                        $added = pres('date', $member) ? ("'" . date ("Y-m-d", strtotime($member['date'])) . "'"): 'NULL';
 
                         $sql = "UPDATE memberships SET role = '$role', yahooPostingStatus = " . $this->dbhm->quote($yps) .
                                ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", emailid = {$member['emailid']}, added = '$added', syncdelete = 0 WHERE userid = " .
@@ -351,7 +351,7 @@ class Group extends Entity
                     $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [$this->id]);
                 }
             } catch (Exception $e) {
-                error_log("Exception");
+                error_log("Exception" . $e->getMessage());
                 $rollback = TRUE;
             }
 

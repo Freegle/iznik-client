@@ -1161,8 +1161,8 @@ class Message
             'user' => $this->fromuser,
             'byuser' => $me ? $me->getId() : NULL,
             'groupid' => $groupid,
-            'text' => $subject,
-            'stdmsgid' => $stdmsgid
+            'stdmsgid' => $stdmsgid,
+            'text' => $subject
         ]);
 
         $handled = false;

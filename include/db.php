@@ -1,4 +1,4 @@
-<?php
+u<?php
 
 use Pheanstalk\Pheanstalk;
 require_once('config.php');
@@ -346,7 +346,6 @@ class LoggedPDO {
     }
 
     private function giveUp($msg) {
-        error_log("DB: give up $msg");
         throw new DBException("Unexpected database error $msg", 999);
     }
 }

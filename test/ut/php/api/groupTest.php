@@ -169,12 +169,12 @@ class groupAPITest extends IznikAPITest {
         error_log(var_export($ret, true));
 
         assertEquals(3, count($ret['group']['members']));
-        assertEquals('test@test.com', $ret['group']['members'][0]['email']);
-        assertEquals('Moderator', $ret['group']['members'][0]['role']);
+        assertEquals('test3@test.com', $ret['group']['members'][0]['email']);
+        assertEquals('Owner', $ret['group']['members'][0]['role']);
         assertEquals('test2@test.com', $ret['group']['members'][1]['email']);
         assertEquals('Member', $ret['group']['members'][1]['role']);
-        assertEquals('test3@test.com', $ret['group']['members'][2]['email']);
-        assertEquals('Owner', $ret['group']['members'][2]['role']);
+        assertEquals('test@test.com', $ret['group']['members'][2]['email']);
+        assertEquals('Moderator', $ret['group']['members'][2]['role']);
         assertEquals(2, $ret['group']['nummods']);
 
         # Set a config

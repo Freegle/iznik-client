@@ -300,13 +300,29 @@ class messageAPITest extends IznikAPITest {
         # Promote to owner - should be able to approve it.  Suppress the mail.
         $u->setRole(User::ROLE_OWNER, $group1);
 
+        $s = new StdMessage($this->dbhr, $this->dbhm);
+        $sid = $s->create('Test', NULL);
+        $s = new StdMessage($this->dbhr, $this->dbhm, $sid);
+
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $group1,
             'action' => 'Approve',
-            'duplicate' => 1
+            'duplicate' => 1,
+            'stdmsgid' => $sid
         ]);
         assertEquals(0, $ret['ret']);
+
+        # Get the logs - should reference the stdmsg.
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid,
+            'logs' => TRUE
+        ]);
+
+        $log = $this->findLog('Message', 'Approved', $ret['user']['logs']);
+        assertEquals($sid, $log['stdmsgid']);
+
+        $s->delete();
 
         # Message should now exist but approved.
         $m = new Message($this->dbhr, $this->dbhm, $id);

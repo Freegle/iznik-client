@@ -594,10 +594,15 @@ class User extends Entity
                 if (pres('configid', $log)) {
                     if (!pres($log['configid'], $configs)) {
                         $c = new ModConfig($this->dbhr, $this->dbhm, $log['configid']);
-                        $configs[$log['configid']] = $c->getPublic();
+
+                        if ($c->getId()) {
+                            $configs[$log['configid']] = $c->getPublic();
+                        }
                     }
 
-                    $log['config'] = $configs[$log['configid']];
+                    if (pres($log['configid'], $configs)) {
+                        $log['config'] = $configs[$log['configid']];
+                    }
                 }
 
                 if (pres('stdmsgid', $log)) {

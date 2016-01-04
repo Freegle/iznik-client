@@ -375,5 +375,27 @@ class userTest extends IznikTest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testMail() {
+        error_log(__METHOD__ );
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group = $g->create('testgroup1', Group::GROUP_REUSE);
+
+        # Suppress mails.
+        $u = $this->getMockBuilder('User')
+        ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+        ->setMethods(array('mailer'))
+        ->getMock();
+        $u->method('mailer')->willReturn(false);
+        assertGreaterThan(0, $u->addEmail('test@test.com'));
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $u->mail("test", "test", NULL, $group);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
