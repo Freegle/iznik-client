@@ -127,9 +127,15 @@ class User extends Entity
     }
 
     public function getEmails() {
-        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE userid = ?;",
+        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE userid = ? ORDER BY preferred DESC;",
             [$this->id]);
         return($emails);
+    }
+
+    public function getEmailPreferred() {
+        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE userid = ? AND preferred = 1;",
+            [$this->id]);
+        return(count($emails) == 0 ? NULL : $emails[0]['email']);
     }
 
     public function getEmailForGroup($groupid) {
@@ -789,6 +795,46 @@ class User extends Entity
        }
 
         return($ret);
+    }
+
+    # Default mailer is to use the standard PHP one, but this can be overridden in UT.
+    private function mailer() {
+        call_user_func_array('mail', func_get_args());
+    }
+
+    public function mail($subject, $body, $stdmsgid, $groupid) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $this->log->log([
+            'type' => Log::TYPE_USER,
+            'subtype' => Log::SUBTYPE_REPLIED,
+            'user' => $this->id,
+            'byuser' => $me ? $me->getId() : NULL,
+            'text' => $subject,
+            'stdmsgid' => $stdmsgid
+        ]);
+
+        # We are mailing the user on behalf of a specific group, and we may have a substitution to do.
+        $to = $this->getEmailPreferred();
+        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $atts = $g->getPublic();
+
+        if ($to) {
+            $name = $me->getName();
+
+            # We can do a simple substitution in the from name.
+            $name = str_replace('$groupname', $atts['namedisplay'], $name);
+
+            $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
+
+            $this->mailer(
+                $to,
+                $subject,
+                $body,
+                $headers,
+                "-f" . $g->getModsEmail()
+            );
+        }
     }
 
     public function delete() {

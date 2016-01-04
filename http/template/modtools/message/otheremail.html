@@ -1,5 +1,11 @@
 <div class="ellipsis text-muted">
-    <span data-toggle="tooltip" title="We know that this user also uses email address {{email}}">
-        <div class="glyphicon glyphicon-plus-sign" />&nbsp;{{email}}
-    </span>
+    <% if (preferred) { %>
+        <span data-toggle="tooltip" title="This is the preferred email for this user">
+            <div class="glyphicon glyphicon-thumbs-up" />&nbsp;{{email}}
+        </span>
+    <% } else { %>
+        <span data-toggle="tooltip" title="We know that this user also uses email address {{email}}">
+            <div class="glyphicon glyphicon-plus" />&nbsp;{{email}}
+        </span>
+    <% } %>
 </div>

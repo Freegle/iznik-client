@@ -180,31 +180,42 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
 
         var subj = this.model.get('subject');
 
-        // Expand substitution strings in subject
-        subj = this.substitutionStrings(subj, this.model.attributes, config, this.model.get('groups')[0])
+        if (subj) {
+            // Expand substitution strings in subject
+            subj = this.substitutionStrings(subj, this.model.attributes, config, this.model.get('groups')[0]);
+            subj = (stdmsg.subjpref ? stdmsg.subjpref : 'Re') + ': ' + subj +
+                        (stdmsg.subjsuff ? stdmsg.subjsuff : '')
+            focuson = 'js-text';
+        } else {
+            subj = (stdmsg.subjpref ? stdmsg.subjpref : '') + (stdmsg.subjsuff ? stdmsg.subjsuff : '')
+            focuson = 'js-subject';
+        }
 
-        this.$('.js-subject').val((stdmsg.subjpref ? stdmsg.subjpref : 'Re') +
-        ': ' + subj +
-        (stdmsg.subjsuff ? stdmsg.subjsuff : ''));
+        this.$('.js-subject').val(subj);
 
         this.$('.js-myname').html(Iznik.Session.get('me').displayname);
 
         // Quote original message.
         var msg = this.model.get('textbody');
-        msg = '> ' + msg.replace(/((\r\n)|\r|\n)/gm, '\n> ');
 
-        // Add text
-        msg = (stdmsg.body ? (stdmsg.body + '\n\n') : '') + msg;
+        if (msg) {
+            msg = '> ' + msg.replace(/((\r\n)|\r|\n)/gm, '\n> ');
 
-        // Expand substitution strings in body
-        msg = this.substitutionStrings(msg, this.model.attributes, config, this.model.get('groups')[0]);
+            // Add text
+            msg = (stdmsg.body ? (stdmsg.body + '\n\n') : '') + msg;
+
+            // Expand substitution strings in body
+            msg = this.substitutionStrings(msg, this.model.attributes, config, this.model.get('groups')[0]);
+        } else {
+            msg = stdmsg.body;
+        }
 
         // Put it in
         this.$('.js-text').val(msg);
 
         this.open(null);
         $('.modal').on('shown.bs.modal', function () {
-            $('.modal .js-text').focus();
+            $('.modal ' + focuson).focus();
         });
     },
 
@@ -501,9 +512,10 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
     leave: function() {
         var self = this;
         var message = self.model.get('message');
+        var member = self.model.get('member');
 
         var v = new Iznik.Views.ModTools.StdMessage.Leave({
-            model: message,
+            model: message ? message : member,
             stdmsg: this.model,
             config: this.options.config
         });
@@ -514,11 +526,12 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
     deleteMe: function() {
         var self = this;
         var message = self.model.get('message');
+        var member = self.model.get('member');
 
         if (this.options.config) {
             // This is a configured button; open the modal.
             var v = new Iznik.Views.ModTools.StdMessage.Delete({
-                model: message,
+                model: message ? message : member,
                 stdmsg: this.model,
                 config: this.options.config
             });
@@ -526,9 +539,8 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
             v.render();
         } else {
             // No popup to show.
-            message.delete();
+            member.delete();
         }
-
     }
 });
 

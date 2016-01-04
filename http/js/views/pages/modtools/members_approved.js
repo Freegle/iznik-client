@@ -4,7 +4,6 @@ Iznik.Views.ModTools.Member = IznikView.extend({
         this.$('.js-stdmsgs li').fadeIn('slow');
     },
 
-
     addOtherEmails: function() {
         var self = this;
         var thisemail = self.model.get('email');
@@ -204,12 +203,7 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
     template: 'modtools_members_approved_member',
 
     events: {
-        'click .js-delete' : 'deleteMe',
         'click .js-rarelyused': 'rarelyUsed'
-    },
-
-    deleteMe: function() {
-        var self = this;
     },
 
     render: function() {
@@ -255,11 +249,18 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
         var sessgroup = Iznik.Session.get('groups').get(group.id);
         var config = configs.get(sessgroup.get('configid'));
 
+        // Save off the groups in the member ready for the standard message
+        // TODO Hacky.  Should we split the StdMessage.Button code into one for members and one for messages?
+        self.model.set('groups', [ group.attributes ]);
+        self.model.set('fromname', self.model.get('displayname'));
+        self.model.set('fromaddr', self.model.get('email'));
+        self.model.set('fromuser', self.model);
+
         self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
             model: new IznikModel({
                 title: 'Mail',
                 action: 'Leave Approved Member',
-                message: self.model,
+                member: self.model,
                 config: config
             })
         }).render().el);
@@ -268,7 +269,7 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
             model: new IznikModel({
                 title: 'Remove',
                 action: 'Delete Approved Member',
-                message: self.model,
+                member: self.model,
                 config: config
             })
         }).render().el);
@@ -280,7 +281,8 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
 
             _.each(sortmsgs, function (stdmsg) {
                 if (_.contains(['Leave Approved Member', 'Delete Approved Member'], stdmsg.action)) {
-                    stdmsg.message = self.model;
+                    stdmsg.groups = [ group ];
+                    stdmsg.member = self.model;
                     var v = new Iznik.Views.ModTools.StdMessage.Button({
                         model: new IznikModel(stdmsg),
                         config: config

@@ -32,6 +32,7 @@ class Log
     const SUBTYPE_JOINED = 'Joined';
     const SUBTYPE_LEFT = 'Left';
     const SUBTYPE_REPLIED = 'Replied';
+    const SUBTYPE_MAILED = 'Mailed';
     const SUBTYPE_LOGIN = 'Login';
     const SUBTYPE_CLASSIFIED_SPAM = 'ClassifiedSpam';
     const SUBTYPE_SENT = 'Sent';

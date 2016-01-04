@@ -20,21 +20,21 @@
             <% if (subtype == 'Received') { %>
                 Posted #{{msgid}} <em>{{message.subject}}</em> via {{message.sourceheader}}
             <% } else if (subtype == 'Approved') { %>
-                Approved #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
+                Approved #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> with <em>{{stdmsg.title}}</em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else if (subtype == 'Rejected') { %>
                 <div class="nomargin alert alert-danger">
-                    Rejected #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.text) { %>with <em>{{obj.text}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
+                    Rejected #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> with <em>{{stdmsg.title}}</em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
                 </div>
             <% } else if (subtype == 'Deleted') { %>
                 <div class="nomargin alert alert-danger">
-                    Deleted #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.group) { %>in {{obj.group.collection}} on {{obj.group.namedisplay}}<% } %>
+                    Deleted #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> with <em>{{stdmsg.title}}</em><% } %><% if (obj.group) { %>in {{obj.group.collection}} on {{obj.group.namedisplay}}<% } %>
                 </div>
             <% } else if (subtype == 'Hold') { %>
                 Held #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else if (subtype == 'Release') { %>
                 Released #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else if (subtype == 'Edit') { %>
-                Edited #{{msgid}} {{text}}
+                Edited #{{msgid}} {{text}} <% if (obj.stdmsg) { %> with <em>{{stdmsg.title}}</em><% } %>
             <% } else { %>
                     <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>
@@ -51,6 +51,8 @@
             Role on {{group.namedisplay}} changed to {{text}}
             <% } else if (subtype == 'Merged') { %>
             {{text}}
+            <% } else if (subtype == 'Mailed') { %>
+            Mod sent <% if (obj.stdmsg) { %>standard message <em>{{stdmsg.title}}</em><% } else { %>mail<% } %>
             <% } else { %>
                 <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>

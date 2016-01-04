@@ -165,6 +165,7 @@ class Group extends Entity
 
             $thisone['joined'] = ISODate($member['added']);
             $thisone['email'] = $email;
+            $thisone['groupid'] = $this->id;
             $thisone['otheremails'] = $others;
             $thisone['yahooDeliveryType'] = $u->getPrivate('yahooDeliveryType');
             $thisone['yahooPostingStatus'] = $u->getPrivate('yahooPostingStatus');

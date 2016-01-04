@@ -13,6 +13,23 @@ Iznik.Models.ModTools.User = IznikModel.extend({
         } else {
             return(ret);
         }
+    },
+
+    reply: function(subject, body, stdmsgid) {
+        var self = this;
+
+        $.ajax({
+            type: 'POST',
+            url: API + 'user/' + self.get('id'),
+            data: {
+                subject: subject,
+                body: body,
+                stdmsgid: stdmsgid,
+                groupid: self.get('groupid')
+            }, success: function(ret) {
+                self.trigger('replied');
+            }
+        });
     }
 });
 

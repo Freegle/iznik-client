@@ -5,7 +5,11 @@ function user() {
     $me = whoAmI($dbhr, $dbhm);
 
     $id = intval(presdef('id', $_REQUEST, NULL));
+    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
     $yahooUserId = presdef('yahooUserId', $_REQUEST, NULL);
+    $subject = presdef('subject', $_REQUEST, NULL);
+    $body = presdef('body', $_REQUEST, NULL);
+    $stdmsgid = presdef('stdmsgid', $_REQUEST, NULL);
 
     if (!$id && $yahooUserId) {
         # We don't know our unique ID, but we do know the Yahoo one. Find it.
@@ -91,6 +95,11 @@ function user() {
                             'postingStatus' => $yahooPostingStatus
                         ]);
                     }
+                }
+
+                if ($subject) {
+                    // We are mailing this member.
+                    $u->mail($subject, $body, $stdmsgid, $groupid);
                 }
 
                 $ret = [
