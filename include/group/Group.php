@@ -130,11 +130,13 @@ class Group extends Entity
         return($atts);
     }
 
-    public function getMembers($limit = 10, &$ctx) {
+    public function getMembers($limit = 10, $search = NULL, &$ctx) {
         $ret = [];
         $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d", $ctx['Added']));
         $addq = $ctx == NULL ? '' : (" AND (memberships.added < $date OR memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ") ");
-        $sql = "SELECT memberships.id, memberships.userid, memberships.added FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid WHERE groupid = ? $addq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
+        # TODO We ought to search on firstname/lastname too, and handle word splits.  But this is sufficient for ModTools.
+        $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") .") ");
+        $sql = "SELECT memberships.id, memberships.userid, memberships.added FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE groupid = ? $addq $searchq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
         $members = $this->dbhr->preQuery($sql, [ $this->id ]);
         $ctx = [ 'Added' => NULL ];
         foreach ($members as $member) {

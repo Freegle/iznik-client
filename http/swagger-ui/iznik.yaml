@@ -396,15 +396,19 @@ paths:
         description: Groupid or nameshort to query.
         type: string
       - name: members
-        in: query
+        in: body
         description: Whether to return membership list; default is false.
         type: boolean
       - name: context
-        in: query
+        in: body
         description: Any context from previous request
         type: string
+      - name: search
+        in: body
+        description: Any string to search within members
+        type: string
       - name: limit
-        in: query
+        in: body
         description: Max number of members to return, defaults to 10
         type: number
       responses:

@@ -127,9 +127,9 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
         var term = this.$('.js-searchterm').val();
 
         if (term != '') {
-            Router.navigate('/modtools/members/' + encodeURIComponent(term), true);
+            Router.navigate('/modtools/members/approved/' + encodeURIComponent(term), true);
         } else {
-            Router.navigate('/modtools/members', true);
+            Router.navigate('/modtools/members/approved', true);
         }
     },
 

@@ -42,10 +42,11 @@ function group() {
                 $ret['group']['mysettings']['configid'] = $me ? $c->getForGroup($me->getId(), $id) : NULL;
                 $ctx = presdef('context', $_REQUEST, NULL);
                 $limit = presdef('limit', $_REQUEST, 5);
+                $search = presdef('search', $_REQUEST, NULL);
 
                 if ($members && $me && $me->isModOrOwner($id)) {
 
-                    $ret['group']['members'] = $g->getMembers($limit, $ctx);
+                    $ret['group']['members'] = $g->getMembers($limit, $search, $ctx);
                     $ret['context'] = $ctx;
                 }
 
