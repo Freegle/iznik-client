@@ -1,7 +1,5 @@
 // Stickily dismissible help boxes.
 Iznik.Views.Help.Box = IznikView.extend({
-    template: 'modtools_user_user',
-
     events: {
         'click .js-close': 'close'
     },

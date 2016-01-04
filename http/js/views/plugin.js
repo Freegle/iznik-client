@@ -427,7 +427,17 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 Iznik.Views.Plugin.Info = IznikView.extend({
     className: "panel panel-default js-plugin",
 
-    template: "layout_plugin"
+    template: "layout_plugin",
+
+    render: function() {
+        this.$el.html(window.template(this.template)());
+
+        var v = new Iznik.Views.Help.Box();
+        v.template = 'modtools_layout_background';
+        this.$('.js-background').html(v.render().el);
+
+        return(this);
+    }
 });
 
 Iznik.Views.Plugin.Work = IznikView.extend({
