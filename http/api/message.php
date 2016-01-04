@@ -11,6 +11,7 @@ function message() {
     $action = presdef('action', $_REQUEST, NULL);
     $subject = presdef('subject', $_REQUEST, NULL);
     $body = presdef('body', $_REQUEST, NULL);
+    $stdmsgid = presdef('stdmsgid', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -118,24 +119,24 @@ function message() {
                 switch ($action) {
                     case 'Delete':
                         # The delete call will handle any rejection on Yahoo if required.
-                        $m->delete($reason, NULL, $subject, $body);
+                        $m->delete($reason, NULL, $subject, $body, $stdmsgid);
                         break;
                     case 'Reject':
                         if (!$m->isPending($groupid)) {
                             $ret = ['ret' => 3, 'status' => 'Message is not pending'];
                         } else {
-                            $m->reject($groupid, $subject, $body);
+                            $m->reject($groupid, $subject, $body, $stdmsgid);
                         }
                         break;
                     case 'Approve':
                         if (!$m->isPending($groupid)) {
                             $ret = ['ret' => 3, 'status' => 'Message is not pending'];
                         } else {
-                            $m->approve($groupid, $subject, $body);
+                            $m->approve($groupid, $subject, $body, $stdmsgid);
                         }
                         break;
                     case 'Reply':
-                        $m->reply($groupid, $subject, $body);
+                        $m->reply($groupid, $subject, $body, $stdmsgid);
                         break;
                     case 'Hold':
                         $m->hold();

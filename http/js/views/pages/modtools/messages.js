@@ -564,7 +564,8 @@ Iznik.Views.ModTools.StdMessage.Leave = Iznik.Views.ModTools.StdMessage.Modal.ex
     send: function() {
         this.model.reply(
             this.$('.js-subject').val(),
-            this.$('.js-text').val()
+            this.$('.js-text').val(),
+            this.options.stdmsg.get('id')
         );
     },
 
@@ -585,7 +586,8 @@ Iznik.Views.ModTools.StdMessage.Delete = Iznik.Views.ModTools.StdMessage.Modal.e
     send: function() {
         this.model.reply(
             this.$('.js-subject').val(),
-            this.$('.js-text').val()
+            this.$('.js-text').val(),
+            this.options.stdmsg.get('id')
         );
     },
 

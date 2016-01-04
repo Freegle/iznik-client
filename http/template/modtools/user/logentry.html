@@ -49,6 +49,8 @@
             Created
             <% } else if (subtype == 'RoleChange') { %>
             Role on {{group.namedisplay}} changed to {{text}}
+            <% } else if (subtype == 'Merged') { %>
+            {{text}}
             <% } else { %>
                 <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>

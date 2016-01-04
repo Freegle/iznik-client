@@ -1105,7 +1105,7 @@ class Message
         }
     }
 
-    public function reject($groupid, $subject, $body) {
+    public function reject($groupid, $subject, $body, $stdmsgid) {
         # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
         # behaviour.
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -1116,7 +1116,8 @@ class Message
             'byuser' => $me ? $me->getId() : NULL,
             'user' => $this->fromuser,
             'groupid' => $groupid,
-            'text' => $subject
+            'text' => $subject,
+            'stdmsgid' => $stdmsgid
         ]);
 
         $handled = false;
@@ -1149,7 +1150,7 @@ class Message
         $this->maybeMail($groupid, $subject, $body);
     }
 
-    public function approve($groupid, $subject, $body) {
+    public function approve($groupid, $subject, $body, $stdmsgid) {
         # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
         # behaviour.
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -1160,7 +1161,8 @@ class Message
             'user' => $this->fromuser,
             'byuser' => $me ? $me->getId() : NULL,
             'groupid' => $groupid,
-            'text' => $subject
+            'text' => $subject,
+            'stdmsgid' => $stdmsgid
         ]);
 
         $handled = false;
@@ -1196,7 +1198,7 @@ class Message
         }
     }
 
-    public function reply($groupid, $subject, $body) {
+    public function reply($groupid, $subject, $body, $stdmsgid) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         $this->log->log([
@@ -1206,7 +1208,8 @@ class Message
             'user' => $this->fromuser,
             'byuser' => $me ? $me->getId() : NULL,
             'groupid' => $groupid,
-            'text' => $subject
+            'text' => $subject,
+            'stdmsgid' => $stdmsgid
         ]);
 
         $this->maybeMail($groupid, $subject, $body);
@@ -1244,7 +1247,7 @@ class Message
         }
     }
 
-    function delete($reason = NULL, $groupid = NULL, $subject = NULL, $body = NULL)
+    function delete($reason = NULL, $groupid = NULL, $subject = NULL, $body = NULL, $stdmsgid = NULL)
     {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $rc = true;
@@ -1261,7 +1264,8 @@ class Message
                 'user' => $this->fromuser,
                 'byuser' => $me ? $me->getId() : NULL,
                 'text' => $reason,
-                'groupid' => $groupid
+                'groupid' => $groupid,
+                'stdmsgid' => $stdmsgid
             ]);
 
             # Delete from a specific or all groups that it's on.

@@ -594,6 +594,11 @@ class User extends Entity
                     $log['config'] = $configs[$log['configid']];
                 }
 
+                if (pres('stdmsgid', $log)) {
+                    $s = new StdMessage($this->dbhr, $this->dbhm, $log['stdmsgid']);
+                    $log['stdmsg'] = $s->getPublic();
+                }
+
                 if (pres('msgid', $log)) {
                     $g = new Message($this->dbhr, $this->dbhm, $log['msgid']);
                     $log['message'] = $g->getPublic(FALSE);

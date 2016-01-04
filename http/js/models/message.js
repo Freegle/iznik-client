@@ -13,7 +13,6 @@ Iznik.Models.Message = IznikModel.extend({
                 id: self.get('id'),
                 action: 'Hold'
             }, success: function(ret) {
-
                 self.set('heldby', Iznik.Session.get('me'));
             }
         })
@@ -52,7 +51,7 @@ Iznik.Models.Message = IznikModel.extend({
         });
     },
 
-    reject: function(subject, body) {
+    reject: function(subject, body, stdmsgid) {
         // We reject the message on all groups.  Future enhancement?
         var self= this;
         _.each(self.get('groups'), function(group, index, list) {
@@ -64,6 +63,7 @@ Iznik.Models.Message = IznikModel.extend({
                     groupid: group.id,
                     action: 'Reject',
                     subject: subject,
+                    stdmsgid: stdmsgid,
                     body: body
                 }, success: function(ret) {
                     self.trigger('rejected');
@@ -72,7 +72,7 @@ Iznik.Models.Message = IznikModel.extend({
         });
     },
 
-    reply: function(subject, body) {
+    reply: function(subject, body, stdmsgid) {
         // We mail on only one group, otherwise the user will get multiple copies.
         var self = this;
         var group = _.first(self.get('groups'));
@@ -85,14 +85,15 @@ Iznik.Models.Message = IznikModel.extend({
                 groupid: group.id,
                 action: 'Reply',
                 subject: subject,
-                body: body
+                body: body,
+                stdmsgid: stdmsgid
             }, success: function(ret) {
                 self.trigger('replied');
             }
         });
     },
 
-    delete: function(subject, body) {
+    delete: function(subject, body, stdmsgid) {
         var self = this;
 
         // We delete the message on all groups.  Future enhancement?
@@ -105,7 +106,8 @@ Iznik.Models.Message = IznikModel.extend({
                     groupid: group.id,
                     action: 'Delete',
                     subject: subject,
-                    body: body
+                    body: body,
+                    stdmsgid: stdmsgid
                 }, success: function(ret) {
                     self.trigger('deleted');
                 }
@@ -125,20 +127,16 @@ Iznik.Models.Message = IznikModel.extend({
         // - We don't get a return code, exactly, but if it worked we get the message back again
         // - We also need to update the copy on our server.
         _.each(self.get('groups'), function(group, index, list) {
-            console.log("Edit on", group, self);
             var groupname = group.nameshort;
 
             $.ajax({
                 type: 'GET',
                 url: YAHOOAPI + 'groups/' + group.nameshort + "/pending/messages/1/parts?start=1&count=100&chrome=raw",
                 success: function(ret) {
-                    console.log("Got pending", ret);
                     var found = false;
                     if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('pendingMessages')) {
                         _.each(ret.ygData.pendingMessages, function (msg) {
-                            console.log("Check message", msg);
                             if (msg.msgId == group.yahoopendingid) {
-                                console.log("Found message");
                                 found = true;
 
                                 var parts = [];
@@ -166,8 +164,6 @@ Iznik.Models.Message = IznikModel.extend({
                                     messageParts: parts
                                 }
 
-                                console.log("Edit with", data);
-
                                 // Get a crumb from Yahoo to do the work.
                                 function getCrumb(ret) {
                                     var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
@@ -182,8 +178,6 @@ Iznik.Models.Message = IznikModel.extend({
                                                 action: 'SAVE'
                                             },
                                             success: function (ret) {
-                                                console.log("Edit returned", ret);
-
                                                 if (ret.hasOwnProperty('ygData') &&
                                                     ret.ygData.hasOwnProperty('msgId') &&
                                                     ret.ygData.msgId == group.yahoopendingid) {
