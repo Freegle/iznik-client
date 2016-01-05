@@ -192,6 +192,7 @@ class Group extends Entity
         ];
 
         if (!$members) { return($ret); }
+        #$this->dbhm->setErrorLog(TRUE);
 
         # This is used to set the whole of the membership list for a group.  It's only used when the group is
         # mastered on Yahoo, rather than by us.
@@ -220,7 +221,6 @@ class Group extends Entity
                     preg_match('/(.*)@/', $memb['email'], $matches);
                     $name = presdef('name', $memb, $matches[1]);
                     $uid = $u->create(NULL, NULL, $name);
-                    $u = new User($this->dbhm, $this->dbhm, $uid);
                 } else {
                     $u = new User($this->dbhm, $this->dbhm, $uid);
                 }
@@ -278,7 +278,7 @@ class Group extends Entity
                         $ydt = presdef('yahooDeliveryType', $member, NULL);
 
                         # Make sure the membership is present.  We don't want to REPLACE as that might lose settings.
-                        # We also don't want to do INSERT IGNORE as that doesn't perform well in clusters.
+                        # We also don't want to just do INSERT IGNORE as that doesn't perform well in clusters.
                         $sql = "SELECT id, role FROM memberships WHERE userid = ? AND groupid = ?;";
                         $membs = $this->dbhm->preQuery($sql, [ $member['uid'], $this->id] );
                         if (count($membs) == 0) {
