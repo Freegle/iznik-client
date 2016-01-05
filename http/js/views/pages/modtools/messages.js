@@ -539,7 +539,11 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
             v.render();
         } else {
             // No popup to show.
-            member.delete();
+            if (message) {
+                message.delete();
+            } else {
+                member.destroy();
+            }
         }
     }
 });
@@ -596,6 +600,17 @@ Iznik.Views.ModTools.StdMessage.Delete = Iznik.Views.ModTools.StdMessage.Modal.e
     },
 
     send: function() {
+        var self = this;
+        this.listenToOnce(this.model, 'replied', function() {
+            // We've sent the mail; now remove the message/member.
+            // TODO Hacky - should we split stdmessages for message/members?
+            if (typeof self.model.delete == 'function') {
+                self.model.delete();
+            } else {
+                self.model.destroy();
+            }
+        });
+
         this.model.reply(
             this.$('.js-subject').val(),
             this.$('.js-text').val(),

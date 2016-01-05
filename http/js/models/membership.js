@@ -8,11 +8,29 @@ Iznik.Models.Membership = IznikModel.extend({
     },
 
     parse: function(ret) {
-        return(ret.member);
+        // We might be called either when parsing a collection or a single membership.
+        return(ret.hasOwnProperty('member') ? ret.member : ret);
+    },
+
+    reply: function(subject, body, stdmsgid) {
+        var self = this;
+
+        $.ajax({
+            type: 'POST',
+            url: API + 'user/' + self.get('userid'),
+            data: {
+                subject: subject,
+                body: body,
+                stdmsgid: stdmsgid,
+                groupid: self.get('groupid')
+            }, success: function(ret) {
+                self.trigger('replied');
+            }
+        });
     }
 });
 
-Iznik.Collections.Memberships = IznikCollection.extend({
+Iznik.Collections.Members = IznikCollection.extend({
     model: Iznik.Models.Membership,
 
     ret: null,
@@ -32,6 +50,14 @@ Iznik.Collections.Memberships = IznikCollection.extend({
     },
 
     parse: function(ret) {
+        // Save off the return in case we need any info from it, e.g. context for searches.
+        this.ret = ret;
         return(ret.members);
+    }
+});
+
+Iznik.Collections.Members.Search = Iznik.Collections.Members.extend({
+    url: function() {
+        return(API + 'memberships/' + this.options.groupid + '?search=' + encodeURIComponent(this.options.search));
     }
 });

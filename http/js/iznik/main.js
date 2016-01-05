@@ -106,3 +106,4 @@ function isMobile(){
 
 var API = '/api/';
 var YAHOOAPI= 'https://groups.yahoo.com/api/v1/';
+var YAHOOAPIv2= 'https://groups.yahoo.com/api/v2/';

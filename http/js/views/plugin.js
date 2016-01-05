@@ -311,6 +311,13 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                                 }).render());
                                 break;
                             }
+
+                            case 'RemoveApprovedMember': {
+                                (new Iznik.Views.Plugin.Yahoo.RemoveApprovedMember({
+                                    model: new IznikModel(work)
+                                }).render());
+                                break;
+                            }
                         }
                     });
 
@@ -1113,6 +1120,54 @@ Iznik.Views.Plugin.Yahoo.ConfirmMod = Iznik.Views.Plugin.Yahoo.Invite.extend({
                 self.drop();
             }
         });
+    }
+});
+
+Iznik.Views.Plugin.Yahoo.RemoveApprovedMember = Iznik.Views.Plugin.Work.extend({
+    template: 'plugin_member_approved_remove',
+
+    crumbLocation: "/members/all",
+
+    server: true,
+
+    start: function() {
+        var self = this;
+
+        var data = [{
+            userId: this.model.get('id')
+        }];
+
+        new majax({
+            type: "DELETE",
+            url: YAHOOAPIv2 + "groups/" + this.model.get('group').nameshort + "/members?gapi_crumb=" + self.crumb + "&members=" + encodeURIComponent(JSON.stringify(data)),
+            data: data,
+            success: function (ret) {
+                if (ret.hasOwnProperty('ygData') &&
+                    ret.ygData.hasOwnProperty('numPassed')) {
+                    // If the delete worked, numPassed == 1.
+                    if (ret.ygData.numPassed == 1) {
+                        self.succeed();
+                    } else {
+                        // If we get a status of NOT SUBSCRIBED then the member is no longer on the group - which
+                        // means this remove is complete.
+                        if (ret.ygData.hasOwnProperty('members') &&
+                            ret.ygData.members.length == 1 &&
+                            ret.ygData.members[0].hasOwnProperty('status') &&
+                            ret.ygData.members[0].status == 'NOT_SUBSCRIBED') {
+                            self.succeed();
+                        } else {
+                            self.fail();
+                        }
+                    }
+                } else {
+                    self.fail();
+                }
+            }, error: function() {
+                self.fail();
+            }
+        });
+
+        this.startBusy();
     }
 });
 

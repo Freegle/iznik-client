@@ -47,35 +47,3 @@ Iznik.Collections.ModTools.MessageHistory = IznikCollection.extend({
         }
     }
 });
-
-Iznik.Collections.Members = IznikCollection.extend({
-    url: function() {
-        return(API + 'group/' + this.options.groupid + '?members=TRUE');
-    },
-
-    model: Iznik.Models.ModTools.User,
-
-    initialize: function (models, options) {
-        this.options = options;
-
-        // Use a comparator to show in most recent first order
-        this.comparator = function(a, b) {
-            var epocha = (new Date(a.get('joined'))).getTime();
-            var epochb = (new Date(b.get('joined'))).getTime();
-            return(epochb - epocha);
-        }
-    },
-
-    parse: function(ret) {
-        // Save off the return in case we need any info from it, e.g. context for searches.
-        this.ret = ret;
-
-        return(ret.hasOwnProperty('group') && ret.group.hasOwnProperty('members') ? ret.group.members : null);
-    }
-});
-
-Iznik.Collections.Members.Search = Iznik.Collections.Members.extend({
-    url: function() {
-        return(API + 'group/' + this.options.groupid + '?members=TRUE&search=' + encodeURIComponent(this.options.search));
-    }
-});

@@ -84,7 +84,7 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
             if (self.members.length > 0) {
                 // Peek into the underlying response to see if it returned anything and therefore whether it is
                 // worth asking for more if we scroll that far.
-                var gotsome = self.members.ret.group.members.length > 0;
+                var gotsome = self.members.ret.members.length > 0;
 
                 // Waypoints allow us to see when we have scrolled to the bottom.
                 if (self.lastWaypoint) {

@@ -147,6 +147,7 @@ class Group extends Entity
         foreach ($members as $member) {
             $u = new User($this->dbhr, $this->dbhm, $member['userid']);
             $thisone = $u->getPublic(NULL, FALSE);
+            $thisone['userid'] = $thisone['id'];
             $thisepoch = strtotime($member['added']);
 
             if ($ctx['Added'] == NULL || $thisepoch < $ctx['Added']) {

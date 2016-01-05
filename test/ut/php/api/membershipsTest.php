@@ -375,7 +375,6 @@ class membershipsAPITest extends IznikAPITest {
             if ($i % 1000 == 0) {
                 error_log("...$i");
             }
-
             $members[] = [
                 'email' => "test$i@test.com",
                 'yahooUserId' => 1,

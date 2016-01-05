@@ -29,6 +29,7 @@ function memberships() {
                     $members = $g->getMembers(1, NULL, $ctx, $userid);
                     $ret = [
                         'member' => count($members) == 1 ? $members[0] : NULL,
+                        'context' => $ctx,
                         'ret' => 0,
                         'status' => 'Success'
                     ];
@@ -39,6 +40,7 @@ function memberships() {
                         'ret' => 0,
                         'status' => 'Success'
                     ];
+                    $ret['context'] = $ctx;
                 }
             }
 
