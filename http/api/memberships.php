@@ -12,6 +12,7 @@ function memberships() {
     $search = presdef('search', $_REQUEST, NULL);
     $ctx = presdef('context', $_REQUEST, NULL);
     $settings = presdef('settings', $_REQUEST, NULL);
+    $members = presdef('members', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -111,6 +112,10 @@ function memberships() {
                         }
 
                         unset($settings['configid']);
+                    }
+
+                    if ($members) {
+                        $ret = $g->setMembers($members);
                     }
                 }
 

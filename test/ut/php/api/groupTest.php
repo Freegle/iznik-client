@@ -107,131 +107,40 @@ class groupAPITest extends IznikAPITest {
     public function testPatch() {
         error_log(__METHOD__);
 
-        # Not logged in - shouldn't see members list
-        $ret = $this->call('group', 'PATCH', [
-            'id' => $this->groupid,
-            'members' => TRUE
-        ]);
-        assertEquals(1, $ret['ret']);
-        assertFalse(pres('members', $ret));
-
-        # Member - shouldn't see members list
-        assertTrue($this->user->login('testpw'));
-        $ret = $this->call('group', 'PATCH', [
-            'id' => $this->groupid,
-            'members' => TRUE
-        ]);
-        assertEquals(1, $ret['ret']);
-        assertFalse(pres('members', $ret));
-
-        # Owner - should see members list
-        $this->user->setRole(User::ROLE_OWNER, $this->groupid);
-        $members = [
-            [
-                'email' => 'test@test.com',
-                'yahooUserId' => 1,
-                'yahooPostingStatus' => 'MODERATED',
-                'yahooDeliveryType' => 'ANNOUNCEMENT',
-                'yahooModeratorStatus' => 'MODERATOR',
-                'name' => 'Test User',
-                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
-            ],
-            [
-                'email' => 'test2@test.com',
-                'yahooUserId' => 1,
-                'yahooPostingStatus' => 'UNMODERATED',
-                'yahooDeliveryType' => 'SINGLE',
-                'name' => 'Test User',
-                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
-            ],
-            [
-                'email' => 'test3@test.com',
-                'yahooUserId' => 1,
-                'yahooPostingStatus' => 'PROHIBITED',
-                'yahooDeliveryType' => 'DIGEST',
-                'name' => 'Test User',
-                'yahooModeratorStatus' => 'OWNER',
-                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
-            ]
-        ];
-
-        $ret = $this->call('group', 'PATCH', [
-            'id' => $this->groupid,
-            'members' => $members
-        ]);
-        error_log(var_export($ret, true));
-        assertEquals(0, $ret['ret']);
-
-        $ret = $this->call('group', 'GET', [
-            'id' => $this->groupid,
-            'members' => TRUE
-        ]);
-        error_log(var_export($ret, true));
-
-        assertEquals(3, count($ret['group']['members']));
-        assertEquals('test3@test.com', $ret['group']['members'][0]['email']);
-        assertEquals('Owner', $ret['group']['members'][0]['role']);
-        assertEquals('test2@test.com', $ret['group']['members'][1]['email']);
-        assertEquals('Member', $ret['group']['members'][1]['role']);
-        assertEquals('test@test.com', $ret['group']['members'][2]['email']);
-        assertEquals('Moderator', $ret['group']['members'][2]['role']);
-        assertEquals(2, $ret['group']['nummods']);
-
-        # Set some group settings
+        # Not logged in - shouldn't be able to set
         $ret = $this->call('group', 'PATCH', [
             'id' => $this->groupid,
             'settings' => [
                 'mapzoom' => 12
             ]
         ]);
+        assertEquals(1, $ret['ret']);
+        assertFalse(pres('members', $ret));
+
+        # Member - shouldn't either
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('group', 'PATCH', [
+            'id' => $this->groupid,
+            'settings' => [
+                'mapzoom' => 12
+            ]
+        ]);
+        assertEquals(1, $ret['ret']);
+        assertFalse(pres('members', $ret));
+
+        # Owner - should be able to
+        $this->user->setRole(User::ROLE_OWNER, $this->groupid);
+        $ret = $this->call('group', 'PATCH', [
+            'id' => $this->groupid,
+            'settings' => [
+                'mapzoom' => 12
+            ]
+        ]);
+
         $ret = $this->call('group', 'GET', [
             'id' => $this->groupid
         ]);
         assertEquals(12, $ret['group']['settings']['mapzoom']);
-
-        error_log(__METHOD__ . " end");
-    }
-
-    public function testLarge() {
-        error_log(__METHOD__);
-
-        $size = 3100;
-
-        assertTrue($this->user->login('testpw'));
-        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
-
-        $members = [
-            [
-                'email' => 'test@test.com',
-                'yahooUserId' => 1,
-                'yahooPostingStatus' => 'MODERATED',
-                'yahooDeliveryType' => 'ANNOUNCEMENT',
-                'yahooModeratorStatus' => 'MODERATOR',
-                'name' => 'Test User',
-                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
-            ]
-        ];
-
-        for ($i = 0; $i < $size; $i++) {
-            $members[] = [
-                'email' => "test$i@test.com",
-                'yahooUserId' => 1,
-                'yahooPostingStatus' => 'UNMODERATED',
-                'yahooDeliveryType' => 'SINGLE',
-                'name' => 'Test User',
-                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
-            ];
-        };
-
-        $ret = $this->call('group', 'PATCH', [
-            'id' => $this->groupid,
-            'members' => $members
-        ]);
-        assertEquals(0, $ret['ret']);
-
-        $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ?;";
-        $counts = $this->dbhr->preQuery($sql, [ $this->groupid ]);
-        assertEquals($size + 1, $counts[0]['count']);
 
         error_log(__METHOD__ . " end");
     }

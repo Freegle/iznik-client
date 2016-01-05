@@ -62,25 +62,20 @@ function group() {
 
                 if ($me) {
                     $ret = [
-                        'ret' => 0,
-                        'status' => 'Success',
-                        'groupid' => $id
+                        'ret' => 1,
+                        'status' => 'Failed or permission denied'
                     ];
 
-                    if (!$me->isModOrOwner($id) &&
-                        ($members)) {
+                    if ($me->isModOrOwner($id)) {
                         $ret = [
-                            'ret' => 1,
-                            'status' => 'Failed or permission denied'
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'groupid' => $id
                         ];
-                    }
 
-                    if ($ret['ret'] == 0) {
-                        $ret = $g->setMembers($members);
-                    }
-
-                    if ($ret['ret'] == 0 && $settings) {
-                        $g->setSettings($settings);
+                        if ($settings) {
+                            $g->setSettings($settings);
+                        }
                     }
                 }
             }

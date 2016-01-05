@@ -276,5 +276,128 @@ class membershipsAPITest extends IznikAPITest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testMembers() {
+        error_log(__METHOD__);
+
+        # Not logged in - shouldn't see members list
+        $ret = $this->call('memberships', 'PATCH', [
+            'groupid' => $this->groupid,
+            'members' => TRUE
+        ]);
+        assertEquals(2, $ret['ret']);
+        assertFalse(pres('members', $ret));
+
+        # Member - shouldn't see members list
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('memberships', 'PATCH', [
+            'groupid' => $this->groupid,
+            'members' => TRUE
+        ]);
+        assertEquals(2, $ret['ret']);
+        assertFalse(pres('members', $ret));
+
+        # Mod - should see members list
+        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_OWNER));
+        $members = [
+            [
+                'email' => 'test@test.com',
+                'yahooUserId' => 1,
+                'yahooPostingStatus' => 'MODERATED',
+                'yahooDeliveryType' => 'ANNOUNCEMENT',
+                'yahooModeratorStatus' => 'MODERATOR',
+                'name' => 'Test User',
+                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
+            ],
+            [
+                'email' => 'test2@test.com',
+                'yahooUserId' => 1,
+                'yahooPostingStatus' => 'UNMODERATED',
+                'yahooDeliveryType' => 'SINGLE',
+                'name' => 'Test User',
+                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
+            ],
+            [
+                'email' => 'test3@test.com',
+                'yahooUserId' => 1,
+                'yahooPostingStatus' => 'PROHIBITED',
+                'yahooDeliveryType' => 'DIGEST',
+                'name' => 'Test User',
+                'yahooModeratorStatus' => 'OWNER',
+                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
+            ]
+        ];
+
+        $ret = $this->call('memberships', 'PATCH', [
+            'groupid' => $this->groupid,
+            'members' => $members
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('memberships', 'GET', [
+            'groupid' => $this->groupid,
+            'members' => TRUE
+        ]);
+        error_log(var_export($ret, true));
+
+        assertEquals(3, count($ret['members']));
+        assertEquals('test3@test.com', $ret['members'][0]['email']);
+        assertEquals('Owner', $ret['members'][0]['role']);
+        assertEquals('test2@test.com', $ret['members'][1]['email']);
+        assertEquals('Member', $ret['members'][1]['role']);
+        assertEquals('test@test.com', $ret['members'][2]['email']);
+        assertEquals('Moderator', $ret['members'][2]['role']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testLarge() {
+        error_log(__METHOD__);
+
+        $size = 31000;
+
+        assertTrue($this->user->login('testpw'));
+        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_OWNER));
+
+        $members = [
+            [
+                'email' => 'test@test.com',
+                'yahooUserId' => 1,
+                'yahooPostingStatus' => 'MODERATED',
+                'yahooDeliveryType' => 'ANNOUNCEMENT',
+                'yahooModeratorStatus' => 'MODERATOR',
+                'name' => 'Test User',
+                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
+            ]
+        ];
+
+        for ($i = 0; $i < $size; $i++) {
+            if ($i % 1000 == 0) {
+                error_log("...$i");
+            }
+
+            $members[] = [
+                'email' => "test$i@test.com",
+                'yahooUserId' => 1,
+                'yahooPostingStatus' => 'UNMODERATED',
+                'yahooDeliveryType' => 'SINGLE',
+                'name' => 'Test User',
+                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
+            ];
+        };
+
+        error_log("Make call");
+        $ret = $this->call('memberships', 'PATCH', [
+            'groupid' => $this->groupid,
+            'members' => $members
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ?;";
+        $counts = $this->dbhr->preQuery($sql, [ $this->groupid ]);
+        assertEquals($size + 1, $counts[0]['count']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

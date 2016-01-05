@@ -49,9 +49,11 @@ class Message
     }
 
     public function setPrivate($att, $val) {
-        $rc = $this->dbhm->preExec("UPDATE messages SET $att = ? WHERE id = {$this->id};", [$val]);
-        if ($rc) {
-            $this->$att = $val;
+        if ($this->$att != $val) {
+            $rc = $this->dbhm->preExec("UPDATE messages SET $att = ? WHERE id = {$this->id};", [$val]);
+            if ($rc) {
+                $this->$att = $val;
+            }
         }
     }
 

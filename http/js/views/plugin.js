@@ -860,10 +860,10 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
                 // Finished.  Now pass these members to the server.
                 $.ajaxq('plugin', {
                     type: 'PATCH',
-                    url: API + 'group',
+                    url: API + 'memberships',
                     context: self,
                     data: {
-                        'id': this.model.get('id'),
+                        'groupid': this.model.get('id'),
                         'members': this.members
                     },
                     success: function(ret) {

@@ -89,9 +89,11 @@ class Entity
     }
 
     public function setPrivate($att, $val) {
-        $rc = $this->dbhm->preExec("UPDATE {$this->table} SET $att = ? WHERE id = {$this->id};", [$val]);
-        if ($rc) {
-            $this->{$this->name}[$att] = $val;
+        if ($this->{$this->name}[$att] != $val) {
+            $rc = $this->dbhm->preExec("UPDATE {$this->table} SET $att = ? WHERE id = {$this->id};", [$val]);
+            if ($rc) {
+                $this->{$this->name}[$att] = $val;
+            }
         }
     }
 }
