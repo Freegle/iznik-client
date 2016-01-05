@@ -92,64 +92,73 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
             });
 
             group.fetch().then(function() {
-                var mysettings = group.get('mysettings');
-                var configoptions = [];
-                var configs = Iznik.Session.get('configs');
-                configs.each(function(config) {
-                    configoptions.push({
-                        label: config.get('name'),
-                        value: config.get('id')
+                // Our settings for the group are held in the membership, so fire off a request for that.
+                var membership = new Iznik.Models.Membership({
+                    groupid: self.selected,
+                    userid: Iznik.Session.get('me').id
+                });
+
+                membership.fetch().then(function() {
+                    console.log("Fetched membership", self.myGroupModel);
+                    self.myGroupModel = new IznikModel(membership.get('settings'));
+                    var configoptions = [];
+                    var configs = Iznik.Session.get('configs');
+                    configs.each(function(config) {
+                        configoptions.push({
+                            label: config.get('name'),
+                            value: config.get('id')
+                        });
                     });
-                });
-                self.myGroupModel = new IznikModel(mysettings);
-                self.myGroupFields = [
-                    {
-                        name: 'configid',
-                        label: 'ModConfig to use for this Group',
-                        control: 'select',
-                        options: configoptions
-                    },
-                    {
-                        name: 'showmessages',
-                        label: 'Show messages in All Groups?',
-                        control: 'radio',
-                        extraClasses: [ 'row' ],
-                        options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
-                    },
-                    {
-                        name: 'showmembers',
-                        label: 'Show members in All Groups?',
-                        control: 'radio',
-                        extraClasses: [ 'row' ],
-                        options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
-                    },
-                    {
-                        control: 'button',
-                        label: 'Save changes',
-                        type: 'submit',
-                        extraClasses: [ 'btn-success topspace botspace' ]
-                    }
-                ];
-
-                self.myGroupForm = new Backform.Form({
-                    el: $('#mygroupform'),
-                    model: self.myGroupModel,
-                    fields: self.myGroupFields,
-                    events: {
-                        'submit': function(e) {
-                            // Send a PATCH to the server for mysettings.
-                            e.preventDefault();
-                            var newdata = self.myGroupModel.toJSON();
-                            group.save({
-                                'mysettings': newdata
-                            }, { patch: true });
-                            return(false);
+                    self.myGroupFields = [
+                        {
+                            name: 'configid',
+                            label: 'ModConfig to use for this Group',
+                            control: 'select',
+                            options: configoptions
+                        },
+                        {
+                            name: 'showmessages',
+                            label: 'Show messages in All Groups?',
+                            control: 'radio',
+                            extraClasses: [ 'row' ],
+                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                        },
+                        {
+                            name: 'showmembers',
+                            label: 'Show members in All Groups?',
+                            control: 'radio',
+                            extraClasses: [ 'row' ],
+                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                        },
+                        {
+                            control: 'button',
+                            label: 'Save changes',
+                            type: 'submit',
+                            extraClasses: [ 'btn-success topspace botspace' ]
                         }
-                    }
+                    ];
+
+                    self.myGroupForm = new Backform.Form({
+                        el: $('#mygroupform'),
+                        model: self.myGroupModel,
+                        fields: self.myGroupFields,
+                        events: {
+                            'submit': function(e) {
+                                // Send a PATCH to the server for settings.
+                                e.preventDefault();
+                                var newdata = self.myGroupModel.toJSON();
+                                membership.save({
+                                    'settings': newdata
+                                }, { patch: true });
+                                return(false);
+                            }
+                        }
+                    });
+
+                    self.myGroupForm.render();
                 });
 
-                self.myGroupForm.render();
-
+                // The global group settings.
                 self.groupModel = new IznikModel(group.get('settings'));
 
                 if (!self.groupModel.get('map')) {

@@ -130,15 +130,20 @@ class Group extends Entity
         return($atts);
     }
 
-    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL) {
+    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL) {
         $ret = [];
+
         $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d", $ctx['Added']));
         $addq = $ctx == NULL ? '' : (" AND (memberships.added < $date OR memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ") ");
         # TODO We ought to search on firstname/lastname too, and handle word splits.  But this is sufficient for ModTools.
-        $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") .") ");
-        $sql = "SELECT memberships.id, memberships.userid, memberships.added FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE groupid = ? $addq $searchq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
+        $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") . ") ");
+        $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : $searchq;
+
+        $sql = "SELECT memberships.* FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE groupid = ? $addq $searchq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
         $members = $this->dbhr->preQuery($sql, [ $this->id ]);
+
         $ctx = [ 'Added' => NULL ];
+
         foreach ($members as $member) {
             $u = new User($this->dbhr, $this->dbhm, $member['userid']);
             $thisone = $u->getPublic(NULL, FALSE);
@@ -164,12 +169,15 @@ class Group extends Entity
             }
 
             $thisone['joined'] = ISODate($member['added']);
+            $thisone['settings'] = $member['settings'] ? json_decode($member['settings'], TRUE) : [];
+            $thisone['settings']['configid'] = $member['configid'];
             $thisone['email'] = $email;
             $thisone['groupid'] = $this->id;
             $thisone['otheremails'] = $others;
             $thisone['yahooDeliveryType'] = $u->getPrivate('yahooDeliveryType');
             $thisone['yahooPostingStatus'] = $u->getPrivate('yahooPostingStatus');
             $thisone['role'] = $u->getRole($this->id);
+
             $ret[] = $thisone;
         }
 
@@ -295,7 +303,7 @@ class Group extends Entity
                         $added = pres('date', $member) ? ("'" . date ("Y-m-d", strtotime($member['date'])) . "'"): 'NULL';
 
                         $sql = "UPDATE memberships SET role = '$role', yahooPostingStatus = " . $this->dbhm->quote($yps) .
-                               ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", emailid = {$member['emailid']}, added = '$added', syncdelete = 0 WHERE userid = " .
+                               ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", emailid = {$member['emailid']}, added = $added, syncdelete = 0 WHERE userid = " .
                                 "{$member['uid']} AND groupid = {$this->id};";
                         $bulksql .= $sql;
 

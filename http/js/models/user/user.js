@@ -1,6 +1,6 @@
 // Terminology:
-// - A user corresponds to a real person, or someone pretending to be
-// - A member is the user's presence on a specific group.
+// - A user corresponds to a real person, or someone pretending to be; that's in here
+// - A member is the user's presence on a specific group; that's in membership.js
 
 Iznik.Models.ModTools.User = IznikModel.extend({
     urlRoot: API + '/user',

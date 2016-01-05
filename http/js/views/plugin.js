@@ -379,7 +379,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 _.each(yahooMissing, function(demote) {
                     $.ajax({
                         url: API + 'memberships',
-                        type: 'PUT',
+                        type: 'PATCH',
                         data: {
                             userid: Iznik.Session.get('me').id,
                             groupid: nameToId[demote],

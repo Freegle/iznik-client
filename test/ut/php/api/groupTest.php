@@ -177,21 +177,6 @@ class groupAPITest extends IznikAPITest {
         assertEquals('Moderator', $ret['group']['members'][2]['role']);
         assertEquals(2, $ret['group']['nummods']);
 
-        # Set a config
-        $c = new ModConfig($this->dbhr, $this->dbhm);
-        $cid = $c->create('testconfig');
-        assertNotNull($cid);
-        $ret = $this->call('group', 'PATCH', [
-            'id' => $this->groupid,
-            'mysettings' => [
-                'configid' => $cid
-            ]
-        ]);
-        $ret = $this->call('group', 'GET', [
-            'id' => $this->groupid
-        ]);
-        assertEquals($cid, $ret['group']['mysettings']['configid']);
-
         # Set some group settings
         $ret = $this->call('group', 'PATCH', [
             'id' => $this->groupid,

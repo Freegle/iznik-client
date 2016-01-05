@@ -597,22 +597,72 @@ paths:
             schema:
               $ref: '#/definitions/Error'
   /memberships:
-    put:
-      summary: Membership change
+    get:
+      summary: Get membership(s)
       tags: [Memberships]
       description: |
-        Change membership
+        Get membership details of a group or a user on that group.
       parameters:
-      - name: userid
-        in: path
-        description: User ID to modify
-        type: number
       - name: groupid
         in: path
         description: Group ID to modify
         type: number
-      - name: role
+        required: true
+      - name: userid
         in: path
+        description: User ID to modify
+        type: number
+    put:
+      summary: Membership add
+      tags: [Memberships]
+      description: |
+        Add a user to a group.
+      parameters:
+      - name: groupid
+        in: path
+        description: Group ID
+        type: number
+        required: true
+      - name: userid
+        in: path
+        description: User ID
+        type: number
+        required: true
+      - name: role
+        in: body
+        description: User role
+        type: string
+        enum: ['Member', 'Moderator', 'Owner', 'Banned']
+      - name: email
+        in: body
+        description: email address to use on this group; will add to this member if not already present
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    patch:
+      summary: Membership change
+      tags: [Memberships]
+      description: |
+        Change membership details for a user on a group.
+      parameters:
+      - name: groupid
+        in: path
+        description: Group ID to modify
+        type: number
+        required: true
+      - name: userid
+        in: path
+        description: User ID to modify
+        type: number
+      - name: role
+        in: body
         description: User role to set
         type: string
         enum: ['Member', 'Moderator', 'Owner', 'Banned']
@@ -625,6 +675,22 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+    delete:
+      summary: Delete membership(s)
+      tags: [Memberships]
+      description: |
+        Remove a user from a group.
+      parameters:
+      - name: groupid
+        in: path
+        description: Group ID to modify
+        type: number
+        required: true
+      - name: userid
+        in: path
+        description: User ID to modify
+        type: number
+        required: true
   /config:
     get:
       summary: ModConfig Get

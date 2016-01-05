@@ -466,18 +466,24 @@ class User extends Entity
     }
 
     public function getGroupSettings($groupid) {
-        $sql = "SELECT settings FROM memberships WHERE userid = ? AND groupid = ?;";
+
+        $sql = "SELECT settings, role FROM memberships WHERE userid = ? AND groupid = ?;";
         $sets = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
-        $settings = NULL;
-
-        foreach ($sets as $set) {
-            $settings = $set['settings'];
-        }
-
-        return($settings ? json_decode($settings, true) : [
+        $settings = [
             'showmessages' => 1,
             'showmembers' => 1
-        ]);
+        ];
+
+        foreach ($sets as $set) {
+            $settings = json_decode($set['settings'], TRUE);
+
+            if ($set['role'] == User::ROLE_OWNER || $set['role'] == User::ROLE_MODERATOR) {
+                $c = new ModConfig($this->dbhr, $this->dbhm);
+                $settings['configid'] = $c->getForGroup($this->id, $groupid);
+            }
+        }
+
+        return($settings);
     }
 
     public function setRole($role, $groupid) {
@@ -644,6 +650,24 @@ class User extends Entity
 
         if ($role1 == User::ROLE_OWNER || $role2 == User::ROLE_OWNER) {
             $role = User::ROLE_OWNER;
+        }
+
+        return($role);
+    }
+
+    public function roleMin($role1, $role2) {
+        $role = User::ROLE_OWNER;
+
+        if ($role1 == User::ROLE_MODERATOR || $role2 == User::ROLE_MODERATOR) {
+            $role = User::ROLE_MODERATOR;
+        }
+
+        if ($role1 == User::ROLE_MEMBER || $role2 == User::ROLE_MEMBER) {
+            $role = User::ROLE_MEMBER;
+        }
+
+        if ($role1 == User::ROLE_NONMEMBER || $role2 == User::ROLE_NONMEMBER) {
+            $role = User::ROLE_NONMEMBER;
         }
 
         return($role);
