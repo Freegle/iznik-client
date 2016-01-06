@@ -225,6 +225,11 @@ Iznik.Models.Session = IznikModel.extend({
         return(ret);
     },
 
+    getGroup: function(groupid) {
+        var group = this.get('groups').get(groupid);
+        return(group);
+    },
+
     getSettings: function(groupid) {
         var settings = [];
 

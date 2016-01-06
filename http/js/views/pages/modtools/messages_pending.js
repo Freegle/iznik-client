@@ -78,6 +78,10 @@ Iznik.Views.ModTools.Pages.PendingMessages = Iznik.Views.Page.extend({
 
         Iznik.Views.Page.prototype.render.call(this);
 
+        var v = new Iznik.Views.Help.Box();
+        v.template = 'modtools_messages_pending_help';
+        this.$('.js-help').html(v.render().el);
+
         this.msgs = new Iznik.Collections.Message();
 
         this.groupSelect = new Iznik.Views.Group.Select({

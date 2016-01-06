@@ -31,7 +31,8 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
 
     events: {
         'click .js-search': 'search',
-        'keyup .js-searchterm': 'keyup'
+        'keyup .js-searchterm': 'keyup',
+        'click .js-sync': 'sync'
     },
 
     fetching: null,
@@ -42,6 +43,10 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
         if (e.which == 13) {
             this.$('.js-search').click();
         }
+    },
+
+    sync: function() {
+        (new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({model: Iznik.Session.getGroup(this.selected)})).render();
     },
 
     fetch: function() {
@@ -136,6 +141,10 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
         var self = this;
 
         Iznik.Views.Page.prototype.render.call(this);
+
+        var v = new Iznik.Views.Help.Box();
+        v.template = 'modtools_members_approved_help';
+        this.$('.js-help').html(v.render().el);
 
         self.groupSelect = new Iznik.Views.Group.Select({
             systemWide: false,

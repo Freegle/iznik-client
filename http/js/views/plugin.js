@@ -277,9 +277,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                         // out when we add it.
                         if (work.hasOwnProperty('groupid')) {
                             // Find our group and add it in.
-                            work.group = Iznik.Session.get('groups').findWhere({
-                                id: work.groupid
-                            });
+                            work.group = Iznik.Session.getGroup(work.groupid);
                             work.group = work.group.toJSON2();
                         }
 
