@@ -271,7 +271,6 @@ class User extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         $sql = "SELECT email FROM users_emails INNER JOIN users ON users_emails.userid = users.id AND users.id = ?;";
-        $email = $this->dbhr->preQuery($sql, [ $this->id ])[0]['email'];
 
         $rc = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = ? AND groupid = ?;",
             [
@@ -282,6 +281,7 @@ class User extends Entity
         if ($rc) {
             if ($this->user['yahooUserId']) {
                 // This is a user on Yahoo.  We must try to remove them from the group on there too, via the plugin.
+                $email = $this->dbhr->preQuery($sql, [ $this->id ])[0]['email'];
                 $p = new Plugin($this->dbhr, $this->dbhm);
                 $p->add($groupid, [
                     'type' => 'RemoveApprovedMember',
