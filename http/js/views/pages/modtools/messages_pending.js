@@ -140,7 +140,7 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
 
         // Set the suggested subject here to avoid escaping issues.  Highlight it if it's different
-        if (self.model.get('suggestedsubject') != self.model.get('subject')) {
+        if (self.model.get('suggestedsubject').toLocaleLowerCase() != self.model.get('subject').toLocaleLowerCase()) {
             self.$('.js-subject').closest('.input-group').addClass('subjectdifference');
         } else {
             self.$('.js-subject').closest('.input-group').removeClass('subjectdifference');
