@@ -229,6 +229,12 @@ class userTest extends IznikTest {
         assertEquals($u->getRole($group1), User::ROLE_OWNER);
         assertEquals(User::ROLE_OWNER, $m->getRoleForMessage());
 
+        # Ban ourselves; can't rejoin
+        $u->removeMembership($group2, TRUE);
+        $membs = $u->getMemberships();
+        assertEquals(0, count($membs));
+        assertFalse($u->addMembership($group2));
+
         $g = new Group($this->dbhr, $this->dbhm, $group1);
         $g->delete();
         $g = new Group($this->dbhr, $this->dbhm, $group2);

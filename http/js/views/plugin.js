@@ -318,6 +318,13 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                                 }).render());
                                 break;
                             }
+
+                            case 'BanApprovedMember': {
+                                (new Iznik.Views.Plugin.Yahoo.BanApprovedMember({
+                                    model: new IznikModel(work)
+                                }).render());
+                                break;
+                            }
                         }
                     });
 
@@ -1163,6 +1170,50 @@ Iznik.Views.Plugin.Yahoo.RemoveApprovedMember = Iznik.Views.Plugin.Work.extend({
                     self.fail();
                 }
             }, error: function() {
+                self.fail();
+            }
+        });
+
+        this.startBusy();
+    }
+});
+
+Iznik.Views.Plugin.Yahoo.BanApprovedMember = Iznik.Views.Plugin.Work.extend({
+    template: 'plugin_member_approved_ban',
+
+    crumbLocation: "/members/all",
+
+    server: true,
+
+    start: function() {
+        var self = this;
+
+        var members = [
+            {
+                userId: this.model.get('id'),
+                subscriptionStatus: 'BANNED'
+            }
+        ];
+
+        new majax({
+            type: "PUT",
+            url: YAHOOAPI + "groups/" + this.model.get('group').nameshort + "/members?gapi_crumb=" + self.crumb,
+            data: "members=" + JSON.stringify(members),
+            success: function (ret) {
+                console.log("Ban returned", ret);
+                if (ret.hasOwnProperty('ygData') &&
+                    ret.ygData.hasOwnProperty('numPassed')) {
+                    // If the ban worked, numPassed == 1.
+                    if (ret.ygData.numPassed == 1) {
+                        self.succeed();
+                    } else {
+                        self.fail();
+                    }
+                } else {
+                    self.fail();
+                }
+            },
+            error: function (request, status, error) {
                 self.fail();
             }
         });

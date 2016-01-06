@@ -13,6 +13,7 @@ function memberships() {
     $ctx = presdef('context', $_REQUEST, NULL);
     $settings = presdef('settings', $_REQUEST, NULL);
     $members = presdef('members', $_REQUEST, NULL);
+    $ban = array_key_exists('ban', $_REQUEST) ? filter_var($_REQUEST['ban'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -73,7 +74,7 @@ function memberships() {
                 # We can remove them, but not if they are someone higher than us.
                 $myrole = $me->getRole($groupid);
                 if ($myrole == $u->roleMax($myrole, $u->getRole($groupid))) {
-                    $u->removeMembership($groupid);
+                    $u->removeMembership($groupid, $ban);
 
                     $ret = [
                         'ret' => 0,

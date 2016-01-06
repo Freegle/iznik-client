@@ -691,6 +691,10 @@ paths:
         description: User ID to modify
         type: number
         required: true
+      - name: ban
+        in: path
+        description: Ban as well as remove?  Defaults false.
+        type: boolean
   /config:
     get:
       summary: ModConfig Get

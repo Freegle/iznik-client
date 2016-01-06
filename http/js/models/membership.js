@@ -4,7 +4,10 @@
 
 Iznik.Models.Membership = IznikModel.extend({
     url: function() {
-        return (API + 'memberships/' + this.get('groupid') + '/' + this.get('userid'))
+        var url = API + 'memberships/' + this.get('groupid') + '/' + this.get('userid');
+        url = this.get('ban') ? (url + '?ban=true') : url;
+
+        return (url);
     },
 
     parse: function(ret) {

@@ -4,7 +4,8 @@ Iznik.Views.ModTools.User = IznikView.extend({
     events: {
         'click .js-posts': 'posts',
         'click .js-logs': 'logs',
-        'click .js-remove': 'remove'
+        'click .js-remove': 'remove',
+        'click .js-ban': 'ban'
     },
 
 
@@ -41,6 +42,25 @@ Iznik.Views.ModTools.User = IznikView.extend({
         var mod = new Iznik.Models.Membership({
             userid: this.model.get('id'),
             groupid: this.model.get('groupid')
+        });
+
+        mod.fetch().then(function() {
+            mod.destroy({
+                success: function(model, response) {
+                    self.model.trigger('removed');
+                }
+            });
+        });
+    },
+
+    ban: function() {
+        // Ban them - remove with appropriate flag.
+        var self = this;
+
+        var mod = new Iznik.Models.Membership({
+            userid: this.model.get('id'),
+            groupid: this.model.get('groupid'),
+            ban: true
         });
 
         mod.fetch().then(function() {

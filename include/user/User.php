@@ -229,6 +229,17 @@ class User extends Entity
     public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
+        # Check if we're banned
+        $sql = "SELECT * FROM users_banned WHERE userid = ? AND groupid = ?;";
+        $banneds = $this->dbhr->preQuery($sql, [
+            $this->id,
+            $groupid
+        ]);
+
+        foreach ($banneds as $banned) {
+            return(FALSE);
+        }
+
         $rc = $this->dbhm->preExec("REPLACE INTO memberships (userid, groupid, role, emailid) VALUES (?,?,?,?);",
             [
                 $this->id,
@@ -267,8 +278,9 @@ class User extends Entity
         return($rc);
     }
 
-    public function removeMembership($groupid) {
+    public function removeMembership($groupid, $ban = FALSE) {
         $me = whoAmI($this->dbhr, $this->dbhm);
+        $meid = $me ? $me->getId() : NULL;
 
         $sql = "SELECT email FROM users_emails INNER JOIN users ON users_emails.userid = users.id AND users.id = ?;";
 
@@ -284,9 +296,18 @@ class User extends Entity
                 $email = $this->dbhr->preQuery($sql, [ $this->id ])[0]['email'];
                 $p = new Plugin($this->dbhr, $this->dbhm);
                 $p->add($groupid, [
-                    'type' => 'RemoveApprovedMember',
+                    'type' => $ban ? 'BanApprovedMember' : 'RemoveApprovedMember',
                     'id' => $this->user['yahooUserId'],
                     'email' => $email
+                ]);
+            }
+
+            if ($ban) {
+                $sql = "INSERT IGNORE INTO users_banned (userid, groupid, byuser) VALUES (?,?,?);";
+                $this->dbhm->preExec($sql, [
+                    $this->id,
+                    $groupid,
+                    $meid
                 ]);
             }
 
@@ -295,8 +316,9 @@ class User extends Entity
                 'type' => Log::TYPE_GROUP,
                 'subtype' => Log::SUBTYPE_LEFT,
                 'user' => $this->id,
-                'byuser' => $me->getId(),
-                'groupid' => $groupid
+                'byuser' => $meid,
+                'groupid' => $groupid,
+                'text' => $ban ? "Banned" : NULL
             ]);
         }
 

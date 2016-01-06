@@ -13,7 +13,7 @@
                     Joined {{group.namedisplay}}
             <% } else if (subtype == 'Left') { %>
                 <% if (obj.user && obj.byuser && obj.byuser.id != obj.user.id) { %>
-                Removed from{{group.namedisplay}}
+                Removed from {{group.namedisplay}} <% if (obj.text) { %>{{text}}<% } %>
                 <% } else { %>
                 Left {{group.namedisplay}}
                 <% } %>
