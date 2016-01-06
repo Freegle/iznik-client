@@ -1,36 +1,16 @@
 Iznik.Views.ModTools.User = IznikView.extend({
     template: 'modtools_user_user',
 
-    render: function() {
-        this.$el.html(window.template(this.template)(this.model.toJSON2()));
-
-        var coll = new Iznik.Collections.ModTools.MessageHistory();
-        _.each(this.model.get('messagehistory'), function(message, index, list) {
-            coll.add(new Iznik.Models.ModTools.User.MessageHistoryEntry(message));
-        });
-
-        var v = new Iznik.Views.ModTools.User.History({
-            collection: coll,
-            model: this.model
-        });
-        this.$('.js-messagehistory').html(v.render().el);
-
-        return (this);
-    }
-});
-
-Iznik.Views.ModTools.User.History = IznikView.extend({
-    template: 'modtools_user_history',
-
     events: {
         'click .js-posts': 'posts',
         'click .js-logs': 'logs'
     },
 
+
     posts: function() {
         var v = new Iznik.Views.ModTools.User.PostSummary({
             model: this.model,
-            collection: this.collection
+            collection: this.historyColl
         });
 
         v.render();
@@ -55,21 +35,37 @@ Iznik.Views.ModTools.User.History = IznikView.extend({
 
     render: function() {
         var self = this;
+        this.$el.html(window.template(this.template)(this.model.toJSON2()));
 
-        this.$el.html(window.template(this.template)());
-        this.$('.js-msgcount').html(this.collection.length);
+        self.historyColl = new Iznik.Collections.ModTools.MessageHistory();
+        _.each(this.model.get('messagehistory'), function(message, index, list) {
+            self.historyColl.add(new Iznik.Models.ModTools.User.MessageHistoryEntry(message));
+        });
 
-        if (this.collection.length == 0) {
+        this.$('.js-msgcount').html(this.historyColl.length);
+
+        if (this.historyColl.length == 0) {
             this.$('.js-msgcount').closest('.btn').addClass('disabled');
         }
 
-        if (this.collection.length == 1) {
-            this.$('.js-plural').hide();
-            this.$('.js-singular').show();
-        } else {
-            this.$('.js-plural').show();
-            this.$('.js-singular').hide();
-        }
+        var v = new Iznik.Views.ModTools.User.History({
+            model: this.model,
+            collection: this.historyColl
+        });
+
+        this.$('.js-messagehistory').html(v.render().el);
+
+        return (this);
+    }
+});
+
+Iznik.Views.ModTools.User.History = IznikView.extend({
+    template: 'modtools_user_history',
+
+    render: function() {
+        var self = this;
+
+        this.$el.html(window.template(this.template)());
 
         var counts = {
             Offer: 0,
