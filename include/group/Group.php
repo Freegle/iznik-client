@@ -341,7 +341,7 @@ class Group extends Entity
                         'user' => $todelete['userid'],
                         'byuser' => $meid,
                         'groupid' => $this->id,
-                        'text' => 'setMembers'
+                        'text' => 'Sync of whole membership list'
                     ]);
                 }
 

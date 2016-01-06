@@ -20,19 +20,11 @@ Iznik.Views.ModTools.User = IznikView.extend({
 
     logs: function() {
         var self = this;
-        this.$('.js-logs').fadeTo('slow', 0.5);
-        this.model.fetch({
-            data: {
-                logs: true
-            }
-        }).then(function() {
-            var v = new Iznik.Views.ModTools.User.Logs({
-                model: self.model
-            });
-
-            v.render();
-            self.$('.js-logs').fadeTo('slow', 1);
+        var v = new Iznik.Views.ModTools.User.Logs({
+            model: self.model
         });
+
+        v.render();
     },
 
     remove: function() {
@@ -171,25 +163,62 @@ Iznik.Views.ModTools.User.SummaryEntry = IznikView.extend({
 Iznik.Views.ModTools.User.Logs = Iznik.Views.Modal.extend({
     template: 'modtools_user_logs',
 
+    context: null,
+
+    events: {
+        'click .js-more': 'more'
+    },
+
+    first: true,
+
+    moreShown: false,
+    more: function() {
+        this.getChunk();
+    },
+
+    getChunk: function() {
+        var self = this;
+
+        this.model.fetch({
+            data: {
+                logs: true,
+                context: this.context
+            },
+            success: function(model, response, options) {
+                self.context = response.context;
+            }
+        }).then(function() {
+            var logs = self.model.get('logs');
+
+            _.each(logs, function (log) {
+                var v = new Iznik.Views.ModTools.User.LogEntry({
+                    model: new IznikModel(log)
+                });
+
+                self.$('.js-list').append(v.render().el);
+
+            });
+
+            if (!self.moreShown) {
+                self.moreShown = true;
+            }
+
+            console.log("Logs", logs);
+            if (self.first && (_.isUndefined(logs) || logs.length == 0)) {
+                self.$('.js-none').show();
+            }
+
+            self.first = false;
+        });
+    },
+
     render: function() {
         var self = this;
 
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
 
-        // Defer adding the logs so that the modal gets opened quickly; if we have a lot of
-        // logs then that might be slow.
-        _.defer(function() {
-            var logs = self.model.get('logs');
-
-            _.each(logs, function(log) {
-                var v = new Iznik.Views.ModTools.User.LogEntry({
-                    model: new IznikModel(log)
-                });
-                self.$('.js-list').append(v.render().el);
-            });
-        });
-
         this.open(null);
+        this.getChunk();
 
         return(this);
     }

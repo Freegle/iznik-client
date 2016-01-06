@@ -14,6 +14,8 @@ function memberships() {
     $settings = presdef('settings', $_REQUEST, NULL);
     $members = presdef('members', $_REQUEST, NULL);
     $ban = array_key_exists('ban', $_REQUEST) ? filter_var($_REQUEST['ban'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $logctx = presdef('logcontext', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 

@@ -34,6 +34,7 @@ function user() {
     switch ($_REQUEST['type']) {
         case 'GET': {
             $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+            $ctx = presdef('logcontext', $_REQUEST, NULL);
 
             $u = new User($dbhr, $dbhm, $id);
 
@@ -45,7 +46,8 @@ function user() {
                     'status' => 'Success'
                 ];
 
-                $ret['user'] = $u->getPublic(NULL, TRUE, $logs);
+                $ret['user'] = $u->getPublic(NULL, TRUE, $logs, $ctx);
+                $ret['logcontext'] = $ctx;
             }
 
             break;

@@ -24,21 +24,21 @@
             <% if (subtype == 'Received') { %>
                 Posted #{{msgid}} <em>{{message.subject}}</em> via {{message.sourceheader}}
             <% } else if (subtype == 'Approved') { %>
-                Approved #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> with <em>{{stdmsg.title}}</em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
+                Approved #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else if (subtype == 'Rejected') { %>
                 <div class="nomargin alert alert-danger">
-                    Rejected #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> with <em>{{stdmsg.title}}</em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
+                    Rejected #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
                 </div>
             <% } else if (subtype == 'Deleted') { %>
                 <div class="nomargin alert alert-danger">
-                    Deleted #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> with <em>{{stdmsg.title}}</em><% } %><% if (obj.group) { %>in {{obj.group.collection}} on {{obj.group.namedisplay}}<% } %>
+                    Deleted #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>in {{obj.group.collection}} on {{obj.group.namedisplay}}<% } %>
                 </div>
             <% } else if (subtype == 'Hold') { %>
                 Held #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else if (subtype == 'Release') { %>
                 Released #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else if (subtype == 'Edit') { %>
-                Edited #{{msgid}} {{text}} <% if (obj.stdmsg) { %> with <em>{{stdmsg.title}}</em><% } %>
+                Edited #{{msgid}} {{text}} <% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %>
             <% } else { %>
                     <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>
@@ -48,7 +48,7 @@
             <% } else if (subtype == 'YahooPostingStatus') { %>
             Set Yahoo Posting Status to {{text}}
             <% } else if (subtype == 'Login') { %>
-            Login {{text}}
+            Logged in {{text}}
             <% } else if (subtype == 'Created') { %>
             Created
             <% } else if (subtype == 'RoleChange') { %>

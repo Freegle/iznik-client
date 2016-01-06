@@ -318,7 +318,7 @@ class User extends Entity
                 'user' => $this->id,
                 'byuser' => $meid,
                 'groupid' => $groupid,
-                'text' => $ban ? "Banned" : NULL
+                'text' => $ban ? "via ban" : NULL
             ]);
         }
 
@@ -550,7 +550,7 @@ class User extends Entity
         return($rc);
     }
 
-    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE) {
+    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL) {
         $atts = parent::getPublic();
 
         if ($history) {
@@ -584,16 +584,25 @@ class User extends Entity
         $atts['modmails'] = $alarms[0]['count'];
 
         if ($logs) {
-            # Add in the log entries we have for this user.
+            # Add in the log entries we have for this user.  We exclude some logs of little interest to mods.
+            # - creation - either of ourselves or others during syncing.
+            # - deletion of users due to syncing
             $me = whoAmI($this->dbhr, $this->dbhm);
-            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) AND (text IS NULL OR text NOT IN ('Not present on Yahoo')) ORDER BY id DESC;";
+            $startq = $ctx ? " AND id < {$ctx['id']} " : '';
+            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype = 'Created') AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list')) ORDER BY id DESC LIMIT 50;";
             $logs = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
             $atts['logs'] = [];
             $groups = [];
             $users = [];
             $configs = [];
 
+            if (!$ctx) {
+                $ctx = [ 'id' => 0 ];
+            }
+
             foreach ($logs as $log) {
+                $ctx['id'] = $ctx['id'] == 0 ? $log['id'] : min($ctx['id'], $log['id']);
+
                 if (pres('byuser', $log)) {
                     if (!pres($log['byuser'], $users)) {
                         $u = new User($this->dbhr, $this->dbhm, $log['byuser']);
