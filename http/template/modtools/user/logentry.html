@@ -12,7 +12,11 @@
             <% if (subtype == 'Joined') { %>
                     Joined {{group.namedisplay}}
             <% } else if (subtype == 'Left') { %>
-                    Left {{group.namedisplay}}
+                <% if (obj.user && obj.byuser && obj.byuser.id != obj.user.id) { %>
+                Removed from{{group.namedisplay}}
+                <% } else { %>
+                Left {{group.namedisplay}}
+                <% } %>
             <% } else { %>
                 <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>

@@ -3,7 +3,8 @@ Iznik.Views.ModTools.User = IznikView.extend({
 
     events: {
         'click .js-posts': 'posts',
-        'click .js-logs': 'logs'
+        'click .js-logs': 'logs',
+        'click .js-remove': 'remove'
     },
 
 
@@ -30,6 +31,24 @@ Iznik.Views.ModTools.User = IznikView.extend({
 
             v.render();
             self.$('.js-logs').fadeTo('slow', 1);
+        });
+    },
+
+    remove: function() {
+        // Remove membership
+        var self = this;
+
+        var mod = new Iznik.Models.Membership({
+            userid: this.model.get('id'),
+            groupid: this.model.get('groupid')
+        });
+
+        mod.fetch().then(function() {
+            mod.destroy({
+                success: function(model, response) {
+                    self.model.trigger('removed');
+                }
+            });
         });
     },
 

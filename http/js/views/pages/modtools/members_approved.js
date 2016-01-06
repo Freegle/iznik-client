@@ -265,15 +265,6 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
             })
         }).render().el);
 
-        self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
-            model: new IznikModel({
-                title: 'Remove',
-                action: 'Delete Approved Member',
-                member: self.model,
-                config: config
-            })
-        }).render().el);
-
         if (config) {
             // Add the other standard messages, in the order requested.
             var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
@@ -306,7 +297,7 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
         this.$('.timeago').timeago();
 
         // If we delete this member then the view should go.
-        this.listenToOnce(self.model, 'deleted', function() {
+        this.listenToOnce(self.model, 'removed', function() {
             self.$el.fadeOut('slow', function() {
                 self.remove();
             });
