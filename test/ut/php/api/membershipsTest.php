@@ -147,10 +147,14 @@ class membershipsAPITest extends IznikAPITest {
 
         $ret = $this->call('memberships', 'GET', [
             'groupid' => $this->groupid,
-            'userid' => $this->uid
+            'userid' => $this->uid,
+            'logs' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($this->uid, $ret['member']['id']);
+
+        $log = $this->findLog('Group', 'Joined', $ret['member']['logs']);
+        assertEquals($this->groupid, $log['user']['group']['id']);
 
         $ret = $this->call('memberships', 'GET', [
             'groupid' => $this->groupid,
@@ -385,7 +389,6 @@ class membershipsAPITest extends IznikAPITest {
             ];
         };
 
-        error_log("Make call");
         $ret = $this->call('memberships', 'PATCH', [
             'groupid' => $this->groupid,
             'members' => $members

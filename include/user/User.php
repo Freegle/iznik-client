@@ -890,6 +890,7 @@ class User extends Entity
 
         # We are mailing the user on behalf of a specific group, and we may have a substitution to do.
         $to = $this->getEmailPreferred();
+
         $g = new Group($this->dbhr, $this->dbhm, $groupid);
         $atts = $g->getPublic();
 

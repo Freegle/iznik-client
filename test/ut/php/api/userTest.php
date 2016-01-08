@@ -120,6 +120,38 @@ class userAPITest extends IznikAPITest {
         error_log(__METHOD__ . " end");
     }
 
+    public function testMail() {
+        error_log(__METHOD__);
+
+        # Mails won't go through as there's no email, but we're just testing the API.
+        $ret = $this->call('user', 'POST', [
+            'subject' => "Test",
+            'body' => "Test"
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Shouldn't be able to do this as a member
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('user', 'POST', [
+            'subject' => "Test",
+            'body' => "Test",
+            'dup' => 1
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+
+        $ret = $this->call('user', 'POST', [
+            'subject' => "Test",
+            'body' => "Test",
+            'groupid' => $this->groupid,
+            'dup' => 2
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testLog() {
         error_log(__METHOD__);
 
@@ -146,18 +178,6 @@ class userAPITest extends IznikAPITest {
         ]);
         $log = $this->findLog('Group', 'Joined', $ret['user']['logs']);
         assertEquals($this->groupid, $log['group']['id']);
-
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-
-        $ret = $this->call('user', 'GET', [
-            'id' => $uid,
-            'logs' => TRUE
-        ]);
-
-        error_log(var_export($ret, true));
-        $log = $this->findLog('User', 'Created', $ret['user']['logs']);
-        assertEquals($this->uid, $log['byuser']['id']);
 
         error_log(__METHOD__ . " end");
     }
