@@ -22,8 +22,8 @@
             <% } %>
         <% } else if (type == 'Message') { %>
             <% if (subtype == 'Received') { %>
-                Posted #{{msgid}} <em>{{message.subject}}</em> via {{message.sourceheader}}
-            <% } else if (subtype == 'Approved') { %>
+                Posted #{{msgid}} <em>{{message.subject}}</em><% if (obj.group) { %>to {{obj.group.namedisplay}}<% } %> via {{message.sourceheader}}
+        <% } else if (subtype == 'Approved') { %>
                 Approved #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else if (subtype == 'Rejected') { %>
                 <div class="nomargin alert alert-danger">

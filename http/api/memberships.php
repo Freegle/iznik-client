@@ -30,12 +30,20 @@ function memberships() {
                 if ($userid && ($me->isModOrOwner($groupid) || $userid == $me->getId())) {
                     # Get just one.  We can get this if we're a mod or it's our own.
                     $members = $g->getMembers(1, NULL, $ctx, $userid);
+
                     $ret = [
                         'member' => count($members) == 1 ? $members[0] : NULL,
                         'context' => $ctx,
                         'ret' => 0,
                         'status' => 'Success'
                     ];
+
+                    if ($logs) {
+                        $u = new User($dbhr, $dbhm, $userid);
+                        $atts = $u->getPublic(NULL, TRUE, $logs, $ctx);
+                        $ret['member']['logs'] = $atts['logs'];
+                        $ret['logcontext'] = $ctx;
+                    }
                 } else if ($me->isModOrOwner($groupid)) {
                     # Get some/all.
                     $ret = [

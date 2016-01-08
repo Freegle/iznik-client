@@ -182,10 +182,10 @@ Iznik.Views.ModTools.User.Logs = Iznik.Views.Modal.extend({
         this.model.fetch({
             data: {
                 logs: true,
-                context: this.context
+                logcontext: this.context
             },
             success: function(model, response, options) {
-                self.context = response.context;
+                self.logcontext = response.logcontext;
             }
         }).then(function() {
             var logs = self.model.get('logs');
