@@ -908,6 +908,21 @@ class User extends Entity
                 $headers,
                 "-f" . $g->getModsEmail()
             );
+
+            $s = new StdMessage($this->dbhr, $this->dbhm, $stdmsgid);
+            $bcc = $s->getBcc();
+
+            if ($bcc) {
+                $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
+
+                $this->mailer(
+                    $bcc,
+                    $subject,
+                    $body,
+                    $headers,
+                    "-f" . $g->getModsEmail()
+                );
+            }
         }
     }
 

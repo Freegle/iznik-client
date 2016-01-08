@@ -79,6 +79,56 @@ class StdMessage extends Entity
         return($c->canModify());
     }
 
+    private function evalIt($c, $to, $addr) {
+        $ret = NULL;
+        $to = $c->getPrivate($to);
+        $addr = $c->getPrivate($addr);
+
+        if ($to == 'Me') {
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $ret = $me->getEmailPreferred();
+        } else if ($to = 'Specific') {
+            $ret = $addr;
+        }
+
+        return($ret);
+    }
+
+    public function getBcc()
+    {
+        # Work out whether we have a BCC address to use for this stdmsg, by inspecting the relevant field
+        # in the modconfig.
+        $ret = NULL;
+
+        if ($this->stdmsg['configid']) {
+            $c = new ModConfig($this->dbhr, $this->dbhm, $this->stdmsg['configid']);
+
+            switch ($this->stdmsg['action']) {
+                case 'Approve':
+                case 'Reject':
+                case 'Leave':
+                case 'Edward':
+                    $ret = $this->evalIt($c, 'ccrejectto', 'ccrejectaddr');
+                    break;
+                case 'Approve Member':
+                case 'Reject Member':
+                case'Leave Member':
+                    $ret = $this->evalIt($c, 'ccrejmembto', 'ccrejmembaddr');
+                    break;
+                case 'Leave Approved Message':
+                case 'Delete Approved Message':
+                    $ret = $this->evalIt($c, 'ccfollowupto', 'ccfollowupaddr');
+                    break;
+                case 'Leave Approved Member':
+                case 'Delete Approved Member':
+                    $ret = $this->evalIt($c, 'ccfollmembto', 'ccfollmembaddr');
+                    break;
+            }
+        }
+
+        return($ret);
+    }
+
     public function delete() {
         $rc = $this->dbhm->preExec("DELETE FROM mod_stdmsgs WHERE id = ?;", [$this->id]);
         if ($rc) {

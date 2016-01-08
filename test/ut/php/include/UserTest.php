@@ -419,7 +419,28 @@ class userTest extends IznikTest {
         assertGreaterThan(0, $u->addEmail('test@test.com'));
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
-        $u->mail("test", "test", NULL, $group);
+
+        $c = new ModConfig($this->dbhr, $this->dbhm);
+        $cid = $c->create('Test');
+        $c->setPrivate('ccfollmembto', 'Specifc');
+        $c->setPrivate('ccfollmembaddr', 'test@test.com');
+
+        $s = new StdMessage($this->dbhr, $this->dbhm);
+        $sid = $s->create('Test', $cid);
+        $s->setPrivate('action', 'Reject Member');
+
+        $u->mail("test", "test", $sid, $group);
+
+        $s->delete();
+
+        $s = new StdMessage($this->dbhr, $this->dbhm);
+        $sid = $s->create('Test', $cid);
+        $s->setPrivate('action', 'Leave Approved Member');
+
+        $u->mail("test", "test", $sid, $group);
+
+        $s->delete();
+        $c->delete();
 
         error_log(__METHOD__ . " end");
     }

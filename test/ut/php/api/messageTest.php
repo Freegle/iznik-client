@@ -300,8 +300,12 @@ class messageAPITest extends IznikAPITest {
         # Promote to owner - should be able to approve it.  Suppress the mail.
         $u->setRole(User::ROLE_OWNER, $group1);
 
+        $c = new ModConfig($this->dbhr, $this->dbhm);
+        $cid = $c->create('Test');
+        $c->setPrivate('ccrejectto', 'Me');
+
         $s = new StdMessage($this->dbhr, $this->dbhm);
-        $sid = $s->create('Test', NULL);
+        $sid = $s->create('Test', $cid);
         $s = new StdMessage($this->dbhr, $this->dbhm, $sid);
 
         $ret = $this->call('message', 'POST', [
@@ -309,6 +313,8 @@ class messageAPITest extends IznikAPITest {
             'groupid' => $group1,
             'action' => 'Approve',
             'duplicate' => 1,
+            'subject' => 'Test',
+            'body' => 'Test',
             'stdmsgid' => $sid
         ]);
         assertEquals(0, $ret['ret']);
@@ -323,6 +329,7 @@ class messageAPITest extends IznikAPITest {
         assertEquals($sid, $log['stdmsgid']);
 
         $s->delete();
+        $c->delete();
 
         # Message should now exist but approved.
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -408,15 +415,28 @@ class messageAPITest extends IznikAPITest {
         # Promote to owner - should be able to reject it.  Suppress the mail.
         $u->setRole(User::ROLE_OWNER, $group1);
 
+        $c = new ModConfig($this->dbhr, $this->dbhm);
+        $cid = $c->create('Test');
+        $c->setPrivate('ccrejectto', 'Specifc');
+        $c->setPrivate('ccrejectaddr', 'test@test.com');
+
+        $s = new StdMessage($this->dbhr, $this->dbhm);
+        $sid = $s->create('Test', $cid);
+        $s = new StdMessage($this->dbhr, $this->dbhm, $sid);
+
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $group1,
+            'stdmsgid' => $sid,
             'action' => 'Reject',
             'subject' => 'Test reject',
             'body' => 'Test body',
             'duplicate' => 1
         ]);
         assertEquals(0, $ret['ret']);
+
+        $s->delete();
+        $c->delete();
 
         # Plugin work should exist
         $ret = $this->call('plugin', 'GET', []);
@@ -494,15 +514,29 @@ class messageAPITest extends IznikAPITest {
         # Promote to owner - should be able to reply.  Suppress the mail.
         $u->setRole(User::ROLE_OWNER, $group1);
 
+        $c = new ModConfig($this->dbhr, $this->dbhm);
+        $cid = $c->create('Test');
+        $c->setPrivate('ccrejectto', 'Specifc');
+        $c->setPrivate('ccrejectaddr', 'test@test.com');
+
+        $s = new StdMessage($this->dbhr, $this->dbhm);
+        $sid = $s->create('Test', $cid);
+        $s->setPrivate('action', 'Leave Approved Message');
+        $s = new StdMessage($this->dbhr, $this->dbhm, $sid);
+
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $group1,
             'action' => 'Reply',
+            'stdmsgid' => $sid,
             'subject' => 'Test reply',
             'body' => 'Test body',
             'duplicate' => 1
         ]);
         assertEquals(0, $ret['ret']);
+
+        $s->delete();
+        $c->delete();
 
         # Plugin work shouldn't exist
         $ret = $this->call('plugin', 'GET', []);

@@ -99,7 +99,6 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                 });
 
                 membership.fetch().then(function() {
-                    console.log("Fetched membership", self.myGroupModel);
                     self.myGroupModel = new IznikModel(membership.get('settings'));
                     var configoptions = [];
                     var configs = Iznik.Session.get('configs');
@@ -378,6 +377,73 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                 self.modConfigFormGeneral.render();
 
                 var locked = self.locked();
+
+                // Add cc options
+                _.each(['reject', 'followup', 'rejmemb', 'follmemb'], function(tag) {
+                    function createForm(tag) {
+                        var form = new Backform.Form({
+                            el: $('.js-cc' + tag + 'form'),
+                            model: self.modConfigModel,
+                            fields: [
+                                {
+                                    name: 'cc' + tag + 'to',
+                                    label: 'CC to',
+                                    control: 'select',
+                                    options: [
+                                        {label: 'Nobody', value: 'Nobody'},
+                                        {label: 'Me', value: 'Me'},
+                                        {label: 'Specific address', value: 'Specific'}
+                                    ]
+                                },
+                                {
+                                    name: 'cc' + tag + 'addr',
+                                    label: 'Specific address',
+                                    placeholder: 'Please enter the specific email address',
+                                    type: 'email',
+                                    control: 'input'
+                                },
+                                {
+                                    control: 'button',
+                                    label: 'Save changes',
+                                    type: 'submit',
+                                    extraClasses: ['btn-success topspace botspace']
+                                }
+                            ],
+                            events: {
+                                'submit': function (e) {
+                                    e.preventDefault();
+                                    var newdata = self.modConfigModel.toJSON();
+                                    var attrs = self.modConfigModel.changedAttributes();
+                                    if (attrs) {
+                                        self.modConfigModel.save(attrs, {patch: true});
+                                    }
+                                    return (false);
+                                }
+                            }
+                        });
+
+                        form.render();
+
+                        // We want to dynamically disable, which backform doesn't.
+                        function handleChange(tag) {
+                            return(function(e) {
+                                var val = $(e.target).val();
+                                var inp = $(e.target).closest('form').find('input');
+                                console.log("Change", inp, val);
+                                inp.prop('disabled', val != 'Specific');
+                            });
+                        }
+
+                        var targ = self.$("input[name='cc" + tag + "addr']");
+                        self.$("input[name='cc" + tag + "to']").change(handleChange(tag));
+                        var disabled = self.$("select[name='cc" + tag + "to']").val() != 'Specific';
+                        console.log("Set disabled", targ, self.modConfigModel.get('cc' + tag + 'to'), tag, disabled);
+                        targ.prop('disabled', disabled);
+                        console.log("After set"), targ.prop('disabled');
+                    }
+
+                    createForm(tag);
+                });
 
                 // Add buttons for the standard messages in the various places.
                 var sortmsgs = orderedMessages(self.modConfigModel.get('stdmsgs'), self.modConfigModel.get('messageorder'));

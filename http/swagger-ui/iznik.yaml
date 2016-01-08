@@ -215,7 +215,11 @@ paths:
         type: string
       - name: body
         in: body
-        description: Bodyfor any rejection email
+        description: Body for any rejection email
+        type: string
+      - name: bcc
+        in: body
+        description: Any email address to BCC message to
         type: string
       responses:
           "200":

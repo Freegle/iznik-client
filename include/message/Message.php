@@ -1081,13 +1081,14 @@ class Message
         return(count($groups) > 0);
     }
 
-    private function maybeMail($groupid, $subject, $body) {
+    private function maybeMail($groupid, $subject, $body, $stdmsgid) {
         if ($subject) {
             # We have a rejection mail to send.
             $to = $this->getEnvelopefrom();
             $to = $to ? $to : $this->getFromaddr();
             $g = new Group($this->dbhr, $this->dbhm, $groupid);
             $atts = $g->getPublic();
+
             $me = whoAmI($this->dbhr, $this->dbhm);
 
             $name = $me->getName();
@@ -1104,6 +1105,21 @@ class Message
                 $headers,
                 "-f" . $g->getModsEmail()
             );
+
+            $s = new StdMessage($this->dbhr, $this->dbhm, $stdmsgid);
+            $bcc = $s->getBcc();
+
+            if ($bcc) {
+                $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
+
+                $this->mailer(
+                    $bcc,
+                    $subject,
+                    $body,
+                    $headers,
+                    "-f" . $g->getModsEmail()
+                );
+            }
         }
     }
 
@@ -1149,7 +1165,7 @@ class Message
             $this->id
         ]);
 
-        $this->maybeMail($groupid, $subject, $body);
+        $this->maybeMail($groupid, $subject, $body, $stdmsgid);
     }
 
     public function approve($groupid, $subject, $body, $stdmsgid) {
@@ -1196,7 +1212,7 @@ class Message
                 $this->id
             ]);
 
-            $this->maybeMail($groupid, $subject, $body);
+            $this->maybeMail($groupid, $subject, $body, $stdmsgid);
         }
     }
 
@@ -1214,7 +1230,7 @@ class Message
             'stdmsgid' => $stdmsgid
         ]);
 
-        $this->maybeMail($groupid, $subject, $body);
+        $this->maybeMail($groupid, $subject, $body, $stdmsgid);
     }
 
     function hold() {
@@ -1249,7 +1265,7 @@ class Message
         }
     }
 
-    function delete($reason = NULL, $groupid = NULL, $subject = NULL, $body = NULL, $stdmsgid = NULL)
+    function delete($reason = NULL, $groupid = NULL, $subject = NULL, $body = NULL, $stdmsgid = NULL, $bcc = NULL)
     {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $rc = true;
@@ -1318,7 +1334,7 @@ class Message
                 $this->s->delete($this->id);
             }
 
-            $this->maybeMail($groupid, $subject, $body);
+            $this->maybeMail($groupid, $subject, $body, $bcc);
         }
 
         return($rc);
