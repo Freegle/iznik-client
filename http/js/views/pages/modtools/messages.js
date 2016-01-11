@@ -44,7 +44,7 @@ Iznik.Views.ModTools.Message = IznikView.extend({
         v.render();
     },
 
-    checkDuplicates: function() {
+    showDuplicates: function() {
         var self = this;
 
         // Decide if we need to check for duplicates.
@@ -58,35 +58,56 @@ Iznik.Views.ModTools.Message = IznikView.extend({
         });
 
         var dups = [];
+        var crossposts = [];
 
         if (check) {
             var id = self.model.get('id');
             var subj = canonSubj(self.model.get('subject'));
 
-            _.each(self.model.get('fromuser').messagehistory, function (message) {
-                if (message.id != id) {
-                    if (canonSubj(message.subject) == subj) {
-                        // No point displaying any group tag in the duplicate.
-                        message.subject = message.subject.replace(/\[.*\](.*)/, "$1");
+            _.each(self.model.get('groups'), function(group) {
+                var groupid = group.groupid;
 
-                        var v = new Iznik.Views.ModTools.Message.Duplicate({
-                            model: new IznikModel(message)
-                        });
-                        self.$('.js-duplist').append(v.render().el);
+                _.each(self.model.get('fromuser').messagehistory, function (message) {
+                    if (message.id != id) {
+                        if (canonSubj(message.subject) == subj) {
+                            // No point displaying any group tag in the duplicate.
+                            message.subject = message.subject.replace(/\[.*\](.*)/, "$1");
 
-                        dups.push(message);
+                            if (message.groupid == groupid) {
+                                // Same group - so this is a duplicate
+                                var v = new Iznik.Views.ModTools.Message.Duplicate({
+                                    model: new IznikModel(message)
+                                });
+                                self.$('.js-duplist').append(v.render().el);
+
+                                dups.push(message);
+                            } else {
+                                // Different group - so this is a crosspost.
+                                //
+                                // Get the group details for the template.
+                                message.group = Iznik.Session.getGroup(message.groupid).attributes;
+
+                                var v = new Iznik.Views.ModTools.Message.Crosspost({
+                                    model: new IznikModel(message)
+                                });
+                                self.$('.js-crosspostlist').append(v.render().el);
+
+                                crossposts.push(message);
+                            }
+                        }
                     }
-                }
+                });
             });
         }
 
         self.model.set('duplicates', dups);
+        self.model.set('crossposts', crossposts);
     },
 
     checkMessage: function(config) {
         var self = this;
 
-        this.checkDuplicates();
+        this.showDuplicates();
 
         // We colour code subjects according to a regular expression in the config.
         this.$('.js-coloursubj').addClass('success');
@@ -550,6 +571,17 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
 
 Iznik.Views.ModTools.Message.Duplicate = IznikView.extend({
     template: 'modtools_message_duplicate',
+
+    render: function() {
+        var self = this;
+        self.$el.html(window.template(self.template)(self.model.toJSON2()));
+        this.$('.timeago').timeago();
+        return(this);
+    }
+});
+
+Iznik.Views.ModTools.Message.Crosspost = IznikView.extend({
+    template: 'modtools_message_crosspost',
 
     render: function() {
         var self = this;
