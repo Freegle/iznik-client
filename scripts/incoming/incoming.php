@@ -25,7 +25,8 @@ error_log(var_export($_ENV, true));
 
 $r = new MailRouter($dbhr, $dbhm);
 
-if (preg_match('/.*\-owner\@yahoogroups.com$/', $envfrom) !== FALSE) {
+if ((preg_match('/.*\-owner\@yahoogroups.com$/', $envfrom) !== FALSE) ||
+    (preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.com/', $envfrom) !== FALSE)) {
     $id = $r->received(Message::YAHOO_SYSTEM, $envfrom, $envto, $msg);
     $rc = $r->route();
 }

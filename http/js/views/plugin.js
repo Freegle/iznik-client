@@ -29,6 +29,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             if (group.get('onyahoo') &&
                 (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
                 (new Iznik.Views.Plugin.Yahoo.SyncMessages.Pending({model: group})).render();
+                (new Iznik.Views.Plugin.Yahoo.SyncMembers.Pending({model: group})).render();
             }
         });
 
@@ -858,8 +859,8 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
                 var thisone = {
                     email: member['email'],
                     yahooUserId: member['userId'],
-                    yahooPostingStatus: member['postingStatus'],
-                    yahooDeliveryType: member['deliveryType'],
+                    yahooPostingStatus: member.hasOwnProperty('postingStatus') ? member['postingStatus'] : null,
+                    yahooDeliveryType: member.hasOwnProperty(self.deliveryField) ? member[self.deliveryField] : null,
                     yahooModeratorStatus: member.hasOwnProperty('moderatorStatus') ? member['moderatorStatus'] : 'MEMBER',
                     name: member['yid'],
                     date: mom.format()
@@ -876,6 +877,7 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
                     context: self,
                     data: {
                         'groupid': this.model.get('id'),
+                        'collection': this.collections,
                         'members': this.members
                     },
                     success: function(ret) {
@@ -907,6 +909,7 @@ Iznik.Views.Plugin.Yahoo.SyncMembers.Approved = Iznik.Views.Plugin.Yahoo.SyncMem
 
     numField: 'total',
     dateField: 'date',
+    deliveryField: 'deliveryType',
 
     collections: [
         'Approved',
@@ -915,6 +918,63 @@ Iznik.Views.Plugin.Yahoo.SyncMembers.Approved = Iznik.Views.Plugin.Yahoo.SyncMem
 
     url: function() {
         var url = YAHOOAPI + 'groups/' + this.model.get('nameshort') + "/members/confirmed?count=" + this.chunkSize + "&chrome=raw"
+
+        if (this.offset) {
+            url += "&start=" + this.offset;
+        }
+
+        return(url);
+    }
+});
+
+//$.ajax({
+//    type: "GET",
+//    url: yahooProt + "groups.yahoo.com/api/v1/groups/" + groupname + "/pending/members?start=1&count=1000&chrome=raw",
+//    data: '',
+//    success: function (ret) {
+//        var pendings = new Array();
+//
+//        if (ret['ygData']) {
+//            var total = ret['ygData']['total'];
+//            var members = ret['ygData']['members'];
+//
+//            for (var i = 0; i < total; i++) {
+//                var member = members[i];
+//
+//                pendings.push({
+//                    groupid: group['groupid'],
+//                    groupname: groupname,
+//                    email: member['email'],
+//                    comment: $('<div>' + member['joinComment'] + '</div>').text(),
+//                    epochgmt: member['dateCreated'],
+//                    userId: member['userId'],
+//                    yalias: member['yalias'],
+//                    deliveryType: member['messageDelivery']
+//                });
+//            }
+//
+//
+
+Iznik.Views.Plugin.Yahoo.SyncMembers.Pending = Iznik.Views.Plugin.Yahoo.SyncMembers.extend({
+    // Setting offset to 0 omits start from first one
+    offset: 0,
+
+    template: 'plugin_sync_pending_members',
+
+    crumbLocation: "/management/pendingmembers",
+    memberLocation: 'members',
+
+    numField: 'total',
+    dateField: 'dateCreated',
+    deliveryField: 'messageDelivery',
+
+    collections: [
+        'Pending',
+        'Spam'
+    ],
+
+    url: function() {
+        var url = YAHOOAPI + 'groups/' + this.model.get('nameshort') + "/pending/members?count=" + this.chunkSize + "&chrome=raw"
 
         if (this.offset) {
             url += "&start=" + this.offset;

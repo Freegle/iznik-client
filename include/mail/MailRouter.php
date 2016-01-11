@@ -141,7 +141,7 @@ class MailRouter
                     # See if we can find the group with this key.  If not then we just drop it - it's either a fake
                     # or obsolete.
                     $sql = "SELECT id FROM groups WHERE id = ? AND confirmkey = ?;";
-                    $groups = $this->dbhr->preQuery($sql, [ $groupid, $key ]);
+                    $groups = $this->dbhr->preQuery($sql, [$groupid, $key]);
 
                     #error_log("Check key $key for group $groupid");
 
@@ -178,6 +178,11 @@ class MailRouter
                         $this->dbhm->preExec("UPDATE groups SET confirmkey = NULL WHERE id = ?;", [$groupid]);
                     }
                 }
+            } else if (preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.com/', $from, $matches) !== FALSE) {
+                # This is a request by Yahoo to confirm a subscription for one of our members.  We always do that.
+                $confirmaddr = $this->msg->getHeader('reply-to');
+                $this->mail($confirmaddr, $to, "Yes please", "I confirm this");
+                $ret = MailRouter::TO_SYSTEM;
             } else {
                 $ret = MailRouter::DROPPED;
             }
@@ -296,5 +301,22 @@ class MailRouter
                 $this->dbhm->rollBack();
             }
         }
+    }
+
+    # Default mailer is to use the standard PHP one, but this can be overridden in UT.
+    private function mailer() {
+        call_user_func_array('mail', func_get_args());
+    }
+
+    public function mail($to, $from, $subject, $body) {
+        $headers = "From: $from <$from>\r\n";
+
+        $this->mailer(
+            $to,
+            $subject,
+            $body,
+            $headers,
+            "-f$from"
+        );
     }
 }
