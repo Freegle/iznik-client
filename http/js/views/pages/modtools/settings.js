@@ -633,6 +633,27 @@ Iznik.Views.ModTools.StdMessage.SettingsButton = Iznik.Views.ModTools.StdMessage
     }
 });
 
+// We use a custom control for action so that we can add groups into what would otherwise be a long list.
+//
+// Defer for our template expansion to work which requires DOM elements.
+_.defer(function() {
+    Iznik.Views.ModTools.Settings.ActionSelect = Backform.InputControl.extend({
+        defaults: {
+            type: 'actionselect'
+        },
+
+        events: {
+            'change .js-action': 'getValueFromDOM'
+        },
+
+        template: window.template("modtools_settings_action"),
+
+        getValueFromDOM: function() {
+            this.model.set('action', this.$('.js-action').val());
+        }
+    });
+});
+
 Iznik.Views.ModTools.Settings.StdMessage = Iznik.Views.Modal.extend({
     template: 'modtools_settings_stdmsg',
 
@@ -673,57 +694,7 @@ Iznik.Views.ModTools.Settings.StdMessage = Iznik.Views.Modal.extend({
                 {
                     name: 'action',
                     label: 'Action',
-                    control: 'select',
-                    options: [
-                        {
-                            label: 'Approve Pending Message',
-                            value: 'Approve'
-                        },
-                        {
-                            label: 'Reject Pending Message',
-                            value: 'Reject'
-                        },
-                        {
-                            label: 'Reply to Pending Message',
-                            value: 'Leave'
-                        },
-                        {
-                            label: 'Edit Pending Message',
-                            value: 'Edit'
-                        },
-                        {
-                            label: 'Delete Approved Message',
-                            value: 'Delete Approved Message'
-                        },
-                        {
-                            label: 'Reply to Approved Message',
-                            value: 'Leave Approved Message'
-                        },
-                        {
-                            label: 'Reply to Pending Message',
-                            value: 'Leave'
-                        },
-                        {
-                            label: 'Approve Pending Member',
-                            value: 'Approve Member'
-                        },
-                        {
-                            label: 'Reject Pending Member',
-                            value: 'Reject Member'
-                        },
-                        {
-                            label: 'Mail Pending Member',
-                            value: 'Leave Member'
-                        },
-                        {
-                            label: 'Remove Member',
-                            value: 'Delete Approved Member'
-                        },
-                        {
-                            label: 'Mail Member',
-                            value: 'Leave Approved Member'
-                        }
-                    ]
+                    control: Iznik.Views.ModTools.Settings.ActionSelect
                 },
                 {
                     name: 'autosend',
@@ -798,6 +769,8 @@ Iznik.Views.ModTools.Settings.StdMessage = Iznik.Views.Modal.extend({
             });
 
             self.form.render();
+
+            self.$('.js-action').val(self.model.get('action'));
 
             // Layout messes up a bit.
             self.$('.form-group').addClass('clearfix');
