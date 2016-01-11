@@ -636,22 +636,23 @@ Iznik.Views.ModTools.StdMessage.SettingsButton = Iznik.Views.ModTools.StdMessage
 // We use a custom control for action so that we can add groups into what would otherwise be a long list.
 //
 // Defer for our template expansion to work which requires DOM elements.
-_.defer(function() {
-    Iznik.Views.ModTools.Settings.ActionSelect = Backform.InputControl.extend({
-        defaults: {
-            type: 'actionselect'
-        },
+Iznik.Views.ModTools.Settings.ActionSelect = Backform.InputControl.extend({
+    defaults: {
+        type: 'actionselect'
+    },
 
-        events: {
-            'change .js-action': 'getValueFromDOM'
-        },
+    events: {
+        'change .js-action': 'getValueFromDOM'
+    },
 
-        template: window.template("modtools_settings_action"),
+    getValueFromDOM: function() {
+        this.model.set('action', this.$('.js-action').val());
+    },
 
-        getValueFromDOM: function() {
-            this.model.set('action', this.$('.js-action').val());
-        }
-    });
+    render: function() {
+        this.template = window.template("modtools_settings_action");
+        Backform.InputControl.prototype.render.apply(this, arguments);
+    }
 });
 
 Iznik.Views.ModTools.Settings.StdMessage = Iznik.Views.Modal.extend({

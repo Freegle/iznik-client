@@ -32,7 +32,8 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
     events: {
         'click .js-search': 'search',
         'keyup .js-searchterm': 'keyup',
-        'click .js-sync': 'sync'
+        'click .js-sync': 'sync',
+        'click .js-export': 'export'
     },
 
     fetching: null,
@@ -47,6 +48,75 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
 
     sync: function() {
         (new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({model: Iznik.Session.getGroup(this.selected)})).render();
+    },
+
+    exportChunk: function() {
+        // We don't use the collection fetch because we're not interested in maintaining a collection, and it chews up
+        // a lot of memory.
+        var self = this;
+        $.ajax({
+            type: 'GET',
+            url: API + 'memberships/' + self.selected,
+            context: self,
+            data: {
+                limit: 1000,
+                context: self.exportContext ? self.exportContext : null
+            },
+            success: function(ret) {
+                var self = this;
+                self.exportContext = ret.context;
+
+                if (ret.members.length > 0) {
+                    // We returned some - add them to the list.
+                    _.each(ret.members, function(member) {
+                        var otheremails = [];
+                        _.each(member.otheremails, function(email) {
+                            otheremails.push(email.email);
+                        });
+
+                        self.exportList.push([
+                            member.id,
+                            member.displayname,
+                            member.email,
+                            member.joined,
+                            member.role,
+                            otheremails.join(', '),
+                            JSON.stringify(member.settings,null,0)
+                        ]);
+                    });
+
+                    self.exportChunk.call(self);
+                } else {
+                    // We got them all.
+                    // Loop through converting each to CSV.
+                    var csv = new csvWriter();
+                    csv.del = ',';
+                    csv.enc = '"';
+                    var list = [ [ 'Unique ID', 'Display Name', 'Email on Group', 'Joined', 'Role on Group', 'Other emails', 'Settings on Group' ] ];
+
+                    var csvstr = csv.arrayToCSV(self.exportList);
+
+                    self.exportWait.close();
+                    var blob = new Blob([ csvstr ], {type: "text/csv;charset=utf-8"});
+                    saveAs(blob, "members.csv");
+                }
+            }
+        })
+    },
+
+    export: function() {
+        // Get all the members.  Slow.
+        if (this.selected > 0) {
+            var v = new Iznik.Views.PleaseWait({
+                timeout: 1
+            });
+            v.template = 'modtools_members_approved_exportwait';
+            v.render();
+            this.exportWait = v;
+            this.exportList = [];
+            this.exportContext = null;
+            this.exportChunk();
+        }
     },
 
     fetch: function() {

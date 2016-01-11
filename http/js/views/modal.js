@@ -114,7 +114,7 @@ Iznik.Views.Confirm = Iznik.Views.Modal.extend({
 });
 
 // Please wait popup.  Need to avoid nesting issues.
-var waitCount = 0;
+var waitModals = [];
 
 Iznik.Views.PleaseWait = Iznik.Views.Modal.extend({
     template: 'wait',
@@ -123,23 +123,33 @@ Iznik.Views.PleaseWait = Iznik.Views.Modal.extend({
 
     render: function() {
         var self = this;
-        this.waitCount = waitCount++;
+        this.waitCount = waitModals.length;
+        waitModals.push(this);
 
         if (this.waitCount == 0) {
             this.timeout = setTimeout(function() {
                 self.timeout = null;
                 self.open(self.template);
-            }, 3000);
+            }, self.options.timeout ? self.options.timeout : 3000);
         }
     },
 
     close: function() {
         if (this.waitCount == 0) {
+            // We opened a modal; close it.
             if (this.timeout) {
                 clearTimeout(this.timeout);
             } else {
                 Iznik.Views.Modal.prototype.close.call(this);
             }
+        }
+
+        waitModals = _.without(waitModals, this);
+
+        if (waitModals.length > 0) {
+            // We have more queued.
+            var first = _.first(waitModals);
+            first.render();
         }
     }
 });

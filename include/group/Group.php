@@ -139,7 +139,7 @@ class Group extends Entity
         $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") . ") ");
         $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : $searchq;
 
-        $sql = "SELECT memberships.* FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE groupid = ? $addq $searchq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
+        $sql = "SELECT DISTINCT memberships.* FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE groupid = ? $addq $searchq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
         $members = $this->dbhr->preQuery($sql, [ $this->id ]);
 
         $ctx = [ 'Added' => NULL ];
