@@ -124,6 +124,9 @@ class MailRouter
             # This is a message which is from Yahoo's system, rather than a message for a group.
             $to = $this->msg->getEnvelopeto();
             $from = $this->msg->getEnvelopefrom();
+            $replyto = $this->msg->getHeader('reply-to');
+
+            error_log("System $from => $to, $replyto");
 
             if (preg_match('/modconfirm-(.*)-(.*)-(.*)@/', $to, $matches) !== FALSE && count($matches) == 4) {
                 # This purports to be a mail to confirm moderation status on Yahoo.
@@ -178,10 +181,9 @@ class MailRouter
                         $this->dbhm->preExec("UPDATE groups SET confirmkey = NULL WHERE id = ?;", [$groupid]);
                     }
                 }
-            } else if (preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.com/', $from, $matches) !== FALSE) {
+            } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.com/', $replyto, $matches) !== FALSE && count($matches) == 4) {
                 # This is a request by Yahoo to confirm a subscription for one of our members.  We always do that.
-                $confirmaddr = $this->msg->getHeader('reply-to');
-                $this->mail($confirmaddr, $to, "Yes please", "I confirm this");
+                $this->mail($replyto, $to, "Yes please", "I confirm this");
                 $ret = MailRouter::TO_SYSTEM;
             } else {
                 $ret = MailRouter::DROPPED;

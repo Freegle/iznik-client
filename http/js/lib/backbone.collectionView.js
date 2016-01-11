@@ -1,5 +1,5 @@
 /*!
- * Backbone.CollectionView, v1.0.2
+ * Backbone.CollectionView, v1.0.5
  * Copyright (c)2013 Rotunda Software, LLC.
  * Distributed under MIT license
  * http://github.com/rotundasoftware/backbone-collection-view
@@ -38,7 +38,7 @@
             "mousedown > li, tbody > tr > td" : "_listItem_onMousedown",
             "dblclick > li, tbody > tr > td" : "_listItem_onDoubleClick",
             "click" : "_listBackground_onClick",
-            "click ul.collection-list, table.collection-list" : "_listBackground_onClick",
+            "click ul.collection-view, table.collection-view" : "_listBackground_onClick",
             "keydown" : "_onKeydown"
         },
 
@@ -85,7 +85,7 @@
             }
 
             this.$el.data( "view", this ); // needed for connected sortable lists
-            this.$el.addClass( "collection-list" );
+            this.$el.addClass( "collection-view collection-list" ); // collection-list is in there for legacy purposes
             if( this.selectable ) this.$el.addClass( "selectable" );
 
             if( this.processKeyEvents )
@@ -172,7 +172,7 @@
         },
 
         getSelectedModel : function( options ) {
-            return _.first( this.getSelectedModels( options ) );
+            return this.selectedItems.length ? _.first( this.getSelectedModels( options ) ) : null;
         },
 
         getSelectedModels : function ( options ) {
@@ -279,13 +279,12 @@
 
                 if( ! options.silent )
                 {
-                    this.trigger( "selectionChanged", newSelectedModels, oldSelectedModels );
                     if( this._isBackboneCourierAvailable() ) {
                         this.spawn( "selectionChanged", {
                             selectedModels : newSelectedModels,
                             oldSelectedModels : oldSelectedModels
                         } );
-                    }
+                    } else this.trigger( "selectionChanged", newSelectedModels, oldSelectedModels );
                 }
 
                 this.updateDependentControls();
@@ -299,7 +298,7 @@
                 this.setSelectedModels( [ newSelectedItem ], options );
         },
 
-        render : function(){
+        render : function() {
             var _this = this;
 
             this._hasBeenRendered = true;
@@ -351,17 +350,16 @@
 
             this._showEmptyListCaptionIfAppropriate();
 
-            this.trigger( "render" );
             if( this._isBackboneCourierAvailable() )
                 this.spawn( "render" );
+            else this.trigger( "render" );
 
             if( this.selectable ) {
                 this._restoreSelection();
                 this.updateDependentControls();
             }
 
-            if( _.isFunction( this.onAfterRender ) )
-                this.onAfterRender();
+            this.forceRerenderOnNextSortEvent = false;
         },
 
         _showEmptyListCaptionIfAppropriate : function ( ) {
@@ -401,31 +399,23 @@
 
         // Render a single model view in container object "parentElOrDocumentFragment", which is either
         // a documentFragment or a jquery object. optional arg atIndex is not support for document fragments.
-        _insertAndRenderModelView : function( modelView, parentElOrDocumentFragment) {
+        _insertAndRenderModelView : function( modelView, parentElOrDocumentFragment, atIndex ) {
             var thisModelViewWrapped = this._wrapModelView( modelView );
-            $(thisModelViewWrapped).data('collectionViewModel', modelView.model);
 
             if( parentElOrDocumentFragment.nodeType === 11 ) // if we are inserting into a document fragment, we need to use the DOM appendChild method
                 parentElOrDocumentFragment.appendChild( thisModelViewWrapped.get( 0 ) );
             else {
-                // We don't really know which of the models in the collection are currently present in our DOM,
-                // because add events can happen in strange orders, so we loop through the ones we have comparing
-                // the models.
-                var inserted = false;
-                var modind = this.collection.indexOf(modelView.model);
-                var self = this;
+                var numberOfModelViewsCurrentlyInDOM = parentElOrDocumentFragment.children().length;
+                if( ! _.isUndefined( atIndex ) && atIndex >= 0 && atIndex < numberOfModelViewsCurrentlyInDOM )
+                // note this.collection.length might be greater than parentElOrDocumentFragment.children().length here
+                    parentElOrDocumentFragment.children().eq( atIndex ).before( thisModelViewWrapped );
+                else {
+                    // if we are attempting to insert a modelView in an position that is beyond what is currently in the
+                    // DOM, then make a note that we need to re-render the collection view on the next sort event. If we dont
+                    // force this re-render, we can end up with modelViews in the wrong order when the collection defines
+                    // a comparator and multiple models are added at once. See https://github.com/rotundasoftware/backbone.collectionView/issues/69
+                    if( ! _.isUndefined( atIndex ) && atIndex > numberOfModelViewsCurrentlyInDOM ) this.forceRerenderOnNextSortEvent = true;
 
-                parentElOrDocumentFragment.children().each(function() {
-                    if (!inserted) {
-                        var thisind = self.collection.indexOf($(this).data('collectionViewModel'));
-                        if (thisind > modind) {
-                            $(this).before(thisModelViewWrapped);
-                            inserted = true;
-                        }
-                    }
-                })
-
-                if (!inserted) {
                     parentElOrDocumentFragment.append( thisModelViewWrapped );
                 }
             }
@@ -458,12 +448,11 @@
         },
 
         updateDependentControls : function() {
-            this.trigger( "updateDependentControls", this.getSelectedModels() );
             if( this._isBackboneCourierAvailable() ) {
                 this.spawn( "updateDependentControls", {
                     selectedModels : this.getSelectedModels()
                 } );
-            }
+            } else this.trigger( "updateDependentControls", this.getSelectedModels() );
         },
 
         // Override `Backbone.View.remove` to also destroy all Views in `viewManager`
@@ -499,11 +488,12 @@
 
                 if( this._hasBeenRendered ) {
                     modelView = this._createNewModelView( model, this._getModelViewOptions( model ) );
-                    this._insertAndRenderModelView( modelView, this._getContainerEl());
+                    this._insertAndRenderModelView( modelView, this._getContainerEl(), this.collection.indexOf( model ) );
                 }
 
                 if( this._isBackboneCourierAvailable() )
                     this.spawn( "add", modelView );
+                else this.trigger( "add", modelView );
             } );
 
             this.listenTo( this.collection, "remove", function( model ) {
@@ -516,12 +506,14 @@
 
                 if( this._isBackboneCourierAvailable() )
                     this.spawn( "remove" );
+                else this.trigger( "remove" );
             } );
 
             this.listenTo( this.collection, "reset", function() {
                 if( this._hasBeenRendered ) this.render();
                 if( this._isBackboneCourierAvailable() )
                     this.spawn( "reset" );
+                else this.trigger( "reset" );
             } );
 
             // we should not be listening to change events on the model as a default behavior. the models
@@ -535,9 +527,10 @@
             // } );
 
             this.listenTo( this.collection, "sort", function( collection, options ) {
-                if( this._hasBeenRendered && options.add !== true ) this.render();
+                if( this._hasBeenRendered && ( options.add !== true || this.forceRerenderOnNextSortEvent ) ) this.render();
                 if( this._isBackboneCourierAvailable() )
                     this.spawn( "sort" );
+                else this.trigger( "sort" );
             } );
         },
 
@@ -557,7 +550,7 @@
             // important to use currentTarget as opposed to target, since we could be bubbling
             // an event that took place within another collectionList
             var clickedItemEl = $( theEvent.currentTarget );
-            if( clickedItemEl.closest( ".collection-list" ).get(0) !== this.$el.get(0) ) return;
+            if( clickedItemEl.closest( ".collection-view" ).get(0) !== this.$el.get(0) ) return;
 
             // determine which list item was clicked. If we clicked in the blank area
             // underneath all the elements, we want to know that too, since in this
@@ -635,13 +628,12 @@
                 // Trigger a selection changed if the previously selected items were not all found
                 if (this.selectedItems.length !== this.savedSelection.items.length)
                 {
-                    this.trigger( "selectionChanged", this.getSelectedModels(), [] );
                     if( this._isBackboneCourierAvailable() ) {
                         this.spawn( "selectionChanged", {
                             selectedModels : this.getSelectedModels(),
                             oldSelectedModels : []
                         } );
-                    }
+                    } else this.trigger( "selectionChanged", this.getSelectedModels(), [] );
                 }
             }
 
@@ -659,6 +651,10 @@
 
             _.each( itemsIdsFromWhichSelectedClassNeedsToBeRemoved, function( thisItemId ) {
                 this._getContainerEl().find( "[data-model-cid=" + thisItemId + "]" ).removeClass( "selected" );
+
+                if( this._isRenderedAsList() ) {
+                    this._getContainerEl().find( "li[data-model-cid=" + thisItemId + "] > *" ).removeClass( "selected" );
+                }
             }, this );
 
             var itemsIdsFromWhichSelectedClassNeedsToBeAdded = this.selectedItems;
@@ -666,6 +662,10 @@
 
             _.each( itemsIdsFromWhichSelectedClassNeedsToBeAdded, function( thisItemId ) {
                 this._getContainerEl().find( "[data-model-cid=" + thisItemId + "]" ).addClass( "selected" );
+
+                if( this._isRenderedAsList() ) {
+                    this._getContainerEl().find( "li[data-model-cid=" + thisItemId + "] > *" ).addClass( "selected" );
+                }
             }, this );
         },
 
@@ -688,9 +688,8 @@
                 }
             } );
 
-            this.collection.trigger( "reorder" );
-
             if( this._isBackboneCourierAvailable() ) this.spawn( "reorder" );
+            else this.collection.trigger( "reorder" );
 
             if( this.collection.comparator ) this.collection.sort();
 
@@ -712,7 +711,7 @@
             if( _.isUndefined( modelViewConstructor ) ) throw "Could not find modelView constructor for model";
 
             var newModelView = new( modelViewConstructor )( modelViewOptions );
-            newModelView.collectionListView = this;
+            newModelView.collectionListView = newModelView.collectionView = this;  // collectionListView for legacy
 
             return newModelView;
         },
@@ -811,16 +810,17 @@
 
         _sortStart : function( event, ui ) {
             var modelBeingSorted = this.collection.get( ui.item.attr( "data-model-cid" ) );
-            this.trigger( "sortStart", modelBeingSorted );
             if( this._isBackboneCourierAvailable() )
                 this.spawn( "sortStart", { modelBeingSorted : modelBeingSorted } );
+            else this.trigger( "sortStart", modelBeingSorted );
         },
 
         _sortChange : function( event, ui ) {
             var modelBeingSorted = this.collection.get( ui.item.attr( "data-model-cid" ) );
-            this.trigger( "sortChange", modelBeingSorted );
+
             if( this._isBackboneCourierAvailable() )
                 this.spawn( "sortChange", { modelBeingSorted : modelBeingSorted } );
+            else this.trigger( "sortChange", modelBeingSorted );
         },
 
         _sortStop : function( event, ui ) {
@@ -838,9 +838,10 @@
 
             this._reorderCollectionBasedOnHTML();
             this.updateDependentControls();
-            this.trigger( "sortStop", modelBeingSorted, newIndex );
+
             if( this._isBackboneCourierAvailable() )
                 this.spawn( "sortStop", { modelBeingSorted : modelBeingSorted, newIndex : newIndex } );
+            else this.trigger( "sortStop", modelBeingSorted, newIndex );
         },
 
         _receive : function( event, ui ) {
@@ -965,15 +966,16 @@
             if( clickedItemId )
             {
                 var clickedModel = this.collection.get( clickedItemId );
-                this.trigger( "doubleClick", clickedModel );
+
                 if( this._isBackboneCourierAvailable() )
                     this.spawn( "doubleClick", { clickedModel : clickedModel } );
+                else this.trigger( "doubleClick", clickedModel );
             }
         },
 
         _listBackground_onClick : function( theEvent ) {
             if( ! this.selectable ) return;
-            if( ! $( theEvent.target ).is( ".collection-list" ) ) return;
+            if( ! $( theEvent.target ).is( ".collection-view" ) ) return;
 
             this.setSelectedModels( [] );
         }

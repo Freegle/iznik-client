@@ -698,7 +698,6 @@ class MailRouterTest extends IznikTest {
 
         # A request to confirm an application
         $msg = file_get_contents('msgs/application');
-        $m = new Message($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_SYSTEM, $rc);
