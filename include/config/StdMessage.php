@@ -87,7 +87,7 @@ class StdMessage extends Entity
         if ($to == 'Me') {
             $me = whoAmI($this->dbhr, $this->dbhm);
             $ret = $me->getEmailPreferred();
-        } else if ($to = 'Specific') {
+        } else if ($to == 'Specific') {
             $ret = $addr;
         }
 
