@@ -514,7 +514,6 @@ class User extends Entity
 
         foreach ($sets as $set) {
             if ($set['settings']) {
-                error_log("Got settings 2 ");
                 $settings = json_decode($set['settings'], TRUE);
 
                 if ($set['role'] == User::ROLE_OWNER || $set['role'] == User::ROLE_MODERATOR) {

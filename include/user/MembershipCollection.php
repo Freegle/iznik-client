@@ -7,8 +7,8 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 class MembershipCollection
 {
     # These match the collection enumeration.
-    const INCOMING = 'Incoming';
     const APPROVED = 'Approved';
     const PENDING = 'Pending';
+    const BANNED = 'Banned';
     const SPAM = 'Spam';
 }

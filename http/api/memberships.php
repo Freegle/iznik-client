@@ -18,6 +18,16 @@ function memberships() {
     $logctx = presdef('logcontext', $_REQUEST, NULL);
     $collection = presdef('collection', $_REQUEST, MembershipCollection::APPROVED);
 
+    switch ($collection) {
+        case MembershipCollection::APPROVED:
+        case MembershipCollection::PENDING:
+        case MembershipCollection::BANNED:
+        case MembershipCollection::SPAM:
+            break;
+        default:
+            $collection = NULL;
+    }
+
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
     $u = new User($dbhr, $dbhm, $userid);
