@@ -18,7 +18,7 @@ Iznik.Views.Page = IznikView.extend({
         $('#bodyContent').html(this.modtools ?
             window.template('modtools_layout_layout') :
             window.template('layout_layout'));
-        $('.pageContent').html(this.$el);
+        $('.js-pageContent').html(this.$el);
 
         var m = new Iznik.Views.LeftMenu();
         $('.js-leftsidebar').html(m.render().el);
@@ -43,7 +43,7 @@ Iznik.Views.Page = IznikView.extend({
 
         // Put this page in
         this.$el.html(window.template(this.template)(Iznik.Session.toJSON2()));
-        $('.js-pageContent').html(this.$el);
+        $('.js-pageContent').append(this.$el);
 
         // Show anything which should or shouldn't be visible based on login status.
         this.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){

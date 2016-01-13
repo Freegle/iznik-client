@@ -159,6 +159,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             $('.js-plugincount').empty().hide();
             $('#js-nowork').fadeIn('slow');
         }
+
+        this.count = count;
     },
 
     completedWork: function() {
@@ -195,7 +197,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
         function checkResponse(self) {
             return(function(ret) {
-                if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
+                if (ret && ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
                     $('.pluginonly').show();
 
                     if (!self.connected) {
@@ -222,7 +224,13 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                     $('#js-pluginconnected').fadeOut('slow', function() {
                         $('#js-plugindisconnected').fadeIn('slow');
-                    })
+                    });
+
+                    if (self.count > 20) {
+                        $('#js-pluginbuildup').fadeIn('slow');
+                    } else {
+                        $('#js-pluginbuildup').hide();
+                    }
                 }
             });
         }
@@ -232,18 +240,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             type: 'GET',
             url: 'https://groups.yahoo.com/api/v1/user/groups/all',
             success: checkResponse(self),
-            error: function() {
-                $('.pluginonly').hide();
-
-                // If we got an error, we're not connected.
-                if (self.connected) {
-                    self.pause();
-                }
-
-                $('#js-pluginconnected').fadeOut('slow', function() {
-                    $('#js-plugindisconnected').fadeIn('slow');
-                })
-            }, complete: function() {
+            error: checkResponse(self),
+            complete: function() {
                 window.setTimeout(_.bind(self.checkPluginStatus, self), 10000);
             }
         });
