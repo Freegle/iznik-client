@@ -49,7 +49,7 @@ Iznik.Collections.Members = IznikCollection.extend({
     },
 
     url: function() {
-        return (API + 'memberships/' + this.options.groupid)
+        return (API + 'memberships/' + (this.options.groupid > 0 ? this.options.groupid : '') + '?collection=' + this.options.collection)
     },
 
     parse: function(ret) {
@@ -61,6 +61,6 @@ Iznik.Collections.Members = IznikCollection.extend({
 
 Iznik.Collections.Members.Search = Iznik.Collections.Members.extend({
     url: function() {
-        return(API + 'memberships/' + this.options.groupid + '?search=' + encodeURIComponent(this.options.search));
+        return(API + 'memberships/' + this.options.groupid + '?search=' + encodeURIComponent(this.options.search) + '&collection=' + this.options.collection);
     }
 });

@@ -1,8 +1,8 @@
-<% if (obj.action == 'Approve' || obj.action == 'Approve Member') { %>
+<% if (obj.action == 'Approve' || obj.action == 'Approve Pending Member') { %>
 <div class="btn btn-success js-approve">
     <div class="glyphicon glyphicon-ok"></div>&nbsp;{{obj.title}}
 </div>
-<% } else if (obj.action == 'Reject' || obj.action == 'Reject Member') { %>
+<% } else if (obj.action == 'Reject' || obj.action == 'Reject Pending Member') { %>
 <div class="btn btn-warning js-reject">
     <div class="glyphicon glyphicon-remove"></div>&nbsp;{{obj.title}}
 </div>
@@ -14,7 +14,7 @@
 <div class="btn btn-warning js-release">
     <div class="glyphicon glyphicon-play"></div>&nbsp;{{obj.title}}
 </div>
-<% } else if (obj.action == 'Leave' || obj.action == 'Leave Approved Message' || obj.action == 'Leave Approved Member' || obj.action == 'Leave Member') { %>
+<% } else if (obj.action == 'Leave' || obj.action == 'Leave Approved Message' || obj.action == 'Leave Approved Member' || obj.action == 'Leave Pending Member') { %>
 <div class="btn btn-warning js-leave">
     <div class="glyphicon glyphicon-envelope"></div>&nbsp;{{obj.title}}
 </div>

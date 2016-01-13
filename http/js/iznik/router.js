@@ -44,7 +44,7 @@ var IznikRouter = Backbone.Router.extend({
         "modtools/messages/pending": "pendingMessages",
         "modtools/messages/approved(/:search)": "approvedMessages",
         "modtools/messages/spam": "spamMessages",
-        "modtools/members/pending": "pendingMembers",
+        "modtools/members/pending(/:search)": "pendingMembers",
         "modtools/members/approved(/:search)": "approvedMembers",
         "modtools/members/spam": "spamMembers",
         "modtools/settings": "settings",
@@ -150,6 +150,20 @@ var IznikRouter = Backbone.Router.extend({
     approvedMessages: function(search) {
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
             var page = new Iznik.Views.ModTools.Pages.ApprovedMessages({
+                search: search
+            });
+            this.loadRoute({
+                page: page,
+                modtools: true
+            });
+        });
+
+        Iznik.Session.forceLogin();
+    },
+
+    pendingMembers: function(search) {
+        this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
+            var page = new Iznik.Views.ModTools.Pages.PendingMembers({
                 search: search
             });
             this.loadRoute({

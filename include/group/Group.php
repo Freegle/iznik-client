@@ -137,7 +137,7 @@ class Group extends Entity
         return($atts);
     }
 
-    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL) {
+    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection = MembershipCollection::APPROVED) {
         $ret = [];
 
         $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d", $ctx['Added']));
@@ -146,8 +146,9 @@ class Group extends Entity
         $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") . ") ");
         $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : $searchq;
 
-        $sql = "SELECT DISTINCT memberships.* FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE groupid = ? $addq $searchq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
-        $members = $this->dbhr->preQuery($sql, [ $this->id ]);
+        $sql = "SELECT DISTINCT memberships.* FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE groupid = ? AND collection = ? $addq $searchq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
+        error_log("$sql, {$this->id}, $collection");
+        $members = $this->dbhr->preQuery($sql, [ $this->id, $collection ]);
 
         $ctx = [ 'Added' => NULL ];
 
@@ -315,7 +316,7 @@ class Group extends Entity
                         # in the input data and therefore doesn't need deleting.
                         #
                         # This will have the effect of moving members between collections if required.
-                        $added = pres('date', $member) ? ("'" . date ("Y-m-d", strtotime($member['date'])) . "'"): 'NULL';
+                        $added = pres('date', $member) ? ("'" . date ("Y-m-d H:i:s", strtotime($member['date'])) . "'"): 'NULL';
 
                         $sql = "UPDATE memberships SET role = '$role', collection = '$collection', yahooPostingStatus = " . $this->dbhm->quote($yps) .
                                ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", emailid = {$member['emailid']}, added = $added, syncdelete = 0 WHERE userid = " .

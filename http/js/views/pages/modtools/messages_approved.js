@@ -38,7 +38,7 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Page.extend({
         if (self.options.search) {
             // We're searching.  Pass any previous search results context so that we get the next set of results.
             if (self.msgs.ret) {
-                data.context = self.msgs.ret.context;
+                data.context = self.context;
             }
         } else {
             // We're not searching. We page using the date.
@@ -64,6 +64,7 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Page.extend({
 
             self.fetching = null;
             self.lastFetched = self.selected;
+            self.context = self.msgs.ret.context;
 
             if (!self.start) {
                 self.$('.js-none').fadeIn('slow');
@@ -168,6 +169,7 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Page.extend({
 
             // We haven't fetched anything for this group yet.
             self.lastFetched = null;
+            self.context = null;
 
             // Do so.
             self.fetch();

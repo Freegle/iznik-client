@@ -234,3 +234,31 @@ Iznik.Views.ModTools.User.LogEntry = IznikView.extend({
         return(this);
     }
 });
+
+Iznik.Views.ModTools.Member = IznikView.extend({
+    rarelyUsed: function() {
+        this.$('.js-rarelyused').fadeOut('slow');
+        this.$('.js-stdmsgs li').fadeIn('slow');
+    },
+
+    addOtherEmails: function() {
+        var self = this;
+        var thisemail = self.model.get('email');
+
+        // Add any other emails
+        self.$('.js-otheremails').empty();
+        _.each(self.model.get('otheremails'), function(email) {
+            if (email.email != thisemail) {
+                var mod = new IznikModel(email);
+                var v = new Iznik.Views.ModTools.Message.OtherEmail({
+                    model: mod
+                });
+                self.$('.js-otheremails').append(v.render().el);
+            }
+        });
+    }
+});
+
+Iznik.Views.ModTools.Member.OtherEmail = IznikView.extend({
+    template: 'modtools_member_otheremail'
+});

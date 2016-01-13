@@ -40,7 +40,7 @@ function memberships() {
             if ($me) {
                 if ($userid && ($me->isModOrOwner($groupid) || $userid == $me->getId())) {
                     # Get just one.  We can get this if we're a mod or it's our own.
-                    $members = $g->getMembers(1, NULL, $ctx, $userid);
+                    $members = $g->getMembers(1, NULL, $ctx, $userid, $collection);
 
                     $ret = [
                         'member' => count($members) == 1 ? $members[0] : NULL,
@@ -58,7 +58,7 @@ function memberships() {
                 } else if ($me->isModOrOwner($groupid)) {
                     # Get some/all.
                     $ret = [
-                        'members' => $g->getMembers($limit, $search, $ctx),
+                        'members' => $g->getMembers($limit, $search, $ctx, NULL, $collection),
                         'ret' => 0,
                         'status' => 'Success'
                     ];
