@@ -489,23 +489,26 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
     hold: function() {
         var self = this;
         var message = self.model.get('message');
-        message.hold();
+        var member = self.model.get('member');
+        message ? message.hold() : member.hold();
     },
 
     release: function() {
         var self = this;
         var message = self.model.get('message');
-        message.release();
+        var member = self.model.get('member');
+        message ? message.release() : member.release();
     },
 
     approve: function() {
         var self = this;
         var message = self.model.get('message');
+        var member = self.model.get('member');
 
         if (this.options.config) {
             // This is a configured button; open the modal.
             var v = new Iznik.Views.ModTools.StdMessage.Pending.Approve({
-                model: message,
+                model: message ? message : member,
                 stdmsg: this.model,
                 config: this.options.config
             });
@@ -520,9 +523,10 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
     reject: function() {
         var self = this;
         var message = self.model.get('message');
+        var member = self.model.get('member');
 
         var v = new Iznik.Views.ModTools.StdMessage.Pending.Reject({
-            model: message,
+            model: message ? message : member,
             stdmsg: this.model,
             config: this.options.config
         });

@@ -183,6 +183,7 @@ class sessionTest extends IznikAPITest {
         assertEquals(0, $ret['ret']);
 
         $ret = $this->call('session','GET', []);
+        error_log(var_export($ret, true));
         assertEquals(0, $ret['ret']);
         assertEquals($group1, $ret['groups'][0]['id']);
         assertEquals($group2, $ret['groups'][1]['id']);

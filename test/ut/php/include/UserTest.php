@@ -429,7 +429,7 @@ class userTest extends IznikTest {
         $sid = $s->create('Test', $cid);
         $s->setPrivate('action', 'Reject Member');
 
-        $u->mail("test", "test", $sid, $group);
+        $u->mail($group, "test", "test", $sid);
 
         $s->delete();
 
@@ -437,7 +437,7 @@ class userTest extends IznikTest {
         $sid = $s->create('Test', $cid);
         $s->setPrivate('action', 'Leave Approved Member');
 
-        $u->mail("test", "test", $sid, $group);
+        $u->mail($group, "test", "test", $sid);
 
         $s->delete();
         $c->delete();

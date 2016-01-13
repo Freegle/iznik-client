@@ -10,6 +10,7 @@ function user() {
     $subject = presdef('subject', $_REQUEST, NULL);
     $body = presdef('body', $_REQUEST, NULL);
     $stdmsgid = presdef('stdmsgid', $_REQUEST, NULL);
+    $action = presdef('action', $_REQUEST, NULL);
 
     if (!$id && $yahooUserId) {
         # We don't know our unique ID, but we do know the Yahoo one. Find it.
@@ -53,7 +54,7 @@ function user() {
             break;
         }
 
-        case 'POST': {
+        case 'PATCH': {
             $u = new User($dbhr, $dbhm, $id);
             $p = new Plugin($dbhr, $dbhm);
             $l = new Log($dbhr, $dbhm);
@@ -101,13 +102,58 @@ function user() {
 
                 if ($subject) {
                     // We are mailing this member.
-                    $u->mail($subject, $body, $stdmsgid, $groupid);
+                    $u->mail($groupid, $subject, $body, $stdmsgid);
                 }
 
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success'
                 ];
+            }
+        }
+
+        case 'POST': {
+            $u = new User($dbhr, $dbhm, $id);
+            $ret = ['ret' => 2, 'status' => 'Permission denied'];
+            $role = $me ? $me->getRole($groupid) : User::ROLE_NONMEMBER;
+
+            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+                $ret = [ 'ret' => 0, 'status' => 'Success' ];
+
+                switch ($action) {
+                    case 'Delete':
+                        # The delete call will handle any rejection on Yahoo if required.
+                        $u->delete($groupid, $subject, $body, $stdmsgid);
+                        break;
+                    case 'Reject':
+                        if (!$u->isPending($groupid)) {
+                            $ret = ['ret' => 3, 'status' => 'Message is not pending'];
+                        } else {
+                            $u->reject($groupid, $subject, $body, $stdmsgid);
+                        }
+                        break;
+                    case 'Approve':
+                        if (!$u->isPending($groupid)) {
+                            $ret = ['ret' => 3, 'status' => 'Message is not pending'];
+                        } else {
+                            $u->approve($groupid, $subject, $body, $stdmsgid);
+                        }
+                        break;
+                    case 'Mail':
+                        $u->mail($groupid, $subject, $body, $stdmsgid);
+                        break;
+                    case 'Hold':
+                        $u->hold();
+                        break;
+                    case 'Release':
+                        $u->release();
+                        break;
+                    case 'NotSpam':
+                        $u->notSpam();
+                        $r = new MailRouter($dbhr, $dbhm);
+                        $r->route($m, TRUE);
+                        break;
+                }
             }
         }
     }

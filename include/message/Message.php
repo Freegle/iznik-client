@@ -1083,7 +1083,7 @@ class Message
 
     private function maybeMail($groupid, $subject, $body, $stdmsgid) {
         if ($subject) {
-            # We have a rejection mail to send.
+            # We have a mail to send.
             $to = $this->getEnvelopefrom();
             $to = $to ? $to : $this->getFromaddr();
             $g = new Group($this->dbhr, $this->dbhm, $groupid);
@@ -1138,8 +1138,6 @@ class Message
             'stdmsgid' => $stdmsgid
         ]);
 
-        $handled = false;
-
         $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ? AND deleted = 0;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
         foreach ($groups as $group) {
@@ -1156,7 +1154,6 @@ class Message
                     'type' => 'RejectPendingMessage',
                     'id' => $group['yahoopendingid']
                 ]);
-                $handled = true;
             }
         }
 
@@ -1183,15 +1180,12 @@ class Message
             'text' => $subject
         ]);
 
-        $handled = false;
-
         $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ? AND deleted = 0;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
         foreach ($groups as $group) {
             if ($group['yahooapprove']) {
                 # We can trigger approval by email - do so.
                 $this->mailer($group['yahooapprove'], "My name is Iznik and I approve this message", "", NULL, '-f' . MODERATOR_EMAIL);
-                $handled = true;
             }
 
             if ($group['yahoopendingid']) {
@@ -1201,19 +1195,16 @@ class Message
                     'type' => 'ApprovePendingMessage',
                     'id' => $group['yahoopendingid']
                 ]);
-                $handled = true;
             }
         }
 
-        if ($handled) {
-            $sql = "UPDATE messages_groups SET collection = ? WHERE msgid = ?;";
-            $this->dbhm->preExec($sql, [
-                MessageCollection::APPROVED,
-                $this->id
-            ]);
+        $sql = "UPDATE messages_groups SET collection = ? WHERE msgid = ?;";
+        $this->dbhm->preExec($sql, [
+            MessageCollection::APPROVED,
+            $this->id
+        ]);
 
-            $this->maybeMail($groupid, $subject, $body, $stdmsgid);
-        }
+        $this->maybeMail($groupid, $subject, $body, $stdmsgid);
     }
 
     public function reply($groupid, $subject, $body, $stdmsgid) {
@@ -1265,7 +1256,7 @@ class Message
         }
     }
 
-    function delete($reason = NULL, $groupid = NULL, $subject = NULL, $body = NULL, $stdmsgid = NULL, $bcc = NULL)
+    function delete($reason = NULL, $groupid = NULL, $subject = NULL, $body = NULL, $stdmsgid = NULL)
     {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $rc = true;
@@ -1334,7 +1325,7 @@ class Message
                 $this->s->delete($this->id);
             }
 
-            $this->maybeMail($groupid, $subject, $body, $bcc);
+            $this->maybeMail($groupid, $subject, $body, $stdmsgid);
         }
 
         return($rc);

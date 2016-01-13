@@ -880,25 +880,15 @@ class User extends Entity
         call_user_func_array('mail', func_get_args());
     }
 
-    public function mail($subject, $body, $stdmsgid, $groupid) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
+    private function maybeMail($groupid, $subject, $body, $stdmsgid) {
+        if ($subject) {
+            # We have a mail to send.
+            $to = $this->getEmailPreferred();
+            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $atts = $g->getPublic();
 
-        $this->log->log([
-            'type' => Log::TYPE_USER,
-            'subtype' => Log::SUBTYPE_REPLIED,
-            'user' => $this->id,
-            'byuser' => $me ? $me->getId() : NULL,
-            'text' => $subject,
-            'stdmsgid' => $stdmsgid
-        ]);
+            $me = whoAmI($this->dbhr, $this->dbhm);
 
-        # We are mailing the user on behalf of a specific group, and we may have a substitution to do.
-        $to = $this->getEmailPreferred();
-
-        $g = new Group($this->dbhr, $this->dbhm, $groupid);
-        $atts = $g->getPublic();
-
-        if ($to) {
             $name = $me->getName();
 
             # We can do a simple substitution in the from name.
@@ -931,10 +921,139 @@ class User extends Entity
         }
     }
 
-    public function delete() {
+    public function mail($groupid, $subject, $body, $stdmsgid) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $this->log->log([
+            'type' => Log::TYPE_USER,
+            'subtype' => Log::SUBTYPE_MAILED,
+            'user' => $this->id,
+            'byuser' => $me ? $me->getId() : NULL,
+            'text' => $subject,
+            'stdmsgid' => $stdmsgid
+        ]);
+
+        $this->maybeMail($groupid, $subject, $body, $stdmsgid);
+    }
+
+    public function reject($groupid, $subject, $body, $stdmsgid) {
+        # No need for a transaction - if things go wrong, the member will remain in pending, which is the correct
+        # behaviour.
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $this->log->log([
+            'type' => Log::TYPE_USER,
+            'subtype' => $subject ? Log::SUBTYPE_REJECTED : Log::SUBTYPE_DELETED,
+            'msgid' => $this->id,
+            'byuser' => $me ? $me->getId() : NULL,
+            'user' => $this->getId(),
+            'groupid' => $groupid,
+            'text' => $subject,
+            'stdmsgid' => $stdmsgid
+        ]);
+
+        $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
+        $members = $this->dbhr->preQuery($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
+        foreach ($members as $member) {
+            if ($member['yahooreject']) {
+                # We can trigger rejection by email - do so.
+                $this->mailer($member['yahooreject'], "My name is Iznik and I reject this member", "", NULL, '-f' . MODERATOR_EMAIL);
+            }
+
+            if ($member['yahoopendingid']) {
+                # We can trigger rejection via the plugin - do so.
+                $p = new Plugin($this->dbhr, $this->dbhm);
+                $p->add($groupid, [
+                    'type' => 'RejectPendingMember',
+                    'id' => $this->user['yahooUserId']
+                ]);
+            }
+        }
+
+        $sql = "DELETE FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
+        $this->dbhr->preExec($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
+
+        $this->maybeMail($groupid, $subject, $body, $stdmsgid);
+    }
+
+    public function approve($groupid, $subject, $body, $stdmsgid) {
+        # No need for a transaction - if things go wrong, the member will remain in pending, which is the correct
+        # behaviour.
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $this->log->log([
+            'type' => Log::TYPE_USER,
+            'subtype' => Log::SUBTYPE_APPROVED,
+            'msgid' => $this->id,
+            'user' => $this->getId(),
+            'byuser' => $me ? $me->getId() : NULL,
+            'groupid' => $groupid,
+            'stdmsgid' => $stdmsgid,
+            'text' => $subject
+        ]);
+
+        $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
+        $members = $this->dbhr->preQuery($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
+        foreach ($members as $member) {
+            if ($member['yahooreject']) {
+                # We can trigger rejection by email - do so.
+                $this->mailer($member['yahooapprove'], "My name is Iznik and I approve this member", "", NULL, '-f' . MODERATOR_EMAIL);
+            }
+
+            if ($member['yahoopendingid']) {
+                # We can trigger rejection via the plugin - do so.
+                $p = new Plugin($this->dbhr, $this->dbhm);
+                $p->add($groupid, [
+                    'type' => 'ApprovePendingMember',
+                    'id' => $this->user['yahooUserId']
+                ]);
+            }
+        }
+
+        $sql = "UPDATE memberships SET collection = ? WHERE msgid = ?;";
+        $this->dbhm->preExec($sql, [
+            MembershipCollection::APPROVED,
+            $this->id
+        ]);
+
+        $this->maybeMail($groupid, $subject, $body, $stdmsgid);
+    }
+
+    function hold() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $sql = "UPDATE memberships SET heldby = ? WHERE id = ?;";
+        $rc = $this->dbhm->preExec($sql, [ $me->getId(), $this->id ]);
+
+        if ($rc) {
+            $this->log->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_HOLD,
+                'msgid' => $this->id,
+                'byuser' => $me ? $me->getId() : NULL
+            ]);
+        }
+    }
+
+    function release() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $sql = "UPDATE memberships SET heldby = NULL WHERE id = ?;";
+        $rc = $this->dbhm->preExec($sql, [ $this->id ]);
+
+        if ($rc) {
+            $this->log->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_RELEASE,
+                'msgid' => $this->id,
+                'byuser' => $me ? $me->getId() : NULL
+            ]);
+        }
+    }
+
+    public function delete($groupid = NULL, $subject = NULL, $body = NULL, $stdmsgid = NULL) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         $rc = $this->dbhm->preExec("DELETE FROM users WHERE id = ?;", [$this->id]);
+
         if ($rc) {
             $this->log->log([
                 'type' => Log::TYPE_USER,
@@ -943,6 +1062,8 @@ class User extends Entity
                 'byuser' => $me ? $me->getId() : NULL,
                 'text' => $this->getName()
             ]);
+
+            $this->maybeMail($groupid, $subject, $body, $stdmsgid);
         }
 
         return($rc);

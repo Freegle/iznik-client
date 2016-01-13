@@ -18,6 +18,8 @@ function memberships() {
     $logctx = presdef('logcontext', $_REQUEST, NULL);
     $collection = presdef('collection', $_REQUEST, MembershipCollection::APPROVED);
 
+    $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
+
     switch ($collection) {
         case MembershipCollection::APPROVED:
         case MembershipCollection::PENDING:
@@ -28,129 +30,131 @@ function memberships() {
             $collection = NULL;
     }
 
-    $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
-
     $u = new User($dbhr, $dbhm, $userid);
     $g = new Group($dbhr, $dbhm, $groupid);
 
-    switch ($_REQUEST['type']) {
-        case 'GET': {
-            $ret = ['ret' => 2, 'status' => 'Permission denied'];
+    if ($collection) {
+        switch ($_REQUEST['type']) {
+            case 'GET': {
+                $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-            if ($me) {
-                if ($userid && ($me->isModOrOwner($groupid) || $userid == $me->getId())) {
-                    # Get just one.  We can get this if we're a mod or it's our own.
-                    $members = $g->getMembers(1, NULL, $ctx, $userid, $collection);
+                if ($me) {
+                    if ($userid && ($me->isModOrOwner($groupid) || $userid == $me->getId())) {
+                        # Get just one.  We can get this if we're a mod or it's our own.
+                        $members = $g->getMembers(1, NULL, $ctx, $userid, $collection);
 
-                    $ret = [
-                        'member' => count($members) == 1 ? $members[0] : NULL,
-                        'context' => $ctx,
-                        'ret' => 0,
-                        'status' => 'Success'
-                    ];
+                        $ret = [
+                            'member' => count($members) == 1 ? $members[0] : NULL,
+                            'context' => $ctx,
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
 
-                    if ($logs) {
-                        $u = new User($dbhr, $dbhm, $userid);
-                        $atts = $u->getPublic(NULL, TRUE, $logs, $logctx);
-                        $ret['member']['logs'] = $atts['logs'];
-                        $ret['logcontext'] = $ctx;
+                        if ($logs) {
+                            $u = new User($dbhr, $dbhm, $userid);
+                            $atts = $u->getPublic(NULL, TRUE, $logs, $logctx);
+                            $ret['member']['logs'] = $atts['logs'];
+                            $ret['logcontext'] = $ctx;
+                        }
+                    } else if ($me->isModOrOwner($groupid)) {
+                        # Get some/all.
+                        $ret = [
+                            'members' => $g->getMembers($limit, $search, $ctx, NULL, $collection),
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                        $ret['context'] = $ctx;
                     }
-                } else if ($me->isModOrOwner($groupid)) {
-                    # Get some/all.
-                    $ret = [
-                        'members' => $g->getMembers($limit, $search, $ctx, NULL, $collection),
-                        'ret' => 0,
-                        'status' => 'Success'
-                    ];
-                    $ret['context'] = $ctx;
                 }
+
+                break;
             }
 
-            break;
-        }
+            case 'PUT': {
+                $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                if ($u && $me && $me->isModOrOwner($groupid) && $email) {
+                    # We can add them, but not as someone higher than us.
+                    $role = $u->roleMin($role, $me->getRole($groupid));
 
-        case 'PUT': {
-            $ret = ['ret' => 2, 'status' => 'Permission denied'];
-            if ($u && $me && $me->isModOrOwner($groupid) && $email) {
-                # We can add them, but not as someone higher than us.
-                $role = $u->roleMin($role, $me->getRole($groupid));
+                    # Get the emailid.  This will add it if absent.
+                    $emailid = $u->addEmail($email);
 
-                # Get the emailid.  This will add it if absent.
-                $emailid = $u->addEmail($email);
-
-                $u->addMembership($groupid, $role, $emailid);
-
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success'
-                ];
-            }
-
-            break;
-        }
-
-        case 'DELETE': {
-            $ret = ['ret' => 2, 'status' => 'Permission denied'];
-            if ($u && $me && $me->isModOrOwner($groupid)) {
-                # We can remove them, but not if they are someone higher than us.
-                $myrole = $me->getRole($groupid);
-                if ($myrole == $u->roleMax($myrole, $u->getRole($groupid))) {
-                    $u->removeMembership($groupid, $ban);
+                    $u->addMembership($groupid, $role, $emailid);
 
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success'
                     ];
                 }
+
+                break;
             }
 
-            break;
-        }
+            case 'DELETE': {
+                $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                if ($u && $me && $me->isModOrOwner($groupid)) {
+                    # We can remove them, but not if they are someone higher than us.
+                    $myrole = $me->getRole($groupid);
+                    if ($myrole == $u->roleMax($myrole, $u->getRole($groupid))) {
+                        $u->removeMembership($groupid, $ban);
 
-        case 'PATCH': {
-            $ret = ['ret' => 2, 'status' => 'Permission denied'];
-
-            if ($me) {
-                if ($me->isModOrOwner($groupid)) {
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success'
-                    ];
-
-                    if ($role) {
-                        # We can set the role, but not to something higher than our own.
-                        $role = $u->roleMin($role, $me->getRole($groupid));
-                        $u->setRole($role, $groupid);
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
                     }
+                }
 
-                    if (pres('configid', $settings)) {
-                        # We want to change the config that we use to mod this group.  Check that the config id
-                        # passed is one to which we have access.
-                        $configs = $me->getConfigs();
+                break;
+            }
 
-                        foreach ($configs as $config) {
-                            if ($config['id'] == $settings['configid']) {
-                                $c = new ModConfig($dbhr, $dbhm, $config['id']);
-                                $c->useOnGroup($me->getId(), $groupid);
-                            }
+            case 'PATCH': {
+                $ret = ['ret' => 2, 'status' => 'Permission denied'];
+
+                if ($me) {
+                    if ($me->isModOrOwner($groupid)) {
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+
+                        if ($role) {
+                            # We can set the role, but not to something higher than our own.
+                            $role = $u->roleMin($role, $me->getRole($groupid));
+                            $u->setRole($role, $groupid);
                         }
 
-                        unset($settings['configid']);
+                        if (pres('configid', $settings)) {
+                            # We want to change the config that we use to mod this group.  Check that the config id
+                            # passed is one to which we have access.
+                            $configs = $me->getConfigs();
+
+                            foreach ($configs as $config) {
+                                if ($config['id'] == $settings['configid']) {
+                                    $c = new ModConfig($dbhr, $dbhm, $config['id']);
+                                    $c->useOnGroup($me->getId(), $groupid);
+                                }
+                            }
+
+                            unset($settings['configid']);
+                        }
+
+                        if ($members) {
+                            $ret = $g->setMembers($members, $collection);
+                        }
                     }
 
-                    if ($members) {
-                        $ret = $g->setMembers($members, $collection);
+                    if ($me->isModOrOwner($groupid) || $me->getId() == $userid) {
+                        # We can change settings for a user if we're a mod or they are our own
+                        $ret = $u->setGroupSettings($groupid, $settings);
                     }
                 }
 
-                if ($me->isModOrOwner($groupid)|| $me->getId() == $userid) {
-                    # We can change settings for a user if we're a mod or they are our own
-                    $ret = $u->setGroupSettings($groupid, $settings);
-                }
+                break;
             }
-
-            break;
         }
+    } else {
+        $ret = [ 'ret' => 3, 'status' => 'Bad collection' ];
     }
 
     return($ret);

@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
+require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 
 class Group extends Entity
 {
@@ -99,16 +100,16 @@ class Group extends Entity
 
         $ret = [
             $pend => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
-                MessageCollection::PENDING,
-                $this->id
+                $this->id,
+                MessageCollection::PENDING
             ])[0]['count'],
             $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
-                MessageCollection::SPAM,
-                $this->id
+                $this->id,
+                MessageCollection::SPAM
             ])[0]['count'],
             $pendmemb => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND heldby IS NULL;", [
-                $this->id,
-                MembershipCollection::PENDING
+                MembershipCollection::PENDING,
+                $this->id
             ])[0]['count'],
             'plugin' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM plugin WHERE groupid = ?;", [
                 $this->id

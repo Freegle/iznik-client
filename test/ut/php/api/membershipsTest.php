@@ -401,5 +401,18 @@ class membershipsAPITest extends IznikAPITest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testBadColl() {
+        error_log(__METHOD__);
+
+        # Shouldn't be able to add as non-member or member
+        $ret = $this->call('memberships', 'GETT', [
+            'groupid' => $this->groupid,
+            'collection' => 'wibble'
+        ]);
+        assertEquals(3, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

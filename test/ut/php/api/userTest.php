@@ -54,7 +54,7 @@ class userAPITest extends IznikAPITest {
         error_log(__METHOD__);
 
         # Shouldn't be able to do this as a member
-        $ret = $this->call('user', 'POST', [
+        $ret = $this->call('user', 'PATCH', [
             'groupid' => $this->groupid,
             'yahooDeliveryType' => 'DIGEST',
             'email' => 'test@test.com'
@@ -63,7 +63,7 @@ class userAPITest extends IznikAPITest {
 
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
 
-        $ret = $this->call('user', 'POST', [
+        $ret = $this->call('user', 'PATCH', [
             'groupid' => $this->groupid,
             'yahooDeliveryType' => 'DIGEST',
             'email' => 'test@test.com',
@@ -83,7 +83,7 @@ class userAPITest extends IznikAPITest {
     public function testPostingStatus() {
         error_log(__METHOD__);
 
-        $ret = $this->call('user', 'POST', [
+        $ret = $this->call('user', 'PATCH', [
             'yahooUserId' => 1,
             'groupid' => $this->groupid,
             'yahooPostingStatus' => 'PROHIBITED'
@@ -93,7 +93,7 @@ class userAPITest extends IznikAPITest {
         $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = ?;", [ $this->uid ]);
 
         # Shouldn't be able to do this as a member
-        $ret = $this->call('user', 'POST', [
+        $ret = $this->call('user', 'PATCH', [
             'yahooUserId' => 1,
             'groupid' => $this->groupid,
             'yahooPostingStatus' => 'PROHIBITED',
@@ -103,7 +103,7 @@ class userAPITest extends IznikAPITest {
 
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
 
-        $ret = $this->call('user', 'POST', [
+        $ret = $this->call('user', 'PATCH', [
             'yahooUserId' => 1,
             'groupid' => $this->groupid,
             'yahooPostingStatus' => 'PROHIBITED',
@@ -125,6 +125,7 @@ class userAPITest extends IznikAPITest {
 
         # Mails won't go through as there's no email, but we're just testing the API.
         $ret = $this->call('user', 'POST', [
+            'action' => 'Reply',
             'subject' => "Test",
             'body' => "Test"
         ]);
@@ -142,6 +143,7 @@ class userAPITest extends IznikAPITest {
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
 
         $ret = $this->call('user', 'POST', [
+            'action' => 'Mail',
             'subject' => "Test",
             'body' => "Test",
             'groupid' => $this->groupid,

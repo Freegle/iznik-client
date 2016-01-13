@@ -29,8 +29,8 @@ class IznikAPITest extends IznikTest {
         $_SERVER['REQUEST_URI'] = '/';
         $_SESSION['id'] = NULL;
 
-        $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_emails WHERE email IN ('test@test.com', 'test2@test.com'));");
-        $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_logins WHERE uid IN ('testid', '1234'));");
+        $dbhm->exec("DELETE FROM users WHERE id in (SELECT userid FROM users_emails WHERE email IN ('test@test.com', 'test2@test.com'));");
+        $dbhm->exec("DELETE FROM users WHERE id in (SELECT userid FROM users_logins WHERE uid IN ('testid', '1234'));");
         $dbhm->exec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';");
     }
 

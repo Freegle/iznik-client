@@ -22,6 +22,7 @@ Iznik.Models.Membership = IznikModel.extend({
             type: 'POST',
             url: API + 'user/' + self.get('userid'),
             data: {
+                action: 'Mail',
                 subject: subject,
                 body: body,
                 stdmsgid: stdmsgid,
@@ -62,5 +63,11 @@ Iznik.Collections.Members = IznikCollection.extend({
 Iznik.Collections.Members.Search = Iznik.Collections.Members.extend({
     url: function() {
         return(API + 'memberships/' + this.options.groupid + '?search=' + encodeURIComponent(this.options.search) + '&collection=' + this.options.collection);
+    },
+
+    parse: function(ret) {
+        // Save off the return in case we need any info from it, e.g. context for searches.
+        this.ret = ret;
+        return(ret.members);
     }
 });

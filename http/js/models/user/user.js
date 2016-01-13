@@ -15,6 +15,75 @@ Iznik.Models.ModTools.User = IznikModel.extend({
         }
     },
 
+    hold: function() {
+        var self = this;
+
+        $.ajax({
+            type: 'POST',
+            url: API + 'user/' + self.get('id'),
+            data: {
+                id: self.get('id'),
+                action: 'Hold'
+            }, success: function(ret) {
+                self.set('heldby', Iznik.Session.get('me'));
+            }
+        })
+    },
+
+    release: function() {
+        var self = this;
+
+        $.ajax({
+            type: 'POST',
+            url: API + 'user/' + self.get('id'),
+            data: {
+                id: self.get('id'),
+                action: 'Release'
+            }, success: function(ret) {
+                self.set('heldby', null);
+            }
+        })
+    },
+
+    approve: function() {
+        var self = this;
+        // We approve the message on all groups.  Future enhancement?
+        _.each(self.get('groups'), function(group, index, list) {
+            $.ajax({
+                type: 'POST',
+                url: API + 'user/' + self.get('id'),
+                data: {
+                    id: self.get('id'),
+                    groupid: group.id,
+                    action: 'Approve'
+                }, success: function(ret) {
+                    self.trigger('approved');
+                }
+            })
+        });
+    },
+
+    reject: function(subject, body, stdmsgid) {
+        // We reject the message on all groups.  Future enhancement?
+        var self= this;
+        _.each(self.get('groups'), function(group, index, list) {
+            $.ajax({
+                type: 'POST',
+                url: API + 'user/' + self.get('id'),
+                data: {
+                    id: self.get('id'),
+                    groupid: group.id,
+                    action: 'Reject',
+                    subject: subject,
+                    stdmsgid: stdmsgid,
+                    body: body
+                }, success: function(ret) {
+                    self.trigger('rejected');
+                }
+            })
+        });
+    },
+
     reply: function(subject, body, stdmsgid) {
         var self = this;
 
@@ -22,6 +91,7 @@ Iznik.Models.ModTools.User = IznikModel.extend({
             type: 'POST',
             url: API + 'user/' + self.get('id'),
             data: {
+                action: 'Reply',
                 subject: subject,
                 body: body,
                 stdmsgid: stdmsgid,
