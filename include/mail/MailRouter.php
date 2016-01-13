@@ -111,6 +111,8 @@ class MailRouter
 
         # We route messages to one of the following destinations:
         # - to a handler for system messages
+        #   - confirmation of Yahoo mod status
+        #   - confirmation of Yahoo subscription requests
         # - to a group, either pending or approved
         # - to a user
         # - to a spam queue

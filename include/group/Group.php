@@ -170,7 +170,12 @@ class Group extends Entity
             }
 
             $thisone['joined'] = ISODate($member['added']);
-            $thisone['settings'] = $member['settings'] ? json_decode($member['settings'], TRUE) : [];
+
+            # Defaults match ones in User.php
+            $thisone['settings'] = $member['settings'] ? json_decode($member['settings'], TRUE) : [
+                'showmessages' => 1,
+                'showmembers' => 1
+            ];
             $thisone['settings']['configid'] = $member['configid'];
             $thisone['email'] = $email;
             $thisone['groupid'] = $this->id;

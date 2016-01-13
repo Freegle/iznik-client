@@ -505,17 +505,22 @@ class User extends Entity
 
         $sql = "SELECT settings, role FROM memberships WHERE userid = ? AND groupid = ?;";
         $sets = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
+
+        # Defaults match memberships ones in Group.php.
         $settings = [
             'showmessages' => 1,
             'showmembers' => 1
         ];
 
         foreach ($sets as $set) {
-            $settings = json_decode($set['settings'], TRUE);
+            if ($set['settings']) {
+                error_log("Got settings 2 ");
+                $settings = json_decode($set['settings'], TRUE);
 
-            if ($set['role'] == User::ROLE_OWNER || $set['role'] == User::ROLE_MODERATOR) {
-                $c = new ModConfig($this->dbhr, $this->dbhm);
-                $settings['configid'] = $c->getForGroup($this->id, $groupid);
+                if ($set['role'] == User::ROLE_OWNER || $set['role'] == User::ROLE_MODERATOR) {
+                    $c = new ModConfig($this->dbhr, $this->dbhm);
+                    $settings['configid'] = $c->getForGroup($this->id, $groupid);
+                }
             }
         }
 

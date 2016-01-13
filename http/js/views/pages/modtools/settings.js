@@ -95,10 +95,11 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                 // Our settings for the group are held in the membership, so fire off a request for that.
                 var membership = new Iznik.Models.Membership({
                     groupid: self.selected,
-                    id: Iznik.Session.get('me').id
+                    userid: Iznik.Session.get('me').id
                 });
 
                 membership.fetch().then(function() {
+                    console.log("Fetched membership", self.selected, membership);
                     self.myGroupModel = new IznikModel(membership.get('settings'));
                     var configoptions = [];
                     var configs = Iznik.Session.get('configs');
