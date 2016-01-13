@@ -95,13 +95,20 @@ class Group extends Entity
         #error_log("Getworkcounts " . error_log(var_export($mysettings, true)));
         $pend = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'] ? 'pending' : 'pendingother';
         $spam = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'] ? 'spam' : 'spamother';
+        $pendmemb = !array_key_exists('showmembers', $mysettings) || $mysettings['showmembers'] ? 'pendingmembers' : 'pendingmembersother';
 
         $ret = [
-            $pend => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Pending' AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
+            $pend => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
+                MessageCollection::PENDING,
                 $this->id
             ])[0]['count'],
-            $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = 'Spam' AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
+            $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
+                MessageCollection::SPAM,
                 $this->id
+            ])[0]['count'],
+            $pendmemb => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND heldby IS NULL;", [
+                $this->id,
+                MembershipCollection::PENDING
             ])[0]['count'],
             'plugin' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM plugin WHERE groupid = ?;", [
                 $this->id
