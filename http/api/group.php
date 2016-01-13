@@ -52,7 +52,6 @@ function group() {
             }
 
             case 'PATCH': {
-                $members = presdef('members', $_REQUEST, NULL);
                 $settings = presdef('settings', $_REQUEST, NULL);
 
                 $ret = [

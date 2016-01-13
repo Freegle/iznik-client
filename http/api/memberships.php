@@ -16,7 +16,7 @@ function memberships() {
     $ban = array_key_exists('ban', $_REQUEST) ? filter_var($_REQUEST['ban'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $logctx = presdef('logcontext', $_REQUEST, NULL);
-    $collections = presdef('collections', $_REQUEST, [ Collection::APPROVED, Collection::SPAM ]);
+    $collection = presdef('collection', $_REQUEST, MembershipCollection::APPROVED);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -129,7 +129,7 @@ function memberships() {
                     }
 
                     if ($members) {
-                        $ret = $g->setMembers($members);
+                        $ret = $g->setMembers($members, $collection);
                     }
                 }
 

@@ -4,7 +4,7 @@ function message() {
 
     $me = whoAmI($dbhr, $dbhm);
 
-    $collection = presdef('collection', $_REQUEST, Collection::APPROVED);
+    $collection = presdef('collection', $_REQUEST, MessageCollection::APPROVED);
     $id = intval(presdef('id', $_REQUEST, NULL));
     $reason = presdef('reason', $_REQUEST, NULL);
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
@@ -27,10 +27,10 @@ function message() {
                 $m = NULL;
             } else {
                 switch ($collection) {
-                    case Collection::APPROVED:
+                    case MessageCollection::APPROVED:
                         # No special checks for approved - we could even be logged out.
                         break;
-                    case Collection::PENDING:
+                    case MessageCollection::PENDING:
                         if (!$me) {
                             $ret = ['ret' => 1, 'status' => 'Not logged in'];
                             $m = NULL;
@@ -42,7 +42,7 @@ function message() {
                             }
                         }
                         break;
-                    case Collection::SPAM:
+                    case MessageCollection::SPAM:
                         if (!$me) {
                             $ret = ['ret' => 1, 'status' => 'Not logged in'];
                             $m = NULL;

@@ -6,9 +6,9 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 
-class Collection
+class MessageCollection
 {
-    # These match the collection enumeration
+    # These match the collection enumeration.
     const INCOMING = 'Incoming';
     const APPROVED = 'Approved';
     const PENDING = 'Pending';
@@ -35,9 +35,9 @@ class Collection
         $this->dbhm = $dbhm;
 
         switch ($collection) {
-            case Collection::APPROVED:
-            case Collection::PENDING:
-            case Collection::SPAM:
+            case MessageCollection::APPROVED:
+            case MessageCollection::PENDING:
+            case MessageCollection::SPAM:
                 $this->collection = $collection;
                 break;
             default:
@@ -119,14 +119,14 @@ class Collection
 
             if ($cansee) {
                 switch ($this->collection) {
-                    case Collection::APPROVED:
+                    case MessageCollection::APPROVED:
                         $n = $m->getPublic(TRUE, TRUE, FALSE);
                         unset($n['message']);
                         $n['matchedon'] = presdef('matchedon', $msg, NULL);
                         $msgs[] = $n;
                         $limit--;
                         break;
-                    case Collection::PENDING:
+                    case MessageCollection::PENDING:
                         if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                             # Only visible to moderators or owners
                             $n = $m->getPublic(TRUE, TRUE, TRUE);
@@ -136,7 +136,7 @@ class Collection
                             $limit--;
                         }
                         break;
-                    case Collection::SPAM:
+                    case MessageCollection::SPAM:
                         if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                             # Only visible to moderators or owners
                             $n = $m->getPublic(TRUE, TRUE, FALSE);

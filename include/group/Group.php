@@ -190,7 +190,7 @@ class Group extends Entity
         return($ret);
     }
 
-    public function setMembers($members) {
+    public function setMembers($members, $collection) {
         $ret = [
             'ret' => 0,
             'status' => 'Success'
@@ -266,7 +266,7 @@ class Group extends Entity
         if ($this->dbhm->beginTransaction()) {
             try {
                 # If this doesn't work we'd get an exception
-                $sql = "UPDATE memberships SET syncdelete = 1 WHERE groupid = {$this->id};";
+                $sql = "UPDATE memberships SET syncdelete = 1 WHERE groupid = {$this->id} AND collection = '$collection';";
                 $this->dbhm->exec($sql);
                 $bulksql = '';
                 $tried = 0;
@@ -287,7 +287,7 @@ class Group extends Entity
                         $sql = "SELECT id, role FROM memberships WHERE userid = ? AND groupid = ?;";
                         $membs = $this->dbhm->preQuery($sql, [ $member['uid'], $this->id] );
                         if (count($membs) == 0) {
-                            $sql = "INSERT IGNORE INTO memberships (userid, groupid, emailid) VALUES ({$member['uid']}, {$this->id}, {$member['emailid']});";
+                            $sql = "INSERT IGNORE INTO memberships (userid, groupid, emailid, collection) VALUES ({$member['uid']}, {$this->id}, {$member['emailid']}, '$collection');";
                             $bulksql .= $sql;
                             $membs = [
                                 [
@@ -306,9 +306,11 @@ class Group extends Entity
 
                         # Now update with new settings.  Also set syncdelete so that we know this member still exists
                         # in the input data and therefore doesn't need deleting.
+                        #
+                        # This will have the effect of moving members between collections if required.
                         $added = pres('date', $member) ? ("'" . date ("Y-m-d", strtotime($member['date'])) . "'"): 'NULL';
 
-                        $sql = "UPDATE memberships SET role = '$role', yahooPostingStatus = " . $this->dbhm->quote($yps) .
+                        $sql = "UPDATE memberships SET role = '$role', collection = '$collection', yahooPostingStatus = " . $this->dbhm->quote($yps) .
                                ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", emailid = {$member['emailid']}, added = $added, syncdelete = 0 WHERE userid = " .
                                 "{$member['uid']} AND groupid = {$this->id};";
                         $bulksql .= $sql;
@@ -337,7 +339,7 @@ class Group extends Entity
                 # Delete any residual members.  If this fails we have old members left over - so no need to rollback.
                 #
                 # We need to log these deletes so that we can see why memberships disappear.
-                $todeletes = $this->dbhm->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND syncdelete = 1;", [ $this->id ]);
+                $todeletes = $this->dbhm->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND collection = '$collection' AND syncdelete = 1;", [ $this->id ]);
                 $meid = $me ? $me->getId() : NULL;
                 foreach ($todeletes as $todelete) {
                     $this->log->log([
@@ -350,17 +352,17 @@ class Group extends Entity
                     ]);
                 }
 
-                $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = ? AND syncdelete = 1;", [ $this->id ]);
+                $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = ? AND collection = '$collection' AND syncdelete = 1;", [ $this->id ]);
 
                 # Now do a check on the number of members.  It should match the distinct number; if not then
                 # something has gone wrong and we should abort.
-                $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ?";
+                $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = '$collection' ";
                 $counts = $this->dbhm->preQuery($sql, [ $this->id ]);
                 $count = $counts[0]['count'];
 
                 $rollback = ($count != $distinct);
 
-                if (!$rollback) {
+                if (!$rollback && $collection == MessageCollection::APPROVED) {
                     # Record the sync.  If this fails it's not worth a rollback.
                     $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [$this->id]);
                 }
@@ -435,10 +437,10 @@ class Group extends Entity
         # First find messages which are missing on the server, i.e. present in $messages but not
         # present in any of $collections.
         foreach ($collections as $collection) {
-            $c = new Collection($this->dbhr, $this->dbhm, $collection);
+            $c = new MessageCollection($this->dbhr, $this->dbhm, $collection);
             $cs[] = $c;
 
-            if ($collection = Collection::APPROVED) {
+            if ($collection = MessageCollection::APPROVED) {
                 $this->dbhm->preExec("UPDATE groups SET lastyahoomessagesync = NOW() WHERE id = ?;", [
                     $this->id
                 ]);
@@ -457,10 +459,10 @@ class Group extends Entity
                     $id = NULL;
 
                     switch (($c->getCollection())) {
-                        case Collection::APPROVED:
+                        case MessageCollection::APPROVED:
                             $id = $c->findByYahooApprovedId($this->id, $message['yahooapprovedid']);
                             break;
-                        case Collection::PENDING:
+                        case MessageCollection::PENDING:
                             $id = $c->findByYahooPendingId($this->id, $message['yahoopendingid']);
                             break;
                     }

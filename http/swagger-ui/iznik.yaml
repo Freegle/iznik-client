@@ -452,7 +452,7 @@ paths:
         type: number
       - name: action
         in: query
-        description: What action to perform; default is update members
+        description: What action to perform
         type: string
         enum: ['ConfirmKey']
       responses:
@@ -654,7 +654,7 @@ paths:
       summary: Membership change
       tags: [Memberships]
       description: |
-        Change membership details for a user on a group.
+        Change membership details for a group.
       parameters:
       - name: groupid
         in: path
@@ -663,13 +663,22 @@ paths:
         required: true
       - name: userid
         in: path
-        description: User ID to modify
+        description: User ID to modify; use this or members
         type: number
       - name: role
         in: body
-        description: User role to set
+        description: User role to set, if userid is set
         type: string
-        enum: ['Member', 'Moderator', 'Owner', 'Banned']
+        enum: ['Member', 'Moderator', 'Owner']
+      - name: members
+        in: body
+        description: Full list of members to set; use this or userid
+        type: string
+      - name: collection
+        in: body
+        description: When members is supplied, which set of members to update.
+        type: string
+        enum: ['Approved', 'Pending']
       responses:
           "200":
             description: "Successful response"

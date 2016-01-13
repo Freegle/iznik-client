@@ -6,7 +6,7 @@ require_once(IZNIK_BASE . '/include/misc/plugin.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
-require_once(IZNIK_BASE . '/include/message/Collection.php');
+require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/include/misc/Search.php');
@@ -959,7 +959,7 @@ class Message
                 $this->yahooapprovedid,
                 $this->yahooreject,
                 $this->yahooapprove,
-                Collection::INCOMING
+                MessageCollection::INCOMING
             ]);
         }
 
@@ -1075,7 +1075,7 @@ class Message
         $groups = $this->dbhr->preQuery($sql, [
             $this->id,
             $groupid,
-            Collection::PENDING
+            MessageCollection::PENDING
         ]);
 
         return(count($groups) > 0);
@@ -1208,7 +1208,7 @@ class Message
         if ($handled) {
             $sql = "UPDATE messages_groups SET collection = ? WHERE msgid = ?;";
             $this->dbhm->preExec($sql, [
-                Collection::APPROVED,
+                MessageCollection::APPROVED,
                 $this->id
             ]);
 

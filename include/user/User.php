@@ -5,7 +5,7 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/session/Session.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
-require_once(IZNIK_BASE . '/include/message/Collection.php');
+require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 
 class User extends Entity
 {
@@ -570,7 +570,7 @@ class User extends Entity
             }
 
             $atts['messagehistory'] = $this->dbhr->preQuery($sql, [
-                Collection::APPROVED,
+                MessageCollection::APPROVED,
                 $this->id
             ]);
 

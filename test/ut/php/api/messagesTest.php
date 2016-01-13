@@ -7,7 +7,7 @@ require_once UT_DIR . '/IznikAPITest.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
-require_once IZNIK_BASE . '/include/message/Collection.php';
+require_once IZNIK_BASE . '/include/message/MessageCollection.php';
 
 /**
  * @backupGlobals disabled
@@ -49,7 +49,7 @@ class messagesTest extends IznikAPITest {
         assertEquals(MailRouter::APPROVED, $rc);
         error_log("Approved id $id");
 
-        $c = new Collection($this->dbhr, $this->dbhm, Collection::APPROVED);
+        $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::APPROVED);
         $a = new Message($this->dbhr, $this->dbhm, $id);
 
         # Should be able to see this message even logged out, as this is a Freegle group.
@@ -131,7 +131,7 @@ class messagesTest extends IznikAPITest {
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
-        $c = new Collection($this->dbhr, $this->dbhm, Collection::SPAM);
+        $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::SPAM);
         $a = new Message($this->dbhr, $this->dbhm, $id);
 
         # Shouldn't be able to see spam
@@ -207,7 +207,7 @@ class messagesTest extends IznikAPITest {
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
-        $c = new Collection($this->dbhr, $this->dbhm, Collection::PENDING);
+        $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
         $a = new Message($this->dbhr, $this->dbhm, $id);
 
         # Shouldn't be able to see pending

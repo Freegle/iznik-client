@@ -5,7 +5,7 @@ function messages() {
     $me = whoAmI($dbhr, $dbhm);
 
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
-    $collection = presdef('collection', $_REQUEST, Collection::APPROVED);
+    $collection = presdef('collection', $_REQUEST, MessageCollection::APPROVED);
     $start = presdef('start', $_REQUEST, NULL);
     $limit = intval(presdef('limit', $_REQUEST, 10));
     $source = presdef('source', $_REQUEST, NULL);
@@ -13,7 +13,7 @@ function messages() {
     $message = presdef('message', $_REQUEST, NULL);
     $yahoopendingid = presdef('yahoopendingid', $_REQUEST, NULL);
     $yahooapprovedid = presdef('yahooapprovedid', $_REQUEST, NULL);
-    $collections = presdef('collections', $_REQUEST, [ Collection::APPROVED, Collection::SPAM ]);
+    $collections = presdef('collections', $_REQUEST, [ MessageCollection::APPROVED, MessageCollection::SPAM ]);
     $messages = presdef('messages', $_REQUEST, NULL);
     $subaction = presdef('subaction', $_REQUEST, NULL);
 
@@ -41,7 +41,7 @@ function messages() {
             }
 
             $msgs = NULL;
-            $c = new Collection($dbhr, $dbhm, $collection);
+            $c = new MessageCollection($dbhr, $dbhm, $collection);
 
 
             $ret = [

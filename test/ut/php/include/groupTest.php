@@ -5,6 +5,7 @@ if (!defined('UT_DIR')) {
 }
 require_once UT_DIR . '/IznikTest.php';
 require_once IZNIK_BASE . '/include/user/User.php';
+require_once IZNIK_BASE . '/include/user/MembershipCollection.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/config/ModConfig.php';
 
@@ -61,7 +62,7 @@ class groupTest extends IznikTest {
                 'yahooModeratorStatus' => 'OWNER',
                 'email' => 'test@test.com'
             ]
-        ]);
+        ], MembershipCollection::APPROVED);
         assertEquals(0, $rc['ret']);
         $membs = $g->getMembers();
 
@@ -81,7 +82,7 @@ class groupTest extends IznikTest {
                 'yahooModeratorStatus' => 'OWNER',
                 'email' => 'test@test.com'
             ]
-        ]);
+        ], MembershipCollection::APPROVED);
         assertEquals(0, $rc['ret']);
         $membs = $g->getMembers();
         assertEquals(User::ROLE_OWNER, $membs[0]['role']);
@@ -154,7 +155,7 @@ class groupTest extends IznikTest {
                 'yahooModeratorStatus' => 'OWNER',
                 'email' => 'test@test.com'
             ]
-        ]);
+        ], MembershipCollection::APPROVED);
         assertNotEquals(0, $rc['ret']);
 
         # Error in commit
@@ -173,7 +174,7 @@ class groupTest extends IznikTest {
                 'yahooModeratorStatus' => 'OWNER',
                 'email' => 'test@test.com'
             ]
-        ]);
+        ], MembershipCollection::APPROVED);
         assertNotEquals(0, $rc['ret']);
 
         # Error in exec
@@ -198,7 +199,7 @@ class groupTest extends IznikTest {
                 'yahooModeratorStatus' => 'OWNER',
                 'email' => 'test@test.com'
             ]
-        ]);
+        ], MembershipCollection::APPROVED);
         assertNotEquals(0, $rc['ret']);
 
         $members = $g->getMembers();

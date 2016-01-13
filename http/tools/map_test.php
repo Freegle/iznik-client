@@ -5,7 +5,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
-require_once(IZNIK_BASE . '/include/message/Collection.php');
+require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 
 $groupname = presdef('groupname', $_REQUEST, NULL);
 
@@ -20,7 +20,7 @@ if (!$groupname) {
     } else {
         $g = new Group($dbhr, $dbhm, $gid);
 
-        $c = new Collection($dbhr, $dbhm, Collection::APPROVED);
+        $c = new MessageCollection($dbhr, $dbhm, MessageCollection::APPROVED);
         list($groups, $msgs) = $c->get(0, 100, [ $gid ]);
 
         ?>
