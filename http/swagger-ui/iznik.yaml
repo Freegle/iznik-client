@@ -688,6 +688,44 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+    post:
+      summary: Membership action
+      tags: [Memberships]
+      description: |
+        Perform an action on a membership
+      parameters:
+      - name: groupid
+        in: path
+        description: Group ID to modify
+        type: number
+        required: true
+      - name: userid
+        in: path
+        description: User ID to modify
+        type: number
+      - name: action
+        in: body
+        description: What to do
+        type: string
+        enum: ['Reject', 'Approve', 'Hold', 'Release']
+      - name: members
+        in: body
+        description: Full list of members to set; use this or userid
+        type: string
+      - name: collection
+        in: body
+        description: When members is supplied, which set of members to update.
+        type: string
+        enum: ['Approved', 'Pending']
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
     delete:
       summary: Delete membership(s)
       tags: [Memberships]

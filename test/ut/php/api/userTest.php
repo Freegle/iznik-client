@@ -30,8 +30,9 @@ class userAPITest extends IznikAPITest {
         $dbhm->preExec("DELETE FROM users WHERE yahooUserId = 1;");
 
         # Create a moderator and log in as them
-        $g = new Group($this->dbhr, $this->dbhm);
-        $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
+        $this->group = new Group($this->dbhr, $this->dbhm);
+        $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
+
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
@@ -123,7 +124,9 @@ class userAPITest extends IznikAPITest {
     public function testMail() {
         error_log(__METHOD__);
 
-        # Mails won't go through as there's no email, but we're just testing the API.
+        # Mails won't go through as there's no email address, but we're just testing the API.
+        #
+        # Shouldn't be able to do this as a non-member.
         $ret = $this->call('user', 'POST', [
             'action' => 'Reply',
             'subject' => "Test",

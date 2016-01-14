@@ -50,6 +50,7 @@ class userTest extends IznikTest {
         assertEquals('Test User', $u->getName());
         assertEquals($id, $u->getPrivate('id'));
         assertNull($u->getPrivate('invalidid'));
+
         assertGreaterThan(0, $u->delete());
 
         $u = new User($this->dbhr, $this->dbhm);
@@ -175,7 +176,9 @@ class userTest extends IznikTest {
 
         $u = new User($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
+        $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = $id;");
         $u = new User($this->dbhr, $this->dbhm, $id);
+        assertGreaterThan(0, $u->addEmail('test@test.com'));
         assertEquals($u->getRole($group1), User::ROLE_NONMEMBER);
         assertFalse($u->isModOrOwner($group1));
 

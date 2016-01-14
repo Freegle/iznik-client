@@ -138,8 +138,9 @@ class Group extends Entity
         return($atts);
     }
 
-    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection, $groupids) {
+    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection = MembershipCollection::APPROVED, $groupids = NULL) {
         $ret = [];
+        $groupids = $groupids ? $groupids : [ $this-> id ];
 
         $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d", $ctx['Added']));
         $addq = $ctx == NULL ? '' : (" AND (memberships.added < $date OR memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ") ");
@@ -148,7 +149,7 @@ class Group extends Entity
         $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : $searchq;
         $groupq = " memberships.groupid IN (" . implode(',', $groupids) . ") ";
 
-        $sql = "SELECT DISTINCT memberships.* FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq AND collection = ? $addq $searchq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
+        $sql = "SELECT DISTINCT memberships.* FROM memberships LEFT JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq AND collection = ? $addq $searchq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
         $members = $this->dbhr->preQuery($sql, [ $collection ]);
 
         $ctx = [ 'Added' => NULL ];
@@ -192,6 +193,13 @@ class Group extends Entity
             $thisone['yahooDeliveryType'] = $u->getPrivate('yahooDeliveryType');
             $thisone['yahooPostingStatus'] = $u->getPrivate('yahooPostingStatus');
             $thisone['role'] = $u->getRole($member['groupid']);
+
+            $thisone['heldby'] = $member['heldby'];
+
+            if (pres('heldby', $thisone)) {
+                $u = new User($this->dbhr, $this->dbhm, $thisone['heldby']);
+                $thisone['heldby'] = $u->getPublic();
+            }
 
             $ret[] = $thisone;
         }

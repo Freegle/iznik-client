@@ -26,8 +26,8 @@ class membershipsAPITest extends IznikAPITest {
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
 
-        $g = new Group($this->dbhr, $this->dbhm);
-        $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
+        $this->group = new Group($this->dbhr, $this->dbhm);
+        $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
@@ -351,6 +351,255 @@ class membershipsAPITest extends IznikAPITest {
         assertEquals('Member', $ret['members'][1]['role']);
         assertEquals('test@test.com', $ret['members'][2]['email']);
         assertEquals('Moderator', $ret['members'][2]['role']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testReject() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        assertNotNull($uid);
+        assertTrue($u->addMembership($this->groupid, User::ROLE_MEMBER, NULL, MembershipCollection::PENDING));
+        $ctx = NULL;
+        $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $this->groupid ]);
+        assertEquals(1, count($members));
+        $this->dbhm->preExec("UPDATE memberships SET yahooapprove = 'test@test.com', yahooreject = 'test@test.com' WHERE userid = $uid;");
+        $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = $uid;");
+        assertEquals(1, $this->user->addMembership($this->groupid));
+
+        # Mails won't go through as there's no email, but we're just testing the API.
+        #
+        # Shouldn't be able to do this as a non-member.
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'action' => 'Reject',
+            'subject' => "Test",
+            'body' => "Test"
+        ]);
+        assertEquals(2, $ret['ret']);
+        $ctx = NULL;
+        $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $this->groupid ]);
+        assertEquals(1, count($members));
+
+        # Shouldn't be able to do this as a member
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'action' => 'Reject',
+            'body' => "Test",
+            'dup' => 1
+        ]);
+        assertEquals(2, $ret['ret']);
+        $ctx = NULL;
+        $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $this->groupid ]);
+        assertEquals(1, count($members));
+
+        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+
+        # Can't reject ourselves as we're not pending.
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $this->uid,
+            'groupid' => $this->groupid,
+            'action' => 'Reject',
+            'subject' => "Test",
+            'body' => "Test",
+            'dup' => 11
+        ]);
+        assertEquals(3, $ret['ret']);
+
+        # Should work as a moderator, and will not be pending any more.
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'action' => 'Reject',
+            'subject' => "Test",
+            'body' => "Test",
+            'dup' => 2
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ctx = NULL;
+        $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $this->groupid ]);
+        assertEquals(0, count($members));
+        $ctx = NULL;
+        $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::APPROVED, [ $this->groupid ]);
+        assertEquals(1, count($members));
+
+        # Plugin work should exist
+        $ret = $this->call('plugin', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['plugin']));
+        assertEquals($this->groupid, $ret['plugin'][0]['groupid']);
+        assertEquals('{"type":"RejectPendingMember","id":"1"}', $ret['plugin'][0]['data']);
+        $pid = $ret['plugin'][0]['id'];
+
+        $ret = $this->call('plugin', 'DELETE', [
+            'id' => $pid
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('plugin', 'GET', []);
+        assertEquals(0, count($ret['plugin']));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testApprove() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        assertNotNull($uid);
+        assertTrue($u->addMembership($this->groupid, User::ROLE_MEMBER, NULL, MembershipCollection::PENDING));
+        $ctx = NULL;
+        $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $this->groupid ]);
+        assertEquals(1, count($members));
+        $this->dbhm->preExec("UPDATE memberships SET yahooapprove = 'test@test.com', yahooreject = 'test@test.com' WHERE userid = $uid;");
+        $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = $uid;");
+        assertEquals(1, $this->user->addMembership($this->groupid));
+
+        # Mails won't go through as there's no email, but we're just testing the API.
+        #
+        # Shouldn't be able to do this as a non-member.
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'action' => 'Approve',
+            'subject' => "Test",
+            'body' => "Test"
+        ]);
+        assertEquals(2, $ret['ret']);
+        $ctx = NULL;
+        $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $this->groupid ]);
+        assertEquals(1, count($members));
+
+        # Shouldn't be able to do this as a member
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'action' => 'Approve',
+            'body' => "Test",
+            'dup' => 1
+        ]);
+        assertEquals(2, $ret['ret']);
+        $ctx = NULL;
+        $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $this->groupid ]);
+        assertEquals(1, count($members));
+
+        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+
+        # Can't approve ourselves as we're not pending.
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $this->uid,
+            'groupid' => $this->groupid,
+            'action' => 'Approve',
+            'subject' => "Test",
+            'body' => "Test",
+            'dup' => 11
+        ]);
+        assertEquals(3, $ret['ret']);
+
+        # Should work as a moderator, and will not be pending any more.
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'action' => 'Approve',
+            'subject' => "Test",
+            'body' => "Test",
+            'groupid' => $this->groupid,
+            'dup' => 2
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ctx = NULL;
+        $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $this->groupid ]);
+        assertEquals(0, count($members));
+        $ctx = NULL;
+        $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::APPROVED, [ $this->groupid ]);
+        assertEquals(2, count($members));
+
+        # Plugin work should exist
+        $ret = $this->call('plugin', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['plugin']));
+        assertEquals($this->groupid, $ret['plugin'][0]['groupid']);
+        assertEquals('{"type":"ApprovePendingMember","id":"1"}', $ret['plugin'][0]['data']);
+        $pid = $ret['plugin'][0]['id'];
+
+        $ret = $this->call('plugin', 'DELETE', [
+            'id' => $pid
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('plugin', 'GET', []);
+        assertEquals(0, count($ret['plugin']));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testHold() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        assertNotNull($uid);
+        assertTrue($u->addMembership($this->groupid, User::ROLE_MEMBER, NULL, MembershipCollection::PENDING));
+        $ctx = NULL;
+        $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $this->groupid ]);
+        assertEquals(1, count($members));
+        assertEquals(1, $this->user->addMembership($this->groupid));
+
+        # Shouldn't be able to hold logged out
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'action' => 'Hold'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Nor as a member
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'action' => 'Hold'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Promote to owner - should be able to hold it.
+        $this->user->setRole(User::ROLE_OWNER, $this->groupid);
+
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'action' => 'Hold',
+            'duplicate' => 1
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('memberships', 'GET', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'collection' => 'Pending'
+        ]);
+        assertEquals($this->uid, $ret['member']['heldby']['id']);
+
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'action' => 'Release',
+            'duplicate' => 2
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('memberships', 'GET', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'collection' => 'Pending'
+        ]);
+        assertFalse(pres('heldby', $ret['member']));
 
         error_log(__METHOD__ . " end");
     }

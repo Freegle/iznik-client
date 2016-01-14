@@ -6,6 +6,7 @@ require_once(IZNIK_BASE . '/include/session/Session.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
+require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 
 class User extends Entity
 {
@@ -226,7 +227,7 @@ class User extends Entity
         }
     }
 
-    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL) {
+    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         # Check if we're banned
@@ -240,12 +241,13 @@ class User extends Entity
             return(FALSE);
         }
 
-        $rc = $this->dbhm->preExec("REPLACE INTO memberships (userid, groupid, role, emailid) VALUES (?,?,?,?);",
+        $rc = $this->dbhm->preExec("REPLACE INTO memberships (userid, groupid, role, emailid, collection) VALUES (?,?,?,?,?);",
             [
                 $this->id,
                 $groupid,
                 $role,
-                $emailid
+                $emailid,
+                $collection
             ]);
 
         # We might need to update the systemrole.
@@ -267,6 +269,18 @@ class User extends Entity
         return($rc);
     }
 
+    public function isPending($groupid) {
+        $ret = false;
+        $sql = "SELECT userid FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
+        $membs = $this->dbhr->preQuery($sql, [
+            $this->id,
+            $groupid,
+            MembershipCollection::PENDING
+        ]);
+
+        return(count($membs) > 0);
+    }
+
     public function setMembershipAtt($groupid, $att, $val) {
         $sql = "UPDATE memberships SET $att = ? WHERE groupid = ? AND userid = ?;";
         $rc = $this->dbhm->preExec($sql, [
@@ -282,24 +296,29 @@ class User extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
         $meid = $me ? $me->getId() : NULL;
 
-        $sql = "SELECT email FROM users_emails INNER JOIN users ON users_emails.userid = users.id AND users.id = ?;";
-
         $rc = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = ? AND groupid = ?;",
             [
                 $this->id,
                 $groupid
             ]);
 
+        error_log("removeMembership $rc " . var_export($this->user, true));
         if ($rc) {
             if ($this->user['yahooUserId']) {
-                // This is a user on Yahoo.  We must try to remove them from the group on there too, via the plugin.
-                $email = $this->dbhr->preQuery($sql, [ $this->id ])[0]['email'];
-                $p = new Plugin($this->dbhr, $this->dbhm);
-                $p->add($groupid, [
-                    'type' => $ban ? 'BanApprovedMember' : 'RemoveApprovedMember',
-                    'id' => $this->user['yahooUserId'],
-                    'email' => $email
-                ]);
+                # This is a user on Yahoo.  We must try to remove them from the group on there too, via the plugin.
+                $sql = "SELECT email FROM users_emails INNER JOIN users ON users_emails.userid = users.id AND users.id = ?;";
+                $emails = $this->dbhr->preQuery($sql, [ $this->id ]);
+                $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
+
+                # It would be odd for them to be on Yahoo with no email but handle it anyway.
+                if ($email) {
+                    $p = new Plugin($this->dbhr, $this->dbhm);
+                    $p->add($groupid, [
+                        'type' => $ban ? 'BanApprovedMember' : 'RemoveApprovedMember',
+                        'id' => $this->user['yahooUserId'],
+                        'email' => $email
+                    ]);
+                }
             }
 
             if ($ban) {
@@ -954,12 +973,12 @@ class User extends Entity
         $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
         $members = $this->dbhr->preQuery($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
         foreach ($members as $member) {
-            if ($member['yahooreject']) {
+            if (pres('yahooreject', $member)) {
                 # We can trigger rejection by email - do so.
                 $this->mailer($member['yahooreject'], "My name is Iznik and I reject this member", "", NULL, '-f' . MODERATOR_EMAIL);
             }
 
-            if ($member['yahoopendingid']) {
+            if (pres('yahooUserId', $this->user)) {
                 # We can trigger rejection via the plugin - do so.
                 $p = new Plugin($this->dbhr, $this->dbhm);
                 $p->add($groupid, [
@@ -993,12 +1012,12 @@ class User extends Entity
         $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
         $members = $this->dbhr->preQuery($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
         foreach ($members as $member) {
-            if ($member['yahooreject']) {
-                # We can trigger rejection by email - do so.
-                $this->mailer($member['yahooapprove'], "My name is Iznik and I approve this member", "", NULL, '-f' . MODERATOR_EMAIL);
+            if (pres('yahooapprove', $member)) {
+                # We can trigger approval by email - do so.
+                $this->mailer($member['yahooapprove'], "My name is Iznik and I approvethis member", "", NULL, '-f' . MODERATOR_EMAIL);
             }
 
-            if ($member['yahoopendingid']) {
+            if (pres('yahooUserId', $this->user)) {
                 # We can trigger rejection via the plugin - do so.
                 $p = new Plugin($this->dbhr, $this->dbhm);
                 $p->add($groupid, [
@@ -1008,20 +1027,21 @@ class User extends Entity
             }
         }
 
-        $sql = "UPDATE memberships SET collection = ? WHERE msgid = ?;";
+        $sql = "UPDATE memberships SET collection = ? WHERE userid = ? AND groupid = ?;";
         $this->dbhm->preExec($sql, [
             MembershipCollection::APPROVED,
-            $this->id
+            $this->id,
+            $groupid
         ]);
 
         $this->maybeMail($groupid, $subject, $body, $stdmsgid);
     }
 
-    function hold() {
+    function hold($groupid) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
-        $sql = "UPDATE memberships SET heldby = ? WHERE id = ?;";
-        $rc = $this->dbhm->preExec($sql, [ $me->getId(), $this->id ]);
+        $sql = "UPDATE memberships SET heldby = ? WHERE userid = ? AND groupid = ?;";
+        $rc = $this->dbhm->preExec($sql, [ $me->getId(), $this->id, $groupid ]);
 
         if ($rc) {
             $this->log->log([
@@ -1033,11 +1053,11 @@ class User extends Entity
         }
     }
 
-    function release() {
+    function release($groupid) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
-        $sql = "UPDATE memberships SET heldby = NULL WHERE id = ?;";
-        $rc = $this->dbhm->preExec($sql, [ $this->id ]);
+        $sql = "UPDATE memberships SET heldby = NULL WHERE userid = ? AND groupid = ?;";
+        $rc = $this->dbhm->preExec($sql, [ $this->id, $groupid ]);
 
         if ($rc) {
             $this->log->log([

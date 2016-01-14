@@ -17,6 +17,10 @@ function memberships() {
     $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $logctx = presdef('logcontext', $_REQUEST, NULL);
     $collection = presdef('collection', $_REQUEST, MembershipCollection::APPROVED);
+    $subject = presdef('subject', $_REQUEST, NULL);
+    $body = presdef('body', $_REQUEST, NULL);
+    $stdmsgid = presdef('stdmsgid', $_REQUEST, NULL);
+    $action = presdef('action', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -105,6 +109,40 @@ function memberships() {
                         'ret' => 0,
                         'status' => 'Success'
                     ];
+                }
+
+                break;
+            }
+
+            case 'POST': {
+                $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                $role = $me ? $me->getRole($groupid) : User::ROLE_NONMEMBER;
+
+                if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
+
+                    switch ($action) {
+                        case 'Reject':
+                            if (!$u->isPending($groupid)) {
+                                $ret = ['ret' => 3, 'status' => 'Member is not pending'];
+                            } else {
+                                $u->reject($groupid, $subject, $body, $stdmsgid);
+                            }
+                            break;
+                        case 'Approve':
+                            if (!$u->isPending($groupid)) {
+                                $ret = ['ret' => 3, 'status' => 'Member is not pending'];
+                            } else {
+                                $u->approve($groupid, $subject, $body, $stdmsgid);
+                            }
+                            break;
+                        case 'Hold':
+                            $u->hold($groupid);
+                            break;
+                        case 'Release':
+                            $u->release($groupid);
+                            break;
+                    }
                 }
 
                 break;

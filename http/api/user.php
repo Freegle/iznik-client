@@ -26,7 +26,6 @@ function user() {
         error_log("Looked up $email to $id");
     }
 
-    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
     $yahooDeliveryType = presdef('yahooDeliveryType', $_REQUEST, NULL);
     $yahooPostingStatus = presdef('yahooPostingStatus', $_REQUEST, NULL);
 
@@ -116,35 +115,8 @@ function user() {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
                 switch ($action) {
-                    case 'Delete':
-                        # The delete call will handle any rejection on Yahoo if required.
-                        $u->delete($groupid, $subject, $body, $stdmsgid);
-                        break;
-                    case 'Reject':
-                        if (!$u->isPending($groupid)) {
-                            $ret = ['ret' => 3, 'status' => 'Message is not pending'];
-                        } else {
-                            $u->reject($groupid, $subject, $body, $stdmsgid);
-                        }
-                        break;
-                    case 'Approve':
-                        if (!$u->isPending($groupid)) {
-                            $ret = ['ret' => 3, 'status' => 'Message is not pending'];
-                        } else {
-                            $u->approve($groupid, $subject, $body, $stdmsgid);
-                        }
-                        break;
                     case 'Mail':
                         $u->mail($groupid, $subject, $body, $stdmsgid);
-                        break;
-                    case 'Hold':
-                        $u->hold();
-                        break;
-                    case 'Release':
-                        $u->release();
-                        break;
-                    case 'NotSpam':
-                        $u->notSpam();
                         break;
                 }
             }

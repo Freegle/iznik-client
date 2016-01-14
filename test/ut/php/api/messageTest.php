@@ -302,7 +302,8 @@ class messageAPITest extends IznikAPITest {
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $cid = $c->create('Test');
-        $c->setPrivate('ccrejectto', 'Me');
+        $c->setPrivate('ccrejectto', 'Specific');
+        $c->setPrivate('ccrejectaddr', 'test@test.com');
 
         $s = new StdMessage($this->dbhr, $this->dbhm);
         $sid = $s->create('Test', $cid);

@@ -83,6 +83,7 @@ class StdMessage extends Entity
         $ret = NULL;
         $to = $c->getPrivate($to);
         $addr = $c->getPrivate($addr);
+        error_log("$to, $addr");
 
         if ($to == 'Me') {
             $me = whoAmI($this->dbhr, $this->dbhm);
