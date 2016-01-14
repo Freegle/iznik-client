@@ -330,6 +330,9 @@ Iznik.Views.ModTools.Member.Pending = Iznik.Views.ModTools.Member.extend({
             }
         }
 
+        // If the member is held or released, we re-render, showing the appropriate buttons.
+        self.listenToOnce(self.model, 'change:heldby', self.render);
+
         this.$('.timeago').timeago();
 
         // If we approve, reject or ban this member then the view should go.

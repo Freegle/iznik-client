@@ -36,7 +36,7 @@ Iznik.Models.Membership = IznikModel.extend({
 
         $.ajax({
             type: 'POST',
-            url: API + 'message',
+            url: API + 'memberships',
             data: {
                 userid: self.get('userid'),
                 groupid: self.get('groupid'),
