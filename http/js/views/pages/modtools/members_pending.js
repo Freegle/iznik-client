@@ -45,6 +45,7 @@ Iznik.Views.ModTools.Pages.PendingMembers = Iznik.Views.Page.extend({
 
         var v = new Iznik.Views.PleaseWait();
         v.render();
+        console.log("Fetch", data, self.selected,self.lastFetched, self.selected != self.lastFetched);
 
         this.members.fetch({
             data: data,
@@ -54,7 +55,7 @@ Iznik.Views.ModTools.Pages.PendingMembers = Iznik.Views.Page.extend({
 
             self.fetching = null;
             self.lastFetched = self.selected;
-            self.context = self.members.ret.context;
+            self.context = self.members.ret ? self.members.ret.context : null;
 
             if (self.members.length > 0) {
                 // Peek into the underlying response to see if it returned anything and therefore whether it is
@@ -127,7 +128,6 @@ Iznik.Views.ModTools.Pages.PendingMembers = Iznik.Views.Page.extend({
         self.listenTo(self.groupSelect, 'selected', function(selected) {
             // Change the group selected.
             self.selected = selected;
-            console.log("Group selected");
 
             // We haven't fetched anything for this group yet.
             self.lastFetched = null;
@@ -135,6 +135,7 @@ Iznik.Views.ModTools.Pages.PendingMembers = Iznik.Views.Page.extend({
 
             // The type of collection we're using depends on whether we're searching.  It controls how we fetch.
             if (self.options.search) {
+                console.log("Selected search");
                 self.members = new Iznik.Collections.Members.Search(null, {
                     groupid: self.selected,
                     group: Iznik.Session.get('groups').get(self.selected),
@@ -144,6 +145,7 @@ Iznik.Views.ModTools.Pages.PendingMembers = Iznik.Views.Page.extend({
 
                 self.$('.js-searchterm').val(self.options.search);
             } else {
+                console.log("Selected");
                 self.members = new Iznik.Collections.Members(null, {
                     groupid: self.selected,
                     group: Iznik.Session.get('groups').get(self.selected),
@@ -198,8 +200,8 @@ Iznik.Views.ModTools.Member.Pending = Iznik.Views.ModTools.Member.extend({
 
         self.addOtherEmails();
 
-        // Get the group from the collection.
-        var group = self.model.collection.options.group;
+        // Get the group from the session
+        var group = Iznik.Session.getGroup(self.model.get('groupid'));
 
         // Our user
         var v = new Iznik.Views.ModTools.User({

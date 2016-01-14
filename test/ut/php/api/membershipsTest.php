@@ -406,7 +406,7 @@ class membershipsAPITest extends IznikAPITest {
         error_log(__METHOD__);
 
         # Shouldn't be able to add as non-member or member
-        $ret = $this->call('memberships', 'GETT', [
+        $ret = $this->call('memberships', 'GET', [
             'groupid' => $this->groupid,
             'collection' => 'wibble'
         ]);

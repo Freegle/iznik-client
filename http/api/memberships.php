@@ -39,31 +39,51 @@ function memberships() {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
                 if ($me) {
-                    if ($userid && ($me->isModOrOwner($groupid) || $userid == $me->getId())) {
+                    $groupids = [];
+
+                    if ($userid && (($groupid && $me->isModOrOwner($groupid)) || $userid == $me->getId())) {
                         # Get just one.  We can get this if we're a mod or it's our own.
-                        $members = $g->getMembers(1, NULL, $ctx, $userid, $collection);
-
-                        $ret = [
-                            'member' => count($members) == 1 ? $members[0] : NULL,
-                            'context' => $ctx,
-                            'ret' => 0,
-                            'status' => 'Success'
-                        ];
-
-                        if ($logs) {
-                            $u = new User($dbhr, $dbhm, $userid);
-                            $atts = $u->getPublic(NULL, TRUE, $logs, $logctx);
-                            $ret['member']['logs'] = $atts['logs'];
-                            $ret['logcontext'] = $ctx;
+                        $groupids[] = $groupid;
+                        $limit = 1;
+                    } else {
+                        # No group was specified - use the current memberships, if we have any, excluding those that our
+                        # preferences say shouldn't be in.
+                        $mygroups = $me->getMemberships(TRUE);
+                        foreach ($mygroups as $group) {
+                            $settings = $me->getGroupSettings($group['id']);
+                            if (!array_key_exists('showmembers', $settings) ||
+                                $settings['showmembers']) {
+                                $groupids[] = $group['id'];
+                            }
                         }
-                    } else if ($me->isModOrOwner($groupid)) {
-                        # Get some/all.
-                        $ret = [
-                            'members' => $g->getMembers($limit, $search, $ctx, NULL, $collection),
-                            'ret' => 0,
-                            'status' => 'Success'
-                        ];
-                        $ret['context'] = $ctx;
+                    }
+
+                    if (count($groupids) > 0) {
+                        $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids);
+
+                        if ($userid) {
+                            $ret = [
+                                'member' => count($members) == 1 ? $members[0] : NULL,
+                                'context' => $ctx,
+                                'ret' => 0,
+                                'status' => 'Success'
+                            ];
+
+                            if ($logs) {
+                                $u = new User($dbhr, $dbhm, $userid);
+                                $atts = $u->getPublic(NULL, TRUE, $logs, $logctx);
+                                $ret['member']['logs'] = $atts['logs'];
+                                $ret['logcontext'] = $ctx;
+                            }
+                        } else {
+                            # Get some/all.
+                            $ret = [
+                                'members' => $members,
+                                'context' => $ctx,
+                                'ret' => 0,
+                                'status' => 'Success'
+                            ];
+                        }
                     }
                 }
 

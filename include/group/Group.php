@@ -108,8 +108,8 @@ class Group extends Entity
                 MessageCollection::SPAM
             ])[0]['count'],
             $pendmemb => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND heldby IS NULL;", [
-                MembershipCollection::PENDING,
-                $this->id
+                $this->id,
+                MembershipCollection::PENDING
             ])[0]['count'],
             'plugin' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM plugin WHERE groupid = ?;", [
                 $this->id
@@ -138,7 +138,7 @@ class Group extends Entity
         return($atts);
     }
 
-    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection = MembershipCollection::APPROVED) {
+    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection, $groupids) {
         $ret = [];
 
         $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d", $ctx['Added']));
@@ -146,10 +146,10 @@ class Group extends Entity
         # TODO We ought to search on firstname/lastname too, and handle word splits.  But this is sufficient for ModTools.
         $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") . ") ");
         $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : $searchq;
+        $groupq = " memberships.groupid IN (" . implode(',', $groupids) . ") ";
 
-        $sql = "SELECT DISTINCT memberships.* FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE groupid = ? AND collection = ? $addq $searchq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
-        error_log("$sql, {$this->id}, $collection");
-        $members = $this->dbhr->preQuery($sql, [ $this->id, $collection ]);
+        $sql = "SELECT DISTINCT memberships.* FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq AND collection = ? $addq $searchq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
+        $members = $this->dbhr->preQuery($sql, [ $collection ]);
 
         $ctx = [ 'Added' => NULL ];
 
@@ -167,7 +167,7 @@ class Group extends Entity
 
             # We want to return both the email used on this group and any others we have.
             $emails = $u->getEmails();
-            $emailid = $u->getEmailForGroup($this->id);
+            $emailid = $u->getEmailForGroup($member['groupid']);
             $email = NULL;
             $others = [];
             foreach ($emails as $anemail) {
@@ -187,11 +187,11 @@ class Group extends Entity
             ];
             $thisone['settings']['configid'] = $member['configid'];
             $thisone['email'] = $email;
-            $thisone['groupid'] = $this->id;
+            $thisone['groupid'] = $member['groupid'];
             $thisone['otheremails'] = $others;
             $thisone['yahooDeliveryType'] = $u->getPrivate('yahooDeliveryType');
             $thisone['yahooPostingStatus'] = $u->getPrivate('yahooPostingStatus');
-            $thisone['role'] = $u->getRole($this->id);
+            $thisone['role'] = $u->getRole($member['groupid']);
 
             $ret[] = $thisone;
         }

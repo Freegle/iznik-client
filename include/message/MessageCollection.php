@@ -45,9 +45,8 @@ class MessageCollection
         }
     }
 
-    function get($start, $limit, $groupfilter) {
+    function get($start, $limit, $groupids) {
         $groups = [];
-        $groupids = [];
         $msgs = [];
 
         if ($start) {
@@ -61,10 +60,6 @@ class MessageCollection
                 $this->collection
             ];
             $startq = '1=1';
-        }
-
-        foreach ($groupfilter as $groupid) {
-            $groupids[] = $groupid;
         }
 
         if (count($groupids) > 0) {

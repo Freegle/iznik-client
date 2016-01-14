@@ -129,7 +129,7 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
 
             self.fetching = null;
             self.lastFetched = self.selected;
-            self.context = self.members.ret.context;
+            self.context = self.members.ret ? self.members.ret.context : null;
 
             if (self.members.length > 0) {
                 // Peek into the underlying response to see if it returned anything and therefore whether it is
@@ -272,8 +272,8 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
 
         self.addOtherEmails();
 
-        // Get the group from the collection.
-        var group = self.model.collection.options.group;
+        // Get the group from the session
+        var group = Iznik.Session.getGroup(self.model.get('groupid'));
 
         // Our user
         var v = new Iznik.Views.ModTools.User({

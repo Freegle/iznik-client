@@ -21,7 +21,6 @@ function messages() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            # Check if we're logged in
             $groups = [];
 
             if ($groupid) {
