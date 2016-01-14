@@ -106,6 +106,9 @@ class ModConfig extends Entity
     public function getPublic() {
         $ret = parent::getPublic();
 
+        # If the creating mod has been deleted, then we need to ensure that the config is no longer protected.
+        $ret['protected'] = $ret['createdby'] == NULL ? 0 : $ret['protected'];
+
         $ret['stdmsgs'] = [];
 
         $sql = "SELECT id FROM mod_stdmsgs WHERE configid = {$this->id};";

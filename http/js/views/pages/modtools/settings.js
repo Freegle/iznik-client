@@ -99,7 +99,6 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                 });
 
                 membership.fetch().then(function() {
-                    console.log("Fetched membership", self.selected, membership);
                     self.myGroupModel = new IznikModel(membership.get('settings'));
                     var configoptions = [];
                     var configs = Iznik.Session.get('configs');
@@ -283,8 +282,9 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
             return(false);
         }
         var createdby = this.modConfigModel.get('createdby');
-        var disabled = !createdby || createdby!= Iznik.Session.get('me').id;
-        return(disabled);
+        var protected = this.modConfigModel.get('protected');
+
+        return(protected && Iznik.Session.get('me').id);
     },
 
     configSelect: function() {
@@ -390,6 +390,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                                     {
                                         name: 'cc' + tag + 'to',
                                         label: 'CC to',
+                                        disabled: self.locked,
                                         control: 'select',
                                         options: [
                                             {label: 'Nobody', value: 'Nobody'},
@@ -400,12 +401,14 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                                     {
                                         name: 'cc' + tag + 'addr',
                                         label: 'Specific address',
+                                        disabled: self.locked,
                                         placeholder: 'Please enter the specific email address',
                                         type: 'email',
                                         control: 'input'
                                     },
                                     {
                                         control: 'button',
+                                        disabled: self.locked,
                                         label: 'Save changes',
                                         type: 'submit',
                                         extraClasses: ['btn-success topspace botspace']
@@ -426,12 +429,16 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
                             form.render();
 
+                            // Disabled doesn't get set correctly
+                            $('.js-cc' + tag + 'form select, .js-cc' + tag + 'form button').prop('disabled', self.locked());
+                            //console.log("Disable", $('.js-cc' + tag + 'form select, .js-cc' + tag + 'form button'));
+
                             // We want to dynamically disable, which backform doesn't.
                             function handleChange(tag) {
                                 return(function(e) {
                                     var val = self.modConfigModel.get('cc' + tag + 'to');
                                     var inp = self.$("input[name='cc" + tag + "addr']");
-                                    inp.prop('disabled', val != 'Specific');
+                                    inp.prop('disabled', val != 'Specific' || self.locked());
                                 });
                             }
 
@@ -439,7 +446,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
                             var targ = self.$("input[name='cc" + tag + "addr']");
                             var disabled = self.$("select[name='cc" + tag + "to']").val().indexOf('Specific') == -1;
-                            targ.prop('disabled', disabled);
+                            targ.prop('disabled', disabled || self.locked());
                         }
 
                         createForm(tag);
@@ -653,6 +660,7 @@ Iznik.Views.ModTools.Settings.ActionSelect = Backform.InputControl.extend({
     render: function() {
         this.template = window.template("modtools_settings_action");
         Backform.InputControl.prototype.render.apply(this, arguments);
+        return(this);
     }
 });
 

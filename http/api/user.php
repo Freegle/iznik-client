@@ -100,11 +100,6 @@ function user() {
                     }
                 }
 
-                if ($subject) {
-                    // We are mailing this member.
-                    $u->mail($groupid, $subject, $body, $stdmsgid);
-                }
-
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success'
@@ -150,8 +145,6 @@ function user() {
                         break;
                     case 'NotSpam':
                         $u->notSpam();
-                        $r = new MailRouter($dbhr, $dbhm);
-                        $r->route($m, TRUE);
                         break;
                 }
             }
