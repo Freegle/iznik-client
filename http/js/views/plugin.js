@@ -199,6 +199,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             return(function(ret) {
                 if (ret && ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
                     $('.pluginonly').show();
+                    $('#js-loginbuildup').fadeOut('slow');
 
                     if (!self.connected) {
                         self.resume();
@@ -304,6 +305,27 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                             case 'PostingStatus': {
                                 (new Iznik.Views.Plugin.Yahoo.PostingStatus({
+                                    model: new IznikModel(work)
+                                }).render());
+                                break;
+                            }
+
+                            case 'ApprovePendingMember': {
+                                (new Iznik.Views.Plugin.Yahoo.ApprovePendingMember({
+                                    model: new IznikModel(work)
+                                }).render());
+                                break;
+                            }
+
+                            case 'RejectPendingMember': {
+                                (new Iznik.Views.Plugin.Yahoo.RejectPendingMember({
+                                    model: new IznikModel(work)
+                                }).render());
+                                break;
+                            }
+
+                            case 'BanPendingMember': {
+                                (new Iznik.Views.Plugin.Yahoo.BanPendingMember({
                                     model: new IznikModel(work)
                                 }).render());
                                 break;
@@ -986,6 +1008,82 @@ Iznik.Views.Plugin.Yahoo.ApprovePendingMessage = Iznik.Views.Plugin.Work.extend(
     }
 });
 
+Iznik.Views.Plugin.Yahoo.RejectPendingMember = Iznik.Views.Plugin.Work.extend({
+    template: 'plugin_member_pending_reject',
+    crumbLocation: "/management/pendingmembers",
+
+    server: true,
+
+    start: function() {
+        var self = this;
+        this.startBusy();
+
+        $.ajaxq('plugin', {
+            type: "POST",
+            url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/pending/members",
+            data: {
+                R: this.model.get('id'),
+                gapi_crumb: this.crumb
+            }, success: function (ret) {
+                if (ret.hasOwnProperty('ygData') &&
+                    ret.ygData.hasOwnProperty('numAccepted') &&
+                    ret.ygData.hasOwnProperty('numRejected')) {
+                    // If the rection worked, then numRejected = 1.
+                    // If the rejection is no longer relevant because the pending message has gone, both are 0.
+                    if (ret.ygData.numRejected== 1 ||
+                        (ret.ygData.numAccepted == 0 && ret.ygData.numRejected == 0)) {
+                        self.succeed();
+                    } else {
+                        self.fail();
+                    }
+                } else {
+                    self.fail();
+                }
+            }, error: function() {
+                self.fail();
+            }
+        });
+    }
+});
+
+Iznik.Views.Plugin.Yahoo.ApprovePendingMember = Iznik.Views.Plugin.Work.extend({
+    template: 'plugin_member_pending_approve',
+    crumbLocation: "/management/pendingmembers",
+
+    server: true,
+
+    start: function() {
+        var self = this;
+        this.startBusy();
+
+        $.ajaxq('plugin', {
+            type: "POST",
+            url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/pending/members",
+            data: {
+                A: this.model.get('id'),
+                gapi_crumb: this.crumb
+            }, success: function (ret) {
+                if (ret.hasOwnProperty('ygData') &&
+                    ret.ygData.hasOwnProperty('numAccepted') &&
+                    ret.ygData.hasOwnProperty('numRejected')) {
+                    // If the approval worked, then numAccepted = 1.
+                    // If the approval is no longer relevant because the pending message has gone, both are 0.
+                    if (ret.ygData.numAccepted == 1 ||
+                        (ret.ygData.numAccepted == 0 && ret.ygData.numRejected == 0)) {
+                        self.succeed();
+                    } else {
+                        self.fail();
+                    }
+                } else {
+                    self.fail();
+                }
+            }, error: function(a,b,c) {
+                self.fail();
+            }
+        });
+    }
+});
+
 Iznik.Views.Plugin.Yahoo.RejectPendingMessage = Iznik.Views.Plugin.Work.extend({
     template: 'plugin_pending_reject',
     crumbLocation: "/management/pendingmessages",
@@ -1192,6 +1290,50 @@ Iznik.Views.Plugin.Yahoo.RemoveApprovedMember = Iznik.Views.Plugin.Work.extend({
                     self.fail();
                 }
             }, error: function() {
+                self.fail();
+            }
+        });
+
+        this.startBusy();
+    }
+});
+
+Iznik.Views.Plugin.Yahoo.BanPendingMember = Iznik.Views.Plugin.Work.extend({
+    template: 'plugin_member_pending_ban',
+
+    crumbLocation: "/members/all",
+
+    server: true,
+
+    start: function() {
+        var self = this;
+
+        var members = [
+            {
+                userId: this.model.get('id'),
+                subscriptionStatus: 'BANNED'
+            }
+        ];
+
+        new majax({
+            type: "PUT",
+            url: YAHOOAPI + "groups/" + this.model.get('group').nameshort + "/members/pending?gapi_crumb=" + self.crumb,
+            data: "members=" + JSON.stringify(members),
+            success: function (ret) {
+                console.log("Ban returned", ret);
+                if (ret.hasOwnProperty('ygData') &&
+                    ret.ygData.hasOwnProperty('numPassed')) {
+                    // If the ban worked, numPassed == 1.
+                    if (ret.ygData.numPassed == 1) {
+                        self.succeed();
+                    } else {
+                        self.fail();
+                    }
+                } else {
+                    self.fail();
+                }
+            },
+            error: function (request, status, error) {
                 self.fail();
             }
         });

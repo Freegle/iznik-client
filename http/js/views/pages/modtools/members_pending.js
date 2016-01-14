@@ -258,7 +258,7 @@ Iznik.Views.ModTools.Member.Pending = Iznik.Views.ModTools.Member.extend({
             self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
                 model: new IznikModel({
                     title: 'Approve',
-                    action: 'Approve Pending Member',
+                    action: 'Approve Member',
                     member: self.model,
                     config: config
                 })
@@ -267,7 +267,16 @@ Iznik.Views.ModTools.Member.Pending = Iznik.Views.ModTools.Member.extend({
             self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
                 model: new IznikModel({
                     title: 'Mail',
-                    action: 'Leave Pending Member',
+                    action: 'Leave Member',
+                    member: self.model,
+                    config: config
+                })
+            }).render().el);
+
+            self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
+                model: new IznikModel({
+                    title: 'Delete',
+                    action: 'Delete Member',
                     member: self.model,
                     config: config
                 })
@@ -276,7 +285,7 @@ Iznik.Views.ModTools.Member.Pending = Iznik.Views.ModTools.Member.extend({
             self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
                 model: new IznikModel({
                     title: 'Reject',
-                    action: 'Reject Pending Member',
+                    action: 'Reject Member',
                     member: self.model,
                     config: config
                 })
@@ -323,8 +332,8 @@ Iznik.Views.ModTools.Member.Pending = Iznik.Views.ModTools.Member.extend({
 
         this.$('.timeago').timeago();
 
-        // If we delete this member then the view should go.
-        this.listenToOnce(self.model, 'removed', function() {
+        // If we approve, reject or ban this member then the view should go.
+        this.listenToOnce(self.model, 'deleted removed rejected approved', function() {
             self.$el.fadeOut('slow', function() {
                 self.remove();
             });

@@ -15,6 +15,73 @@ Iznik.Models.Membership = IznikModel.extend({
         return(ret.hasOwnProperty('member') ? ret.member : ret);
     },
 
+    hold: function() {
+        var self = this;
+
+        $.ajax({
+            type: 'POST',
+            url: API + 'memberships',
+            data: {
+                userid: self.get('userid'),
+                groupid: self.get('groupid'),
+                action: 'Hold'
+            }, success: function(ret) {
+                self.set('heldby', Iznik.Session.get('me'));
+            }
+        })
+    },
+
+    release: function() {
+        var self = this;
+
+        $.ajax({
+            type: 'POST',
+            url: API + 'message',
+            data: {
+                userid: self.get('userid'),
+                groupid: self.get('groupid'),
+                action: 'Release'
+            }, success: function(ret) {
+                self.set('heldby', null);
+            }
+        })
+    },
+
+    approve: function() {
+        var self = this;
+
+        $.ajax({
+            type: 'POST',
+            url: API + 'memberships',
+            data: {
+                userid: self.get('userid'),
+                groupid: self.get('groupid'),
+                action: 'Approve'
+            }, success: function(ret) {
+                self.trigger('approved');
+            }
+        });
+    },
+
+    reject: function(subject, body, stdmsgid) {
+        var self= this;
+
+        $.ajax({
+            type: 'POST',
+            url: API + 'memberships',
+            data: {
+                userid: self.get('userid'),
+                groupid: self.get('groupid'),
+                action: 'Reject',
+                subject: subject,
+                stdmsgid: stdmsgid,
+                body: body
+            }, success: function(ret) {
+                self.trigger('rejected');
+            }
+        });
+    },
+
     reply: function(subject, body, stdmsgid) {
         var self = this;
 
@@ -31,6 +98,11 @@ Iznik.Models.Membership = IznikModel.extend({
                 self.trigger('replied');
             }
         });
+    },
+
+    delete: function() {
+        this.trigger('deleted');
+        this.destroy();
     }
 });
 

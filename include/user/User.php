@@ -302,13 +302,18 @@ class User extends Entity
                 $groupid
             ]);
 
-        error_log("removeMembership $rc " . var_export($this->user, true));
         if ($rc) {
             if ($this->user['yahooUserId']) {
                 # This is a user on Yahoo.  We must try to remove them from the group on there too, via the plugin.
                 $sql = "SELECT email FROM users_emails INNER JOIN users ON users_emails.userid = users.id AND users.id = ?;";
                 $emails = $this->dbhr->preQuery($sql, [ $this->id ]);
                 $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
+
+                if ($ban) {
+                    $type = $this->isPending($groupid) ? 'BanPendingMember' : 'BanApprovedMember';
+                } else {
+                    $type = $this->isPending($groupid) ? 'RemovePendingMember' : 'RemoveApprovedMember';
+                }
 
                 # It would be odd for them to be on Yahoo with no email but handle it anyway.
                 if ($email) {
@@ -979,12 +984,19 @@ class User extends Entity
             }
 
             if (pres('yahooUserId', $this->user)) {
-                # We can trigger rejection via the plugin - do so.
-                $p = new Plugin($this->dbhr, $this->dbhm);
-                $p->add($groupid, [
-                    'type' => 'RejectPendingMember',
-                    'id' => $this->user['yahooUserId']
-                ]);
+                $sql = "SELECT email FROM users_emails INNER JOIN users ON users_emails.userid = users.id AND users.id = ?;";
+                $emails = $this->dbhr->preQuery($sql, [ $this->id ]);
+                $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
+
+                # It would be odd for them to be on Yahoo with no email but handle it anyway.
+                if ($email) {
+                    $p = new Plugin($this->dbhr, $this->dbhm);
+                    $p->add($groupid, [
+                        'type' => 'RejectPendingMember',
+                        'id' => $this->user['yahooUserId'],
+                        'email' => $email
+                    ]);
+                }
             }
         }
 
@@ -1018,12 +1030,19 @@ class User extends Entity
             }
 
             if (pres('yahooUserId', $this->user)) {
-                # We can trigger rejection via the plugin - do so.
-                $p = new Plugin($this->dbhr, $this->dbhm);
-                $p->add($groupid, [
-                    'type' => 'ApprovePendingMember',
-                    'id' => $this->user['yahooUserId']
-                ]);
+                $sql = "SELECT email FROM users_emails INNER JOIN users ON users_emails.userid = users.id AND users.id = ?;";
+                $emails = $this->dbhr->preQuery($sql, [ $this->id ]);
+                $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
+
+                # It would be odd for them to be on Yahoo with no email but handle it anyway.
+                if ($email) {
+                    $p = new Plugin($this->dbhr, $this->dbhm);
+                    $p->add($groupid, [
+                        'type' => 'ApprovePendingMember',
+                        'id' => $this->user['yahooUserId'],
+                        'email' => $email
+                    ]);
+                }
             }
         }
 

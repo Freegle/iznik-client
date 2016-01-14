@@ -516,7 +516,7 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
             v.render();
         } else {
             // No popup to show.
-            message.approve();
+            message ? message.approve() : member.approve();
         }
     },
 
@@ -552,6 +552,7 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
         var self = this;
         var message = self.model.get('message');
         var member = self.model.get('member');
+        console.log("deleteMe", message, member);
 
         if (this.options.config) {
             // This is a configured button; open the modal.
@@ -564,11 +565,7 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
             v.render();
         } else {
             // No popup to show.
-            if (message) {
-                message.delete();
-            } else {
-                member.destroy();
-            }
+            message ? message.delete() : member.delete();
         }
     }
 });
