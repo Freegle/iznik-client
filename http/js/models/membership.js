@@ -101,8 +101,19 @@ Iznik.Models.Membership = IznikModel.extend({
     },
 
     delete: function() {
-        this.trigger('deleted');
-        this.destroy();
+        var self = this;
+
+        $.ajax({
+            type: 'POST',
+            url: API + 'memberships',
+            data: {
+                userid: self.get('id'),
+                groupid: self.get('groupid'),
+                action: 'Delete'
+            }, success: function(ret) {
+                self.trigger('deleted');
+            }
+        })
     }
 });
 

@@ -98,14 +98,16 @@ Iznik.Models.Session = IznikModel.extend({
                             }
 
                             var countel = $(count.el);
+                            var currcount = countel.html();
                             countel.html(ret.work[count.fi]);
 
-                            if (ret.work[count.fi] > countel.html() || countel.html() == 0) {
+                            if (ret.work[count.fi] > currcount || currcount == 0) {
                                 // Only trigger this when the counts increase.  This will pick up new messages
                                 // without screen flicker due to re-rendering when we're processing messages and
                                 // deleting them.  There's a minor timing window where a message could arrive as
                                 // one is deleted, leaving the counts the same, but this will resolve itself when
                                 // our current count drops to zero, or worst case when we refresh.
+                                console.log("Trigger session ", count.ev);
                                 Iznik.Session.trigger(count.ev);
 
                                 if (ret.work[count.fi] > 0 && count.sound) {

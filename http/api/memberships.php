@@ -122,6 +122,10 @@ function memberships() {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
                     switch ($action) {
+                        case 'Delete':
+                            # The delete call will handle any rejection on Yahoo if required.
+                            $u->delete($groupid, $subject, $body, $stdmsgid);
+                            break;
                         case 'Reject':
                             if (!$u->isPending($groupid)) {
                                 $ret = ['ret' => 3, 'status' => 'Member is not pending'];
