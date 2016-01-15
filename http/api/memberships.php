@@ -117,6 +117,7 @@ function memberships() {
             case 'POST': {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
                 $role = $me ? $me->getRole($groupid) : User::ROLE_NONMEMBER;
+                error_log("Role $role on $groupid id " . $me->getId());
 
                 if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];

@@ -274,8 +274,6 @@ class membershipsAPITest extends IznikAPITest {
             'userid' => $this->uid
         ]);
 
-        var_dump($ret);
-
         assertEquals($cid, $ret['member']['settings']['configid']);
 
         error_log(__METHOD__ . " end");
@@ -411,12 +409,21 @@ class membershipsAPITest extends IznikAPITest {
         assertEquals(3, $ret['ret']);
 
         # Should work as a moderator, and will not be pending any more.
+        $c = new ModConfig($this->dbhr, $this->dbhm);
+        $cid = $c->create('Test');
+        $c->setPrivate('ccrejectto', 'Me');
+
+        $s = new StdMessage($this->dbhr, $this->dbhm);
+        $sid = $s->create('Test', $cid);
+        $s = new StdMessage($this->dbhr, $this->dbhm, $sid);
+
         $ret = $this->call('memberships', 'POST', [
             'userid' => $uid,
             'groupid' => $this->groupid,
             'action' => 'Reject',
             'subject' => "Test",
             'body' => "Test",
+            'stdmsgid' => $sid,
             'dup' => 2
         ]);
         assertEquals(0, $ret['ret']);
@@ -441,6 +448,49 @@ class membershipsAPITest extends IznikAPITest {
         assertEquals(0, $ret['ret']);
         $ret = $this->call('plugin', 'GET', []);
         assertEquals(0, count($ret['plugin']));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testDelete() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        assertNotNull($uid);
+        assertTrue($u->addMembership($this->groupid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED));
+
+        # Shouldn't be able to do this as a non-member.
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'action' => 'Delete',
+            'subject' => "Test",
+            'body' => "Test"
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Shouldn't be able to do this as a member
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'action' => 'Delete',
+            'body' => "Test",
+            'dup' => 1
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        assertTrue($this->user->addMembership($this->groupid, User::ROLE_MODERATOR, NULL, MembershipCollection::APPROVED));
+
+        # Should work as a moderator, and will not be pending any more.
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'action' => 'Delete',
+            'dup' => 2
+        ]);
+        assertEquals(0, $ret['ret']);
 
         error_log(__METHOD__ . " end");
     }
