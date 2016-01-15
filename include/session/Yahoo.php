@@ -64,6 +64,7 @@ class Yahoo
                 # See if we know this user already.
                 $u = new User($this->dbhr, $this->dbhm);
                 $id = $u->findByEmail($attrs['contact/email']);
+                error_log("Got attrs" . var_export($attrs, true));
 
                 if (!$id) {
                     # We don't know them.  Create a user.
@@ -72,7 +73,7 @@ class Yahoo
                     # one would fail.  Bigger fish to fry.
                     #
                     # We don't have the firstname/lastname split, only a single name.  Way two go.
-                    $id = $u->create(NULL, NULL, $attrs['name']);
+                    $id = $u->create(NULL, NULL, $attrs['namePerson']);
 
                     if ($id) {
                         # Make sure that we have the Yahoo email recorded as one of the emails for this user.
@@ -90,6 +91,14 @@ class Yahoo
 
                         $id = $rc ? $id : NULL;
                     }
+                }
+
+                $u = new User($this->dbhr, $this->dbhm, $id);
+
+                if ($u->getPrivate('fullname') != $attrs['namePerson']) {
+                    # Overwrite this with the name from Yahoo; specifically because we might have syncd the membership
+                    # without a good name.
+                    $u->setPrivate('fullname', $attrs['namePerson']);
                 }
 
                 if ($id) {
