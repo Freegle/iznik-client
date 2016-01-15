@@ -704,5 +704,60 @@ class MailRouterTest extends IznikTest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testMemberApplication() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+
+        # Suppress emails
+        $r = $this->getMockBuilder('MailRouter')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('mailer'))
+            ->getMock();
+        $r->method('mailer')->willReturn(false);
+
+        # A request to confirm an application
+        $msg = file_get_contents('msgs/approvemember');
+        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
+        $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        $ctx = NULL;
+        $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $gid ]);
+        error_log(var_export($membs, true));
+        assertEquals(1, count($membs));
+        assertEquals('test@test.com', $membs[0]['email']);
+        assertNull($membs[0]['fullname']);
+
+        # And again.  Should work, but slightly different codepath.
+        $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = $gid;");
+        $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        $ctx = NULL;
+        $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $gid ]);
+        error_log(var_export($membs, true));
+        assertEquals(1, count($membs));
+        assertEquals('test@test.com', $membs[0]['email']);
+        assertNull($membs[0]['fullname']);
+
+        # And again with a friendly name.  The user exists and should have the name upgraded.
+        $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = $gid;");
+        $msg = file_get_contents('msgs/approvemember2');
+        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
+        $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        $ctx = NULL;
+        $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $gid ]);
+        error_log(var_export($membs, true));
+        assertEquals(1, count($membs));
+        assertEquals('test@test.com', $membs[0]['email']);
+        assertEquals('Test User', $membs[0]['fullname']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

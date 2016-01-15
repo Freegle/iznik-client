@@ -5,6 +5,7 @@ require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
+require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/lib/spamc.php');
 
 # This class routes an incoming message
@@ -71,7 +72,6 @@ class MailRouter
 
     # Public for UT
     public function markAsSpam($type, $reason) {
-        error_log("Mark " . $this->msg->getID() . " as spam because $type $reason");
         return(
             $this->dbhm->preExec("UPDATE messages SET spamtype = ?, spamreason = ? WHERE id = ?;", [
                 $type,
@@ -128,8 +128,6 @@ class MailRouter
             $from = $this->msg->getEnvelopefrom();
             $replyto = $this->msg->getHeader('reply-to');
 
-            error_log("System $from => $to, $replyto");
-
             if (preg_match('/modconfirm-(.*)-(.*)-(.*)@/', $to, $matches) !== FALSE && count($matches) == 4) {
                 # This purports to be a mail to confirm moderation status on Yahoo.
                 $groupid = $matches[1];
@@ -183,10 +181,72 @@ class MailRouter
                         $this->dbhm->preExec("UPDATE groups SET confirmkey = NULL WHERE id = ?;", [$groupid]);
                     }
                 }
-            } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.com/', $replyto, $matches) !== FALSE && count($matches) == 4) {
+            } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) !== FALSE && count($matches) == 4) {
                 # This is a request by Yahoo to confirm a subscription for one of our members.  We always do that.
                 $this->mail($replyto, $to, "Yes please", "I confirm this");
                 $ret = MailRouter::TO_SYSTEM;
+            } else if ($replyto && preg_match('/(.*)-acceptsub(.*)@yahoogroups.co.*/', $replyto, $matches) !== FALSE && count($matches) == 3) {
+                # This is a notification that a member has applied to the group.
+                #
+                # TODO There are some slight timing windows in the code below:
+                # - the user could be created after us checking that the email is not known
+                #
+                # The user could also be approved/rejected elsewhere - but that'll sort itself out when we do a sync,
+                # or worst case a mod will handle it.
+                $ret = MailRouter::DROPPED;
+                $all = $this->msg->getMessage();
+                $approve = $replyto;
+                $reject = NULL;
+                $email = NULL;
+                $name = NULL;
+
+                // Looks like this: FreeglePlayground-rejectsub-stiwqcnufdzy3dlyulnumshsrvva@yahoogroups.com
+                if (preg_match('/^(.*-rejectsub-.*yahoogroups.*?)($| |=)/im', $all, $matches) && count($matches) == 3) {
+                    $reject = trim($matches[1]);
+                }
+
+                if (preg_match('/^Email address\: (.*)($| |=)/im', $all, $matches) && count($matches) == 3) {
+                    $email = trim($matches[1]);
+
+                    if (preg_match('/(.*) \<(.*)\>/', $email, $matches) && count($matches) == 3) {
+                        $name = $matches[1];
+                        $email = $matches[2];
+                    }
+                }
+
+                if ($approve && $reject && $email) {
+                    $nameshort = $this->msg->getHeader('x-egroups-moderators');
+                    $g = new Group($this->dbhr, $this->dbhm);
+                    $gid = $g->findByShortName($nameshort);
+
+                    if ($gid) {
+                        # Check that this user exists.
+                        $u = new User($this->dbhr, $this->dbhm);
+                        $uid = $u->findByEmail($email);
+
+                        if (!$uid) {
+                            # We don't know them yet.  Add them.
+                            $u->create(NULL, NULL, $name);
+                            $emailid = $u->addEmail($email);
+                        } else {
+                            $u = new User($this->dbhr, $this->dbhm, $uid);
+                            $emailid = $u->getIdForEmail($email);
+
+                            if ($name) {
+                                $u->setPrivate('fullname', $name);
+                            }
+                        }
+
+                        # Now add them as a pending member.
+                        if ($u->addMembership($gid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING)) {
+                            $u->setMembershipAtt($gid, 'yahooapprove', $approve);
+                            $u->setMembershipAtt($gid, 'yahooreject', $reject);
+
+                            # We handled it.
+                            $ret = MailRouter::TO_SYSTEM;
+                        }
+                    }
+                }
             } else {
                 $ret = MailRouter::DROPPED;
             }

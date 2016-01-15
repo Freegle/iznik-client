@@ -367,10 +367,9 @@ class membershipsAPITest extends IznikAPITest {
         assertEquals(1, count($members));
         $this->dbhm->preExec("UPDATE memberships SET yahooapprove = 'test@test.com', yahooreject = 'test@test.com' WHERE userid = $uid;");
         $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = $uid;");
+        $u->addEmail('test2@test.com');
         assertEquals(1, $this->user->addMembership($this->groupid));
 
-        # Mails won't go through as there's no email, but we're just testing the API.
-        #
         # Shouldn't be able to do this as a non-member.
         $ret = $this->call('memberships', 'POST', [
             'userid' => $uid,
@@ -433,7 +432,7 @@ class membershipsAPITest extends IznikAPITest {
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['plugin']));
         assertEquals($this->groupid, $ret['plugin'][0]['groupid']);
-        assertEquals('{"type":"RejectPendingMember","id":"1"}', $ret['plugin'][0]['data']);
+        assertEquals('{"type":"RejectPendingMember","id":"1","email":"test2@test.com"}', $ret['plugin'][0]['data']);
         $pid = $ret['plugin'][0]['id'];
 
         $ret = $this->call('plugin', 'DELETE', [
@@ -458,10 +457,9 @@ class membershipsAPITest extends IznikAPITest {
         assertEquals(1, count($members));
         $this->dbhm->preExec("UPDATE memberships SET yahooapprove = 'test@test.com', yahooreject = 'test@test.com' WHERE userid = $uid;");
         $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = $uid;");
+        $u->addEmail('test2@test.com');
         assertEquals(1, $this->user->addMembership($this->groupid));
 
-        # Mails won't go through as there's no email, but we're just testing the API.
-        #
         # Shouldn't be able to do this as a non-member.
         $ret = $this->call('memberships', 'POST', [
             'userid' => $uid,
@@ -525,7 +523,7 @@ class membershipsAPITest extends IznikAPITest {
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['plugin']));
         assertEquals($this->groupid, $ret['plugin'][0]['groupid']);
-        assertEquals('{"type":"ApprovePendingMember","id":"1"}', $ret['plugin'][0]['data']);
+        assertEquals('{"type":"ApprovePendingMember","id":"1","email":"test2@test.com"}', $ret['plugin'][0]['data']);
         $pid = $ret['plugin'][0]['id'];
 
         $ret = $this->call('plugin', 'DELETE', [
