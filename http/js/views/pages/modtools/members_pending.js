@@ -190,6 +190,7 @@ Iznik.Views.ModTools.Member.Pending = Iznik.Views.ModTools.Member.extend({
     render: function() {
         var self = this;
 
+        self.model.set('group', Iznik.Session.getGroup(self.model.get('groupid')).attributes);
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
         var mom = new moment(this.model.get('joined'));
         this.$('.js-joined').html(mom.format('llll'));

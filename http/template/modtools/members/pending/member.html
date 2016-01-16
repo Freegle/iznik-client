@@ -3,20 +3,18 @@
         <div class="row">
             <div class="panel-title">
                 <div class="row-fluid">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="ellipsis">
                             <div class="glyphicon glyphicon-envelope" />&nbsp;<% if (obj.email) { %>{{email}}<% } else { %><em>Email not known</em><% } %>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="ellipsis">
                             <div class="glyphicon glyphicon-user" />&nbsp;<% if (obj.displayname && displayname.trim().length > 0) { %>{{displayname}}<% } else { %><em>Blank name</em><% } %>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="glyphicon glyphicon-calendar" />&nbsp;<div class="inline js-joined" />
-                    </div>
                 </div>
+                <span class="padleft text-muted"><small><abbr class="timeago" title="{{joined}}" /> on {{group.namedisplay}} </small></span>
             </div>
         </div>
     </div>
