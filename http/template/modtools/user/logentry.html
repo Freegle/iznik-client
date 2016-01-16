@@ -11,6 +11,8 @@
         <% if (type == 'Group') { %>
             <% if (subtype == 'Joined') { %>
                     Joined {{group.namedisplay}}
+            <% } else if (subtype == 'Applied') { %>
+                    Applied to {{group.namedisplay}}
             <% } else if (subtype == 'Left') { %>
                 <% if (obj.user && obj.byuser && obj.byuser.id != obj.user.id) { %>
                 Removed from {{group.namedisplay}} <% if (obj.text) { %>{{text}}<% } %>
