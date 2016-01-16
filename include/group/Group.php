@@ -193,6 +193,7 @@ class Group extends Entity
             $thisone['yahooDeliveryType'] = $u->getPrivate('yahooDeliveryType');
             $thisone['yahooPostingStatus'] = $u->getPrivate('yahooPostingStatus');
             $thisone['role'] = $u->getRole($member['groupid']);
+            $thisone['joincomment'] = $member['joincomment'];
 
             $thisone['heldby'] = $member['heldby'];
 
@@ -298,6 +299,7 @@ class Group extends Entity
                         # batch them up into groups because that performs better in a cluster.
                         $yps = presdef('yahooPostingStatus', $member, NULL);
                         $ydt = presdef('yahooDeliveryType', $member, NULL);
+                        $joincomment = pres('joincomment', $member) ? $this->dbhm->quote($member['joincomment']) : 'NULL';
 
                         # Make sure the membership is present.  We don't want to REPLACE as that might lose settings.
                         # We also don't want to just do INSERT IGNORE as that doesn't perform well in clusters.
@@ -328,7 +330,7 @@ class Group extends Entity
                         $added = pres('date', $member) ? ("'" . date ("Y-m-d H:i:s", strtotime($member['date'])) . "'"): 'NULL';
 
                         $sql = "UPDATE memberships SET role = '$role', collection = '$collection', yahooPostingStatus = " . $this->dbhm->quote($yps) .
-                               ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", emailid = {$member['emailid']}, added = $added, syncdelete = 0 WHERE userid = " .
+                               ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", joincomment = $joincomment, emailid = {$member['emailid']}, added = $added, syncdelete = 0 WHERE userid = " .
                                 "{$member['uid']} AND groupid = {$this->id};";
                         $bulksql .= $sql;
 

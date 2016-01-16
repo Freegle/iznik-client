@@ -1,9 +1,19 @@
 // We have a view for everything that is common across all pages, e.g. sidebars.
+var currentPage = null;
 Iznik.Views.Page = IznikView.extend({
     modtools: false,
 
     render: function(options) {
         var self = this;
+
+        if (currentPage) {
+            // We have previous rendered a page.  Kill that off, so that it is not listening for events and
+            // messing about with the DOM.
+            currentPage.remove();
+        }
+
+        currentPage = self;
+
         options = typeof options == 'undefined' ? {} : options;
 
         var rightbar = null;

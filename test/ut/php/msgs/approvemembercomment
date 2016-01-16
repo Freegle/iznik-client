@@ -1,0 +1,135 @@
+Received: by 10.129.106.9 with SMTP id f9csp3361518ywc;
+        Wed, 13 Jan 2016 06:20:54 -0800 (PST)
+X-Received: by 10.50.20.197 with SMTP id p5mr11106472ige.89.1452694854359;
+        Wed, 13 Jan 2016 06:20:54 -0800 (PST)
+Return-Path: <notify-return-edward=ehibbert.org.uk@returns.groups.yahoo.com>
+Received: from ng22-vm6.bullet.mail.ne1.yahoo.com (ng22-vm6.bullet.mail.ne1.yahoo.com. [98.138.120.254])
+        by mx.google.com with ESMTPS id 62si5274745ioq.99.2016.01.13.06.20.54
+        for <edward@ehibbert.org.uk>
+        (version=TLS1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Wed, 13 Jan 2016 06:20:54 -0800 (PST)
+Received-SPF: pass (google.com: domain of notify-return-edward=ehibbert.org.uk@returns.groups.yahoo.com designates 98.138.120.254 as permitted sender) client-ip=98.138.120.254;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: domain of notify-return-edward=ehibbert.org.uk@returns.groups.yahoo.com designates 98.138.120.254 as permitted sender) smtp.mailfrom=notify-return-edward=ehibbert.org.uk@returns.groups.yahoo.com;
+       dkim=pass header.i=@yahoogroups.com;
+       dmarc=pass (p=NONE dis=NONE) header.from=yahoogroups.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoogroups.com; s=echoe; t=1452694853; bh=I/tSRw7bMADZcEq4UQoEmDIZ0WrrWVTyyauwKk8FBrs=; h=Date:To:From:Reply-To:Subject:From:Subject; b=5f/AkL/xgl0qzpMsYafZeL+g4kaP1Qh0ctSN1gcvKQDTC7m0dvHcUxrCl1/JTONwEsULdD/vH1yLhkyGLGV/V0pVh/OVtMiL3jYr+eJpYPsmm7HUJ9t3JbhEpT8t7p2qHO2HWXfcA6AmUukmdykymJVg4ukIl+X05GS1z1/I2IQ=
+Received: from [98.138.101.142] by ng22.bullet.mail.ne1.yahoo.com with NNFMP; 13 Jan 2016 14:20:53 -0000
+Received: from [10.193.85.17] by tg12.bullet.mail.ne1.yahoo.com with NNFMP; 13 Jan 2016 14:20:53 -0000
+X-Yahoo-Newman-Property: groups-notify
+X-Originating-IP: 98.139.245.164
+X-eGroups-Msg-Info: 1:12:0:0
+X-Sender: notify@yahoogroups.com
+X-Apparently-To: freegleplayground-owner@yahoogroups.com
+Received: (qmail 898 invoked by uid 102); 13 Jan 2016 14:20:53 -0000
+Received: from unknown (HELO mtaq1.grp.bf1.yahoo.com) (10.193.84.32)
+  by m1.grp.bf1.yahoo.com with SMTP; 13 Jan 2016 14:20:53 -0000
+Received: (qmail 28135 invoked from network); 13 Jan 2016 14:20:53 -0000
+Received: from unknown (HELO mta1005.groups.mail.bf1.yahoo.com) (98.139.245.164)
+  by mtaq1.grp.bf1.yahoo.com with SMTP; 13 Jan 2016 14:20:53 -0000
+Return-Path: <notify@yahoogroups.com>
+Received-SPF: pass (domain of yahoogroups.com designates 66.196.81.211 as permitted sender)
+X-Rocket-Track: cat=UK; info=cconsam:UK;dmcu:UK<token=NO_MATCH>;ip:NN<ip=66.196.81.211,policy=n-w0,n100,g0,s>;ipst:GD<ip=66.196.81.211>;cmsgbl:UK<s=17,m=0>;cmsgbk:UK<s=17,m=0>;cmsgob:UK<s=17,m=0>;mip:UK<p=not_run>;cptron:UK<prob=0.27>;phhr:UK;sigk:UK<score=0.125>;ipsp:GD;csubbl:UK;csubbk:UK;url2db:NN<url=modtools.org,pri=0>;wlrcpts:UK;sgor:UK;abaca:UK<211, fh=mta1005; fi=98.139.172.202:14050; rg=U; GT=0; fs=211; ns=220; ws=211,A,34,103,0,-26,0,0,0,0,200,0,0,N,-100; nn=0,0,20,200,0,0; cn=0,0,0,0,1,206,0,1,0,0; ex=W,D,0000,GHIKOPRTUVY; sk=OBS05iUVepb; yd=5,5,1,0.27; st=AAS; id=UwpA_Ma3-0D1420r6l; rv=inbound.0.40+93-g0c346d4/98.139.172.202:14051; ts=NzAHg; gv=-53; fp=JOsXA; gd=1; fl=EAAAAA; ip=66.196.81.211; po=72.30.235.66; ht=1; so=3; oc=0; oL=3; co=n; hv=1; td=1; ha=FuDPOchz66s; hs=CFp8DFHkPSw; ho=Gr6XehM8zSG; hd=FuDPOchz66s; hf=5X0t7LbGsP; hF=L+4PgYYpaMG; hj=Icbx4/thyhZ; hr=CWOAfe0KH/6; sd=CH0K/pgSP6o,0:27,-100,0:1,0,0,0,1,1,1,0,w,w; dm=KSOhAMaX8oa,1; ZM=EyvTfonVciw; ZB=OuPBc9iYTPy; ZB=EqgjjxIw133; ZB=DLH8GBa6KqP; ZB=I6Zi+4vAjsI; ZB=PSK+pu0Fuij; ZU=DPVu3UWkQvD; Zu=NI+9v7bB8jf; ZM=KHgFY79kWXt; ZU=DFZbR2K/oKY; Zu=OlvMm4cOiIf; ZF=FqCAPNQmhAO; Zi=ELrHkiX81p2;, SRV_OR=1,WS_OR=1,WSS_OR=1,OR=1,AB_WS_IP=0,AB_WSS_IP=0>
+X-Rocket-Filter: dmarc-result=pass;
+X-Rocket-MIMEInfo: 001.001,SGVsbG8sIFRoZSBmb2xsb3dpbmcgcGVyc29uIHdvdWxkIGxpa2Ug
+ dG8gam9pbiB0aGUgRnJlZWdsZVBsYXlncm91bmQgZ3JvdXA6IEVtYWlsIGFk
+ ZHJlc3M6IGFwcGxpY2F0aW9uLTE0NTI2OTQ4NDMtMEBpem5pay5tb2R0b29s
+ cy5vcmcgVGhpcyBtZW1iZXJzaGlwIHJlcXVlc3QgcmVxdWlyZXMgeW91ciBh
+ cHByb3ZhbCBiZWNhdXNlIHRoZSBGcmVlZ2xlUGxheWdyb3VuZCBncm91cCBp
+ cyByZXN0cmljdGVkLCB3aGljaCBtZWFucyB5b3UgbXVzdCBhcAEwAQEBAQ--
+X-YMailISG: o86bLboWLDssNAzUQSES2qnG.vTzU0K3wOYlDwIAyA7Bls.5
+ tug5IqUyULKlXM5keskvOvYqS1ftB3RNcwFxsfzsJ04_HD.BQQSgbQwfX3dF
+ WPwyhXZ_k1ECjFa3VkhfjoFuWSwsjV1YebBerbsMjtsiHaf17hb7yGH1qHa8
+ xnbU7cBPGpfOYwkalNk_IF.uHX5EG80h4.NC_jTKI_PC8JYuwBRPvk9yILyF
+ 14_aLI1K0K.at.YSZ7gvtNhL7B53gDIWMPzjtGxTjCW5PvptAHrDcyPtls_m
+ eCgYveMGddL_HnVodNOFDryGXDp9Vupq3HnaQlM33boM2vmLku07F0FVy5Kg
+ I46rZui3xgk6Gr9sufi.3nV.LQecqRmgYeQBHopGgI4yISgV0rDmsN518ep8
+ Kxb5CXizdwJifEFEr9FUsiCIzOmoDQrH.kkbHwxyXxgCXlgQp0x0rf9DcNmm
+ 73Se1y3Rf0ylGhyREwyUmetRa8cWQamSnJOwUWftQC33mHcbC2kja6F4K3QC
+ 1YjUA_X2PeLzpzRXxF6mYwjwtrSLDVXmJeXLwTCwreU21B_GdX.oPvHHQ4Ru
+ P529I0W88dqHLZ9IBbvpKIAjUMeotgBmjDerWYZp0lNimBhE64SvQlA.1rry
+ 4o3pctIZu3fJn0N5M0.8tBbvpWTxBd0pSrpg1jqLtjN1E_FbVXOhuqUuS0On
+ g9o37ZtFVBRzWPzb.riRDH6HyCKzhL_Xr2OpLW791hZq_YchIBAk5B1ctmxk
+ 3RZpMp650KdTC5CXnf_AGNtbqu0mUViDhzxbQ5s.pvzPXM.9vh6HOfKci8Mk
+ mzWFkLnKDn6k35Sf90GOQPTt4UOI0un5a_chQ.e0gJH6U8joM6Yui1NtthjQ
+ sD.ePWJVN5y2t2OCUTzNLAwi7g8huUasw5h.phaGhll9YAU3k5NHUzlmJjBS
+ KENOjF9738Ae8IL170MNu2OcTsHLeEbD52K17OZyomSziBt7QdkTJbC1K6XO
+ qEfYKyxnoGweykxFY7a9SiMxhX5qqbHHlB4ThL5dzC_Odnvs.tdbC3Yf9VF7
+ K_mBD0OMhtsXEfqV31Mr1Ir6e4tMRqAeFQis8k4xZiYFCc2j4wFFdGip8yIZ
+ t2ZLdkXL0R5jcCai.BG7dfNN0BrJ3jGRSeBqaF2xvR8LziIIvXXf4MgpK2W8
+ gPJCsHR11.PH47xUuUAYgz1oqJYbFRREmV2WIfgUqYzR_uuwk23MFjKZXo5M
+ uW4To2PX4wMwQwO.wOrmbb9PmNxXGxoxGi3b.f0wuR8JFmat70oWpx69Nvh6
+ Mmb.XeeR7ww_LMUALKk20i3faNhgvavbiV_uZfy1Y4k6vMAbMJlzuOkwduTF
+ JbmTNuTEAmsE6Q3TnxGcf8Ac.mOLIX8wdsQkF6Qcd26pPM1nzkhxAAqSMG3s
+ 1jx_bvL6l5E9xcHT5T7TenDcgG4UlOKphEDMPoMCFaa3BfzgwgH7603_eXbm
+ cpVUXRzxUl7Dy1gm2CJ3ZsreCVunH0cIT7wBGVCvbNNIL1IwxSwIlqmDIsKL
+ iF09z9_1BPCXEq_tkeON55uaFoMAwihHXkIY3ybEC.MwzvNXMzC3n8Dw1Z9g
+ 6M_j.0HGQRzHd2J6a.mU8y43qnISfBAORnPc2yWCJUsn6RCxWpTveZ7dGxEK
+X-RocketHELO: n12-vm4.bullet.mail.bf1.yahoo.com
+X-RocketMAILFROM: notify@yahoogroups.com
+X-RocketRCPTTO: 0-freegleplayground-owner@yahoogroups.com
+X-RocketMSGID:1452694853.343582.50850@mta1005.groups.mail.bf1.yahoo.com#0
+Authentication-Results: mta1005.groups.mail.bf1.yahoo.com  from=yahoogroups.com; domainkeys=neutral (no sig);  from=yahoogroups.com; dkim=pass (ok)
+Received: from 127.0.0.1  (EHLO n12-vm4.bullet.mail.bf1.yahoo.com) (66.196.81.211)
+  by mta1005.groups.mail.bf1.yahoo.com with SMTPS; Wed, 13 Jan 2016 14:20:53 +0000
+Received: from [72.30.235.66] by n12.bullet.mail.bf1.yahoo.com with NNFMP; 13 Jan 2016 14:20:53 -0000
+Received: from [10.193.86.52] by t3.bullet.mail.bf1.yahoo.com with NNFMP; 13 Jan 2016 14:20:53 -0000
+Date: 13 Jan 2016 06:20:53 -0800
+Received: from [127.0.0.1] by gapim4.grp.bf1.yahoo.com with NNFMP; 13 Jan 2016 14:20:53 -0000
+To: FreeglePlayground-owner@yahoogroups.com
+From: Yahoo Groups Notification <FreeglePlayground-acceptsub-u4t4hf5cvudaoyuqttnggwiazdzq@yahoogroups.com>
+Reply-To:FreeglePlayground-acceptsub-u4t4hf5cvudaoyuqttnggwiazdzq@yahoogroups.com
+Subject: APPROVE -- test@test.com wants to join FreeglePlayground
+Message-ID:<n75mg5+1jr35gc@YahooGroups.com>
+Content-Type: text/plain; charset=utf-8;
+Sender: FreeglePlayground-owner@yahoogroups.com
+X-eGroups-Moderators: FreeglePlayground
+
+
+
+
+Hello,
+
+
+The following person would like to join the FreeglePlayground group:
+Email address: test@test.com
+
+Comment from user:
+This is a comment.
+On two lines.
+
+This membership request requires your approval because the
+FreeglePlayground group is restricted, which means you must
+approve each new member.
+
+
+To approve or reject this pending membership using the web,
+please go here:
+https://groups.yahoo.com/group/FreeglePlayground/members?group=pending
+
+
+To approve this membership using email, reply to this message.
+
+
+To reject this membership using email, forward this message to
+
+
+FreeglePlayground-rejectsub-stiwqcnufdzy3dlyulnumshsrvva@yahoogroups.com
+
+
+NOTE: This membership request will expire after 14 days. If you do
+not take action within that time, this membership request will be
+automatically rejected. Yahoo! Groups does this to maintain a high
+quality of service for our users.
+
+
+Thank you for choosing Yahoo Groups.
+
+
+Regards,
+
+
+Yahoo! Groups Customer Care
+
+
+Your use of Yahoo Groups is subject to http://info.yahoo.com/legal/us/yahoo/utos/terms/

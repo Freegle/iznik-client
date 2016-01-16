@@ -179,8 +179,7 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Page.extend({
         self.$('.js-groupselect').html(self.groupSelect.render().el);
 
         // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
-        // appropriately.
-        this.listenTo(Iznik.Session, 'approvedcountschanged', _.bind(this.fetch, this));
+        // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
         this.listenTo(Iznik.Session, 'approvedcountschanged', _.bind(this.groupSelect.render, this.groupSelect));
         this.listenTo(Iznik.Session, 'approvedothercountschanged', _.bind(this.groupSelect.render, this.groupSelect));
 

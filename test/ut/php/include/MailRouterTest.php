@@ -757,6 +757,20 @@ class MailRouterTest extends IznikTest {
         assertEquals('test@test.com', $membs[0]['email']);
         assertEquals('Test User', $membs[0]['fullname']);
 
+        # And again with a join comment.
+        $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = $gid;");
+        $msg = file_get_contents('msgs/approvemembercomment');
+        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
+        $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        $ctx = NULL;
+        $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $gid ]);
+        assertEquals(1, count($membs));
+        assertEquals('test@test.com', $membs[0]['email']);
+        assertEquals('Test User', $membs[0]['fullname']);
+        assertEquals("This is a comment.\r\nOn two lines.", $membs[0]['joincomment']);
+
         error_log(__METHOD__ . " end");
     }
 }

@@ -45,7 +45,6 @@ Iznik.Views.ModTools.Pages.PendingMembers = Iznik.Views.Page.extend({
 
         var v = new Iznik.Views.PleaseWait();
         v.render();
-        console.log("Fetch", data, self.selected,self.lastFetched, self.selected != self.lastFetched);
 
         this.members.fetch({
             data: data,
@@ -135,7 +134,6 @@ Iznik.Views.ModTools.Pages.PendingMembers = Iznik.Views.Page.extend({
 
             // The type of collection we're using depends on whether we're searching.  It controls how we fetch.
             if (self.options.search) {
-                console.log("Selected search");
                 self.members = new Iznik.Collections.Members.Search(null, {
                     groupid: self.selected,
                     group: Iznik.Session.get('groups').get(self.selected),
@@ -145,7 +143,6 @@ Iznik.Views.ModTools.Pages.PendingMembers = Iznik.Views.Page.extend({
 
                 self.$('.js-searchterm').val(self.options.search);
             } else {
-                console.log("Selected");
                 self.members = new Iznik.Collections.Members(null, {
                     groupid: self.selected,
                     group: Iznik.Session.get('groups').get(self.selected),
@@ -174,8 +171,7 @@ Iznik.Views.ModTools.Pages.PendingMembers = Iznik.Views.Page.extend({
         self.$('.js-groupselect').html(self.groupSelect.render().el);
 
         // If we detect that the pending counts have changed on the server, refetch the members so that we add/remove
-        // appropriately.
-        this.listenTo(Iznik.Session, 'pendingmemberscountschanged', _.bind(this.fetch, this));
+        // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
         this.listenTo(Iznik.Session, 'pendingmemberscountschanged', _.bind(this.groupSelect.render, this.groupSelect));
         this.listenTo(Iznik.Session, 'pendingmembersothercountschanged', _.bind(this.groupSelect.render, this.groupSelect));
 
@@ -306,7 +302,7 @@ Iznik.Views.ModTools.Member.Pending = Iznik.Views.ModTools.Member.extend({
                 var anyrare = false;
 
                 _.each(sortmsgs, function (stdmsg) {
-                    if (_.contains(['Leave Pending Member', 'Reject Pending Member'], stdmsg.action)) {
+                    if (_.contains(['Leave Member', 'Reject Member'], stdmsg.action)) {
                         stdmsg.groups = [group];
                         stdmsg.member = self.model;
                         var v = new Iznik.Views.ModTools.StdMessage.Button({

@@ -202,13 +202,15 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         var subj = this.model.get('subject');
 
         if (subj) {
-            // Expand substitution strings in subject
+            // We have a pre-existing subject to include
             subj = this.substitutionStrings(subj, this.model.attributes, config, this.model.get('groups')[0]);
             subj = (stdmsg.subjpref ? stdmsg.subjpref : 'Re') + ': ' + subj +
                         (stdmsg.subjsuff ? stdmsg.subjsuff : '')
             focuson = 'js-text';
         } else {
-            subj = (stdmsg.subjpref ? stdmsg.subjpref : '') + (stdmsg.subjsuff ? stdmsg.subjsuff : '')
+            // Just expand substitutions in the stdmsg.
+            subj = (stdmsg.subjpref ? stdmsg.subjpref : '') + (stdmsg.subjsuff ? stdmsg.subjsuff : '');
+            this.substitutionStrings(subj, this.model.attributes, config, this.model.get('groups')[0]);
             focuson = 'js-subject';
         }
 
@@ -220,6 +222,7 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         var msg = this.model.get('textbody');
 
         if (msg) {
+            // We have an existing body to include.
             msg = '> ' + msg.replace(/((\r\n)|\r|\n)/gm, '\n> ');
 
             // Add text
@@ -228,7 +231,8 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
             // Expand substitution strings in body
             msg = this.substitutionStrings(msg, this.model.attributes, config, this.model.get('groups')[0]);
         } else {
-            msg = stdmsg.body;
+            // Just expand substitutions in the stdmsg.
+            msg = this.substitutionStrings(stdmsg.body, this.model.attributes, config, this.model.get('groups')[0]);
         }
 
         // Put it in
@@ -240,7 +244,9 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         });
     },
 
-    substitutionStrings: function(text, message, config, group) {
+    substitutionStrings: function(text, model, config, group) {
+        console.log("Substitution strings", model);
+
         var self = this;
 
         if (config) {
@@ -256,9 +262,9 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         text = text.replace(/\$nummembers/g, group.membercount);
         text = text.replace(/\$nummods/g, group.nummods);
 
-        text = text.replace(/\$origsubj/g, message.subject);
+        text = text.replace(/\$origsubj/g, model.subject);
 
-        var history = message.fromuser.messagehistory;
+        var history = model.fromuser.messagehistory;
         var recentmsg = '';
         var count = 0;
         _.each(history, function(msg) {
@@ -284,26 +290,25 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
             text = text.replace(new RegExp('\\$numrecent' + keyword.toLowerCase(), 'gim'), count);
         });
 
-        //if (message.hasOwnProperty('comment')) {
-        //    text = text.replace(/\$memberreason/g, message['comment'].trim());
-        // TODO }
+        if (model.hasOwnProperty('joincomment')) {
+            text = text.replace(/\$memberreason/g, model.joincomment);
+        }
+
+        if (model.hasOwnProperty('joined')) {
+            text = text.replace(/\$membersubdate/g, formatDate(model.joined, false, false));
+        }
 
         // TODO $otherapplied
 
-        text = text.replace(/\$membermail/g, message.fromaddr);
-        var from = message.fromuser.hasOwnProperty('realemail') ? message.fromuser.realemail : message.fromaddr;
+        text = text.replace(/\$membermail/g, model.fromaddr);
+        var from = model.fromuser.hasOwnProperty('realemail') ? model.fromuser.realemail : model.fromaddr;
         var fromid = from.substring(0, from.indexOf('@'));
         text = text.replace(/\$memberid/g, fromid);
 
-        //if (message['headerdate']) {
-        //    text = text.replace(/\$membersubdate/g, formatDate(message['headerdate'], false, false));
-        //}
-        //
-
         var summ = '';
 
-        if (message.hasOwnProperty('duplicates')) {
-            _.each(message.duplicates, function(m) {
+        if (model.hasOwnProperty('duplicates')) {
+            _.each(model.duplicates, function(m) {
                 summ += moment(m.date).format('lll') + " - " + m.subject + "\n";
             });
 

@@ -199,6 +199,7 @@ class MailRouter
                 $reject = NULL;
                 $email = NULL;
                 $name = NULL;
+                $comment = NULL;
 
                 // Looks like this: FreeglePlayground-rejectsub-stiwqcnufdzy3dlyulnumshsrvva@yahoogroups.com
                 if (preg_match('/^(.*-rejectsub-.*yahoogroups.*?)($| |=)/im', $all, $matches) && count($matches) == 3) {
@@ -212,6 +213,10 @@ class MailRouter
                         $name = $matches[1];
                         $email = $matches[2];
                     }
+                }
+
+                if (preg_match('/^Comment from user\:(.*?)This membership request/ims', $all, $matches) && count($matches) == 2) {
+                    $comment = trim($matches[1]);
                 }
 
                 if ($approve && $reject && $email) {
@@ -241,6 +246,7 @@ class MailRouter
                         if ($u->addMembership($gid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING)) {
                             $u->setMembershipAtt($gid, 'yahooapprove', $approve);
                             $u->setMembershipAtt($gid, 'yahooreject', $reject);
+                            $u->setMembershipAtt($gid, 'joincomment', $comment);
 
                             # We handled it.
                             $ret = MailRouter::TO_SYSTEM;

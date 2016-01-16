@@ -45,10 +45,10 @@ function memberships() {
                 if ($me) {
                     $groupids = [];
 
-                    if ($userid && (($groupid && $me->isModOrOwner($groupid)) || $userid == $me->getId())) {
+                    if ($groupid && ($me->isModOrOwner($groupid) || ($userid && $userid == $me->getId()))) {
                         # Get just one.  We can get this if we're a mod or it's our own.
                         $groupids[] = $groupid;
-                        $limit = 1;
+                        $limit = $userid ? 1 : $limit;
                     } else {
                         # No group was specified - use the current memberships, if we have any, excluding those that our
                         # preferences say shouldn't be in.

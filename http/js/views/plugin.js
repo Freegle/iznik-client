@@ -215,6 +215,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                     $('#js-plugindisconnected').fadeOut('slow', function() {
                         $('#js-pluginconnected').fadeIn('slow');
+                        $('#js-pluginbuildup').hide();
                     })
                 } else {
                     $('.pluginonly').hide();
@@ -879,9 +880,10 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
                 var thisone = {
                     email: member['email'],
                     yahooUserId: member['userId'],
-                    yahooPostingStatus: member.hasOwnProperty('postingStatus') ? member['postingStatus'] : null,
+                    yahooPostingStatus: member.hasOwnProperty('postingStatus') ? member.postingStatus : null,
                     yahooDeliveryType: member.hasOwnProperty(self.deliveryField) ? member[self.deliveryField] : null,
-                    yahooModeratorStatus: member.hasOwnProperty('moderatorStatus') ? member['moderatorStatus'] : 'MEMBER',
+                    yahooModeratorStatus: member.hasOwnProperty('moderatorStatus') ? member.moderatorStatus : 'MEMBER',
+                    joincomment: member.hasOwnProperty('joinComment') ? member.joinComment : null,
                     name: member['yid'],
                     date: mom.format()
                 };
