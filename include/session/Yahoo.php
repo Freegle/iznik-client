@@ -73,7 +73,7 @@ class Yahoo
                     # one would fail.  Bigger fish to fry.
                     #
                     # We don't have the firstname/lastname split, only a single name.  Way two go.
-                    $id = $u->create(NULL, NULL, $attrs['namePerson']);
+                    $id = $u->create(NULL, NULL, presdef('namePerson', $attrs, NULL));
 
                     if ($id) {
                         # Make sure that we have the Yahoo email recorded as one of the emails for this user.
@@ -95,7 +95,7 @@ class Yahoo
 
                 $u = new User($this->dbhr, $this->dbhm, $id);
 
-                if ($u->getPrivate('fullname') != $attrs['namePerson']) {
+                if ($u->getPrivate('fullname') != presdef('namePerson', $attrs, NULL)) {
                     # Overwrite this with the name from Yahoo; specifically because we might have syncd the membership
                     # without a good name.
                     $u->setPrivate('fullname', $attrs['namePerson']);

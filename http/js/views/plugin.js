@@ -378,7 +378,14 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         if (ret.hasOwnProperty('ygData')) {
             if (ret.ygData.hasOwnProperty('allMyGroups')) {
                 _.each(ret.ygData.allMyGroups, function(group) {
-                    if (group.membership == "MOD" || group.membership == "OWN") {
+                    // We are interest in groups where we are a mod or an owner, and where we have permissions both
+                    // for pending messages and pending members.  ModTools doesn't distinguish between these as
+                    // separate permissions in the way Yahoo does, and if we don't have pending member permissions
+                    // we can't invite ourselves to confirm that we're a mod.
+                    if ((group.membership == "MOD" || group.membership == "OWN") &&
+                        (group.hasOwnProperty('pendingCountMap') &&
+                        group.pendingCountMap.hasOwnProperty('MESSAGE_COUNT') &&
+                        group.pendingCountMap.hasOwnProperty('MEM_COUNT'))) {
                         self.yahooGroups.push(group.groupName.toLocaleLowerCase());
                     }
                 });
