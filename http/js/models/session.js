@@ -107,7 +107,6 @@ Iznik.Models.Session = IznikModel.extend({
                                 // deleting them.  There's a minor timing window where a message could arrive as
                                 // one is deleted, leaving the counts the same, but this will resolve itself when
                                 // our current count drops to zero, or worst case when we refresh.
-                                console.log("Trigger session ", count.ev);
                                 Iznik.Session.trigger(count.ev);
 
                                 if (ret.work[count.fi] > 0 && count.sound) {
