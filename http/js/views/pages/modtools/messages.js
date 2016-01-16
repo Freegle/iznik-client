@@ -557,7 +557,6 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
         var self = this;
         var message = self.model.get('message');
         var member = self.model.get('member');
-        console.log("deleteMe", message, member);
 
         if (this.options.config) {
             // This is a configured button; open the modal.

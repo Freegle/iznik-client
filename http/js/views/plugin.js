@@ -256,7 +256,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             type: 'GET',
             url: API + 'plugin',
             success: function(ret) {
-                if (ret.ret == 0 && ret.plugin.length > 0) {
+                if (ret.ret == 0) {
                     _.each(ret.plugin, function(work, index, list) {
                         work.workid = work.id;
                         work = _.extend(work, jQuery.parseJSON(work.data));
@@ -344,6 +344,24 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                                     model: new IznikModel(work)
                                 }).render());
                                 break;
+                            }
+                        }
+                    });
+
+                    // Now look for work which has been removed from the server because it isn't necessary any more.
+                    _.each(_.union(self.work, self.retrying), function(item, index, list) {
+                        if (item.server) {
+                            var got = false;
+
+                            _.each(ret.plugin, function (work, index, list) {
+                                if (item.model.get('id') == work.id) {
+                                    got = true;
+                                }
+                            });
+
+                            if (!got) {
+                                // This item of work no longer needs doing by us, so remove it from the list.
+                                item.drop();
                             }
                         }
                     });
