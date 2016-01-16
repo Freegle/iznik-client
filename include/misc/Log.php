@@ -30,6 +30,7 @@ class Log
     const SUBTYPE_RELEASE = 'Release';
     const SUBTYPE_FAILURE = 'Failure';
     const SUBTYPE_JOINED = 'Joined';
+    const SUBTYPE_APPLIED = 'Applied';
     const SUBTYPE_LEFT = 'Left';
     const SUBTYPE_REPLIED = 'Replied';
     const SUBTYPE_MAILED = 'Mailed';

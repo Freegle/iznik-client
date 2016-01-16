@@ -259,7 +259,7 @@ class User extends Entity
             $l = new Log($this->dbhr, $this->dbhm);
             $l->log([
                 'type' => Log::TYPE_GROUP,
-                'subtype' => Log::SUBTYPE_JOINED,
+                'subtype' => $collection == MembershipCollection::PENDING ? Log::SUBTYPE_APPLIED : Log::SUBTYPE_JOINED,
                 'user' => $this->id,
                 'byuser' => $me ? $me->getId() : NULL,
                 'groupid' => $groupid

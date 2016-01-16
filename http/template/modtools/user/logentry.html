@@ -56,7 +56,7 @@
             <% } else if (subtype == 'Merged') { %>
             {{text}}
             <% } else if (subtype == 'Mailed') { %>
-            Mod sent <% if (obj.stdmsg) { %>standard message <em>{{stdmsg.title}}</em><% } else { %>mail<% } %>
+            Mod sent <% if (obj.stdmsg) { %>standard message <em>{{stdmsg.title}}</em><% } else if (obj.text) { %>{{text}}<% } else { %>mail<% } %>
             <% } else { %>
                 <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>
