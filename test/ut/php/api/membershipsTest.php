@@ -336,11 +336,7 @@ class membershipsAPITest extends IznikAPITest {
         ]);
         assertEquals(0, $ret['ret']);
 
-        $ret = $this->call('memberships', 'GET', [
-            'groupid' => $this->groupid,
-            'members' => TRUE
-        ]);
-        error_log(var_export($ret, true));
+        $ret = $this->call('memberships', 'GET', []);
 
         assertEquals(3, count($ret['members']));
         assertEquals('test3@test.com', $ret['members'][0]['email']);

@@ -77,12 +77,14 @@ class yahooTest extends IznikTest {
         $mock->method('validate')->willReturn(true);
         $mock->method('getAttributes')->willReturn([
             'contact/email' => $email,
-            'name' => 'Test User'
+            'namePerson' => 'Test User'
         ]);
         $y->setOpenid($mock);
 
         # Login first time - should work
         list($session, $ret) = $y->login();
+        $id = $session->getId();
+        $this->dbhm->preExec("UPDATE users SET fullname = 'wrong' WHERE id = $id;");
         assertNotNull($session);
         assertEquals(0, $ret['ret']);
 
