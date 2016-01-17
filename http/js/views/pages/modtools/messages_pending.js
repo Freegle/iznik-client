@@ -109,9 +109,11 @@ Iznik.Views.ModTools.Pages.PendingMessages = Iznik.Views.Page.extend({
 
 Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
     template: 'modtools_messages_pending_message',
+    collectionType: 'Pending',
 
     events: {
         'click .js-viewsource': 'viewSource',
+        'click .js-excludelocation': 'excludeLocation',
         'click .js-rarelyused': 'rarelyUsed',
         'click .js-savesubj': 'saveSubject',
         'click .js-edit': 'edit'

@@ -6,6 +6,7 @@ if (!defined('UT_DIR')) {
 require_once UT_DIR . '/IznikTest.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/misc/Location.php';
+require_once IZNIK_BASE . '/include/message/Message.php';
 
 
 /**
@@ -27,7 +28,7 @@ class locationTest extends IznikTest {
         # We test around Tuvalu.  If you're setting up Tuvalu Freegle you may need to change that.
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 8.3 AND swlat <= 8.7;");
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 179.1 AND swlat <= 179.3;");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvulu%';");
+        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE '??%';");
         for ($swlat = 8.3; $swlat <= 8.6; $swlat += 0.1) {
             for ($swlng = 179.1; $swlng <= 179.3; $swlng += 0.1) {
@@ -57,7 +58,7 @@ class locationTest extends IznikTest {
         error_log(__METHOD__);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $id = $l->create(NULL, 'Tuvulu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
         assertNotNull($id);
         $l = new Location($this->dbhr, $this->dbhm, $id);
         $atts = $l->getPublic();
@@ -82,11 +83,11 @@ class locationTest extends IznikTest {
         error_log("Postcode id $pcid");
         assertNotNull($pcid);
 
-        $areaid = $l->create(NULL, 'Tuvulu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.21 8.54, 179.21 8.53))');
+        $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.21 8.54, 179.21 8.53))');
         error_log("Area id $areaid");
         assertNotNull($areaid);
 
-        $id = $l->create(NULL, 'Tuvulu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
         error_log("Loc id $id");
         $l = new Location($this->dbhr, $this->dbhm, $id);
         $atts = $l->getPublic();
@@ -117,7 +118,7 @@ class locationTest extends IznikTest {
         $mock->method('preExec')->willThrowException(new Exception());
         $l->setDbhm($mock);
 
-        $id = $l->create(NULL, 'Tuvulu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
         assertNull($id);
 
         error_log(__METHOD__ . " end");
@@ -135,11 +136,11 @@ class locationTest extends IznikTest {
         $g->setPrivate('lat', 8.4);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $id = $l->create(NULL, 'Tuvulu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
         $l = new Location($this->dbhr, $this->dbhm, $id);
 
-        $res = $l->search("tuvulu", $gid);
+        $res = $l->search("Tuvalu", $gid);
         error_log(var_export($res, true));
         assertEquals(1, count($res));
         assertEquals($id, $res[0]['id']);
@@ -158,9 +159,9 @@ class locationTest extends IznikTest {
         assertEquals($id, $res[0]['id']);
 
         # Make sure that exact matches trump prefix matches
-        $id2 = $l->create(NULL, 'Tuvulu High', 'Road', 'POINT(179.2167 8.53333)');
+        $id2 = $l->create(NULL, 'Tuvalu High', 'Road', 'POINT(179.2167 8.53333)');
 
-        $res = $l->search("tuvulu high", $gid, 1);
+        $res = $l->search("Tuvalu high", $gid, 1);
         assertEquals(1, count($res));
         assertEquals($id2, $res[0]['id']);
 
@@ -173,17 +174,29 @@ class locationTest extends IznikTest {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->findByShortName('');
+        $gid = $g->findByShortName('TowerHamletsRecycle');
         $g = new Group($this->dbhr, $this->dbhm, $gid);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $res = $l->search("WANTED: drawers of any kind (Stockbridge EH4)", $gid);
+        #$res = $l->search("", $gid);
+        #$res = $l->search("", $gid);
+        $res = $l->search("OFFER: Blue two seater sofa. (Bow, east London)", $gid);
 
         foreach ($res as $ares) {
             error_log("{$ares['id']} {$ares['name']}");
         }
 
+        $m = new Message($this->dbhr, $this->dbhm);
+        foreach ([
+                 "TAKEN: Beanbag (nylon) - E14",
+                 "OFFER: Blue two seater sofa. (Bow, east London)",
+                 "WANTED: IKEA HAMPEN rugs (Mile End/Bow/Stratford/N.Woolwich)"
+             ] as $subj) {
+            error_log("$subj => " . $m->suggestSubject($gid, $subj));
+        }
+
         error_log(__METHOD__ . " end");
     }
 }
+
 

@@ -1457,11 +1457,12 @@ class Message
                     $subject = preg_replace('/\s+/', ' ', $subject);
                     $subject = trim($subject);
 
-                    # Find a location in the subject.
+                    # Find a location in the subject.  Only seek ) at end because if it's in the middle it's probably
+                    # not a location.
                     $loc = NULL;
                     $l = new Location($this->dbhr, $this->dbhm);
 
-                    if (preg_match('/(.*)\((.*)\)/', $subject, $matches) ||
+                    if (preg_match('/(.*)\((.*)\)$/', $subject, $matches) ||
                         preg_match('/(.*)\-(.*)/', $subject, $matches)) {
                         # Find the residue, which will be the item, and tidy it.
                         $residue = trim($matches[1]);

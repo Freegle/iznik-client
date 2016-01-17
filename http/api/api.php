@@ -31,6 +31,7 @@ require_once(IZNIK_BASE . '/http/api/supporters.php');
 require_once(IZNIK_BASE . '/http/api/group.php');
 require_once(IZNIK_BASE . '/http/api/plugin.php');
 require_once(IZNIK_BASE . '/http/api/user.php');
+require_once(IZNIK_BASE . '/http/api/locations.php');
 require_once(IZNIK_BASE . '/http/api/image.php');
 
 $includetime = microtime(true) - $scriptstart;
@@ -129,6 +130,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'group':
                     $ret = group();
+                    break;
+                case 'locations':
+                    $ret = locations();
                     break;
                 case 'modconfig':
                     $ret = modconfig();

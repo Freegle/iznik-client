@@ -600,6 +600,36 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+  /locations/{id}:
+    post:
+      summary: Location action
+      tags: [Locations]
+      description: |
+        Perform an action on a location
+      parameters:
+      - name: id
+        in: path
+        description: ID of the location
+        type: number
+        require: true
+      - name: groupid
+        in: body
+        description: ID of the group
+        type: number
+        require: true
+      - name: messageid
+        in: body
+        description: ID of the message to resuggest (optional)
+        type: number
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
   /memberships:
     get:
       summary: Get membership(s)

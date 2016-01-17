@@ -86,7 +86,7 @@ class Spam {
                 foreach ($users as $user) {
                     $list[] = $user['fromname'];
                 }
-                return(array(true, Spam::REASON_IP_USED_FOR_DIFFERENT_USERS, "IP $ip " . ($host ? "($host)" : "") . " recently used for $numusers different users (" . implode(',', $list) . ")"));
+                return(array(true, Spam::REASON_IP_USED_FOR_DIFFERENT_USERS, "IP $ip " . ($host ? "($host)" : "") . " recently used for $numusers different users (" . implode(', ', $list) . ")"));
             }
 
             # Now see if this IP has been used for too many different groups.  That's likely to
@@ -100,7 +100,7 @@ class Spam {
                 foreach ($groups as $group) {
                     $list[] = $group['nameshort'];
                 }
-                return(array(true, Spam::REASON_IP_USED_FOR_DIFFERENT_GROUPS, "IP $ip ($host) recently used for $numgroups different groups (" . implode(',', $list) . ")"));
+                return(array(true, Spam::REASON_IP_USED_FOR_DIFFERENT_GROUPS, "IP $ip ($host) recently used for $numgroups different groups (" . implode(', ', $list) . ")"));
             }
         }
 

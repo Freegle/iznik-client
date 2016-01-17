@@ -190,10 +190,12 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Page.extend({
 
 Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
     template: 'modtools_messages_approved_message',
+    collectionType: 'Approved',
 
     events: {
         'click .js-delete' : 'deleteMe',
         'click .js-viewsource': 'viewSource',
+        'click .js-excludelocation': 'excludeLocation',
         'click .js-rarelyused': 'rarelyUsed'
     },
 

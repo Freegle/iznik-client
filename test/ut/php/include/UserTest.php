@@ -218,7 +218,7 @@ class userTest extends IznikTest {
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
         $msg = file_get_contents('msgs/basic');
-        $msg = str_replace('Basic test', 'OFFER: Test item (Tuvulu High Street)', $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);

@@ -68,7 +68,7 @@ function message() {
                         'ret' => 0,
                         'status' => 'Success',
                         'groups' => [],
-                        'message' => $m->getPublic()
+                        'message' => $m->getPublic(FALSE, FALSE, $collection == MessageCollection::PENDING)
                     ];
 
                     foreach ($ret['message']['groups'] as &$group) {

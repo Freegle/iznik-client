@@ -111,6 +111,7 @@ Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
 
 Iznik.Views.ModTools.Message.Spam = Iznik.Views.ModTools.Message.extend({
     template: 'modtools_spam_message',
+    collectionType: 'Spam',
 
     events: {
         'click .js-notspam': 'notspam',

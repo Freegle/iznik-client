@@ -44,6 +44,46 @@ Iznik.Views.ModTools.Message = IznikView.extend({
         v.render();
     },
 
+    excludeLocation: function(e) {
+        var self = this;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        var v = new Iznik.Views.PleaseWait({
+            timeout: 1
+        });
+        v.render();
+
+        _.each(self.model.get('groups'), function(group) {
+            var groupid = group.groupid;
+            console.log("Exclude location", self.model.get('location').id);
+            $.ajax({
+                type: 'POST',
+                url: API + 'locations',
+                data: {
+                    action: 'Exclude',
+                    id: self.model.get('location').id,
+                    groupid: groupid,
+                    messageid: self.model.get('id')
+                }, success: function (ret) {
+                    // We should have a new suggestion
+                    self.model.fetch({
+                        data: {
+                            groupid: groupid,
+                            collection: self.collectionType
+                        }
+                    }).then(function() {
+                        console.log("New location", self.model.get('location').id);
+                        self.render();
+                    });
+
+                    v.close();
+                }
+            });
+        });
+    },
+
     showDuplicates: function() {
         var self = this;
 

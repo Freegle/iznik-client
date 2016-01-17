@@ -55,7 +55,7 @@ class Location extends Entity
             $grids = $this->dbhr->preQuery($sql, [ $id ]);
             foreach ($grids as $grid) {
                 $gridid = $grid['gridid'];
-                $sql = "UPDATE locations SET gridid = ? WHERE id = ?;";
+                $sql = "UPDATE locations SET gridid = ?, maxdimension = GetMaxDimension(geometry) WHERE id = ?;";
                 $this->dbhm->preExec($sql, [ $grid['gridid'], $id ]);
             }
 
@@ -162,7 +162,15 @@ class Location extends Entity
         # we look in the same or adjacent grid squares.
         $gridids = [];
         $ret = [];
-        
+
+        # We want to exclude some locations on a per group basis
+        $exclgroup = " LEFT JOIN locations_excluded ON locations.id = locations_excluded.locationid AND locations_excluded.groupid = " . intval($groupid) . " ";
+
+        # Exclude all numeric locations (there are some in OSM).  Also exclude amenities and shops, otherwise we get
+        # some silly mappings (e.g. London).
+        $exclude = " AND NOT canon REGEXP '^-?[0-9]+$' AND osm_amenity = 0 AND osm_shop = 0 AND locations_excluded.locationid IS NULL ";
+        #$exclude = " AND NOT canon REGEXP '^-?[0-9]+$' AND osm_amenity = 0 AND osm_shop = 0 AND locations.id NOT IN (SELECT locationid FROM locations_excluded WHERE groupid = " . intval($groupid) . ") ";
+
         # Find the gridid for the group.
         $sql = "SELECT locations_grids.* FROM locations_grids INNER JOIN groups ON groups.id = ? AND swlat <= groups.lat AND swlng <= groups.lng AND nelat > groups.lat AND nelng > groups.lng;";
         #error_log("$sql $groupid");
@@ -186,7 +194,7 @@ class Location extends Entity
             if (count($gridids) > 0) {
                 # First we do a simple match.  If the location is correct, that will find it quickly.
                 $term2 = $this->dbhr->quote($this->canon($term));
-                $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE canon = $term2 AND gridid IN (" . implode(',', $gridids) . ") ORDER BY LENGTH(canon) ASC, popularity DESC LIMIT $limit;";
+                $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations $exclgroup WHERE canon = $term2 AND gridid IN (" . implode(',', $gridids) . ") $exclude ORDER BY LENGTH(canon) ASC, popularity DESC LIMIT $limit;";
                 #error_log("Simple match $sql");
                 $locs = $this->dbhr->query($sql);
 
@@ -202,10 +210,8 @@ class Location extends Entity
                 # We want the matches that are closest in length to the term we're trying to match first
                 # (you might have 'Stockbridge' and 'Stockbridge Church Of England Primary School'), then ordered
                 # by most popular.
-                #
-                # Exclude all numeric locations (there are some in OSM).
                 if ($limit > 0) {
-                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE name REGEXP CONCAT('[[:<:]]', " . $this->dbhr->quote(trim($term)) . ", '[[:>:]]') AND gridid IN (" . implode(',', $gridids) . ") AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
+                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations $exclgroup WHERE name REGEXP CONCAT('[[:<:]]', " . $this->dbhr->quote(trim($term)) . ", '[[:>:]]') AND gridid IN (" . implode(',', $gridids) . ") $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
                     #error_log("%..% $sql");
                     $locs = $this->dbhr->query($sql);
 
@@ -220,9 +226,8 @@ class Location extends Entity
                     # two locations, most commonly a place and a postcode.  So do an (even slower) search to find
                     # locations in our table which appear somewhere in the subject.  Ignore very short ones.
                     #
-                    # We also order in ascending order of the size of what we find, so that we pick the most specific
-                    # first.
-                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND LENGTH(canon) > 2 AND " . $this->dbhr->quote(trim($term)) . " REGEXP CONCAT('[[:<:]]', name, '[[:>:]]') AND NOT name REGEXP '^-?[0-9]+$' ORDER BY ABS(LENGTH(name) - " . strlen($term) . "), GetMaxDimension(locations.geometry) ASC, popularity DESC LIMIT $limit;";
+                    # We also order to find the one most similar in length.
+                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations $exclgroup WHERE gridid IN (" . implode(',', $gridids) . ") AND LENGTH(canon) > 2 AND " . $this->dbhr->quote(trim($term)) . " REGEXP CONCAT('[[:<:]]', name, '[[:>:]]') $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . "), GetMaxDimension(locations.geometry) ASC, popularity DESC LIMIT $limit;";
                     #error_log("Substring $sql");
                     $locs = $this->dbhr->query($sql);
 
@@ -235,8 +240,8 @@ class Location extends Entity
                 if ($limit > 0) {
                     # We still didn't find as many results as we wanted.  Do a (slow) search using a Damerau-Levenshtein
                     # distance function to spot typos, transpositions, spurious spaces etc.
-                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND DAMLEVLIM(`canon`, " .
-                        $this->dbhr->quote($this->canon($term)) . ", " . strlen($term) . ") < 2 AND NOT canon REGEXP '^-?[0-9]+$' ORDER BY ABS(LENGTH(canon) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
+                    $sql = "SELECT X(GetCenterPoint(geometry)) AS lng, Y(GetCenterPoint(geometry)) AS lat, locations.* FROM locations $exclgroup WHERE gridid IN (" . implode(',', $gridids) . ") AND DAMLEVLIM(`canon`, " .
+                        $this->dbhr->quote($this->canon($term)) . ", " . strlen($term) . ") < 2 $exclude ORDER BY ABS(LENGTH(canon) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
                     #error_log("DamLeve $sql");
                     $locs = $this->dbhr->query($sql);
 
@@ -289,6 +294,26 @@ class Location extends Entity
         }
 
         return($ret);
+    }
+
+    public function exclude($groupid, $userid) {
+        # We want to exclude a specific location.  Exclude all locations with the same name as this one; our DB has
+        # duplicate names.
+        $sql = "SELECT id FROM locations WHERE name = (SELECT name FROM locations WHERE id = ?);";
+        $locs = $this->dbhr->preQuery($sql, [ $this->id ]);
+
+        foreach ($locs as $loc) {
+            # Mark location as blocked for this group, so it won't be suggested again.
+            $sql = "REPLACE INTO locations_excluded (locationid, groupid, userid) VALUES (?,?,?);";
+            $rc = $this->dbhm->preExec($sql, [
+                $loc['id'],
+                $groupid,
+                $userid
+            ]);
+        }
+
+        # Not the end of the world if this doesn't work.
+        return(TRUE);
     }
 
     public function delete()

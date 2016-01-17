@@ -32,7 +32,7 @@ class messageTest extends IznikTest {
         # We test around Tuvalu.  If you're setting up Tuvalu Freegle you may need to change that.
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 8.3 AND swlat <= 8.7;");
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 179.1 AND swlat <= 179.3;");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvulu%';");
+        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         for ($swlat = 8.3; $swlat <= 8.6; $swlat += 0.1) {
             for ($swlng = 179.1; $swlng <= 179.3; $swlng += 0.1) {
                 $nelat = $swlat + 0.1;
@@ -123,7 +123,7 @@ class messageTest extends IznikTest {
         error_log(__METHOD__);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $id = $l->create(NULL, 'Tuvulu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
@@ -135,7 +135,7 @@ class messageTest extends IznikTest {
         $m = new Message($this->dbhr, $this->dbhm);
 
         $msg = file_get_contents('msgs/basic');
-        $msg = str_replace('Basic test', 'OFFER: Test item (Tuvulu High Street)', $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
@@ -146,15 +146,15 @@ class messageTest extends IznikTest {
         assertEquals($id, $atts['locationid']);
         assertEquals($id, $atts['location']['id']);
 
-        $goodsubj = "OFFER: Test (Tuvulu High Street)";
+        $goodsubj = "OFFER: Test (Tuvalu High Street)";
 
         # Test variants which should all get corrected to the same value
         assertEquals($goodsubj, $m->suggestSubject($gid, $goodsubj));
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test (High Street)"));
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR - Test  - (High Street)"));
-        assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test Tuvulu High Street"));
-        assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test TUVULU HIGH STREET"));
-        assertEquals("OFFER: test (Tuvulu High Street)", $m->suggestSubject($gid, "OFFR TEST TUVULU HIGH STREET"));
+        assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test Tuvalu High Street"));
+        assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test Tuvalu HIGH STREET"));
+        assertEquals("OFFER: test (Tuvalu High Street)", $m->suggestSubject($gid, "OFFR TEST Tuvalu HIGH STREET"));
 
         error_log(__METHOD__ . " end");
     }
