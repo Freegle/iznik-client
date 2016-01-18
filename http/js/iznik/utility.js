@@ -91,6 +91,10 @@ var decodeEntities = (function() {
     return decodeHTMLEntities;
 })();
 
+function encodeHTMLEntities(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 // Apply a custom order to a set of messages
 function orderedMessages(stdmsgs, order) {
     var sortmsgs = [];

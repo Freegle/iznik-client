@@ -152,10 +152,11 @@ Iznik.Models.Message = IznikModel.extend({
                                         textContent: htmlbody
                                     });
                                 } else if (textbody) {
+                                    // Convert to HTML
                                     parts.push({
                                         msgPartId: msg.messageParts[0].msgPartId,
-                                        contentType: 'text/plain',
-                                        textContent: textbody
+                                        contentType: 'text/html',
+                                        textContent: '<p>' + textbody + '</p>'
                                     });
                                 }
 
