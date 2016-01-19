@@ -577,7 +577,7 @@ class User extends Entity
         return($rc);
     }
 
-    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL) {
+    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE) {
         $atts = parent::getPublic();
 
         if ($history) {
@@ -706,7 +706,9 @@ class User extends Entity
 
         $atts['displayname'] = $this->getName();
 
-        $atts['comments'] = $this->getComments();
+        if ($comments) {
+            $atts['comments'] = $this->getComments();
+        }
 
         return($atts);
     }
@@ -1103,7 +1105,10 @@ class User extends Entity
 
             if (pres('byuserid', $comment)) {
                 $u = new User($this->dbhr, $this->dbhm, $comment['byuserid']);
-                $comment['byuser'] = $u->getPublic();
+
+                # Don't ask for comments to stop stack overflow.
+                $ctx = NULL;
+                $comment['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
             }
         }
 
