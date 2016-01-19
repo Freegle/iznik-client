@@ -16,6 +16,8 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 $u = new User($dbhr, $dbhm);
 $g = new Group($dbhr, $dbhm);
 
+$dbhm->preExec("DELETE FROM users_comments;");
+
 $oldusers = $dbhold->query("SELECT membercomments.*, groups.groupname, moderators.email AS modemail FROM membercomments INNER JOIN groups ON membercomments.groupid = groups.groupid INNER JOIN moderators ON membercomments.modid = moderators.uniqueid;");
 $count = 0;
 foreach ($oldusers as $user) {
@@ -27,24 +29,23 @@ foreach ($oldusers as $user) {
     if (!$id) {
         #error_log("Unknown {$user['email']} {$user['yahooid']}, skip");
     } else {
-        #error_log("Found $id for {$user['email']} {$user['yahooid']}");
+        #error_log("Found $id for {$user['email']} {$user['yahooid']} on {$user['groupname']}");
         $u = new User($dbhr, $dbhm, $id);
-        $dbhm->preExec("DELETE FROM users_comments WHERE userid = $id;");
         $mysqldate = date ("Y-m-d", strtotime($user['date']));
         $gid = $g->findByShortName($user['groupname']);
 
         if ($gid) {
-            $user1 = $user['comment'] != '' ? $user['comment'] : NULL;
-            $user2 = $user['user1'] != '' ? $user['user1'] : NULL;
-            $user3 = $user['user2'] != '' ? $user['user2'] : NULL;
-            $user4 = $user['user3'] != '' ? $user['user3'] : NULL;
-            $user5 = $user['user4'] != '' ? $user['user4'] : NULL;
-            $user6 = $user['user5'] != '' ? $user['user5'] : NULL;
-            $user7 = $user['user6'] != '' ? $user['user6'] : NULL;
-            $user8 = $user['user7'] != '' ? $user['user7'] : NULL;
-            $user9 = $user['user8'] != '' ? $user['user8'] : NULL;
-            $user10 = $user['user9'] != '' ? $user['user9'] : NULL;
-            $user11 = $user['user10'] != '' ? $user['user10'] : NULL;
+            $user1 = trim($user['comment']) != '' ? $user['comment'] : NULL;
+            $user2 = trim($user['user1']) != '' ? $user['user1'] : NULL;
+            $user3 = trim($user['user2']) != '' ? $user['user2'] : NULL;
+            $user4 = trim($user['user3']) != '' ? $user['user3'] : NULL;
+            $user5 = trim($user['user4']) != '' ? $user['user4'] : NULL;
+            $user6 = trim($user['user5']) != '' ? $user['user5'] : NULL;
+            $user7 = trim($user['user6']) != '' ? $user['user6'] : NULL;
+            $user8 = trim($user['user7']) != '' ? $user['user7'] : NULL;
+            $user9 = trim($user['user8']) != '' ? $user['user8'] : NULL;
+            $user10 = trim($user['user9']) != '' ? $user['user9'] : NULL;
+            $user11 = trim($user['user10']) != '' ? $user['user10'] : NULL;
 
             $id = $u->addComment($gid,
                 $user1,
@@ -80,12 +81,14 @@ foreach ($oldusers as $user) {
             }
 
             $dbhm->preExec("UPDATE users_comments SET date = '$mysqldate' WHERE id = $id;");
+        } else {
+            error_log("Ignore comment for group {$user['groupname']}");
         }
+    }
 
-        $count++;
-        if ($count % 1000 == 0) {
-            error_log("...$count");
-        }
+    $count++;
+    if ($count % 1000 == 0) {
+        error_log("...$count");
     }
 }
 
