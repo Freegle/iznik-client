@@ -6,7 +6,6 @@ function stdmsg() {
 
     $me = whoAmI($dbhr, $dbhm);
 
-    # The id parameter can be an ID or a nameshort.
     $id = presdef('id', $_REQUEST, NULL);
     $configid = presdef('configid', $_REQUEST, NULL);
     $s = new StdMessage($dbhr, $dbhm, $id);

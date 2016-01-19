@@ -1110,6 +1110,29 @@ class User extends Entity
         return($comments);
     }
 
+    public function getComment($id) {
+        # We can only see comments on groups on which we have mod status.
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $groupids = $me ? $me->getModeratorships() : [];
+        $groupids = count($groupids) == 0 ? [0] : $groupids;
+
+        $sql = "SELECT * FROM users_comments WHERE id = ? AND groupid IN (" . implode(',', $groupids) . ") ORDER BY date DESC;";
+        $comments = $this->dbhr->preQuery($sql, [ $id ]);
+
+        foreach ($comments as &$comment) {
+            $comment['date'] = ISODate($comment['date']);
+
+            if (pres('byuserid', $comment)) {
+                $u = new User($this->dbhr, $this->dbhm, $comment['byuserid']);
+                $comment['byuser'] = $u->getPublic();
+            }
+
+            return($comment);
+        }
+
+        return(NULL);
+    }
+
     public function addComment($groupid, $user1 = NULL, $user2 = NULL, $user3 = NULL, $user4 = NULL, $user5 = NULL,
                                $user6 = NULL, $user7 = NULL, $user8 = NULL, $user9 = NULL, $user10 = NULL,
                                $user11 = NULL, $byuserid = NULL, $checkperms = TRUE) {
@@ -1173,7 +1196,6 @@ class User extends Entity
         $groups = $me ? $me->getModeratorships() : [];
         foreach ($groups as $modgroupid) {
             $rc = $this->dbhm->preExec("DELETE FROM users_comments WHERE id = ? AND groupid = ?;", [ $id, $modgroupid ]);
-            error_log("Delete comment $id ret $rc");
         }
 
         return($rc);

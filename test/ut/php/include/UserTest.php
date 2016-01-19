@@ -475,6 +475,13 @@ class userTest extends IznikTest {
         assertEquals($id1, $atts['comments'][0]['byuserid']);
         assertNull($atts['comments'][0]['user2']);
 
+        # Get it
+        $atts = $u2->getComment($cid);
+        assertEquals("Test comment", $atts['user1']);
+        assertEquals($id1, $atts['byuserid']);
+        assertNull($atts['user2']);
+        assertNull($u2->getComment(-1));
+
         # Edit it
         assertTrue($u2->editComment($cid, "Test comment2"));
         $atts = $u2->getPublic();

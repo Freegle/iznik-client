@@ -600,6 +600,187 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+  /comment/{id}:
+    get:
+      summary: Get a Comment
+      tags: [Comments]
+      description:
+        Retrieve comment on user
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Comment id to query.
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    put:
+      summary: Update a comment
+      tags: [Comments]
+      description:
+        Update a comment
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: comment id to update.
+        type: string
+      - name: user1
+        in: body
+        description: Text comment
+        type: string
+      - name: user2
+        in: body
+        description: Text comment
+        type: string
+      - name: user2
+        in: body
+        description: Text comment
+        type: string
+      - name: user3
+        in: body
+        description: Text comment
+        type: string
+      - name: user4
+        in: body
+        description: Text comment
+        type: string
+      - name: user5
+        in: body
+        description: Text comment
+        type: string
+      - name: user6
+        in: body
+        description: Text comment
+        type: string
+      - name: user7
+        in: body
+        description: Text comment
+        type: string
+      - name: user8
+        in: body
+        description: Text comment
+        type: string
+      - name: user9
+        in: body
+        description: Text comment
+        type: string
+      - name: user10
+        in: body
+        description: Text comment
+        type: string
+      - name: user11
+        in: body
+        description: Text comment
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    delete:
+      summary: Delete a comment
+      tags: [Comments]
+      description:
+        Delete a comment
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Comment
+        type: number
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+  /comment:
+    post:
+      summary: Create a comment
+      tags: [Comments]
+      description:
+        Create a comment
+      parameters:
+      - name: userid
+        in: path
+        description: User the comment is about.
+        type: string
+      - name: groupid
+        in: path
+        description: Group the comment relates to.
+        type: string
+      - name: user1
+        in: body
+        description: Text comment
+        type: string
+      - name: user2
+        in: body
+        description: Text comment
+        type: string
+      - name: user2
+        in: body
+        description: Text comment
+        type: string
+      - name: user3
+        in: body
+        description: Text comment
+        type: string
+      - name: user4
+        in: body
+        description: Text comment
+        type: string
+      - name: user5
+        in: body
+        description: Text comment
+        type: string
+      - name: user6
+        in: body
+        description: Text comment
+        type: string
+      - name: user7
+        in: body
+        description: Text comment
+        type: string
+      - name: user8
+        in: body
+        description: Text comment
+        type: string
+      - name: user9
+        in: body
+        description: Text comment
+        type: string
+      - name: user10
+        in: body
+        description: Text comment
+        type: string
+      - name: user11
+        in: body
+        description: Text comment
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
   /locations/{id}:
     post:
       summary: Location action
@@ -838,9 +1019,72 @@ paths:
         Retrieve stdmsg details
       parameters:
       - name: id
-        in: query
+        in: path
         description: StdMessage id to query.
         type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    put:
+      summary: Update a standard mesage settings
+      tags: [StdMessage]
+      description:
+        Doesn't work in Swagger.
+      parameters:
+      - name: id
+        in: path
+        description: StdMessage id to update.
+        type: string
+      - name: configid
+        in: body
+        description: The owning configid
+        type: number
+      - name: title
+        in: body
+        description: The visible title
+        type: string
+      - name: action
+        in: body
+        description: What the stdmsg does
+        type: string
+        enum: ['Approve','Reject','Leave','Approve Member','Reject Member','Leave Member','Leave Approved Message','Delete Approved Message','Leave Approved Member','Delete Approved Member','Edit']
+      - name: subjpref
+        in: body
+        description: What to put at the start of the subject line
+        type: string
+      - name: subjsuff
+        in: body
+        description: What to put at the end of the subject line
+        type: string
+      - name: body
+        in: body
+        description: What to put in the body
+        type: string
+      - name: rarelyused
+        in: body
+        description: Indicates whether this will be displayed prominently
+        type: boolean
+      - name: newdelstatus
+        in: query
+        description: Any change to Yahoo Delivery Type
+        type: string
+        enum: ['DIGEST', 'NONE', 'SINGLE', 'ANNOUNCEMENT']
+      - name: newmodstatus
+        in: query
+        description: Any change to Yahoo Posting Status
+        type: string
+        enum: ['MODERATED', 'DEFAULT', 'PROHIBITED', 'UNMODERATED']
+      - name: edittext
+        in: query
+        description: Any change to Yahoo Posting Status
+        type: string
+        enum: ['Unchanged', 'CorrectCase']
       responses:
           "200":
             description: "Successful response"
@@ -854,12 +1098,56 @@ paths:
       summary: Update a standard mesage settings
       tags: [StdMessage]
       description:
-        Doesn't work in Swagger.
+        Update a standard message
       parameters:
       - name: id
-        in: query
-        description: StdMessage id to query.
+        in: path
+        description: StdMessage id to update.
         type: string
+      - name: configid
+        in: body
+        description: The owning configid
+        type: number
+      - name: title
+        in: body
+        description: The visible title
+        type: string
+      - name: action
+        in: body
+        description: What the stdmsg does
+        type: string
+        enum: ['Approve','Reject','Leave','Approve Member','Reject Member','Leave Member','Leave Approved Message','Delete Approved Message','Leave Approved Member','Delete Approved Member','Edit']
+      - name: subjpref
+        in: body
+        description: What to put at the start of the subject line
+        type: string
+      - name: subjsuff
+        in: body
+        description: What to put at the end of the subject line
+        type: string
+      - name: body
+        in: body
+        description: What to put in the body
+        type: string
+      - name: rarelyused
+        in: body
+        description: Indicates whether this will be displayed prominently
+        type: boolean
+      - name: newdelstatus
+        in: query
+        description: Any change to Yahoo Delivery Type
+        type: string
+        enum: ['DIGEST', 'NONE', 'SINGLE', 'ANNOUNCEMENT']
+      - name: newmodstatus
+        in: query
+        description: Any change to Yahoo Posting Status
+        type: string
+        enum: ['MODERATED', 'DEFAULT', 'PROHIBITED', 'UNMODERATED']
+      - name: edittext
+        in: query
+        description: Any change to Yahoo Posting Status
+        type: string
+        enum: ['Unchanged', 'CorrectCase']
       responses:
           "200":
             description: "Successful response"
@@ -873,12 +1161,31 @@ paths:
       summary: Create a standard message
       tags: [StdMessage]
       description:
-        Doesn't work in Swagger.
+        Create a standard message
       parameters:
       - name: title
         in: query
         description: StdMessage
         type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    delete:
+      summary: Delete a standard message
+      tags: [StdMessage]
+      description:
+        Delete a standard message
+      parameters:
+      - name: id
+        in: path
+        description: StdMessage
+        type: number
       responses:
           "200":
             description: "Successful response"
