@@ -5,9 +5,9 @@ Iznik.Views.ModTools.User = IznikView.extend({
         'click .js-posts': 'posts',
         'click .js-logs': 'logs',
         'click .js-remove': 'remove',
-        'click .js-ban': 'ban'
+        'click .js-ban': 'ban',
+        'click .js-addcomment': 'addComment'
     },
-
 
     posts: function() {
         var v = new Iznik.Views.ModTools.User.PostSummary({
@@ -64,6 +64,28 @@ Iznik.Views.ModTools.User = IznikView.extend({
         });
     },
 
+    addComment: function() {
+        var self = this;
+
+        var model = new Iznik.Models.ModTools.User.Comment({
+            userid: this.model.get('id'),
+            groupid: this.model.get('groupid')
+        });
+
+        var v = new Iznik.Views.ModTools.User.CommentModal({
+            model: model
+        });
+
+        // When we close, update what's shown.
+        this.listenToOnce(v, 'modalClosed', function() {
+            self.model.fetch().then(function() {
+                self.render()
+            });
+        });
+
+        v.render();
+    },
+
     render: function() {
         var self = this;
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
@@ -85,6 +107,12 @@ Iznik.Views.ModTools.User = IznikView.extend({
         });
 
         this.$('.js-messagehistory').html(v.render().el);
+
+        _.each(this.model.get('comments'), function(comment) {
+            self.$('.js-comments').append((new Iznik.Views.ModTools.User.Comment({
+                model: new Iznik.Models.ModTools.User.Comment(comment)
+            })).render().el);
+        });
 
         return (this);
     }
@@ -261,4 +289,141 @@ Iznik.Views.ModTools.Member = IznikView.extend({
 
 Iznik.Views.ModTools.Member.OtherEmail = IznikView.extend({
     template: 'modtools_member_otheremail'
+});
+
+Iznik.Views.ModTools.User.Comment = IznikView.extend({
+    template: 'modtools_user_comment',
+
+    events: {
+        'click .js-edit': 'edit',
+        'click .js-delete': 'deleteMe'
+    },
+
+    edit: function() {
+        var v = new Iznik.Views.ModTools.User.CommentModal({
+            model: this.model
+        });
+
+        this.listenToOnce(v, 'modalClosed', this.render);
+
+        v.render();
+    },
+
+    deleteMe: function() {
+        this.model.destroy().then(this.remove());
+    },
+
+    render: function() {
+        this.$el.html(window.template(this.template)(this.model.toJSON2()));
+        this.$('.timeago').timeago();
+        return(this);
+    }
+});
+
+Iznik.Views.ModTools.User.CommentModal = Iznik.Views.Modal.extend({
+    template: 'modtools_user_comment_modal',
+
+    events: {
+        'click .js-save': 'save'
+    },
+
+    save: function() {
+        var self = this;
+
+        self.model.save().then(function() {
+            self.close();
+        });
+    },
+
+    render2: function() {
+        var self = this;
+
+        self.open(null);
+
+        self.fields = [
+            {
+                name: 'user1',
+                control: 'input',
+                placeholder: 'Add a comment about this member here'
+            },
+            {
+                name: 'user2',
+                control: 'input',
+                placeholder: '...and more information here'
+            },
+            {
+                name: 'user3',
+                control: 'input',
+                placeholder: '...and here'
+
+            },
+            {
+                name: 'user4',
+                control: 'input',
+                placeholder: 'You get the idea.'
+            },
+            {
+                name: 'user5',
+                control: 'input'
+            },
+            {
+                name: 'user6',
+                control: 'input'
+            },
+            {
+                name: 'user7',
+                control: 'input'
+            },
+            {
+                name: 'user8',
+                control: 'input'
+            },
+            {
+                name: 'user9',
+                control: 'input'
+            },
+            {
+                name: 'user10',
+                control: 'input'
+            },
+            {
+                name: 'user11',
+                control: 'input'
+            }
+        ];
+
+        self.form = new Backform.Form({
+            el: $('#js-form'),
+            model: self.model,
+            fields: self.fields
+        });
+
+        self.form.render();
+
+        // Make it full width.
+        self.$('label').remove();
+        self.$('.col-sm-8').removeClass('col-sm-8').addClass('col-sm-12');
+
+        // Layout messes up a bit.
+        self.$('.form-group').addClass('clearfix');
+
+        // Turn on spell-checking
+        self.$('textarea, input:text').attr('spellcheck', true);
+    },
+
+    render: function() {
+        var self = this;
+
+        this.$el.html(window.template(this.template)(this.model.toJSON2()));
+
+        if (self.model.get('id')) {
+            // We want to refetch the model to make sure we edit the most up to date settings.
+            self.model.fetch().then(self.render2.call(self));
+        } else {
+            // We're adding one; just render it.
+            self.render2();
+        }
+
+        return(this);
+    }
 });

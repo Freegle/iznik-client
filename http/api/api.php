@@ -38,6 +38,9 @@ require_once(IZNIK_BASE . '/http/api/image.php');
 $includetime = microtime(true) - $scriptstart;
 
 # All API calls come through here.
+#error_log("Request " . var_export($_REQUEST, TRUE));
+#error_log("Server " . var_export($_SERVER, TRUE));
+
 $_SERVER['REQUEST_METHOD'] = strtoupper($_SERVER['REQUEST_METHOD']);
 $_REQUEST['type'] = $_SERVER['REQUEST_METHOD'];
 
