@@ -17,7 +17,7 @@ $u = new User($dbhr, $dbhm);
 $g = new Group($dbhr, $dbhm);
 
 $oldusers = $dbhold->query("SELECT membercomments.*, groups.groupname, moderators.email AS modemail FROM membercomments INNER JOIN groups ON membercomments.groupid = groups.groupid INNER JOIN moderators ON membercomments.modid = moderators.uniqueid;");
-error_log("Scan");
+$count = 0;
 foreach ($oldusers as $user) {
     $modid = $u->findByEmail($user['modemail']);
     $id1 = $u->findByEmail($user['email']);
@@ -58,8 +58,33 @@ foreach ($oldusers as $user) {
                 $user9,
                 $user10,
                 $user11,
-                $modid);
+                $modid,
+                FALSE);
+
+            if (!$id) {
+                error_log("Add comment failed");
+                error_log("Add comment failed " . var_export([$gid,
+                $user1,
+                $user2,
+                $user3,
+                $user4,
+                $user5,
+                $user6,
+                $user7,
+                $user8,
+                $user9,
+                $user10,
+                $user11,
+                $modid]), TRUE);
+                exit(1);
+            }
+
             $dbhm->preExec("UPDATE users_comments SET date = '$mysqldate' WHERE id = $id;");
+        }
+
+        $count++;
+        if ($count % 1000 == 0) {
+            error_log("...$count");
         }
     }
 }

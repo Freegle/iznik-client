@@ -475,6 +475,13 @@ class userTest extends IznikTest {
         assertEquals($id1, $atts['comments'][0]['byuserid']);
         assertNull($atts['comments'][0]['user2']);
 
+        # Edit it
+        assertTrue($u2->editComment($cid, "Test comment2"));
+        $atts = $u2->getPublic();
+        assertEquals(1, count($atts['comments']));
+        assertEquals($cid, $atts['comments'][0]['id']);
+        assertEquals("Test comment2", $atts['comments'][0]['user1']);
+
         # Can't see comments when a user
         $u1->setRole(User::ROLE_MEMBER, $gid);
         $atts = $u2->getPublic();

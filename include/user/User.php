@@ -1112,7 +1112,7 @@ class User extends Entity
 
     public function addComment($groupid, $user1 = NULL, $user2 = NULL, $user3 = NULL, $user4 = NULL, $user5 = NULL,
                                $user6 = NULL, $user7 = NULL, $user8 = NULL, $user9 = NULL, $user10 = NULL,
-                               $user11 = NULL, $byuserid = NULL) {
+                               $user11 = NULL, $byuserid = NULL, $checkperms = TRUE) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         # By any supplied user else logged in user if any.
@@ -1120,7 +1120,7 @@ class User extends Entity
 
         # Can only add comments for a group on which we're a mod.
         $rc = NULL;
-        $groups = $me ? $me->getModeratorships() : [$byuserid ? $groupid : 0];
+        $groups = $checkperms ? ($me ? $me->getModeratorships() : [0]) : [ $groupid ];
         foreach ($groups as $modgroupid) {
             if ($groupid == $modgroupid) {
                 $sql = "INSERT INTO users_comments (userid, groupid, byuserid, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
@@ -1131,6 +1131,34 @@ class User extends Entity
                     $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $user11
                 ]);
                 $rc = $this->dbhm->lastInsertId();
+            }
+        }
+
+        return($rc);
+    }
+
+    public function editComment($id, $user1 = NULL, $user2 = NULL, $user3 = NULL, $user4 = NULL, $user5 = NULL,
+                               $user6 = NULL, $user7 = NULL, $user8 = NULL, $user9 = NULL, $user10 = NULL,
+                               $user11 = NULL) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        # Update to logged in user if any.
+        $byuserid = $me ? $me->getId() : NULL;
+
+        # Can only edit comments for a group on which we're a mod.  This code isn't that efficient but it doesn't
+        # happen often.
+        $rc = NULL;
+        $groups = $me ? $me->getModeratorships() : [0];
+        foreach ($groups as $modgroupid) {
+            $sql = "SELECT id FROM users_comments WHERE id = ? AND groupid = ?;";
+            $comments = $this->dbhr->preQuery($sql, [ $id, $modgroupid ]);
+            foreach ($comments as $comment) {
+                $sql = "UPDATE users_comments SET byuserid = ?, user1 = ?, user2 = ?, user3 = ?, user4 = ?, user5 = ?, user6 = ?, user7 = ?, user8 = ?, user9 = ?, user10 = ?, user11 = ? WHERE id = ?;";
+                $rc = $this->dbhm->preExec($sql, [
+                    $byuserid,
+                    $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $user11,
+                    $comment['id']
+                ]);
             }
         }
 
