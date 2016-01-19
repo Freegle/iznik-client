@@ -447,5 +447,57 @@ class userTest extends IznikTest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testComments() {
+        error_log(__METHOD__);
+
+        $u1 = new User($this->dbhr, $this->dbhm);
+        $id1 = $u1->create('Test', 'User', NULL);
+        $u2 = new User($this->dbhr, $this->dbhm);
+        $id2 = $u2->create('Test', 'User', NULL);
+        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u1->login('testpw'));
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_REUSE);
+
+        # Try to add a comment when not a mod.
+        assertNull($u2->addComment($gid, "Test comment"));
+        $u1->addMembership($gid);
+        assertNull($u2->addComment($gid, "Test comment"));
+        $u1->setRole(User::ROLE_MODERATOR, $gid);
+        $cid = $u2->addComment($gid, "Test comment");
+        assertNotNull($cid);
+        $atts = $u2->getPublic();
+        assertEquals(1, count($atts['comments']));
+        assertEquals($cid, $atts['comments'][0]['id']);
+        assertEquals("Test comment", $atts['comments'][0]['user1']);
+        assertEquals($id1, $atts['comments'][0]['byuserid']);
+        assertNull($atts['comments'][0]['user2']);
+
+        # Can't see comments when a user
+        $u1->setRole(User::ROLE_MEMBER, $gid);
+        $atts = $u2->getPublic();
+        assertEquals(0, count($atts['comments']));
+
+        # Try to delete a comment when not a mod
+        $u1->removeMembership($gid);
+        assertFalse($u2->deleteComment($cid));
+        $u1->addMembership($gid);
+        assertFalse($u2->deleteComment($cid));
+        $u1->addMembership($gid, User::ROLE_MODERATOR);
+        assertTrue($u2->deleteComment($cid));
+        $atts = $u2->getPublic();
+        assertEquals(0, count($atts['comments']));
+
+        # Delete all
+        $cid = $u2->addComment($gid, "Test comment");
+        assertNotNull($cid);
+        assertTrue($u2->deleteComments());
+        $atts = $u2->getPublic();
+        assertEquals(0, count($atts['comments']));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
