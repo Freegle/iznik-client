@@ -18,7 +18,7 @@ function plugin() {
                 $work = [];
 
                 foreach ($groups as $group) {
-                    $work = array_merge($work, $p->get($group['id']));
+                    $work = array_merge($work, $p->get($group));
                 }
 
                 $ret = [

@@ -406,8 +406,7 @@ class User extends Entity
         $ret = [];
         $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner');", [ $this->id ]);
         foreach ($groups as $group) {
-            $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
-            $ret[] = $g->getPublic();
+            $ret[] = $group['groupid'];
         }
 
         return($ret);
@@ -1093,11 +1092,8 @@ class User extends Entity
     public function getComments() {
         # We can only see comments on groups on which we have mod status.
         $me = whoAmI($this->dbhr, $this->dbhm);
-        $groupids = [0];
-        $groups = $me ? $me->getModeratorships() : [];
-        foreach ($groups as $group) {
-            $groupids[] = $group['id'];
-        }
+        $groupids = $me ? $me->getModeratorships() : [];
+        $groupids = count($groupids) == 0 ? [0] : $groupids;
 
         $sql = "SELECT * FROM users_comments WHERE userid = ? AND groupid IN (" . implode(',', $groupids) . ") ORDER BY date DESC;";
         $comments = $this->dbhr->preQuery($sql, [ $this->id ]);
@@ -1115,15 +1111,18 @@ class User extends Entity
     }
 
     public function addComment($groupid, $user1 = NULL, $user2 = NULL, $user3 = NULL, $user4 = NULL, $user5 = NULL,
-                               $user6 = NULL, $user7 = NULL, $user8 = NULL, $user9 = NULL, $user10 = NULL, $user11 = NULL) {
+                               $user6 = NULL, $user7 = NULL, $user8 = NULL, $user9 = NULL, $user10 = NULL,
+                               $user11 = NULL, $byuserid = NULL) {
         $me = whoAmI($this->dbhr, $this->dbhm);
-        $byuserid = $me ? $me->getId() : NULL;
+
+        # By any supplied user else logged in user if any.
+        $byuserid = $byuserid ? $byuserid : ($me ? $me->getId() : NULL);
 
         # Can only add comments for a group on which we're a mod.
         $rc = NULL;
-        $groups = $me ? $me->getModeratorships() : [];
-        foreach ($groups as $group) {
-            if ($groupid == $group['id']) {
+        $groups = $me ? $me->getModeratorships() : [$byuserid ? $groupid : 0];
+        foreach ($groups as $modgroupid) {
+            if ($groupid == $modgroupid) {
                 $sql = "INSERT INTO users_comments (userid, groupid, byuserid, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
                 $this->dbhm->preExec($sql, [
                     $this->id,
@@ -1144,9 +1143,8 @@ class User extends Entity
         # Can only delete comments for a group on which we're a mod.
         $rc = FALSE;
         $groups = $me ? $me->getModeratorships() : [];
-        error_log("Delete my groups " . var_export($groups, true));
-        foreach ($groups as $group) {
-            $rc = $this->dbhm->preExec("DELETE FROM users_comments WHERE id = ? AND groupid = ?;", [ $id, $group['id'] ]);
+        foreach ($groups as $modgroupid) {
+            $rc = $this->dbhm->preExec("DELETE FROM users_comments WHERE id = ? AND groupid = ?;", [ $id, $modgroupid ]);
             error_log("Delete comment $id ret $rc");
         }
 
@@ -1159,8 +1157,8 @@ class User extends Entity
         # Can only delete comments for a group on which we're a mod.
         $rc = FALSE;
         $groups = $me ? $me->getModeratorships() : [];
-        foreach ($groups as $group) {
-            $rc = $this->dbhm->preExec("DELETE FROM users_comments WHERE userid = ? AND groupid = ?;", [ $this->id, $group['id'] ]);
+        foreach ($groups as $modgroupid) {
+            $rc = $this->dbhm->preExec("DELETE FROM users_comments WHERE userid = ? AND groupid = ?;", [ $this->id, $modgroupid ]);
         }
 
         return($rc);
