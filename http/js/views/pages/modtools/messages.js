@@ -285,8 +285,6 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
     },
 
     substitutionStrings: function(text, model, config, group) {
-        console.log("Substitution strings", model);
-
         var self = this;
 
         if (config) {
@@ -360,15 +358,17 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
     },
 
     maybeSettingsChange: function(trigger, stdmsg, message, group) {
+        console.log("maybeSettingsChange", trigger, stdmsg, message, group);
         var self = this;
 
         var dt = stdmsg.get('newdelstatus');
         var ps = stdmsg.get('newmodstatus');
+        console.log(dt, ps);
 
         if (dt != 'UNCHANGED') {
             $.ajax({
-                type: 'POST',
-                url: API + '/user',
+                type: 'PATCH',
+                url: API + 'user',
                 data: {
                     groupid: group.groupid,
                     id: message.get('fromuser').id,
@@ -381,8 +381,8 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
 
         if (ps != 'UNCHANGED') {
             $.ajax({
-                type: 'POST',
-                url: API + '/user',
+                type: 'PATCH',
+                url: API + 'user',
                 data: {
                     groupid: group.groupid,
                     id: message.get('fromuser').id,

@@ -23,7 +23,6 @@ function user() {
         # We still don't know our unique ID, but we do know an email.  Find it.
         $u = new User($dbhr, $dbhm);
         $id = $u->findByEmail($email);
-        error_log("Looked up $email to $id");
     }
 
     $yahooDeliveryType = presdef('yahooDeliveryType', $_REQUEST, NULL);
