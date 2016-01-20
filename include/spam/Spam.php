@@ -10,6 +10,10 @@ class Spam {
     CONST GROUP_THRESHOLD = 20;
     CONST SUBJECT_THRESHOLD = 30;  // SUBJECT_THRESHOLD must be > GROUP_THRESHOLD for UT
 
+    # For checking users as suspect.
+    CONST SEEN_THRESHOLD = 16; // Number of groups to join or apply to before considered suspect
+    CONST ESCALATE_THRESHOLD = 2; // Level of suspicion before a user is escalated to support/admin for review
+
     CONST REASON_COUNTRY_BLOCKED = 'CountryBlocked';
     CONST REASON_IP_USED_FOR_DIFFERENT_USERS = 'IPUsedForDifferentUsers';
     CONST REASON_IP_USED_FOR_DIFFERENT_GROUPS = 'IPUsedForDifferentGroups';
@@ -28,6 +32,7 @@ class Spam {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
         $this->reader = new Reader('/usr/local/share/GeoIP/GeoLite2-Country.mmdb');
+        $this->log = new Log($this->dbhr, $this->dbhm);
     }
 
     public function check(Message $msg) {
@@ -139,5 +144,41 @@ class Spam {
     public function notSpamSubject($subj) {
         $sql = "INSERT IGNORE INTO spam_whitelist_subjects (subject, comment) VALUES (?, 'Marked as not spam');";
         $this->dbhm->preExec($sql, [ $subj ]);
+    }
+
+    public function checkUser($userid) {
+        # Called when something has happened to a user which makes them more likely to be a spammer, and therefore
+        # needs rechecking.
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $suspect = FALSE;
+        $reason = NULL;
+
+        # Check whether they have joined a suspicious number of groups.
+        $sql = "SELECT COUNT(*) AS count FROM memberships WHERE userid = ?;";
+        $counts = $this->dbhr->preQuery($sql, [ $userid ]);
+
+        if ($counts[0]['count'] > Spam::SEEN_THRESHOLD) {
+            $suspect = TRUE;
+            $reason = "Seen on " . Spam::SEEN_THRESHOLD . " groups";
+        }
+
+        if ($suspect) {
+            # This user is suspect.  We will mark it as so, which means that it'll show up to mods on relevant groups,
+            # and they will review it.
+            $this->log->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_SUSPECT,
+                'byuser' => $me ? $me->getId() : NULL,
+                'user' => $userid,
+                'text' => $reason
+            ]);
+
+            $this->dbhm->preExec("UPDATE users SET suspectcount = suspectcount + 1, suspectreason = ? WHERE id = ?;",
+                [
+                    $reason,
+                    $userid
+                ]);
+        }
     }
 }

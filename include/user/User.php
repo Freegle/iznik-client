@@ -4,6 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/session/Session.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
+require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
@@ -265,6 +266,10 @@ class User extends Entity
                 'groupid' => $groupid
             ]);
         }
+
+        # Check whether this user now counts as a possible spammer.
+        $s = new Spam($this->dbhr, $this->dbhm);
+        $s->checkUser($this->id);
 
         return($rc);
     }
@@ -593,6 +598,7 @@ class User extends Entity
 
     public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE) {
         $atts = parent::getPublic();
+        $me = whoAmI($this->dbhr, $this->dbhm);
 
         if ($history) {
             # Add in the message history - from any of the emails associated with this user.
@@ -620,7 +626,7 @@ class User extends Entity
         #
         # Exclude the logs which are due to standard message syncing.
         $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? AND type = 'Message' AND subtype IN ('Rejected', 'Deleted') AND text NOT IN ('Not present on Yahoo');";
-        $mysqltime = date ("Y-m-d", strtotime("Midnight 30 days ago"));
+        $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
         $alarms = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
         $atts['modmails'] = $alarms[0]['count'];
 
@@ -722,6 +728,31 @@ class User extends Entity
 
         if ($comments) {
             $atts['comments'] = $this->getComments();
+        }
+
+        if ($this->user['suspectcount'] > 0) {
+            # This user is flagged as suspicious.  This is visible iff the currently logged in user
+            # - has a system role which allows it
+            # - is a mod on a group which this user is also on.
+            $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
+            $visible = $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT;
+
+            if (!$visible) {
+                # Check the groups.
+                $sql = "SELECT * FROM memberships WHERE userid = ?;";
+                $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
+                foreach ($groups as $group) {
+                    $role = $me ? $me->getRole($group['groupid']) : User::ROLE_NONMEMBER;
+                    if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
+                        $visible = TRUE;
+                    }
+                }
+            }
+
+            if ($visible) {
+                $atts['suspectcount'] = $this->user['suspectcount'];
+                $atts['suspectreason'] = $this->user['suspectreason'];
+            }
         }
 
         return($atts);

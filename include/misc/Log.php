@@ -36,6 +36,7 @@ class Log
     const SUBTYPE_MAILED = 'Mailed';
     const SUBTYPE_LOGIN = 'Login';
     const SUBTYPE_CLASSIFIED_SPAM = 'ClassifiedSpam';
+    const SUBTYPE_SUSPECT = 'Suspect';
     const SUBTYPE_SENT = 'Sent';
     const SUBTYPE_YAHOO_DELIVERY_TYPE = 'YahooDeliveryType';
     const SUBTYPE_YAHOO_POSTING_STATUS = 'YahooPostingStatus';

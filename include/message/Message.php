@@ -797,7 +797,6 @@ class Message
                             # so no need for a transaction.
                             $u = new User($this->dbhr, $this->dbhm, $userid);
                             $emailid = $u->addEmail($this->fromaddr, TRUE);
-                            $l = new Log($this->dbhr, $this->dbhm);
                             $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid);
                         }
                     }

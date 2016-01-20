@@ -42,7 +42,6 @@ function messages() {
             $msgs = NULL;
             $c = new MessageCollection($dbhr, $dbhm, $collection);
 
-
             $ret = [
                 'ret' => 0,
                 'status' => 'Success'

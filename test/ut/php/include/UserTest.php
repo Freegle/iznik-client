@@ -26,9 +26,7 @@ class userTest extends IznikTest {
         $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_logins WHERE uid IN ('testid', '1234'));");
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM users WHERE firstname = 'Test' AND lastname = 'User';");
-        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup1';");
-        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup2';");
-        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup3';");
+        $dbhm->preExec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';");
     }
 
     protected function tearDown() {
@@ -510,6 +508,39 @@ class userTest extends IznikTest {
         assertTrue($u2->deleteComments());
         $atts = $u2->getPublic();
         assertEquals(0, count($atts['comments']));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testCheck(){
+        error_log(__METHOD__);
+
+        $u1 = new User($this->dbhr, $this->dbhm);
+        $id1 = $u1->create('Test', 'User', NULL);
+        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u1->login('testpw'));
+        $u2 = new User($this->dbhr, $this->dbhm);
+        $id2 = $u2->create('Test', 'User', NULL);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $groupids = [];
+
+        for ($i = 0; $i < Spam::SEEN_THRESHOLD + 1; $i++) {
+            $gid = $g->create("testgroup$i", Group::GROUP_REUSE);
+            $groupids[] = $gid;
+            $u1->addMembership($gid, User::ROLE_MODERATOR);
+            $u2->addMembership($gid);
+
+            $u2 = new User($this->dbhr, $this->dbhm, $id2);
+            $atts = $u2->getPublic();
+
+            error_log("$i");
+            if ($i < Spam::SEEN_THRESHOLD) {
+                assertFalse(pres('suspectcount', $atts));
+            } else {
+                assertEquals(1, pres('suspectcount', $atts));
+            }
+        }
 
         error_log(__METHOD__ . " end");
     }
