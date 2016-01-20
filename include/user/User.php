@@ -410,7 +410,6 @@ class User extends Entity
                 $thisone['createdby'] = $u->getPublic();
             }
 
-
             $ret[] = $thisone;
         }
 

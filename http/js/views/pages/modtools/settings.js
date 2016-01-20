@@ -284,7 +284,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         var createdby = this.modConfigModel.get('createdby');
         var protected = this.modConfigModel.get('protected');
 
-        return(protected && Iznik.Session.get('me').id);
+        return(protected && Iznik.Session.get('me').id != createdby);
     },
 
     configSelect: function() {
@@ -327,7 +327,8 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                         name: 'subjreg',
                         label: 'Regular expression for colour-coding',
                         disabled: self.locked,
-                        control: 'input'
+                        control: 'input',
+                        helpMessage: 'Regular expressions can be difficult; test changes at http://www.phpliveregex.com'
                     },
                     {
                         name: 'subjlen',
