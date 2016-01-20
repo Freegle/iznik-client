@@ -1,4 +1,4 @@
-Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
+Iznik.Views.ModTools.Pages.SpamMessages = Iznik.Views.Page.extend({
     modtools: true,
 
     template: "modtools_spam_main",

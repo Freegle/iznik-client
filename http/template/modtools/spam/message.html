@@ -62,7 +62,7 @@
                             </div>
                             <% } %>
                             <div class="ellipsis">
-                                <span data-toggle="tooltip" title="Friendly name is {{fromuser.displayname}}, in message was {{fromname}}">
+                                <span data-toggle="tooltip" title="<% if (obj.fromuser) { %>Friendly name is {{fromuser.displayname}}, in message was {{fromname}}<% } %>">
                                     <div class="glyphicon glyphicon-user" />&nbsp;{{fromname}}
                                 </span>
                             </div>

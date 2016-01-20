@@ -140,7 +140,7 @@ var IznikRouter = Backbone.Router.extend({
 
     spamMessages: function() {
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
-            var page = new Iznik.Views.ModTools.Pages.SpamMembers();
+            var page = new Iznik.Views.ModTools.Pages.SpamMessages();
             this.loadRoute({page: page, modtools: true});
         });
 
@@ -184,6 +184,16 @@ var IznikRouter = Backbone.Router.extend({
                 page: page,
                 modtools: true
             });
+        });
+
+        Iznik.Session.forceLogin();
+    },
+
+    spamMembers: function() {
+        console.log("Spam members");
+        this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
+            var page = new Iznik.Views.ModTools.Pages.SpamMembers();
+            this.loadRoute({page: page, modtools: true});
         });
 
         Iznik.Session.forceLogin();

@@ -148,7 +148,16 @@ class Group extends Entity
         $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") . ") ");
         $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : $searchq;
         $groupq = " memberships.groupid IN (" . implode(',', $groupids) . ") ";
-        $collectionq = $searchid ? '' : (' AND collection = ' . $this->dbhr->quote($collection) . ' ');
+
+        if ($collection == MembershipCollection::SPAM) {
+            # This collection is handled separately; we use the suspectcount field.
+            #
+            # This is to avoid moving members into a spam collection and then having to remember whether they
+            # came from Pending or Approved.
+            $collectionq = $searchid ? '' : ' AND suspectcount > 0 ';
+        } else {
+            $collectionq = $searchid ? '' : (' AND collection = ' . $this->dbhr->quote($collection) . ' ');
+        }
 
         $sql = "SELECT DISTINCT memberships.* FROM memberships LEFT JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq $collectionq $addq $searchq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
         $members = $this->dbhr->preQuery($sql);
