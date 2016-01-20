@@ -110,16 +110,20 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                     }
                 }
 
-                _.delay(function() {
-                    $.ajaxq('plugin', {
-                        type: "GET",
-                        url: "https://groups.yahoo.com/neo/groups/" + groupname + first.crumbLocation + "?" + Math.random(),
-                        success: getCrumb,
-                        error: function (request, status, error) {
-                            self.retryWork(self.currentItem);
-                        }
-                    }, 500);
-                });
+                function findCrumb(groupname, first, self) {
+                    return(function() {
+                        $.ajaxq('plugin', {
+                            type: "GET",
+                            url: "https://groups.yahoo.com/neo/groups/" + groupname + first.crumbLocation + "?" + Math.random(),
+                            success: getCrumb,
+                            error: function (request, status, error) {
+                                self.retryWork(self.currentItem);
+                            }
+                        });
+                    });
+                }
+
+                _.delay(findCrumb(groupname, first, self), 500);
             }
         }
     },
