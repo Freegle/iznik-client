@@ -58,8 +58,6 @@ class MessageCollection
             $groupq = " AND groupid IN (" . implode(',', $groupids) . ") ";
 
             # At the moment we only support ordering by date DESC.
-            #
-            # Put a limit on this query to stop it being stupid, though we enforce the $limit parameter in the loop.
             $sql = "SELECT msgid AS id, date FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC, messages.id DESC LIMIT $limit";
             $msglist = $this->dbhr->preQuery($sql, [
                 $this->collection
