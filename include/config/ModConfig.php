@@ -9,7 +9,7 @@ class ModConfig extends Entity
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'name', 'createdby', 'fromname', 'ccrejectto', 'ccrejectaddr', 'ccfollowupto',
         'ccfollowupaddr', 'ccrejmembto', 'ccrejmembaddr', 'ccfollmembto', 'ccfollmembaddr', 'protected',
-        'messageorder', 'network', 'coloursubj', 'subjreg', 'subjlen');
+        'messageorder', 'network', 'coloursubj', 'subjreg', 'subjlen', 'default');
 
     var $settableatts = array('name', 'fromname', 'ccrejectto', 'ccrejectaddr', 'ccfollowupto',
         'ccfollowupaddr', 'ccrejmembto', 'ccrejmembaddr', 'ccfollmembto', 'ccfollmembaddr', 'protected',
@@ -17,6 +17,10 @@ class ModConfig extends Entity
 
     /** @var  $log Log */
     private $log;
+
+    const CANSEE_CREATED = 'Created';
+    const CANSEE_DEFAULT = 'Default';
+    const CANSEE_SHARED = 'Shared';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {

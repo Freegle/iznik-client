@@ -379,22 +379,37 @@ class User extends Entity
 
     public function getConfigs() {
         $ret = [];
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
         # We can see configs which
         # - we created
         # - are used by mods on groups on which we are a mod
         # - defaults
-        $sql = "(SELECT DISTINCT configid AS id FROM memberships WHERE groupid IN (SELECT groupid FROM memberships WHERE userid = {$this->id} AND role IN ('Moderator', 'Owner')) AND configid IS NOT NULL) UNION (SELECT id FROM mod_configs WHERE createdby = {$this->id} OR `default` = 1);";
+        $sql = "(SELECT DISTINCT configid AS id, userid, groupid FROM memberships WHERE groupid IN (SELECT groupid FROM memberships WHERE userid = {$this->id} AND role IN ('Moderator', 'Owner')) AND configid IS NOT NULL) UNION (SELECT id, NULL, NULL FROM mod_configs WHERE createdby = {$this->id} OR `default` = 1);";
         $ids = $this->dbhr->query($sql);
 
         foreach ($ids as $id) {
             $c = new ModConfig($this->dbhr, $this->dbhm, $id['id']);
             $thisone = $c->getPublic();
 
+            if ($thisone['createdby'] == $me->getId()) {
+                $thisone['cansee'] = ModConfig::CANSEE_CREATED;
+            } else if ($thisone['default']) {
+                $thisone['cansee'] = ModConfig::CANSEE_DEFAULT;
+            } else {
+                $thisone['cansee'] = ModConfig::CANSEE_SHARED;
+                $u = new User($this->dbhr, $this->dbhm, $id['userid']);
+                $g = new Group($this->dbhr, $this->dbhm, $id['groupid']);
+                $thisone['sharedby'] = $u->getPublic(NULL, FALSE);
+                $thisone['sharedon'] = $g->getPublic();
+            }
+
             $u = new User($this->dbhr, $this->dbhm, $thisone['createdby']);
 
             if ($u->getId()) {
                 $thisone['createdby'] = $u->getPublic();
             }
+
 
             $ret[] = $thisone;
         }

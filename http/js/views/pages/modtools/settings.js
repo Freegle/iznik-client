@@ -375,7 +375,28 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     }
                 });
 
+                // The visibility is not returned in the fetch, only in the session.
+                var configs = Iznik.Session.get('configs');
+                var cansee = 'of magic pixies.';
+                configs.each(function(thisone) {
+                    if (thisone.get('id') == selected) {
+                        switch (thisone.get('cansee')) {
+                            case 'Created':
+                                cansee = "you created it.";
+                                break;
+                            case 'Default':
+                                cansee = "it's a global default configuration.";
+                                break;
+                            case 'Shared':
+                                cansee = "it's used by " + thisone.get('sharedby').displayname + " on " +
+                                    thisone.get('sharedon').namedisplay + ', where you are also a moderator.';
+                                break;
+                        }
+                    }
+                });
+
                 self.modConfigFormGeneral.render();
+                self.$('.js-cansee').html("You can see this ModConfig because " + cansee);
 
                 var locked = self.locked();
 
