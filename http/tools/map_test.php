@@ -21,7 +21,8 @@ if (!$groupname) {
         $g = new Group($dbhr, $dbhm, $gid);
 
         $c = new MessageCollection($dbhr, $dbhm, MessageCollection::APPROVED);
-        list($groups, $msgs) = $c->get(0, 100, [ $gid ]);
+        $ctx = NULL;
+        list($groups, $msgs) = $c->get($ctx, 100, [ $gid ]);
 
         ?>
         <table>

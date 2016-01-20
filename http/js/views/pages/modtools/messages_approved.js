@@ -1,6 +1,5 @@
 Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Page.extend({
     modtools: true,
-    search: false,
     context: null,
 
     template: "modtools_messages_approved_main",
@@ -11,8 +10,6 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Page.extend({
     },
 
     fetching: null,
-    start: null,
-    startdate: null,
 
     keyup: function(e) {
         // Search on enter.
@@ -21,28 +18,19 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Page.extend({
         }
     },
 
-    fetch: function(start) {
+    fetch: function() {
         var self = this;
 
         self.$('.js-none').hide();
 
         var data = {
-            collection: 'Approved'
+            collection: 'Approved',
+            context: self.context
         };
 
         if (self.selected > 0) {
             // Specific group
             data.groupid = self.selected;
-        }
-
-        if (self.options.search) {
-            // We're searching.  Pass any previous search results context so that we get the next set of results.
-            if (self.msgs.ret) {
-                data.context = self.context;
-            }
-        } else {
-            // We're not searching. We page using the date.
-            data.start = self.startdate;
         }
 
         // Fetch more messages - and leave the old ones in the collection
@@ -66,51 +54,39 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Page.extend({
             self.lastFetched = self.selected;
             self.context = self.msgs.ret.context;
 
-            if (!self.start) {
+            if (self.msgs.length !== 0) {
                 self.$('.js-none').fadeIn('slow');
             }
 
-            if (self.msgs.length > 0) {
-                var gotsome = false;
-
-                self.msgs.each(function(msg) {
-                    //console.log("Fetched", msg.get('id'), msg.get('date'));
-                    var thisone = (new Date(msg.get('date'))).getTime();
-                    if (self.start == null || thisone < self.start) {
-                        self.start = thisone;
-                        self.startdate = msg.get('date');
-                        gotsome = true;
-                    }
-                });
-
+            console.log("Fetched ", self.msgs.ret);
+            if (self.msgs.ret.messages.length > 0) {
+                // We got some different messages, so set up a scroll handler.  If we didn't get any different
+                // messages, then there's no point - we could keep hitting the server with more requests
+                // and not getting any.
+                //
                 // Waypoints allow us to see when we have scrolled to the bottom.
                 if (self.lastWaypoint) {
                     self.lastWaypoint.destroy();
                 }
 
-                if (gotsome) {
-                    // We got some different messages, so set up a scroll handler.  If we didn't get any different
-                    // messages, then there's no point - we could keep hitting the server with more requests
-                    // and not getting any.
-                    var vm = self.collectionView.viewManager;
-                    var lastView = vm.last();
+                var vm = self.collectionView.viewManager;
+                var lastView = vm.last();
 
-                    if (lastView) {
-                        self.lastMessage = lastView;
-                        self.lastWaypoint = new Waypoint({
-                            element: lastView.el,
-                            handler: function(direction) {
-                                if (direction == 'down') {
-                                    // We have scrolled to the last view.  Fetch more as long as we've not switched
-                                    // away to another page.
-                                    if (jQuery.contains(document.documentElement, lastView.el)) {
-                                        self.fetch();
-                                    }
+                if (lastView) {
+                    self.lastMessage = lastView;
+                    self.lastWaypoint = new Waypoint({
+                        element: lastView.el,
+                        handler: function(direction) {
+                            if (direction == 'down') {
+                                // We have scrolled to the last view.  Fetch more as long as we've not switched
+                                // away to another page.
+                                if (jQuery.contains(document.documentElement, lastView.el)) {
+                                    self.fetch();
                                 }
-                            },
-                            offset: '99%' // Fire as soon as this view becomes visible
-                        });
-                    }
+                            }
+                        },
+                        offset: '99%' // Fire as soon as this view becomes visible
+                    });
                 }
             }
         });
@@ -203,7 +179,7 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
         var self = this;
 
         // We delete the message on all groups.  Future enhancement?
-        _.each(self.model.get('groups'), function(group, index, list) {
+        _.each(self.model.get('groups'), function(group) {
             $.ajax({
                 type: 'POST',
                 url: API + 'message',
@@ -211,7 +187,7 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
                     id: self.model.get('id'),
                     groupid: group.id,
                     action: 'Delete'
-                }, success: function(ret) {
+                }, success: function() {
                     self.$el.fadeOut('slow');
                 }
             })
@@ -242,7 +218,7 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
             });
         }
 
-        _.each(self.model.get('groups'), function(group, index, list) {
+        _.each(self.model.get('groups'), function(group) {
             var mod = new IznikModel(group);
 
             // Add in the message, because we need some values from that
@@ -253,15 +229,15 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
             });
             self.$('.js-grouplist').append(v.render().el);
 
-            var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
-            var v = new Iznik.Views.ModTools.User({
+            mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
+            v = new Iznik.Views.ModTools.User({
                 model: mod
             });
 
             self.$('.js-user').html(v.render().el);
 
             // The Yahoo part of the user
-            var mod = IznikYahooUsers.findUser({
+            mod = IznikYahooUsers.findUser({
                 email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
                 group: group.nameshort,
                 groupid: group.id

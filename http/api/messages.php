@@ -6,7 +6,7 @@ function messages() {
 
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
     $collection = presdef('collection', $_REQUEST, MessageCollection::APPROVED);
-    $start = presdef('start', $_REQUEST, NULL);
+    $ctx = presdef('context', $_REQUEST, NULL);
     $limit = intval(presdef('limit', $_REQUEST, 10));
     $source = presdef('source', $_REQUEST, NULL);
     $from = presdef('from', $_REQUEST, NULL);
@@ -51,7 +51,7 @@ function messages() {
             switch ($subaction) {
                 case NULL:
                     # Just a normal fetch.
-                    list($groups, $msgs) = $c->get($start, $limit, $groups);
+                    list($groups, $msgs) = $c->get($ctx, $limit, $groups);
                     break;
                 case 'search':
                     # A search.
@@ -62,10 +62,10 @@ function messages() {
                     $m = new Message($dbhr, $dbhm);
                     $msgs = $m->search($search, $ctx, $limit, NULL, $groups);
                     list($groups, $msgs) = $c->fillIn($msgs, $limit);
-                    $ret['context'] = $ctx;
                     break;
             }
 
+            $ret['context'] = $ctx;
             $ret['groups'] = $groups;
             $ret['messages'] = $msgs;
         }

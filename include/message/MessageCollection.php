@@ -45,22 +45,14 @@ class MessageCollection
         }
     }
 
-    function get($start, $limit, $groupids) {
+    function get(&$ctx, $limit, $groupids) {
         $groups = [];
         $msgs = [];
 
-        if ($start) {
-            $args = [
-                $start,
-                $this->collection
-            ];
-            $startq = "messages.date < ? ";
-        } else {
-            $args = [
-                $this->collection
-            ];
-            $startq = '1=1';
-        }
+        $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Date']));
+        $dateq = $ctx == NULL ? ' 1=1 ' : (" (messages.date < $date OR messages.date = $date AND messages.id < " . $this->dbhr->quote($ctx['id']) . ") ");
+
+        $ctx = [ 'Date' => NULL, 'id' ];
 
         if (count($groupids) > 0) {
             $groupq = " AND groupid IN (" . implode(',', $groupids) . ") ";
@@ -68,14 +60,25 @@ class MessageCollection
             # At the moment we only support ordering by date DESC.
             #
             # Put a limit on this query to stop it being stupid, though we enforce the $limit parameter in the loop.
-            $sql = "SELECT msgid AS id FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $startq $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC LIMIT 1000";
-            $msglist = $this->dbhr->preQuery($sql, $args);
+            $sql = "SELECT msgid AS id, date FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC, messages.id DESC LIMIT $limit";
+            $msglist = $this->dbhr->preQuery($sql, [
+                $this->collection
+            ]);
 
             # Get an array of just the message ids.
             $msgids = [];
             foreach ($msglist as $msg) {
-                $msgids[] = [ 'id' => $msg['id'] ];
+                $msgids[] = ['id' => $msg['id']];
+
+                $thisepoch = strtotime($msg['date']);
+
+                if ($ctx['Date'] == NULL || $thisepoch < $ctx['Date']) {
+                    $ctx['Date'] = $thisepoch;
+                }
+
+                $ctx['id'] = $msg['id'];
             }
+
             list($groups, $msgs) = $this->fillIn($msgids, $limit);
         }
 

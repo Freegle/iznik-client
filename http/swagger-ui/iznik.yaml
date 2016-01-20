@@ -305,9 +305,9 @@ paths:
         description: Which collection the message is in; default is Approved
         type: string
         enum: ['Approved', 'Pending', 'Spam']
-      - name: start
+      - name: context
         in: query
-        description: For paging results; message ID above which to return
+        description: For paging results
         type: integer
       - name: limit
         in: query
