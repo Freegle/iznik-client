@@ -269,7 +269,7 @@ Iznik.Views.ModTools.Member = IznikView.extend({
         this.$('.js-stdmsgs li').fadeIn('slow');
     },
 
-    addOtherEmails: function() {
+    addOtherInfo: function() {
         var self = this;
         var thisemail = self.model.get('email');
 
@@ -287,19 +287,21 @@ Iznik.Views.ModTools.Member = IznikView.extend({
 
         // Add any other group memberships we need to display.
         self.$('.js-memberof').empty();
-        var groupids = [];
+        var groupids = [ self.model.get('groupid') ];
         _.each(self.model.get('memberof'), function(group) {
-            var mod = new IznikModel(group);
-            var v = new Iznik.Views.ModTools.Member.Of({
-                model: mod
-            });
-            self.$('.js-memberof').append(v.render().el);
-            groupids.push(group.id);
+            if (groupids.indexOf(group.id) == -1) {
+                var mod = new IznikModel(group);
+                var v = new Iznik.Views.ModTools.Member.Of({
+                    model: mod
+                });
+                self.$('.js-memberof').append(v.render().el);
+                groupids.push(group.id);
+            }
         });
 
         self.$('.js-applied').empty();
         _.each(self.model.get('applied'), function(group) {
-            if (groupids.indexOf(group.groupid) == -1) {
+            if (groupids.indexOf(group.id) == -1) {
                 // Don't both displaying applications to groups we've just listed as them being a member of.
                 var mod = new IznikModel(group);
                 var v = new Iznik.Views.ModTools.Member.Applied({

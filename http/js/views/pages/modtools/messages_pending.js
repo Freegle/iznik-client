@@ -187,7 +187,7 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
                 self.$('.js-yahoo').html(v.render().el);
             });
 
-            self.addOtherEmails();
+            self.addOtherInfo();
 
             // Add any attachments.
             _.each(self.model.get('attachments'), function(att) {

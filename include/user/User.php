@@ -804,6 +804,8 @@ class User extends Entity
                 $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
                 $memb['namedisplay'] = $name;
                 $memb['added'] = ISODate($memb['added']);
+                $memb['id'] = $memb['groupid'];
+                unset($memb['groupid']);
             }
 
             $atts['applied'] = $membs;

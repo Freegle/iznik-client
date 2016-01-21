@@ -268,7 +268,7 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
         var mom = new moment(this.model.get('joined'));
         this.$('.js-joined').html(mom.format('llll'));
 
-        self.addOtherEmails();
+        self.addOtherInfo();
 
         // Get the group from the session
         var group = Iznik.Session.getGroup(self.model.get('groupid'));

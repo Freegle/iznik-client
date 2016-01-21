@@ -64,7 +64,6 @@ class Yahoo
                 # See if we know this user already.
                 $u = new User($this->dbhr, $this->dbhm);
                 $id = $u->findByEmail($attrs['contact/email']);
-                error_log("Got attrs" . var_export($attrs, true));
 
                 if (!$id) {
                     # We don't know them.  Create a user.
