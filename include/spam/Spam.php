@@ -204,9 +204,36 @@ class Spam {
     public function listSpammers($collection, &$context) {
         $collectionq = ($collection ? " AND collection = '$collection'" : '');
         $startq = $context ? (" AND id <  " . intval($context['id']) . " ") : '';
-        $sql = "SELECT * FROM spam_users WHERE 1=1 $startq $collectionq LIMIT 10;";
+        $sql = "SELECT * FROM spam_users WHERE 1=1 $startq $collectionq ORDER BY id DESC LIMIT 10;";
+        $context = [];
 
-        return($this->dbhr->preQuery($sql));
+        $spammers = $this->dbhr->preQuery($sql);
+
+        foreach ($spammers as &$spammer) {
+            $u = new User($this->dbhr, $this->dbhm, $spammer['userid']);
+            $spammer['user'] = $u->getPublic(NULL, TRUE, TRUE);
+            $spammer['user']['email'] = $u->getEmailPreferred();
+
+            $emails = $u->getEmails();
+
+            $others = [];
+            foreach ($emails as $anemail) {
+                if ($anemail['email'] != $spammer['user']['email']) {
+                    $others[] = $anemail;
+                }
+            }
+
+            $spammer['user']['otheremails'] = $others;
+
+            if ($spammer['byuserid']) {
+                $u = new User($this->dbhr, $this->dbhm, $spammer['byuserid']);
+                $spammer['byuser'] = $u->getPublic();
+            }
+
+            $context['id'] = $spammer['id'];
+        }
+
+        return($spammers);
     }
 
     public function getSpammer($id) {
@@ -224,7 +251,18 @@ class Spam {
 
     public function addSpammer($userid, $collection, $reason) {
         $me = whoAmI($this->dbhr, $this->dbhm);
-        $text = "Unknown action";
+        $text = NULL;
+
+        switch ($collection) {
+            case Spam::TYPE_WHITELIST: {
+                $text = "Whitelisted: $reason";
+                break;
+            }
+            case Spam::TYPE_PENDING_ADD: {
+                $text = "Reported: $reason";
+                break;
+            }
+        }
 
         $this->log->log([
             'type' => Log::TYPE_USER,

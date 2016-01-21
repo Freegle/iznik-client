@@ -8,6 +8,7 @@ function spammers() {
     $userid = intval(presdef('userid', $_REQUEST, NULL));
     $collection = presdef('collection', $_REQUEST, Spam::TYPE_SPAMMER);
     $reason = presdef('reason', $_REQUEST, NULL);
+    $context = presdef('context', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 

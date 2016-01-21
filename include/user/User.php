@@ -170,6 +170,7 @@ class User extends Entity
     public function findByEmail($email) {
         $users = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;",
             [ $email ]);
+
         foreach ($users as $user) {
             return($user['userid']);
         }
@@ -188,7 +189,7 @@ class User extends Entity
         ]);
 
         if (count($emails) == 0) {
-            $this->dbhm->preExec("INSERT INTO users_emails (userid, email, preferred) VALUES (?, ?, ?)",
+            $this->dbhm->preExec("INSERT IGNORE INTO users_emails (userid, email, preferred) VALUES (?, ?, ?)",
                 [$this->id, $email, $primary]);
             $rc = $this->dbhm->lastInsertId();
         } else {

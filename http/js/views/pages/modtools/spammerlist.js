@@ -1,9 +1,9 @@
-Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
+Iznik.Views.ModTools.Pages.SpammerList = Iznik.Views.Page.extend({
     modtools: true,
     members: null,
     context: null,
 
-    template: "modtools_members_spam_main",
+    template: "modtools_spammerlist_main",
     fetching: false,
 
     fetch: function() {
@@ -25,7 +25,7 @@ Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
         var v = new Iznik.Views.PleaseWait();
         v.render();
 
-        this.members.fetch({
+        this.spammers.fetch({
             data: data,
             remove: false
         }).then(function() {
@@ -33,12 +33,12 @@ Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
 
             self.fetching = false;
 
-            self.context = self.members.ret ? self.members.ret.context : null;
+            self.context = self.spammers.ret ? self.spammers.ret.context : null;
 
-            if (self.members.length > 0) {
+            if (self.spammers.length > 0) {
                 // Peek into the underlying response to see if it returned anything and therefore whether it is
                 // worth asking for more if we scroll that far.
-                var gotsome = self.members.ret.members.length > 0;
+                var gotsome = self.spammers.ret.spammers.length > 0;
 
                 // Waypoints allow us to see when we have scrolled to the bottom.
                 if (self.lastWaypoint) {
@@ -81,22 +81,20 @@ Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
         Iznik.Views.Page.prototype.render.call(this);
 
         var v = new Iznik.Views.Help.Box();
-        v.template = 'modtools_members_spam_help';
+        v.template = 'modtools_spammerlist_help';
         this.$('.js-help').html(v.render().el);
 
-        self.members = new Iznik.Collections.Members(null, {
-            collection: 'Spam'
-        });
+        self.spammers = new Iznik.Collections.ModTools.Spammers();
 
         // CollectionView handles adding/removing/sorting for us.
         self.collectionView = new Backbone.CollectionView( {
             el : self.$('.js-list'),
-            modelView : Iznik.Views.ModTools.Member.Spam,
+            modelView : Iznik.Views.ModTools.Spammer,
             modelViewOptions: {
-                collection: self.members,
+                collection: self.spammers,
                 page: self
             },
-            collection: self.members
+            collection: self.spammers
         } );
 
         self.collectionView.render();
@@ -104,66 +102,55 @@ Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
         // Do so.
         self.fetch();
 
-        // If we detect that the pending counts have changed on the server, refetch the members so that we add/remove
-        // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
-        this.listenTo(Iznik.Session, 'spammemberscountschanged', this.fetch);
-        this.listenTo(Iznik.Session, 'spammembersothercountschanged', this.fetch);
-
         // We seem to need to redelegate
         self.delegateEvents();
     }
 });
 
-Iznik.Views.ModTools.Member.Spam = Iznik.Views.ModTools.Member.extend({
-    template: 'modtools_members_spam_member',
+Iznik.Views.ModTools.Spammer = Iznik.Views.ModTools.Member.extend({
+    template: 'modtools_spammerlist_member',
 
     render: function() {
         var self = this;
 
-        self.model.set('group', Iznik.Session.getGroup(self.model.get('groupid')).attributes);
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
 
-        var mom = new moment(this.model.get('joined'));
-        this.$('.js-joined').html(mom.format('llll'));
+        var mom = new moment(this.model.get('added'));
+        this.$('.js-added').html(mom.format('ll'));
 
-        self.addOtherInfo();
-
-        // Get the group from the session
-        var group = Iznik.Session.getGroup(self.model.get('groupid'));
-
-        // Our user
         var v = new Iznik.Views.ModTools.User({
-            model: self.model
+            model: new Iznik.Models.ModTools.User(self.model.get('user'))
         });
 
         self.$('.js-user').html(v.render().el);
 
-        // No remove/ban buttons as we have our own.
-        self.$('.js-remove, .js-ban').closest('li').hide();
-
-        // Delay getting the Yahoo info slightly to improve apparent render speed.
-        _.delay(function() {
-            // The Yahoo part of the user
-            var mod = IznikYahooUsers.findUser({
-                email: self.model.get('email'),
-                group: group.get('nameshort'),
-                groupid: group.get('id')
-            });
-
-            mod.fetch().then(function() {
-                // We don't want to show the Yahoo joined date because we have our own.
-                mod.clear('date');
-                var v = new Iznik.Views.ModTools.Yahoo.User({
+        // Add any other emails
+        self.$('.js-otheremails').empty();
+        var thisemail = self.model.get('user').email;
+        _.each(self.model.get('user').otheremails, function(email) {
+            if (email.email != thisemail) {
+                var mod = new IznikModel(email);
+                var v = new Iznik.Views.ModTools.Message.OtherEmail({
                     model: mod
                 });
-                self.$('.js-yahoo').append(v.render().el);
+                self.$('.js-otheremails').append(v.render().el);
+            }
+        });
+
+        self.$('.js-applied').empty();
+        _.each(self.model.get('user').applied, function(group) {
+            var mod = new IznikModel(group);
+            var v = new Iznik.Views.ModTools.Member.Applied({
+                model: mod
             });
-        }, 200);
+            self.$('.js-applied').append(v.render().el);
+        });
+
 
         this.$('.timeago').timeago();
 
         // If we approve, reject or ban this member then the view should go.
-        this.listenToOnce(self.model, 'deleted removed rejected approved', function() {
+        this.listenToOnce(self.model, 'deleted removed', function() {
             self.$el.fadeOut('slow', function() {
                 self.remove();
             });

@@ -47,6 +47,7 @@ var IznikRouter = Backbone.Router.extend({
         "modtools/members/pending(/:search)": "pendingMembers",
         "modtools/members/approved(/:search)": "approvedMembers",
         "modtools/members/spam": "spamMembers",
+        "modtools/spammerlist": "spammerList",
         "modtools/settings": "settings",
         "*path": "home"
     },
@@ -190,9 +191,17 @@ var IznikRouter = Backbone.Router.extend({
     },
 
     spamMembers: function() {
-        console.log("Spam members");
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
             var page = new Iznik.Views.ModTools.Pages.SpamMembers();
+            this.loadRoute({page: page, modtools: true});
+        });
+
+        Iznik.Session.forceLogin();
+    },
+
+    spammerList: function() {
+        this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
+            var page = new Iznik.Views.ModTools.Pages.SpammerList();
             this.loadRoute({page: page, modtools: true});
         });
 

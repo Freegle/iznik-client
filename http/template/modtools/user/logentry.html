@@ -59,6 +59,8 @@
             {{text}}
             <% } else if (subtype == 'Mailed') { %>
             Mod sent <% if (obj.stdmsg) { %>standard message <em>{{stdmsg.title}}</em><% } else if (obj.text) { %>{{text}}<% } else { %>mail<% } %>
+            <% } else if (subtype == 'Suspect') { %>
+            Detected as suspicious<% if (obj.text) { %>: {{text}}<% } %>
             <% } else { %>
                 <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>
