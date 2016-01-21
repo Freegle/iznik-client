@@ -234,6 +234,40 @@
     -webkit-font-smoothing: antialiased;
 }
 
+.btn-danger {
+    background-color: hsl(0, 100%, 35%) !important;
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#fe4c4c", endColorstr="#b20000");
+    background-image: -khtml-gradient(linear, left top, left bottom, from(#fe4c4c), to(#b20000));
+    background-image: -moz-linear-gradient(top, #fe4c4c, #b20000);
+    background-image: -ms-linear-gradient(top, #fe4c4c, #b20000);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #fe4c4c), color-stop(100%, #b20000));
+    background-image: -webkit-linear-gradient(top, #fe4c4c, #b20000);
+    background-image: -o-linear-gradient(top, #fe4c4c, #b20000);
+    background-image: linear-gradient(#fe4c4c, #b20000);
+    border-color: #b20000 #b20000 hsl(0, 100%, 27.5%);
+    color: #FFF !important;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.49);
+    -webkit-font-smoothing: antialiased;
+}
+
+.btn-warning {
+    background-color: hsl(29, 100%, 35%) !important;
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#fea24c", endColorstr="#b25600");
+    background-image: -khtml-gradient(linear, left top, left bottom, from(#fea24c), to(#b25600));
+    background-image: -moz-linear-gradient(top, #fea24c, #b25600);
+    background-image: -ms-linear-gradient(top, #fea24c, #b25600);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #fea24c), color-stop(100%, #b25600));
+    background-image: -webkit-linear-gradient(top, #fea24c, #b25600);
+    background-image: -o-linear-gradient(top, #fea24c, #b25600);
+    background-image: linear-gradient(#fea24c, #b25600);
+    border-color: #b25600 #b25600 hsl(29, 100%, 27.5%);
+    color: #fff !important;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.49);
+    -webkit-font-smoothing: antialiased;
+}
+
 .btn-info {
     background-color: hsl(50, 100%, 8%) !important;
     background-repeat: repeat-x;
