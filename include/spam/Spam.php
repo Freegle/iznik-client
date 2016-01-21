@@ -201,19 +201,56 @@ class Spam {
         return($count);
     }
 
-    public function listSpammers($type, &$context) {
-        $typeq = ($type ? " AND type = '$type'" : '');
+    public function listSpammers($collection, &$context) {
+        $collectionq = ($collection ? " AND collection = '$collection'" : '');
         $startq = $context ? (" AND id <  " . intval($context['id']) . " ") : '';
-        $sql = "SELECT * FROM spam_users WHERE 1=1 $startq $typeq LIMIT 10;";
+        $sql = "SELECT * FROM spam_users WHERE 1=1 $startq $collectionq LIMIT 10;";
 
         return($this->dbhr->preQuery($sql));
     }
 
-    public function addSpammer($userid, $type, $reason) {
+    public function getSpammer($id) {
+        $sql = "SELECT * FROM spam_users WHERE id = ?;";
+        $ret = NULL;
+
+        $spams = $this->dbhr->preQuery($sql, [ $id ]);
+
+        foreach ($spams as $spam) {
+            $ret = $spam;
+        }
+
+        return($ret);
+    }
+
+    public function addSpammer($userid, $collection, $reason) {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $text = "Unknown action";
 
-        switch ($type) {
+        $this->log->log([
+            'type' => Log::TYPE_USER,
+            'subtype' => Log::SUBTYPE_SUSPECT,
+            'byuser' => $me ? $me->getId() : NULL,
+            'user' => $userid,
+            'text' => $text
+        ]);
+
+        $sql = "REPLACE INTO spam_users (userid, collection, reason, byuserid) VALUES (?,?,?,?);";
+        $rc = $this->dbhm->preExec($sql, [
+            $userid,
+            $collection,
+            $reason,
+            $me ? $me->getId() : NULL
+        ]);
+
+        $id = $rc ? $this->dbhm->lastInsertId() : NULL;
+
+        return($id);
+    }
+
+    public function updateSpammer($userid, $collection, $reason) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        switch ($collection) {
             case Spam::TYPE_SPAMMER: {
                 $text = "Confirmed as spammer";
                 break;
@@ -240,12 +277,12 @@ class Spam {
             'text' => $text
         ]);
 
-        $sql = "REPLACE INTO spam_users (userid, type, reason, byuserid) VALUES (?,?,?,?);";
+        $sql = "UPDATE spam_users SET collection = ?, reason = ?, byuserid = ? WHERE userid = ?;";
         $rc = $this->dbhm->preExec($sql, [
-            $userid,
-            $type,
+            $collection,
             $reason,
-            $me ? $me->getId() : NULL
+            $me ? $me->getId() : NULL,
+            $userid
         ]);
 
         $id = $rc ? $this->dbhm->lastInsertId() : NULL;

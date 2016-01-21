@@ -1252,6 +1252,36 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+    patch:
+      summary: Spammer modify
+      tags: [Spammers]
+      description: |
+        Add a user to the spammer list.  This will be reviewed before it becomes active.
+      parameters:
+      - name: userid
+        in: body
+        description: User ID
+        type: number
+        required: true
+      - name: collection
+        in: body
+        description: Mods can move from Spammer to PendingRemove; appropriate users will approve this.
+        type: string
+        required: true
+        enum: [ 'Spammer', 'Whitelist', 'PendingAdd', 'PendingRemove' ]
+      - name: reason
+        in: body
+        description: Reason for addition
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
     delete:
       summary: Delete user from list
       tags: [Spammers]

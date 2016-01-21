@@ -146,6 +146,7 @@ class spammersAPITest extends IznikAPITest {
             'reason' => 'Test reason',
             'dup' => 5
         ]);
+        $sid = $ret['id'];
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_SPAMMER,
@@ -162,15 +163,14 @@ class spammersAPITest extends IznikAPITest {
         # Request removal
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
 
-        $ret = $this->call('spammers', 'POST', [
-            'userid' => $uid,
+        $ret = $this->call('spammers', 'PATCH', [
+            'id' => $sid,
             'collection' => Spam::TYPE_PENDING_REMOVE,
             'reason' => 'Test reason',
             'dup' => 6
         ]);
 
         assertEquals(0, $ret['ret']);
-        $sid = $ret['id'];
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_PENDING_REMOVE,
@@ -178,8 +178,8 @@ class spammersAPITest extends IznikAPITest {
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['spammers']));
 
-        $ret = $this->call('spammers', 'POST', [
-            'userid' => $uid,
+        $ret = $this->call('spammers', 'PATCH', [
+            'id' => $sid,
             'collection' => Spam::TYPE_WHITELIST,
             'reason' => 'Test reason',
             'dup' => 7
@@ -195,15 +195,40 @@ class spammersAPITest extends IznikAPITest {
 
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
 
-        $ret = $this->call('spammers', 'POST', [
-            'userid' => $uid,
+        $ret = $this->call('spammers', 'PATCH', [
+            'id' => $sid,
             'collection' => Spam::TYPE_WHITELIST,
             'reason' => 'Test reason',
             'dup' => 77
         ]);
 
         assertEquals(0, $ret['ret']);
-        $sid = $ret['id'];
+
+        $ret = $this->call('spammers', 'PATCH', [
+            'id' => $sid,
+            'collection' => Spam::TYPE_PENDING_ADD,
+            'reason' => 'Test reason',
+            'dup' => 81
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('spammers', 'PATCH', [
+            'id' => $sid,
+            'collection' => Spam::TYPE_PENDING_REMOVE,
+            'reason' => 'Test reason',
+            'dup' => 81
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('spammers', 'PATCH', [
+            'id' => $sid,
+            'collection' => Spam::TYPE_SPAMMER,
+            'reason' => 'Test reason',
+            'dup' => 81
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
 
         $ret = $this->call('spammers', 'DELETE', [
             'id' => $sid

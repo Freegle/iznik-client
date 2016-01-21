@@ -36,12 +36,31 @@ function spammers() {
                 if ($me->isAdminOrSupport() || $collection == Spam::TYPE_PENDING_ADD) {
                     # Admin/Support can do anything; anyone can submit a spammer.
                     $ret = ['ret' => 0, 'status' => 'Success', 'id' => $s->addSpammer($userid, $collection, $reason)];
-                } else if ($me->isModerator() && ($collection == Spam::TYPE_PENDING_REMOVE)) {
-                    # Mods can request removal
-                    $ret = ['ret' => 0, 'status' => 'Success', 'id' => $s->addSpammer($userid, $collection, $reason)];
                 } else {
                     # Not allowed
                     $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                }
+            }
+            break;
+        }
+
+        case 'PATCH': {
+            if ($me) {
+                $spammer = $s->getSpammer($id);
+                $ret = ['ret' => 2, 'status' => 'Permission denied'];
+
+                error_log("Got $collection, $id spammer " . var_export($spammer, true));
+
+                if ($spammer) {
+                    if ($me->isAdminOrSupport()) {
+                        # Admin/Support can do anything
+                        $ret = ['ret' => 0, 'status' => 'Success', 'id' => $s->updateSpammer($userid, $collection, $reason)];
+                    } else if ($me->isModerator() &&
+                        ($spammer['collection'] == Spam::TYPE_SPAMMER) &&
+                        ($collection == Spam::TYPE_PENDING_REMOVE)) {
+                        # Mods can request removal
+                        $ret = ['ret' => 0, 'status' => 'Success', 'id' => $s->updateSpammer($userid, $collection, $reason)];
+                    }
                 }
             }
             break;
