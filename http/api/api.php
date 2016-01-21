@@ -28,6 +28,7 @@ require_once(IZNIK_BASE . '/http/api/dashboard.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
 require_once(IZNIK_BASE . '/http/api/message.php');
 require_once(IZNIK_BASE . '/http/api/memberships.php');
+require_once(IZNIK_BASE . '/http/api/spammers.php');
 require_once(IZNIK_BASE . '/http/api/supporters.php');
 require_once(IZNIK_BASE . '/http/api/group.php');
 require_once(IZNIK_BASE . '/http/api/plugin.php');
@@ -122,6 +123,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'memberships':
                     $ret = memberships();
+                    break;
+                case 'spammers':
+                    $ret = spammers();
                     break;
                 case 'plugin':
                     $ret = plugin();

@@ -1195,6 +1195,74 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+  /spammers:
+    get:
+      summary: Get spammer list
+      tags: [Spammers]
+      description: |
+        Get list of spammers
+      parameters:
+      - name: collection
+        in: body
+        description: Type of spammers to return
+        type: string
+        enum: [ 'Spammer', 'Whitelist', 'PendingAdd', 'PendingRemove' ]
+      - name: context
+        in: query
+        description: Context from previous request if any
+        type: string
+  /spammers/{id}:
+    get:
+      summary: Get spammer
+      tags: [Spammers]
+      description: |
+        Get list of spammers
+      parameters:
+      - name: id
+        in: path
+        description: Specific spammer id to fetch (optional)
+        type: number
+    post:
+      summary: Spammer add
+      tags: [Spammers]
+      description: |
+        Add a user to the spammer list.  This will be reviewed before it becomes active.
+      parameters:
+      - name: userid
+        in: body
+        description: User ID
+        type: number
+        required: true
+      - name: collection
+        in: body
+        description: Anyone can report a spammer.  Mods can request removal from the list.  Appropriate users can whitelist.
+        type: string
+        required: true
+        enum: [ 'Spammer', 'Whitelist', 'PendingAdd', 'PendingRemove' ]
+      - name: reason
+        in: body
+        description: Reason for addition
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    delete:
+      summary: Delete user from list
+      tags: [Spammers]
+      description: |
+        Remove a user from a list.  Only appropriate users can do this.
+      parameters:
+      - name: id
+        in: path
+        description: ID to remove
+        type: number
+        required: true
 definitions:
   Response:
     properties: 

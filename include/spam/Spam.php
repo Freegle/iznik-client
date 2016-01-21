@@ -6,6 +6,11 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 use GeoIp2\Database\Reader;
 
 class Spam {
+    CONST TYPE_SPAMMER = 'Spammer';
+    CONST TYPE_WHITELIST = 'Whitelist';
+    CONST TYPE_PENDING_ADD = 'PendingAdd';
+    CONST TYPE_PENDING_REMOVE = 'PendingRemove';
+
     CONST USER_THRESHOLD = 10;
     CONST GROUP_THRESHOLD = 20;
     CONST SUBJECT_THRESHOLD = 30;  // SUBJECT_THRESHOLD must be > GROUP_THRESHOLD for UT
@@ -194,5 +199,80 @@ class Spam {
         }
 
         return($count);
+    }
+
+    public function listSpammers($type, &$context) {
+        $typeq = ($type ? " AND type = '$type'" : '');
+        $startq = $context ? (" AND id <  " . intval($context['id']) . " ") : '';
+        $sql = "SELECT * FROM spam_users WHERE 1=1 $startq $typeq LIMIT 10;";
+
+        return($this->dbhr->preQuery($sql));
+    }
+
+    public function addSpammer($userid, $type, $reason) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $text = "Unknown action";
+
+        switch ($type) {
+            case Spam::TYPE_SPAMMER: {
+                $text = "Confirmed as spammer";
+                break;
+            }
+            case Spam::TYPE_WHITELIST: {
+                $text = "Whitelisted: $reason";
+                break;
+            }
+            case Spam::TYPE_PENDING_ADD: {
+                $text = "Reported: $reason";
+                break;
+            }
+            case Spam::TYPE_PENDING_REMOVE: {
+                $text = "Requested removal: $reason";
+                break;
+            }
+        }
+
+        $this->log->log([
+            'type' => Log::TYPE_USER,
+            'subtype' => Log::SUBTYPE_SUSPECT,
+            'byuser' => $me ? $me->getId() : NULL,
+            'user' => $userid,
+            'text' => $text
+        ]);
+
+        $sql = "REPLACE INTO spam_users (userid, type, reason, byuserid) VALUES (?,?,?,?);";
+        $rc = $this->dbhm->preExec($sql, [
+            $userid,
+            $type,
+            $reason,
+            $me ? $me->getId() : NULL
+        ]);
+
+        $id = $rc ? $this->dbhm->lastInsertId() : NULL;
+
+        return($id);
+    }
+
+    public function deleteSpammer($id, $reason) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $spammers = $this->dbhr->preQuery("SELECT * FROM spam_users WHERE id = ?;", [ $id ]);
+
+        $rc = FALSE;
+
+        foreach ($spammers as $spammer) {
+            $rc = $this->dbhm->preExec("DELETE FROM spam_users WHERE id = ?;", [
+                $id
+            ]);
+
+            $this->log->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_SUSPECT,
+                'byuser' => $me ? $me->getId() : NULL,
+                'user' => $spammer['userid'],
+                'text' => "Removed: $reason"
+            ]);
+        }
+
+        return($rc);
     }
 }

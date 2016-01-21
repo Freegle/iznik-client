@@ -814,6 +814,16 @@ class User extends Entity
         return($atts);
     }
 
+    public function isAdminOrSupport() {
+        return($this->user['systemrole'] == User::SYSTEMROLE_ADMIN || $this->user['systemrole'] == User::SYSTEMROLE_SUPPORT);
+    }
+
+    public function isModerator() {
+        return($this->user['systemrole'] == User::SYSTEMROLE_ADMIN ||
+            $this->user['systemrole'] == User::SYSTEMROLE_SUPPORT ||
+            $this->user['systemrole'] == User::SYSTEMROLE_MODERATOR);
+    }
+
     public function roleMax($role1, $role2) {
         $role = User::ROLE_NONMEMBER;
 
