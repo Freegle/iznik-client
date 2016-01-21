@@ -31,6 +31,7 @@ $g = new Group($dbhr, $dbhm);
 # First get groups from ModTools
 $oldgroups = $dbhold->query("SELECT * FROM groups WHERE groupname != '';");
 foreach ($oldgroups as $group) {
+    error_log("ModTools group {$group['groupname']}");
     $type = Group::GROUP_OTHER;
 
     if (intval($group['freeglegroupid'])) {
@@ -97,6 +98,7 @@ $sql = "SELECT * FROM groups WHERE grouppublish = 1;";
 $fgroups = $dbhd->query($sql);
 
 foreach ($fgroups as $fgroup) {
+    error_log("FD group {$fgroup['groupname']}");
     $g->create(
         $fgroup['groupname'],
         Group::GROUP_FREEGLE
@@ -165,7 +167,6 @@ foreach ($fgroups as $fgroup) {
         'description' => $fgroup['groupdescription']
     ];
 
-    error_log("Set FD settings for {$fgroup['groupname']} id $id");
     $g->setPrivate('settings', json_encode($settings));
 }
 

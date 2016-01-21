@@ -78,7 +78,14 @@ foreach ($oldconfs as $config) {
         if ($config['messageorder']) {
             $order = json_decode($config['messageorder']);
             foreach ($order as $id) {
-                $neworder[] = $msgidmap[$id];
+                if (pres($id, $msgidmap)) {
+                    $neworder[] = $msgidmap[$id];
+                    unset($msgidmap[$id]);
+                }
+            }
+
+            foreach ($msgidmap as $key => $val) {
+                $neworder[] = $val;
             }
         }
 
@@ -87,7 +94,6 @@ foreach ($oldconfs as $config) {
 
     # Migrate which configs are used to moderate.
     $sql = "SELECT groupid, email, name FROM groupsmoderated INNER JOIN moderators ON moderators.uniqueid = groupsmoderated.moderatorid WHERE configid = {$config['uniqueid']};";
-    error_log($sql);
     $mods = $dbhold->query($sql);
 
     foreach ($mods as $mod) {
@@ -102,10 +108,12 @@ foreach ($oldconfs as $config) {
 
                 if (!$modid) {
                     error_log("Don't know {$mod['email']}");
+                    $u2 = new User($dbhr, $dbhm);
+                    $modid = $u2->create(NULL, NULL, $mod['name']);
+
                     # Create a membership for this mod
-                    $u2 = new User($dbhr, $dbhm, $modid);
                     $emailid = $u2->addEmail($mod['email']);
-                    $u2->addMembership($group['groupid'], User::ROLE_MODERATOR, $emailid);
+                    $u2->addMembership($gid, User::ROLE_MODERATOR, $emailid);
                 } else {
                     error_log("Already know {$mod['email']} as $modid");
                     $u2 = new User($dbhr, $dbhm, $modid);
