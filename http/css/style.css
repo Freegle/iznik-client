@@ -698,6 +698,10 @@ a button {
     color: red;
 }
 
+.warning {
+    color: orangered;
+}
+
 .success {
     color: green;
 }

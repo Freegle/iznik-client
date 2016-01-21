@@ -206,6 +206,7 @@ class User extends Entity
     }
 
     private function updateSystemRole($role) {
+        error_log("updateSystemRole $role");
         if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
             $sql = "UPDATE users SET systemrole = ? WHERE id = ? AND systemrole = ?;";
             $this->dbhm->preExec($sql, [ User::SYSTEMROLE_MODERATOR, $this->id, User::SYSTEMROLE_USER ]);
@@ -242,14 +243,20 @@ class User extends Entity
             return(FALSE);
         }
 
-        $rc = $this->dbhm->preExec("REPLACE INTO memberships (userid, groupid, role, emailid, collection) VALUES (?,?,?,?,?);",
-            [
-                $this->id,
-                $groupid,
-                $role,
-                $emailid,
-                $collection
-            ]);
+        $rc = $this->dbhm->preExec("REPLACE INTO memberships (userid, groupid, role, emailid, collection) VALUES (?,?,?,?,?);", [
+            $this->id,
+            $groupid,
+            $role,
+            $emailid,
+            $collection
+        ]);
+
+        # Record the operation for abuse detection.
+        $this->dbhm->preExec("INSERT INTO memberships_history (userid, groupid, collection) VALUES (?,?,?);", [
+            $this->id,
+            $groupid,
+            $collection
+        ]);
 
         # We might need to update the systemrole.
         #
@@ -599,6 +606,7 @@ class User extends Entity
     public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE) {
         $atts = parent::getPublic();
         $me = whoAmI($this->dbhr, $this->dbhm);
+        $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
 
         if ($history) {
             # Add in the message history - from any of the emails associated with this user.
@@ -731,18 +739,26 @@ class User extends Entity
         }
 
         if ($this->user['suspectcount'] > 0) {
-            # This user is flagged as suspicious.  This is visible iff the currently logged in user
+            # This user is flagged as suspicious.  The memberships are visible iff the currently logged in user
             # - has a system role which allows it
             # - is a mod on a group which this user is also on.
-            $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
             $visible = $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT;
+            $memberof = [];
 
             if (!$visible) {
                 # Check the groups.
-                $sql = "SELECT * FROM memberships WHERE userid = ?;";
+                $sql = "SELECT memberships.*, groups.nameshort, groups.namefull FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
                 $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
                 foreach ($groups as $group) {
                     $role = $me ? $me->getRole($group['groupid']) : User::ROLE_NONMEMBER;
+                    $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+
+                    $memberof[] = [
+                        'id' => $group['groupid'],
+                        'namedisplay' => $name,
+                        'added' => ISODate($group['added'])
+                    ];
+
                     if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
                         $visible = TRUE;
                     }
@@ -752,7 +768,45 @@ class User extends Entity
             if ($visible) {
                 $atts['suspectcount'] = $this->user['suspectcount'];
                 $atts['suspectreason'] = $this->user['suspectreason'];
+                $atts['memberof'] = $memberof;
             }
+        }
+
+        if (!array_key_exists('memberof', $atts) && ($systemrole == User::ROLE_OWNER || $systemrole == User::ROLE_MODERATOR)) {
+            # We haven't provided the complete list; get the recent ones (which preserves some privacy for the user but
+            # allows us to spot abuse) and any which are on our groups.
+            $modids = $me->getModeratorships();
+            $sql = "SELECT memberships.*, groups.nameshort, groups.namefull FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), added) <= 31 OR memberships.groupid IN (" . implode(',', $modids) . "));";
+            $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
+            $memberof = [];
+
+            foreach ($groups as $group) {
+                $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+
+                $memberof[] = [
+                    'id' => $group['groupid'],
+                    'namedisplay' => $name,
+                    'added' => ISODate($group['added'])
+                ];
+            }
+
+            $atts['memberof'] = $memberof;
+        }
+
+        if ($systemrole == User::ROLE_OWNER || $systemrole == User::ROLE_MODERATOR) {
+            # As well as being a member of a group, they might have joined and left, or applied and been rejected.
+            # This is useful info for moderators.  If the user is suspicious then return the complete list; otherwise
+            # just the recent ones.
+            $groupq = ($groupids && count($groupids) > 0) ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
+            $sql = "SELECT memberships_history.*, groups.nameshort, groups.namefull FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid = ? $groupq ORDER BY added DESC;";
+            $membs = $this->dbhr->preQuery($sql, [ $this->id ]);
+            foreach ($membs as &$memb) {
+                $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
+                $memb['namedisplay'] = $name;
+                $memb['added'] = ISODate($memb['added']);
+            }
+
+            $atts['applied'] = $membs;
         }
 
         return($atts);
@@ -897,6 +951,14 @@ class User extends Entity
                 # if this info isn't correct, so ignore the rc.
                 if ($rc) {
                     $this->dbhm->preExec("UPDATE messages SET fromuser = ? WHERE fromuser = ?;", [
+                        $id1,
+                        $id2
+                    ]);
+                }
+
+                # Merge the history
+                if ($rc) {
+                    $this->dbhm->preExec("UPDATE memberships_history SET userid = ? WHERE userid = ?;", [
                         $id1,
                         $id2
                     ]);

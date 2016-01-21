@@ -52,11 +52,14 @@ function memberships() {
                     } else {
                         # No group was specified - use the current memberships, if we have any, excluding those that our
                         # preferences say shouldn't be in.
+                        #
+                        # We always show spammers, because we want mods to act on them asap.
                         $mygroups = $me->getMemberships(TRUE);
                         foreach ($mygroups as $group) {
                             $settings = $me->getGroupSettings($group['id']);
                             if (!array_key_exists('showmembers', $settings) ||
-                                $settings['showmembers']) {
+                                $settings['showmembers'] ||
+                                $collection == MembershipCollection::SPAM) {
                                 $groupids[] = $group['id'];
                             }
                         }
@@ -117,7 +120,6 @@ function memberships() {
             case 'POST': {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
                 $role = $me ? $me->getRole($groupid) : User::ROLE_NONMEMBER;
-                error_log("Role $role on $groupid id " . $me->getId());
 
                 if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];

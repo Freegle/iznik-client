@@ -145,7 +145,6 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
                     // We got some different members, so set up a scroll handler.  If we didn't get any different
                     // members, then there's no point - we could keep hitting the server with more requests
                     // and not getting any.
-                    self.context = self.members.ret.context;
                     var vm = self.collectionView.viewManager;
                     var lastView = vm.last();
 

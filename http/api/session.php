@@ -27,6 +27,9 @@ function session() {
                         }
                     }
                 }
+
+                $s = new Spam($dbhr, $dbhm);
+                $ret['work']['spammembers'] = $s->workCount();
             } else {
                 $ret = array('ret' => 1, 'status' => 'Not logged in');
             }

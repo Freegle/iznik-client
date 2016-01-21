@@ -187,13 +187,23 @@ class userTest extends IznikTest {
             'testsetting' => 'test'
         ]);
         assertEquals('test', $u->getGroupSettings($group1)['testsetting']);
+        $atts = $u->getPublic();
+        assertFalse(array_key_exists('applied', $atts));
 
+        error_log("Set owner");
         $u->addMembership($group1, User::ROLE_OWNER);
         assertEquals($u->getRole($group1), User::ROLE_OWNER);
         assertTrue($u->isModOrOwner($group1));
         assertTrue(array_key_exists('work', $u->getMemberships()[0]));
         $modships = $u->getModeratorships();
         assertEquals(1, count($modships));
+
+        # Should be able to see the applied history.
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $atts = $u->getPublic();
+        error_log("Applied " . var_export($atts['applied'], TRUE));
+        assertEquals(2, count($atts['applied']));
 
         $u->setRole(User::ROLE_MODERATOR, $group1);
         assertEquals($u->getRole($group1), User::ROLE_MODERATOR);

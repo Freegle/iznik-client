@@ -154,13 +154,13 @@ class Spam {
         $suspect = FALSE;
         $reason = NULL;
 
-        # Check whether they have joined a suspicious number of groups.
-        $sql = "SELECT COUNT(*) AS count FROM memberships WHERE userid = ?;";
+        # Check whether they have applied to a suspicious number of groups.
+        $sql = "SELECT COUNT(DISTINCT(groupid)) AS count FROM memberships WHERE userid = ?;";
         $counts = $this->dbhr->preQuery($sql, [ $userid ]);
 
         if ($counts[0]['count'] > Spam::SEEN_THRESHOLD) {
             $suspect = TRUE;
-            $reason = "Seen on " . Spam::SEEN_THRESHOLD . " groups";
+            $reason = "Seen on many groups";
         }
 
         if ($suspect) {
@@ -180,5 +180,19 @@ class Spam {
                     $userid
                 ]);
         }
+    }
+
+    public function workCount() {
+        $count = 0;
+
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        if ($me) {
+            $sql = "SELECT COUNT(DISTINCT(users.id)) AS count FROM users INNER JOIN memberships ON users.suspectcount > 0 AND users.id = memberships.userid AND memberships.groupid IN (SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner'));";
+            $counts = $this->dbhr->preQuery($sql, [ $me->getId() ]);
+            $count = $counts[0]['count'];
+        }
+
+        return($count);
     }
 }

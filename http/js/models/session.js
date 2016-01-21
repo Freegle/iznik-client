@@ -66,13 +66,6 @@ Iznik.Models.Session = IznikModel.extend({
                             sound: true
                         },
                         {
-                            fi: 'spammembers',
-                            el: '.js-spammemberscount',
-                            ev: 'spammemberscountschanged',
-                            window: true,
-                            sound: true
-                        },
-                        {
                             fi: 'pendingmembersother',
                             el: '.js-pendingmemberscountother',
                             ev: 'pendingmemberscountsotherchanged',
@@ -80,11 +73,11 @@ Iznik.Models.Session = IznikModel.extend({
                             sound: false
                         },
                         {
-                            fi: 'spammembersother',
-                            el: '.js-spammemberscountother',
-                            ev: 'spammemberscountsotherchanged',
-                            window: false,
-                            sound: false
+                            fi: 'spammembers',
+                            el: '.js-spammemberscount',
+                            ev: 'spammemberscountschanged',
+                            window: true,
+                            sound: true
                         }
                     ];
 

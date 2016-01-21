@@ -344,6 +344,15 @@ class Group extends Entity
                                 "{$member['uid']} AND groupid = {$this->id};";
                         $bulksql .= $sql;
 
+                        # Make sure we have a history entry - might not have if the join happened elsewhere.
+                        $sql = "SELECT * FROM memberships_history WHERE userid = ? AND groupid = ?;";
+                        $hists = $this->dbhr->preQuery($sql, [ $member['uid'], $this->id ]);
+
+                        if (count($hists) == 0) {
+                            $sql = "INSERT INTO memberships_history (userid, groupid, collection, added) VALUES ({$member['uid']},{$this->id},'$collection',$added);";
+                            $bulksql .= $sql;
+                        }
+
                         # If this is a mod/owner, make sure the systemrole reflects that.
                         if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                             $sql = "UPDATE users SET systemrole = 'Moderator' WHERE id = {$member['uid']} AND systemrole = 'User';";

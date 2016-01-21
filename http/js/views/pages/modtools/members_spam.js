@@ -1,6 +1,7 @@
 Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
     modtools: true,
     members: null,
+    context: null,
 
     template: "modtools_members_spam_main",
     fetching: false,
@@ -9,6 +10,10 @@ Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
         var self = this;
 
         self.$('.js-none').hide();
+
+        var data = {
+            context: self.context
+        };
 
         if (self.fetching) {
             // Already fetching
@@ -21,13 +26,54 @@ Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
         v.render();
 
         this.members.fetch({
-            remove: true
+            data: data,
+            remove: false
         }).then(function() {
             v.close();
 
             self.fetching = false;
+            console.log("Got", self.members.length, self.members);
+            self.members.each(function(mod) {
+                console.log(mod.get('id'))
+            });
 
-            if (self.members.length == 0) {
+            self.context = self.members.ret ? self.members.ret.context : null;
+
+            if (self.members.length > 0) {
+                // Peek into the underlying response to see if it returned anything and therefore whether it is
+                // worth asking for more if we scroll that far.
+                var gotsome = self.members.ret.members.length > 0;
+
+                // Waypoints allow us to see when we have scrolled to the bottom.
+                if (self.lastWaypoint) {
+                    self.lastWaypoint.destroy();
+                }
+
+                if (gotsome) {
+                    // We got some different members, so set up a scroll handler.  If we didn't get any different
+                    // members, then there's no point - we could keep hitting the server with more requests
+                    // and not getting any.
+                    var vm = self.collectionView.viewManager;
+                    var lastView = vm.last();
+
+                    if (lastView) {
+                        self.lastMember = lastView;
+                        self.lastWaypoint = new Waypoint({
+                            element: lastView.el,
+                            handler: function(direction) {
+                                if (direction == 'down') {
+                                    // We have scrolled to the last view.  Fetch more as long as we've not switched
+                                    // away to another page.
+                                    if (jQuery.contains(document.documentElement, lastView.el)) {
+                                        self.fetch();
+                                    }
+                                }
+                            },
+                            offset: '99%' // Fire as soon as this view becomes visible
+                        });
+                    }
+                }
+            } else {
                 self.$('.js-none').fadeIn('slow');
             }
         });
@@ -64,8 +110,8 @@ Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
 
         // If we detect that the pending counts have changed on the server, refetch the members so that we add/remove
         // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
-        this.listenTo(Iznik.Session, 'spammemberscountschanged', this.render);
-        this.listenTo(Iznik.Session, 'spammembersothercountschanged', this.render);
+        this.listenTo(Iznik.Session, 'spammemberscountschanged', this.fetch);
+        this.listenTo(Iznik.Session, 'spammembersothercountschanged', this.fetch);
 
         // We seem to need to redelegate
         self.delegateEvents();
@@ -95,6 +141,9 @@ Iznik.Views.ModTools.Member.Spam = Iznik.Views.ModTools.Member.extend({
         });
 
         self.$('.js-user').html(v.render().el);
+
+        // No remove/ban buttons as we have our own.
+        self.$('.js-remove, .js-ban').closest('li').hide();
 
         // Delay getting the Yahoo info slightly to improve apparent render speed.
         _.delay(function() {
