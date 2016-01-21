@@ -775,7 +775,7 @@ class User extends Entity
         if (!array_key_exists('memberof', $atts) && ($systemrole == User::ROLE_OWNER || $systemrole == User::ROLE_MODERATOR)) {
             # We haven't provided the complete list; get the recent ones (which preserves some privacy for the user but
             # allows us to spot abuse) and any which are on our groups.
-            $modids = $me->getModeratorships();
+            $modids = array_merge([0], $me->getModeratorships());
             $sql = "SELECT memberships.*, groups.nameshort, groups.namefull FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), added) <= 31 OR memberships.groupid IN (" . implode(',', $modids) . "));";
             $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
             $memberof = [];

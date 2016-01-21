@@ -247,7 +247,7 @@ class Spam {
         return($id);
     }
 
-    public function updateSpammer($userid, $collection, $reason) {
+    public function updateSpammer($id, $userid, $collection, $reason) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         switch ($collection) {
@@ -277,12 +277,13 @@ class Spam {
             'text' => $text
         ]);
 
-        $sql = "UPDATE spam_users SET collection = ?, reason = ?, byuserid = ? WHERE userid = ?;";
+        $sql = "UPDATE spam_users SET collection = ?, reason = ?, byuserid = ? WHERE id = ?;";
+        error_log("$sql, $collection, $userid");
         $rc = $this->dbhm->preExec($sql, [
             $collection,
             $reason,
             $me ? $me->getId() : NULL,
-            $userid
+            $id
         ]);
 
         $id = $rc ? $this->dbhm->lastInsertId() : NULL;

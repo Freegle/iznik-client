@@ -140,13 +140,12 @@ class spammersAPITest extends IznikAPITest {
         # Look at the pending queue
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
 
-        $ret = $this->call('spammers', 'POST', [
-            'userid' => $uid,
+        $ret = $this->call('spammers', 'PATCH', [
+            'id' => $sid,
             'collection' => Spam::TYPE_SPAMMER,
             'reason' => 'Test reason',
             'dup' => 5
         ]);
-        $sid = $ret['id'];
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_SPAMMER,

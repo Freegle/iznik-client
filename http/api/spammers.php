@@ -54,12 +54,12 @@ function spammers() {
                 if ($spammer) {
                     if ($me->isAdminOrSupport()) {
                         # Admin/Support can do anything
-                        $ret = ['ret' => 0, 'status' => 'Success', 'id' => $s->updateSpammer($userid, $collection, $reason)];
+                        $ret = ['ret' => 0, 'status' => 'Success', 'id' => $s->updateSpammer($id, $spammer['userid'], $collection, $reason)];
                     } else if ($me->isModerator() &&
                         ($spammer['collection'] == Spam::TYPE_SPAMMER) &&
                         ($collection == Spam::TYPE_PENDING_REMOVE)) {
                         # Mods can request removal
-                        $ret = ['ret' => 0, 'status' => 'Success', 'id' => $s->updateSpammer($userid, $collection, $reason)];
+                        $ret = ['ret' => 0, 'status' => 'Success', 'id' => $s->updateSpammer($id, $spammer['userid'], $collection, $reason)];
                     }
                 }
             }
