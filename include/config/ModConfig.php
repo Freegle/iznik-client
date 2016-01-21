@@ -190,7 +190,7 @@ class ModConfig extends Entity
                 # Check that this is one of our configs and either we created it, or it's not protected against
                 # changes by others.
                 if ($config['id'] == $this->id &&
-                    ($config['createdby'] == $me->getId() || !$config['protected'])) {
+                    ($config['createdby']['id'] == $me->getId() || !$config['protected'])) {
                     $ret = TRUE;
                 }
             }
