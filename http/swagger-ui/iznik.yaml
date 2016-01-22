@@ -1207,6 +1207,10 @@ paths:
         description: Type of spammers to return
         type: string
         enum: [ 'Spammer', 'Whitelist', 'PendingAdd', 'PendingRemove' ]
+      - name: search
+        in: path
+        description: What to search for (optional)
+        type: string
       - name: context
         in: query
         description: Context from previous request if any

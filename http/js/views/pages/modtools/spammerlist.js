@@ -3,16 +3,41 @@ Iznik.Views.ModTools.Pages.SpammerList = Iznik.Views.Page.extend({
     members: null,
     context: null,
 
+    events: {
+        'click .js-search': 'search',
+        'keyup .js-searchterm': 'keyup'
+    },
+
     template: "modtools_spammerlist_main",
     fetching: false,
+
+    keyup: function(e) {
+        // Search on enter.
+        if (e.which == 13) {
+            this.$('.js-search').click();
+        }
+    },
+
+    search: function() {
+        var term = this.$('.js-searchterm').val();
+
+        if (term != '') {
+            Router.navigate('/modtools/spammerlist/' + encodeURIComponent(term), true);
+        } else {
+            Router.navigate('/modtools/spammerlist', true);
+        }
+    },
 
     fetch: function() {
         var self = this;
 
         self.$('.js-none').hide();
 
+        var search = self.$('.js-searchterm').val();
+
         var data = {
-            context: self.context
+            context: self.context,
+            search: search && search.length > 0 ? search: null
         };
 
         if (self.fetching) {
@@ -79,6 +104,8 @@ Iznik.Views.ModTools.Pages.SpammerList = Iznik.Views.Page.extend({
         var self = this;
 
         Iznik.Views.Page.prototype.render.call(this);
+
+        self.$('.js-searchterm').val(self.options.search);
 
         var v = new Iznik.Views.Help.Box();
         v.template = 'modtools_spammerlist_help';

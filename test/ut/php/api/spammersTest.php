@@ -56,6 +56,7 @@ class spammersAPITest extends IznikAPITest {
         $this->user->addEmail('test2@test.com');
 
         $ret = $this->call('spammers', 'GET', [
+            'search' => 'Test User'
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['spammers']));
@@ -116,6 +117,7 @@ class spammersAPITest extends IznikAPITest {
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_SPAMMER,
+            'search' => 'Test User'
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['spammers']));
@@ -149,12 +151,14 @@ class spammersAPITest extends IznikAPITest {
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_SPAMMER,
+            'search' => 'Test User'
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['spammers']));
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_PENDING_ADD,
+            'search' => 'Test User'
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['spammers']));
@@ -173,6 +177,7 @@ class spammersAPITest extends IznikAPITest {
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_PENDING_REMOVE,
+            'search' => 'Test User'
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['spammers']));
@@ -237,12 +242,12 @@ class spammersAPITest extends IznikAPITest {
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_SPAMMER,
+            'search' => 'Test User'
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['spammers']));
 
         error_log(__METHOD__ . " end");
     }
-
 }
 

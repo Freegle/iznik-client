@@ -201,10 +201,11 @@ class Spam {
         return($count);
     }
 
-    public function listSpammers($collection, &$context) {
+    public function listSpammers($collection, $search, &$context) {
         $collectionq = ($collection ? " AND collection = '$collection'" : '');
-        $startq = $context ? (" AND id <  " . intval($context['id']) . " ") : '';
-        $sql = "SELECT * FROM spam_users WHERE 1=1 $startq $collectionq ORDER BY id DESC LIMIT 10;";
+        $startq = $context ? (" AND spam_users.id <  " . intval($context['id']) . " ") : '';
+        $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") . ") ");
+        $sql = "SELECT DISTINCT spam_users.* FROM spam_users INNER JOIN users ON spam_users.userid = users.id LEFT JOIN users_emails ON users_emails.userid = spam_users.userid WHERE 1=1 $startq $collectionq $searchq ORDER BY spam_users.id DESC LIMIT 10;";
         $context = [];
 
         $spammers = $this->dbhr->preQuery($sql);
@@ -316,7 +317,6 @@ class Spam {
         ]);
 
         $sql = "UPDATE spam_users SET collection = ?, reason = ?, byuserid = ? WHERE id = ?;";
-        error_log("$sql, $collection, $userid");
         $rc = $this->dbhm->preExec($sql, [
             $collection,
             $reason,

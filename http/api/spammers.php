@@ -9,6 +9,7 @@ function spammers() {
     $collection = presdef('collection', $_REQUEST, Spam::TYPE_SPAMMER);
     $reason = presdef('reason', $_REQUEST, NULL);
     $context = presdef('context', $_REQUEST, NULL);
+    $search = presdef('search', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -27,7 +28,7 @@ function spammers() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            $ret = [ 'ret' => 0, 'status' => 'Success', 'spammers' => $s->listSpammers($collection, $context) ];
+            $ret = [ 'ret' => 0, 'status' => 'Success', 'spammers' => $s->listSpammers($collection, $search, $context) ];
             $ret['context'] = $context;
             break;
         }

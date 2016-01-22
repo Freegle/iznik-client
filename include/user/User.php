@@ -695,7 +695,7 @@ class User extends Entity
                         break;
                     }
 
-                    $log['group'] = $groups[$log['groupid']];
+                    $log['group'] = presdef($log['groupid'], $groups, NULL);
                 }
 
                 if (pres('configid', $log)) {
