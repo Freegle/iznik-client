@@ -98,7 +98,7 @@ Iznik.Models.Yahoo.User = IznikModel.extend({
     // rather than the client.
     changeDelivery: function(val) {
         $.ajax({
-            type: 'POST',
+            type: 'PATCH',
             url: API + '/user',
             data: {
                 groupid: this.get('groupid'),
@@ -112,7 +112,7 @@ Iznik.Models.Yahoo.User = IznikModel.extend({
 
     changePostingStatus: function(val) {
         $.ajax({
-            type: 'POST',
+            type: 'PATCH',
             url: API + '/user',
             data: {
                 groupid: this.get('groupid'),

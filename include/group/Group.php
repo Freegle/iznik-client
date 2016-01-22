@@ -245,6 +245,9 @@ class Group extends Entity
         $roles = [];
 
         foreach ($members as &$memb) {
+            # Long
+            set_time_limit(60);
+
             if (pres('email', $memb)) {
                 # First check if we already know about this user.
                 $uid = $u->findByEmail($memb['email']);
@@ -300,6 +303,9 @@ class Group extends Entity
                 $tried = 0;
 
                 for ($count = 0; $count < count($members); $count++) {
+                    # Long
+                    set_time_limit(60);
+
                     $member = $members[$count];
                     if (pres('uid', $member)) {
                         $tried++;
@@ -380,6 +386,9 @@ class Group extends Entity
                 $todeletes = $this->dbhm->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND collection = '$collection' AND syncdelete = 1;", [ $this->id ]);
                 $meid = $me ? $me->getId() : NULL;
                 foreach ($todeletes as $todelete) {
+                    # Long
+                    set_time_limit(60);
+
                     $this->log->log([
                         'type' => Log::TYPE_GROUP,
                         'subtype' => Log::SUBTYPE_LEFT,

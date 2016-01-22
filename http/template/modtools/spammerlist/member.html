@@ -19,7 +19,7 @@
                 </div>
             </div>
         </div>
-        <% if (obj.byuser) { %>
+        <% if (obj.byuser && type != 'whitelisted') { %>
         <span class="text-muted"><small>Reported by {{byuser.displayname}}</small></span>
         <% } %>
     </div>
@@ -52,6 +52,24 @@
         </div>
         <div class="clearfix"></div>
         <div class="panel-footer">
+            <ul class="list-inline list-unstyled">
+                <!-- Some buttons appear for some users.  Only Admin can add to/remove from the whitelist.  Support can
+                remove from anything except the whitelist. -->
+                <% if (type == 'confirmed') { %>
+                <div class="btn btn-success js-requestremove"><div class="glyphicon glyphicon-remove" />&nbsp;Request Removal</div>
+                <div class="btn btn-danger js-notspam js-adminsupportonly hidden"><div class="glyphicon glyphicon-trash" />&nbsp;Remove</div>
+                <div class="btn btn-info js-whitelist js-adminonly hidden"><div class="glyphicon glyphicon-ok" />&nbsp;Whitelist</div>
+                <% } else if (type == 'pendingadd') { %>
+                <div class="btn btn-danger js-notspam js-adminsupportonly hidden"><div class="glyphicon glyphicon-remove" />&nbsp;Reject</div>
+                <div class="btn btn-success js-confirm js-adminonly hidden"><div class="glyphicon glyphicon-ok" />&nbsp;Confirm</div>
+                <div class="btn btn-info js-whitelist js-adminonly hidden"><div class="glyphicon glyphicon-ok" />&nbsp;Whitelist</div>
+                <% } else if (type == 'pendingremove') { %>
+                <div class="btn btn-danger js-notspam js-adminsupportonly hidden"><div class="glyphicon glyphicon-remove" />&nbsp;Remove</div>
+                <div class="btn btn-info js-whitelist js-adminonly hidden"><div class="glyphicon glyphicon-ok" />&nbsp;Whitelist</div>
+                <% } else if (type == 'whitelisted') { %>
+                <div class="btn btn-danger js-notspam js-adminonly hidden"><div class="glyphicon glyphicon-remove" />&nbsp;Remove</div>
+                <% } %>
+            </ul>
         </div>
     </div>
 </div>

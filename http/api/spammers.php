@@ -51,8 +51,6 @@ function spammers() {
                 $spammer = $s->getSpammer($id);
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-                error_log("Got $collection, $id spammer " . var_export($spammer, true));
-
                 if ($spammer) {
                     if ($me->isAdminOrSupport()) {
                         # Admin/Support can do anything

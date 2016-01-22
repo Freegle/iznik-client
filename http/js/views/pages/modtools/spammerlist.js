@@ -22,9 +22,9 @@ Iznik.Views.ModTools.Pages.SpammerList = Iznik.Views.Page.extend({
         var term = this.$('.js-searchterm').val();
 
         if (term != '') {
-            Router.navigate('/modtools/spammerlist/' + encodeURIComponent(term), true);
+            Router.navigate('/modtools/spammerlist/' + this.options.urlFragment + encodeURIComponent(term), true);
         } else {
-            Router.navigate('/modtools/spammerlist', true);
+            Router.navigate('/modtools/spammerlist' + this.options.urlFragment, true);
         }
     },
 
@@ -37,7 +37,8 @@ Iznik.Views.ModTools.Pages.SpammerList = Iznik.Views.Page.extend({
 
         var data = {
             context: self.context,
-            search: search && search.length > 0 ? search: null
+            search: search && search.length > 0 ? search: null,
+            collection: self.options.collection
         };
 
         if (self.fetching) {
@@ -108,7 +109,7 @@ Iznik.Views.ModTools.Pages.SpammerList = Iznik.Views.Page.extend({
         self.$('.js-searchterm').val(self.options.search);
 
         var v = new Iznik.Views.Help.Box();
-        v.template = 'modtools_spammerlist_help';
+        v.template = self.options.helpTemplate;
         this.$('.js-help').html(v.render().el);
 
         self.spammers = new Iznik.Collections.ModTools.Spammers();
@@ -119,6 +120,7 @@ Iznik.Views.ModTools.Pages.SpammerList = Iznik.Views.Page.extend({
             modelView : Iznik.Views.ModTools.Spammer,
             modelViewOptions: {
                 collection: self.spammers,
+                type: self.options.urlfragment,
                 page: self
             },
             collection: self.spammers
@@ -129,18 +131,32 @@ Iznik.Views.ModTools.Pages.SpammerList = Iznik.Views.Page.extend({
         // Do so.
         self.fetch();
 
+        // If we detect that the counts have changed on the server, refetch the members so that we add/remove
+        // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
+        this.listenTo(Iznik.Session, 'spammerpendingaddcountschanged', this.fetch);
+        this.listenTo(Iznik.Session, 'spammerpendingremovecountschanged', this.fetch);
+
         // We seem to need to redelegate
         self.delegateEvents();
     }
 });
 
-Iznik.Views.ModTools.Spammer = Iznik.Views.ModTools.Member.extend({
+Iznik.Views.ModTools.Spammer = Iznik.Views.ModTools.Member.Spam.extend({
     template: 'modtools_spammerlist_member',
 
     render: function() {
         var self = this;
 
+        self.model.set('type', self.options.type);
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
+
+        if (Iznik.Session.isAdmin()) {
+            self.$('.js-adminonly').removeClass('hidden');
+        }
+
+        if (Iznik.Session.isAdminOrSupport()) {
+            self.$('.js-adminsupportonly').removeClass('hidden');
+        }
 
         var mom = new moment(this.model.get('added'));
         this.$('.js-added').html(mom.format('ll'));

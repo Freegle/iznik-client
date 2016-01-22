@@ -47,7 +47,10 @@ var IznikRouter = Backbone.Router.extend({
         "modtools/members/pending(/:search)": "pendingMembers",
         "modtools/members/approved(/:search)": "approvedMembers",
         "modtools/members/spam": "spamMembers",
-        "modtools/spammerlist(/:search)": "spammerList",
+        "modtools/spammerlist/pendingadd(/:search)": "spammerListPendingAdd",
+        "modtools/spammerlist/confirmed(/:search)": "spammerListConfirmed",
+        "modtools/spammerlist/pendingremove(/:search)": "spammerListPendingRemove",
+        "modtools/spammerlist/whitelisted(/:search)": "spammerListWhitelisted",
         "modtools/settings": "settings",
         "*path": "home"
     },
@@ -199,10 +202,55 @@ var IznikRouter = Backbone.Router.extend({
         Iznik.Session.forceLogin();
     },
 
-    spammerList: function(search) {
+    spammerListPendingAdd: function(search) {
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
             var page = new Iznik.Views.ModTools.Pages.SpammerList({
-                search: search
+                search: search,
+                urlfragment: 'pendingadd',
+                collection: 'PendingAdd',
+                helpTemplate: 'modtools_spammerlist_help_pendingadd'
+            });
+            this.loadRoute({page: page, modtools: true});
+        });
+
+        Iznik.Session.forceLogin();
+    },
+
+    spammerListPendingRemove: function(search) {
+        this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
+            var page = new Iznik.Views.ModTools.Pages.SpammerList({
+                search: search,
+                urlfragment: 'pendingremove',
+                collection: 'PendingRemove',
+                helpTemplate: 'modtools_spammerlist_help_pendingremove'
+            });
+            this.loadRoute({page: page, modtools: true});
+        });
+
+        Iznik.Session.forceLogin();
+    },
+
+    spammerListConfirmed: function(search) {
+        this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
+            var page = new Iznik.Views.ModTools.Pages.SpammerList({
+                search: search,
+                urlfragment: 'confirmed',
+                collection: 'Spammer',
+                helpTemplate: 'modtools_spammerlist_help_confirmed'
+            });
+            this.loadRoute({page: page, modtools: true});
+        });
+
+        Iznik.Session.forceLogin();
+    },
+
+    spammerListWhitelisted: function(search) {
+        this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
+            var page = new Iznik.Views.ModTools.Pages.SpammerList({
+                search: search,
+                urlfragment: 'whitelisted',
+                collection: 'Whitelisted',
+                helpTemplate: 'modtools_spammerlist_help_whitelisted'
             });
             this.loadRoute({page: page, modtools: true});
         });

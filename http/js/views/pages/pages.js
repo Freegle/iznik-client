@@ -130,6 +130,14 @@ Iznik.Views.LeftMenu = IznikView.extend({
             }
         });
 
+        if (Iznik.Session.isAdminOrSupport()) {
+            this.$('.js-adminsupportonly').removeClass('hidden');
+        }
+
+        if (Iznik.Session.isAdmin()) {
+            this.$('.js-adminonly').removeClass('hidden');
+        }
+
         return this;
     }
 });

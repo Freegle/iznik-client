@@ -6,7 +6,8 @@ Iznik.Views.ModTools.User = IznikView.extend({
         'click .js-logs': 'logs',
         'click .js-remove': 'remove',
         'click .js-ban': 'ban',
-        'click .js-addcomment': 'addComment'
+        'click .js-addcomment': 'addComment',
+        'click .js-spammer': 'spammer'
     },
 
     posts: function() {
@@ -24,6 +25,25 @@ Iznik.Views.ModTools.User = IznikView.extend({
             model: self.model
         });
 
+        v.render();
+    },
+
+    spammer: function() {
+        var self = this;
+        var v = new Iznik.Views.ModTools.EnterReason();
+        self.listenToOnce(v, 'reason', function(reason) {
+            $.ajax({
+                url: API + 'spammers',
+                type: 'POST',
+                data: {
+                    userid: self.model.get('id'),
+                    reason: reason,
+                    collection: 'PendingAdd'
+                }, success: function(ret) {
+                    (new Iznik.Views.ModTools.User.Reported().render());
+                }
+            });
+        });
         v.render();
     },
 
@@ -186,6 +206,10 @@ Iznik.Views.ModTools.User.SummaryEntry = IznikView.extend({
         this.$('.js-date').html(mom.format('llll'));
         return(this);
     }
+});
+
+Iznik.Views.ModTools.User.Reported = Iznik.Views.Modal.extend({
+    template: 'modtools_user_reported'
 });
 
 Iznik.Views.ModTools.User.Logs = Iznik.Views.Modal.extend({

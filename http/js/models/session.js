@@ -52,9 +52,9 @@ Iznik.Models.Session = IznikModel.extend({
                             sound: false
                         },
                         {
-                            fi: 'spamother',
-                            el: '.js-spamcountother',
-                            ev: 'spamcountsotherchanged',
+                            fi: 'spammembers',
+                            el: '.js-spammemberscount',
+                            ev: 'spammembercountschanged',
                             window: false,
                             sound: false
                         },
@@ -73,11 +73,18 @@ Iznik.Models.Session = IznikModel.extend({
                             sound: false
                         },
                         {
-                            fi: 'spammembers',
-                            el: '.js-spammemberscount',
-                            ev: 'spammemberscountschanged',
+                            fi: 'spammerpendingadd',
+                            el: '.js-spammerpendingaddcount',
+                            ev: 'spammerpendingaddcountschanged',
                             window: true,
-                            sound: true
+                            sound: false
+                        },
+                        {
+                            fi: 'spammerpendingremove',
+                            el: '.js-spammerpendingremovecount',
+                            ev: 'spammerpendingremovecountschanged',
+                            window: true,
+                            sound: false
                         }
                     ];
 
@@ -235,6 +242,16 @@ Iznik.Models.Session = IznikModel.extend({
         });
 
         return(settings);
+    },
+
+    isAdminOrSupport: function() {
+        var me = this.get('me');
+        return(me && (me.systemrole == 'Admin' || me.systemrole == 'Support'));
+    },
+
+    isAdmin: function() {
+        var me = this.get('me');
+        return(me && me.systemrole == 'Admin');
     }
 });
 

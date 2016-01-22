@@ -11,6 +11,8 @@ function user() {
     $body = presdef('body', $_REQUEST, NULL);
     $stdmsgid = presdef('stdmsgid', $_REQUEST, NULL);
     $action = presdef('action', $_REQUEST, NULL);
+    $suspectcount = array_key_exists('suspectcount', $_REQUEST) ? intval($_REQUEST['suspectcount']) : NULL;
+    $suspectreason = presdef('suspectreason', $_REQUEST, NULL);
 
     if (!$id && $yahooUserId) {
         # We don't know our unique ID, but we do know the Yahoo one. Find it.
@@ -59,7 +61,12 @@ function user() {
 
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-            if ($u && $me && $me->isModOrOwner($groupid)) {
+            if ($u && $me && ($me->isModOrOwner($groupid) || $me->isAdminOrSupport())) {
+                if ($suspectcount !== NULL) {
+                    $u->setPrivate('suspectcount', $suspectcount);
+                    $u->setPrivate('suspectreason', $suspectreason);
+                }
+
                 if ($yahooDeliveryType) {
                     $l->log([
                         'type' => Log::TYPE_USER,

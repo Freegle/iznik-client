@@ -66,6 +66,7 @@ class userAPITest extends IznikAPITest {
 
         $ret = $this->call('user', 'PATCH', [
             'groupid' => $this->groupid,
+            'suspectcount' => 0,
             'yahooDeliveryType' => 'DIGEST',
             'email' => 'test@test.com',
             'duplicate' => 1

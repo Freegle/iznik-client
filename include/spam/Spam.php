@@ -7,7 +7,7 @@ use GeoIp2\Database\Reader;
 
 class Spam {
     CONST TYPE_SPAMMER = 'Spammer';
-    CONST TYPE_WHITELIST = 'Whitelist';
+    CONST TYPE_WHITELIST = 'Whitelisted';
     CONST TYPE_PENDING_ADD = 'PendingAdd';
     CONST TYPE_PENDING_REMOVE = 'PendingRemove';
 
@@ -198,6 +198,13 @@ class Spam {
             $count = $counts[0]['count'];
         }
 
+        return($count);
+    }
+
+    public function collectionCount($collection) {
+        $sql = "SELECT COUNT(*) AS count FROM spam_users WHERE collection = ?;";
+        $counts = $this->dbhr->preQuery($sql, [ $collection ]);
+        $count = $counts[0]['count'];
         return($count);
     }
 

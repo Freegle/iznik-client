@@ -22,7 +22,13 @@
     </li>
     <hr class="ui-widget-content ui-menu-divider">
     <li>
-        <a href="/modtools/spammerlist">Spammer List</a>
+        <span>Spammer List</span>
+        <ul class="nav-pills nav-stacked">
+            <li><a href="/modtools/spammerlist/confirmed">Confirmed</a></li>
+            <li><a href="/modtools/spammerlist/pendingadd">Pending Add <span class="badge alert-danger js-spammerpendingaddcount js-adminsupportonly hidden" /></a></li>
+            <li><a href="/modtools/spammerlist/pendingremove">Pending Remove <span class="badge alert-danger js-spammerpendingremovecount js-adminsupportonly hidden" /></a></li>
+            <li><a href="/modtools/spammerlist/whitelisted">Whitelisted</a></li>
+        </ul>
     </li>
     <hr class="ui-widget-content ui-menu-divider">
     <li>

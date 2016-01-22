@@ -106,8 +106,7 @@ Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
 
         // If we detect that the pending counts have changed on the server, refetch the members so that we add/remove
         // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
-        this.listenTo(Iznik.Session, 'spammemberscountschanged', this.fetch);
-        this.listenTo(Iznik.Session, 'spammembersothercountschanged', this.fetch);
+        this.listenTo(Iznik.Session, 'spammembercountschanged', this.fetch);
 
         // We seem to need to redelegate
         self.delegateEvents();
@@ -117,11 +116,91 @@ Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
 Iznik.Views.ModTools.Member.Spam = Iznik.Views.ModTools.Member.extend({
     template: 'modtools_members_spam_member',
 
+    events: {
+        'click .js-notspam': 'notSpam',
+        'click .js-spam': 'spam',
+        'click .js-whitelist': 'whitelist'
+    },
+
+    clearSuspect: function() {
+        var self = this;
+
+        var mod = new Iznik.Models.ModTools.User({
+            id: self.model.get('userid')
+        });
+
+        $.ajax({
+            url: API + 'user/' + self.model.get('userid'),
+            type: 'PATCH',
+            data: {
+                'suspectcount': 0,
+                'suspectreason': null
+            }, success: function(ret) {
+                self.$el.fadeOut('slow', function() {
+                    self.remove();
+                })
+            }
+        });
+    },
+
+    notSpam: function() {
+        // Record that this member isn't suspicious.  That will stop the server returning them to us.
+        this.clearSuspect();
+    },
+
+    spam: function() {
+        var self = this;
+
+        var v = new Iznik.Views.ModTools.EnterReason();
+        self.listenToOnce(v, 'reason', function(reason) {
+            $.ajax({
+                url: API + 'spammers',
+                type: 'POST',
+                data: {
+                    userid: self.model.get('userid'),
+                    reason: reason,
+                    collection: 'PendingAdd'
+                }, success: function(ret) {
+                    // Now over to someone else to review this report - so remove from our list.
+                    self.clearSuspect();
+                }
+            });
+        });
+
+        v.render();
+    },
+
+    whitelist: function() {
+        var self = this;
+
+        var v = new Iznik.Views.ModTools.EnterReason();
+        self.listenToOnce(v, 'reason', function(reason) {
+            $.ajax({
+                url: API + 'spammers',
+                type: 'POST',
+                data: {
+                    userid: self.model.get('userid'),
+                    reason: reason,
+                    collection: 'Whitelisted'
+                }, success: function(ret) {
+                    // Now over to someone else to review this report - so remove from our list.
+                    self.clearSuspect();
+                }
+            });
+        });
+
+        v.render();
+    },
+
     render: function() {
         var self = this;
 
         self.model.set('group', Iznik.Session.getGroup(self.model.get('groupid')).attributes);
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
+
+        if (Iznik.Session.isAdmin()) {
+            self.$('.js-whitelist').show();
+        }
 
         var mom = new moment(this.model.get('joined'));
         this.$('.js-joined').html(mom.format('llll'));
@@ -138,8 +217,8 @@ Iznik.Views.ModTools.Member.Spam = Iznik.Views.ModTools.Member.extend({
 
         self.$('.js-user').html(v.render().el);
 
-        // No remove/ban buttons as we have our own.
-        self.$('.js-remove, .js-ban').closest('li').hide();
+        // No remove/ban/spam buttons as we have our own.
+        self.$('.js-remove, .js-ban, .js-spammer').closest('li').hide();
 
         // Delay getting the Yahoo info slightly to improve apparent render speed.
         _.delay(function() {
@@ -168,6 +247,34 @@ Iznik.Views.ModTools.Member.Spam = Iznik.Views.ModTools.Member.extend({
                 self.remove();
             });
         });
+
+        return(this);
+    }
+});
+
+Iznik.Views.ModTools.EnterReason = Iznik.Views.Modal.extend({
+    template: 'modtools_members_spam_reason',
+
+    events: {
+        'click .js-cancel': 'close',
+        'click .js-confirm': 'confirm'
+    },
+
+    confirm: function() {
+        var self = this;
+        var reason = self.$('.js-reason').val();
+
+        if (reason.length < 3) {
+            self.$('.js-reason').focus();
+        } else {
+            self.trigger('reason', reason);
+            self.close();
+        }
+    },
+
+    render: function() {
+        var self = this;
+        this.open(this.template);
 
         return(this);
     }
