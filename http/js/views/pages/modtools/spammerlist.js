@@ -144,6 +144,19 @@ Iznik.Views.ModTools.Pages.SpammerList = Iznik.Views.Page.extend({
 Iznik.Views.ModTools.Spammer = Iznik.Views.ModTools.Member.Spam.extend({
     template: 'modtools_spammerlist_member',
 
+    notSpam: function() {
+        var self = this;
+
+        $.ajax({
+            url: API + 'spammers/' + self.model.get('id'),
+            type: 'DELETE',
+            success: function(ret) {
+                // Now over to someone else to review this report - so remove from our list.
+                self.remove();
+            }
+        });
+    },
+
     render: function() {
         var self = this;
 
@@ -166,6 +179,9 @@ Iznik.Views.ModTools.Spammer = Iznik.Views.ModTools.Member.Spam.extend({
         });
 
         self.$('.js-user').html(v.render().el);
+
+        // No point duplicating spammer info
+        self.$('.js-spammerinfo').hide();
 
         // Add any other emails
         self.$('.js-otheremails').empty();

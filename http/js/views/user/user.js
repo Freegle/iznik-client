@@ -134,6 +134,15 @@ Iznik.Views.ModTools.User = IznikView.extend({
             })).render().el);
         });
 
+        var spammer = this.model.get('spammer');
+        if (spammer) {
+            var v = new Iznik.Views.ModTools.User.SpammerInfo({
+                model: new IznikModel(spammer)
+            });
+
+            self.$('.js-spammerinfo').append(v.render().el);
+        }
+
         return (this);
     }
 });
@@ -482,6 +491,16 @@ Iznik.Views.ModTools.User.CommentModal = Iznik.Views.Modal.extend({
             self.render2();
         }
 
+        return(this);
+    }
+});
+
+Iznik.Views.ModTools.User.SpammerInfo = IznikView.extend({
+    template: 'modtools_user_spammerinfo',
+
+    render: function() {
+        this.$el.html(window.template(this.template)(this.model.toJSON2()));
+        this.$('.timeago').timeago();
         return(this);
     }
 });

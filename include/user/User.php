@@ -38,6 +38,7 @@ class User extends Entity
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts);
+
         $this->log = new Log($dbhr, $dbhm);
     }
 
@@ -207,7 +208,6 @@ class User extends Entity
     }
 
     private function updateSystemRole($role) {
-        error_log("updateSystemRole $role");
         if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
             $sql = "UPDATE users SET systemrole = ? WHERE id = ? AND systemrole = ?;";
             $this->dbhm->preExec($sql, [ User::SYSTEMROLE_MODERATOR, $this->id, User::SYSTEMROLE_USER ]);
@@ -810,6 +810,18 @@ class User extends Entity
             }
 
             $atts['applied'] = $membs;
+        }
+
+        if ($systemrole == User::ROLE_MODERATOR ||
+            $systemrole == User::SYSTEMROLE_ADMIN ||
+            $systemrole == User::SYSTEMROLE_SUPPORT) {
+            # Also fetch whether they're on the spammer list.
+            $sql = "SELECT * FROM spam_users WHERE userid = ?;";
+            $spammers = $this->dbhr->preQuery($sql, [ $this->id ]);
+            foreach ($spammers as &$spammer) {
+                $spammer['added'] = ISODate($spammer['added']);
+                $atts['spammer'] = $spammer;
+            }
         }
 
         return($atts);
