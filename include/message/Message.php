@@ -1408,6 +1408,9 @@ class Message
                 }
 
                 if ($match) {
+                    if (!$message['id']) {
+                        error_log("Oddly null messageid $sql " . var_export([ $this->subject, $this->subject, $this->fromuser, $type ], TRUE));
+                    }
                     $sql = "INSERT INTO messages_related (id1, id2) VALUES (?,?);";
                     $this->dbhm->preExec($sql, [ $this->id, $message['id']] );
                     $found++;

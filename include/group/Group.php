@@ -330,6 +330,8 @@ class Group extends Entity
                     $membs = $this->dbhm->preQuery($sql, [$member['uid'], $this->id]);
                     $new = count($membs) == 0;
 
+                    $added = pres('date', $member) ? ("'" . date("Y-m-d H:i:s", strtotime($member['date'])) . "'") : 'NULL';
+
                     if (count($membs) == 0) {
                         # Make sure the membership is present.  We don't want to REPLACE as that might lose settings.
                         # We also don't want to just do INSERT IGNORE as that doesn't perform well in clusters.
@@ -364,7 +366,6 @@ class Group extends Entity
                     # when resyncing a group where most members have not changed settings, we can avoid many UPDATEs.
                     #
                     # This will have the effect of moving members between collections if required.
-                    $added = pres('date', $member) ? ("'" . date("Y-m-d H:i:s", strtotime($member['date'])) . "'") : 'NULL';
 
                     if ($new ||
                         $membs[0]['role'] != $role ||
