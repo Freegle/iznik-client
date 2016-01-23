@@ -12,7 +12,7 @@ require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 class User extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -605,6 +605,8 @@ class User extends Entity
 
     public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE) {
         $atts = parent::getPublic();
+
+        $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [];
         $me = whoAmI($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
 

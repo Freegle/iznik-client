@@ -108,6 +108,12 @@ function session() {
                 $me->setPrivate('fullname', presdef('displayname', $_REQUEST, NULL));
                 $me->setPrivate('firstname', presdef('firstname', $_REQUEST, NULL));
                 $me->setPrivate('lastname', presdef('lastname', $_REQUEST, NULL));
+
+                $settings = presdef('settings', $_REQUEST, NULL);
+                if ($settings) {
+                    $me->setPrivate('settings', json_encode($settings));
+                }
+
                 $ret = ['ret' => 0, 'status' => 'Success' ];
             }
             break;

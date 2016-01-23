@@ -110,8 +110,13 @@ Iznik.Models.Session = IznikModel.extend({
                                 Iznik.Session.trigger(count.ev);
 
                                 if (ret.work[count.fi] > 0 && count.sound) {
-                                    var sound = new Audio("/sounds/alert.wav");
-                                    sound.play();
+                                    var settings = Iznik.Session.get('me').settings;
+                                    console.log("Settings", settings);
+
+                                    if (presdef('playbeep', settings, 1)) {
+                                        var sound = new Audio("/sounds/alert.wav");
+                                        sound.play();
+                                    }
                                 }
                             }
                         } else {

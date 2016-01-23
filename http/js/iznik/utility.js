@@ -174,3 +174,8 @@ function csvWriter(del, enc) {
         return arr2.join("\r\n");
     };
 }
+
+function presdef(key, obj, def) {
+    var ret = obj.hasOwnProperty(key) ? obj[key] : def;
+    return(ret);
+}

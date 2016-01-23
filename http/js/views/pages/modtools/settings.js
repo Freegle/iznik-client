@@ -586,7 +586,10 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
             self.personalModel = new IznikModel({
                 id: me.id,
                 displayname: me.displayname,
-                fullname: me.fullname
+                fullname: me.fullname,
+                settings: presdef('settings', me, {
+                    'playbeep': 1
+                })
             });
 
             var personalFields = [
@@ -597,10 +600,16 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     helpMessage: 'This is your name as displayed publicly to other users, including in the $myname substitution string.'
                 },
                 {
+                    name: 'settings.playbeep',
+                    label: 'Beep',
+                    control: 'select',
+                    options: [{label: 'Off', value: 0 }, {label: 'Play beep for new work', value: 1}]
+                },
+                {
                     control: 'button',
                     label: 'Save changes',
                     type: 'submit',
-                    extraClasses: [ 'btn-success' ]
+                    extraClasses: [ 'topspace btn-success' ]
                 }
             ];
 
