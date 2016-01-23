@@ -21,6 +21,10 @@ function rrmdir($dir) {
     }
 }
 
+function getProtocol() {
+    return(pres('HTTPS', $_SERVER) ? 'https://' : 'http://');
+}
+
 function get_current_url() {
     $current_url  = 'http';
     $server_https = pres('HTTPS', $_SERVER);

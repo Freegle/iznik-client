@@ -30,7 +30,7 @@ class Yahoo
         $this->dbhm = $dbhm;
 
         $this->openid = new LightOpenID;
-        $this->openid->realm = "https://{$_SERVER['HTTP_HOST']}";
+        $this->openid->realm = getProtocol() . $_SERVER['HTTP_HOST'];
 
         return ($this);
     }
@@ -47,7 +47,7 @@ class Yahoo
     {
         try
         {
-            $loginurl = "https://{$_SERVER['HTTP_HOST']}/yahoologin?returnto=" . urlencode($returnto);
+            $loginurl = getProtocol() . "{$_SERVER['HTTP_HOST']}/yahoologin?returnto=" . urlencode($returnto);
             $this->openid->returnUrl = $loginurl;
 
             if (($this->openid->validate()) &&

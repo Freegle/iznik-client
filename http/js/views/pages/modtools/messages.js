@@ -384,7 +384,6 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
     },
 
     maybeSettingsChange: function(trigger, stdmsg, message, group) {
-        console.log("maybeSettingsChange", trigger, stdmsg, message, group);
         var self = this;
 
         var dt = stdmsg.get('newdelstatus');
