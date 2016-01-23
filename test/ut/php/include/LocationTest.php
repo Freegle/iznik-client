@@ -170,33 +170,33 @@ class locationTest extends IznikTest {
         error_log(__METHOD__ . " end");
     }
 
-    public function testSpecial() {
-        error_log(__METHOD__);
-
-        $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->findByShortName('TowerHamletsRecycle');
-        $g = new Group($this->dbhr, $this->dbhm, $gid);
-
-        $l = new Location($this->dbhr, $this->dbhm);
-        #$res = $l->search("", $gid);
-        #$res = $l->search("", $gid);
-        $res = $l->search("OFFER: Blue two seater sofa. (Bow, east London)", $gid);
-
-        foreach ($res as $ares) {
-            error_log("{$ares['id']} {$ares['name']}");
-        }
-
-        $m = new Message($this->dbhr, $this->dbhm);
-        foreach ([
-                 "TAKEN: Beanbag (nylon) - E14",
-                 "OFFER: Blue two seater sofa. (Bow, east London)",
-                 "WANTED: IKEA HAMPEN rugs (Mile End/Bow/Stratford/N.Woolwich)"
-             ] as $subj) {
-            error_log("$subj => " . $m->suggestSubject($gid, $subj));
-        }
-
-        error_log(__METHOD__ . " end");
-    }
+//    public function testSpecial() {
+//        error_log(__METHOD__);
+//
+//        $g = new Group($this->dbhr, $this->dbhm);
+//        $gid = $g->findByShortName('TowerHamletsRecycle');
+//        $g = new Group($this->dbhr, $this->dbhm, $gid);
+//
+//        $l = new Location($this->dbhr, $this->dbhm);
+//        #$res = $l->search("", $gid);
+//        #$res = $l->search("", $gid);
+//        $res = $l->search("OFFER: Blue two seater sofa. (Bow, east London)", $gid);
+//
+//        foreach ($res as $ares) {
+//            error_log("{$ares['id']} {$ares['name']}");
+//        }
+//
+//        $m = new Message($this->dbhr, $this->dbhm);
+//        foreach ([
+//                 "TAKEN: Beanbag (nylon) - E14",
+//                 "OFFER: Blue two seater sofa. (Bow, east London)",
+//                 "WANTED: IKEA HAMPEN rugs (Mile End/Bow/Stratford/N.Woolwich)"
+//             ] as $subj) {
+//            error_log("$subj => " . $m->suggestSubject($gid, $subj));
+//        }
+//
+//        error_log(__METHOD__ . " end");
+//    }
 }
 
 
