@@ -184,9 +184,9 @@ class Group extends Entity
             foreach ($emails as $anemail) {
                 if ($anemail['id'] == $emailid) {
                     $email = $anemail['email'];
-                } else {
-                    $others[] = $anemail;
                 }
+
+                $others[] = $anemail;
             }
 
             $thisone['joined'] = ISODate($member['added']);
@@ -219,222 +219,227 @@ class Group extends Entity
     }
 
     public function setMembers($members, $collection) {
+        # This is used to set the whole of the membership list for a group.  It's only used when the group is
+        # mastered on Yahoo, rather than by us.
+        #
+        # Slightly surprisingly, we don't need to do this in a transaction.  This is because:
+        # - adding memberships on here which exist on Yahoo is fine to fail halfway through, we've just got some
+        #   of them which is better than we were before we started, and the remainder will get added on the next
+        #   sync.
+        # - updating membership details from Yahoo to here is similarly fine
+        # - deleting memberships on here which are no longer on Yahoo is a single statement, but even if that
+        #   failed partway through it would still be fine; we'd have removed some of them which is better than
+        #   nothing, and the remainder would get removed on the next sync.
+        #
+        # So as long as we only return a success when it's worked, we don't need to be in a transaction.  This is
+        # good as it would be a large transaction and would hit lock timeouts.
         $ret = [
             'ret' => 0,
             'status' => 'Success'
         ];
 
         if (!$members) { return($ret); }
-        #$this->dbhm->setErrorLog(TRUE);
 
-        # This is used to set the whole of the membership list for a group.  It's only used when the group is
-        # mastered on Yahoo, rather than by us.
-        #
-        # First make sure we have users set up for all the new members; we do this first because it doesn't need
-        # to be inside the transaction, and it reduces the length of time the transaction is extant.
-        #
-        # We do this inside a transaction because it would be a horrible situation if we deleted half the members
-        # and left the group mangled.
-        $rollback = true;
+        try {
+            #$this->dbhm->setErrorLog(TRUE);
 
-        $u = new User($this->dbhm, $this->dbhm);
+            # First make sure we have users set up for all the new members.  The input might have duplicate members;
+            # save off the uid, and work out the role.
+            $u = new User($this->dbhm, $this->dbhm);
+            $roles = [];
 
-        # The input might have duplicate members; find out how many are distinct, save off the uid, and work out
-        # the role.
-        $distinctmembers = [];
-        $roles = [];
+            error_log("Scan members");
+            foreach ($members as &$memb) {
+                # Long
+                set_time_limit(60);
 
-        foreach ($members as &$memb) {
-            # Long
-            set_time_limit(60);
+                if (pres('email', $memb)) {
+                    # First check if we already know about this user.
+                    $emailinfo = $u->getIdForEmail($memb['email']);
+                    $uid = $emailinfo ? $emailinfo['userid'] : NULL;
 
-            if (pres('email', $memb)) {
-                # First check if we already know about this user.
-                $uid = $u->findByEmail($memb['email']);
+                    if (!$uid) {
+                        # We don't - create them.
+                        preg_match('/(.*)@/', $memb['email'], $matches);
+                        $name = presdef('name', $memb, $matches[1]);
+                        $uid = $u->create(NULL, NULL, $name);
+                        $memb['emailid'] = $u->addEmail($memb['email']);
 
-                if (!$uid) {
-                    # We don't - create them.
-                    preg_match('/(.*)@/', $memb['email'], $matches);
-                    $name = presdef('name', $memb, $matches[1]);
-                    $uid = $u->create(NULL, NULL, $name);
-                } else {
-                    $u = new User($this->dbhm, $this->dbhm, $uid);
-                }
-
-                $memb['emailid'] = $u->addEmail($memb['email']);
-
-                if (pres('yahooUserId', $memb)) {
-                    $u->setPrivate('yahooUserId', $memb['yahooUserId']);
-                }
-
-                # Remember the uid for inside the transaction below.
-                $memb['uid'] = $uid;
-                $distinctmembers[$uid] = TRUE;
-
-                # Get the role.  We might have the same underlying user who is a member using multiple email addresses
-                # so we need to take the max role that they have.
-                $thisrole = User::ROLE_MEMBER;
-                if (pres('yahooModeratorStatus', $memb)) {
-                    if ($memb['yahooModeratorStatus'] == 'MODERATOR') {
-                        $thisrole = User::ROLE_MODERATOR;
-                    } else if ($memb['yahooModeratorStatus'] == 'OWNER') {
-                        $thisrole = User::ROLE_OWNER;
+                        if (pres('yahooUserId', $memb)) {
+                            $u->setPrivate('yahooUserId', $memb['yahooUserId']);
+                        }
+                    } else {
+                        $memb['emailid'] = $emailinfo['id'];
                     }
+
+                    # Remember the uid for later below.
+                    $memb['uid'] = $uid;
+                    $distinctmembers[$uid] = TRUE;
+
+                    # Get the role.  We might have the same underlying user who is a member using multiple email addresses
+                    # so we need to take the max role that they have.
+                    $thisrole = User::ROLE_MEMBER;
+                    if (pres('yahooModeratorStatus', $memb)) {
+                        if ($memb['yahooModeratorStatus'] == 'MODERATOR') {
+                            $thisrole = User::ROLE_MODERATOR;
+                        } else if ($memb['yahooModeratorStatus'] == 'OWNER') {
+                            $thisrole = User::ROLE_OWNER;
+                        }
+                    }
+
+                    $role = pres($uid, $roles) ? $u->roleMax($roles[$uid], $thisrole) : $thisrole;
+
+                    $roles[$uid] = $role;
                 }
-
-                $role = pres($uid, $roles) ? $u->roleMax($roles[$uid], $thisrole) : $thisrole;
-
-                $roles[$uid] = $role;
             }
-        }
 
-        $distinct = count($distinctmembers);
-        $distinctmembers = NULL;
+            error_log("Scanned members");
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
-        $myrole = $me ? $me->getRole($this->id) : User::ROLE_NONMEMBER;
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $myrole = $me ? $me->getRole($this->id) : User::ROLE_NONMEMBER;
 
-        if ($this->dbhm->beginTransaction()) {
-            try {
-                # If this doesn't work we'd get an exception
-                $sql = "UPDATE memberships SET syncdelete = 1 WHERE groupid = {$this->id} AND collection = '$collection';";
-                $this->dbhm->exec($sql);
-                $bulksql = '';
-                $tried = 0;
+            # Save off the list of members which currently exist, so that after we've processed the ones which currently
+            # exist, we can remove any which should no longer be present.
+            $this->dbhm->preExec("DROP TEMPORARY TABLE IF EXISTS syncdelete; CREATE TEMPORARY TABLE syncdelete (id INT UNSIGNED, PRIMARY KEY idkey(id));");
+            $this->dbhm->preExec("INSERT INTO syncdelete (SELECT DISTINCT userid FROM memberships WHERE groupid = ?);", [
+                $this->id
+            ]);
 
-                for ($count = 0; $count < count($members); $count++) {
-                    # Long
-                    set_time_limit(60);
+            $bulksql = '';
+            $tried = 0;
 
-                    $member = $members[$count];
-                    if (pres('uid', $member)) {
-                        $tried++;
-                        $role = $roles[$member['uid']];
+            error_log("Update members");
 
-                        # Use a single SQL statement rather than the usual methods for performance reasons.  And then
-                        # batch them up into groups because that performs better in a cluster.
-                        $yps = presdef('yahooPostingStatus', $member, NULL);
-                        $ydt = presdef('yahooDeliveryType', $member, NULL);
-                        $joincomment = pres('joincomment', $member) ? $this->dbhm->quote($member['joincomment']) : 'NULL';
+            for ($count = 0; $count < count($members); $count++) {
+                # Long
+                set_time_limit(60);
 
+                $member = $members[$count];
+                if (pres('uid', $member)) {
+                    $tried++;
+                    $role = $roles[$member['uid']];
+
+                    # Use a single SQL statement rather than the usual methods for performance reasons.  And then
+                    # batch them up into groups because that performs better in a cluster.
+                    $yps = presdef('yahooPostingStatus', $member, NULL);
+                    $ydt = presdef('yahooDeliveryType', $member, NULL);
+                    $joincomment = pres('joincomment', $member) ? $this->dbhm->quote($member['joincomment']) : 'NULL';
+
+                    # Get any existing membership.
+                    $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ?;";
+                    $membs = $this->dbhm->preQuery($sql, [$member['uid'], $this->id]);
+                    $new = count($membs) == 0;
+
+                    if (count($membs) == 0) {
                         # Make sure the membership is present.  We don't want to REPLACE as that might lose settings.
                         # We also don't want to just do INSERT IGNORE as that doesn't perform well in clusters.
-                        $sql = "SELECT id, role FROM memberships WHERE userid = ? AND groupid = ?;";
-                        $membs = $this->dbhm->preQuery($sql, [ $member['uid'], $this->id] );
-                        if (count($membs) == 0) {
-                            $sql = "INSERT IGNORE INTO memberships (userid, groupid, emailid, collection) VALUES ({$member['uid']}, {$this->id}, {$member['emailid']}, '$collection');";
-                            $bulksql .= $sql;
-                            $membs = [
-                                [
-                                    'role' => User::ROLE_MEMBER
-                                ]
-                            ];
-                        }
-
-                        # If we are promoting a member, then we can only promote as high as we are.  This prevents
-                        # moderators setting owner status.
-                        if ($role == User::ROLE_OWNER &&
-                            $myrole != User::ROLE_OWNER &&
-                            $membs[0]['role'] != User::ROLE_OWNER) {
-                            $role = User::ROLE_MODERATOR;
-                        }
-
-                        # Now update with new settings.  Also set syncdelete so that we know this member still exists
-                        # in the input data and therefore doesn't need deleting.
-                        #
-                        # This will have the effect of moving members between collections if required.
-                        $added = pres('date', $member) ? ("'" . date ("Y-m-d H:i:s", strtotime($member['date'])) . "'"): 'NULL';
-
-                        $sql = "UPDATE memberships SET role = '$role', collection = '$collection', yahooPostingStatus = " . $this->dbhm->quote($yps) .
-                               ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", joincomment = $joincomment, emailid = {$member['emailid']}, added = $added, syncdelete = 0 WHERE userid = " .
-                                "{$member['uid']} AND groupid = {$this->id};";
+                        $sql = "INSERT IGNORE INTO memberships (userid, groupid, emailid, collection) VALUES ({$member['uid']}, {$this->id}, {$member['emailid']}, '$collection');";
                         $bulksql .= $sql;
+                        $membs = [
+                            [
+                                'role' => User::ROLE_MEMBER
+                            ]
+                        ];
 
-                        # Make sure we have a history entry - might not have if the join happened elsewhere.
+                        # Make sure we have a history entry.
                         $sql = "SELECT * FROM memberships_history WHERE userid = ? AND groupid = ?;";
-                        $hists = $this->dbhr->preQuery($sql, [ $member['uid'], $this->id ]);
+                        $hists = $this->dbhr->preQuery($sql, [$member['uid'], $this->id]);
 
                         if (count($hists) == 0) {
                             $sql = "INSERT INTO memberships_history (userid, groupid, collection, added) VALUES ({$member['uid']},{$this->id},'$collection',$added);";
                             $bulksql .= $sql;
                         }
+                    }
 
-                        # If this is a mod/owner, make sure the systemrole reflects that.
-                        if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
-                            $sql = "UPDATE users SET systemrole = 'Moderator' WHERE id = {$member['uid']} AND systemrole = 'User';";
-                            $bulksql .= $sql;
-                        }
+                    # If we are promoting a member, then we can only promote as high as we are.  This prevents
+                    # moderators setting owner status.
+                    if ($role == User::ROLE_OWNER &&
+                        $myrole != User::ROLE_OWNER &&
+                        $membs[0]['role'] != User::ROLE_OWNER
+                    ) {
+                        $role = User::ROLE_MODERATOR;
+                    }
 
-                        if ($count > 0 && $count % 1000 == 0) {
-                            # Do a chunk of work.  If this doesn't work correctly we'll end up with fewer members
-                            # and fail the count below.  Or we'll have incorrect settings until the next sync, but
-                            # that's ok - better than failing it.
-                            $this->dbhm->exec($bulksql);
-                            $bulksql = '';
-                        }
+                    # Now update with any new settings.  Having this if test looks a bit clunky but it means that
+                    # when resyncing a group where most members have not changed settings, we can avoid many UPDATEs.
+                    #
+                    # This will have the effect of moving members between collections if required.
+                    $added = pres('date', $member) ? ("'" . date("Y-m-d H:i:s", strtotime($member['date'])) . "'") : 'NULL';
+
+                    if ($new ||
+                        $membs[0]['role'] != $role ||
+                        $membs[0]['collection'] != $collection ||
+                        $membs[0]['yahooPostingStatus'] != $yps ||
+                        $membs[0]['yahooDeliveryType'] != $ydt ||
+                        $membs[0]['joincomment'] != $joincomment ||
+                        $membs[0]['emailid'] != $member['emailid'] ||
+                        $membs[0]['added'] != $added
+                    ) {
+                        $sql = "UPDATE memberships SET role = '$role', collection = '$collection', yahooPostingStatus = " . $this->dbhm->quote($yps) .
+                            ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", joincomment = $joincomment, emailid = {$member['emailid']}, added = $added WHERE userid = " .
+                            "{$member['uid']} AND groupid = {$this->id};";
+                        $bulksql .= $sql;
+                    }
+
+                    # If this is a mod/owner, make sure the systemrole reflects that.
+                    if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+                        $sql = "UPDATE users SET systemrole = 'Moderator' WHERE id = {$member['uid']} AND systemrole = 'User';";
+                        $bulksql .= $sql;
+                    }
+
+                    # Record that this member still exists by deleting their id from the temp table
+                    $bulksql .= "DELETE FROM syncdelete WHERE id = {$member['uid']};";
+
+                    if ($count > 0 && $count % 1000 == 0) {
+                        # Do a chunk of work.  If this doesn't work correctly we'll end up with fewer members
+                        # and fail the count below.  Or we'll have incorrect settings until the next sync, but
+                        # that's ok - better than failing it.
+                        error_log("Execute batch $count");
+                        $this->dbhm->exec($bulksql);
+                        error_log("Executed batch $count");
+                        $bulksql = '';
                     }
                 }
-
-                if ($bulksql != '') {
-                    # Do remaining SQL.  If this fails then we'll fail the count check below.
-                    $this->dbhm->exec($bulksql);
-                }
-
-                # Delete any residual members.  If this fails we have old members left over - so no need to rollback.
-                #
-                # We need to log these deletes so that we can see why memberships disappear.
-                $todeletes = $this->dbhm->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND collection = '$collection' AND syncdelete = 1;", [ $this->id ]);
-                $meid = $me ? $me->getId() : NULL;
-                foreach ($todeletes as $todelete) {
-                    # Long
-                    set_time_limit(60);
-
-                    $this->log->log([
-                        'type' => Log::TYPE_GROUP,
-                        'subtype' => Log::SUBTYPE_LEFT,
-                        'user' => $todelete['userid'],
-                        'byuser' => $meid,
-                        'groupid' => $this->id,
-                        'text' => 'Sync of whole membership list'
-                    ]);
-                }
-
-                $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = ? AND collection = '$collection' AND syncdelete = 1;", [ $this->id ]);
-
-                # Now do a check on the number of members.  It should match the distinct number; if not then
-                # something has gone wrong and we should abort.
-                $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = '$collection' ";
-                $counts = $this->dbhm->preQuery($sql, [ $this->id ]);
-                $count = $counts[0]['count'];
-
-                $rollback = ($count != $distinct);
-
-                if (!$rollback && $collection == MessageCollection::APPROVED) {
-                    # Record the sync.  If this fails it's not worth a rollback.
-                    $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [$this->id]);
-                }
-            } catch (Exception $e) {
-                error_log("Exception" . $e->getMessage());
-                $rollback = TRUE;
             }
 
-            if ($rollback) {
-                # Something went wrong.
-                $this->dbhm->rollBack();
-                $ret = [
-                    'ret' => 2,
-                    'status' => 'Failed, for some reason'
-                ];
-            } else {
-                $rollback = !$this->dbhm->commit();
-
-                if ($rollback) {
-                    $ret = [
-                        'ret' => 3,
-                        'status' => 'Commit failed'
-                    ];
-                }
+            if ($bulksql != '') {
+                # Do remaining SQL.  If this fails then we'll fail the count check below.
+                $this->dbhm->exec($bulksql);
             }
+
+            error_log("Updated members");
+
+            # Delete any residual members.
+            #
+            # We need to log these deletes so that we can see why memberships disappear.
+            $todeletes = $this->dbhm->preQuery("SELECT id FROM syncdelete;", [$this->id]);
+            $meid = $me ? $me->getId() : NULL;
+            foreach ($todeletes as $todelete) {
+                # Long
+                set_time_limit(60);
+
+                $this->log->log([
+                    'type' => Log::TYPE_GROUP,
+                    'subtype' => Log::SUBTYPE_LEFT,
+                    'user' => $todelete['id'],
+                    'byuser' => $meid,
+                    'groupid' => $this->id,
+                    'text' => 'Sync of whole membership list'
+                ]);
+            }
+
+            $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = ? AND collection = '$collection' AND userid IN (SELECT id FROM syncdelete);", [$this->id]);
+            $this->dbhm->preExec("DROP TEMPORARY TABLE syncdelete;");
+
+            error_log("Tidied members");
+
+            if ($collection == MessageCollection::APPROVED) {
+                # Record the sync.
+                $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [$this->id]);
+            }
+        } catch (Exception $e) {
+            $ret = [ 'ret' => 2, 'status' => "Sync failed with " . $e->getMessage() ];
+            error_log(var_export($ret, TRUE));
         }
 
         return($ret);

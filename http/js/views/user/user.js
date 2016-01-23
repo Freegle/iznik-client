@@ -51,37 +51,53 @@ Iznik.Views.ModTools.User = IznikView.extend({
         // Remove membership
         var self = this;
 
-        var mod = new Iznik.Models.Membership({
-            userid: this.model.get('id'),
-            groupid: this.model.get('groupid')
+        var v = new Iznik.Views.Confirm({
+            model: self.modConfigModel
         });
 
-        mod.fetch().then(function() {
-            mod.destroy({
-                success: function(model, response) {
-                    self.model.trigger('removed');
-                }
+        self.listenToOnce(v, 'confirmed', function() {
+            var mod = new Iznik.Models.Membership({
+                userid: this.model.get('id'),
+                groupid: this.model.get('groupid')
+            });
+
+            mod.fetch().then(function () {
+                mod.destroy({
+                    success: function (model, response) {
+                        self.model.trigger('removed');
+                    }
+                });
             });
         });
+
+        v.render();
     },
 
     ban: function() {
         // Ban them - remove with appropriate flag.
         var self = this;
 
-        var mod = new Iznik.Models.Membership({
-            userid: this.model.get('id'),
-            groupid: this.model.get('groupid'),
-            ban: true
+        var v = new Iznik.Views.Confirm({
+            model: self.modConfigModel
         });
 
-        mod.fetch().then(function() {
-            mod.destroy({
-                success: function(model, response) {
-                    self.model.trigger('removed');
-                }
+        self.listenToOnce(v, 'confirmed', function() {
+            var mod = new Iznik.Models.Membership({
+                userid: this.model.get('id'),
+                groupid: this.model.get('groupid'),
+                ban: true
+            });
+
+            mod.fetch().then(function () {
+                mod.destroy({
+                    success: function (model, response) {
+                        self.model.trigger('removed');
+                    }
+                });
             });
         });
+
+        v.render();
     },
 
     addComment: function() {

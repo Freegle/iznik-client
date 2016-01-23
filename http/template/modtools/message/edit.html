@@ -8,8 +8,8 @@
             <div class="modal-body js-modal-body">
                 <p>
                     <span class="text-muted">
-                        From: <span class="js-myname" /> &lt;{{obj.groups[0].nameshort}}-owner@yahoogroups.com&gt;<br>
-                        To: {{obj.fromname}} &lt{{obj.fromaddr}}&gt;
+                        From: {{obj.fromname}} &lt{{obj.fromaddr}}<br />
+                        To: {{obj.groups[0].namedisplay}}
                     </span>
                 </p>
                 <input type="text" class="botspace form-control js-subject" value="{{subject}}" />

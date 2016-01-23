@@ -97,14 +97,14 @@ class userTest extends IznikTest {
         # Add them as memberships and check we get the right ones.
         $g = new Group($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
-        $emailid1 = $u->getIdForEmail('test@test.com');
-        $emailid2 = $u->getIdForEmail('test2@test.com');
+        $emailid1 = $u->getIdForEmail('test@test.com')['id'];
+        $emailid2 = $u->getIdForEmail('test2@test.com')['id'];
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid1);
         assertEquals($emailid1, $u->getEmailForGroup($group1));
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid2);
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid2);
         assertEquals($emailid2, $u->getEmailForGroup($group1));
-        assertNull($u->getIdForEmail('wibble@test.com'));
+        assertNull($u->getIdForEmail('wibble@test.com'))['id'];
         assertNull($u->getEmailForGroup(-1));
 
         error_log(__METHOD__ . " end");

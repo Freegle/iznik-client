@@ -235,7 +235,7 @@ class MailRouter
                             $emailid = $u->addEmail($email);
                         } else {
                             $u = new User($this->dbhr, $this->dbhm, $uid);
-                            $emailid = $u->getIdForEmail($email);
+                            $emailid = $u->getIdForEmail($email)['id'];
 
                             if ($name) {
                                 $u->setPrivate('fullname', $name);

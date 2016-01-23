@@ -50,7 +50,7 @@ foreach ($users as $user) {
         if (!$thename) {
             if (strpos(strtolower($themail), 'fbuser') === FALSE) {
                 $p = strpos($themail, '@');
-                $thename = substr($themail, 0, $p - 1);
+                $thename = substr($themail, 0, $p);
                 #error_log("Name from $themail is $thename");
             }
         }

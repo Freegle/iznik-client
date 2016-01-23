@@ -156,13 +156,12 @@ class User extends Entity
 
     public function getIdForEmail($email) {
         # Email is a unique key but conceivably we could be called with an email for another user.
-        $ids = $this->dbhr->preQuery("SELECT id FROM users_emails WHERE email LIKE ? AND userid = ?;", [
-            $email,
-            $this->id
+        $ids = $this->dbhr->preQuery("SELECT id, userid FROM users_emails WHERE email LIKE ?;", [
+            $email
         ]);
 
         foreach ($ids as $id) {
-            return($id['id']);
+            return($id);
         }
 
         return(NULL);
@@ -818,7 +817,7 @@ class User extends Entity
             # Also fetch whether they're on the spammer list.
             $sql = "SELECT * FROM spam_users WHERE userid = ?;";
             $spammers = $this->dbhr->preQuery($sql, [ $this->id ]);
-            foreach ($spammers as &$spammer) {
+            foreach ($spammers as $spammer) {
                 $spammer['added'] = ISODate($spammer['added']);
                 $atts['spammer'] = $spammer;
             }

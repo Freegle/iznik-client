@@ -221,7 +221,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             if ($e instanceof DBException) {
                 # This is a DBException.  We want to retry, which means we just go round the loop
                 # again.
-                error_log("DB Exception try $apicallretries " . $e->getTraceAsString());
+                error_log("DB Exception try $apicallretries," . $e->getMessage() . ", " . $e->getTraceAsString());
                 $apicallretries++;
 
                 if ($apicallretries >= API_RETRIES) {

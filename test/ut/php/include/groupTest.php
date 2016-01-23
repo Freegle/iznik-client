@@ -158,25 +158,6 @@ class groupTest extends IznikTest {
         ], MembershipCollection::APPROVED);
         assertNotEquals(0, $rc['ret']);
 
-        # Error in commit
-        $mock = $this->getMockBuilder('LoggedPDO')
-            ->setConstructorArgs([
-                "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
-                $dbconfig['user'], $dbconfig['pass'], array(), TRUE
-            ])
-            ->setMethods(array('commit'))
-            ->getMock();
-        $mock->method('commit')->willReturn(false);
-        $g->setDbhm($mock);
-        $rc = $g->setMembers([
-            [
-                'uid' => $this->uid,
-                'yahooModeratorStatus' => 'OWNER',
-                'email' => 'test@test.com'
-            ]
-        ], MembershipCollection::APPROVED);
-        assertNotEquals(0, $rc['ret']);
-
         # Error in exec
         $members = $g->getMembers();
         assertEquals(1, count($members));
