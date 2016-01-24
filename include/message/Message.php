@@ -1407,10 +1407,9 @@ class Message
                     }
                 }
 
-                if ($match) {
-                    if (!$message['id']) {
-                        error_log("Oddly null messageid $sql " . var_export([ $this->subject, $this->subject, $this->fromuser, $type ], TRUE));
-                    }
+                if ($match && $message['id']) {
+                    # We seem to get a NULL returned in circumstances I don't quite understand but but which relate to
+                    # the use of DAMLEVLIM.
                     $sql = "INSERT INTO messages_related (id1, id2) VALUES (?,?);";
                     $this->dbhm->preExec($sql, [ $this->id, $message['id']] );
                     $found++;

@@ -187,13 +187,16 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
         // We don't want to add the work back into the queue immediately, as this could mean that we hammer away
         // retrying, which increases the chance of Yahoo 999s.
-        _.delay(function() {
-            self.retrying = _.without(self.retrying, work);
+        function retryIt(self, work) {
+            return(function() {
+                self.retrying = _.without(self.retrying, work);
 
-            // Put at the back so as not to block other work.
-            self.work.push(work);
-            self.checkWork();
-        }, 60000);
+                // Put at the back so as not to block other work.
+                self.work.push(work);
+                self.checkWork();
+            })
+        }
+        _.delay(retryIt(self, work), 60000);
     },
 
     checkPluginStatus: function() {

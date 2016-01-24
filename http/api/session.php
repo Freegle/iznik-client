@@ -9,7 +9,7 @@ function session() {
     switch ($_REQUEST['type']) {
         case 'GET': {
             # Check if we're logged in
-            if ($me) {
+            if ($me && $me->getId()) {
                 $ret = array('ret' => 0, 'status' => 'Success', 'me' => $me->getPublic());
                 $ret['groups'] = $me->getMemberships();
                 $ret['configs'] = $me->getConfigs();
