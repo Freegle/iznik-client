@@ -359,7 +359,7 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         }
 
         if (model.hasOwnProperty('joined')) {
-            text = text.replace(/\$membersubdate/g, formatDate(model.joined, false, false));
+            text = text.replace(/\$membersubdate/g, moment(model.joined).format('lll'));
         }
 
         // TODO $otherapplied
