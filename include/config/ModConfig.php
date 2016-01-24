@@ -107,7 +107,7 @@ class ModConfig extends Entity
         }
     }
 
-    public function getPublic() {
+    public function getPublic($stdmsgbody = TRUE) {
         $ret = parent::getPublic();
 
         # If the creating mod has been deleted, then we need to ensure that the config is no longer protected.
@@ -120,7 +120,7 @@ class ModConfig extends Entity
 
         foreach ($stdmsgs as $stdmsg) {
             $s = new StdMessage($this->dbhr, $this->dbhm, $stdmsg['id']);
-            $ret['stdmsgs'][] = $s->getPublic();
+            $ret['stdmsgs'][] = $s->getPublic($stdmsgbody);
         }
 
         return($ret);

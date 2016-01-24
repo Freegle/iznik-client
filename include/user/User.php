@@ -402,7 +402,7 @@ class User extends Entity
 
         foreach ($ids as $id) {
             $c = new ModConfig($this->dbhr, $this->dbhm, $id['id']);
-            $thisone = $c->getPublic();
+            $thisone = $c->getPublic(FALSE);
 
             if ($thisone['createdby'] == $me->getId()) {
                 $thisone['cansee'] = ModConfig::CANSEE_CREATED;
@@ -419,7 +419,7 @@ class User extends Entity
             $u = new User($this->dbhr, $this->dbhm, $thisone['createdby']);
 
             if ($u->getId()) {
-                $thisone['createdby'] = $u->getPublic();
+                $thisone['createdby'] = $u->getPublic(NULL, FALSE);
             }
 
             $ret[] = $thisone;

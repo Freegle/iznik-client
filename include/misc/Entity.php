@@ -41,7 +41,7 @@ class Entity
         }
     }
 
-    private function getAtts($list) {
+    public function getAtts($list) {
         $ret = array();
         foreach ($list as $att) {
             if (pres($att, $this->{$this->name})) {

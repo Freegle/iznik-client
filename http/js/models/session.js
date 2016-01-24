@@ -233,7 +233,7 @@ Iznik.Models.Session = IznikModel.extend({
     },
 
     getGroup: function(groupid) {
-        var group = this.get('groups').get(groupid);
+        var group = !_.isUndefined(this.get('groups')) ? this.get('groups').get(groupid) : null;
         return(group);
     },
 

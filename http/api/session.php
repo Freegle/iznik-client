@@ -11,6 +11,10 @@ function session() {
             # Check if we're logged in
             if ($me && $me->getId()) {
                 $ret = array('ret' => 0, 'status' => 'Success', 'me' => $me->getPublic());
+
+                # Don't need to return this, and it might be large.
+                $ret['me']['messagehistory'] = NULL;
+
                 $ret['groups'] = $me->getMemberships();
                 $ret['configs'] = $me->getConfigs();
                 $ret['emails'] = $me->getEmails();
