@@ -401,7 +401,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         var self = this;
 
         if (ret.hasOwnProperty('ygData')) {
-            if (ret.ygData.hasOwnProperty('allMyGroups')) {
+            if (ret.ygData.hasOwnProperty('allMyGroups') && ret.ygData.allMyGroups.length > 0) {
                 _.each(ret.ygData.allMyGroups, function(group) {
                     if (group.membership == "MOD" || group.membership == "OWN") {
                         self.yahooGroups.push(group.groupName.toLocaleLowerCase());
