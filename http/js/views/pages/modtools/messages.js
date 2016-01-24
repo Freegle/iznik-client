@@ -311,73 +311,76 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
     },
 
     substitutionStrings: function(text, model, config, group) {
+        console.log("Subst", text, model, config, group);
         var self = this;
 
-        if (config) {
-            text = text.replace(/\$networkname/g, config.network);
-            text = text.replace(/\$groupnonetwork/g, group.nameshort.replace(config.network, ''));
-        }
-
-        text = text.replace(/\$groupname/g, group.nameshort);
-        text = text.replace(/\$owneremail/g, group.nameshort + "-owner@yahoogroups.com");
-        text = text.replace(/\$groupemail/g, group.nameshort + "@yahoogroups.com");
-        text = text.replace(/\$groupurl/g, "https://groups.yahoo.com/neo/groups/" + group.nameshort + "/info");
-        text = text.replace(/\$myname/g, Iznik.Session.get('me').displayname);
-        text = text.replace(/\$nummembers/g, group.membercount);
-        text = text.replace(/\$nummods/g, group.nummods);
-
-        text = text.replace(/\$origsubj/g, model.subject);
-
-        var history = model.fromuser.messagehistory;
-        var recentmsg = '';
-        var count = 0;
-        _.each(history, function(msg) {
-            if (msg.daysago < self.recentDays) {
-                recentmsg += moment(msg.date).format('lll') + ' - ' + msg.subject + "\n";
-                count++;
+        if (!_.isUndefined(text) && text) {
+            if (config) {
+                text = text.replace(/\$networkname/g, config.network);
+                text = text.replace(/\$groupnonetwork/g, group.nameshort.replace(config.network, ''));
             }
-        })
-        text = text.replace(/\$recentmsg/gim, recentmsg);
-        text = text.replace(/\$numrecentmsg/gim, count);
 
-        _.each(this.keywordList, function(keyword) {
+            text = text.replace(/\$groupname/g, group.nameshort);
+            text = text.replace(/\$owneremail/g, group.nameshort + "-owner@yahoogroups.com");
+            text = text.replace(/\$groupemail/g, group.nameshort + "@yahoogroups.com");
+            text = text.replace(/\$groupurl/g, "https://groups.yahoo.com/neo/groups/" + group.nameshort + "/info");
+            text = text.replace(/\$myname/g, Iznik.Session.get('me').displayname);
+            text = text.replace(/\$nummembers/g, group.membercount);
+            text = text.replace(/\$nummods/g, group.nummods);
+
+            text = text.replace(/\$origsubj/g, model.subject);
+
+            var history = model.fromuser.messagehistory;
             var recentmsg = '';
             var count = 0;
-            _.each(history, function(msg) {
-                if (msg.type == keyword && msg.daysago < self.recentDays) {
+            _.each(history, function (msg) {
+                if (msg.daysago < self.recentDays) {
                     recentmsg += moment(msg.date).format('lll') + ' - ' + msg.subject + "\n";
                     count++;
                 }
             })
+            text = text.replace(/\$recentmsg/gim, recentmsg);
+            text = text.replace(/\$numrecentmsg/gim, count);
 
-            text = text.replace(new RegExp('\\$recent' + keyword.toLowerCase(), 'gim'),recentmsg);
-            text = text.replace(new RegExp('\\$numrecent' + keyword.toLowerCase(), 'gim'), count);
-        });
+            _.each(this.keywordList, function (keyword) {
+                var recentmsg = '';
+                var count = 0;
+                _.each(history, function (msg) {
+                    if (msg.type == keyword && msg.daysago < self.recentDays) {
+                        recentmsg += moment(msg.date).format('lll') + ' - ' + msg.subject + "\n";
+                        count++;
+                    }
+                })
 
-        if (model.hasOwnProperty('joincomment')) {
-            text = text.replace(/\$memberreason/g, model.joincomment);
-        }
-
-        if (model.hasOwnProperty('joined')) {
-            text = text.replace(/\$membersubdate/g, moment(model.joined).format('lll'));
-        }
-
-        // TODO $otherapplied
-
-        text = text.replace(/\$membermail/g, model.fromaddr);
-        var from = model.fromuser.hasOwnProperty('realemail') ? model.fromuser.realemail : model.fromaddr;
-        var fromid = from.substring(0, from.indexOf('@'));
-        text = text.replace(/\$memberid/g, fromid);
-
-        var summ = '';
-
-        if (model.hasOwnProperty('duplicates')) {
-            _.each(model.duplicates, function(m) {
-                summ += moment(m.date).format('lll') + " - " + m.subject + "\n";
+                text = text.replace(new RegExp('\\$recent' + keyword.toLowerCase(), 'gim'), recentmsg);
+                text = text.replace(new RegExp('\\$numrecent' + keyword.toLowerCase(), 'gim'), count);
             });
 
-            var regex = new RegExp("\\$duplicatemessages", "gim");
-            text = text.replace(regex, summ);
+            if (model.hasOwnProperty('joincomment')) {
+                text = text.replace(/\$memberreason/g, model.joincomment);
+            }
+
+            if (model.hasOwnProperty('joined')) {
+                text = text.replace(/\$membersubdate/g, moment(model.joined).format('lll'));
+            }
+
+            // TODO $otherapplied
+
+            text = text.replace(/\$membermail/g, model.fromaddr);
+            var from = model.fromuser.hasOwnProperty('realemail') ? model.fromuser.realemail : model.fromaddr;
+            var fromid = from.substring(0, from.indexOf('@'));
+            text = text.replace(/\$memberid/g, fromid);
+
+            var summ = '';
+
+            if (model.hasOwnProperty('duplicates')) {
+                _.each(model.duplicates, function (m) {
+                    summ += moment(m.date).format('lll') + " - " + m.subject + "\n";
+                });
+
+                var regex = new RegExp("\\$duplicatemessages", "gim");
+                text = text.replace(regex, summ);
+            }
         }
 
         return(text);
