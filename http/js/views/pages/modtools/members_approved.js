@@ -48,7 +48,9 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
                     _.each(ret.members, function(member) {
                         var otheremails = [];
                         _.each(member.otheremails, function(email) {
-                            otheremails.push(email.email);
+                            if (email.email != member.email) {
+                                otheremails.push(email.email);
+                            }
                         });
 
                         self.exportList.push([
