@@ -69,8 +69,6 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
                     var csv = new csvWriter();
                     csv.del = ',';
                     csv.enc = '"';
-                    var list = [ [ 'Unique ID', 'Display Name', 'Email on Group', 'Joined', 'Role on Group', 'Other emails', 'Settings on Group' ] ];
-
                     var csvstr = csv.arrayToCSV(self.exportList);
 
                     self.exportWait.close();
@@ -90,7 +88,7 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
             v.template = 'modtools_members_approved_exportwait';
             v.render();
             this.exportWait = v;
-            this.exportList = [];
+            this.exportList = [ [ 'Unique ID', 'Display Name', 'Email on Group', 'Joined', 'Role on Group', 'Other emails', 'Settings on Group' ] ];
             this.exportContext = null;
             this.exportChunk();
         }
