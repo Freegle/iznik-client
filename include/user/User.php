@@ -365,7 +365,7 @@ class User extends Entity
     public function getMemberships($modonly = FALSE) {
         $ret = [];
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
-        $sql = "SELECT groupid, role, configid FROM memberships WHERE userid = ? $modq;";
+        $sql = "SELECT groupid, role, configid, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid WHERE userid = ? $modq ORDER BY LOWER(namedisplay) ASC;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
