@@ -148,7 +148,11 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                                 var newdata = self.myGroupModel.toJSON();
                                 membership.save({
                                     'settings': newdata
-                                }, { patch: true });
+                                }, {
+                                    patch: true,
+                                    success: self.success,
+                                    error: self.error
+                                });
                                 return(false);
                             }
                         }
@@ -247,7 +251,11 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                             var newdata = self.groupModel.toJSON();
                             group.save({
                                 'settings': newdata
-                            }, { patch: true });
+                            }, {
+                                patch: true,
+                                success: self.success,
+                                error: self.error
+                            });
                             return(false);
                         }
                     }
@@ -369,7 +377,11 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                             var newdata = self.modConfigModel.toJSON();
                             var attrs = self.modConfigModel.changedAttributes();
                             if (attrs) {
-                                self.modConfigModel.save(attrs, {patch: true});
+                                self.modConfigModel.save(attrs, {
+                                    patch: true,
+                                    success: self.success,
+                                    error: self.error
+                                });
                             }
                             return(false);
                         }
@@ -441,9 +453,17 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                                         e.preventDefault();
                                         var newdata = self.modConfigModel.toJSON();
                                         var attrs = self.modConfigModel.changedAttributes();
+
                                         if (attrs) {
-                                            self.modConfigModel.save(attrs, {patch: true});
+                                            self.modConfigModel.save(attrs, {
+                                                patch: true,
+                                                success: self.success,
+                                                error: self.error
+                                            });
+                                        } else {
+                                            self.success();
                                         }
+
                                         return (false);
                                     }
                                 }
@@ -557,6 +577,17 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         }
     },
 
+    success: function(model, response, options) {
+        (new Iznik.Views.ModTools.Settings.Saved()).render();
+    },
+
+    error: function(model, response, options) {
+        console.log("Error", model, response, options);
+        (new Iznik.Views.ModTools.Settings.SaveFailed({
+            model: new IznikModel(response)
+        })).render();
+    },
+
     render: function() {
         var self = this;
 
@@ -621,7 +652,11 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     'submit': function(e) {
                         e.preventDefault();
                         var newdata = self.personalModel.toJSON();
-                        Iznik.Session.save(newdata, { patch: true });
+                        Iznik.Session.save(newdata, {
+                            patch: true,
+                            success: self.success,
+                            error: self.error
+                        });
                         return(false);
                     }
                 }
@@ -824,6 +859,22 @@ Iznik.Views.ModTools.Settings.StdMessage = Iznik.Views.Modal.extend({
         this.open(null);
 
         return(this);
+    }
+});
+
+Iznik.Views.ModTools.Settings.Saved = Iznik.Views.Modal.extend({
+    template: 'modtools_settings_saved',
+    render: function() {
+        Iznik.Views.Modal.prototype.render.call(this);
+        _.delay(_.bind(this.close, this), 10000);
+    }
+});
+
+
+Iznik.Views.ModTools.Settings.SaveFailed = Iznik.Views.Modal.extend({
+    template: 'modtools_settings_savefailed',
+    render: function() {
+        Iznik.Views.Modal.prototype.render.call(this);
     }
 });
 
