@@ -613,15 +613,19 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
             // Personal settings
             var me = Iznik.Session.get('me');
+            var settings = presdef('settings', me, null);
+            settings = (settings == null || settings.length == 0) ? {
+                'playbeep': 1
+            } : settings;
 
             self.personalModel = new IznikModel({
                 id: me.id,
                 displayname: me.displayname,
                 fullname: me.fullname,
-                settings: presdef('settings', me, {
-                    'playbeep': 1
-                })
+                settings: settings
             });
+
+
 
             var personalFields = [
                 {
@@ -652,6 +656,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     'submit': function(e) {
                         e.preventDefault();
                         var newdata = self.personalModel.toJSON();
+                        console.log("Save personal", newdata, self.personalModel);
                         Iznik.Session.save(newdata, {
                             patch: true,
                             success: self.success,
