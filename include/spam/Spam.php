@@ -323,11 +323,10 @@ class Spam {
             'text' => $text
         ]);
 
-        $sql = "UPDATE spam_users SET collection = ?, reason = ?, byuserid = ? WHERE id = ?;";
+        $sql = "UPDATE spam_users SET collection = ?, reason = ? WHERE id = ?;";
         $rc = $this->dbhm->preExec($sql, [
             $collection,
             $reason,
-            $me ? $me->getId() : NULL,
             $id
         ]);
 

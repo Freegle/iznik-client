@@ -144,12 +144,34 @@ Iznik.Views.ModTools.Pages.SpammerList = Iznik.Views.Page.extend({
 Iznik.Views.ModTools.Spammer = Iznik.Views.ModTools.Member.Spam.extend({
     template: 'modtools_spammerlist_member',
 
+    events: {
+        'click .js-notspam': 'notSpam',
+        'click .js-confirm': 'confirm',
+        'click .js-whitelist': 'whitelist'
+    },
+
     notSpam: function() {
         var self = this;
 
         $.ajax({
             url: API + 'spammers/' + self.model.get('id'),
             type: 'DELETE',
+            success: function(ret) {
+                // Now over to someone else to review this report - so remove from our list.
+                self.remove();
+            }
+        });
+    },
+
+    confirm: function() {
+        var self = this;
+
+        $.ajax({
+            url: API + 'spammers/' + self.model.get('id'),
+            data: {
+                'collection': 'Spammer'
+            },
+            type: 'PATCH',
             success: function(ret) {
                 // Now over to someone else to review this report - so remove from our list.
                 self.remove();
