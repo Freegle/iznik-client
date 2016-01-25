@@ -131,6 +131,7 @@ Iznik.Views.LeftMenu = IznikView.extend({
         });
 
         if (Iznik.Session.isAdminOrSupport()) {
+            console.log("Show adminsupport");
             this.$('.js-adminsupportonly').removeClass('hidden');
         }
 

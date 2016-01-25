@@ -28,6 +28,9 @@ Iznik.Models.Session = IznikModel.extend({
 
                     self.trigger('isLoggedIn', true);
 
+                    var admin = Iznik.Session.isAdmin();
+                    var support = Iznik.Session.isAdminOrSupport();
+
                     // Update our various counts.
                     var counts = [
                         {
@@ -76,14 +79,14 @@ Iznik.Models.Session = IznikModel.extend({
                             fi: 'spammerpendingadd',
                             el: '.js-spammerpendingaddcount',
                             ev: 'spammerpendingaddcountschanged',
-                            window: true,
+                            window: support,
                             sound: false
                         },
                         {
                             fi: 'spammerpendingremove',
                             el: '.js-spammerpendingremovecount',
                             ev: 'spammerpendingremovecountschanged',
-                            window: true,
+                            window: admin,
                             sound: false
                         }
                     ];
@@ -111,7 +114,6 @@ Iznik.Models.Session = IznikModel.extend({
 
                                 if (ret.work[count.fi] > 0 && count.sound) {
                                     var settings = Iznik.Session.get('me').settings;
-                                    console.log("Settings", settings);
 
                                     if (presdef('playbeep', settings, 1)) {
                                         var sound = new Audio("/sounds/alert.wav");

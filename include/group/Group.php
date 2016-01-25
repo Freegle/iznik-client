@@ -98,12 +98,15 @@ class Group extends Entity
         $spam = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'] ? 'spam' : 'spamother';
         $pendmemb = !array_key_exists('showmembers', $mysettings) || $mysettings['showmembers'] ? 'pendingmembers' : 'pendingmembersother';
 
+        # We only want to show spam messages upto 7 days old to avoid seeing too many, especially on first use.
+        $mysqltime = date ("Y-m-d", strtotime("Midnight 7 days ago"));
+
         $ret = [
             $pend => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
                 $this->id,
                 MessageCollection::PENDING
             ])[0]['count'],
-            $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
+            $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages.date >= '$mysqltime' AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
                 $this->id,
                 MessageCollection::SPAM
             ])[0]['count'],

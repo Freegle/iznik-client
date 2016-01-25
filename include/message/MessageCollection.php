@@ -52,13 +52,17 @@ class MessageCollection
         $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Date']));
         $dateq = $ctx == NULL ? ' 1=1 ' : (" (messages.date < $date OR messages.date = $date AND messages.id < " . $this->dbhr->quote($ctx['id']) . ") ");
 
+        # We only want to show spam messages upto 7 days old to avoid seeing too many, especially on first use.
+        $mysqltime = date ("Y-m-d", strtotime("Midnight 7 days ago"));
+        $oldest = $this->collection == MessageCollection::SPAM ? " AND messages.date >= '$mysqltime' " : '';
+
         $ctx = [ 'Date' => NULL, 'id' ];
 
         if (count($groupids) > 0) {
             $groupq = " AND groupid IN (" . implode(',', $groupids) . ") ";
 
             # At the moment we only support ordering by date DESC.
-            $sql = "SELECT msgid AS id, date FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC, messages.id DESC LIMIT $limit";
+            $sql = "SELECT msgid AS id, date FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC, messages.id DESC LIMIT $limit";
             $msglist = $this->dbhr->preQuery($sql, [
                 $this->collection
             ]);
