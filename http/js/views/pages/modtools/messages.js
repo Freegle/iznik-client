@@ -301,7 +301,6 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
                 msg = self.substitutionStrings(msg, self.model.attributes, config, self.model.get('groups')[0]);
             } else {
                 // Just expand substitutions in the stdmsg.
-                console.log("Just expand", stdmsg);
                 msg = self.substitutionStrings(stdmsg.body, self.model.attributes, config, self.model.get('groups')[0]);
             }
 
@@ -316,7 +315,6 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
     },
 
     substitutionStrings: function(text, model, config, group) {
-        console.log("Subst", text, model, config, group);
         var self = this;
 
         if (!_.isUndefined(text) && text) {
