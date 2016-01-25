@@ -107,11 +107,17 @@ class Session {
 
         $_SESSION['id'] = $id;
 
-        return (array(
+        $ss = array(
             'id' => $id,
             'series' => $series,
             'token' => $token
-        ));
+        );
+
+        # Set the cookie which means the client will remember and use this.
+        @setcookie(COOKIE_NAME, json_encode($ss), time() + 60 * 60 * 24 * 30, '/', $_SERVER['HTTP_HOST'],
+            false, true);
+
+        return ($ss);
     }
 
     public function verify($id, $series, $token) {
