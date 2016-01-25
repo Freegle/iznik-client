@@ -82,7 +82,6 @@ var IznikRouter = Backbone.Router.extend({
     home: function(){
         var self = this;
         this.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
-
             if(loggedIn){
                 Router.navigate('/modtools', {
                     trigger: true

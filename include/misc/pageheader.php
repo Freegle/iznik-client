@@ -91,7 +91,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
 
     <!-- And then some custom styles for our different apps -->
     <?php
-    if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE) {
+    if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
         ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?t=<?php echo date("YmdHis", filemtime(IZNIK_BASE . "/http/css/modtools.css")); ?>"><?php
     } else {
         ?><link rel="stylesheet" type="text/css" href="/css/user.css?t=<?php echo date("YmdHis", filemtime(IZNIK_BASE . "/http/css/user.css")); ?>"><?php

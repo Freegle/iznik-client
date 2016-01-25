@@ -70,15 +70,6 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
 
                 graph.render();
 
-                coll = new Iznik.Collections.DateCounts(ret.dashboard.domainhistory);
-                graph = new Iznik.Views.DomainChart({
-                    target: self.$('.js-domainchart').get()[0],
-                    data: coll,
-                    title: 'Email domains people use'
-                });
-
-                graph.render();
-
                 coll = new Iznik.Collections.DateCounts(ret.dashboard.sourcehistory);
                 graph = new Iznik.Views.SourceChart({
                     target: self.$('.js-sourcechart').get()[0],
@@ -115,8 +106,9 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
             self.updateGraphs();
         });
 
-
         // Render after the listen to as they are called during render.
         self.$('.js-groupselect').html(v.render().el);
+
+        return(this);
     }
 });
