@@ -286,6 +286,12 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                         if (work.hasOwnProperty('groupid')) {
                             // Find our group and add it in.
                             work.group = Iznik.Session.getGroup(work.groupid);
+
+                            if (!work.group) {
+                                // We don't know about this group yet.  Skip this item.
+                                return;
+                            }
+
                             work.group = work.group.toJSON2();
                         }
 
@@ -905,6 +911,7 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
                 var thisone = {
                     email: member['email'],
                     yahooUserId: member['userId'],
+                    yahooid: member['yid'],
                     yahooPostingStatus: member.hasOwnProperty('postingStatus') ? member.postingStatus : null,
                     yahooDeliveryType: member.hasOwnProperty(self.deliveryField) ? member[self.deliveryField] : null,
                     yahooModeratorStatus: member.hasOwnProperty('moderatorStatus') ? member.moderatorStatus : 'MEMBER',
