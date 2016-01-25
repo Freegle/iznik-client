@@ -271,7 +271,7 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
                         if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
                             stdmsg.message = self.model;
                             var v = new Iznik.Views.ModTools.StdMessage.Button({
-                                model: new IznikModel(stdmsg),
+                                model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
                                 config: config
                             });
 

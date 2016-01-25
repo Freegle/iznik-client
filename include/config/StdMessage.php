@@ -73,7 +73,7 @@ class StdMessage extends Entity
         ]);
     }
 
-    public function getPublic($stdmsgbody) {
+    public function getPublic($stdmsgbody = TRUE) {
         $ret = $this->getAtts($this->publicatts);
 
         if (!$stdmsgbody) {

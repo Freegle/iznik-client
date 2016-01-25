@@ -285,7 +285,7 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
                     if (_.contains(['Leave Approved Message', 'Delete Approved Message'], stdmsg.action)) {
                         stdmsg.message = self.model;
                         var v = new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new IznikModel(stdmsg),
+                            model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
                             config: config
                         });
 

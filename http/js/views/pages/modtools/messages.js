@@ -259,54 +259,59 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
     keywordList: ['Offer', 'Taken', 'Wanted', 'Received', 'Other'],
 
     expand: function() {
+        var self = this;
+        
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
 
-        // Apply standard message settings
-        var stdmsg = this.options.stdmsg.attributes;
-        var config = this.options.config ? this.options.config.attributes : null;
+        // Apply standard message settings.  Need to refetch as the textbody is not returned in the session.
+        this.options.stdmsg.fetch().then(function() {
+            var stdmsg = self.options.stdmsg.attributes;
+            var config = self.options.config ? self.options.config.attributes : null;
 
-        var subj = this.model.get('subject');
+            var subj = self.model.get('subject');
 
-        if (subj) {
-            // We have a pre-existing subject to include
-            subj = this.substitutionStrings(subj, this.model.attributes, config, this.model.get('groups')[0]);
-            subj = (stdmsg.subjpref ? stdmsg.subjpref : 'Re') + ': ' + subj +
-                        (stdmsg.subjsuff ? stdmsg.subjsuff : '')
-            focuson = 'js-text';
-        } else {
-            // Just expand substitutions in the stdmsg.
-            subj = (stdmsg.subjpref ? stdmsg.subjpref : '') + (stdmsg.subjsuff ? stdmsg.subjsuff : '');
-            this.substitutionStrings(subj, this.model.attributes, config, this.model.get('groups')[0]);
-            focuson = 'js-subject';
-        }
+            if (subj) {
+                // We have a pre-existing subject to include
+                subj = self.substitutionStrings(subj, self.model.attributes, config, self.model.get('groups')[0]);
+                subj = (stdmsg.subjpref ? stdmsg.subjpref : 'Re') + ': ' + subj +
+                    (stdmsg.subjsuff ? stdmsg.subjsuff : '')
+                focuson = 'js-text';
+            } else {
+                // Just expand substitutions in the stdmsg.
+                subj = (stdmsg.subjpref ? stdmsg.subjpref : '') + (stdmsg.subjsuff ? stdmsg.subjsuff : '');
+                self.substitutionStrings(subj, self.model.attributes, config, self.model.get('groups')[0]);
+                focuson = 'js-subject';
+            }
 
-        this.$('.js-subject').val(subj);
+            self.$('.js-subject').val(subj);
 
-        this.$('.js-myname').html(Iznik.Session.get('me').displayname);
+            self.$('.js-myname').html(Iznik.Session.get('me').displayname);
 
-        // Quote original message.
-        var msg = this.model.get('textbody');
+            // Quote original message.
+            var msg = self.model.get('textbody');
 
-        if (msg) {
-            // We have an existing body to include.
-            msg = '> ' + msg.replace(/((\r\n)|\r|\n)/gm, '\n> ');
+            if (msg) {
+                // We have an existing body to include.
+                msg = '> ' + msg.replace(/((\r\n)|\r|\n)/gm, '\n> ');
 
-            // Add text
-            msg = (stdmsg.body ? (stdmsg.body + '\n\n') : '') + msg;
+                // Add text
+                msg = (stdmsg.body ? (stdmsg.body + '\n\n') : '') + msg;
 
-            // Expand substitution strings in body
-            msg = this.substitutionStrings(msg, this.model.attributes, config, this.model.get('groups')[0]);
-        } else {
-            // Just expand substitutions in the stdmsg.
-            msg = this.substitutionStrings(stdmsg.body, this.model.attributes, config, this.model.get('groups')[0]);
-        }
+                // Expand substitution strings in body
+                msg = self.substitutionStrings(msg, self.model.attributes, config, self.model.get('groups')[0]);
+            } else {
+                // Just expand substitutions in the stdmsg.
+                console.log("Just expand", stdmsg);
+                msg = self.substitutionStrings(stdmsg.body, self.model.attributes, config, self.model.get('groups')[0]);
+            }
 
-        // Put it in
-        this.$('.js-text').val(msg);
+            // Put it in
+            self.$('.js-text').val(msg);
 
-        this.open(null);
-        $('.modal').on('shown.bs.modal', function () {
-            $('.modal ' + focuson).focus();
+            self.open(null);
+            $('.modal').on('shown.bs.modal', function () {
+                $('.modal ' + focuson).focus();
+            });
         });
     },
 
@@ -356,9 +361,7 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
                 text = text.replace(new RegExp('\\$numrecent' + keyword.toLowerCase(), 'gim'), count);
             });
 
-            if (model.hasOwnProperty('joincomment')) {
-                text = text.replace(/\$memberreason/g, model.joincomment);
-            }
+            text = text.replace(/\$memberreason/g, model.hasOwnProperty('joincomment') ? model.joincomment : '');
 
             if (model.hasOwnProperty('joined')) {
                 text = text.replace(/\$membersubdate/g, moment(model.joined).format('lll'));

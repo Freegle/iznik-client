@@ -330,7 +330,7 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
                     stdmsg.groups = [ group ];
                     stdmsg.member = self.model;
                     var v = new Iznik.Views.ModTools.StdMessage.Button({
-                        model: new IznikModel(stdmsg),
+                        model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
                         config: config
                     });
 
