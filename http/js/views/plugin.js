@@ -234,12 +234,6 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                     $('#js-pluginconnected').fadeOut('slow', function() {
                         $('#js-plugindisconnected').fadeIn('slow');
                     });
-
-                    if (self.count > 20) {
-                        $('#js-pluginbuildup').fadeIn('slow');
-                    } else {
-                        $('#js-pluginbuildup').hide();
-                    }
                 }
             });
         }
@@ -259,12 +253,20 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         Iznik.Session.testLoggedIn();
 
         // Check if we have any plugin work to do from the server.
+        var hoursago = 0;
+        var now = new moment();
+
         $.ajaxq('plugin', {
             type: 'GET',
             url: API + 'plugin',
             success: function(ret) {
                 if (ret.ret == 0) {
                     _.each(ret.plugin, function(work, index, list) {
+                        var added = new moment(work.added);
+                        var duration = moment.duration(now.diff(added));
+                        var hours = duration.asHours();
+                        hoursago = hoursago > hours ? hoursago : hours;
+
                         work.workid = work.id;
                         work = _.extend(work, jQuery.parseJSON(work.data));
 
@@ -360,6 +362,12 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                             }
                         }
                     });
+
+                    if (hoursago >= 4) {
+                        $('#js-pluginbuildup').fadeIn('slow');
+                    } else {
+                        $('#js-pluginbuildup').hide();
+                    }
 
                     // Now look for work which has been removed from the server because it isn't necessary any more.
                     _.each(_.union(self.work, self.retrying), function(item, index, list) {
