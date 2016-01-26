@@ -94,9 +94,8 @@ class Yahoo
 
                 $u = new User($this->dbhr, $this->dbhm, $id);
 
-                if ($u->getPrivate('fullname') != presdef('namePerson', $attrs, NULL)) {
-                    # Overwrite this with the name from Yahoo; specifically because we might have syncd the membership
-                    # without a good name.
+                if (!$u->getPrivate('fullname')) {
+                    # We might have syncd the membership without a good name.
                     $u->setPrivate('fullname', $attrs['namePerson']);
                 }
 
