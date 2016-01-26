@@ -275,6 +275,12 @@ class Group extends Entity
                         $memb['emailid'] = $emailinfo['id'];
                     }
 
+                    if (pres('yahooid', $memb)) {
+                        $u = new User($this->dbhr, $this->dbhm, $uid);
+                        # TODO should move this into the creation arm after 26/1/16.
+                        $u->setPrivate('yahooid', $memb['yahooid']);
+                    }
+
                     # Remember the uid for later below.
                     $memb['uid'] = $uid;
                     $distinctmembers[$uid] = TRUE;

@@ -56,6 +56,7 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
                         self.exportList.push([
                             member.id,
                             member.displayname,
+                            member.yahooid,
                             member.email,
                             member.joined,
                             member.role,
@@ -90,7 +91,7 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
             v.template = 'modtools_members_approved_exportwait';
             v.render();
             this.exportWait = v;
-            this.exportList = [ [ 'Unique ID', 'Display Name', 'Email on Group', 'Joined', 'Role on Group', 'Other emails', 'Settings on Group' ] ];
+            this.exportList = [ [ 'Unique ID', 'Display Name', 'Yahoo ID', 'Email on Group', 'Joined', 'Role on Group', 'Other emails', 'Settings on Group' ] ];
             this.exportContext = null;
             this.exportChunk();
         }

@@ -370,6 +370,7 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
             text = text.replace(/\$membermail/g, model.fromaddr);
             var from = model.fromuser.hasOwnProperty('realemail') ? model.fromuser.realemail : model.fromaddr;
             var fromid = from.substring(0, from.indexOf('@'));
+            var memberid = presdef('yahooid', model.fromuser, fromid);
             text = text.replace(/\$memberid/g, fromid);
 
             var summ = '';
