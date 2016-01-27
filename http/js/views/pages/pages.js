@@ -102,7 +102,8 @@ Iznik.Views.LeftMenu = IznikView.extend({
             url: API + 'session',
             type: 'DELETE',
             complete: function() {
-                Router.navigate('/modtools', true);
+                // Force reload of window to clear any data.
+                window.location = window.location.protocol + '//' + window.location.host + '/modtools';
             }
         })
     },
