@@ -110,7 +110,7 @@ majax.prototype.start = function () {
     };
 
     // Set a timout, otherwise we can get stuck with our per-host connection limit reached.
-    copy.timeout = 5000;
+    copy.timeout = 30000;
 
     // Issue the request to kick the plugin
     $.ajax(copy);

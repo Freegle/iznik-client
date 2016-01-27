@@ -18,7 +18,7 @@ $g = new Group($dbhr, $dbhm);
 
 $dbhm->preExec("DELETE FROM users_comments;");
 
-$oldusers = $dbhold->query("SELECT membercomments.*, groups.groupname, moderators.email AS modemail FROM membercomments INNER JOIN groups ON membercomments.groupid = groups.groupid INNER JOIN moderators ON membercomments.modid = moderators.uniqueid;");
+$oldusers = $dbhold->query("SELECT membercomments.*, groups.groupname, moderators.email AS modemail FROM membercomments INNER JOIN groups ON membercomments.groupid = groups.groupid LEFT JOIN moderators ON membercomments.modid = moderators.uniqueid;");
 $count = 0;
 foreach ($oldusers as $user) {
     $modid = $u->findByEmail($user['modemail']);

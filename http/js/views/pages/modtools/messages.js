@@ -106,37 +106,40 @@ Iznik.Views.ModTools.Message = IznikView.extend({
 
             _.each(self.model.get('groups'), function(group) {
                 var groupid = group.groupid;
+                var fromuser = self.model.get('fromuser');
 
-                _.each(self.model.get('fromuser').messagehistory, function (message) {
-                    if (message.id != id) {
-                        if (canonSubj(message.subject) == subj) {
-                            // No point displaying any group tag in the duplicate.
-                            message.subject = message.subject.replace(/\[.*\](.*)/, "$1");
+                if (fromuser) {
+                    _.each(fromuser.messagehistory, function (message) {
+                        if (message.id != id) {
+                            if (canonSubj(message.subject) == subj) {
+                                // No point displaying any group tag in the duplicate.
+                                message.subject = message.subject.replace(/\[.*\](.*)/, "$1");
 
-                            if (message.groupid == groupid) {
-                                // Same group - so this is a duplicate
-                                var v = new Iznik.Views.ModTools.Message.Duplicate({
-                                    model: new IznikModel(message)
-                                });
-                                self.$('.js-duplist').append(v.render().el);
+                                if (message.groupid == groupid) {
+                                    // Same group - so this is a duplicate
+                                    var v = new Iznik.Views.ModTools.Message.Duplicate({
+                                        model: new IznikModel(message)
+                                    });
+                                    self.$('.js-duplist').append(v.render().el);
 
-                                dups.push(message);
-                            } else {
-                                // Different group - so this is a crosspost.
-                                //
-                                // Get the group details for the template.
-                                message.group = Iznik.Session.getGroup(message.groupid).attributes;
+                                    dups.push(message);
+                                } else {
+                                    // Different group - so this is a crosspost.
+                                    //
+                                    // Get the group details for the template.
+                                    message.group = Iznik.Session.getGroup(message.groupid).attributes;
 
-                                var v = new Iznik.Views.ModTools.Message.Crosspost({
-                                    model: new IznikModel(message)
-                                });
-                                self.$('.js-crosspostlist').append(v.render().el);
+                                    var v = new Iznik.Views.ModTools.Message.Crosspost({
+                                        model: new IznikModel(message)
+                                    });
+                                    self.$('.js-crosspostlist').append(v.render().el);
 
-                                crossposts.push(message);
+                                    crossposts.push(message);
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                }
             });
         }
 
