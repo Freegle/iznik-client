@@ -27,7 +27,14 @@ foreach ($mods as $mod) {
 
     if ($gid) {
         $u = new User($dbhr, $dbhm);
-        $uid = $u->findByEmail($mod['email']);
+        $uid1 = $u->findByEmail($mod['email']);
+        $uid2 = $u->findByYahooId($mod['yahooid']);
+
+        if ($uid1 && $uid2 && $uid1 != $uid2) {
+            $u->merge($uid1, $uid2);
+        }
+
+        $uid = $uid1;
 
         if (!$uid) {
             $uid = $u->create(NULL, NULL, $mod['name']);
@@ -38,6 +45,8 @@ foreach ($mods as $mod) {
             $u = new User($dbhr, $dbhm, $uid);
             $u->addLogin('Yahoo', $mod['yahooid']);
             $emailid = $u->addEmail($mod['email'], 1);
+            error_log("Set user $uid to have Yahoo id {$mod['yahooid']}");
+            $u->setPrivate('yahooid', $mod['yahooid']);
 
             # Assume we're at least a mod - old ModTools doesn't know if we're an owner.
             $u->addMembership($gid, User::ROLE_MODERATOR, $emailid);

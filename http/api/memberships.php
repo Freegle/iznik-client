@@ -205,7 +205,19 @@ function memberships() {
                         }
 
                         if ($members) {
-                            $ret = $g->setMembers($members, $collection);
+                            # Check when the last member sync was.  If it's within the last few minutes, don't
+                            # bother resyncing.  This helps with the case where the client times out waiting, and
+                            # then retries forever but the sync has actually happened.
+                            $last = $g->getPrivate('lastyahoomembersync');
+                            $time = strtotime('now') - strtotime($last);
+                            error_log("Member sync for " . $g->getPrivate('nameshort') . " $last, $time ago");
+
+                            if ($time > 300) {
+                                $ret = $g->setMembers($members, $collection);
+                            } else {
+                                $ret = [ 'ret' => 0, 'status' => 'Ignore member sync as happened recently'];
+                                error_log("Ignore member sync for " . $g->getPrivate('nameshort') . " as last sync at $last");
+                            }
                         }
                     }
 

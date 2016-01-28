@@ -89,7 +89,12 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 function getCrumb(ret) {
                     var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
 
-                    if (match) {
+                    if (ret.indexOf("not allowed to perform this operation") !== -1) {
+                        // We can't do this.  Drop it and hope some other mod can.
+                        self.currentItem.drop();
+                        self.currentItem = null;
+                        self.checkWork();
+                    } else if (match) {
                         // All work has a start method which triggers action.
                         first.crumb = match[1];
                         first.start();

@@ -62,7 +62,7 @@ class sessionTest extends IznikAPITest {
         $ret = $this->call('session','DELETE', []);
         assertEquals(0, $ret['ret']);
         $ret = $this->call('session','DELETE', []);
-        assertEquals(0, $ret['ret']);
+        assertEquals(0, $ret['ret']);#
 
         # Should be logged out
         $ret = $this->call('session','GET', []);

@@ -484,6 +484,7 @@ class MailRouterTest extends IznikTest {
                 'From: "Test User ' . $i . '" <test' . $i . '@test.com>',
                 $msg);
             $msg = str_replace('1.2.3.4', '4.3.2.1', $msg);
+            $msg = str_replace('X-Yahoo-Group-Post: member; u=420816297', 'X-Yahoo-Group-Post: member; u=' . $i, $msg);
 
             $r = new MailRouter($this->dbhr, $this->dbhm);
             $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);

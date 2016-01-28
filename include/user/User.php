@@ -120,7 +120,7 @@ class User extends Entity
         }
     }
 
-    public function findByYahooId($id) {
+    public function findByYahooUserId($id) {
         $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooUserId = ?;", [ $id ]);
         if (count($users) == 1) {
             return($users[0]['id']);
@@ -168,11 +168,22 @@ class User extends Entity
     }
 
     public function findByEmail($email) {
-        $users = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email LIKE ?;",
+        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE email LIKE ?;",
             [ $email ]);
 
         foreach ($users as $user) {
             return($user['userid']);
+        }
+
+        return(NULL);
+    }
+
+    public function findByYahooId($id) {
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooid LIKE ?;",
+            [ $id ]);
+
+        foreach ($users as $user) {
+            return($user['id']);
         }
 
         return(NULL);
@@ -736,6 +747,12 @@ class User extends Entity
 
         $atts['displayname'] = $this->getName();
 
+        if ($this->id == $me->getId()) {
+            # Add in private attributes for our own entry.
+            $atts['email'] = $me->getEmailPreferred();
+            $atts['emails'] = $me->getEmails();
+        }
+
         if ($comments) {
             $atts['comments'] = $this->getComments();
         }
@@ -879,6 +896,10 @@ class User extends Entity
         # merge any conflicting settings.
         #
         # Both users might have membership of the same group, including at different levels.
+        #
+        # A useful query to find foreign key references is of this form:
+        #
+        # USE information_schema; SELECT * FROM KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = 'iznik' AND REFERENCED_TABLE_NAME = 'users';
         #error_log("Merge $id2 into $id1");
         $l = new Log($this->dbhr, $this->dbhm);
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -954,6 +975,26 @@ class User extends Entity
                     #error_log("Email merge returned $rc");
                 }
 
+                if ($rc) {
+                    # Merge other foreign keys where success is less important.
+                    $this->dbhm->preExec("UPDATE locations_excluded SET userid = ? WHERE userid = ?;", [$id1, $id2]);
+                    $this->dbhm->preExec("UPDATE spam_users SET userid = ? WHERE userid = ?;", [$id1, $id2]);
+                    $this->dbhm->preExec("UPDATE spam_users SET byuserid = ? WHERE byuserid = ?;", [$id1, $id2]);
+                    $this->dbhm->preExec("UPDATE users_banned SET userid = ? WHERE userid = ?;", [$id1, $id2]);
+                    $this->dbhm->preExec("UPDATE users_banned SET byuser = ? WHERE byuser = ?;", [$id1, $id2]);
+                    $this->dbhm->preExec("UPDATE users_logins SET userid = ? WHERE userid = ?;", [$id1, $id2]);
+                }
+
+                # Merge attributes we want to keep if we have them in id2 but not id1.  Some will have unique
+                # keys, so update to delete them.
+                foreach (['fullname', 'firstname', 'lastname', 'yahooUserId', 'yahooid', 'yahooUserId'] as $att) {
+                    $users = $this->dbhm->preQuery("SELECT $att FROM users WHERE id = ?;", [ $id2 ]);
+                    foreach ($users as $user) {
+                        $this->dbhm->preExec("UPDATE users SET $att = NULL WHERE id = ?;", [ $id2 ]);
+                        $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = ?;", [ $user[$att], $id1 ]);
+                    }
+                }
+
                 # Merge the logs.  There should be logs both about and by each user, so we can use the rc to check success.
                 if ($rc) {
                     $rc = $this->dbhm->preExec("UPDATE logs SET user = ? WHERE user = ?;", [
@@ -975,6 +1016,7 @@ class User extends Entity
 
                 # Merge the fromuser in messages.  There might not be any, and it's not the end of the world
                 # if this info isn't correct, so ignore the rc.
+                #error_log("Merge messages, current rc $rc");
                 if ($rc) {
                     $this->dbhm->preExec("UPDATE messages SET fromuser = ? WHERE fromuser = ?;", [
                         $id1,
@@ -983,7 +1025,12 @@ class User extends Entity
                 }
 
                 # Merge the history
+                #error_log("Merge history, current rc $rc");
                 if ($rc) {
+                    $this->dbhm->preExec("UPDATE messages_history SET fromuser = ? WHERE fromuser = ?;", [
+                        $id1,
+                        $id2
+                    ]);
                     $this->dbhm->preExec("UPDATE memberships_history SET userid = ? WHERE userid = ?;", [
                         $id1,
                         $id2
@@ -1011,6 +1058,7 @@ class User extends Entity
 
                     # Finally, delete id2.
                     #error_log("Delete $id2");
+                    #error_log("Merged $id1 into $id2");
                     $deleteme = new User($this->dbhr, $this->dbhm, $id2);
                     $rc = $deleteme->delete();
                 }
@@ -1020,15 +1068,18 @@ class User extends Entity
                     $rollback = FALSE;
                 }
             } catch (Exception $e) {
+                error_log("Merge exception " . $e->getMessage());
                 $rollback = TRUE;
             }
         }
 
         if ($rollback) {
             # Something went wrong.
+            #error_log("Merge failed, rollback");
             $this->dbhm->rollBack();
             $ret = FALSE;
         } else {
+            #error_log("Merge worked, commit");
             $ret = $this->dbhm->commit();
        }
 

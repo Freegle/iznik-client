@@ -21,6 +21,7 @@ class IncomingMessageTest extends IznikTest {
         $this->dbhm = $dbhm;
 
         $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_emails WHERE email IN ('test@test.com', 'test2@test.com'));");
+        $dbhm->exec("DELETE FROM users WHERE yahooUserId = '420816297';");
     }
 
     protected function tearDown() {

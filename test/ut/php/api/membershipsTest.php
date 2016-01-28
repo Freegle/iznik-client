@@ -313,7 +313,7 @@ class membershipsAPITest extends IznikAPITest {
             ],
             [
                 'email' => 'test2@test.com',
-                'yahooUserId' => 1,
+                'yahooUserId' => 2,
                 'yahooPostingStatus' => 'UNMODERATED',
                 'yahooDeliveryType' => 'SINGLE',
                 'name' => 'Test User',
@@ -321,7 +321,7 @@ class membershipsAPITest extends IznikAPITest {
             ],
             [
                 'email' => 'test3@test.com',
-                'yahooUserId' => 1,
+                'yahooUserId' => 3,
                 'yahooPostingStatus' => 'PROHIBITED',
                 'yahooDeliveryType' => 'DIGEST',
                 'name' => 'Test User',
@@ -674,7 +674,7 @@ class membershipsAPITest extends IznikAPITest {
             }
             $members[] = [
                 'email' => "test$i@test.com",
-                'yahooUserId' => 1,
+                'yahooUserId' => "-$i",
                 'yahooPostingStatus' => 'UNMODERATED',
                 'yahooDeliveryType' => 'SINGLE',
                 'name' => 'Test User',

@@ -61,9 +61,20 @@ class Yahoo
                 $p = strpos($yahooid, "@");
                 $yahooid = substr($yahooid, 0, $p);
 
-                # See if we know this user already.
+                # See if we know this user already.  We might have an entry for them by email, or by Yahoo ID.
                 $u = new User($this->dbhr, $this->dbhm);
-                $id = $u->findByEmail($attrs['contact/email']);
+                $eid = $u->findByEmail($attrs['contact/email']);
+                $yid = $u->findByYahooId($yahooid);
+
+                if ($eid && $yid && $eid != $yid) {
+                    # This is a duplicate user.  Merge them.
+                    $u = new User($this->dbhr, $this->dbhm);
+                    $u->merge($eid, $yid);
+                    error_log("Yahoo login found duplicate user, merge $yid into $eid");
+                }
+
+                $id = $eid ? $eid : $yid;
+                error_log("Login id $id from $eid and $yid");
 
                 if (!$id) {
                     # We don't know them.  Create a user.
@@ -94,7 +105,7 @@ class Yahoo
 
                 $u = new User($this->dbhr, $this->dbhm, $id);
 
-                if (!$u->getPrivate('fullname')) {
+                if (!$u->getPrivate('fullname') && pres('namePerson', $attrs)) {
                     # We might have syncd the membership without a good name.
                     $u->setPrivate('fullname', $attrs['namePerson']);
                 }

@@ -251,15 +251,31 @@ class Group extends Entity
             $u = new User($this->dbhm, $this->dbhm);
             $roles = [];
 
-            error_log("Scan members");
+            error_log("Scan members {$this->group['nameshort']}");
             foreach ($members as &$memb) {
                 # Long
                 set_time_limit(60);
 
                 if (pres('email', $memb)) {
-                    # First check if we already know about this user.
+                    # First check if we already know about this user.  This is a good time to pick up duplicates -
+                    # the same yahooid or yahooUserId means this is the same user, so we should merge.
+                    #
+                    # If the merge fails for some reason we'd still want to continue the sync.
+                    $yuid = presdef('yahooid', $memb, NULL) ? $u->findByYahooId($memb['yahooid']) : NULL;
+                    $yiduid = presdef('yahooUserId', $memb, NULL) ? $u->findByYahooUserId($memb['yahooUserId']) : NULL;
                     $emailinfo = $u->getIdForEmail($memb['email']);
                     $uid = $emailinfo ? $emailinfo['userid'] : NULL;
+                    #error_log("uid $uid yuid $yuid yiduid $yiduid");
+
+                    if ($uid && $yuid && $uid != $yuid) {
+                        $mergerc = $u->merge($uid, $yuid);
+                        error_log("Duplicate user by yahooid $uid, $yuid on {$this->group['nameshort']} merged $mergerc");
+                    }
+
+                    if ($uid && $yiduid && $uid != $yiduid && $yiduid != $yuid) {
+                        $mergerc = $u->merge($uid, $yiduid);
+                        error_log("Duplicate user by yahooUserId $uid, $yiduid on {$this->group['nameshort']} merged $mergerc");
+                    }
 
                     if (!$uid) {
                         # We don't - create them.
@@ -302,7 +318,7 @@ class Group extends Entity
                 }
             }
 
-            error_log("Scanned members");
+            error_log("Scanned members {$this->group['nameshort']}");
 
             $me = whoAmI($this->dbhr, $this->dbhm);
             $myrole = $me ? $me->getRole($this->id) : User::ROLE_NONMEMBER;
@@ -317,7 +333,7 @@ class Group extends Entity
             $bulksql = '';
             $tried = 0;
 
-            error_log("Update members");
+            error_log("Update members {$this->group['nameshort']}");
 
             for ($count = 0; $count < count($members); $count++) {
                 # Long
@@ -404,9 +420,9 @@ class Group extends Entity
                         # Do a chunk of work.  If this doesn't work correctly we'll end up with fewer members
                         # and fail the count below.  Or we'll have incorrect settings until the next sync, but
                         # that's ok - better than failing it.
-                        error_log("Execute batch $count");
+                        error_log("Execute batch $count {$this->group['nameshort']}");
                         $this->dbhm->exec($bulksql);
-                        error_log("Executed batch $count");
+                        error_log("Executed batch $count {$this->group['nameshort']}");
                         $bulksql = '';
                     }
                 }
@@ -417,7 +433,7 @@ class Group extends Entity
                 $this->dbhm->exec($bulksql);
             }
 
-            error_log("Updated members");
+            error_log("Updated members {$this->group['nameshort']}");
 
             # Delete any residual members.
             #
@@ -441,7 +457,7 @@ class Group extends Entity
             $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = ? AND collection = '$collection' AND userid IN (SELECT id FROM syncdelete);", [$this->id]);
             $this->dbhm->preExec("DROP TEMPORARY TABLE syncdelete;");
 
-            error_log("Tidied members");
+            error_log("Tidied members {$this->group['nameshort']}");
 
             if ($collection == MessageCollection::APPROVED) {
                 # Record the sync.

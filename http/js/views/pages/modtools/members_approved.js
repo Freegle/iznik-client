@@ -193,7 +193,7 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Page.extend({
 
         self.groupSelect = new Iznik.Views.Group.Select({
             systemWide: false,
-            all: true,
+            all: false,
             mod: true,
             counts: [ 'approvedmembers', 'approvedmembersother' ],
             id: 'approvedGroupSelect'

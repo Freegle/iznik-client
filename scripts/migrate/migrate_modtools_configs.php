@@ -119,7 +119,7 @@ foreach ($oldconfs as $config) {
                     $u2 = new User($dbhr, $dbhm, $modid);
                     if (!$u2->isModOrOwner($gid)) {
                         error_log("But not mod");
-                        $u2->addMembership($gid, User::ROLE_MODERATOR, $u2->getIdForEmail($mod['email']))['id'];
+                        $u2->addMembership($gid, User::ROLE_MODERATOR, $u2->getIdForEmail($mod['email'])['id']);
                     } else {
                         error_log("Already mod or owner");
                     }

@@ -17,7 +17,7 @@ function user() {
     if (!$id && $yahooUserId) {
         # We don't know our unique ID, but we do know the Yahoo one. Find it.
         $u = new User($dbhr, $dbhm);
-        $id = $u->findByYahooId($yahooUserId);
+        $id = $u->findByYahooUserId($yahooUserId);
     }
 
     $email = presdef('email', $_REQUEST, NULL);

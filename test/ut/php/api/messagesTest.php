@@ -128,6 +128,7 @@ class messagesTest extends IznikAPITest {
         $msg = str_ireplace('To: Recipient <recipient@example.net>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        error_log("Spam msgid $id");
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
