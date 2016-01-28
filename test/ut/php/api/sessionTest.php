@@ -104,7 +104,7 @@ class sessionTest extends IznikAPITest {
         $ret = $this->call('session','GET', []);
         assertEquals(0, $ret['ret']);
         error_log(var_export($ret, true));
-        assertTrue('{"test":1}', $ret['me']['settings']);
+        assertEquals('{"test":1}', $ret['me']['settings']);
 
 
         $g->delete();

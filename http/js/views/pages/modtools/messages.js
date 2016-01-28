@@ -188,15 +188,19 @@ Iznik.Views.ModTools.Message = IznikView.extend({
 
         // Add any other emails
         self.$('.js-otheremails').empty();
-        _.each(self.model.get('fromuser').emails, function(email) {
-            if (email.email != fromemail) {
-                var mod = new IznikModel(email);
-                var v = new Iznik.Views.ModTools.Message.OtherEmail({
-                    model: mod
-                });
-                self.$('.js-otheremails').append(v.render().el);
-            }
-        });
+        var fromuser = self.model.get('fromuser');
+
+        if (fromuser) {
+            _.each(fromuser.emails, function(email) {
+                if (email.email != fromemail) {
+                    var mod = new IznikModel(email);
+                    var v = new Iznik.Views.ModTools.Message.OtherEmail({
+                        model: mod
+                    });
+                    self.$('.js-otheremails').append(v.render().el);
+                }
+            });
+        }
 
         // Add any other group memberships we need to display.
         self.$('.js-memberof').empty();
