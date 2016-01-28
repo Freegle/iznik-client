@@ -41,6 +41,7 @@ class userTest extends IznikTest {
 
         $u = new User($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
+        error_log("Created $id");
         $atts = $u->getPublic();
         assertEquals('Test', $atts['firstname']);
         assertEquals('User', $atts['lastname']);
@@ -48,6 +49,9 @@ class userTest extends IznikTest {
         assertEquals('Test User', $u->getName());
         assertEquals($id, $u->getPrivate('id'));
         assertNull($u->getPrivate('invalidid'));
+
+        $u->setPrivate('yahooid', 'testyahootest');
+        assertEquals($id, $u->findByYahooId('testyahootest'));
 
         assertGreaterThan(0, $u->delete());
 

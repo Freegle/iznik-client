@@ -346,6 +346,13 @@ class membershipsAPITest extends IznikAPITest {
         assertEquals('test@test.com', $ret['members'][2]['email']);
         assertEquals('Moderator', $ret['members'][2]['role']);
 
+        # Again - should get ignored
+        $ret = $this->call('memberships', 'PATCH', [
+            'groupid' => $this->groupid,
+            'members' => $members
+        ]);
+        assertEquals(0, $ret['ret']);
+
         error_log(__METHOD__ . " end");
     }
 

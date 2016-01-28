@@ -747,7 +747,7 @@ class User extends Entity
 
         $atts['displayname'] = $this->getName();
 
-        if ($this->id == $me->getId()) {
+        if ($me && $this->id == $me->getId()) {
             # Add in private attributes for our own entry.
             $atts['email'] = $me->getEmailPreferred();
             $atts['emails'] = $me->getEmails();

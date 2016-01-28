@@ -27,6 +27,8 @@ class scriptsTest extends IznikTest {
     public function testBasic() {
         error_log(__METHOD__);
 
+        set_time_limit(5000);
+
         # Don't minimise - should return lots of lines.
         $ret = scriptInclude(FALSE);
         assertGreaterThan(5, count($ret[1]));

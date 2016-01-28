@@ -212,7 +212,7 @@ function memberships() {
                             $time = strtotime('now') - strtotime($last);
                             error_log("Member sync for " . $g->getPrivate('nameshort') . " $last, $time ago");
 
-                            if ($time > 300) {
+                            if ($time > 300 && $collection == MessageCollection::APPROVED) {
                                 $ret = $g->setMembers($members, $collection);
                             } else {
                                 $ret = [ 'ret' => 0, 'status' => 'Ignore member sync as happened recently'];

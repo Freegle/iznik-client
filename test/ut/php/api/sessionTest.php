@@ -96,6 +96,17 @@ class sessionTest extends IznikAPITest {
         assertEquals($group1, $ret['groups'][0]['id']);
         assertEquals('test@test.com', $ret['emails'][0]['email']);
 
+        # Set something
+        $ret = $this->call('session', 'PATCH', [
+            'settings' => json_encode([ 'test' => 1])
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('session','GET', []);
+        assertEquals(0, $ret['ret']);
+        error_log(var_export($ret, true));
+        assertTrue('{"test":1}', $ret['me']['settings']);
+
+
         $g->delete();
 
         error_log(__METHOD__ . " end");
