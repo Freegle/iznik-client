@@ -195,10 +195,14 @@ class userTest extends IznikTest {
         assertFalse(array_key_exists('applied', $atts));
 
         error_log("Set owner");
-        $u->addMembership($group1, User::ROLE_OWNER);
+        $u->setRole(User::ROLE_OWNER, $group1);
         assertEquals($u->getRole($group1), User::ROLE_OWNER);
         assertTrue($u->isModOrOwner($group1));
         assertTrue(array_key_exists('work', $u->getMemberships()[0]));
+        $settings = $u->getGroupSettings($group1);
+        error_log("Settings " . var_export($settings, TRUE));
+        assertEquals('test', $settings['testsetting']);
+        assertTrue(array_key_exists('configid', $settings));
         $modships = $u->getModeratorships();
         assertEquals(1, count($modships));
 
@@ -207,7 +211,7 @@ class userTest extends IznikTest {
         assertTrue($u->login('testpw'));
         $atts = $u->getPublic();
         error_log("Applied " . var_export($atts['applied'], TRUE));
-        assertEquals(2, count($atts['applied']));
+        assertEquals(1, count($atts['applied']));
 
         $u->setRole(User::ROLE_MODERATOR, $group1);
         assertEquals($u->getRole($group1), User::ROLE_MODERATOR);

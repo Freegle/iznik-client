@@ -415,16 +415,18 @@ class User extends Entity
             $c = new ModConfig($this->dbhr, $this->dbhm, $id['id']);
             $thisone = $c->getPublic(FALSE);
 
-            if ($thisone['createdby'] == $me->getId()) {
-                $thisone['cansee'] = ModConfig::CANSEE_CREATED;
-            } else if ($thisone['default']) {
-                $thisone['cansee'] = ModConfig::CANSEE_DEFAULT;
-            } else {
-                $thisone['cansee'] = ModConfig::CANSEE_SHARED;
-                $u = new User($this->dbhr, $this->dbhm, $id['userid']);
-                $g = new Group($this->dbhr, $this->dbhm, $id['groupid']);
-                $thisone['sharedby'] = $u->getPublic(NULL, FALSE);
-                $thisone['sharedon'] = $g->getPublic();
+            if ($me) {
+                if ($thisone['createdby'] == $me->getId()) {
+                    $thisone['cansee'] = ModConfig::CANSEE_CREATED;
+                } else if ($thisone['default']) {
+                    $thisone['cansee'] = ModConfig::CANSEE_DEFAULT;
+                } else {
+                    $thisone['cansee'] = ModConfig::CANSEE_SHARED;
+                    $u = new User($this->dbhr, $this->dbhm, $id['userid']);
+                    $g = new Group($this->dbhr, $this->dbhm, $id['groupid']);
+                    $thisone['sharedby'] = $u->getPublic(NULL, FALSE);
+                    $thisone['sharedon'] = $g->getPublic();
+                }
             }
 
             $u = new User($this->dbhr, $this->dbhm, $thisone['createdby']);

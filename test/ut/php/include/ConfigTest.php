@@ -46,6 +46,7 @@ class configTest extends IznikTest {
         $id = $c->create('TestConfig');
         assertNotNull($id);
         $c = new ModConfig($this->dbhr, $this->dbhm, $id);
+        $c->setPrivate('default', TRUE);
         assertNotNull($c);
 
         # Use on a group
@@ -58,13 +59,38 @@ class configTest extends IznikTest {
         $c->useOnGroup($uid, $group1);
         assertEquals($id, $c->getForGroup($uid, $group1));
 
-        # Another mod on this group with no config set up should pick this one up as a default.
-        $u2 = new User($this->dbhr, $this->dbhm);
+        assertTrue($this->user->login('testpw'));
+        $configs = $this->user->getConfigs();
+        $found = FALSE;
+        foreach ($configs as $config) {
+            if ($config['id'] == $id) {
+                $found = TRUE;
+                assertEquals(ModConfig::CANSEE_DEFAULT, $config['cansee']);
+            }
+        }
+        assertTrue($found);
+        unset($_SESSION['id']);
+
+        # Another mod on this group with no config set up should pick this one up as shared.
+        $c->setPrivate('default', FALSE);
         $uid2 = $u->create(NULL, NULL, 'Test User');
         $u2 = new User($this->dbhr, $this->dbhm, $uid2);
+        assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u2->addMembership($group1, User::ROLE_OWNER);
         assertEquals($id, $c->getForGroup($uid, $group1));
         assertEquals($id, $c->getForGroup($uid2, $group1));
+
+        assertTrue($u2->login('testpw'));
+        $configs = $u2->getConfigs();
+        $found = FALSE;
+        foreach ($configs as $config) {
+            if ($config['id'] == $id) {
+                $found = TRUE;
+                assertEquals(ModConfig::CANSEE_SHARED, $config['cansee']);
+            }
+        }
+        assertTrue($found);
+        unset($_SESSION['id']);
 
         $m = new StdMessage($this->dbhr, $this->dbhm);
         $mid = $m->create("TestStdMessage", $id);
