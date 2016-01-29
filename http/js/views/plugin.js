@@ -24,11 +24,28 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     startSyncs: function() {
         var now = moment();
 
+        function doSync(group, key) {
+            // Whether we start a sync depends on whether we are showing the group in All Groups.  This allows people
+            // who are on many groups as a backup not to have absurdly large numbers of syncs going on.
+            var sync = false;
+
+            if (group.get('onyahoo') && (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
+                var settings = group.get('mysettings');
+                //console.log("doSync", key, group, settings);
+                sync = !settings.hasOwnProperty(key) || settings[key];
+            }
+
+            //console.log("doSync", group.get('nameshort'), key, sync, group);
+            return(sync);
+        }
+
         // Start pending syncs first because if they're wrong, that's normally more annoying.
         Iznik.Session.get('groups').each(function (group) {
-            if (group.get('onyahoo') &&
-                (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
+            if (doSync(group, 'showmessages')) {
                 (new Iznik.Views.Plugin.Yahoo.SyncMessages.Pending({model: group})).render();
+            }
+
+            if (doSync(group, 'showmembers')) {
                 (new Iznik.Views.Plugin.Yahoo.SyncMembers.Pending({model: group})).render();
             }
         });
@@ -37,9 +54,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             var last = moment(group.get('lastyahoomessagesync'));
             var hoursago = moment.duration(now.diff(last)).asHours();
 
-            if (group.get('onyahoo') &&
-                (!group.get('lastyahoomessagesync') || hoursago > 23) &&
-                (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
+            if (doSync(group, 'showmessages')) {
                 (new Iznik.Views.Plugin.Yahoo.SyncMessages.Approved({model: group})).render();
             }
         });
@@ -48,9 +63,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             var last = moment(group.get('lastyahoomembersync'));
             var hoursago = moment.duration(now.diff(last)).asHours();
 
-            if (group.get('onyahoo') &&
-                (!group.get('lastyahoomembersync') || hoursago > 23) &&
-                (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
+            if (doSync(group, 'showmembers')) {
                 (new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({model: group})).render();
             }
         });

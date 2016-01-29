@@ -62,6 +62,8 @@ foreach ($oldusers as $user) {
                 $modid,
                 FALSE);
 
+            #error_log("Added comment $id");
+
             if (!$id) {
                 error_log("Add comment failed");
                 error_log("Add comment failed " . var_export([$gid,
