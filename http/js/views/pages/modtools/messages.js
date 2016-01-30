@@ -11,19 +11,20 @@ Iznik.Views.ModTools.Message = IznikView.extend({
         }, 30000);
     },
 
+    editFailed: function() {
+        this.$('.js-savesubj .glyphicon').removeClass('glyphicon-refresh rotate').addClass('glyphicon-warning-sign error');
+        this.restoreEditSubject();
+    },
+
+    editSucceeded: function() {
+        this.$('.js-savesubj .glyphicon').removeClass('glyphicon-refresh rotate').addClass('glyphicon-ok success');
+        this.restoreEditSubject();
+    },
+
     saveSubject: function() {
         var self = this;
-        self.listenToOnce(self.model,'editfailed', function() {
-            console.log("Show failure");
-            self.$('.js-savesubj .glyphicon').removeClass('glyphicon-refresh rotate').addClass('glyphicon-warning-sign error');
-            self.restoreEditSubject();
-        });
-
-        self.listenToOnce(self.model,'editsucceeded', function() {
-            console.log("Show success");
-            self.$('.js-savesubj .glyphicon').removeClass('glyphicon-refresh rotate').addClass('glyphicon-ok success');
-            self.restoreEditSubject();
-        });
+        self.listenToOnce(self.model,'editfailed', self.editFailed);
+        self.listenToOnce(self.model,'editsucceeded', self.editSucceeded);
 
         self.$('.js-savesubj .glyphicon').removeClass('glyphicon-floppy-save glyphicon-warning-sign').addClass('glyphicon-refresh rotate');
 
