@@ -280,9 +280,9 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
 
             if (subj) {
                 // We have a pre-existing subject to include
-                subj = self.substitutionStrings(subj, self.model.attributes, config, self.model.get('groups')[0]);
                 subj = (stdmsg.subjpref ? stdmsg.subjpref : 'Re') + ': ' + subj +
                     (stdmsg.subjsuff ? stdmsg.subjsuff : '')
+                subj = self.substitutionStrings(subj, self.model.attributes, config, self.model.get('groups')[0]);
                 focuson = 'js-text';
             } else {
                 // Just expand substitutions in the stdmsg.
@@ -323,6 +323,7 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
     },
 
     substitutionStrings: function(text, model, config, group) {
+        console.log("substitutionstrings", text, model, config, group);
         var self = this;
 
         if (!_.isUndefined(text) && text) {
