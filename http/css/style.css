@@ -187,7 +187,7 @@ body {
 .msgbody {
     max-height: 100px;
     word-wrap: break-word;
-    white-space: pre;
+    white-space: pre-wrap;
     max-height: 300px;
     overflow-y: auto;
     padding: 5px;
