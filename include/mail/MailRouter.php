@@ -225,6 +225,8 @@ class MailRouter
                     $gid = $g->findByShortName($nameshort);
 
                     if ($gid) {
+                        $g = new Group($this->dbhr, $this->dbhm, $gid);
+
                         # Check that this user exists.
                         $u = new User($this->dbhr, $this->dbhm);
                         $uid = $u->findByEmail($email);
@@ -250,6 +252,13 @@ class MailRouter
 
                             # We handled it.
                             $ret = MailRouter::TO_SYSTEM;
+                        }
+
+                        if ($g->getSetting('autoapprove', 0)) {
+                            # We want to auto-approve members on this group.  This is a feature to work around
+                            # a Yahoo issue which means that you can't shift a group from approving members to
+                            # not doing so.
+                            $u->approve($gid, "Auto-approved", NULL, NULL);
                         }
                     }
                 }

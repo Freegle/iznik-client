@@ -1094,7 +1094,7 @@ class User extends Entity
     }
 
     private function maybeMail($groupid, $subject, $body, $stdmsgid) {
-        if ($subject) {
+        if ($subject && $body) {
             # We have a mail to send.
             $to = $this->getEmailPreferred();
             $g = new Group($this->dbhr, $this->dbhm, $groupid);

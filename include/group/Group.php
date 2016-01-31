@@ -484,6 +484,7 @@ class Group extends Entity
         $str = json_encode($settings);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $this->dbhm->preExec("UPDATE groups SET settings = ? WHERE id = ?;", [ $str, $this->id ]);
+        $this->group['settings'] = $str;
         $this->log->log([
             'type' => Log::TYPE_GROUP,
             'subtype' => Log::SUBTYPE_EDIT,
@@ -495,6 +496,11 @@ class Group extends Entity
         ]);
 
         return(true);
+    }
+
+    public function getSetting($key, $def) {
+        $settings = json_decode($this->group['settings'], true);
+        return(presdef($key, $settings, $def));
     }
 
     private function getKey($message) {

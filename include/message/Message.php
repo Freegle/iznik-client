@@ -1073,12 +1073,22 @@ class Message
     }
 
     public function isPending($groupid) {
-        $ret = false;
         $sql = "SELECT msgid FROM messages_groups WHERE msgid = ? AND groupid = ? AND collection = ? AND deleted = 0;";
         $groups = $this->dbhr->preQuery($sql, [
             $this->id,
             $groupid,
             MessageCollection::PENDING
+        ]);
+
+        return(count($groups) > 0);
+    }
+
+    public function isApproved($groupid) {
+        $sql = "SELECT msgid FROM messages_groups WHERE msgid = ? AND groupid = ? AND collection = ? AND deleted = 0;";
+        $groups = $this->dbhr->preQuery($sql, [
+            $this->id,
+            $groupid,
+            MessageCollection::APPROVED
         ]);
 
         return(count($groups) > 0);

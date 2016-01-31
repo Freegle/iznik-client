@@ -6,6 +6,7 @@ if (!defined('UT_DIR')) {
 require_once UT_DIR . '/IznikTest.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 require_once IZNIK_BASE . '/include/message/Message.php';
+require_once IZNIK_BASE . '/include/misc/plugin.php';
 
 /**
  * @backupGlobals disabled
@@ -286,6 +287,43 @@ class MailRouterTest extends IznikTest {
         assertEquals('Test User', $pend->getFromname());
         error_log("Delete $id from " . var_export($pend->getGroups(), true));
         $pend->delete(NULL, $pend->getGroups()[0]);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testAutoApprove() {
+        error_log(__METHOD__);
+
+        # Suppress emails
+        $r = $this->getMockBuilder('MailRouter')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('mailer'))
+            ->getMock();
+        $r->method('mailer')->willReturn(false);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $g->setSettings([ 'autoapprove' => 1]);
+
+        $msg = file_get_contents('msgs/approvemember');
+        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
+        error_log("Created $id");
+
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
+
+        # Should be in approved not pending.
+        $ctx = NULL;
+        $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $gid ]);
+        assertEquals(0, count($membs));
+        $ctx = NULL;
+        $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::APPROVED, [ $gid ]);
+        assertEquals(1, count($membs));
 
         error_log(__METHOD__ . " end");
     }
