@@ -28,7 +28,8 @@ function locations() {
                         if ($messageid) {
                             # Suggest a new subject for this message.
                             $m = new Message($dbhr, $dbhm, $messageid);
-                            $ret['message'] = $m->getPublic(FALSE, FALSE, TRUE);
+                            $m->setPrivate('suggestedsubject', $m->suggestSubject($groupid, $m->getSubject()));
+                            $ret['message'] = $m->getPublic(FALSE, FALSE);
                             error_log("Set new location {$ret['message']['location']['id']} for {$messageid}");
                             $m->setPrivate('locationid', $ret['message']['location']['id']);
                         }

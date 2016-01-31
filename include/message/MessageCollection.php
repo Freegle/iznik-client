@@ -120,7 +120,7 @@ class MessageCollection
             if ($cansee) {
                 switch ($this->collection) {
                     case MessageCollection::APPROVED:
-                        $n = $m->getPublic(TRUE, TRUE, FALSE);
+                        $n = $m->getPublic(TRUE, TRUE);
                         unset($n['message']);
                         $n['matchedon'] = presdef('matchedon', $msg, NULL);
                         $msgs[] = $n;
@@ -129,7 +129,7 @@ class MessageCollection
                     case MessageCollection::PENDING:
                         if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                             # Only visible to moderators or owners
-                            $n = $m->getPublic(TRUE, TRUE, TRUE);
+                            $n = $m->getPublic(TRUE, TRUE);
                             unset($n['message']);
                             $n['matchedon'] = presdef('matchedon', $msg, NULL);
                             $msgs[] = $n;
@@ -139,7 +139,7 @@ class MessageCollection
                     case MessageCollection::SPAM:
                         if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                             # Only visible to moderators or owners
-                            $n = $m->getPublic(TRUE, TRUE, FALSE);
+                            $n = $m->getPublic(TRUE, TRUE);
                             unset($n['message']);
                             $n['matchedon'] = presdef('matchedon', $msg, NULL);
                             $msgs[] = $n;

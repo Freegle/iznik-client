@@ -287,13 +287,6 @@ class Message
         $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ] );
 
         foreach ($ret['groups'] as &$group) {
-            if ($suggested) {
-                # This might be slow.
-                $start = microtime(true);
-                $ret['suggestedsubject'] = $this->suggestSubject($group['groupid'], $this->subject);
-                $ret['suggestduration'] = microtime(true) - $start;
-            }
-
             $ret['lat'] = $this->lat;
             $ret['lng'] = $this->lng;
             $ret['locationid'] = $this->locationid;
@@ -909,11 +902,11 @@ class Message
         # Reduce the size of the message source
         $this->message = $this->pruneMessage();
 
-        # Trigger mapping.
-        $this->suggestSubject($this->groupid, $this->subject);
+        # Trigger mapping and get subject suggestion.
+        $this->suggestedsubject = $this->suggestSubject($this->groupid, $this->subject);
 
         # Save into the messages table.
-        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->date,
             $this->source,
@@ -927,6 +920,7 @@ class Message
             $this->replyto,
             $this->fromip,
             $this->subject,
+            $this->suggestedsubject,
             $this->messageid,
             $this->tnpostid,
             $this->textbody,

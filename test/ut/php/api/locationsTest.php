@@ -95,7 +95,7 @@ class locationsAPITest extends IznikAPITest {
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals('OFFER: Test (Tuvalu High Street)', $m->getSubject());
-        $atts = $m->getPublic(FALSE, FALSE, TRUE);
+        $atts = $m->getPublic(FALSE, FALSE);
         assertEquals('OFFER: Test (Tuvalu High Street)', $atts['suggestedsubject']);
 
         # Now block that subject from this group.
@@ -123,7 +123,7 @@ class locationsAPITest extends IznikAPITest {
         # Get the message back - should have suggested the other one this time.
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals('OFFER: Test (Tuvalu High Street)', $m->getSubject());
-        $atts = $m->getPublic(FALSE, FALSE, TRUE);
+        $atts = $m->getPublic(FALSE, FALSE);
         assertEquals('OFFER: Test (Tuvalu Hugh Street)', $atts['suggestedsubject']);
 
         error_log(__METHOD__ . " end");
