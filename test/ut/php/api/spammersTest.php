@@ -56,6 +56,9 @@ class spammersAPITest extends IznikAPITest {
         $uid = $u->create(NULL, NULL, 'Test User');
         $this->user->addEmail('test2@test.com');
 
+        # Add them to a group, so that when they get onto a list we can trigger their removal.
+        assertTrue($u->addMembership($this->groupid));
+
         $ret = $this->call('spammers', 'GET', [
             'search' => 'Test User'
         ]);
@@ -163,6 +166,8 @@ class spammersAPITest extends IznikAPITest {
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['spammers']));
+
+        # Trigger removal
 
         # Request removal
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);

@@ -744,9 +744,16 @@ class Message
             }
         }
 
-        # See if we can find a group this is intended for.
+        # See if we can find a group this is intended for.  Can't trust the To header, as the client adds it,
+        # and we might also be CC'd or BCC'd.
         $groupname = NULL;
-        $to = $this->getTo();
+        $to = $this->getApparentlyTo();
+
+        if (count($to) == 0) {
+            # ...but if we can't find it, it'll do.
+            $to = $this->getTo();
+        }
+
         foreach ($to as $t) {
             if (preg_match('/(.*)@yahoogroups\.co.*/', $t['address'], $matches)) {
                 $groupname = $matches[1];
@@ -1051,6 +1058,10 @@ class Message
 
     public function getTo() {
         return(mailparse_rfc822_parse_addresses($this->parser->getHeader('to')));
+    }
+
+    public function getApparentlyTo() {
+        return(mailparse_rfc822_parse_addresses($this->parser->getHeader('x-apparently-to')));
     }
 
     public function getReplyTo() {

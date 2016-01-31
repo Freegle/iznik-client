@@ -143,9 +143,7 @@ class MailRouterTest extends IznikTest {
 
             $msg = file_get_contents('msgs/basic');
             $msg = str_replace('Basic test', $subj, $msg);
-            $msg = str_replace('To: "freegleplayground@yahoogroups.com" <freegleplayground@yahoogroups.com>',
-                    "To: \"testgroup$i\" <testgroup$i@yahoogroups.com>",
-                    $msg);
+            $msg = "X-Apparently-To: testgroup$i@yahoogroups.com\r\n" . $msg;
 
             $msgid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
             $rc = $r->route();
@@ -570,10 +568,7 @@ class MailRouterTest extends IznikTest {
 
             $msg = file_get_contents('msgs/basic');
             $msg = str_replace('Subject: Basic test', 'Subject: Modified subject', $msg);
-            $msg = str_replace(
-                'To: "freegleplayground@yahoogroups.com" <freegleplayground@yahoogroups.com>',
-                'To: "testgroup' . $i . '@yahoogroups.com" <testgroup' . $i . '@yahoogroups.com>',
-                $msg);
+            $msg = "X-Apparently-To: testgroup$i@yahoogroups.com\r\n" . $msg;
 
             $r = new MailRouter($this->dbhr, $this->dbhm);
             $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -599,10 +594,7 @@ class MailRouterTest extends IznikTest {
 
             $msg = file_get_contents('msgs/basic');
 
-            $msg = str_replace(
-                'To: "freegleplayground@yahoogroups.com" <freegleplayground@yahoogroups.com>',
-                'To: "freegleplayground' . $i . '@yahoogroups.com" <freegleplayground' . $i . '@yahoogroups.com>',
-                $msg);
+            $msg = "X-Apparently-To: freegleplayground$i@yahoogroups.com\r\n" . $msg;
             $msg = str_replace('1.2.3.4', '4.3.2.1', $msg);
 
             $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -812,5 +804,17 @@ class MailRouterTest extends IznikTest {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testNullFromUser() {
+        error_log(__METHOD__);
+
+        $msg = file_get_contents('msgs/nullfromuser');
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        assertNotNull($m->getFromuser());
+
+        error_log(__METHOD__ . " end");
+    }
+
 }
 

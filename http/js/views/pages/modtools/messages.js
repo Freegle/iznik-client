@@ -342,17 +342,19 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
 
             text = text.replace(/\$origsubj/g, model.subject);
 
-            var history = model.fromuser.messagehistory;
-            var recentmsg = '';
-            var count = 0;
-            _.each(history, function (msg) {
-                if (msg.daysago < self.recentDays) {
-                    recentmsg += moment(msg.date).format('lll') + ' - ' + msg.subject + "\n";
-                    count++;
-                }
-            })
-            text = text.replace(/\$recentmsg/gim, recentmsg);
-            text = text.replace(/\$numrecentmsg/gim, count);
+            if (model.fromuser) {
+                var history = model.fromuser.messagehistory;
+                var recentmsg = '';
+                var count = 0;
+                _.each(history, function (msg) {
+                    if (msg.daysago < self.recentDays) {
+                        recentmsg += moment(msg.date).format('lll') + ' - ' + msg.subject + "\n";
+                        count++;
+                    }
+                })
+                text = text.replace(/\$recentmsg/gim, recentmsg);
+                text = text.replace(/\$numrecentmsg/gim, count);
+            }
 
             _.each(this.keywordList, function (keyword) {
                 var recentmsg = '';

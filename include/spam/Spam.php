@@ -257,6 +257,16 @@ class Spam {
         return($ret);
     }
 
+    public function getSpamMembers() {
+        # Find anyone in the spammer list with a current (approved or pending) membership.
+        $sql = "SELECT * FROM memberships INNER JOIN spam_users ON memberships.userid = spam_users.userid AND spam_users.collection = 'Spammer' AND groupid = 21354;";
+        $spammers = $this->dbhr->preQuery($sql);
+
+        foreach ($spammers as $spammer) {
+
+        }
+    }
+
     public function addSpammer($userid, $collection, $reason) {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $text = NULL;
