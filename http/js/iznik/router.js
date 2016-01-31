@@ -82,11 +82,11 @@ var IznikRouter = Backbone.Router.extend({
     home: function(){
         var self = this;
         this.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
-            if(loggedIn){
+            if (loggedIn || location.host.indexOf("modtools") != -1) {
                 Router.navigate('/modtools', {
                     trigger: true
                 });
-            }else{
+            } else {
                 var page = new Iznik.Views.User.Pages.Landing();
                 self.loadRoute({page: page});
             }

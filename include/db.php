@@ -3,12 +3,10 @@
 use Pheanstalk\Pheanstalk;
 require_once('config.php');
 
-# Everyone has a custom DB class.  We have ours for two reasons:
-# 1) Percona clustering.  That can cause operations to fail due to conflict with other servers.
-#    In that case we retry a few times here, and then if that doesn't work - which it may not if we
-#    are inside a transaction - then we throw an exception which will cause us to retry the whole API
-#    call from scratch.
-# 2) Logging.  We keep a log of all SQL operations for debugging purposes.
+# Everyone has a custom DB class.  We have ours primarily for Percona clustering.  That can cause operations
+# to fail due to conflict with other servers. In that case we retry a few times here, and then if that doesn't
+# work - which it may not if we are inside a transaction - then we throw an exception which will cause us to
+# retry the whole API call from scratch.
 #
 # We use aggregation rather than extension because otherwise we hit issues with PHPUnit, which finds
 # it hard to mock PDOs.
