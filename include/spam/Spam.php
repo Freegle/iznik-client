@@ -257,14 +257,20 @@ class Spam {
         return($ret);
     }
 
-    public function getSpamMembers() {
+    public function removeSpamMembers($groupid = NULL) {
+        $count = 0;
+        $groupq = $groupid ? " AND groupid = $groupid " : "";
         # Find anyone in the spammer list with a current (approved or pending) membership.
-        $sql = "SELECT * FROM memberships INNER JOIN spam_users ON memberships.userid = spam_users.userid AND spam_users.collection = 'Spammer' AND groupid = 21354;";
+        $sql = "SELECT * FROM memberships INNER JOIN spam_users ON memberships.userid = spam_users.userid AND spam_users.collection = 'Spammer' $groupq;";
         $spammers = $this->dbhr->preQuery($sql);
 
         foreach ($spammers as $spammer) {
-
+            $u = new User($this->dbhr, $this->dbhm, $spammer['userid']);
+            $u->removeMembership($spammer['groupid'], TRUE, TRUE);
+            $count++;
         }
+
+        return($count);
     }
 
     public function addSpammer($userid, $collection, $reason) {

@@ -11,16 +11,3 @@ $at = 0;
 
 $s = new Spam($dbhr, $dbhm);
 $spammers = $s->removeSpamMembers();
-
-$sql = "SELECT id FROM users;";
-$users = $dbhr->query($sql);
-
-foreach ($users as $user) {
-    $s->checkUser($user['id']);
-
-    $at++;
-
-    if ($at % 1000 == 0) {
-        error_log("...$at");
-    }
-}

@@ -168,6 +168,8 @@ class spammersAPITest extends IznikAPITest {
         assertEquals(0, count($ret['spammers']));
 
         # Trigger removal
+        $s = new Spam($this->dbhr, $this->dbhm);
+        assertEquals(1, $s->removeSpamMembers($this->groupid));
 
         # Request removal
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);

@@ -315,7 +315,7 @@ class User extends Entity
         return($rc);
     }
 
-    public function removeMembership($groupid, $ban = FALSE) {
+    public function removeMembership($groupid, $ban = FALSE, $spam = FALSE) {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $meid = $me ? $me->getId() : NULL;
 
@@ -365,7 +365,7 @@ class User extends Entity
                 'user' => $this->id,
                 'byuser' => $meid,
                 'groupid' => $groupid,
-                'text' => $ban ? "via ban" : NULL
+                'text' => $spam ? "Autoremoved spammer" : ($ban ? "via ban" : NULL)
             ]);
         }
 
