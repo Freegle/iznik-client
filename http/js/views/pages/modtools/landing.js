@@ -88,7 +88,25 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
 
         Iznik.Views.Page.prototype.render.call(this);
 
-        self.$('.js-grouptype').selectpicker();
+        // Get Yahoo login info
+        new majax({
+            type: "GET",
+            url: "https://groups.yahoo.com/neo",
+            success: function (ret) {
+                var re =/data-userid="(.*?)"/g;
+                var matches = re.exec(ret);
+                console.log("Yahoo info matches", matches);
+                if (matches) {
+                    var yid = matches[1];
+                    self.$('.js-yahooinfo').html("You're logged in to Yahoo as " + yid + ".");
+                } else {
+                    self.$('.js-yahooinfo').html("You aren't logged in to Yahoo.");
+                }
+            }, error: function() {
+                self.$('.js-yahooinfo').html("You don't have the browser plugin installed.");
+            }
+        });
+
         self.$('.js-grouptype').selectPersist();
         self.$('.js-grouptype').change(function() {
             self.updateGraphs.apply(self);
