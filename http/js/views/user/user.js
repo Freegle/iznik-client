@@ -378,8 +378,8 @@ Iznik.Views.ModTools.User.Comment = IznikView.extend({
     template: 'modtools_user_comment',
 
     events: {
-        'click .js-edit': 'edit',
-        'click .js-delete': 'deleteMe'
+        'click .js-editnote': 'edit',
+        'click .js-deletenote': 'deleteMe'
     },
 
     edit: function() {
