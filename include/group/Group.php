@@ -266,20 +266,20 @@ class Group extends Entity
                     $emailinfo = $u->getIdForEmail($memb['email']);
                     $emailid = $emailinfo ? $emailinfo['userid'] : NULL;
 
+                    # Now merge any different ones.
+                    if ($emailid && $yuid && $emailid!= $yuid) {
+                        $mergerc = $u->merge($emailid, $yuid);
+                        error_log("Duplicate user by yahooid $emailid, $yuid on {$this->group['nameshort']} merged $mergerc");
+                    }
+
+                    if ($emailid && $yiduid && $emailid != $yiduid && $yiduid != $yuid) {
+                        $mergerc = $u->merge($emailid, $yiduid);
+                        error_log("Duplicate user by yahooUserId $emailid, $yiduid on {$this->group['nameshort']} merged $mergerc");
+                    }
+
                     # Pick a non-null one.
                     $uid = $emailid ? $emailid : ($yuid ? $yuid : $yiduid);
                     #error_log("uid $uid yuid $yuid yiduid $yiduid");
-
-                    # Now merge any different ones.
-                    if ($uid && $yuid && $uid != $yuid) {
-                        $mergerc = $u->merge($uid, $yuid);
-                        error_log("Duplicate user by yahooid $uid, $yuid on {$this->group['nameshort']} merged $mergerc");
-                    }
-
-                    if ($uid && $yiduid && $uid != $yiduid && $yiduid != $yuid) {
-                        $mergerc = $u->merge($uid, $yiduid);
-                        error_log("Duplicate user by yahooUserId $uid, $yiduid on {$this->group['nameshort']} merged $mergerc");
-                    }
 
                     if (!$uid) {
                         # We don't - create them.

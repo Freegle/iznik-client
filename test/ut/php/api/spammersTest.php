@@ -37,6 +37,7 @@ class spammersAPITest extends IznikAPITest {
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
+        $this->user->addEmail('test2@test.com');
         assertEquals(1, $this->user->addMembership($this->groupid));
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
     }

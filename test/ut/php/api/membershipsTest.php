@@ -356,6 +356,7 @@ class membershipsAPITest extends IznikAPITest {
         assertEquals(0, $ret['ret']);
 
         # Test merge by yahooid and yahooUserId
+        error_log("Test merge");
         $this->group = new Group($this->dbhr, $this->dbhm, $this->groupid);
         $this->group->setPrivate('lastyahoomembersync', NULL);
 
@@ -371,7 +372,6 @@ class membershipsAPITest extends IznikAPITest {
             ],
             [
                 'email' => 'test5@test.com',
-                'yahooUserId' => 4,
                 'yahooid' => '-testid',
                 'yahooPostingStatus' => 'UNMODERATED',
                 'yahooDeliveryType' => 'SINGLE',
@@ -385,7 +385,7 @@ class membershipsAPITest extends IznikAPITest {
                 'yahooDeliveryType' => 'ANNOUNCEMENT',
                 'yahooModeratorStatus' => 'MODERATOR',
                 'name' => 'Test User',
-                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
+                'date' => isodate('Sat, 22 Aug 2016 10:45:58 +0000')
             ]
         ];
 
