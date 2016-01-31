@@ -264,9 +264,13 @@ class Group extends Entity
                     $yuid = presdef('yahooid', $memb, NULL) ? $u->findByYahooId($memb['yahooid']) : NULL;
                     $yiduid = presdef('yahooUserId', $memb, NULL) ? $u->findByYahooUserId($memb['yahooUserId']) : NULL;
                     $emailinfo = $u->getIdForEmail($memb['email']);
-                    $uid = $emailinfo ? $emailinfo['userid'] : NULL;
+                    $emailid = $emailinfo ? $emailinfo['userid'] : NULL;
+
+                    # Pick a non-null one.
+                    $uid = $emailid ? $emailid : ($yuid ? $yuid : $yiduid);
                     #error_log("uid $uid yuid $yuid yiduid $yiduid");
 
+                    # Now merge any different ones.
                     if ($uid && $yuid && $uid != $yuid) {
                         $mergerc = $u->merge($uid, $yuid);
                         error_log("Duplicate user by yahooid $uid, $yuid on {$this->group['nameshort']} merged $mergerc");
@@ -282,11 +286,15 @@ class Group extends Entity
                         preg_match('/(.*)@/', $memb['email'], $matches);
                         $name = presdef('name', $memb, $matches[1]);
                         $uid = $u->create(NULL, NULL, $name);
-                        $memb['emailid'] = $u->addEmail($memb['email']);
 
                         if (pres('yahooUserId', $memb)) {
                             $u->setPrivate('yahooUserId', $memb['yahooUserId']);
                         }
+                    }
+
+                    if (!$emailid) {
+                        # We didn't find by email address, so make sure the email is now linked to this user.
+                        $memb['emailid'] = $u->addEmail($memb['email']);
                     } else {
                         $memb['emailid'] = $emailinfo['id'];
                     }

@@ -314,6 +314,7 @@ class membershipsAPITest extends IznikAPITest {
             [
                 'email' => 'test2@test.com',
                 'yahooUserId' => 2,
+                'yahooid' => '-testid',
                 'yahooPostingStatus' => 'UNMODERATED',
                 'yahooDeliveryType' => 'SINGLE',
                 'name' => 'Test User',
@@ -345,6 +346,7 @@ class membershipsAPITest extends IznikAPITest {
         assertEquals('Member', $ret['members'][1]['role']);
         assertEquals('test@test.com', $ret['members'][2]['email']);
         assertEquals('Moderator', $ret['members'][2]['role']);
+        $savemembs = $ret['members'];
 
         # Again - should get ignored
         $ret = $this->call('memberships', 'PATCH', [
@@ -352,6 +354,54 @@ class membershipsAPITest extends IznikAPITest {
             'members' => $members
         ]);
         assertEquals(0, $ret['ret']);
+
+        # Test merge by yahooid and yahooUserId
+        $this->group = new Group($this->dbhr, $this->dbhm, $this->groupid);
+        $this->group->setPrivate('lastyahoomembersync', NULL);
+
+        $members = [
+            [
+                'email' => 'test4@test.com',
+                'yahooUserId' => 1,
+                'yahooPostingStatus' => 'MODERATED',
+                'yahooDeliveryType' => 'ANNOUNCEMENT',
+                'yahooModeratorStatus' => 'MODERATOR',
+                'name' => 'Test User',
+                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
+            ],
+            [
+                'email' => 'test5@test.com',
+                'yahooUserId' => 4,
+                'yahooid' => '-testid',
+                'yahooPostingStatus' => 'UNMODERATED',
+                'yahooDeliveryType' => 'SINGLE',
+                'name' => 'Test User',
+                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
+            ],
+            [
+                'email' => 'test@test.com',
+                'yahooUserId' => 1,
+                'yahooPostingStatus' => 'MODERATED',
+                'yahooDeliveryType' => 'ANNOUNCEMENT',
+                'yahooModeratorStatus' => 'MODERATOR',
+                'name' => 'Test User',
+                'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
+            ]
+        ];
+
+        $ret = $this->call('memberships', 'PATCH', [
+            'groupid' => $this->groupid,
+            'members' => $members,
+            'dup' => 1
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('memberships', 'GET', []);
+        error_log(var_export($ret, TRUE));
+
+        assertEquals(3, count($ret['members']));
+        assertEquals($savemembs[0]['id'], $ret['members'][0]['id']);
+        assertEquals($savemembs[1]['id'], $ret['members'][1]['id']);
 
         error_log(__METHOD__ . " end");
     }

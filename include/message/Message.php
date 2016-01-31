@@ -289,7 +289,9 @@ class Message
         foreach ($ret['groups'] as &$group) {
             if ($suggested) {
                 # This might be slow.
+                $start = microtime(true);
                 $ret['suggestedsubject'] = $this->suggestSubject($group['groupid'], $this->subject);
+                $ret['suggestduration'] = microtime(true) - $start;
             }
 
             $ret['lat'] = $this->lat;
@@ -809,7 +811,15 @@ class Message
                         $u = new User($this->dbhr, $this->dbhm, $userid);
 
                         if ($u->getPrivate('yahooUserId') != $matches[1]) {
-                            $u->setPrivate('yahooUserId', $matches[1]);
+                            # Check if there is a different user with this id already.
+                            $otherid = $u->findByYahooUserId($matches[1]);
+                            if ($otherid && $otherid !== $userid) {
+                                # Yes there is - merge.
+                                $u->merge($userid, $otherid);
+                            } else {
+                                # No there's not - just update.
+                                $u->setPrivate('yahooUserId', $matches[1]);
+                            }
                         }
                     }
 
