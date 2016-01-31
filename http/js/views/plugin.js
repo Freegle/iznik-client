@@ -287,7 +287,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                         var duration = moment.duration(now.diff(added));
                         var hours = duration.asHours();
                         hoursago = hoursago > hours ? hoursago : hours;
-                        console.log("Work ago", work.added, hours, hoursago, work);
+                        //console.log("Work ago", work.added, hours, hoursago, work);
 
                         work.workid = work.id;
                         work = _.extend(work, jQuery.parseJSON(work.data));
