@@ -50,7 +50,8 @@ class Plugin {
             $this->log->log([
                 'type' => Log::TYPE_PLUGIN,
                 'subtype' => Log::SUBTYPE_DELETED,
-                'groupid' => $plugin['groupid']
+                'groupid' => $plugin['groupid'],
+                'text' => json_encode($plugin)
             ]);
         }
 
