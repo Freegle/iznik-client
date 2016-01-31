@@ -54,7 +54,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             var last = moment(group.get('lastyahoomessagesync'));
             var hoursago = moment.duration(now.diff(last)).asHours();
 
-            if (doSync(group, 'showmessages')) {
+            if (hoursago >= 24 && doSync(group, 'showmessages')) {
                 (new Iznik.Views.Plugin.Yahoo.SyncMessages.Approved({model: group})).render();
             }
         });
@@ -63,7 +63,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             var last = moment(group.get('lastyahoomembersync'));
             var hoursago = moment.duration(now.diff(last)).asHours();
 
-            if (doSync(group, 'showmembers')) {
+            if (hoursago >= 24 && doSync(group, 'showmembers')) {
                 (new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({model: group})).render();
             }
         });
@@ -90,9 +90,10 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                 var groupname;
 
-                if (first.model.get('nameshort')) {
+                if (first.model.get('groupid')) {
                     // Get a crumb from the relevant group
-                    groupname = first.model.get('nameshort');
+                    var group = Iznik.Session.getGroup(first.model.get('groupid'));
+                    groupname = group.get('nameshort');
                 } else {
                     // We're not acting on a specific group.  Get a crumb from one of ours.
                     var groups = Iznik.Session.get('groups');

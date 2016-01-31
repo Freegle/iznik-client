@@ -402,7 +402,6 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
 
         var dt = stdmsg.get('newdelstatus');
         var ps = stdmsg.get('newmodstatus');
-        console.log(dt, ps);
 
         if (dt != 'UNCHANGED') {
             $.ajax({
