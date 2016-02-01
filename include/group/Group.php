@@ -94,23 +94,37 @@ class Group extends Entity
         # Depending on our group settings we might not want to show this work as primary; "other" work is displayed
         # less prominently in the client.
         #error_log("Getworkcounts " . error_log(var_export($mysettings, true)));
-        $pend = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'] ? 'pending' : 'pendingother';
-        $spam = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'] ? 'spam' : 'spamother';
-        $pendmemb = !array_key_exists('showmembers', $mysettings) || $mysettings['showmembers'] ? 'pendingmembers' : 'pendingmembersother';
+        $showmessages = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'];
+        $showmembers = !array_key_exists('showmembers', $mysettings) || $mysettings['showmembers'];
+        $pend = $showmessages ? 'pending' : 'pendingother';
+        $spam = $showmessages ? 'spam' : 'spamother';
+        $pendmemb = $showmembers ? 'pendingmembers' : 'pendingmembersother';
 
         # We only want to show spam messages upto 7 days old to avoid seeing too many, especially on first use.
         $mysqltime = date ("Y-m-d", strtotime("Midnight 7 days ago"));
 
         $ret = [
-            $pend => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
+            'pending' => $showmessages ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
+                $this->id,
+                MessageCollection::PENDING
+            ])[0]['count'] : 0,
+            'pendingother' => $this->dbhr->preQuery($showmessages ?
+                "SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NOT NULL;" :
+                "SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0;", [
                 $this->id,
                 MessageCollection::PENDING
             ])[0]['count'],
-            $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages.date >= '$mysqltime' AND messages_groups.deleted = 0 AND messages.heldby IS NULL;", [
+            $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages.date >= '$mysqltime' AND messages_groups.deleted = 0 " . ($showmessages ? "AND messages.heldby IS NULL" : "") . ";", [
                 $this->id,
                 MessageCollection::SPAM
             ])[0]['count'],
-            $pendmemb => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND heldby IS NULL;", [
+            'pendingmembers' => $showmembers ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NULL;", [
+                $this->id,
+                MembershipCollection::PENDING
+            ])[0]['count'] : 0,
+            'pendingmembersother' => $this->dbhr->preQuery($showmembers ?
+                "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NOT NULL;" :
+                "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ?;", [
                 $this->id,
                 MembershipCollection::PENDING
             ])[0]['count'],
