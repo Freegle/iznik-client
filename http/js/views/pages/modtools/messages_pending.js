@@ -116,7 +116,7 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
         'click .js-excludelocation': 'excludeLocation',
         'click .js-rarelyused': 'rarelyUsed',
         'click .js-savesubj': 'saveSubject',
-        'click .js-edit': 'edit'
+        'click .js-editnotstd': 'edit'
     },
 
     edit: function() {

@@ -778,7 +778,7 @@ Iznik.Views.ModTools.Settings.StdMessage = Iznik.Views.Modal.extend({
                     control: Iznik.Views.ModTools.Settings.ActionSelect
                 },
                 {
-                    name: 'autosend',
+                    name: 'edittext',
                     label: 'Edit Text (only for Edits)',
                     options: [{label: 'Unchanged', value: 'Unchanged'}, {label: 'Correct Case', value: 'Correct Case' }],
                     disabled: function(model) { return(model.get('action') != 'Edit')},

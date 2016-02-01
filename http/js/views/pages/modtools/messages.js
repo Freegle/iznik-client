@@ -538,6 +538,40 @@ Iznik.Views.ModTools.StdMessage.Edit = Iznik.Views.Modal.extend({
 
         var body = self.model.get('htmlbody');
         body = body ? body : self.model.get('textbody');
+
+        if (self.options.stdmsg && self.options.stdmsg.get('edittext') == 'Correct Case') {
+            body = body.toLowerCase();
+
+            // Contentious choice of single space
+            body = body.replace(/\.( |(&nbsp;))+/g, ". ");
+            body = body.replace(/\.\n/g, ".[-<br>-]. ");
+            body = body.replace(/\.\s\n/g, ". [-<br>-]. ");
+            var wordSplit = '. ';
+            var wordArray = body.split(wordSplit);
+            var numWords = wordArray.length;
+
+            for (x = 0; x < numWords; x++) {
+
+                if (!_.isUndefined(wordArray[x])) {
+                    wordArray[x] = wordArray[x].replace(wordArray[x].charAt(0), wordArray[x].charAt(0).toUpperCase());
+
+                    if (x == 0) {
+                        body = wordArray[x] + ". ";
+                    } else if (x != numWords - 1) {
+                        body = body + wordArray[x] + ". ";
+                    } else if (x == numWords - 1) {
+                        body = body + wordArray[x];
+                    }
+                }
+            }
+
+            body = body.replace(/\[-<br>-\]\.\s/g, "\n");
+            body = body.replace(/\si\s/g, " I ");
+            body = body.replace(/(\<p\>.)/i, function(a, b) {
+                return(b.toUpperCase());
+            });
+        }
+
         self.$('.js-text').val(body);
 
         tinymce.init({
@@ -568,7 +602,8 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
         'click .js-delete': 'deleteMe',
         'click .js-hold': 'hold',
         'click .js-release': 'release',
-        'click .js-leave': 'leave'
+        'click .js-leave': 'leave',
+        'click .js-edit': 'edit'
     },
 
     hold: function() {
@@ -603,6 +638,19 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
             // No popup to show.
             message ? message.approve() : member.approve();
         }
+    },
+
+    edit: function() {
+        var self = this;
+        var message = self.model.get('message');
+
+        var v = new Iznik.Views.ModTools.StdMessage.Edit({
+            model: message ? message : member,
+            stdmsg: this.model,
+            config: this.options.config
+        });
+
+        v.render();
     },
 
     reject: function() {
