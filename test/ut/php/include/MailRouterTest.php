@@ -301,7 +301,7 @@ class MailRouterTest extends IznikTest {
 
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
-        $g->setSettings([ 'autoapprove' => 1]);
+        $g->setSettings([ 'autoapprove' => [ 'members' => 1 ]]);
 
         $msg = file_get_contents('msgs/approvemember');
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);

@@ -260,13 +260,27 @@ class Spam {
     public function removeSpamMembers($groupid = NULL) {
         $count = 0;
         $groupq = $groupid ? " AND groupid = $groupid " : "";
+
         # Find anyone in the spammer list with a current (approved or pending) membership.
-        $sql = "SELECT * FROM memberships INNER JOIN spam_users ON memberships.userid = spam_users.userid AND spam_users.collection = 'Spammer' $groupq;";
-        $spammers = $this->dbhr->preQuery($sql);
+        $sql = "SELECT * FROM memberships INNER JOIN spam_users ON memberships.userid = spam_users.userid AND spam_users.collection = ? $groupq;";
+        $spammers = $this->dbhr->preQuery($sql, [ Spam::TYPE_SPAMMER ]);
 
         foreach ($spammers as $spammer) {
             $u = new User($this->dbhr, $this->dbhm, $spammer['userid']);
+            error_log("Found spammer {$spammer['userid']}");
             $u->removeMembership($spammer['groupid'], TRUE, TRUE);
+            $count++;
+        }
+
+        # Find any messages from spammers which are on groups.
+        $groupq = $groupid ? " AND messages_groups.groupid = $groupid " : "";
+        $sql = "SELECT DISTINCT messages.id, reason FROM `messages` INNER JOIN spam_users ON messages.fromuser = spam_users.userid AND spam_users.collection = ? AND messages.deleted IS NULL INNER JOIN messages_groups ON messages.id = messages_groups.msgid $groupq AND messages_groups.collection IN ('Approved', 'Pending');";
+        $spammsgs = $this->dbhr->preQuery($sql, [ Spam::TYPE_SPAMMER ]);
+
+        foreach ($spammsgs as $spammsg) {
+            error_log("Found spam message {$spammsg['id']}");
+            $m = new Message($this->dbhr, $this->dbhm, $spammsg['id']);
+            $m->delete("From known spammer {$spammsg['reason']}");
             $count++;
         }
 

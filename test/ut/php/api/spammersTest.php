@@ -59,6 +59,19 @@ class spammersAPITest extends IznikAPITest {
         # Add them to a group, so that when they get onto a list we can trigger their removal.
         assertTrue($u->addMembership($this->groupid));
 
+        # And create a message from them, so that gets removed too.
+        $msg = file_get_contents('msgs/basic');
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
+        error_log("Created message $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $this->dbhm->preExec("UPDATE messages SET fromuser = ? WHERE id = ?;", [ $uid, $id ]);
+        $this->dbhm->preExec("UPDATE messages_groups SET groupid = ? WHERE msgid = ?;", [ $this->groupid, $id ]);
+
         $ret = $this->call('spammers', 'GET', [
             'search' => 'Test User'
         ]);
@@ -169,7 +182,7 @@ class spammersAPITest extends IznikAPITest {
 
         # Trigger removal
         $s = new Spam($this->dbhr, $this->dbhm);
-        assertEquals(1, $s->removeSpamMembers($this->groupid));
+        assertEquals(2, $s->removeSpamMembers($this->groupid));
 
         # Request removal
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);

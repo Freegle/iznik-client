@@ -254,7 +254,7 @@ class MailRouter
                             $ret = MailRouter::TO_SYSTEM;
                         }
 
-                        if ($g->getSetting('autoapprove', 0)) {
+                        if ($g->getSetting('autoapprove', [ 'members' => 0])['members']) {
                             # We want to auto-approve members on this group.  This is a feature to work around
                             # a Yahoo issue which means that you can't shift a group from approving members to
                             # not doing so.

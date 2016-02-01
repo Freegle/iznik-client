@@ -21,10 +21,15 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
             data.grouptype = statsGroupType.val();
         }
 
+        var v = new Iznik.Views.PleaseWait();
+        v.render();
+
         $.ajax({
             url: API + 'dashboard',
             data: data,
             success: function(ret) {
+                v.close();
+
                 var coll = new Iznik.Collections.DateCounts(ret.dashboard.messagehistory);
                 var graph = new Iznik.Views.MessageGraph({
                     target: self.$('.js-messagegraph').get()[0],
@@ -34,9 +39,9 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
 
                 graph.render();
 
-                coll = new Iznik.Collections.DateCounts(ret.dashboard.spamhistory);
+                coll = new Iznik.Collections.DateCounts(ret.dashboard.spammessagehistory);
                 graph = new Iznik.Views.MessageGraph({
-                    target: self.$('.js-spamgraph').get()[0],
+                    target: self.$('.js-spammessagegraph').get()[0],
                     data: coll,
                     title: 'Spam Detection'
                 });
@@ -78,6 +83,15 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
                 });
 
                 graph.render();
+
+                coll = new Iznik.Collections.DateCounts(ret.dashboard.spammemberhistory);
+                graph = new Iznik.Views.MessageGraph({
+                    target: self.$('.js-spammembergraph').get()[0],
+                    data: coll,
+                    title: 'Spammer Detection'
+                });
+
+                graph.render();
             }
         })
     },
@@ -95,7 +109,6 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
             success: function (ret) {
                 var re =/data-userid="(.*?)"/g;
                 var matches = re.exec(ret);
-                console.log("Yahoo info matches", matches);
                 if (matches) {
                     var yid = matches[1];
                     self.$('.js-yahooinfo').html("You're logged in to Yahoo as " + yid + ".");

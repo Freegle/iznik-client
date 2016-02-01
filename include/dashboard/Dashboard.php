@@ -32,14 +32,14 @@ class Dashboard {
             $params = [ $mysqltime ];
         }
 
-        if ($systemwide && $this->me->getPrivate('systemrole')) {
+        if ($systemwide && $this->me->isAdminOrSupport()) {
             # Get a summary of messages across the whole site for the last 30 days
             $sql = "SELECT COUNT(*) AS count, DATE(messages.date) AS date FROM messages INNER JOIN messages_groups  ON messages.id = messages_groups.msgid $typeq1 WHERE messages.date > ? AND collection = 'Approved' GROUP BY DATE(messages.date) ORDER BY date ASC;";
             $ret['messagehistory'] = $this->dbhr->preQuery($sql, $params);
 
             # Show spam rate
             $sql = "SELECT COUNT(*) AS count, DATE(timestamp) AS date FROM `logs` $typeq2 WHERE timestamp > ? AND logs.type = 'Message' AND subtype = 'ClassifiedSpam' GROUP BY date ORDER BY date ASC;";
-            $ret['spamhistory'] = $this->dbhr->preQuery($sql, $params);
+            $ret['spammessagehistory'] = $this->dbhr->preQuery($sql, $params);
 
             # Get domain breakdown
             $sql = "SELECT SUBSTRING_INDEX(`fromaddr`, '@', -1) AS domain, COUNT(*) AS count FROM messages INNER JOIN messages_groups  ON messages.id = messages_groups.msgid $typeq1 WHERE messages.date > ? AND collection = 'Approved' GROUP BY domain ORDER BY count DESC LIMIT 10;";
@@ -60,6 +60,10 @@ class Dashboard {
             # Get moderation status breakdown.
             $sql = "SELECT yahooPostingStatus, COUNT(*) AS count FROM memberships $typeq3 INNER JOIN users_emails ON memberships.userid = users_emails.userid GROUP BY yahooPostingStatus ORDER BY count DESC;";
             $ret['postinghistory'] = $this->dbhr->preQuery($sql, [ $type ] );
+
+            # Get spam user breakdown.
+            $sql = "SELECT COUNT(*) AS count, DATE(timestamp) AS date FROM `logs` INNER JOIN spam_users ON logs.user = spam_users.userid AND collection = 'Spammer' $typeq2 WHERE logs.timestamp > ? AND logs.type = 'Group' AND `subtype` = 'Left' GROUP BY date ORDER BY date ASC;";
+            $ret['spammemberhistory'] = $this->dbhr->preQuery($sql, $params );
         } else {
             # We want the summaries for one or more groups.  Get the list.
             $groups = [];
@@ -88,7 +92,7 @@ class Dashboard {
 
                 # Show spam rate
                 $sql = "SELECT COUNT(*) AS count, DATE(timestamp) AS date FROM `logs` $typeq2 WHERE timestamp > ?  AND `groupid` IN $groups AND logs.type = 'Message' AND subtype = 'ClassifiedSpam' GROUP BY date ORDER BY date ASC;";
-                $ret['spamhistory'] = $this->dbhr->preQuery($sql, $params);
+                $ret['spammessagehistory'] = $this->dbhr->preQuery($sql, $params);
 
                 # Get domain breakdown
                 $sql = "SELECT SUBSTRING_INDEX(`fromaddr`, '@', -1) AS domain, COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $typeq1 WHERE messages.date > ? AND groupid IN $groups AND collection = 'Approved' GROUP BY domain ORDER BY count DESC LIMIT 10;";
@@ -109,6 +113,10 @@ class Dashboard {
                 # Get posting status breakdown.
                 $sql = "SELECT yahooPostingStatus, COUNT(*) AS count FROM memberships $typeq3 INNER JOIN users_emails ON memberships.userid = users_emails.userid WHERE groupid IN $groups GROUP BY yahooPostingStatus ORDER BY count DESC;";
                 $ret['postinghistory'] = $this->dbhr->preQuery($sql, [ $type ]);
+
+                # Get spam user breakdown.
+                $sql = "SELECT COUNT(*) AS count, DATE(timestamp) AS date FROM `logs` INNER JOIN spam_users ON logs.user = spam_users.userid AND collection = 'Spammer' $typeq2 WHERE groupid IN $groups AND logs.timestamp > ? AND logs.type = 'Group' AND `subtype` = 'Left' GROUP BY date ORDER BY date ASC;";
+                $ret['spammemberhistory'] = $this->dbhr->preQuery($sql, $params );
             }
         }
 

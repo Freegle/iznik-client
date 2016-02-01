@@ -6,6 +6,7 @@ if (!defined('UT_DIR')) {
 require_once UT_DIR . '/IznikTest.php';
 require_once(UT_DIR . '/../../include/config.php');
 require_once IZNIK_BASE . '/include/session/Yahoo.php';
+require_once IZNIK_BASE . '/include/user/User.php';
 
 /**
  * @backupGlobals disabled
@@ -84,11 +85,21 @@ class yahooTest extends IznikTest {
         # Login first time - should work
         list($session, $ret) = $y->login();
         $id = $session->getId();
-        $this->dbhm->preExec("UPDATE users SET fullname = 'wrong' WHERE id = $id;");
         assertNotNull($session);
         assertEquals(0, $ret['ret']);
 
         # Login again - should also work
+        $this->dbhm->preExec("UPDATE users SET fullname = NULL WHERE id = $id;");
+        list($session, $ret) = $y->login();
+        assertNotNull($session);
+        assertEquals(0, $ret['ret']);
+
+        # Create another user and move the email over to simulate a duplicate
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        error_log("Users $id and $uid");
+        $rc = $this->dbhm->preExec("UPDATE users_emails SET userid = $uid WHERE userid = $id;");
+        assertEquals(1, $rc);
         list($session, $ret) = $y->login();
         assertNotNull($session);
         assertEquals(0, $ret['ret']);

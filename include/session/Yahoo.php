@@ -65,6 +65,7 @@ class Yahoo
                 $u = new User($this->dbhr, $this->dbhm);
                 $eid = $u->findByEmail($attrs['contact/email']);
                 $yid = $u->findByYahooId($yahooid);
+                #error_log("Email $eid  from {$attrs['contact/email']} Yahoo $yid");
 
                 if ($eid && $yid && $eid != $yid) {
                     # This is a duplicate user.  Merge them.
@@ -74,7 +75,7 @@ class Yahoo
                 }
 
                 $id = $eid ? $eid : $yid;
-                error_log("Login id $id from $eid and $yid");
+                #error_log("Login id $id from $eid and $yid");
 
                 if (!$id) {
                     # We don't know them.  Create a user.
@@ -88,6 +89,7 @@ class Yahoo
                     if ($id) {
                         # Make sure that we have the Yahoo email recorded as one of the emails for this user.
                         $u = new User($this->dbhr, $this->dbhm, $id);
+                        $u->setPrivate('yahooid', $yahooid);
                         $u->addEmail($attrs['contact/email']);
 
                         # Now Set up a login entry.

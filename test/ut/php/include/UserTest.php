@@ -545,6 +545,7 @@ class userTest extends IznikTest {
 
         for ($i = 0; $i < Spam::SEEN_THRESHOLD + 1; $i++) {
             $gid = $g->create("testgroup$i", Group::GROUP_REUSE);
+            $g = new Group($this->dbhr, $this->dbhm);
             $groupids[] = $gid;
             $u1->addMembership($gid, User::ROLE_MODERATOR);
             $u2->addMembership($gid);
@@ -557,6 +558,8 @@ class userTest extends IznikTest {
                 assertFalse(pres('suspectcount', $atts));
             } else {
                 assertEquals(1, pres('suspectcount', $atts));
+                $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::SPAM, [ $gid ]);
+                assertEquals(2, count($membs));
             }
         }
 
