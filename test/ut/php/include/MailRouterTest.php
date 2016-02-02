@@ -805,6 +805,39 @@ class MailRouterTest extends IznikTest {
         error_log(__METHOD__ . " end");
     }
 
+    public function testMemberJoinedApplication() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+
+        # Suppress emails
+        $r = $this->getMockBuilder('MailRouter')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('mailer'))
+            ->getMock();
+        $r->method('mailer')->willReturn(false);
+
+        # Set up a pending member.
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@test.com');
+        error_log("Add membership to $gid");
+        $u->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::PENDING);
+        $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $gid ]);
+        assertEquals(1, count($membs));
+
+        $msg = file_get_contents('msgs/memberjoined');
+        $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        $ctx = NULL;
+        $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $gid ]);
+        assertEquals(0, count($membs));
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testNullFromUser() {
         error_log(__METHOD__);
 

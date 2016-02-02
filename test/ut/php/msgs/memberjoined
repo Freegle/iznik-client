@@ -1,0 +1,143 @@
+Delivered-To: edward@ehibbert.org.uk
+Received: by 10.129.106.133 with SMTP id f127csp2726539ywc; Wed, 20 Jan 2016
+ 08:54:21 -0800 (PST)
+X-Received: by 10.66.150.202 with SMTP id uk10mr13305475pab.73.1453308861195;
+ Wed, 20 Jan 2016 08:54:21 -0800 (PST)
+Return-Path: <notify-return-edward=ehibbert.org.uk@returns.groups.yahoo.com>
+Received: from ng3-vm11.bullet.mail.gq1.yahoo.com
+ (ng3-vm11.bullet.mail.gq1.yahoo.com. [98.136.219.37]) by mx.google.com with
+ ESMTPS id qn16si3655084pab.207.2016.01.20.08.54.21 for
+ <edward@ehibbert.org.uk> (version=TLS1 cipher=ECDHE-RSA-AES128-SHA
+ bits=128/128); Wed, 20 Jan 2016 08:54:21 -0800 (PST)
+Received-SPF: pass (google.com: domain of
+ notify-return-edward=ehibbert.org.uk@returns.groups.yahoo.com designates
+ 98.136.219.37 as permitted sender) client-ip=98.136.219.37;
+Authentication-Results: mx.google.com; spf=pass (google.com: domain of
+ notify-return-edward=ehibbert.org.uk@returns.groups.yahoo.com designates
+ 98.136.219.37 as permitted sender)
+ smtp.mailfrom=notify-return-edward=ehibbert.org.uk@returns.groups.yahoo.com;
+ dkim=pass header.i=@yahoogroups.com; dmarc=pass (p=NONE dis=NONE)
+ header.from=yahoogroups.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoogroups.com;
+ s=echoe; t=1453308860; bh=7uy23yQL/eksKOj1JXRoECA+TSjWibBHoY+fYT14/+U=;
+ h=Date:To:From:Subject:Reply-To:From:Subject;
+ b=c3o1mCUUUs3gZuV6MO7dkRy2HdwKj67cVLc93Cf8jk+rNnILA2Y0Nzew1qILbQUpjfEjjFjK5oSxJ7bbJOmiQuaQQ7Tb3rbDU0eMwouhqE8FmYFeXVW/c0CZdCc+kPEOiO1wI5Hk3r5Ro/5pNuhe0ywZllEjxJ2yPsvRbjEk+ZA=
+Received: from [216.39.60.222] by ng3.bullet.mail.gq1.yahoo.com with NNFMP; 20
+ Jan 2016 16:54:20 -0000
+Received: from [10.193.39.27] by tg14.bullet.mail.gq1.yahoo.com with NNFMP; 20
+ Jan 2016 16:54:20 -0000
+X-Yahoo-Newman-Property: groups-notify
+X-Originating-IP: 98.139.170.166
+X-eGroups-Msg-Info: 1:12:0:0
+X-Sender: notify@yahoogroups.com
+X-Apparently-To: testgroup-owner@yahoogroups.com
+Received: (qmail 14461 invoked by uid 102); 20 Jan 2016 16:54:20 -0000
+Received: from unknown (HELO mtaq6.grp.bf1.yahoo.com) (10.193.84.37) by
+ m10.grp.bf1.yahoo.com with SMTP; 20 Jan 2016 16:54:20 -0000
+Received: (qmail 5278 invoked from network); 20 Jan 2016 16:54:20 -0000
+Received: from unknown (HELO mta1002.groups.mail.bf1.yahoo.com)
+ (98.139.170.166) by mtaq6.grp.bf1.yahoo.com with SMTP; 20 Jan 2016 16:54:20
+ -0000
+Return-Path: <notify@yahoogroups.com>
+Received-SPF: pass (domain of yahoogroups.com designates 72.30.234.86 as
+ permitted sender)
+X-Rocket-Track: cat=UK;
+ info=cconsam:UK;cip_features:UK;ip:NN<ip=72.30.234.86,policy=n-w0,n100,g0,s>;cmsgbl:UK<s=20,m=0>;cmsgbk:UK<s=20,m=0>;csubbl:UK;url2db:NN<url=trashnothing.com,pri=3>;sgor:UK;abaca:UK<277,
+ fh=mta1002; fi=98.138.100.101:14050; rg=U; GT=0; fs=277; ns=277;
+ ws=555,A,28,170,57,100,0,0,0,0,200,0,0,N,N; nn=1,57,20,200,0,0;
+ cn=2169,583,20,2,369,27339,0,63,0,0; ex=N,D,0000,FILRTVY; sk=OrdEgcuYSsJ;
+ yd=5,5,0,-1; st=AAS; id=UcHbwgc8-0K1654KJ;
+ rv=inbound.0.40+94-g8aed589/98.138.100.101:14051; ts=N1WBX; gv=411; fp=BKgkg;
+ fu=B; fl=EAAAAA; ip=72.30.234.86; po=72.30.235.65; ht=1; so=3; oc=0; oL=3;
+ co=n; hv=1; td=1; ha=FuDPOchz66s; hs=CFp8DFHkPSw; ho=HITwcqVLzmu;
+ hd=FuDPOchz66s; hf=sQMhEWdgum; hF=L+4PgYYpaMG; hj=IXP/D/Uls3/;
+ hr=NkgqOKjdjms; sd=CRYc3iZMMOk,0:0,0,0:0,0,0,0,1,1,7,0,w,w; dm=HhxocZeNQ4S,1;
+ ZM=OF+Z07VmWqP; ZB=DopGUmbF//s; ZB=GMzqn0ZKaJD; ZB=E6p0dFiD6y0;
+ ZB=JbQsLija7B1; ZB=KemZbfllbTy; ZU=DPVu3UWkQvD; Zu=MGQRmardPPn;
+ ZU=DFZbR2K/oKY; Zu=OlvMm4cOiIf; ZF=FqCAPNQmhAO;,
+ SRV_OR=1,WS_OR=1,WSS_OR=1,OR=1,AB_WS_IP=0,AB_WSS_IP=0>
+X-Rocket-Filter: dmarc-result=pass;
+X-Rocket-MIMEInfo: 001.001,SGVsbG8sIFRoaXMgaXMgYW4gYXV0b21hdGVkIGVtYWlsIG1lc3Nh
+ Z2UgdG8gbGV0IHlvdSBrbm93IHRoYXQgZXVhbmNhcnRlci1nMTczM0B1c2Vy
+ LnRyYXNobm90aGluZy5jb20gam9pbmVkIHlvdXIgRWRpbmJ1cmdoRnJlZWds
+ ZSBncm91cC4gWW91ciBncm91cCBpcyBjdXJyZW50bHkgY29uZmlndXJlZCB0
+ byBzZW5kIHlvdSBlbWFpbCBub3RpZmljYXRpb24gd2hlbmV2ZXIgYSBuZXcg
+ bWVtYmVyIGpvaW5zLiBUbyB0dXJuIG9mZiBub3RpZmljYXRpbwEwAQEBAQ--
+X-YMailISG: j0jMFOIWLDv63RM.K3gUUDWip9kKxViMEzj5thwg4eXhiNuS
+ dY2IGiWI5xEKkKRIfRGLsSFL8NUP8scNij2FmmHdhaBo23ZmqLMAHvI50mQg
+ AXBsXSixa6XweaxvjvoJiUO2z.CcHlvbCF4Y8GIO7EXvOBInWk3jm613G9z9
+ 560n8OOEzvQVHriOi6v5Z_4eW8AZxSPm5YXY1YmHljh7Rt997Tk5D8hHDpN0
+ VqrhZK50lzdihoewqkXeaj3JoMwfqEjtYqvAFzQyxNGEKBmbTiihAH8R8tJ8
+ 0k6Kwyhd973L4ZC9C1imSrpguRf._kwnbWLTnyB_dfyDem.Veue6_ktkbtzN
+ Rn_B1z0Q5tY1xweRIsngubBCMhkdn3jI_.nV_NWK7Z3i8IimNiHCHuzle2er
+ kRxjcauHx86WESg6_mYYVq53y8p7EyqYgFeN7jxXT2Nt07IYIargzC11B7jm
+ WZ6FnqUEWbM2ZWrL1_QbuzqpAV7YO4bKK71t3akj84ABX8o6lssX.OK6H4k6
+ wnFrOvRHjZnr9XvQOKI1EseUjYTqXKrfJmyh4PoY79KbVCZp_4RvkmOoBEAj
+ KUbtX09wE_rU8.p3hVmoddJ3J4Mqat1Epz3QKqSZsxXyeXhKlAhR6RwPTDLB
+ Id7RtUQ7gl.WL9pul1M7gQDpiTviH3AYuubrjQhhp1SpvD8fcUWzsWwWncBS
+ DuuxtKTAPofdyl1RJ62wqIut5_C_UfwzYdasRgyfXT3ED4OBmsPusJUxQytF
+ fO.BLHByRXVTQ78YxzFL1wSVo.PK7iNnFnDwPy_Xs9xm_PklGQoCEOLhCFOs
+ QIKjonOPYWm1Tc7D1sHnOcTOUf9eqUEzI1PxeLgHcNLmzyAiMwCTVpLxsWd4
+ bYqGXV8dCJKw7RN6qSdWQkzpwCiwudvYlSIDP5R2EZb8a9BYnKwygdc6KlYz
+ oaTn6lZ_MoAurfpw9nIueEgUj_IdIBZF_RdEW1jztDF9hsdLNFe8ckQ7F3sA
+ LiNVoSYvhy9XoFji6bJyk01CVzWyjsm9BUJXYRsRGJ_ihsZ24pwMwO78y2_r
+ DeK6ZWtbRN4lLblEyOaiF.l2hrFQjXLIZlBfoxHIdNuf5kEuWoJd8J9UejHo
+ kFM9g_tHCrlvEZzmgNCFdqSCwgJO3V6NzJCGX5PGzxXhMXoD7Dxev7DgsBs7
+ h7HE9h.8JfLBwQS2L6fiwr4FbIc7eYj74pNbtQOd.ruRNTV__HeNLcj3jkeS
+ OZgjhPpWn4mHu0lPh7HTaylUkPhBuImXU47UnWED023Tzccuib_.zGgsA9r.
+ 2biNVIQf30DCbdKdRWP.XMYd_W9ZK4y_pDe2augvrLWTISojAT6MKCvYCQB1
+ r_DLwFyFJq0qBxhtGKav.1HytH2jEnmpKy1j8e_XxBChnjDBKsqMCBqP9Q--
+X-RocketHELO: n7-vm2.bullet.mail.bf1.yahoo.com
+X-RocketMAILFROM: notify@yahoogroups.com
+X-RocketRCPTTO: 0-testgroup-owner@yahoogroups.com
+X-RocketMSGID: 1453308860.4209.31567@mta1002.groups.mail.bf1.yahoo.com#0
+Authentication-Results: mta1002.groups.mail.bf1.yahoo.com
+ from=yahoogroups.com; domainkeys=neutral (no sig);  from=yahoogroups.com;
+ dkim=pass (ok)
+Received: from 127.0.0.1  (EHLO n7-vm2.bullet.mail.bf1.yahoo.com)
+ (72.30.234.86) by mta1002.groups.mail.bf1.yahoo.com with SMTPS; Wed, 20 Jan
+ 2016 16:54:20 +0000
+Received: from [72.30.235.65] by n7.bullet.mail.bf1.yahoo.com with NNFMP; 20
+ Jan 2016 16:54:19 -0000
+Received: from [10.193.94.110] by t2.bullet.mail.bf1.yahoo.com with NNFMP; 20
+ Jan 2016 16:54:19 -0000
+Date: 20 Jan 2016 08:54:19 -0800
+Received: from [127.0.0.1] by gapim2.grp.bf1.yahoo.com with NNFMP; 20 Jan 2016
+ 16:54:19 -0000
+To: testgroup-owner@yahoogroups.com
+From: Yahoo Groups Notification <notify@yahoogroups.com>
+Subject: New testgroup member
+Message-ID: <n7oe3r+12f309f@YahooGroups.com>
+Content-Type: text/plain; charset=utf-8;
+Reply-To: Yahoo Groups Notification <notify@yahoogroups.com>
+Sender: testgroup-owner@yahoogroups.com
+X-eGroups-Moderators: testgroup
+
+
+
+
+Hello,
+
+
+This is an automated email message to let you know that
+test@test.com joined your testgroup
+group.
+
+
+Your group is currently configured to send you email
+notification whenever a new member joins.  To turn off
+notification, visit:
+https://groups.yahoo.com/group/testgroup/join
+
+
+Thank you for choosing Yahoo! Groups as your email group
+service for the testgroup group.
+
+
+Regards,
+
+
+Yahoo! Groups Customer Care
+
+
+Your use of Yahoo Groups is subject to http://info.yahoo.com/legal/us/yahoo/utos/terms/

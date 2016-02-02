@@ -1245,6 +1245,35 @@ class User extends Entity
         $this->maybeMail($groupid, $subject, $body, $stdmsgid);
     }
 
+    public function markApproved($groupid) {
+        # Move a member from pending to approved in response to a Yahoo notification mail.
+        #
+        # Perhaps we can get a notification mail for a member not in Pending, but this is less of an issue as we
+        # will not have work which we are pestering mods to do.  We'll pick them up on the next sync or when they post.
+        #
+        # No need for a transaction - if things go wrong, the member will remain in pending, which is recoverable.
+        $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
+        $members = $this->dbhr->preQuery($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
+
+        foreach ($members as $member) {
+            $this->log->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_APPROVED,
+                'msgid' => $this->id,
+                'user' => $this->getId(),
+                'groupid' => $groupid,
+                'text' => 'Move from Pending to Approved after Yahoo notification mail'
+            ]);
+
+            $sql = "UPDATE memberships SET collection = ? WHERE userid = ? AND groupid = ?;";
+            $rc = $this->dbhm->preExec($sql, [
+                MembershipCollection::APPROVED,
+                $this->id,
+                $groupid
+            ]);
+        }
+    }
+
     function hold($groupid) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 

@@ -254,11 +254,32 @@ class MailRouter
                             $ret = MailRouter::TO_SYSTEM;
                         }
 
-                        if ($g->getSetting('autoapprove', [ 'members' => 0])['members']) {
+                        if ($g->getSetting('autoapprove', ['members' => 0])['members']) {
                             # We want to auto-approve members on this group.  This is a feature to work around
                             # a Yahoo issue which means that you can't shift a group from approving members to
                             # not doing so.
                             $u->approve($gid, "Auto-approved", NULL, NULL);
+                        }
+                    }
+                }
+            } else if (preg_match('/New (.*) member/', $this->msg->getSubject(), $matches)) {
+                $nameshort = $matches[1];
+                $all = $this->msg->getMessage();
+
+                if (preg_match('/^(.*) joined your/m', $all, $matches)) {
+                    $email = $matches[1];
+                    $g = new Group($this->dbhr, $this->dbhm);
+                    $gid = $g->findByShortName($nameshort);
+
+                    if ($gid) {
+                        $u = new User($this->dbhr, $this->dbhm);
+                        $uid = $u->findByEmail($email);
+
+                        if ($uid) {
+                            # We have the user and the group.  Mark the membership as no longer pending (if
+                            $u = new User($this->dbhr, $this->dbhm, $uid);
+                            $u->markApproved($gid);
+                            $ret = MailRouter::TO_SYSTEM;
                         }
                     }
                 }
