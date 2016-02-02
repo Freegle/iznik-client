@@ -292,6 +292,12 @@ class Message
             $ret['locationid'] = $this->locationid;
 
             $group['arrival'] = ISODate($group['arrival']);
+
+            if (pres('approvedby', $group)) {
+                $u = new User($this->dbhr, $this->dbhm, $group['approvedby']);
+                $ctx = NULL;
+                $group['approvedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
+            }
         }
 
         # Add derived attributes.
@@ -1193,12 +1199,14 @@ class Message
         # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
         # behaviour.
         $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
         $this->log->log([
             'type' => Log::TYPE_MESSAGE,
             'subtype' => Log::SUBTYPE_APPROVED,
             'msgid' => $this->id,
             'user' => $this->fromuser,
-            'byuser' => $me ? $me->getId() : NULL,
+            'byuser' => $myid,
             'groupid' => $groupid,
             'stdmsgid' => $stdmsgid,
             'text' => $subject
@@ -1222,9 +1230,10 @@ class Message
             }
         }
 
-        $sql = "UPDATE messages_groups SET collection = ? WHERE msgid = ?;";
+        $sql = "UPDATE messages_groups SET collection = ?, approvedby = ? WHERE msgid = ?;";
         $this->dbhm->preExec($sql, [
             MessageCollection::APPROVED,
+            $myid,
             $this->id
         ]);
 

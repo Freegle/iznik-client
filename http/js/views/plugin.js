@@ -35,6 +35,9 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 sync = !settings.hasOwnProperty(key) || settings[key];
             }
 
+            // We rely on groupid being present for crumb.
+            group.set('groupid', group.get('id'));
+
             //console.log("doSync", group.get('nameshort'), key, sync, group);
             return(sync);
         }
@@ -94,10 +97,12 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                     // Get a crumb from the relevant group
                     var group = Iznik.Session.getGroup(first.model.get('groupid'));
                     groupname = group.get('nameshort');
+                    //console.log("Get relevant crumb", groupname, first.model);
                 } else {
                     // We're not acting on a specific group.  Get a crumb from one of ours.
                     var groups = Iznik.Session.get('groups');
                     groupname = groups && groups.length > 0 ? groups.at(0).get('nameshort') : null;
+                    //console.log("Get first crumb", groupname, first.model);
                 }
 
                 function getCrumb(ret) {
@@ -105,6 +110,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                     if (ret.indexOf("not allowed to perform this operation") !== -1) {
                         // We can't do this.  Drop it and hope some other mod can.
+                        //console.log("Drop", first);
                         first.drop();
 
                         if (self.currentItem == first) {

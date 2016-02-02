@@ -337,7 +337,9 @@ class messageAPITest extends IznikAPITest {
         $groups = $m->getGroups();
         assertEquals($group1, $groups[0]);
         $p = $m->getPublic();
+        error_log("After approval " . var_export($p, TRUE));
         assertEquals('Approved', $p['groups'][0]['collection']);
+        assertEquals($uid, $p['groups'][0]['approvedby']['id']);
 
         # Plugin work should exist
         $ret = $this->call('plugin', 'GET', []);

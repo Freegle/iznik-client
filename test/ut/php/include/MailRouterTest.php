@@ -218,6 +218,11 @@ class MailRouterTest extends IznikTest {
         $rc = $r->route(NULL);
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
+        # Force some code coverage for approvedby.
+        $r->markApproved();
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $p = $m->getPublic();
+
         error_log(__METHOD__ . " end");
     }
 

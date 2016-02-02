@@ -26,16 +26,22 @@ function handle($dbhr, $dbhm, $u, $realmail, $user) {
         $u = new User($dbhr, $dbhm, $user['id']);
         $u->addEmail($realmail, 1);
         $u->removeEmail($user['email']);
-        $u->addEmail($user['email'], 0);
-        $u->setPrivate('gotrealemail', 1);
+        $rc = $u->addEmail($user['email'], 0);
+
+        if ($rc) {
+            $u->setPrivate('gotrealemail', 1);
+        }
     } else {
         # It does, so we have to do some merging.  Then make sure the useremail is the prerred
         error_log("Merge of {$user['id']} {$user['email']} and $id $realmail required");
         $u = new User($dbhr, $dbhm, $user['id']);
-        $u->merge($user['id'], $id);
-        $dbhm->preQuery("UPDATE users_emails SET preferred = 0 WHERE userid = ?;", [ $user['id'] ]);
-        $dbhm->preQuery("UPDATE users_emails SET preferred = 1 WHERE email = ?;", [ $realmail ]);
-        $u->setPrivate('gotrealemail', 1);
+        $rc = $u->merge($user['id'], $id);
+
+        if ($rc) {
+            $dbhm->preQuery("UPDATE users_emails SET preferred = 0 WHERE userid = ?;", [$user['id']]);
+            $dbhm->preQuery("UPDATE users_emails SET preferred = 1 WHERE email = ?;", [$realmail]);
+            $u->setPrivate('gotrealemail', 1);
+        }
     }
 }
 
