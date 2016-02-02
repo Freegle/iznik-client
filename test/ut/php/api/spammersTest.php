@@ -27,7 +27,7 @@ class spammersAPITest extends IznikAPITest {
         $this->dbhm = $dbhm;
 
         $dbhm->preExec("DELETE FROM spam_users WHERE reason LIKE 'Test reason%';");
-        $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_emails WHERE email IN ('test@test.com', 'test2@test.com'));");
+        $dbhm->preExec("DELETE FROM users WHERE id in (SELECT userid FROM users_emails WHERE email IN ('test@test.com', 'test2@test.com', 'test3@test.com', 'test4@test.com'));");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
 
         $this->group = new Group($this->dbhr, $this->dbhm);
@@ -54,7 +54,8 @@ class spammersAPITest extends IznikAPITest {
 
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $this->user->addEmail('test2@test.com');
+        $u->addEmail('test3@test.com');
+        $u->addEmail('test4@test.com');
 
         # Add them to a group, so that when they get onto a list we can trigger their removal.
         assertTrue($u->addMembership($this->groupid));

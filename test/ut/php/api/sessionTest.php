@@ -98,14 +98,15 @@ class sessionTest extends IznikAPITest {
 
         # Set something
         $ret = $this->call('session', 'PATCH', [
-            'settings' => json_encode([ 'test' => 1])
+            'settings' => json_encode([ 'test' => 1]),
+            'email' => 'test2@test.com'
         ]);
         assertEquals(0, $ret['ret']);
         $ret = $this->call('session','GET', []);
         assertEquals(0, $ret['ret']);
         error_log(var_export($ret, true));
         assertEquals('{"test":1}', $ret['me']['settings']);
-
+        assertEquals('test2@test.com', $ret['me']['email']);
 
         $g->delete();
 
