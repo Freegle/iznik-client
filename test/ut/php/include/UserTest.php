@@ -98,6 +98,27 @@ class userTest extends IznikTest {
         assertEquals($id, $u->findByEmail('test@test.com'));
         assertNull($u->findByEmail('testinvalid@test.com'));
 
+        # Add a new preferred
+        assertGreaterThan(0, $u->addEmail('test3@test.com', 1));
+        $emails = $u->getEmails();
+        assertEquals(2, count($emails));
+        assertEquals(1, $emails[0]['preferred']);
+        assertEquals('test3@test.com', $emails[0]['email']);
+
+        # Change to non-preferred.
+        assertGreaterThan(0, $u->addEmail('test3@test.com', 0));
+        $emails = $u->getEmails();
+        assertEquals(2, count($emails));
+        assertEquals(0, $emails[1]['preferred']);
+        assertEquals('test3@test.com', $emails[1]['email']);
+
+        # Change to preferred.
+        assertGreaterThan(0, $u->addEmail('test3@test.com', 1));
+        $emails = $u->getEmails();
+        assertEquals(2, count($emails));
+        assertEquals(1, $emails[0]['preferred']);
+        assertEquals('test3@test.com', $emails[0]['email']);
+
         # Add them as memberships and check we get the right ones.
         $g = new Group($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);

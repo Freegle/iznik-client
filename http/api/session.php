@@ -118,7 +118,16 @@ function session() {
                     $me->setPrivate('settings', json_encode($settings));
                 }
 
-                $ret = ['ret' => 0, 'status' => 'Success' ];
+                $email = presdef('email', $_REQUEST, NULL);
+
+                $ret = ['ret' => 0, 'status' => 'Success'];
+
+                if ($email) {
+                    $rc = $me->addEmail($email, 1);
+                    if (!$rc) {
+                        $ret = ['ret' => 3, 'status' => 'Email already in use by another user'];
+                    }
+                }
             }
             break;
         }

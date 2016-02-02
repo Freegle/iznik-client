@@ -622,6 +622,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                 id: me.id,
                 displayname: me.displayname,
                 fullname: me.fullname,
+                email: me.email,
                 settings: settings
             });
 
@@ -633,6 +634,12 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     label: 'Display Name',
                     control: 'input',
                     helpMessage: 'This is your name as displayed publicly to other users, including in the $myname substitution string.'
+                },
+                {
+                    name: 'email',
+                    label: 'Email',
+                    type: 'email',
+                    control: 'input'
                 },
                 {
                     name: 'settings.playbeep',

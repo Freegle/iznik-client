@@ -193,7 +193,7 @@ class User extends Entity
     {
         # If the email already exists in the table, then that's fine.  But we don't want to use INSERT IGNORE as
         # that scales badly for clusters.
-        $sql = "SELECT id FROM users_emails WHERE userid = ? AND email LIKE ?;";
+        $sql = "SELECT id, preferred FROM users_emails WHERE userid = ? AND email LIKE ?;";
         $emails = $this->dbhm->preQuery($sql, [
             $this->id,
             $email
@@ -203,8 +203,32 @@ class User extends Entity
             $this->dbhm->preExec("INSERT IGNORE INTO users_emails (userid, email, preferred) VALUES (?, ?, ?)",
                 [$this->id, $email, $primary]);
             $rc = $this->dbhm->lastInsertId();
+
+            if ($rc && $primary) {
+                # Make sure no other email is flagged as primary
+                $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE userid = ? AND id != ?;", [
+                    $this->id,
+                    $rc
+                ]);
+            }
         } else {
             $rc = $emails[0]['id'];
+
+            if ($primary != $emails[0]['preferred']) {
+                # Change in status.
+                $this->dbhm->preExec("UPDATE users_emails SET preferred = ? WHERE id = ?;", [
+                    $primary,
+                    $rc
+                ]);
+
+                if ($primary) {
+                    # Make sure no other email is flagged as primary
+                    $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE userid = ? AND id != ?;", [
+                        $this->id,
+                        $rc
+                    ]);
+                }
+            }
         }
 
         return($rc);
