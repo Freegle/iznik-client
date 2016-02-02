@@ -184,6 +184,18 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                         options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
                     },
                     {
+                        name: 'spammers.check',
+                        label: 'Check for spammer members?',
+                        control: 'radio',
+                        options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                    },
+                    {
+                        name: 'spammers.remove',
+                        label: 'Auto-remove spammer members?',
+                        control: 'radio',
+                        options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                    },
+                    {
                         name: 'keywords.offer',
                         label: 'OFFER keyword',
                         control: 'input'

@@ -159,8 +159,8 @@ class Spam {
         $suspect = FALSE;
         $reason = NULL;
 
-        # Check whether they have applied to a suspicious number of groups.
-        $sql = "SELECT COUNT(DISTINCT(groupid)) AS count FROM memberships WHERE userid = ?;";
+        # Check whether they have applied to a suspicious number of groups, but exclude whitelisted members.
+        $sql = "SELECT COUNT(DISTINCT(groupid)) AS count FROM memberships  LEFT JOIN spam_users ON spam_users.userid = memberships.userid AND spam_users.collection = 'Whitelisted' WHERE memberships.userid = ? AND spam_users.userid IS NULL;";
         $counts = $this->dbhr->preQuery($sql, [ $userid ]);
 
         if ($counts[0]['count'] > Spam::SEEN_THRESHOLD) {
@@ -266,10 +266,14 @@ class Spam {
         $spammers = $this->dbhr->preQuery($sql, [ Spam::TYPE_SPAMMER ]);
 
         foreach ($spammers as $spammer) {
-            $u = new User($this->dbhr, $this->dbhm, $spammer['userid']);
-            error_log("Found spammer {$spammer['userid']}");
-            $u->removeMembership($spammer['groupid'], TRUE, TRUE);
-            $count++;
+            $g = new Group($this->dbhr, $this->dbhm, $spammer['groupid']);
+            $spamcheck = $g->getSetting('spammers', [ 'check' => 1, 'remove' => 1]);
+            if ($spamcheck['check'] && $spamcheck['remove']) {
+                $u = new User($this->dbhr, $this->dbhm, $spammer['userid']);
+                error_log("Found spammer {$spammer['userid']}");
+                $u->removeMembership($spammer['groupid'], TRUE, TRUE);
+                $count++;
+            }
         }
 
         # Find any messages from spammers which are on groups.
@@ -278,10 +282,14 @@ class Spam {
         $spammsgs = $this->dbhr->preQuery($sql, [ Spam::TYPE_SPAMMER ]);
 
         foreach ($spammsgs as $spammsg) {
-            error_log("Found spam message {$spammsg['id']}");
-            $m = new Message($this->dbhr, $this->dbhm, $spammsg['id']);
-            $m->delete("From known spammer {$spammsg['reason']}");
-            $count++;
+            $g = new Group($this->dbhr, $this->dbhm, $spammer['groupid']);
+            $spamcheck = $g->getSetting('spammers', [ 'check' => 1, 'remove' => 1]);
+            if ($spamcheck['check'] && $spamcheck['remove']) {
+                error_log("Found spam message {$spammsg['id']}");
+                $m = new Message($this->dbhr, $this->dbhm, $spammsg['id']);
+                $m->delete("From known spammer {$spammsg['reason']}");
+                $count++;
+            }
         }
 
         return($count);
