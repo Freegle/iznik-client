@@ -80,7 +80,7 @@ function memberships() {
                                 $u = new User($dbhr, $dbhm, $userid);
                                 $atts = $u->getPublic(NULL, TRUE, $logs, $logctx);
                                 $ret['member']['logs'] = $atts['logs'];
-                                $ret['logcontext'] = $ctx;
+                                $ret['logcontext'] = $logctx;
                             }
                         } else {
                             # Get some/all.
