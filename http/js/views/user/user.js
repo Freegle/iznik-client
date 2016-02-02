@@ -263,6 +263,11 @@ Iznik.Views.ModTools.User.Logs = Iznik.Views.Modal.extend({
             },
             success: function(model, response, options) {
                 self.logcontext = response.logcontext;
+                console.log("Log resp", response);
+
+                if (response.member.logs.length > 0) {
+                    self.$('.js-more').show();
+                }
             }
         }).then(function() {
             var logs = self.model.get('logs');
@@ -280,7 +285,6 @@ Iznik.Views.ModTools.User.Logs = Iznik.Views.Modal.extend({
                 self.moreShown = true;
             }
 
-            console.log("Logs", logs);
             if (self.first && (_.isUndefined(logs) || logs.length == 0)) {
                 self.$('.js-none').show();
             }

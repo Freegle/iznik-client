@@ -56,7 +56,13 @@
             <% } else if (subtype == 'RoleChange') { %>
             Role on {{group.namedisplay}} changed to {{text}}
             <% } else if (subtype == 'Merged') { %>
-            {{text}}
+            Detected as the same as another user - {{text}}
+            <% } else if (subtype == 'Accepted') { %>
+            Approved member {{user.displayname}} #{{user.id}} on {{group.namedisplay}}
+            <% } else if (subtype == 'Rejected') { %>
+            Rejected member {{text}} on {{group.namedisplay}} using <em>{{stdmsg.title}}</em>
+            <% } else if (subtype == 'Deleted') { %>
+            Deleted member {{text}} <% if (obj.group) { %>on {{group.namedisplay}}<% } %>
             <% } else if (subtype == 'Mailed') { %>
             Mod sent <% if (obj.stdmsg) { %>standard message <em>{{stdmsg.title}}</em><% } else if (obj.text) { %>{{text}}<% } else { %>mail<% } %>
             <% } else if (subtype == 'Suspect') { %>
@@ -69,6 +75,8 @@
                 Created config {{text}}
             <% } else if (subtype == 'Deleted') { %>
                 Deleted config {{text}}
+            <% } else if (subtype == 'Edit') { %>
+                Edited config {{config.name}}
             <% } else { %>
             <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>
