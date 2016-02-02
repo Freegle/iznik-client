@@ -1128,6 +1128,14 @@ class Message
 
             $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
 
+            $s = new StdMessage($this->dbhr, $this->dbhm, $stdmsgid);
+            $bcc = $s->getBcc();
+
+            if ($bcc) {
+                $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
+                $headers .= "Bcc: $bcc\r\n";
+            }
+
             $this->mailer(
                 $to,
                 $subject,
@@ -1135,21 +1143,6 @@ class Message
                 $headers,
                 "-f" . $g->getModsEmail()
             );
-
-            $s = new StdMessage($this->dbhr, $this->dbhm, $stdmsgid);
-            $bcc = $s->getBcc();
-
-            if ($bcc) {
-                $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
-
-                $this->mailer(
-                    $bcc,
-                    $subject,
-                    $body,
-                    $headers,
-                    "-f" . $g->getModsEmail()
-                );
-            }
         }
     }
 

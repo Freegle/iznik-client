@@ -435,7 +435,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                                 fields: [
                                     {
                                         name: 'cc' + tag + 'to',
-                                        label: 'CC to',
+                                        label: 'BCC to',
                                         disabled: self.locked,
                                         control: 'select',
                                         options: [

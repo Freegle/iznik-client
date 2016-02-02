@@ -962,6 +962,7 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
 
             if (total == 0 || members.length < this.chunkSize) {
                 // Finished.  Now pass these members to the server.
+
                 $.ajaxq('plugin', {
                     type: 'PATCH',
                     url: API + 'memberships',
@@ -1091,16 +1092,15 @@ Iznik.Views.Plugin.Yahoo.RejectPendingMember = Iznik.Views.Plugin.Work.extend({
 
         $.ajaxq('plugin', {
             type: "POST",
-            url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/pending/members",
+            url: YAHOOAPIv2 + 'groups/' + this.model.get('group').nameshort + "/pending/members?gapi_crumb=" + this.crumb,
             data: {
-                R: this.model.get('id'),
-                gapi_crumb: this.crumb
+                R: this.model.get('id')
             }, success: function (ret) {
                 if (ret.hasOwnProperty('ygData') &&
                     ret.ygData.hasOwnProperty('numAccepted') &&
                     ret.ygData.hasOwnProperty('numRejected')) {
                     // If the rection worked, then numRejected = 1.
-                    // If the rejection is no longer relevant because the pending message has gone, both are 0.
+                    // If the rejection is no longer relevant because the pending member has gone, both are 0.
                     if (ret.ygData.numRejected== 1 ||
                         (ret.ygData.numAccepted == 0 && ret.ygData.numRejected == 0)) {
                         self.succeed();
@@ -1129,10 +1129,9 @@ Iznik.Views.Plugin.Yahoo.ApprovePendingMember = Iznik.Views.Plugin.Work.extend({
 
         $.ajaxq('plugin', {
             type: "POST",
-            url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/pending/members",
+            url: YAHOOAPIv2 + 'groups/' + this.model.get('group').nameshort + "/pending/members?gapi_crumb=" + this.crumb,
             data: {
-                A: this.model.get('id'),
-                gapi_crumb: this.crumb
+                A: this.model.get('id')
             }, success: function (ret) {
                 if (ret.hasOwnProperty('ygData') &&
                     ret.ygData.hasOwnProperty('numAccepted') &&

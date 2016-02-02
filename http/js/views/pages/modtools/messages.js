@@ -658,13 +658,17 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
         var message = self.model.get('message');
         var member = self.model.get('member');
 
-        var v = new Iznik.Views.ModTools.StdMessage.Pending.Reject({
-            model: message ? message : member,
-            stdmsg: this.model,
-            config: this.options.config
-        });
+        if (this.options.config) {
+            var v = new Iznik.Views.ModTools.StdMessage.Pending.Reject({
+                model: message ? message : member,
+                stdmsg: this.model,
+                config: this.options.config
+            });
 
-        v.render();
+            v.render();
+        } else {
+            message ? message.reject() : member.reject();
+        }
     },
 
     leave: function() {

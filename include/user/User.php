@@ -817,7 +817,10 @@ class User extends Entity
             }
         }
 
-        if (!array_key_exists('memberof', $atts) && ($systemrole == User::ROLE_OWNER || $systemrole == User::ROLE_MODERATOR)) {
+        if (!array_key_exists('memberof', $atts) &&
+            ($systemrole == User::ROLE_MODERATOR ||
+            $systemrole == User::SYSTEMROLE_ADMIN ||
+            $systemrole == User::SYSTEMROLE_SUPPORT)) {
             # We haven't provided the complete list; get the recent ones (which preserves some privacy for the user but
             # allows us to spot abuse) and any which are on our groups.
             $modids = array_merge([0], $me->getModeratorships());
@@ -838,7 +841,9 @@ class User extends Entity
             $atts['memberof'] = $memberof;
         }
 
-        if ($systemrole == User::ROLE_OWNER || $systemrole == User::ROLE_MODERATOR) {
+        if ($systemrole == User::ROLE_MODERATOR ||
+            $systemrole == User::SYSTEMROLE_ADMIN ||
+            $systemrole == User::SYSTEMROLE_SUPPORT) {
             # As well as being a member of a group, they might have joined and left, or applied and been rejected.
             # This is useful info for moderators.  If the user is suspicious then return the complete list; otherwise
             # just the recent ones.
@@ -1118,7 +1123,7 @@ class User extends Entity
     }
 
     private function maybeMail($groupid, $subject, $body, $stdmsgid) {
-        if ($subject && $body) {
+        if ($body) {
             # We have a mail to send.
             $to = $this->getEmailPreferred();
             $g = new Group($this->dbhr, $this->dbhm, $groupid);
@@ -1132,6 +1137,13 @@ class User extends Entity
             $name = str_replace('$groupname', $atts['namedisplay'], $name);
 
             $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
+            $s = new StdMessage($this->dbhr, $this->dbhm, $stdmsgid);
+            $bcc = $s->getBcc();
+
+            if ($bcc) {
+                $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
+                $headers .= "Bcc: $bcc\r\n";
+            }
 
             $this->mailer(
                 $to,
@@ -1140,21 +1152,6 @@ class User extends Entity
                 $headers,
                 "-f" . $g->getModsEmail()
             );
-
-            $s = new StdMessage($this->dbhr, $this->dbhm, $stdmsgid);
-            $bcc = $s->getBcc();
-
-            if ($bcc) {
-                $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
-
-                $this->mailer(
-                    $bcc,
-                    $subject,
-                    $body,
-                    $headers,
-                    "-f" . $g->getModsEmail()
-                );
-            }
         }
     }
 
