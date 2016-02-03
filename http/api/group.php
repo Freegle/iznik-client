@@ -23,7 +23,7 @@ function group() {
         $id = $g->findByShortName($nameshort);
     }
 
-    if ($id) {
+    if ($id || ($action == 'Create')) {
         $g = new Group($dbhr, $dbhm, $id);
 
         switch ($_REQUEST['type']) {
@@ -68,8 +68,7 @@ function group() {
                     if ($me->isModOrOwner($id)) {
                         $ret = [
                             'ret' => 0,
-                            'status' => 'Success',
-                            'groupid' => $id
+                            'status' => 'Success'
                         ];
 
                         if ($settings) {
@@ -81,6 +80,31 @@ function group() {
 
             case 'POST': {
                 switch ($action) {
+                    case 'Create': {
+                        $ret = [
+                            'ret' => 1,
+                            'status' => 'Not logged in'
+                        ];
+
+                        if ($me) {
+                            $name = presdef('name', $_REQUEST, NULL);
+                            $type = presdef('grouptype', $_REQUEST, NULL);
+                            $id = $g->create($name, $type);
+
+                            $ret = ['ret' => 2, 'status' => 'Create failed'];
+
+                            if ($id) {
+                                $ret = [
+                                    'ret' => 0,
+                                    'status' => 'Success',
+                                    'id' => $id
+                                ];
+                            }
+                        }
+
+                        break;
+                    }
+
                     case 'ConfirmKey': {
                         $ret = [
                             'ret' => 0,

@@ -8,7 +8,14 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         'click .js-addstdmsg': 'addStdMsg',
         'click .js-addconfig': 'addConfig',
         'click .js-deleteconfig': 'deleteConfig',
-        'click .js-copyconfig': 'copyConfig'
+        'click .js-copyconfig': 'copyConfig',
+        'click .js-addgroup': 'addGroup'
+    },
+
+    addGroup: function() {
+        var self = this;
+        var v = new Iznik.Views.ModTools.Settings.AddGroup();
+        v.render();
     },
 
     deleteConfig: function() {
@@ -841,7 +848,7 @@ Iznik.Views.ModTools.Settings.StdMessage = Iznik.Views.Modal.extend({
                         {label: 'Daily Digest', value: 'DIGEST'},
                         {label: 'Web Only', value: 'NONE'},
                         {label: 'Individual Emails', value: 'SINGLE'},
-                        {label: 'Special Notices', value: 'ANNOUNCEMENT'},
+                        {label: 'Special Notices', value: 'ANNOUNCEMENT'}
                     ]
                 },
                 {
@@ -894,11 +901,80 @@ Iznik.Views.ModTools.Settings.Saved = Iznik.Views.Modal.extend({
     }
 });
 
-
 Iznik.Views.ModTools.Settings.SaveFailed = Iznik.Views.Modal.extend({
     template: 'modtools_settings_savefailed',
     render: function() {
         Iznik.Views.Modal.prototype.render.call(this);
     }
+});
+
+Iznik.Views.ModTools.Settings.AddGroup = Iznik.Views.Modal.extend({
+    template: 'modtools_settings_addgroup',
+
+    events: {
+        'click .js-add': 'add'
+    },
+
+    createFailed: function() {
+        var v = new Iznik.Views.ModTools.Settings.CreateFailed();
+        v.render();
+    },
+
+    add: function() {
+        var self = this;
+
+        $.ajax({
+            type: 'POST',
+            url: API + 'group',
+            data: {
+                action: 'Create',
+                name: self.diff[self.$('.js-grouplist').val()],
+                type: self.$('.js-type').val()
+            }, success: function(ret) {
+                if (ret.ret == 0) {
+                    var v = new Iznik.Views.ModTools.Settings.CreateSucceeded();
+                    v.render();
+
+                    // Trigger another list to force the invite and hence the add.
+                    IznikPlugin.listYahooGroups();
+                } else {
+                    self.createFailed();
+                }
+            }, error: self.createFailed
+        });
+    },
+
+    render: function() {
+        var self = this;
+
+        Iznik.Views.Modal.prototype.render.call(this);
+
+        // Get the list of groups from Yahoo.
+        if (IznikPlugin.yahooGroups.length == 0) {
+            self.$('.js-noplugin').removeClass('hidden');
+            self.$('.js-add').addClass('disabled');
+        } else {
+            // Find the groups which aren't on ModTools.
+            var groups = [];
+            Iznik.Session.get('groups').each(function(group) {
+                groups.push(group.get('nameshort').toLowerCase());
+            });
+
+            self.diff = _.difference(IznikPlugin.yahooGroups, groups);
+            _.each(self.diff, function(group, ind) {
+                self.$('.js-grouplist').append('<option value="' + ind + '" />');
+                self.$('.js-grouplist option:last').html(group);
+            });
+            self.$('.js-plugin').removeClass('hidden');
+        }
+    }
+});
+
+Iznik.Views.ModTools.Settings.CreateSucceeded = Iznik.Views.Modal.extend({
+    template: 'modtools_settings_createsucceeded'
+});
+
+Iznik.Views.ModTools.Settings.CreateFailed= Iznik.Views.Modal.extend({
+    template: 'modtools_settings_createfailed'
 });
 

@@ -451,10 +451,19 @@ paths:
         required: true,
         type: number
       - name: action
-        in: query
+        in: body
         description: What action to perform
         type: string
-        enum: ['ConfirmKey']
+        enum: ['ConfirmKey', 'Create']
+      - name: grouptype
+        in: body
+        description: For action = Create, the type of group to create
+        type: string
+        enum: ['Freegle', 'Reuse', 'Other']
+      - name: name
+        in: body
+        description: The short name of the group
+        type: string
       responses:
           "200":
             description: "Successful response"

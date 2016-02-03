@@ -1,0 +1,39 @@
+<div class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="glyphicon glyphicon-remove-circle pull-right glyphicon-larger" class="close" data-dismiss="modal" />
+                <h4 class="modal-title js-modal-title">Add Group</h4>
+            </div>
+            <div class="modal-body js-modal-body">
+                <p>
+                    If ModTools knows about a group already, it'll add it to your settings the first time you use ModTools on a machine with the browser plugin installed.
+                </p>
+                <p>
+                    This lets you add a group that ModTools doesn't know about already.  You need to have the browser plugin installed to do this.
+                </p>
+                <div class="alert alert-danger hidden js-noplugin">
+                    You don't have the plugin installed, or it isn't working.
+                </div>
+                <div class="hidden js-plugin">
+                    <p>
+                        Here are the groups you are a member of on Yahoo but which aren't currently on ModTools.
+                    </p>
+                    <select class="botspace form-control js-grouplist" />
+                    <p>
+                        You also need to tell us the type of the group, so that ModTools knows how to behave.
+                    </p>
+                    <select id="type" class="form-control js-type">
+                        <option value="Reuse" selected>Reuse - a group for OFFERs and WANTEDs of free items</option>
+                        <option value="Other">Other - just a standard Yahoo group</option>
+                        <option value="Freegle">Freegle - part of the Freegle network</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success js-add">Add Group</button>
+                <button type="button" class="btn btn-white" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

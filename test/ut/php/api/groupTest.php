@@ -29,6 +29,7 @@ class groupAPITest extends IznikAPITest {
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test';");
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup2';");
         $dbhm->preExec("DELETE FROM users WHERE yahooUserId = 1;");
 
         # Create a moderator and log in as them
@@ -49,6 +50,31 @@ class groupAPITest extends IznikAPITest {
     }
 
     public function __construct() {
+    }
+
+    public function testCreate()
+    {
+        error_log(__METHOD__);
+
+        # Not logged in - should fail
+        $ret = $this->call('group', 'POST', [
+            'action' => 'Create',
+            'grouptype' => 'Reuse',
+            'name' => 'testgroup'
+        ]);
+        assertEquals(1, $ret['ret']);
+
+        # Logged in
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('group', 'POST', [
+            'action' => 'Create',
+            'grouptype' => 'Reuse',
+            'name' => 'testgroup2'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+
+        error_log(__METHOD__ . " end");
     }
 
     public function testGet() {
