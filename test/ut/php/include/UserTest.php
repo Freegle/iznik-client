@@ -308,6 +308,10 @@ class userTest extends IznikTest {
         $u2->addMembership($group2, User::ROLE_OWNER);
         $u1->addMembership($group3, User::ROLE_MEMBER);
         $u2->addMembership($group3, User::ROLE_MODERATOR);
+        $settings = [ 'test' => 1];
+        $u2->setGroupSettings($group2, $settings);
+        assertEquals([ 'showmessages' => 1, 'showmembers' => 1 ], $u1->getGroupSettings($group2));
+        assertEquals([ 'test' => 1, 'configid' => NULL ], $u2->getGroupSettings($group2));
 
         # Merge u2 into u1
         assertTrue($u1->merge($id1, $id2));
@@ -315,6 +319,8 @@ class userTest extends IznikTest {
         # Pick up new settings.
         $u1 = new User($this->dbhr, $this->dbhm, $id1);
         $u2 = new User($this->dbhr, $this->dbhm, $id2);
+
+        assertEquals([ 'test' => 1, 'configid' => NULL ], $u1->getGroupSettings($group2));
 
         # u2 doesn't exist
         assertNull($u2->getId());
@@ -339,10 +345,11 @@ class userTest extends IznikTest {
         assertEquals('test2@test.com', $emails[1]['email']);
         assertEquals(0, $emails[1]['preferred']);
 
-        $atts = $u1->getPublic(NULL, FALSE, TRUE);
-        error_log("ID is " . $u1->getId() . " public " . var_export($atts, true));
-        $log = $this->findLog('User', 'Merged', $atts['logs']);
-        assertEquals($id1, $log['user']['id']);
+//        Merged logs are hidden.
+//        $atts = $u1->getPublic(NULL, FALSE, TRUE);
+//        error_log("ID is " . $u1->getId() . " public " . var_export($atts, true));
+//        $log = $this->findLog('User', 'Merged', $atts['logs']);
+//        assertEquals($id1, $log['user']['id']);
 
         error_log(__METHOD__ . " end");
     }

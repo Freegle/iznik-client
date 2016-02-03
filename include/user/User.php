@@ -965,17 +965,46 @@ class User extends Entity
 
                         #error_log("Membership UPDATE merge returned $rc2");
                     } else {
-                        # id1 is already a member.  Our new membership has the highest role.
+                        # id1 is already a member, so we really have to merge.
+                        #
+                        # Our new membership has the highest role.
+                        $id1memb = $id1membs[0];
                         #error_log("...as is $id1");
-                        $role = User::roleMax($id1membs[0]['role'], $id2memb['role']);
+                        $role = User::roleMax($id1memb['role'], $id2memb['role']);
 
-                        if ($role != $id1membs[0]['role']) {
+                        if ($role != $id1memb['role']) {
                             $rc2 = $this->dbhm->preExec("UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;", [
                                 $role,
                                 $id1,
                                 $id2memb['groupid']
                             ]);
                             #error_log("Role update returned $rc2");
+                        }
+
+                        if ($rc2) {
+                            #  Our added date should be the older of the two.
+                            $date = min(strtotime($id1memb['added']), strtotime($id2memb['added']));
+                            $mysqltime = date("Y-m-d H:i:s", $date);
+                            $rc2 = $this->dbhm->preExec("UPDATE memberships SET added = ? WHERE userid = ? AND groupid = ?;", [
+                                $mysqltime,
+                                $id1,
+                                $id2memb['groupid']
+                            ]);
+                        }
+
+                        # There are several attributes we want to take the non-NULL version.
+                        foreach (['configid', 'emailid', 'settings', 'heldby'] as $key) {
+                            if ($id2memb[$key]) {
+                                if ($rc2) {
+                                    error_log("Copy $key");
+                                    $rc2 = $this->dbhm->preExec("UPDATE memberships SET $key = ? WHERE userid = ? AND groupid = ?;", [
+                                        $id2memb[$key],
+                                        $role,
+                                        $id1,
+                                        $id2memb['groupid']
+                                    ]);
+                                }
+                            }
                         }
 
                         if ($rc2) {
