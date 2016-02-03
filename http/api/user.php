@@ -72,6 +72,7 @@ function user() {
                         'type' => Log::TYPE_USER,
                         'subtype' => Log::SUBTYPE_YAHOO_DELIVERY_TYPE,
                         'groupid' => $groupid,
+                        'byuser' => $me->getId(),
                         'user' => $id,
                         'text' => $yahooDeliveryType
                     ]);
@@ -92,6 +93,7 @@ function user() {
                         'subtype' => Log::SUBTYPE_YAHOO_POSTING_STATUS,
                         'groupid' => $groupid,
                         'user' => $id,
+                        'byuser' => $me->getId(),
                         'text' => $yahooPostingStatus
                     ]);
 

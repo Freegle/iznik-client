@@ -683,7 +683,7 @@ class User extends Entity
             # - deletion of users due to syncing
             $me = whoAmI($this->dbhr, $this->dbhm);
             $startq = $ctx ? " AND id < {$ctx['id']} " : '';
-            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype = 'Created') AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list')) ORDER BY id DESC LIMIT 50;";
+            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged')) AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list')) ORDER BY id DESC LIMIT 50;";
             $logs = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
             $atts['logs'] = [];
             $groups = [];
@@ -1305,7 +1305,7 @@ class User extends Entity
             $this->log->log([
                 'type' => Log::TYPE_USER,
                 'subtype' => Log::SUBTYPE_HOLD,
-                'msgid' => $this->id,
+                'user' => $this->id,
                 'byuser' => $me ? $me->getId() : NULL
             ]);
         }
@@ -1321,7 +1321,7 @@ class User extends Entity
             $this->log->log([
                 'type' => Log::TYPE_USER,
                 'subtype' => Log::SUBTYPE_RELEASE,
-                'msgid' => $this->id,
+                'user' => $this->id,
                 'byuser' => $me ? $me->getId() : NULL
             ]);
         }

@@ -26,7 +26,7 @@
             <% if (subtype == 'Received') { %>
                 Posted #{{msgid}} <em>{{message.subject}}</em><% if (obj.group) { %> to {{obj.group.namedisplay}}<% } %> via {{message.sourceheader}}
         <% } else if (subtype == 'Approved') { %>
-                Approved #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
+                Approved message #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else if (subtype == 'Rejected') { %>
                 <div class="nomargin alert alert-danger">
                     Rejected #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
@@ -57,7 +57,7 @@
             Role on {{group.namedisplay}} changed to {{text}}
             <% } else if (subtype == 'Merged') { %>
             Detected as the same as another user - {{text}}
-            <% } else if (subtype == 'Accepted') { %>
+            <% } else if (subtype == 'Approved') { %>
             Approved member {{user.displayname}} #{{user.id}} on {{group.namedisplay}}
             <% } else if (subtype == 'Rejected') { %>
             Rejected member {{text}} on {{group.namedisplay}} using <em>{{stdmsg.title}}</em>
@@ -65,6 +65,10 @@
             Deleted member {{text}} <% if (obj.group) { %>on {{group.namedisplay}}<% } %>
             <% } else if (subtype == 'Mailed') { %>
             Mod sent <% if (obj.stdmsg) { %>standard message <em>{{stdmsg.title}}</em><% } else if (obj.text) { %>{{text}}<% } else { %>mail<% } %>
+            <% } else if (subtype == 'Hold') { %>
+            Held member {{user.displayname}} on {{group.namedisplay}}
+            <% } else if (subtype == 'Hold') { %>
+            Released member {{user.displayname}} on {{group.namedisplay}}
             <% } else if (subtype == 'Suspect') { %>
             Detected as suspicious<% if (obj.text) { %>: {{text}}<% } %>
             <% } else { %>

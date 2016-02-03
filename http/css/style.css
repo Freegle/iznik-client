@@ -328,6 +328,10 @@ body {
     padding: 0px !important;
 }
 
+.nopadbot {
+    padding-bottom: 0px !important;
+}
+
 .padtoponly {
     padding-top: 10px !important;
     padding-bottom: 0px !important;
