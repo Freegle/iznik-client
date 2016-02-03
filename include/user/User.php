@@ -996,10 +996,8 @@ class User extends Entity
                         foreach (['configid', 'emailid', 'settings', 'heldby'] as $key) {
                             if ($id2memb[$key]) {
                                 if ($rc2) {
-                                    error_log("Copy $key");
                                     $rc2 = $this->dbhm->preExec("UPDATE memberships SET $key = ? WHERE userid = ? AND groupid = ?;", [
                                         $id2memb[$key],
-                                        $role,
                                         $id1,
                                         $id2memb['groupid']
                                     ]);

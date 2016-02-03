@@ -108,12 +108,10 @@ class Group extends Entity
                 $this->id,
                 MessageCollection::PENDING
             ])[0]['count'] : 0,
-            'pendingother' => $this->dbhr->preQuery($showmessages ?
-                "SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NOT NULL;" :
-                "SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0;", [
+            'pendingother' => $showmessages ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NOT NULL;", [
                 $this->id,
                 MessageCollection::PENDING
-            ])[0]['count'],
+            ])[0]['count'] : 0,
             $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages.date >= '$mysqltime' AND messages_groups.deleted = 0 " . ($showmessages ? "AND messages.heldby IS NULL" : "") . ";", [
                 $this->id,
                 MessageCollection::SPAM
@@ -122,12 +120,10 @@ class Group extends Entity
                 $this->id,
                 MembershipCollection::PENDING
             ])[0]['count'] : 0,
-            'pendingmembersother' => $this->dbhr->preQuery($showmembers ?
-                "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NOT NULL;" :
-                "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ?;", [
+            'pendingmembersother' => $showmembers ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NOT NULL;", [
                 $this->id,
                 MembershipCollection::PENDING
-            ])[0]['count'],
+            ])[0]['count'] : 0,
             'plugin' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM plugin WHERE groupid = ?;", [
                 $this->id
             ])[0]['count']

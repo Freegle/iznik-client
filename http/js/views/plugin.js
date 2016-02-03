@@ -54,20 +54,24 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         });
 
         Iznik.Session.get('groups').each(function (group) {
-            var last = moment(group.get('lastyahoomessagesync'));
-            var hoursago = moment.duration(now.diff(last)).asHours();
+            if (doSync(group, 'showmessages')) {
+                var last = moment(group.get('lastyahoomessagesync'));
+                var hoursago = moment.duration(now.diff(last)).asHours();
 
-            if (hoursago >= 24 && doSync(group, 'showmessages')) {
-                (new Iznik.Views.Plugin.Yahoo.SyncMessages.Approved({model: group})).render();
+                if (hoursago >= 24 && doSync(group, 'showmessages')) {
+                    (new Iznik.Views.Plugin.Yahoo.SyncMessages.Approved({model: group})).render();
+                }
             }
         });
 
         Iznik.Session.get('groups').each(function (group) {
-            var last = moment(group.get('lastyahoomembersync'));
-            var hoursago = moment.duration(now.diff(last)).asHours();
+            if (doSync(group, 'showmembers')) {
+                var last = moment(group.get('lastyahoomembersync'));
+                var hoursago = moment.duration(now.diff(last)).asHours();
 
-            if (hoursago >= 24 && doSync(group, 'showmembers')) {
-                (new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({model: group})).render();
+                if (hoursago >= 24 && doSync(group, 'showmembers')) {
+                    (new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({model: group})).render();
+                }
             }
         });
 
