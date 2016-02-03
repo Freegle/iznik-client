@@ -3,6 +3,11 @@ Iznik.Views.ModTools.User = IznikView.extend({
 
     events: {
         'click .js-posts': 'posts',
+        'click .js-offers': 'offers',
+        'click .js-takens': 'takens',
+        'click .js-wanteds': 'wanteds',
+        'click .js-receiveds': 'receiveds',
+        'click .js-others': 'others',
         'click .js-logs': 'logs',
         'click .js-remove': 'remove',
         'click .js-ban': 'ban',
@@ -10,13 +15,42 @@ Iznik.Views.ModTools.User = IznikView.extend({
         'click .js-spammer': 'spammer'
     },
 
-    posts: function() {
+    showPosts: function(offers, wanteds, takens, receiveds, others) {
         var v = new Iznik.Views.ModTools.User.PostSummary({
             model: this.model,
-            collection: this.historyColl
+            collection: this.historyColl,
+            offers: offers,
+            wanteds: wanteds,
+            takens: takens,
+            receiveds: receiveds,
+            others: others
         });
 
         v.render();
+    },
+
+    posts: function() {
+        this.showPosts(true, true, true, true, true);
+    },
+
+    offers: function() {
+        this.showPosts(true, false, false, false, false);
+    },
+
+    wanteds: function() {
+        this.showPosts(false, true, false, false, false);
+    },
+
+    takens: function() {
+        this.showPosts(false, false, true, false, false);
+    },
+
+    receiveds: function() {
+        this.showPosts(false, false, false, true, false);
+    },
+
+    others: function() {
+        this.showPosts(false, false, false, false, true);
     },
 
     logs: function() {
@@ -210,10 +244,23 @@ Iznik.Views.ModTools.User.PostSummary = Iznik.Views.Modal.extend({
 
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
         this.collection.each(function(message) {
-            var v = new Iznik.Views.ModTools.User.SummaryEntry({
-                model: message
-            });
-            self.$('.js-list').append(v.render().el);
+            var type = message.get('type');
+            var display = false;
+
+            switch (type) {
+                case 'Offer': display = self.options.offers; break;
+                case 'Wanted': display = self.options.wanteds; break;
+                case 'Taken': display = self.options.takens; break;
+                case 'Received': display = self.options.receiveds; break;
+                case 'Other': display = self.options.others; break;
+            }
+
+            if (display) {
+                var v = new Iznik.Views.ModTools.User.SummaryEntry({
+                    model: message
+                });
+                self.$('.js-list').append(v.render().el);
+            }
         });
 
         this.open(null);
