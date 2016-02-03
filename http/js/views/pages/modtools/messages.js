@@ -111,7 +111,7 @@ Iznik.Views.ModTools.Message = IznikView.extend({
 
                 if (fromuser) {
                     _.each(fromuser.messagehistory, function (message) {
-                        if (message.id != id) {
+                        if (message.id != id && message.daysago < 60) {
                             if (canonSubj(message.subject) == subj) {
                                 // No point displaying any group tag in the duplicate.
                                 message.subject = message.subject.replace(/\[.*\](.*)/, "$1");
