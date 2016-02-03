@@ -270,16 +270,21 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             });
         }
 
-        // Check if we are connected to Yahoo by issuing an API call.
-        new majax({
-            type: 'GET',
-            url: 'https://groups.yahoo.com/api/v1/user/groups/all',
-            success: checkResponse(self),
-            error: checkResponse(self),
-            complete: function() {
-                window.setTimeout(_.bind(self.checkPluginStatus, self), 10000);
-            }
-        });
+        if (self.currentItem) {
+            // We are in the middle of work.  Don't query Yahoo as we'll break our crumb.
+            window.setTimeout(_.bind(self.checkPluginStatus, self), 10000);
+        } else {
+            // Check if we are connected to Yahoo by issuing an API call.
+            new majax({
+                type: 'GET',
+                url: 'https://groups.yahoo.com/api/v1/user/groups/all',
+                success: checkResponse(self),
+                error: checkResponse(self),
+                complete: function() {
+                    window.setTimeout(_.bind(self.checkPluginStatus, self), 10000);
+                }
+            });
+        }
 
         // Get our session, both to keep it alive and update any counts.
         Iznik.Session.testLoggedIn();
