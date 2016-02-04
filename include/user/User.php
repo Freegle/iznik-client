@@ -923,7 +923,7 @@ class User extends Entity
     }
 
     public function merge($id1, $id2) {
-        # We want to merge two users.  At present we just merge the memberships, emails and logs; we don't try to
+        # We want to merge two users.  At present we just merge the memberships, comments, emails and logs; we don't try to
         # merge any conflicting settings.
         #
         # Both users might have membership of the same group, including at different levels.
@@ -1041,6 +1041,8 @@ class User extends Entity
                     $this->dbhm->preExec("UPDATE users_banned SET userid = ? WHERE userid = ?;", [$id1, $id2]);
                     $this->dbhm->preExec("UPDATE users_banned SET byuser = ? WHERE byuser = ?;", [$id1, $id2]);
                     $this->dbhm->preExec("UPDATE users_logins SET userid = ? WHERE userid = ?;", [$id1, $id2]);
+                    $this->dbhm->preExec("UPDATE users_comments SET userid = ? WHERE userid = ?;", [$id1, $id2]);
+                    $this->dbhm->preExec("UPDATE users_comments SET byuserid = ? WHERE byuserid = ?;", [$id1, $id2]);
                 }
 
                 # Merge attributes we want to keep if we have them in id2 but not id1.  Some will have unique
