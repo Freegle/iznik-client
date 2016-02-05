@@ -36,6 +36,22 @@ class groupTest extends IznikTest {
     public function __construct() {
     }
 
+    public function testDefaults() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        $this->dbhm->preExec("UPDATE groups SET settings = NULL WHERE id = ?;", [ $gid ]);
+        $g = new Group($this->dbhr, $this->dbhm, $gid);
+        $atts = $g->getPublic();
+
+        assertEquals(1, $atts['settings']['duplicates']['check']);
+
+        assertGreaterThan(0 ,$g->delete());
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testBasic() {
         error_log(__METHOD__);
 

@@ -177,17 +177,17 @@ class userTest extends IznikTest {
     public function testErrors() {
         error_log(__METHOD__);
 
+        $u = new User($this->dbhr, $this->dbhm);
+        assertEquals(0, $u->addEmail('test-owner@yahoogroups.com'));
+
         $mock = $this->getMockBuilder('LoggedPDO')
             ->disableOriginalConstructor()
             ->setMethods(array('preExec'))
             ->getMock();
         $mock->method('preExec')->willThrowException(new Exception());
-        $u = new User($this->dbhr, $this->dbhm);
         $u->setDbhm($mock);
         $id = $u->create(NULL, NULL, 'Test User');
         assertNull($id);
-
-        assertEquals(0, $u->addEmail('test-owner@yahoogroupds.com'));
 
         error_log(__METHOD__ . " end");
     }

@@ -32,21 +32,25 @@ $users = $dbhfd->query("SELECT * FROM facebook");
 
 error_log("Queried");
 
-if (1==0) {
+if (1==1) {
     foreach ($users as $user) {
-        $eid = $u->findByEmail($user['email']);
-        #error_log("{$user['email']} = $eid");
+        try {
+            $eid = $u->findByEmail($user['email']);
+            #error_log("{$user['email']} = $eid");
 
-        if (!$eid) {
-            $uid = $u->create(NULL, NULL, $user['facebookname'], 'Migrated from FD');
-        } else {
-            $u = new User($dbhr, $dbhm, $eid);
-            $u->setPrivate('fullname', $user['facebookname']);
-        }
+            if (!$eid) {
+                $uid = $u->create(NULL, NULL, $user['facebookname'], 'Migrated from FD');
+            } else {
+                $u = new User($dbhr, $dbhm, $eid);
+                $u->setPrivate('fullname', $user['facebookname']);
+            }
 
-        $count++;
-        if ($count % 1000 == 0) {
-            error_log("...$count");
+            $count++;
+            if ($count % 1000 == 0) {
+                error_log("...$count");
+            }
+        } catch (Exception $e) {
+            error_log("Skip FD facebook table {$user['fduniqueid']} with " . $e->getMessage());
         }
     }
 

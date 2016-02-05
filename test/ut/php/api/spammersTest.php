@@ -54,8 +54,8 @@ class spammersAPITest extends IznikAPITest {
 
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test3@test.com');
-        $u->addEmail('test4@test.com');
+        assertGreaterThan(0, $u->addEmail('test3@test.com'));
+        assertGreaterThan(0, $u->addEmail('test4@test.com'));
 
         # Add them to a group, so that when they get onto a list we can trigger their removal.
         assertTrue($u->addMembership($this->groupid));
@@ -268,6 +268,30 @@ class spammersAPITest extends IznikAPITest {
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['spammers']));
+
+        # Report directly to whitelist
+        $ret = $this->call('spammers', 'POST', [
+            'userid' => $uid,
+            'collection' => Spam::TYPE_WHITELIST,
+            'reason' => 'Test reason',
+            'dup' => 82
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $sid = $ret['id'];
+
+        $ret = $this->call('spammers', 'GET', [
+            'collection' => Spam::TYPE_WHITELIST,
+            'search' => 'Test User'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['spammers']));
+
+        $ret = $this->call('spammers', 'DELETE', [
+            'id' => $sid
+        ]);
+
+        assertEquals(0, $ret['ret']);
 
         error_log(__METHOD__ . " end");
     }

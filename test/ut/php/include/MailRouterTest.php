@@ -49,6 +49,66 @@ class MailRouterTest extends IznikTest {
     public function __construct() {
     }
 
+    public function testHam() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        error_log("Created user $uid");
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->setPrivate('yahooUserId', -1);
+        assertGreaterThan(0, $u->addEmail('test@test.com'));
+
+        # Create a different user which will cause a merge.
+        $u2 = new User($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $u2 = new User($this->dbhr, $this->dbhm, $uid2);
+        $u2->setPrivate('yahooUserId', -time());
+        assertGreaterThan(0, $u->addEmail('test2@test.com'));
+
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_replace("X-Yahoo-Group-Post: member; u=420816297", "X-Yahoo-Group-Post: member; u=-1", $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals($uid, $m->getFromuser());
+
+        $msg = file_get_contents('msgs/fromyahoo');
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals('Yahoo-Web', $m->getSourceheader());
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Test group override
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        $msg = file_get_contents('msgs/fromyahoo');
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals('Yahoo-Web', $m->getSourceheader());
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $groups = $m->getGroups();
+        error_log("Groups " . var_export($groups, true));
+        assertEquals($gid, $groups[0]);
+
+        $msg = file_get_contents('msgs/basic');
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals($uid, $m->getFromuser());
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testConfirmMod() {
         error_log(__METHOD__);
 
@@ -646,54 +706,6 @@ class MailRouterTest extends IznikTest {
         $mock->method('beginTransaction')->willReturn(true);
         $r->setDbhm($mock);
         $r->routeAll();
-
-        error_log(__METHOD__ . " end");
-    }
-
-    public function testHam() {
-        error_log(__METHOD__);
-
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        error_log("Created user $uid");
-        $u = new User($this->dbhr, $this->dbhm, $uid);
-        assertGreaterThan(0, $u->addEmail('test@test.com'));
-
-        $msg = file_get_contents('msgs/basic');
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
-
-        $msg = file_get_contents('msgs/fromyahoo');
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals('Yahoo-Web', $m->getSourceheader());
-        $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
-
-        # Test group override
-        $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
-        $msg = file_get_contents('msgs/fromyahoo');
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals('Yahoo-Web', $m->getSourceheader());
-        $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
-        $groups = $m->getGroups();
-        error_log("Groups " . var_export($groups, true));
-        assertEquals($gid, $groups[0]);
-
-        $msg = file_get_contents('msgs/basic');
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals($uid, $m->getFromuser());
 
         error_log(__METHOD__ . " end");
     }
