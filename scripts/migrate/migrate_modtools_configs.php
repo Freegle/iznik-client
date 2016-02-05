@@ -33,7 +33,7 @@ foreach ($oldconfs as $config) {
 
         if (!$modid) {
             error_log("New mod, create user for them");
-            $modid = $u->create(NULL, NULL, $mod['name']);
+            $modid = $u->create(NULL, NULL, $mod['name'], "Migrated from ModTools Configs");
             $u2 = new User($dbhr, $dbhm, $modid);
             $u2->addEmail($mod['email']);
         }
@@ -109,7 +109,7 @@ foreach ($oldconfs as $config) {
                 if (!$modid) {
                     error_log("Don't know {$mod['email']}");
                     $u2 = new User($dbhr, $dbhm);
-                    $modid = $u2->create(NULL, NULL, $mod['name']);
+                    $modid = $u2->create(NULL, NULL, $mod['name'], "Migrated from ModTools Configs");
 
                     # Create a membership for this mod
                     $emailid = $u2->addEmail($mod['email']);

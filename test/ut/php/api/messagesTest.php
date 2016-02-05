@@ -102,6 +102,9 @@ class messagesTest extends IznikAPITest {
         assertEquals($a->getID(), $msgs[0]['id']);
         assertTrue(array_key_exists('source', $msgs[0]));
 
+        # Sleep for background logging
+        sleep(2);
+
         error_log("Fromuser is " . $a->getFromuser());
         $ret = $this->call('user', 'GET', [
             'id' => $a->getFromuser(),

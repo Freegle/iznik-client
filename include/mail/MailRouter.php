@@ -260,7 +260,7 @@ class MailRouter
 
                         if (!$uid) {
                             # We don't know them yet.  Add them.
-                            $u->create(NULL, NULL, $name);
+                            $u->create(NULL, NULL, $name, "Yahoo application from $email to $nameshort");
                             $emailid = $u->addEmail($email);
                         } else {
                             $u = new User($this->dbhr, $this->dbhm, $uid);

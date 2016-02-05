@@ -70,7 +70,7 @@ class Yahoo
                 if ($eid && $yid && $eid != $yid) {
                     # This is a duplicate user.  Merge them.
                     $u = new User($this->dbhr, $this->dbhm);
-                    $u->merge($eid, $yid);
+                    $u->merge($eid, $yid, "Yahoo Login - YahooId $yahooid = $yid, Email {$attrs['contact/email']} = $eid");
                     error_log("Yahoo login found duplicate user, merge $yid into $eid");
                 }
 
@@ -84,7 +84,7 @@ class Yahoo
                     # one would fail.  Bigger fish to fry.
                     #
                     # We don't have the firstname/lastname split, only a single name.  Way two go.
-                    $id = $u->create(NULL, NULL, presdef('namePerson', $attrs, NULL));
+                    $id = $u->create(NULL, NULL, presdef('namePerson', $attrs, NULL), "Yahoo login from $yahooid");
 
                     if ($id) {
                         # Make sure that we have the Yahoo email recorded as one of the emails for this user.

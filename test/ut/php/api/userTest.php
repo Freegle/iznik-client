@@ -167,6 +167,9 @@ class userAPITest extends IznikAPITest {
         ]);
         assertEquals(0, $ret['ret']);
 
+        # Sleep for background logging
+        sleep(2);
+
         $ret = $this->call('user', 'GET', [
             'id' => $this->uid,
             'logs' => TRUE
@@ -178,6 +181,10 @@ class userAPITest extends IznikAPITest {
 
         # Promote.
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+
+        # Sleep for background logging
+        sleep(2);
+
         $ret = $this->call('user', 'GET', [
             'id' => $this->uid,
             'logs' => TRUE

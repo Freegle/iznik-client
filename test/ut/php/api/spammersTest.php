@@ -31,7 +31,7 @@ class spammersAPITest extends IznikAPITest {
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
 
         $this->group = new Group($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
+        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
 
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');

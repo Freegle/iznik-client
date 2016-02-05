@@ -58,7 +58,6 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Page.extend({
                 self.$('.js-none').fadeIn('slow');
             }
 
-            console.log("Fetched ", self.msgs.ret);
             if (self.msgs.ret.messages.length > 0) {
                 // We got some different messages, so set up a scroll handler.  If we didn't get any different
                 // messages, then there's no point - we could keep hitting the server with more requests

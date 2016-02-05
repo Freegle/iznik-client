@@ -31,13 +31,13 @@ foreach ($mods as $mod) {
         $uid2 = $u->findByYahooId($mod['yahooid']);
 
         if ($uid1 && $uid2 && $uid1 != $uid2) {
-            $u->merge($uid1, $uid2);
+            $u->merge($uid1, $uid2, "MigrateMods - {$mod['email']} = $uid1, {$mod['yahooid']} = $uid2");
         }
 
         $uid = $uid1;
 
         if (!$uid) {
-            $uid = $u->create(NULL, NULL, $mod['name']);
+            $uid = $u->create(NULL, NULL, $mod['name'], "Migrated from ModTools Moderators");
         }
 
         if ($uid) {
@@ -45,16 +45,19 @@ foreach ($mods as $mod) {
             $u = new User($dbhr, $dbhm, $uid);
             $u->addLogin('Yahoo', $mod['yahooid']);
             $emailid = $u->addEmail($mod['email'], 1);
-            error_log("Set user $uid to have Yahoo id {$mod['yahooid']}");
-            $u->setPrivate('yahooid', $mod['yahooid']);
 
-            # Assume we're at least a mod - old ModTools doesn't know if we're an owner.
-            $u->addMembership($gid, User::ROLE_MODERATOR, $emailid);
+            if ($emailid) {
+                error_log("Set user $uid to have Yahoo id {$mod['yahooid']}");
+                $u->setPrivate('yahooid', $mod['yahooid']);
 
-            $u->setGroupSettings($gid, [
-                'showmessages' => intval($mod['showinallmessages']),
-                'showmembers' => intval($mod['showinallmembers'])
-            ]);
+                # Assume we're at least a mod - old ModTools doesn't know if we're an owner.
+                $u->addMembership($gid, User::ROLE_MODERATOR, $emailid);
+
+                $u->setGroupSettings($gid, [
+                    'showmessages' => intval($mod['showinallmessages']),
+                    'showmembers' => intval($mod['showinallmembers'])
+                ]);
+            }
         }
     }
 }

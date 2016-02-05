@@ -145,6 +145,9 @@ class membershipsAPITest extends IznikAPITest {
         assertEquals(1, count($ret['members']));
         assertEquals($this->uid, $ret['members'][0]['id']);
 
+        # Sleep for background logging
+        sleep(2);
+
         $ret = $this->call('memberships', 'GET', [
             'groupid' => $this->groupid,
             'userid' => $this->uid,

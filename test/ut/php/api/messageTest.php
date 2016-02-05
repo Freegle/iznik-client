@@ -320,6 +320,9 @@ class messageAPITest extends IznikAPITest {
         ]);
         assertEquals(0, $ret['ret']);
 
+        # Sleep for background logging
+        sleep(2);
+
         # Get the logs - should reference the stdmsg.
         $ret = $this->call('user', 'GET', [
             'id' => $uid,

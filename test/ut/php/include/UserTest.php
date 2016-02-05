@@ -187,6 +187,8 @@ class userTest extends IznikTest {
         $id = $u->create(NULL, NULL, 'Test User');
         assertNull($id);
 
+        assertEquals(0, $u->addEmail('test-owner@yahoogroupds.com'));
+
         error_log(__METHOD__ . " end");
     }
 
@@ -314,7 +316,7 @@ class userTest extends IznikTest {
         assertEquals([ 'test' => 1, 'configid' => NULL ], $u2->getGroupSettings($group2));
 
         # Merge u2 into u1
-        assertTrue($u1->merge($id1, $id2));
+        assertTrue($u1->merge($id1, $id2, "UT"));
 
         # Pick up new settings.
         $u1 = new User($this->dbhr, $this->dbhm, $id1);
@@ -396,7 +398,7 @@ class userTest extends IznikTest {
         $u1->setDbhm($mock);
 
         # Merge u2 into u1
-        assertFalse($u1->merge($id1, $id2));
+        assertFalse($u1->merge($id1, $id2, "UT"));
 
         # Pick up new settings.
         $u1 = new User($this->dbhr, $this->dbhm, $id1);

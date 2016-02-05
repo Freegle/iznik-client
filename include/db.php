@@ -84,7 +84,7 @@ class LoggedPDO {
         return($this->prex($sql, $params, FALSE, $log));
     }
 
-    public function preQuery($sql, $params = NULL, $log = TRUE) {
+    public function preQuery($sql, $params = NULL, $log = FALSE) {
         return($this->prex($sql, $params, TRUE, $log));
     }
 
@@ -156,6 +156,14 @@ class LoggedPDO {
             $this->giveUp($msg . " for $sql " . var_export($params, true) . " " . var_export($this->_db->errorInfo(), true));
 
         $this->dbwaittime += microtime(true) - $start;
+
+        if ($log && SQLLOG) {
+            $mysqltime = date("Y-m-d H:i:s", time());
+            $duration = microtime(true) - $start;
+            $logret = $select ? count($ret) : ("$ret:" . $this->lastInsert);
+            $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote($sql . ", " . var_export($params, TRUE)) . "," . $this->quote($logret) . ");";
+            $this->background($logsql);
+        }
 
         if ($this->errorLog) {
             error_log(((microtime(true) - $start) * 1000) . "ms for $sql");
@@ -277,14 +285,32 @@ class LoggedPDO {
 
     public function rollBack() {
         $this->inTransaction = FALSE;
-        return($this->_db->rollBack());
+
+        $time = microtime(true);
+        $rc = $this->_db->rollBack();
+        $duration = microtime(true) - $time;
+        $mysqltime = date("Y-m-d H:i:s", time());
+
+        if (SQLLOG) {
+            $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote('ROLLBACK;') . "," . $this->quote($rc) . ");";
+            $this->background($logsql);
+        }
+
+        return($rc);
     }
 
     public function beginTransaction() {
         $this->inTransaction = TRUE;
         $this->transactionStart = microtime(true);
         $ret = $this->_db->beginTransaction ();
-        $this->dbwaittime += microtime(true) - $this->transactionStart;
+        $duration = microtime(true) - $this->transactionStart;
+        $this->dbwaittime += $duration;
+
+        if (SQLLOG) {
+            $mysqltime = date("Y-m-d H:i:s", time());
+            $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote('BEGIN TRANSACTION;') . "," . $this->quote($ret . ":" . $this->lastInsert) . ");";
+            $this->background($logsql);
+        }
 
         return($ret);
     }
@@ -297,8 +323,16 @@ class LoggedPDO {
 
         # ...but issue it anyway to get the states in sync
         $this->_db->commit();
+        $duration = microtime(true) - $time;
 
-        $this->dbwaittime += microtime(true) - $time;
+        $this->dbwaittime += $duration;
+
+        if (SQLLOG) {
+            $mysqltime = date("Y-m-d H:i:s", time());
+            $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote('COMMIT;') . "," . $this->quote($rc) . ");";
+            $this->background($logsql);
+        }
+
         $this->inTransaction = FALSE;
 
         return($rc);
@@ -309,14 +343,18 @@ class LoggedPDO {
         $ret = $this->retryExec($sql);
         $this->lastInsert = $this->_db->lastInsertId();
 
+        if ($log && SQLLOG) {
+            $mysqltime = date("Y-m-d H:i:s", time());
+            $duration = microtime(true) - $time;
+            $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote($sql) . "," . $this->quote($ret . ":" . $this->lastInsert) . ");";
+            $this->background($logsql);
+        }
+
         return($ret);
     }
 
-    public function query($sql, $log = true) {
-        $time = microtime(true);
+    public function query($sql) {
         $ret = $this->retryQuery($sql);
-        $duration = microtime(true) - $time;
-
         return($ret);
     }
 

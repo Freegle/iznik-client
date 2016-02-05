@@ -50,20 +50,19 @@ class Log
     }
 
     public function log($params) {
-        # TODO background
         # We assume that the parameters passed match fields in the logs table.
         # If they don't, the caller is at fault and should be taken out and shot.
-        $p = [];
+        $q = [];
         foreach ($params as $key => $val) {
-            $p[] = ":$key";
+            $q[] = $this->dbhm->quote($val);
         }
 
         $atts = implode('`,`', array_keys($params));
+        $vals = implode(',', $q);
 
-        $sql = "INSERT INTO logs (`$atts`) VALUES (" .
-            implode(',', $p) . ");";
+        $sql = "INSERT INTO logs (`$atts`) VALUES ($vals);";
 
         # No need to check return code - if it doesn't work, nobody dies.
-        $rc = $this->dbhm->preExec($sql, $params);
+        $this->dbhm->background($sql);
     }
 }

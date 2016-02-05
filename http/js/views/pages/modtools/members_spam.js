@@ -134,7 +134,8 @@ Iznik.Views.ModTools.Member.Spam = Iznik.Views.ModTools.Member.extend({
             type: 'PATCH',
             data: {
                 'suspectcount': 0,
-                'suspectreason': null
+                'suspectreason': null,
+                'groupid' : self.model.get('groupid')
             }, success: function(ret) {
                 self.$el.fadeOut('slow', function() {
                     self.remove();

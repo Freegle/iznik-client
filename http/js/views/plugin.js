@@ -6,6 +6,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     retrying: [],
     currentItem: null,
     yahooGroups: [],
+    yahooGroupsWithPendingMessages: [],
+    yahooGroupsWithPendingMembers: [],
 
     render: function() {
         window.setTimeout(_.bind(this.checkPluginStatus, this), 3000);
@@ -23,6 +25,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
     startSyncs: function() {
         var now = moment();
+        var self = this;
 
         function doSync(group, key) {
             // Whether we start a sync depends on whether we are showing the group in All Groups.  This allows people
@@ -44,32 +47,38 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
         // Start pending syncs first because if they're wrong, that's normally more annoying.
         Iznik.Session.get('groups').each(function (group) {
-            if (doSync(group, 'showmessages')) {
-                (new Iznik.Views.Plugin.Yahoo.SyncMessages.Pending({model: group})).render();
+            // We know from our Yahoo scan whether there is any work to do.
+            if (self.yahooGroupsWithPendingMessages.indexOf(group.get('nameshort').toLowerCase()) != -1 &&
+                doSync(group, 'showmessages')) {
+                    (new Iznik.Views.Plugin.Yahoo.SyncMessages.Pending({model: group})).render();
             }
 
-            if (doSync(group, 'showmembers')) {
-                (new Iznik.Views.Plugin.Yahoo.SyncMembers.Pending({model: group})).render();
+            if (self.yahooGroupsWithPendingMembers.indexOf(group.get('nameshort').toLowerCase()) != -1 &&
+                doSync(group, 'showmembers')) {
+                    (new Iznik.Views.Plugin.Yahoo.SyncMembers.Pending({model: group})).render();
             }
         });
 
         Iznik.Session.get('groups').each(function (group) {
             if (doSync(group, 'showmessages')) {
-                var last = moment(group.get('lastyahoomessagesync'));
+                var lastsync = group.get('lastyahoomessagesync');
+                var last = moment(lastsync);
                 var hoursago = moment.duration(now.diff(last)).asHours();
 
-                if (hoursago >= 24 && doSync(group, 'showmessages')) {
+                if ((_.isUndefined(lastsync) || hoursago >= 24) && doSync(group, 'showmessages')) {
                     (new Iznik.Views.Plugin.Yahoo.SyncMessages.Approved({model: group})).render();
                 }
             }
         });
 
         Iznik.Session.get('groups').each(function (group) {
+            //console.log("Consider membersync", group.get('nameshort'), group.get('lastyahoomembersync'), doSync(group, 'showmembers'));
             if (doSync(group, 'showmembers')) {
-                var last = moment(group.get('lastyahoomembersync'));
+                var lastsync = group.get('lastyahoomembersync');
+                var last = moment(lastsync);
                 var hoursago = moment.duration(now.diff(last)).asHours();
 
-                if (hoursago >= 24 && doSync(group, 'showmembers')) {
+                if ((_.isUndefined(lastsync) || hoursago >= 24) && doSync(group, 'showmembers')) {
                     (new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({model: group})).render();
                 }
             }
@@ -457,6 +466,16 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 _.each(ret.ygData.allMyGroups, function(group) {
                     if (group.membership == "MOD" || group.membership == "OWN") {
                         self.yahooGroups.push(group.groupName.toLocaleLowerCase());
+
+                        if (group.hasOwnProperty('pendingCountMap') &&
+                            (group.pendingCountMap.hasOwnProperty('MESSAGE_COUNT') && group.pendingCountMap.MESSAGE_COUNT != 0)) {
+                            self.yahooGroupsWithPendingMessages.push(group.groupName.toLocaleLowerCase());
+                        }
+
+                        if (group.hasOwnProperty('pendingCountMap') &&
+                            (group.pendingCountMap.hasOwnProperty('MEM_COUNT') && group.pendingCountMap.MEM_COUNT != 0)) {
+                            self.yahooGroupsWithPendingMembers.push(group.groupName.toLocaleLowerCase());
+                        }
                     }
                 });
 
@@ -503,8 +522,11 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 // then we need to prove to the server that we're a mod so that we can auto-add it to
                 // our list of groups.  We do this by triggering an invitation, which is something only mods
                 // can do.
-                _.each(serverMissing, function(group) {
+                //
+                // No point doing too many as Yahoo has a limit on invitations.
+                _.each(_.first(serverMissing, 50), function(group) {
                     var g = new Iznik.Models.Group({ id: group});
+
                     g.fetch().then(function() {
                         // The group is hosted by the server; trigger a confirm.  First we need a confirm key.
                         $.ajax({

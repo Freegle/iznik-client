@@ -800,7 +800,7 @@ class Message
                             $name = $matches[1];
                         }
 
-                        if ($userid = $u->create(NULL, NULL, $name)) {
+                        if ($userid = $u->create(NULL, NULL, $name, "Incoming message from {$this->fromaddr} on $groupname")) {
                             # If any of these fail, then we'll pick it up later when we do a sync with the source group,
                             # so no need for a transaction.
                             $u = new User($this->dbhr, $this->dbhm, $userid);
@@ -821,7 +821,7 @@ class Message
                             $otherid = $u->findByYahooUserId($matches[1]);
                             if ($otherid && $otherid !== $userid) {
                                 # Yes there is - merge.
-                                $u->merge($userid, $otherid);
+                                $u->merge($userid, $otherid, "Incoming Message - YahooUserId {$matches[1]} = $otherid, Email {$this->fromaddr} = $userid");
                             } else {
                                 # No there's not - just update.
                                 $u->setPrivate('yahooUserId', $matches[1]);

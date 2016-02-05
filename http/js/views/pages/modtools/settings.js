@@ -9,13 +9,36 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         'click .js-addconfig': 'addConfig',
         'click .js-deleteconfig': 'deleteConfig',
         'click .js-copyconfig': 'copyConfig',
-        'click .js-addgroup': 'addGroup'
+        'click .js-addgroup': 'addGroup',
+        'click .js-hideall': 'hideAll'
     },
 
     addGroup: function() {
         var self = this;
         var v = new Iznik.Views.ModTools.Settings.AddGroup();
         v.render();
+    },
+
+    hideAll: function() {
+        var self = this;
+        Iznik.Session.get('groups').each(function(group) {
+            var membership = new Iznik.Models.Membership({
+                groupid: group.get('id'),
+                userid: Iznik.Session.get('me').id
+            });
+
+            membership.fetch().then(function() {
+                var mod = new IznikModel(membership.get('settings'));
+                mod.set('showmessages', 0);
+                mod.set('showmembers', 0);
+                var newdata = mod.toJSON();
+                membership.save({
+                    'settings': newdata
+                }, {
+                    patch: true
+                });
+            });
+        });
     },
 
     deleteConfig: function() {

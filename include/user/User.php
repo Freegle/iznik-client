@@ -92,7 +92,7 @@ class User extends Entity
         $this->dbhm = $dbhm;
     }
 
-    public function create($firstname, $lastname, $fullname) {
+    public function create($firstname, $lastname, $fullname, $reason = '') {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         try {
@@ -111,7 +111,7 @@ class User extends Entity
                 'subtype' => Log::SUBTYPE_CREATED,
                 'user' => $id,
                 'byuser' => $me ? $me->getId() : NULL,
-                'text' => $this->getName()
+                'text' => $this->getName() . " #$id " . $reason
             ]);
 
             return($id);
@@ -191,42 +191,47 @@ class User extends Entity
 
     public function addEmail($email, $primary = 1)
     {
-        # If the email already exists in the table, then that's fine.  But we don't want to use INSERT IGNORE as
-        # that scales badly for clusters.
-        $sql = "SELECT id, preferred FROM users_emails WHERE userid = ? AND email LIKE ?;";
-        $emails = $this->dbhm->preQuery($sql, [
-            $this->id,
-            $email
-        ]);
-
-        if (count($emails) == 0) {
-            $this->dbhm->preExec("INSERT IGNORE INTO users_emails (userid, email, preferred) VALUES (?, ?, ?)",
-                [$this->id, $email, $primary]);
-            $rc = $this->dbhm->lastInsertId();
-
-            if ($rc && $primary) {
-                # Make sure no other email is flagged as primary
-                $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE userid = ? AND id != ?;", [
-                    $this->id,
-                    $rc
-                ]);
-            }
+        if (stripos($email, '-owner@yahoogroups.co') !== FALSE) {
+            # We don't allow people to add Yahoo owner addresses as the address of an individual user.
+            $rc = 0;
         } else {
-            $rc = $emails[0]['id'];
+            # If the email already exists in the table, then that's fine.  But we don't want to use INSERT IGNORE as
+            # that scales badly for clusters.
+            $sql = "SELECT id, preferred FROM users_emails WHERE userid = ? AND email LIKE ?;";
+            $emails = $this->dbhm->preQuery($sql, [
+                $this->id,
+                $email
+            ]);
 
-            if ($primary != $emails[0]['preferred']) {
-                # Change in status.
-                $this->dbhm->preExec("UPDATE users_emails SET preferred = ? WHERE id = ?;", [
-                    $primary,
-                    $rc
-                ]);
+            if (count($emails) == 0) {
+                $this->dbhm->preExec("INSERT IGNORE INTO users_emails (userid, email, preferred) VALUES (?, ?, ?)",
+                    [$this->id, $email, $primary]);
+                $rc = $this->dbhm->lastInsertId();
 
-                if ($primary) {
+                if ($rc && $primary) {
                     # Make sure no other email is flagged as primary
                     $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE userid = ? AND id != ?;", [
                         $this->id,
                         $rc
                     ]);
+                }
+            } else {
+                $rc = $emails[0]['id'];
+
+                if ($primary != $emails[0]['preferred']) {
+                    # Change in status.
+                    $this->dbhm->preExec("UPDATE users_emails SET preferred = ? WHERE id = ?;", [
+                        $primary,
+                        $rc
+                    ]);
+
+                    if ($primary) {
+                        # Make sure no other email is flagged as primary
+                        $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE userid = ? AND id != ?;", [
+                            $this->id,
+                            $rc
+                        ]);
+                    }
                 }
             }
         }
@@ -448,7 +453,8 @@ class User extends Entity
                     $thisone['cansee'] = ModConfig::CANSEE_SHARED;
                     $u = new User($this->dbhr, $this->dbhm, $id['userid']);
                     $g = new Group($this->dbhr, $this->dbhm, $id['groupid']);
-                    $thisone['sharedby'] = $u->getPublic(NULL, FALSE);
+                    $ctx = NULL;
+                    $thisone['sharedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
                     $thisone['sharedon'] = $g->getPublic();
                 }
             }
@@ -640,7 +646,7 @@ class User extends Entity
         return($rc);
     }
 
-    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE) {
+    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE) {
         $atts = parent::getPublic();
 
         $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [];
@@ -672,7 +678,7 @@ class User extends Entity
         # Add in a count of recent "modmail" type logs which a mod might care about.
         #
         # Exclude the logs which are due to standard message syncing.
-        $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? AND type = 'Message' AND subtype IN ('Rejected', 'Deleted') AND text NOT IN ('Not present on Yahoo');";
+        $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejeted', 'Deleted'))) AND text NOT IN ('Not present on Yahoo');";
         $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
         $alarms = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
         $atts['modmails'] = $alarms[0]['count'];
@@ -817,7 +823,8 @@ class User extends Entity
             }
         }
 
-        if (!array_key_exists('memberof', $atts) &&
+        if ($memberof &&
+            !array_key_exists('memberof', $atts) &&
             ($systemrole == User::ROLE_MODERATOR ||
             $systemrole == User::SYSTEMROLE_ADMIN ||
             $systemrole == User::SYSTEMROLE_SUPPORT)) {
@@ -841,7 +848,8 @@ class User extends Entity
             $atts['memberof'] = $memberof;
         }
 
-        if ($systemrole == User::ROLE_MODERATOR ||
+        if ($applied &&
+            $systemrole == User::ROLE_MODERATOR ||
             $systemrole == User::SYSTEMROLE_ADMIN ||
             $systemrole == User::SYSTEMROLE_SUPPORT) {
             # As well as being a member of a group, they might have joined and left, or applied and been rejected.
@@ -922,7 +930,7 @@ class User extends Entity
         return($role);
     }
 
-    public function merge($id1, $id2) {
+    public function merge($id1, $id2, $reason) {
         # We want to merge two users.  At present we just merge the memberships, comments, emails and logs; we don't try to
         # merge any conflicting settings.
         #
@@ -1034,12 +1042,13 @@ class User extends Entity
                 }
 
                 if ($rc) {
-                    # Merge other foreign keys where success is less important.
+                    # Merge other foreign keys where success is less important.  For some of these there might already
+                    # be entries, so we do an IGNORE.
                     $this->dbhm->preExec("UPDATE locations_excluded SET userid = ? WHERE userid = ?;", [$id1, $id2]);
-                    $this->dbhm->preExec("UPDATE spam_users SET userid = ? WHERE userid = ?;", [$id1, $id2]);
-                    $this->dbhm->preExec("UPDATE spam_users SET byuserid = ? WHERE byuserid = ?;", [$id1, $id2]);
-                    $this->dbhm->preExec("UPDATE users_banned SET userid = ? WHERE userid = ?;", [$id1, $id2]);
-                    $this->dbhm->preExec("UPDATE users_banned SET byuser = ? WHERE byuser = ?;", [$id1, $id2]);
+                    $this->dbhm->preExec("UPDATE IGNORE spam_users SET userid = ? WHERE userid = ?;", [$id1, $id2]);
+                    $this->dbhm->preExec("UPDATE IGNORE spam_users SET byuserid = ? WHERE byuserid = ?;", [$id1, $id2]);
+                    $this->dbhm->preExec("UPDATE IGNORE users_banned SET userid = ? WHERE userid = ?;", [$id1, $id2]);
+                    $this->dbhm->preExec("UPDATE IGNORE users_banned SET byuser = ? WHERE byuser = ?;", [$id1, $id2]);
                     $this->dbhm->preExec("UPDATE users_logins SET userid = ? WHERE userid = ?;", [$id1, $id2]);
                     $this->dbhm->preExec("UPDATE users_comments SET userid = ? WHERE userid = ?;", [$id1, $id2]);
                     $this->dbhm->preExec("UPDATE users_comments SET byuserid = ? WHERE byuserid = ?;", [$id1, $id2]);
@@ -1051,7 +1060,7 @@ class User extends Entity
                     $users = $this->dbhm->preQuery("SELECT $att FROM users WHERE id = ?;", [ $id2 ]);
                     foreach ($users as $user) {
                         $this->dbhm->preExec("UPDATE users SET $att = NULL WHERE id = ?;", [ $id2 ]);
-                        $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = ?;", [ $user[$att], $id1 ]);
+                        $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = ? AND $att IS NULL;", [ $user[$att], $id1 ]);
                     }
                 }
 
@@ -1104,7 +1113,7 @@ class User extends Entity
                         'subtype' => Log::SUBTYPE_MERGED,
                         'user' => $id2,
                         'byuser' => $me ? $me->getId() : NULL,
-                        'text' => "Merged $id1 into $id2"
+                        'text' => "Merged $id1 into $id2 ($reason)"
                     ]);
 
                     # Log under both users to make sure we can trace it.
@@ -1113,12 +1122,12 @@ class User extends Entity
                         'subtype' => Log::SUBTYPE_MERGED,
                         'user' => $id1,
                         'byuser' => $me ? $me->getId() : NULL,
-                        'text' => "Merged $id1 into $id2"
+                        'text' => "Merged $id1 into $id2 ($reason)"
                     ]);
 
                     # Finally, delete id2.
                     #error_log("Delete $id2");
-                    #error_log("Merged $id1 into $id2");
+                    error_log("Merged $id1 < $id2, $reason");
                     $deleteme = new User($this->dbhr, $this->dbhm, $id2);
                     $rc = $deleteme->delete();
                 }
@@ -1126,6 +1135,11 @@ class User extends Entity
                 if ($rc) {
                     # Everything worked.
                     $rollback = FALSE;
+
+                    # We might have merged ourself!
+                    if (pres('id', $_SESSION) == $id2) {
+                        $_SESSION['id'] = $id1;
+                    }
                 }
             } catch (Exception $e) {
                 error_log("Merge exception " . $e->getMessage());

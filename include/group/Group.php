@@ -21,6 +21,34 @@ class Group extends Entity
     {
         $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts);
 
+        $this->defaultSettings = [
+            'autoapprove' => [
+                'members' => 0,
+                'messages' => 0
+            ], 'duplicates' => [
+                'check' => 1,
+                'offer' => 7,
+                'taken' => 7,
+                'wanted' => 14,
+                'received' => 14
+            ], 'spammers' => [
+                'check' => $this->group['type'] == Group::GROUP_FREEGLE,
+                'remove' => $this->group['type'] == Group::GROUP_FREEGLE
+            ], 'joiners' => [
+                'check' => 1,
+                'threshold' => 5
+            ], 'keywords' => [
+                'OFFER' => 'OFFER',
+                'TAKEN' => 'TAKEN',
+                'WANTED' => 'WANTED',
+                'RECEIVED' => 'RECEIVED'
+            ]
+        ];
+
+        if (!$this->group['settings'] || strlen($this->group['settings']) == 0) {
+            $this->group['settings'] = json_encode($this->defaultSettings);
+        }
+
         $this->log = new Log($dbhr, $dbhm);
     }
 
@@ -276,15 +304,15 @@ class Group extends Entity
                     $emailinfo = $u->getIdForEmail($memb['email']);
                     $emailid = $emailinfo ? $emailinfo['userid'] : NULL;
 
+                    $reason = "SetMembers {$this->group['nameshort']} - YahooId " . presdef('yahooid', $memb, '') . " = $yuid, YahooUserId " . presdef('yahooUserId', $memb, '') . " = $yiduid, Email {$memb['email']} = $emailid";
+
                     # Now merge any different ones.
-                    if ($emailid && $yuid && $emailid!= $yuid) {
-                        $mergerc = $u->merge($emailid, $yuid);
-                        error_log("Duplicate user by yahooid $emailid, $yuid on {$this->group['nameshort']} merged $mergerc");
+                    if ($emailid && $yuid && $emailid != $yuid) {
+                        $mergerc = $u->merge($emailid, $yuid, $reason);
                     }
 
                     if ($emailid && $yiduid && $emailid != $yiduid && $yiduid != $yuid) {
-                        $mergerc = $u->merge($emailid, $yiduid);
-                        error_log("Duplicate user by yahooUserId $emailid, $yiduid on {$this->group['nameshort']} merged $mergerc");
+                        $mergerc = $u->merge($emailid, $yiduid, $reason);
                     }
 
                     # Pick a non-null one.
@@ -295,11 +323,13 @@ class Group extends Entity
                         # We don't - create them.
                         preg_match('/(.*)@/', $memb['email'], $matches);
                         $name = presdef('name', $memb, $matches[1]);
-                        $uid = $u->create(NULL, NULL, $name);
+                        $uid = $u->create(NULL, NULL, $name, "During SetMembers for {$this->group['nameshort']}");
 
                         if (pres('yahooUserId', $memb)) {
                             $u->setPrivate('yahooUserId', $memb['yahooUserId']);
                         }
+                    } else {
+                        $u = new User($this->dbhr, $this->dbhm, $uid);
                     }
 
                     if (!$emailid) {

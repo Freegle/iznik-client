@@ -35,7 +35,7 @@ function handle($dbhr, $dbhm, $u, $realmail, $user) {
         # It does, so we have to do some merging.  Then make sure the useremail is the prerred
         error_log("Merge of {$user['id']} {$user['email']} and $id $realmail required");
         $u = new User($dbhr, $dbhm, $user['id']);
-        $rc = $u->merge($user['id'], $id);
+        $rc = $u->merge($user['id'], $id, "RealEmails - $realmail = $id, {$user['email']} = {$user['id']}");
 
         if ($rc) {
             $dbhm->preQuery("UPDATE users_emails SET preferred = 0 WHERE userid = ?;", [$user['id']]);

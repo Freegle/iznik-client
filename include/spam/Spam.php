@@ -283,7 +283,9 @@ class Spam {
 
         foreach ($spammsgs as $spammsg) {
             $g = new Group($this->dbhr, $this->dbhm, $spammer['groupid']);
-            $spamcheck = $g->getSetting('spammers', [ 'check' => 1, 'remove' => 1]);
+
+            # Only remove on Freegle groups by default.
+            $spamcheck = $g->getSetting('spammers', [ 'check' => 1, 'remove' => $g->getPrivate('type') == Group::GROUP_FREEGLE]);
             if ($spamcheck['check'] && $spamcheck['remove']) {
                 error_log("Found spam message {$spammsg['id']}");
                 $m = new Message($this->dbhr, $this->dbhm, $spammsg['id']);

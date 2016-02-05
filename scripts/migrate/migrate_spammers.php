@@ -31,7 +31,7 @@ foreach ($spammers as $spammer) {
     $modid = $u->findByEmail($spammer['modemail']);
 
     if (!$id) {
-        $id = $u->create(NULL, NULL, NULL);
+        $id = $u->create(NULL, NULL, NULL, "Migrated from ModTools SpammerList");
         #error_log("Not known, created $id");
         $u->addEmail($spammer['email']);
     }

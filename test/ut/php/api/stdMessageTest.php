@@ -17,6 +17,8 @@ require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 class stdMessageAPITest extends IznikAPITest {
     public $dbhr, $dbhm;
 
+    private $count = 0;
+
     protected function setUp() {
         parent::setUp ();
 
@@ -41,10 +43,11 @@ class stdMessageAPITest extends IznikAPITest {
         # Create an empty config
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         assertTrue($this->user->login('testpw'));
-        #error_log("Last post {$_SESSION['POSTLASTDATA']}");
+        @session_start();
+        error_log("Last post " . presdef('POSTLASTDATA', $_SESSION, 'None'));
         $ret = $this->call('modconfig', 'POST', [
             'name' => 'UTTest',
-            'dup' => time()
+            'dup' => time() . rand()
         ]);
         assertEquals(0, $ret['ret']);
         $this->cid = $ret['id'];
@@ -189,7 +192,8 @@ class stdMessageAPITest extends IznikAPITest {
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         $ret = $this->call('stdmsg', 'POST', [
             'configid' => $this->cid,
-            'title' => 'UTTest'
+            'title' => 'UTTest',
+            'dup' => time() . $this->count++
         ]);
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];

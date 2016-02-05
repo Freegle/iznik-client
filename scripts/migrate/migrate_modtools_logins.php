@@ -19,7 +19,7 @@ foreach ($mods as $mod) {
     $id = $u->findByEmail($mod['email']);
 
     if (!$id) {
-        $id = $u->create(NULL, NULL, $mod['name']);
+        $id = $u->create(NULL, NULL, $mod['name'], "Migrated from ModTools Logins");
         $u->addEmail($mod['email']);
         $u->addLogin(User::LOGIN_YAHOO, $mod['yahooid']);
     }
