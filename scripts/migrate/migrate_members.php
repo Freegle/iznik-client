@@ -43,6 +43,9 @@ if (1==1) {
             } else {
                 $u = new User($dbhr, $dbhm, $eid);
                 $u->setPrivate('fullname', $user['facebookname']);
+
+                # Make sure it's primary
+                $u->addEmail($user['email'], 1);
             }
 
             $count++;
@@ -110,8 +113,8 @@ if (1==1) {
                     }
 
                     $u = new User($dbhr, $dbhm, $id);
-                    $emailid = $u->addEmail($user['useremail']);
-                    $emailid = $u->addEmail($user['groupsemail']);
+                    $emailid = $u->addEmail($user['useremail'], 1);
+                    $emailid = $u->addEmail($user['groupsemail'], 0);
                     $membs = $u->getMemberships();
 
                     $already = FALSE;
@@ -225,7 +228,7 @@ foreach ($groups as $group) {
                     }
                 }
 
-                $emailid = $u->addEmail($user['email']);
+                $emailid = $u->addEmail($user['email'], 1);
                 $membs = $u->getMemberships();
 
                 $already = FALSE;

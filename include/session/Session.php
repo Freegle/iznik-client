@@ -23,17 +23,14 @@ function prepareSession($dbhr, $dbhm) {
         (array_key_exists(COOKIE_NAME, $_COOKIE))) {
         # Check our cookie to see if it's a valid session
         $cookie = json_decode($_COOKIE[COOKIE_NAME], true);
+        #error_log("Cookie " . var_export($cookie, TRUE));
 
         if ((array_key_exists('id', $cookie)) &&
             (array_key_exists('series', $cookie)) &&
             (array_key_exists('token', $cookie))) {
             $s = new Session($dbhr, $dbhm);
 
-            if ($s->verify($cookie['id'], $cookie['series'], $cookie['token'])) {
-                # It's valid.  Log us in
-                $_SESSION['logged_in']  = TRUE;
-                $_SESSION['id'] = $cookie['id'];
-            }
+            $s->verify($cookie['id'], $cookie['series'], $cookie['token']);
         }
     } else {
         #error_log("No cookie or logged in");
@@ -88,31 +85,35 @@ class Session {
         $this->dbhm = $dbhm;
     }
 
-    public function create($id) {
+    public function create($userid) {
         # Destroy any existing sessions.
-        $this->destroy($id);
-        $this->id = $id;
+        $this->destroy($userid);
 
         # Generate a new series and token.
         $series = devurandom_rand();
         $token  = devurandom_rand();
         $thash  = sha1($token);
 
-        $sql = "INSERT INTO sessions (`id`, `series`, `token`) VALUES (?,?,?);";
+        $sql = "REPLACE INTO sessions (`userid`, `series`, `token`) VALUES (?,?,?);";
         $this->dbhm->preExec($sql, [
-            $id,
+            $userid,
             $series,
             $thash
         ]);
 
-        $_SESSION['id'] = $id;
+        $id = $this->dbhm->lastInsertId();
+        $this->id = $id;
+
+        #error_log("Logged in as $userid");
+        $_SESSION['id'] = $userid;
 
         $ss = array(
             'id' => $id,
             'series' => $series,
-            'token' => $token
+            'token' => $thash
         );
 
+        #error_log("Create cookie " . json_encode($ss));
         # Set the cookie which means the client will remember and use this.
         @setcookie(COOKIE_NAME, json_encode($ss), time() + 60 * 60 * 24 * 30, '/', $_SERVER['HTTP_HOST'],
             false, true);
@@ -122,19 +123,25 @@ class Session {
 
     public function verify($id, $series, $token) {
         # Look for a session.
-        $thash  = sha1($token);
         $sql = "SELECT * FROM sessions WHERE id = ? AND series = ? AND token = ?;";
         $sessions = $this->dbhr->preQuery($sql, [
             $id,
             $series,
-            $thash
+            $token
         ]);
+
+        #error_log("SELECT * FROM sessions WHERE id = $id AND series = $series AND token = '$token';");
 
         /** @noinspection PhpUnusedLocalVariableInspection */
         foreach ($sessions as $session) {
             # Remove it and create a new one, which will be returned in a cookie.
             # This means that our cookies are one-use only.
-            return($this->create($id));
+            #error_log("Found it, create new");
+            $userid = $session['userid'];
+            $this->create($userid);
+            $_SESSION['id'] = $userid;
+            $_SESSION['logged_in'] = TRUE;
+            return($userid);
         }
 
         # We failed to verify.  If the ID and series are present, then it is likely to be
@@ -144,14 +151,14 @@ class Session {
         return(NULL);
     }
 
-    public function destroy($id) {
+    public function destroy($userid) {
         #error_log(var_export($this->dbhr, true));
         session_reopen();
 
-        if ($id) {
-            $sql = "DELETE FROM sessions WHERE id = ?;";
+        if ($userid) {
+            $sql = "DELETE FROM sessions WHERE userid = ?;";
             $this->dbhm->preExec($sql, [
-                $id
+                $userid
             ]);
         }
 

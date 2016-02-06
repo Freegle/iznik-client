@@ -1,6 +1,6 @@
 <p>Hello, <% if (me.firstname) { %>{{me.firstname}}<% } else { %>{{me.fullname}}<% } %>.  You're logged in to ModTools as {{me.yahooid}}.  <span class="js-yahooinfo" /><p>
 <% if (me.systemrole == 'User') { %>
-</p><div class="alert alert-info" role="alert">This area of the site is for moderators only, I'm afraid.</div>
+</p><div class="alert alert-info" role="alert">It looks like we've not yet worked out which groups you moderate on.  Make sure you've got the plugin installed, and refresh in a couple of minutes.</div>
 <% } else if (me.systemrole == 'Moderator') { %>
 <p>You're a moderator.  Here's your dashboard.</p>
 <% } else if (me.systemrole == 'Support') { %>

@@ -123,7 +123,7 @@ class configTest extends IznikTest {
         assertTrue($found);
 
         # Sleep for background logging
-        sleep(2);
+        $this->waitBackground();
 
         $logs = $this->user->getPublic(NULL, FALSE, TRUE)['logs'];
         $log = $this->findLog(Log::TYPE_CONFIG, Log::SUBTYPE_CREATED, $logs);

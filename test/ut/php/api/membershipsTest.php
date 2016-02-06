@@ -146,7 +146,7 @@ class membershipsAPITest extends IznikAPITest {
         assertEquals($this->uid, $ret['members'][0]['id']);
 
         # Sleep for background logging
-        sleep(2);
+        $this->waitBackground();
 
         $ret = $this->call('memberships', 'GET', [
             'groupid' => $this->groupid,

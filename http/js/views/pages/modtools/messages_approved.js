@@ -1,6 +1,5 @@
-Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Page.extend({
+Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Infinite.extend({
     modtools: true,
-    context: null,
 
     template: "modtools_messages_approved_main",
 
@@ -9,86 +8,11 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Page.extend({
         'keyup .js-searchterm': 'keyup'
     },
 
-    fetching: null,
-
     keyup: function(e) {
         // Search on enter.
         if (e.which == 13) {
             this.$('.js-search').click();
         }
-    },
-
-    fetch: function() {
-        var self = this;
-
-        self.$('.js-none').hide();
-
-        var data = {
-            collection: 'Approved',
-            context: self.context
-        };
-
-        if (self.selected > 0) {
-            // Specific group
-            data.groupid = self.selected;
-        }
-
-        // Fetch more messages - and leave the old ones in the collection
-        if (self.fetching == self.selected) {
-            // Already fetching the right group.
-            return;
-        } else {
-            self.fetching = self.selected;
-        }
-
-        var v = new Iznik.Views.PleaseWait();
-        v.render();
-
-        this.msgs.fetch({
-            data: data,
-            remove: self.selected != self.lastFetched
-        }).then(function() {
-            v.close();
-
-            self.fetching = null;
-            self.lastFetched = self.selected;
-            self.context = self.msgs.ret.context;
-
-            if (self.msgs.length !== 0) {
-                self.$('.js-none').fadeIn('slow');
-            }
-
-            if (self.msgs.ret.messages.length > 0) {
-                // We got some different messages, so set up a scroll handler.  If we didn't get any different
-                // messages, then there's no point - we could keep hitting the server with more requests
-                // and not getting any.
-                //
-                // Waypoints allow us to see when we have scrolled to the bottom.
-                if (self.lastWaypoint) {
-                    self.lastWaypoint.destroy();
-                }
-
-                var vm = self.collectionView.viewManager;
-                var lastView = vm.last();
-
-                if (lastView) {
-                    self.lastMessage = lastView;
-                    self.lastWaypoint = new Waypoint({
-                        element: lastView.el,
-                        handler: function(direction) {
-                            if (direction == 'down') {
-                                // We have scrolled to the last view.  Fetch more as long as we've not switched
-                                // away to another page.
-                                if (jQuery.contains(document.documentElement, lastView.el)) {
-                                    self.fetch();
-                                }
-                            }
-                        },
-                        offset: '99%' // Fire as soon as this view becomes visible
-                    });
-                }
-            }
-        });
     },
 
     search: function() {
@@ -108,27 +32,21 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Page.extend({
 
         // The type of collection we're using depends on whether we're searching.  It controls how we fetch.
         if (self.options.search) {
-            self.msgs = new Iznik.Collections.Messages.Search(null, {
-                search: self.options.search
+            self.collection = new Iznik.Collections.Messages.Search(null, {
+                search: self.options.search,
+                groupid: self.selected,
+                group: Iznik.Session.get('groups').get(self.selected),
+                collection: 'Approved'
             });
 
             self.$('.js-searchterm').val(self.options.search);
         } else {
-            self.msgs = new Iznik.Collections.Message();
+            self.collection = new Iznik.Collections.Message(null, {
+                groupid: self.selected,
+                group: Iznik.Session.get('groups').get(self.selected),
+                collection: 'Approved'
+            });
         }
-
-        // CollectionView handles adding/removing/sorting for us.
-        self.collectionView = new Backbone.CollectionView( {
-            el : self.$('.js-list'),
-            modelView : Iznik.Views.ModTools.Message.Approved,
-            modelViewOptions: {
-                collection: self.msgs,
-                page: self
-            },
-            collection: self.msgs
-        } );
-
-        self.collectionView.render();
 
         self.groupSelect = new Iznik.Views.Group.Select({
             systemWide: false,
@@ -146,7 +64,18 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Page.extend({
             self.lastFetched = null;
             self.context = null;
 
-            // Do so.
+            // CollectionView handles adding/removing/sorting for us.
+            self.collectionView = new Backbone.CollectionView( {
+                el : self.$('.js-list'),
+                modelView : Iznik.Views.ModTools.Message.Approved,
+                modelViewOptions: {
+                    collection: self.collection,
+                    page: self
+                },
+                collection: self.collection
+            } );
+
+            self.collectionView.render();
             self.fetch();
         });
 
@@ -229,6 +158,7 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
             self.$('.js-grouplist').append(v.render().el);
 
             mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
+            mod.set('groupid', group.id);
             v = new Iznik.Views.ModTools.User({
                 model: mod
             });

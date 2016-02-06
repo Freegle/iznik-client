@@ -103,7 +103,7 @@ class messagesTest extends IznikAPITest {
         assertTrue(array_key_exists('source', $msgs[0]));
 
         # Sleep for background logging
-        sleep(2);
+        $this->waitBackground();
 
         error_log("Fromuser is " . $a->getFromuser());
         $ret = $this->call('user', 'GET', [

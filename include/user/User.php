@@ -894,6 +894,24 @@ class User extends Entity
             $this->user['systemrole'] == User::SYSTEMROLE_MODERATOR);
     }
 
+    public function systemRoleMax($role1, $role2) {
+        $role = User::SYSTEMROLE_USER;
+
+        if ($role1 == User::SYSTEMROLE_MODERATOR || $role2 == User::SYSTEMROLE_MODERATOR) {
+            $role = User::SYSTEMROLE_MODERATOR;
+        }
+
+        if ($role1 == User::SYSTEMROLE_SUPPORT|| $role2 == User::SYSTEMROLE_SUPPORT) {
+            $role = User::SYSTEMROLE_SUPPORT;
+        }
+
+        if ($role1 == User::SYSTEMROLE_ADMIN || $role2 == User::SYSTEMROLE_ADMIN) {
+            $role = User::SYSTEMROLE_ADMIN;
+        }
+
+        return($role);
+    }
+
     public function roleMax($role1, $role2) {
         $role = User::ROLE_NONMEMBER;
 
@@ -1052,6 +1070,7 @@ class User extends Entity
                     $this->dbhm->preExec("UPDATE users_logins SET userid = ? WHERE userid = ?;", [$id1, $id2]);
                     $this->dbhm->preExec("UPDATE users_comments SET userid = ? WHERE userid = ?;", [$id1, $id2]);
                     $this->dbhm->preExec("UPDATE users_comments SET byuserid = ? WHERE byuserid = ?;", [$id1, $id2]);
+                    $this->dbhm->preExec("UPDATE sessions SET userid = ? WHERE userid = ?;", [$id1, $id2]);
                 }
 
                 # Merge attributes we want to keep if we have them in id2 but not id1.  Some will have unique
@@ -1104,6 +1123,18 @@ class User extends Entity
                         $id1,
                         $id2
                     ]);
+                }
+
+                # Merge the systemrole.
+                $u1s = $this->dbhr->preQuery("SELECT systemrole FROM users WHERE id =?;", [ $id1 ]);
+                foreach ($u1s as $u1) {
+                    $u2s = $this->dbhr->preQuery("SELECT systemrole FROM users WHERE id =?;", [ $id2 ]);
+                    foreach ($u2s as $u2) {
+                        $rc = $this->dbhm->preExec("UPDATE users SET systemrole = ? WHERE id = ?;", [
+                            $this->systemRoleMax($u1['systemrole'], $u2['systemrole']),
+                            $id1
+                        ]);
+                    }
                 }
 
                 if ($rc) {

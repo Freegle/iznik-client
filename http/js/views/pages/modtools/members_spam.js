@@ -1,79 +1,7 @@
-Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
+Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Infinite.extend({
     modtools: true,
-    members: null,
-    context: null,
 
     template: "modtools_members_spam_main",
-    fetching: false,
-
-    fetch: function() {
-        var self = this;
-
-        self.$('.js-none').hide();
-
-        var data = {
-            context: self.context
-        };
-
-        if (self.fetching) {
-            // Already fetching
-            return;
-        }
-
-        self.fetching = true;
-
-        var v = new Iznik.Views.PleaseWait();
-        v.render();
-
-        this.members.fetch({
-            data: data,
-            remove: false
-        }).then(function() {
-            v.close();
-
-            self.fetching = false;
-
-            self.context = self.members.ret ? self.members.ret.context : null;
-
-            if (self.members.length > 0) {
-                // Peek into the underlying response to see if it returned anything and therefore whether it is
-                // worth asking for more if we scroll that far.
-                var gotsome = self.members.ret.members.length > 0;
-
-                // Waypoints allow us to see when we have scrolled to the bottom.
-                if (self.lastWaypoint) {
-                    self.lastWaypoint.destroy();
-                }
-
-                if (gotsome) {
-                    // We got some different members, so set up a scroll handler.  If we didn't get any different
-                    // members, then there's no point - we could keep hitting the server with more requests
-                    // and not getting any.
-                    var vm = self.collectionView.viewManager;
-                    var lastView = vm.last();
-
-                    if (lastView) {
-                        self.lastMember = lastView;
-                        self.lastWaypoint = new Waypoint({
-                            element: lastView.el,
-                            handler: function(direction) {
-                                if (direction == 'down') {
-                                    // We have scrolled to the last view.  Fetch more as long as we've not switched
-                                    // away to another page.
-                                    if (jQuery.contains(document.documentElement, lastView.el)) {
-                                        self.fetch();
-                                    }
-                                }
-                            },
-                            offset: '99%' // Fire as soon as this view becomes visible
-                        });
-                    }
-                }
-            } else {
-                self.$('.js-none').fadeIn('slow');
-            }
-        });
-    },
 
     render: function() {
         var self = this;
@@ -84,29 +12,50 @@ Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Page.extend({
         v.template = 'modtools_members_spam_help';
         this.$('.js-help').html(v.render().el);
 
-        self.members = new Iznik.Collections.Members(null, {
-            collection: 'Spam'
+        self.groupSelect = new Iznik.Views.Group.Select({
+            systemWide: false,
+            all: true,
+            mod: true,
+            counts: [ 'spammembers' ],
+            id: 'spamGroupSelect'
         });
 
-        // CollectionView handles adding/removing/sorting for us.
-        self.collectionView = new Backbone.CollectionView( {
-            el : self.$('.js-list'),
-            modelView : Iznik.Views.ModTools.Member.Spam,
-            modelViewOptions: {
-                collection: self.members,
-                page: self
-            },
-            collection: self.members
-        } );
+        self.listenTo(self.groupSelect, 'selected', function(selected) {
+            // Change the group selected.
+            self.selected = selected;
 
-        self.collectionView.render();
+            // We haven't fetched anything for this group yet.
+            self.lastFetched = null;
+            self.context = null;
 
-        // Do so.
-        self.fetch();
+            self.collection = new Iznik.Collections.Members(null, {
+                groupid: self.selected,
+                group: Iznik.Session.get('groups').get(self.selected),
+                collection: 'Spam'
+            });
+
+            // CollectionView handles adding/removing/sorting for us.
+            self.collectionView = new Backbone.CollectionView( {
+                el : self.$('.js-list'),
+                modelView : Iznik.Views.ModTools.Member.Spam,
+                modelViewOptions: {
+                    collection: self.collection,
+                    page: self
+                },
+                collection: self.collection
+            } );
+
+            self.collectionView.render();
+            self.fetch();
+        });
+
+        // Render after the listen to as they are called during render.
+        self.$('.js-groupselect').html(self.groupSelect.render().el);
 
         // If we detect that the pending counts have changed on the server, refetch the members so that we add/remove
         // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
-        this.listenTo(Iznik.Session, 'spammembercountschanged', this.fetch);
+        this.listenTo(Iznik.Session, 'approvedmemberscountschanged', _.bind(this.groupSelect.render, this.groupSelect));
+        this.listenTo(Iznik.Session, 'approvedmembersothercountschanged', _.bind(this.groupSelect.render, this.groupSelect));
 
         // We seem to need to redelegate
         self.delegateEvents();

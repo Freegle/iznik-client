@@ -301,7 +301,9 @@ Iznik.Collections.Message = IznikCollection.extend({
         }
     },
 
-    url: API + 'messages',
+    url: function() {
+        return (API + 'messages?' + (this.options.groupid > 0 ? ("groupid=" + this.options.groupid + "&") : '') + 'collection=' + this.options.collection)
+    },
 
     parse: function(ret) {
         var self = this;

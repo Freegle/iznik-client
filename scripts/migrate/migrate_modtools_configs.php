@@ -33,9 +33,14 @@ foreach ($oldconfs as $config) {
 
         if (!$modid) {
             error_log("New mod, create user for them");
-            $modid = $u->create(NULL, NULL, $mod['name'], "Migrated from ModTools Configs");
-            $u2 = new User($dbhr, $dbhm, $modid);
-            $u2->addEmail($mod['email']);
+            try {
+                $modid = $u->create(NULL, NULL, $mod['name'], "Migrated from ModTools Configs");
+                $u2 = new User($dbhr, $dbhm, $modid);
+                $u2->addEmail($mod['email'], 1);
+            } catch (Exception $e) {
+                error_log("Mod create failed " . $e->getMessage());
+                $modid = NULL;
+            }
         }
 
         $cid = $c->create(
@@ -101,31 +106,35 @@ foreach ($oldconfs as $config) {
         $groups = $dbhold->query($sql);
 
         foreach ($groups as $group) {
-            $gid = $g->findByShortName($group['groupname']);
-            error_log("Found group id $gid for {$group['groupname']}");
-            if ($gid) {
-                $modid = $u->findByEmail($mod['email']);
+            try {
+                $gid = $g->findByShortName($group['groupname']);
+                error_log("Found group id $gid for {$group['groupname']}");
+                if ($gid) {
+                    $modid = $u->findByEmail($mod['email']);
 
-                if (!$modid) {
-                    error_log("Don't know {$mod['email']}");
-                    $u2 = new User($dbhr, $dbhm);
-                    $modid = $u2->create(NULL, NULL, $mod['name'], "Migrated from ModTools Configs");
+                    if (!$modid) {
+                        error_log("Don't know {$mod['email']}");
+                        $u2 = new User($dbhr, $dbhm);
+                        $modid = $u2->create(NULL, NULL, $mod['name'], "Migrated from ModTools Configs");
 
-                    # Create a membership for this mod
-                    $emailid = $u2->addEmail($mod['email']);
-                    $u2->addMembership($gid, User::ROLE_MODERATOR, $emailid);
-                } else {
-                    error_log("Already know {$mod['email']} as $modid");
-                    $u2 = new User($dbhr, $dbhm, $modid);
-                    if (!$u2->isModOrOwner($gid)) {
-                        error_log("But not mod");
-                        $u2->addMembership($gid, User::ROLE_MODERATOR, $u2->getIdForEmail($mod['email'])['id']);
+                        # Create a membership for this mod
+                        $emailid = $u2->addEmail($mod['email'], 1);
+                        $u2->addMembership($gid, User::ROLE_MODERATOR, $emailid);
                     } else {
-                        error_log("Already mod or owner");
+                        error_log("Already know {$mod['email']} as $modid");
+                        $u2 = new User($dbhr, $dbhm, $modid);
+                        if (!$u2->isModOrOwner($gid)) {
+                            error_log("But not mod");
+                            $u2->addMembership($gid, User::ROLE_MODERATOR, $u2->getIdForEmail($mod['email'])['id']);
+                        } else {
+                            error_log("Already mod or owner");
+                        }
                     }
-                }
 
-                $c->useOnGroup($modid, $gid);
+                    $c->useOnGroup($modid, $gid);
+                }
+            } catch (Exception $e) {
+                error_log("Skip groupsmoderated " . $e->getMessage());
             }
         }
     }

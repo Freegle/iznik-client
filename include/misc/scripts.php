@@ -53,6 +53,7 @@ function scriptInclude($minify)
         "js/iznik/accordionpersist.js",
         "js/iznik/selectpersist.js",
         "js/iznik/majax.js",
+        "js/iznik/infinite.js",
         "js/models/session.js",
         "js/models/message.js",
         "js/models/group.js",

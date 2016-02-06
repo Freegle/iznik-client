@@ -20,7 +20,7 @@ foreach ($mods as $mod) {
 
     if (!$id) {
         $id = $u->create(NULL, NULL, $mod['name'], "Migrated from ModTools Logins");
-        $u->addEmail($mod['email']);
+        $u->addEmail($mod['email'], 1);
         $u->addLogin(User::LOGIN_YAHOO, $mod['yahooid']);
     }
 }

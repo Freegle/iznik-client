@@ -180,7 +180,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                                     'settings': newdata
                                 }, {
                                     patch: true,
-                                    success: self.success,
+                                    success: _.bind(self.success, self),
                                     error: self.error
                                 });
                                 return(false);
@@ -295,7 +295,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                                 'settings': newdata
                             }, {
                                 patch: true,
-                                success: self.success,
+                                success: _.bind(self.success, self),
                                 error: self.error
                             });
                             return(false);
@@ -421,7 +421,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                             if (attrs) {
                                 self.modConfigModel.save(attrs, {
                                     patch: true,
-                                    success: self.success,
+                                    success: _.bind(self.success, self),
                                     error: self.error
                                 });
                             }
@@ -499,7 +499,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                                         if (attrs) {
                                             self.modConfigModel.save(attrs, {
                                                 patch: true,
-                                                success: self.success,
+                                                success: _.bind(self.success, self),
                                                 error: self.error
                                             });
                                         } else {
@@ -620,7 +620,12 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
     },
 
     success: function(model, response, options) {
-        (new Iznik.Views.ModTools.Settings.Saved()).render();
+        console.log("Response", response);
+        if (response.ret == 0) {
+            (new Iznik.Views.ModTools.Settings.Saved()).render();
+        } else {
+            this.error(model, response, options);
+        }
     },
 
     error: function(model, response, options) {
@@ -668,8 +673,6 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                 settings: settings
             });
 
-
-
             var personalFields = [
                 {
                     name: 'displayname',
@@ -708,7 +711,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                         console.log("Save personal", newdata, self.personalModel);
                         Iznik.Session.save(newdata, {
                             patch: true,
-                            success: self.success,
+                            success: _.bind(self.success, self),
                             error: self.error
                         });
                         return(false);

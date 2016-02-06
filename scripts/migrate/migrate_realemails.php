@@ -17,10 +17,10 @@ $u = new User($dbhr, $dbhm);
 
 function handle($dbhr, $dbhm, $u, $realmail, $user) {
     # We have found the real email corresponding to this membership.  It might be that this real email is already
-    # attached to an existing user.
+    # attached to an existing other user.
     $id = $u->findByEmail($realmail);
 
-    if (!$id) {
+    if (!$id || $id == $user['id']) {
         # But it doesn't.  Add it as the primary, and make sure the groups email is secondary.
         error_log("Add $realmail} to {$user['id']} {$user['email']}");
         $u = new User($dbhr, $dbhm, $user['id']);
@@ -45,21 +45,35 @@ function handle($dbhr, $dbhm, $u, $realmail, $user) {
     }
 }
 
-$users = $dbhr->preQuery("SELECT DISTINCT users.id, users_emails.email FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE gotrealemail = 0 AND email LIKE 'FBUser%';");
-foreach ($users as $user) {
-    $sql = "SELECT useremail FROM users WHERE groupsemail LIKE " . $dbhold->quote($user['email']) . ";";
-    $fdusers = $dbhold->query($sql);
-    foreach ($fdusers as $fduser) {
-        handle($dbhr, $dbhm, $u, $fduser['useremail'], $user);
+$block = 0;
+
+$lock = "/tmp/iznik_migraterealemails.lock";
+$lockh = fopen($lock, 'a');
+
+if (flock($lockh, LOCK_EX | LOCK_NB, $block)) {
+    $users = $dbhr->preQuery("SELECT DISTINCT users.id, users_emails.email FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE gotrealemail = 0 AND email LIKE 'FBUser%';");
+    foreach ($users as $user) {
+        $sql = "SELECT useremail FROM users WHERE groupsemail LIKE " . $dbhold->quote($user['email']) . ";";
+        $fdusers = $dbhold->query($sql);
+        foreach ($fdusers as $fduser) {
+            try {
+                handle($dbhr, $dbhm, $u, $fduser['useremail'], $user);
+            } catch (Exception $e) {
+                error_log("Skip {$fduser['useremail']} " . $e->getMessage());
+            }
+        }
     }
+
+    //$users = $dbhr->preQuery("SELECT DISTINCT users.id, users_emails.email FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE gotrealemail = 0 AND email LIKE '%trashnothing.com';");
+    //foreach ($users as $user) {
+    //    $url = "https://trashnothing.com/modtools/api/subscriptions?key=" . TNKEY . "&email=" . urlencode($user['email']);
+    //    error_log($url);
+    //    $rsp = file_get_contents($url);
+    //    error_log(var_export($rsp, true));
+    //    exit(0);
+    //    #handle($dbhr, $dbhm, $u, $realmail, $user);
+    //}
 }
 
-//$users = $dbhr->preQuery("SELECT DISTINCT users.id, users_emails.email FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE gotrealemail = 0 AND email LIKE '%trashnothing.com';");
-//foreach ($users as $user) {
-//    $url = "https://trashnothing.com/modtools/api/subscriptions?key=" . TNKEY . "&email=" . urlencode($user['email']);
-//    error_log($url);
-//    $rsp = file_get_contents($url);
-//    error_log(var_export($rsp, true));
-//    exit(0);
-//    #handle($dbhr, $dbhm, $u, $realmail, $user);
-//}
+flock($lockh, LOCK_UN);
+fclose($lockh);

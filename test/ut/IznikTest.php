@@ -1,4 +1,5 @@
 <?php
+use Pheanstalk\Pheanstalk;
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once IZNIK_BASE . '/include/db.php';
 
@@ -10,6 +11,8 @@ require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/Assert
  * @backupStaticAttributes disabled
  */
 class IznikTest extends PHPUnit_Framework_TestCase {
+    const LOG_SLEEP=30;
+
     private $dbhr, $dbhm;
 
     protected function setUp() {
@@ -25,6 +28,28 @@ class IznikTest extends PHPUnit_Framework_TestCase {
     }
 
     public function __construct() {
+    }
+
+    public function waitBackground() {
+        $pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
+        $count = 0;
+        do {
+            $stats = $pheanstalk->stats();
+            $ready = $stats['current-jobs-ready'];
+
+            if ($ready == 0) {
+                break;
+            }
+
+            error_log("...waiting for background work, current $ready, try $count");
+            sleep(1);
+            $count++;
+
+        } while ($count < IznikTest::LOG_SLEEP);
+
+        if ($count >= IznikTest::LOG_SLEEP) {
+            assertFalse(TRUE, 'Failed to complete background work');
+        }
     }
 
     public function findLog($type, $subtype, $logs) {

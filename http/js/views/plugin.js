@@ -45,15 +45,30 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             return(sync);
         }
 
+        function worthIt(yahoocounts, group, countname) {
+            // It's worth doing a sync if we know there is work on Yahoo, or if we know that there is work on ModTools.
+            //
+            // This avoids doing syncs which will definitely do nothing, which can be the case for people with a lot
+            // of groups.
+            //console.log("Worthit", group.get('nameshort'));
+            //console.log("Work on Yahoo", yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1);
+            //console.log("Work on MT", group.get('work')[countname]);
+
+            var worthit = yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1 ||
+                    group.get('work')[countname];
+
+            return(worthit);
+        }
+
         // Start pending syncs first because if they're wrong, that's normally more annoying.
         Iznik.Session.get('groups').each(function (group) {
             // We know from our Yahoo scan whether there is any work to do.
-            if (self.yahooGroupsWithPendingMessages.indexOf(group.get('nameshort').toLowerCase()) != -1 &&
+            if (worthIt(self.yahooGroupsWithPendingMessages, group, 'pending') &&
                 doSync(group, 'showmessages')) {
                     (new Iznik.Views.Plugin.Yahoo.SyncMessages.Pending({model: group})).render();
             }
 
-            if (self.yahooGroupsWithPendingMembers.indexOf(group.get('nameshort').toLowerCase()) != -1 &&
+            if (worthIt(self.yahooGroupsWithPendingMessages, group, 'pendingmembers') &&
                 doSync(group, 'showmembers')) {
                     (new Iznik.Views.Plugin.Yahoo.SyncMembers.Pending({model: group})).render();
             }
@@ -307,6 +322,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             url: API + 'plugin',
             success: function(ret) {
                 if (ret.ret == 0) {
+                    self.updatePluginCount();
+
                     _.each(ret.plugin, function(work, index, list) {
                         var added = new moment(work.added);
                         var duration = moment.duration(now.diff(added));

@@ -1,77 +1,7 @@
-Iznik.Views.ModTools.Pages.PendingMessages = Iznik.Views.Page.extend({
+Iznik.Views.ModTools.Pages.PendingMessages = Iznik.Views.Infinite.extend({
     modtools: true,
 
     template: "modtools_messages_pending_main",
-
-    fetching: null,
-
-    fetch: function() {
-        var self = this;
-        self.$('.js-none').hide();
-
-        var data = {
-            collection: 'Pending'
-        };
-
-        if (self.selected > 0) {
-            data.groupid = self.selected;
-        }
-
-        // For pending messages we don't do paging so put a high limit.
-        data.limit = 100;
-
-        if (self.fetching == self.selected) {
-            // Already fetching the right group.
-            return;
-        } else {
-            self.fetching = self.selected;
-        }
-
-        var v = new Iznik.Views.PleaseWait();
-        v.render();
-
-        this.msgs.fetch({
-            data: data,
-            remove: true
-        }).then(function() {
-            v.close();
-
-            self.lastFetched = self.selected;
-            self.fetching = null;
-
-            if (self.msgs.length == 0) {
-                self.$('.js-none').fadeIn('slow');
-            } else {
-                // CollectionView handles adding/removing/sorting for us.
-                self.collectionView = new Backbone.CollectionView( {
-                    el : self.$('.js-list'),
-                    modelView : Iznik.Views.ModTools.Message.Pending,
-                    collection : self.msgs
-                } );
-
-                self.collectionView.render();
-
-                // Unfortunately collectionView doesn't have an event for when the length changes.
-                function checkLength(self) {
-                    var lastlen = 0;
-                    return(function() {
-                        if (lastlen != self.collectionView.length) {
-                            lastlen = self.collectionView.length;
-                            if (self.collectionView.length == 0) {
-                                self.$('.js-none').fadeIn('slow');
-                            } else {
-                                self.$('.js-none').hide();
-                            }
-                        }
-
-                        window.setTimeout(checkLength, 2000);
-                    });
-                }
-
-                window.setTimeout(checkLength, 2000);
-            }
-        });
-    },
 
     render: function() {
         var self = this;
@@ -81,8 +11,6 @@ Iznik.Views.ModTools.Pages.PendingMessages = Iznik.Views.Page.extend({
         var v = new Iznik.Views.Help.Box();
         v.template = 'modtools_messages_pending_help';
         this.$('.js-help').html(v.render().el);
-
-        this.msgs = new Iznik.Collections.Message();
 
         this.groupSelect = new Iznik.Views.Group.Select({
             systemWide: false,
@@ -94,6 +22,29 @@ Iznik.Views.ModTools.Pages.PendingMessages = Iznik.Views.Page.extend({
 
         self.listenTo(this.groupSelect, 'selected', function(selected) {
             self.selected = selected;
+            
+            // We haven't fetched anything for this group yet.
+            self.lastFetched = null;
+            self.context = null;
+            
+            self.collection = new Iznik.Collections.Message(null, {
+                groupid: self.selected,
+                group: Iznik.Session.get('groups').get(self.selected),
+                collection: 'Pending'
+            });
+            
+            // CollectionView handles adding/removing/sorting for us.
+            self.collectionView = new Backbone.CollectionView( {
+                el : self.$('.js-list'),
+                modelView : Iznik.Views.ModTools.Message.Pending,
+                modelViewOptions: {
+                    collection: self.collection,
+                    page: self
+                },
+                collection: self.collection
+            } );
+
+            self.collectionView.render();
             self.fetch();
         });
 
@@ -167,6 +118,7 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
             self.$('.js-grouplist').append(v.render().el);
 
             var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
+            mod.set('groupid', group.id);
             var v = new Iznik.Views.ModTools.User({
                 model: mod
             });

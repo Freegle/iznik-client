@@ -47,13 +47,10 @@ class sessionClassTest extends IznikTest {
 
         $s = new Session($this->dbhm, $this->dbhm);
         $ret = $s->create($id);
-        assertEquals($id, $ret['id']);
 
         # Verify it
-        $ver = $s->verify($id, $ret['series'], $ret['token']);
-        assertEquals($id, $ver['id']);
-        assertNotEquals($ret['series'], $ver['series']);
-        assertNotEquals($ret['token'], $ver['token']);
+        $ver = $s->verify($ret['id'], $ret['series'], $ret['token']);
+        assertEquals($id, $ver);
 
         assertNull($s->verify($id, $ret['series'] . 'z', $ret['token']));
 
@@ -88,7 +85,6 @@ class sessionClassTest extends IznikTest {
 
         $s = new Session($this->dbhm, $this->dbhm);
         $ret = $s->create($id);
-        assertEquals($id, $ret['id']);
 
         # Cookie should log us in
         $_SESSION['id'] = NULL;
