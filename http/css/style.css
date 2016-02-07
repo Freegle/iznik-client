@@ -317,8 +317,20 @@ body {
     padding: 0px !important;
 }
 
+.nopadleft {
+    padding-left: 0px !important;
+}
+
+.nopadright {
+    padding-right: 0px !important;
+}
+
 .nopadbot {
     padding-bottom: 0px !important;
+}
+
+.nopadtop {
+    padding-top: 0px !important;
 }
 
 .padtoponly {
@@ -335,6 +347,18 @@ body {
     margin-top: 0px !important;
     margin-left: 0px !important;
     margin-right: 0px !important;
+}
+
+.nomarginleft {
+    margin-left: 0px !important;
+}
+
+.nomarginright {
+    margin-right: 0px !important;
+}
+
+.nomarginbot {
+    margin-bottom: 0px !important;
 }
 
 .noborder {
@@ -769,14 +793,6 @@ a button {
 
 #page-content-wrapper {
     min-height: 90vh;
-}
-
-.usercounts li {
-    padding-left: 0px !important;
-}
-
-.usercounts li .badge {
-    padding-left: 7px !important;
 }
 
 .white, .white a {

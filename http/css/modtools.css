@@ -502,3 +502,15 @@ body, #bodyContent {
 .stdmsgmodalbody {
     min-height: 700px !important;
 }
+
+.usercounts li {
+    padding-left: 0px !important;
+}
+
+.usercounts li .badge {
+    padding-left: 7px !important;
+}
+
+.usercounts .btn {
+    margin-bottom: 5px;
+}

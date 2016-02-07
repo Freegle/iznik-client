@@ -171,40 +171,6 @@ Iznik.Views.ModTools.User = IznikView.extend({
             this.$('.js-msgcount').closest('.btn').addClass('disabled');
         }
 
-        var v = new Iznik.Views.ModTools.User.History({
-            model: this.model,
-            collection: this.historyColl
-        });
-
-        this.$('.js-messagehistory').html(v.render().el);
-
-        _.each(this.model.get('comments'), function(comment) {
-            self.$('.js-comments').append((new Iznik.Views.ModTools.User.Comment({
-                model: new Iznik.Models.ModTools.User.Comment(comment)
-            })).render().el);
-        });
-
-        var spammer = this.model.get('spammer');
-        if (spammer) {
-            var v = new Iznik.Views.ModTools.User.SpammerInfo({
-                model: new IznikModel(spammer)
-            });
-
-            self.$('.js-spammerinfo').append(v.render().el);
-        }
-
-        return (this);
-    }
-});
-
-Iznik.Views.ModTools.User.History = IznikView.extend({
-    template: 'modtools_user_history',
-
-    render: function() {
-        var self = this;
-
-        this.$el.html(window.template(this.template)());
-
         var counts = {
             Offer: 0,
             Wanted: 0,
@@ -213,7 +179,7 @@ Iznik.Views.ModTools.User.History = IznikView.extend({
             Other: 0
         };
 
-        this.collection.each(function(message) {
+        this.historyColl.each(function(message) {
             if (counts.hasOwnProperty(message.get('type'))) {
                 counts[message.get('type')]++;
             }
@@ -232,7 +198,27 @@ Iznik.Views.ModTools.User.History = IznikView.extend({
             self.$('.glyphicon-warning-sign').addClass('white');
         }
 
-        return(this);
+        var comments = this.model.get('comments');
+        _.each(comments, function(comment) {
+            self.$('.js-comments').append((new Iznik.Views.ModTools.User.Comment({
+                model: new Iznik.Models.ModTools.User.Comment(comment)
+            })).render().el);
+        });
+
+        if (comments.length == 0) {
+            self.$('.js-comments').hide();
+        }
+
+        var spammer = this.model.get('spammer');
+        if (spammer) {
+            var v = new Iznik.Views.ModTools.User.SpammerInfo({
+                model: new IznikModel(spammer)
+            });
+
+            self.$('.js-spammerinfo').append(v.render().el);
+        }
+
+        return (this);
     }
 });
 

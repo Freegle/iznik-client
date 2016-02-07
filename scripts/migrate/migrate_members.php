@@ -32,7 +32,7 @@ $users = $dbhfd->query("SELECT * FROM facebook");
 
 error_log("Queried");
 
-if (1==1) {
+if (1==0) {
     foreach ($users as $user) {
         try {
             $eid = $u->findByEmail($user['email']);
@@ -61,6 +61,11 @@ if (1==1) {
 }
 
 if (1==1) {
+    $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_EMULATE_PREPARES => FALSE
+    ));
+
     error_log("Migrate FD memberships");
     $groups = $dbhfd->query("SELECT * FROM groups WHERE grouppublish = 1;");
 
