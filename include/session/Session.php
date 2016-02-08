@@ -80,6 +80,17 @@ class Session {
         return $this->id;
     }
 
+    public function getUserId() {
+        $sql = "SELECT userid FROM sessions WHERE id = ?;";
+        $sessions = $this->dbhr->preQuery($sql, [ $this->id ]);
+        $ret = NULL;
+        foreach ($sessions as $session) {
+            $ret = $session['userid'];
+        }
+
+        return($ret);
+    }
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm) {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;

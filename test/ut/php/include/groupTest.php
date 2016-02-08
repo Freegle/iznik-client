@@ -24,7 +24,10 @@ class groupTest extends IznikTestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
+        $this->dbhm->exec("DELETE FROM groups WHERE nameshort = 'testgroup2';");
         $this->dbhm->exec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $this->dbhm->preExec("DELETE FROM users WHERE yahooid = '-testid1';");
+        $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = '-testid1';");
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $this->dbhm->preExec("DELETE FROM users WHERE id IN (SELECT userid FROM users_emails WHERE email LIKE '%test.com');", []);
     }
@@ -105,10 +108,97 @@ class groupTest extends IznikTestCase {
 
         $membs = $this->user->getMemberships();
         error_log("Got members" . var_export($membs, true));
+        assertEquals(1, count($membs));
         assertEquals($cid, $membs[0]['configid']);
 
         assertGreaterThan(0 ,$g->delete());
         $c->delete();
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testMerge() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        assertNotNull($gid);
+        $g = new Group($this->dbhr, $this->dbhm, $gid);
+
+        # Create owner
+        $u = new User($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $u->addMembership($gid, User::ROLE_OWNER);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        # Test merging by Yahoo ID.
+        $rc = $g->setMembers([
+            [
+                'yahooModeratorStatus' => 'OWNER',
+                'email' => 'test@test.com'
+            ],
+            [
+                'yahooid' => '-testid1',
+                'email' => 'test1@test.com'
+            ],
+            [
+                'email' => 'test2@test.com'
+            ]
+        ], MembershipCollection::APPROVED);
+        assertEquals(0, $rc['ret']);
+
+        $rc = $g->setMembers([
+            [
+                'yahooModeratorStatus' => 'OWNER',
+                'email' => 'test@test.com'
+            ],
+            [
+                'yahooid' => '-testid1',
+                'email' => 'test2@test.com'
+            ]
+        ], MembershipCollection::APPROVED);
+        assertEquals(0, $rc['ret']);
+
+        $membs = $g->getMembers();
+        error_log(var_export($membs, TRUE));
+        assertEquals('-testid1', $membs[0]['yahooid']);
+        assertEquals('test2@test.com', $membs[0]['otheremails'][0]['email']);
+        assertEquals('test1@test.com', $membs[0]['otheremails'][1]['email']);
+
+        # Test merging by Yahoo User ID.
+        $rc = $g->setMembers([
+            [
+                'yahooModeratorStatus' => 'OWNER',
+                'email' => 'test@test.com'
+            ],
+            [
+                'yahooUserId' => '-testid1',
+                'email' => 'test11@test.com'
+            ],
+            [
+                'email' => 'test12@test.com'
+            ]
+        ], MembershipCollection::APPROVED);
+        assertEquals(0, $rc['ret']);
+
+        $rc = $g->setMembers([
+            [
+                'yahooModeratorStatus' => 'OWNER',
+                'email' => 'test@test.com'
+            ],
+            [
+                'yahooUserId' => '-testid1',
+                'email' => 'test12@test.com'
+            ]
+        ], MembershipCollection::APPROVED);
+        assertEquals(0, $rc['ret']);
+
+        $membs = $g->getMembers();
+        error_log(var_export($membs, TRUE));
+        assertEquals('-testid1', $membs[0]['yahooUserId']);
+        assertEquals('test12@test.com', $membs[0]['otheremails'][0]['email']);
+        assertEquals('test11@test.com', $membs[0]['otheremails'][1]['email']);
 
         error_log(__METHOD__ . " end");
     }

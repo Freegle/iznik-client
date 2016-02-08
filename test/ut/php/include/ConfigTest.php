@@ -189,6 +189,11 @@ class configTest extends IznikTestCase {
         $id = $c->create('TestStd', $id);
         assertNull($id);
 
+        $c = new BulkOp($this->dbhr, $this->dbhm);
+        $c->setDbhm($mock);
+        $id = $c->create('TestStd', $id);
+        assertNull($id);
+
         error_log(__METHOD__ . " end");
     }
 }

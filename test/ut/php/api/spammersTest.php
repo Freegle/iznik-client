@@ -144,9 +144,24 @@ class spammersAPITest extends IznikAPITestCase {
             'collection' => Spam::TYPE_PENDING_ADD,
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['spammers']));
-        assertEquals($sid, $ret['spammers'][0]['id']);
-        assertEquals($uid, $ret['spammers'][0]['userid']);
+        $found = FALSE;
+
+        foreach ($ret['spammers'] as $spammer) {
+            if ($spammer['id'] == $sid && $spammer['userid'] == $uid) {
+                $found = TRUE;
+            }
+        }
+
+        assertTrue($found);
+        $found = FALSE;
+
+        foreach ($ret['spammers'] as $spammer) {
+            if ($spammer['id'] == $sid && $spammer['userid'] == $uid) {
+                $found = TRUE;
+            }
+        }
+
+        assertTrue($found);
 
         $ret = $this->call('spammers', 'POST', [
             'userid' => $uid,
@@ -172,14 +187,31 @@ class spammersAPITest extends IznikAPITestCase {
             'search' => 'Test User'
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['spammers']));
+
+        $found = FALSE;
+
+        foreach ($ret['spammers'] as $spammer) {
+            if ($spammer['id'] == $sid && $spammer['userid'] == $uid) {
+                $found = TRUE;
+            }
+        }
+
+        assertTrue($found);
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_PENDING_ADD,
             'search' => 'Test User'
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(0, count($ret['spammers']));
+        $found = FALSE;
+
+        foreach ($ret['spammers'] as $spammer) {
+            if ($spammer['id'] == $sid && $spammer['userid'] == $uid) {
+                $found = TRUE;
+            }
+        }
+
+        assertFalse($found);
 
         # Trigger removal
         $s = new Spam($this->dbhr, $this->dbhm);
@@ -202,7 +234,15 @@ class spammersAPITest extends IznikAPITestCase {
             'search' => 'Test User'
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['spammers']));
+        $found = FALSE;
+
+        foreach ($ret['spammers'] as $spammer) {
+            if ($spammer['id'] == $sid && $spammer['userid'] == $uid) {
+                $found = TRUE;
+            }
+        }
+
+        assertTrue($found);
 
         $ret = $this->call('spammers', 'PATCH', [
             'id' => $sid,
@@ -267,7 +307,15 @@ class spammersAPITest extends IznikAPITestCase {
             'search' => 'Test User'
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(0, count($ret['spammers']));
+        $found = FALSE;
+
+        foreach ($ret['spammers'] as $spammer) {
+            if ($spammer['id'] == $sid && $spammer['userid'] == $uid) {
+                $found = TRUE;
+            }
+        }
+
+        assertFalse($found);
 
         # Report directly to whitelist
         $ret = $this->call('spammers', 'POST', [
@@ -285,7 +333,15 @@ class spammersAPITest extends IznikAPITestCase {
             'search' => 'Test User'
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['spammers']));
+        $found = FALSE;
+
+        foreach ($ret['spammers'] as $spammer) {
+            if ($spammer['id'] == $sid && $spammer['userid'] == $uid) {
+                $found = TRUE;
+            }
+        }
+
+        assertTrue($found);
 
         $ret = $this->call('spammers', 'DELETE', [
             'id' => $sid

@@ -145,6 +145,16 @@ class sessionTest extends IznikAPITestCase {
         assertEquals('Test2', $ret['me']['firstname']);
         assertEquals('User2', $ret['me']['lastname']);
 
+        # Set to an email already in use
+        $u = new User($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        assertNotNull($u->addEmail('test3@test.com'));
+        $ret = $this->call('session', 'PATCH', [
+            'settings' => json_encode([ 'test' => 1]),
+            'email' => 'test3@test.com'
+        ]);
+        assertEquals(3, $ret['ret']);
+
         $u->delete();
 
         error_log(__METHOD__ . " end");

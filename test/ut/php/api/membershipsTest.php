@@ -25,6 +25,8 @@ class membershipsAPITest extends IznikAPITestCase {
 
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
+        $dbhm->preExec("DELETE FROM users WHERE yahooid LIKE '-testid%';");
+        $dbhm->preExec("DELETE FROM users WHERE yahooUserId LIKE '-testid%';");
 
         $this->group = new Group($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
@@ -402,7 +404,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $ret = $this->call('memberships', 'GET', []);
         error_log(var_export($ret, TRUE));
 
-        assertEquals(3, count($ret['members']));
+        assertEquals(2, count($ret['members']));
         assertEquals($savemembs[0]['id'], $ret['members'][0]['id']);
         assertEquals($savemembs[1]['id'], $ret['members'][1]['id']);
 

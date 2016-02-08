@@ -84,7 +84,7 @@ class yahooTest extends IznikTestCase {
 
         # Login first time - should work
         list($session, $ret) = $y->login();
-        $id = $session->getId();
+        $id = $session->getUserId();
         assertNotNull($session);
         assertEquals(0, $ret['ret']);
 

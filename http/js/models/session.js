@@ -1,3 +1,5 @@
+var firstbeep = true;
+
 Iznik.Models.Session = IznikModel.extend({
     url: API + 'session',
 
@@ -115,10 +117,12 @@ Iznik.Models.Session = IznikModel.extend({
                                 if (ret.work[count.fi] > 0 && count.sound) {
                                     var settings = Iznik.Session.get('me').settings;
 
-                                    if (presdef('playbeep', settings, 1)) {
+                                    if (presdef('playbeep', settings, 1) && !firstbeep) {
                                         var sound = new Audio("/sounds/alert.wav");
                                         sound.play();
                                     }
+
+                                    firstbeep = false;
                                 }
                             }
                         } else {

@@ -66,6 +66,7 @@ var IznikRouter = Backbone.Router.extend({
         self.modtools = routeOptions.modtools;
 
         function loadPage(){
+            firstbeep = true;
             routeOptions.page.render();
             self.trigger('loadedPage');
         }
