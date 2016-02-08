@@ -73,16 +73,6 @@ class BulkOp extends Entity
         ]);
     }
 
-    public function getPublic($stdmsgbody = TRUE) {
-        $ret = $this->getAtts($this->publicatts);
-
-        if (!$stdmsgbody) {
-            # We want to save space.
-            $ret['body'] = NULL;
-        }
-        return($ret);
-    }
-
     public function canModify() {
         $c = new ModConfig($this->dbhr, $this->dbhm, $this->bulkop['configid']);
         return($c->canModify());

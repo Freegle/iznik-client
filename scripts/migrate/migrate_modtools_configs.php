@@ -6,6 +6,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/config/StdMessage.php');
+require_once(IZNIK_BASE . '/include/config/BulkOp.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=modtools;charset=utf8";
@@ -79,9 +80,16 @@ foreach ($oldconfs as $config) {
         }
 
         # Migrate the bulk ops
-        $bulkops = $dbhold->preQuery("SELECT bulkops.* FROM bulkops WHERE bulkops.configid = ?;", $config['uniqueid']);
+        $bulkops = $dbhold->query("SELECT bulkops.* FROM bulkops WHERE bulkops.configid = {$config['uniqueid']};");
         foreach ($bulkops as $bulkop) {
+            $b = new BulkOp($dbhr, $dbhm);
+            $bid = $b->create($bulkop['title'], $cid);
+            $b = new BulkOp($dbhr, $dbhm, $bid);
+            $atts = array('set', 'criterion', 'runevery', 'action', 'bouncingfor');
 
+            foreach ($atts as $att) {
+                $b->setPrivate($att, $bulkop[$att]);
+            }
         }
 
         # Map the order

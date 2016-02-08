@@ -5,6 +5,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
     events: {
         'change .js-configselect': 'configSelect',
+        'click .js-addbulkop': 'addBulkOp',
         'click .js-addstdmsg': 'addStdMsg',
         'click .js-addconfig': 'addConfig',
         'click .js-deleteconfig': 'deleteConfig',
@@ -326,6 +327,21 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         v.render();
     },
 
+    addBulkOp: function() {
+        // Having no id in the model means we will do a POST when we save it, and therefore create it on the server.
+        var model = new Iznik.Models.ModConfig.BulkOp({
+            configid: self.$('.js-configselect').val()
+        });
+        var v = new Iznik.Views.ModTools.BulkOp({
+            model: model
+        });
+
+        // When we close, update what's shown.
+        this.listenToOnce(v, 'modalClosed', this.configSelect);
+
+        v.render();
+    },
+
     locked: function(model) {
         // Whether we can make changes to this config.
         if (!this.modConfigModel) {
@@ -603,13 +619,31 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                     });
                 });
 
+                // Add the bulkops
+                self.$('.js-bulkops').empty();
+
+                _.each(self.modConfigModel.get('bulkops'), function (bulkop) {
+                    bulkop.protected = locked;
+
+                    var v = new Iznik.Views.ModTools.BulkOp.Button({
+                        model: new Iznik.Models.ModConfig.BulkOp(bulkop),
+                        config: self.modConfigModel
+                    });
+
+                    self.listenTo(v, 'buttonChange', self.configSelect);
+
+                    var el = v.render().el;
+                    $(el).data('buttonid', bulkop.id);
+                    self.$('.js-bulkops').append(el);
+                });
+
                 if (locked) {
                     // We can't change anything, except to select another config, copy or add
-                    self.$('.js-notconfigselect input,.js-notconfigselect select,.js-notconfigselect button').prop('disabled', true).addClass('disabled');
+                    self.$('.js-notconfigselect input,.js-notconfigselect select,.js-notconfigselect button, .js-addbulkop').prop('disabled', true).addClass('disabled');
                     self.$('.js-copyconfigname, .js-copyconfig, .js-addconfigname, .js-addconfig').prop('disabled', false).removeClass('disabled');
                     self.$('.js-locked').show();
                 } else {
-                    self.$('.js-notconfigselect input,.js-notconfigselect select,.js-notconfigselect button').prop('disabled', false).removeClass('disabled');
+                    self.$('.js-notconfigselect input,.js-notconfigselect select,.js-notconfigselect button, .js-addbulkop').prop('disabled', false).removeClass('disabled');
                     self.$('.js-locked').hide();
                 }
 
@@ -1000,7 +1034,150 @@ Iznik.Views.ModTools.Settings.CreateSucceeded = Iznik.Views.Modal.extend({
     template: 'modtools_settings_createsucceeded'
 });
 
-Iznik.Views.ModTools.Settings.CreateFailed= Iznik.Views.Modal.extend({
+Iznik.Views.ModTools.Settings.CreateFailed = Iznik.Views.Modal.extend({
     template: 'modtools_settings_createfailed'
+});
+
+Iznik.Views.ModTools.BulkOp = Iznik.Views.Modal.extend({
+    template: 'modtools_settings_bulkop',
+
+    events: {
+        'click .js-save': 'save',
+        'click .js-delete': 'delete',
+        'change .js-criterion': 'criterion'
+    },
+
+    criterion: function() {
+        var disabled = this.$('.js-criterion').val().indexOf('BouncingFor') == -1;
+        this.$('.js-bouncingfor').prop('disabled', disabled);
+    },
+
+    save: function() {
+        var self = this;
+
+        self.model.save().then(function() {
+            self.close();
+        });
+    },
+
+    delete: function() {
+        var self = this;
+
+        self.model.destroy().then(function() {
+            self.close();
+        })
+    },
+
+    render: function() {
+        var self = this;
+
+        this.$el.html(window.template(this.template)(this.model.toJSON2()));
+
+        // We want to refetch the model to make sure we edit the most up to date settings.
+        self.model.fetch().then(function() {
+            self.fields = [
+                {
+                    name: 'title',
+                    label: 'Title',
+                    control: 'input'
+                },
+                {
+                    name: 'runevery',
+                    label: 'Frequency',
+                    control: 'select',
+                    options: [
+                        {label: 'Hourly', value: 1 },
+                        {label: 'Daily', value: 24},
+                        {label: 'Weekly', value: 168},
+                        {label: 'Monthly', value: 744}
+                    ]
+                },
+                {
+                    name: 'action',
+                    label: 'Action',
+                    control: 'select',
+                    options: [
+                        {label: 'Unbounce', value: 'Unbounce' },
+                        {label: 'Remove from Group', value: 'Remove'},
+                        {label: 'Change to Group Settings', value: 'ToGroup'},
+                        {label: 'Change to Special Notices', value: 'ToSpecialNotices'}
+                    ]
+                },
+                {
+                    name: 'set',
+                    label: 'Apply To',
+                    control: 'select',
+                    options: [
+                        {label: 'Members', value: 'Members' }
+                    ]
+                },
+                {
+                    name: 'criterion',
+                    label: 'Filter',
+                    control: 'select',
+                    options: [
+                        {label: 'Bouncing', value: 'Bouncing' },
+                        {label: 'Bouncing For', value: 'BouncingFor' },
+                        {label: 'All', value: 'All' },
+                        {label: 'Web Only', value: 'WebOnly' }
+                    ],
+                    extraClasses: [ 'js-criterion' ]
+                },
+                {
+                    name: 'bouncingfor',
+                    label: 'Bouncing For (days)',
+                    control: 'input',
+                    type: 'number',
+                    extraClasses: [ 'js-bouncingfor' ]
+                }
+            ];
+
+            self.form = new Backform.Form({
+                el: $('#js-form'),
+                model: self.model,
+                fields: self.fields
+            });
+
+            self.form.render();
+            self.criterion();
+
+            self.$('.js-action').val(self.model.get('action'));
+
+            // Layout messes up a bit.
+            self.$('.form-group').addClass('clearfix');
+            self.$('.js-textarea').attr('rows', 10);
+
+            // Turn on spell-checking
+            self.$('textarea, input:text').attr('spellcheck', true);
+        });
+
+        this.open(null);
+
+        return(this);
+    }
+});
+
+Iznik.Views.ModTools.BulkOp.Button = IznikView.extend({
+    template: 'modtools_settings_bulkopbutton',
+
+    tagName: 'li',
+
+    events: {
+        'click .js-edit': 'edit'
+    },
+
+    edit: function() {
+        var self = this;
+
+        var v = new Iznik.Views.ModTools.BulkOp({
+            model: this.model
+        });
+
+        // If we close a modal we might need to refresh.
+        this.listenToOnce(v, 'modalClosed', function() {
+            self.trigger('buttonChange');
+        });
+        v.render();
+    }
 });
 

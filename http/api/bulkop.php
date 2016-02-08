@@ -10,7 +10,6 @@ function bulkop() {
     $configid = presdef('configid', $_REQUEST, NULL);
     $b = new BulkOp($dbhr, $dbhm, $id);
 
-    error_log("Id $id getId " . $b->getId());
     if ($id && $b->getId() || $_REQUEST['type'] == 'POST') {
         switch ($_REQUEST['type']) {
             case 'GET': {

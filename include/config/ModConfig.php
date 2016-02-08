@@ -123,6 +123,14 @@ class ModConfig extends Entity
             $ret['stdmsgs'][] = $s->getPublic($stdmsgbody);
         }
 
+        $sql = "SELECT id FROM mod_bulkops WHERE configid = {$this->id};";
+        $bulkops = $this->dbhr->query($sql);
+
+        foreach ($bulkops as $bulkop) {
+            $s = new BulkOp($this->dbhr, $this->dbhm, $bulkop['id']);
+            $ret['bulkops'][] = $s->getPublic();
+        }
+
         return($ret);
     }
 
