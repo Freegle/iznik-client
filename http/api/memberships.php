@@ -12,6 +12,9 @@ function memberships() {
     $search = presdef('search', $_REQUEST, NULL);
     $ctx = presdef('context', $_REQUEST, NULL);
     $settings = presdef('settings', $_REQUEST, NULL);
+
+    # TODO jQuery won't send an empty array, so we have a hack to ensure we can empty out the pending members.  What's
+    # the right way to do this?
     $members = presdef('members', $_REQUEST, presdef('memberspresentbutempty', $_REQUEST, 0) ? [] : NULL);
     $ban = array_key_exists('ban', $_REQUEST) ? filter_var($_REQUEST['ban'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
