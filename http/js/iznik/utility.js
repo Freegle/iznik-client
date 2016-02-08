@@ -176,6 +176,6 @@ function csvWriter(del, enc) {
 }
 
 function presdef(key, obj, def) {
-    var ret = obj.hasOwnProperty(key) ? obj[key] : def;
+    var ret = obj && obj.hasOwnProperty(key) ? obj[key] : def;
     return(ret);
 }

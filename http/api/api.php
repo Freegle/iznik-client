@@ -18,11 +18,13 @@ require_once(IZNIK_BASE . '/include/misc/Image.php');
 require_once(IZNIK_BASE . '/include/misc/Search.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/config/StdMessage.php');
+require_once(IZNIK_BASE . '/include/config/BulkOp.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/session.php');
 require_once(IZNIK_BASE . '/http/api/modconfig.php');
 require_once(IZNIK_BASE . '/http/api/stdmsg.php');
+require_once(IZNIK_BASE . '/http/api/bulkop.php');
 require_once(IZNIK_BASE . '/http/api/comment.php');
 require_once(IZNIK_BASE . '/http/api/dashboard.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
@@ -147,6 +149,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'stdmsg':
                     $ret = stdmsg();
+                    break;
+                case 'bulkop':
+                    $ret = bulkop();
                     break;
                 case 'comment':
                     $ret = comment();

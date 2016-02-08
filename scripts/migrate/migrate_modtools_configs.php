@@ -78,6 +78,12 @@ foreach ($oldconfs as $config) {
             }
         }
 
+        # Migrate the bulk ops
+        $bulkops = $dbhold->preQuery("SELECT bulkops.* FROM bulkops WHERE bulkops.configid = ?;", $config['uniqueid']);
+        foreach ($bulkops as $bulkop) {
+
+        }
+
         # Map the order
         $neworder = [];
         if ($config['messageorder']) {
@@ -138,6 +144,5 @@ foreach ($oldconfs as $config) {
             }
         }
     }
-
 }
 

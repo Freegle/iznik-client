@@ -167,8 +167,10 @@ Iznik.Views.ModTools.Member.Spam = Iznik.Views.ModTools.Member.extend({
 
         self.$('.js-user').html(v.render().el);
 
-        // No remove/ban/spam buttons as we have our own.
-        self.$('.js-remove, .js-ban, .js-spammer').closest('li').hide();
+        // No report spammer button here.
+        //
+        // Auto remove and ban may be turned off, so leave those buttons.
+        self.$('.js-spammer').closest('li').hide();
 
         // Delay getting the Yahoo info slightly to improve apparent render speed.
         _.delay(function() {

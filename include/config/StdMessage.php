@@ -47,7 +47,8 @@ class StdMessage extends Entity
                 'subtype' => Log::SUBTYPE_CREATED,
                 'byuser' => $createdby,
                 'configid' => $cid,
-                'text' => $title
+                'stdmsgid' => $id,
+                'text' => "StdMsg: $title"
             ]);
 
             return($id);
@@ -67,7 +68,8 @@ class StdMessage extends Entity
         $this->log->log([
             'type' => Log::TYPE_STDMSG,
             'subtype' => Log::SUBTYPE_EDIT,
-            'configid' => $this->id,
+            'stdmsgid' => $this->id,
+            'configid' => $this->stdmsg['configid'],
             'byuser' => $me ? $me->getId() : NULL,
             'text' => $this->getEditLog($settings)
         ]);
@@ -146,7 +148,9 @@ class StdMessage extends Entity
                 'type' => Log::TYPE_STDMSG,
                 'subtype' => Log::SUBTYPE_DELETED,
                 'byuser' => $me ? $me->getId() : NULL,
-                'configid' => $this->id
+                'configid' => $this->stdmsg['configid'],
+                'stdmsgid' => $this->id,
+                'text' => "StdMsg; " . $this->stdmsg['title'],
             ]);
         }
 

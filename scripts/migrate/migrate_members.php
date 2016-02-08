@@ -60,7 +60,7 @@ if (1==0) {
     $dbhm->exec("update users set fullname = null where fullname = '';");
 }
 
-if (1==1) {
+if (1==0) {
     $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_EMULATE_PREPARES => FALSE
@@ -68,6 +68,7 @@ if (1==1) {
 
     error_log("Migrate FD memberships");
     $groups = $dbhfd->query("SELECT * FROM groups WHERE grouppublish = 1;");
+    $groupcount = 0;
 
     foreach ($groups as $group) {
         $dbhmt = new PDO($dsnmt, $dbconfig['user'], $dbconfig['pass'], array(
@@ -80,7 +81,8 @@ if (1==1) {
             PDO::ATTR_EMULATE_PREPARES => FALSE
         ));
 
-        error_log("Migrate FD {$group['groupname']}");
+        $groupcount++;
+        error_log("Migrate FD #$groupcount - {$group['groupname']}");
         $gid = $g->findByShortName($group['groupname']);
 
         if ($gid) {
@@ -155,12 +157,11 @@ if (1==1) {
             error_log("...not on Iznik");
         }
     }
-
 }
 
 # Now migrate ModTools users.
 error_log("Migrate ModTools users");
-$groups = $dbhmt->query("SELECT * FROM groups WHERE groupname;");
+$groups = $dbhmt->query("SELECT * FROM groups;");
 
 foreach ($groups as $group) {
     error_log("Migrate MT {$group['groupname']}");

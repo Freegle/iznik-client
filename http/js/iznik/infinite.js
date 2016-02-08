@@ -5,6 +5,7 @@ Iznik.Views.Infinite = IznikView.extend({
     fetch: function() {
         var self = this;
 
+        self.$('.js-loading').removeClass('hidden');
         self.$('.js-none').hide();
 
         var data = {
@@ -29,22 +30,27 @@ Iznik.Views.Infinite = IznikView.extend({
 
         self.collectionView.on('add', function(modelView) {
             var pos = modelView.collection.indexOf(modelView.model);
+            //console.log("Added", pos, modelView.collection.length);
 
             if (pos + 1 == modelView.collection.length) {
                 // This is the last one.
+                //console.log("Last one", modelView.el, jQuery.contains(document.documentElement, modelView.el));
 
                 // Waypoints allow us to see when we have scrolled to the bottom.
                 if (self.lastWaypoint) {
+                    //console.log("Destroy last");
                     self.lastWaypoint.destroy();
                 }
 
                 self.lastWaypoint = new Waypoint({
                     element: modelView.el,
                     handler: function(direction) {
+                        //console.log("Scrolled to");
                         if (direction == 'down') {
                             // We have scrolled to the last view.  Fetch more as long as we've not switched
                             // away to another page.
                             if (jQuery.contains(document.documentElement, modelView.el)) {
+                                //console.log("Fetch");
                                 self.fetch();
                             }
                         }
@@ -66,6 +72,7 @@ Iznik.Views.Infinite = IznikView.extend({
             success: function(collection, response, options) {
                 v.close();
 
+                self.$('.js-loading').addClass('hidden');
                 self.fetching = null;
                 self.lastFetched = self.selected;
                 self.context = response.context;
@@ -77,3 +84,7 @@ Iznik.Views.Infinite = IznikView.extend({
         });
     }
 });
+
+// We add informatin dynamically after the render, and this messes up waypoints, so we need to regularly
+// tell them to sort themselves out.
+window.setInterval(Waypoint.refreshAll, 1000);

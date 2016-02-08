@@ -439,7 +439,6 @@ class Group extends Entity
                     # when resyncing a group where most members have not changed settings, we can avoid many UPDATEs.
                     #
                     # This will have the effect of moving members between collections if required.
-
                     if ($new ||
                         $membs[0]['role'] != $role ||
                         $membs[0]['collection'] != $collection ||

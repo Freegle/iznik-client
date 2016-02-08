@@ -14,7 +14,7 @@ require_once(IZNIK_BASE . '/include/config/ModConfig.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class stdMessageAPITest extends IznikAPITest {
+class bulkOpAPITest extends IznikAPITest {
     public $dbhr, $dbhm;
 
     private $count = 0;
@@ -67,31 +67,31 @@ class stdMessageAPITest extends IznikAPITest {
         error_log(__METHOD__);
 
         # Get invalid id
-        $ret = $this->call('stdmsg', 'GET', [
+        $ret = $this->call('bulkop', 'GET', [
             'id' => -1
         ]);
         assertEquals(2, $ret['ret']);
 
         # Create when not logged in
-        $ret = $this->call('stdmsg', 'POST', [
+        $ret = $this->call('bulkop', 'POST', [
             'title' => 'UTTest'
         ]);
         assertEquals(1, $ret['ret']);
 
         # Create without title
         assertTrue($this->user->login('testpw'));
-        $ret = $this->call('stdmsg', 'POST', [
+        $ret = $this->call('bulkop', 'POST', [
         ]);
         assertEquals(3, $ret['ret']);
 
         # Create without configid
-        $ret = $this->call('stdmsg', 'POST', [
+        $ret = $this->call('bulkop', 'POST', [
             'title' => "UTTest2"
         ]);
         assertEquals(3, $ret['ret']);
 
         # Create as member
-        $ret = $this->call('stdmsg', 'POST', [
+        $ret = $this->call('bulkop', 'POST', [
             'title' => 'UTTest',
             'configid' => $this->cid
         ]);
@@ -99,19 +99,19 @@ class stdMessageAPITest extends IznikAPITest {
 
         # Create as moderator
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
-        $ret = $this->call('stdmsg', 'POST', [
+        $ret = $this->call('bulkop', 'POST', [
             'title' => 'UTTest2',
             'configid' => $this->cid
         ]);
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
 
-        $ret = $this->call('stdmsg', 'GET', [
+        $ret = $this->call('bulkop', 'GET', [
             'id' => $id
         ]);
         error_log("Returned " . var_export($ret, true));
         assertEquals(0, $ret['ret']);
-        assertEquals($id, $ret['stdmsg']['id']);
+        assertEquals($id, $ret['bulkop']['id']);
 
         error_log(__METHOD__ . " end");
     }
@@ -122,7 +122,7 @@ class stdMessageAPITest extends IznikAPITest {
         assertTrue($this->user->login('testpw'));
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         error_log("Create stdmsg for {$this->cid}");
-        $ret = $this->call('stdmsg', 'POST', [
+        $ret = $this->call('bulkop', 'POST', [
             'configid' => $this->cid,
             'title' => 'UTTest'
         ]);
@@ -134,7 +134,7 @@ class stdMessageAPITest extends IznikAPITest {
         unset($_SESSION['id']);
 
         # When not logged in
-        $ret = $this->call('stdmsg', 'PATCH', [
+        $ret = $this->call('bulkop', 'PATCH', [
             'id' => $id
         ]);
         assertEquals(1, $ret['ret']);
@@ -145,7 +145,7 @@ class stdMessageAPITest extends IznikAPITest {
         # As a non-mod
         error_log("Demote");
         $this->user->setRole(User::ROLE_MEMBER, $this->groupid);
-        $ret = $this->call('stdmsg', 'PATCH', [
+        $ret = $this->call('bulkop', 'PATCH', [
             'id' => $id,
             'title' => 'UTTest2'
         ]);
@@ -153,17 +153,17 @@ class stdMessageAPITest extends IznikAPITest {
 
         # Promote back
         $this->user->setRole(User::ROLE_OWNER, $this->groupid);
-        $ret = $this->call('stdmsg', 'PATCH', [
+        $ret = $this->call('bulkop', 'PATCH', [
             'id' => $id,
             'title' => 'UTTest2'
         ]);
         assertEquals(0, $ret['ret']);
 
-        $ret = $this->call('stdmsg', 'GET', [
+        $ret = $this->call('bulkop', 'GET', [
             'id' => $id
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals('UTTest2', $ret['stdmsg']['title']);
+        assertEquals('UTTest2', $ret['bulkop']['title']);
 
         # Try as a mod, but the wrong one.
         $g = new Group($this->dbhr, $this->dbhm);
@@ -176,7 +176,7 @@ class stdMessageAPITest extends IznikAPITest {
         assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($user->login('testpw'));
 
-        $ret = $this->call('stdmsg', 'PATCH', [
+        $ret = $this->call('bulkop', 'PATCH', [
             'id' => $id,
             'title' => 'UTTest3'
         ]);
@@ -190,7 +190,7 @@ class stdMessageAPITest extends IznikAPITest {
 
         assertTrue($this->user->login('testpw'));
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
-        $ret = $this->call('stdmsg', 'POST', [
+        $ret = $this->call('bulkop', 'POST', [
             'configid' => $this->cid,
             'title' => 'UTTest',
             'dup' => time() . $this->count++
@@ -202,7 +202,7 @@ class stdMessageAPITest extends IznikAPITest {
         unset($_SESSION['id']);
 
         # When not logged in
-        $ret = $this->call('stdmsg', 'DELETE', [
+        $ret = $this->call('bulkop', 'DELETE', [
             'id' => $id
         ]);
         assertEquals(1, $ret['ret']);
@@ -213,7 +213,7 @@ class stdMessageAPITest extends IznikAPITest {
         # As a non-mod
         error_log("Demote");
         $this->user->setRole(User::ROLE_MEMBER, $this->groupid);
-        $ret = $this->call('stdmsg', 'DELETE', [
+        $ret = $this->call('bulkop', 'DELETE', [
             'id' => $id
         ]);
         assertEquals(4, $ret['ret']);
@@ -229,7 +229,7 @@ class stdMessageAPITest extends IznikAPITest {
         assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($user->login('testpw'));
 
-        $ret = $this->call('stdmsg', 'DELETE', [
+        $ret = $this->call('bulkop', 'DELETE', [
             'id' => $id
         ]);
         assertEquals(4, $ret['ret']);
@@ -237,12 +237,12 @@ class stdMessageAPITest extends IznikAPITest {
         # Promote back
         $this->user->setRole(User::ROLE_OWNER, $this->groupid);
         assertTrue($this->user->login('testpw'));
-        $ret = $this->call('stdmsg', 'DELETE', [
+        $ret = $this->call('bulkop', 'DELETE', [
             'id' => $id
         ]);
         assertEquals(0, $ret['ret']);
 
-        $ret = $this->call('stdmsg', 'GET', [
+        $ret = $this->call('bulkop', 'GET', [
             'id' => $id
         ]);
         assertEquals(2, $ret['ret']);

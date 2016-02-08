@@ -8,6 +8,7 @@ require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/config/ModConfig.php';
 require_once IZNIK_BASE . '/include/config/StdMessage.php';
+require_once IZNIK_BASE . '/include/config/BulkOp.php';
 
 /**
  * @backupGlobals disabled

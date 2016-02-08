@@ -1204,6 +1204,172 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+  /bulkop:
+    get:
+      summary: Bulk Operation Get
+      tags: [BulkOp]
+      description:
+        Retrieve bulkop details
+      parameters:
+      - name: id
+        in: path
+        description: BulkOp id to query.
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    put:
+      summary: Update a standard mesage settings
+      tags: [BulkOp]
+      description:
+        Doesn't work in Swagger.
+      parameters:
+      - name: id
+        in: path
+        description: BulkOp id to update.
+        type: string
+      - name: configid
+        in: body
+        description: The owning configid
+        type: number
+      - name: title
+        in: body
+        description: The visible title
+        type: string
+      - name: action
+        in: body
+        description: What the bulkop does
+        type: string
+        enum: ['Approve','Reject','Leave','Approve Member','Reject Member','Leave Member','Leave Approved Message','Delete Approved Message','Leave Approved Member','Delete Approved Member','Edit']
+      - name: subjpref
+        in: body
+        description: What to put at the start of the subject line
+        type: string
+      - name: subjsuff
+        in: body
+        description: What to put at the end of the subject line
+        type: string
+      - name: body
+        in: body
+        description: What to put in the body
+        type: string
+      - name: rarelyused
+        in: body
+        description: Indicates whether this will be displayed prominently
+        type: boolean
+      - name: newdelstatus
+        in: query
+        description: Any change to Yahoo Delivery Type
+        type: string
+        enum: ['DIGEST', 'NONE', 'SINGLE', 'ANNOUNCEMENT']
+      - name: newmodstatus
+        in: query
+        description: Any change to Yahoo Posting Status
+        type: string
+        enum: ['MODERATED', 'DEFAULT', 'PROHIBITED', 'UNMODERATED']
+      - name: edittext
+        in: query
+        description: Any change to Yahoo Posting Status
+        type: string
+        enum: ['Unchanged', 'CorrectCase']
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    patch:
+      summary: Update a standard mesage settings
+      tags: [BulkOp]
+      description:
+        Update a Bulk Operation
+      parameters:
+      - name: id
+        in: path
+        description: BulkOp id to update.
+        type: string
+      - name: configid
+        in: body
+        description: The owning configid
+        type: number
+      - name: title
+        in: body
+        description: The visible title
+        type: string
+      - name: set
+        in: body
+        description: What the operation operates on
+        type: string
+        enum: ['Members','Member Logs','Mail Logs','Web Logs','Moderator Logs','Command Logs']
+      - name: action
+        in: body
+        description: What the bulkop does
+        type: string
+        enum: ['Unbounce','Remove','ToGroup','ToSpecialNotices']
+      - name: runevery
+        in: body
+        description: How frequently in hours
+        type: number
+      - name: bouncingfor
+        in: body
+        description: For bouncing members, how many days they must have been bouncing
+        type: number
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    post:
+      summary: Create a Bulk Operation
+      tags: [BulkOp]
+      description:
+        Create a Bulk Operation
+      parameters:
+      - name: title
+        in: query
+        description: BulkOp
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    delete:
+      summary: Delete a Bulk Operation
+      tags: [BulkOp]
+      description:
+        Delete a Bulk Operation
+      parameters:
+      - name: id
+        in: path
+        description: BulkOp
+        type: number
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
   /spammers:
     get:
       summary: Get spammer list

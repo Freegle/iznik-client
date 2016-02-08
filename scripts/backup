@@ -1,67 +1,24 @@
 #!/bin/bash
-#
-
-# Who wants to know when the backup failed, or
-# when the binary logs didn't get applied
 EMAIL=geek-alerts@ilovefreegle.org
-
-# Where you keep your backups
-BACKUPDIR=/backups
 
 # path to innobackupex
 XTRABACKUP=/usr/bin/innobackupex
 
-# Get user and password
-SQLUSER=`grep user ~/.my.cnf | awk -F= '{print $2}'`
-SQLPASSWORD=`grep password ~/.my.cnf | awk -F= '{print $2}'`
-OPTIONS="--compress --user=$SQLUSER --password=$SQLPASSWORD"
-
-APPLY_LOG_OPTIONS="--apply-log"
+# User and password are in [xtrabackup] in ~/.my.cnf
+OPTIONS="--stream=tar /backup"
 BACKUP="$XTRABACKUP $OPTIONS $BACKUPDIR"
-APPLY_BINARY_LOG="$XTRABACKUP $OPTIONS $APPLY_LOG_OPTIONS"
 
-# Check if we have space
-free=`df -m / | awk '/[0-9]%/{print $(NF-2)}'`
-echo "Free is $free"
+timestamp=$(date +%Y-%m-%d-%H-%M)
 
-if [ $free -lt 30000 ]
-then
-   echo "Skipped backup as insufficient spare disk space" | mail -s "BACKUP ERROR: Not enough disk space" $EMAIL
-   exit
-fi
-
-# run a backup
-$BACKUP
+# run a backup and stream the output directly
+$BACKUP | /root/gsutil/gsutil cp - gs://freegle_backup/iznik-$timestamp.tar > /tmp/gsutil.out 2>&1
 
 if [ $? == 0 ]; then
-
-  # we got a backup, now we need to apply the binary logs
-  #
-  # Can't do this with --compress option.
-  MOST_RECENT=`ls -rt $BACKUPDIR | tail -n1`
-  # $APPLY_BINARY_LOG $BACKUPDIR/$MOST_RECENT
-
   if [ $? == 0 ]; then
-    # Compress
-    #
-    # No point compressing with --compress option
-    # find $BACKUPDIR/$MOST_RECENT/* -exec gzip {} \;
-
-    # Offsite - you might need to change this.
-    /root/gsutil/gsutil cp -r /backups/ gs://freegle_backup > /tmp/gsutil.out 2>&1
-
-    if [ $? == 0 ]; then
-        cat /tmp/gsutil.out | mail -s "BACKUP SUCCESS: backed up to $BACKUPDIR/$MOST_RECENT" $EMAIL
-
-        # Remove to keep local disk space down.
-        rm -r $BACKUPDIR/*
-    else
-        cat /tmp/gsutil.out | mail -s "BACKUP ERROR: gsutil copy failed" $EMAIL
-    fi
+    cat /tmp/gsutil.out | mail -s "BACKUP SUCCESS: backed up to $BACKUPDIR/$MOST_RECENT" $EMAIL
   else
     echo "Couldn't apply the binary logs to the backup $BACKUPDIR/$MOST_RECENT" | mail -s "BACKUP ERRO: Mysql binary log didn't get applied to backup" $EMAIL
   fi
-
 else
    # problem with initial backup :(
    echo "Couldn't do a mysql backup" | mail -s "BACKUP ERROR: Mysql backup failed" $EMAIL

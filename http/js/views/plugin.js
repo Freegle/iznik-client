@@ -55,7 +55,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             //console.log("Work on MT", group.get('work')[countname]);
 
             var worthit = yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1 ||
-                    group.get('work')[countname];
+                    presdef(countname, group.get('work'), 0);
 
             return(worthit);
         }
@@ -1480,14 +1480,10 @@ Iznik.Views.Plugin.Yahoo.BanApprovedMember = Iznik.Views.Plugin.Work.extend({
             data: "members=" + JSON.stringify(members),
             success: function (ret) {
                 console.log("Ban returned", ret);
-                if (ret.hasOwnProperty('ygData') &&
-                    ret.ygData.hasOwnProperty('numPassed')) {
-                    // If the ban worked, numPassed == 1.
-                    if (ret.ygData.numPassed == 1) {
-                        self.succeed();
-                    } else {
-                        self.fail();
-                    }
+                if (ret.hasOwnProperty('ygData')) {
+                    // Banning can fail with no decent error code, which just leaves the work sitting there.
+                    // So if we had an operation which seemed to get some kind of result, assume we have done the
+                    // best we can.
                 } else {
                     self.fail();
                 }
