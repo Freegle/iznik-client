@@ -200,7 +200,7 @@ class Group extends Entity
             $collectionq = $searchid ? '' : (' AND collection = ' . $this->dbhr->quote($collection) . ' ');
         }
 
-        $sql = "SELECT DISTINCT memberships.* FROM memberships LEFT JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq $collectionq $addq $searchq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
+        $sql = "SELECT DISTINCT memberships.* FROM memberships LEFT JOIN users_emails ON memberships.emailid = users_emails.id INNER JOIN users ON users.id = memberships.userid WHERE $groupq $collectionq $addq $searchq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
         $members = $this->dbhr->preQuery($sql);
 
         $ctx = [ 'Added' => NULL ];

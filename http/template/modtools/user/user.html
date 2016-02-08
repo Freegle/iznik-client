@@ -73,4 +73,7 @@
         </div>
     </li>
 </ul>
+<% if (obj.activedistance && obj.activedistance > 50) { %>
+<div class="alert alert-warning">Active on groups about {{activedistance}}km apart</div>
+<% } %>
 <div class="js-comments margtop"></div>

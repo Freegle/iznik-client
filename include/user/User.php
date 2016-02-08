@@ -121,7 +121,8 @@ class User extends Entity
     }
 
     public function findByYahooUserId($id) {
-        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooUserId = ?;", [ $id ]);
+        # Take care not to pick up empty or null else that will cause is to overmerge.
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooUserId = ? AND yahooUserId IS NOT NULL AND LENGTH(yahooUserId) > 0;", [ $id ]);
         if (count($users) == 1) {
             return($users[0]['id']);
         }
@@ -168,7 +169,8 @@ class User extends Entity
     }
 
     public function findByEmail($email) {
-        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE email LIKE ?;",
+        # Take care not to pick up empty or null else that will cause is to overmerge.
+        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE email LIKE ? AND email IS NOT NULL AND LENGTH(email) > 0;",
             [ $email ]);
 
         foreach ($users as $user) {
@@ -179,7 +181,8 @@ class User extends Entity
     }
 
     public function findByYahooId($id) {
-        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooid LIKE ?;",
+        # Take care not to pick up empty or null else that will cause is to overmerge.
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooid LIKE ? AND yahooid IS NOT NULL AND LENGTH(yahooid) > 0);",
             [ $id ]);
 
         foreach ($users as $user) {
@@ -823,6 +826,8 @@ class User extends Entity
             }
         }
 
+        $box = NULL;
+
         if ($memberof &&
             !array_key_exists('memberof', $atts) &&
             ($systemrole == User::ROLE_MODERATOR ||
@@ -831,7 +836,7 @@ class User extends Entity
             # We haven't provided the complete list; get the recent ones (which preserves some privacy for the user but
             # allows us to spot abuse) and any which are on our groups.
             $modids = array_merge([0], $me->getModeratorships());
-            $sql = "SELECT memberships.*, groups.nameshort, groups.namefull FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), added) <= 31 OR memberships.groupid IN (" . implode(',', $modids) . "));";
+            $sql = "SELECT DISTINCT memberships.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), added) <= 31 OR memberships.groupid IN (" . implode(',', $modids) . "));";
             $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
             $memberof = [];
 
@@ -843,6 +848,15 @@ class User extends Entity
                     'namedisplay' => $name,
                     'added' => ISODate($group['added'])
                 ];
+
+                if ($group['lat'] && $group['lng']) {
+                    $box = [
+                        'swlat' => $box == NULL ? $group['lat'] : min($group['lat'], $box['swlat']),
+                        'swlng' => $box == NULL ? $group['lng'] : min($group['lng'], $box['swlng']),
+                        'nelng' => $box == NULL ? $group['lng'] : max($group['lng'], $box['nelng']),
+                        'nelat' => $box == NULL ? $group['lat'] : max($group['lat'], $box['nelat'])
+                    ];
+                }
             }
 
             $atts['memberof'] = $memberof;
@@ -856,7 +870,7 @@ class User extends Entity
             # This is useful info for moderators.  If the user is suspicious then return the complete list; otherwise
             # just the recent ones.
             $groupq = ($groupids && count($groupids) > 0) ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
-            $sql = "SELECT memberships_history.*, groups.nameshort, groups.namefull FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid = ? $groupq ORDER BY added DESC;";
+            $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid = ? $groupq ORDER BY added DESC;";
             $membs = $this->dbhr->preQuery($sql, [ $this->id ]);
             foreach ($membs as &$memb) {
                 $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
@@ -864,9 +878,20 @@ class User extends Entity
                 $memb['added'] = ISODate($memb['added']);
                 $memb['id'] = $memb['groupid'];
                 unset($memb['groupid']);
+
+                if ($memb['lat'] && $memb['lng']) {
+                    $box = [
+                        'swlat' => $box == NULL ? $memb['lat'] : min($memb['lat'], $box['swlat']),
+                        'swlng' => $box == NULL ? $memb['lng'] : min($memb['lng'], $box['swlng']),
+                        'nelng' => $box == NULL ? $memb['lng'] : max($memb['lng'], $box['nelng']),
+                        'nelat' => $box == NULL ? $memb['lat'] : max($memb['lat'], $box['nelat'])
+                    ];
+                }
             }
 
             $atts['applied'] = $membs;
+            $atts['activearea'] = $box;
+            $atts['activedistance'] = $box ? round(Location::getDistance($box['swlat'], $box['swlng'], $box['nelat'], $box['nelng'])) : NULL;
         }
 
         if ($systemrole == User::ROLE_MODERATOR ||

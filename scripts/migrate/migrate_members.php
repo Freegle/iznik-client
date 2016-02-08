@@ -180,7 +180,7 @@ foreach ($groups as $group) {
     if ($gid) {
         $g = new Group($dbhr, $dbhm, $gid);
 
-        $users = $dbhmt->query("SELECT * FROM members WHERE groupid = {$group['groupid']} AND memberStatus = 'CONFIRMED';");
+        $users = $dbhmt->query("SELECT * FROM members WHERE groupid = {$group['groupid']} AND memberStatus = 'CONFIRMED' AND email != '';");
         $count = 0;
         foreach ($users as $user) {
             try {

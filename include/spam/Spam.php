@@ -363,12 +363,16 @@ class Spam {
             'text' => $text
         ]);
 
-        $sql = "UPDATE spam_users SET collection = ?, reason = ? WHERE id = ?;";
-        $rc = $this->dbhm->preExec($sql, [
-            $collection,
-            $reason,
-            $id
-        ]);
+        # Don't want to lose any existing reason.
+        $spammers = $this->dbhr->preQuery("SELECT * FROM spam_users WHERE id = ?;", [ $id ]);
+        foreach ($spammers as $spammer) {
+            $sql = "UPDATE spam_users SET collection = ?, reason = ? WHERE id = ?;";
+            $rc = $this->dbhm->preExec($sql, [
+                $collection,
+                $reason ? $reason : $spammer['reason'],
+                $id
+            ]);
+        }
 
         $id = $rc ? $this->dbhm->lastInsertId() : NULL;
 
