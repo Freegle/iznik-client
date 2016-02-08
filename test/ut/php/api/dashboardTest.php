@@ -3,13 +3,13 @@
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikAPITest.php';
+require_once UT_DIR . '/IznikAPITestCase.php';
 
 /**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class dashboardTest extends IznikAPITest {
+class dashboardTest extends IznikAPITestCase {
     public function testLoggedOut() {
         error_log(__METHOD__);
 

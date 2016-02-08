@@ -10,7 +10,7 @@ require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/Assert
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class IznikTest extends PHPUnit_Framework_TestCase {
+abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
     const LOG_SLEEP=30;
 
     private $dbhr, $dbhm;
@@ -45,9 +45,9 @@ class IznikTest extends PHPUnit_Framework_TestCase {
             sleep(1);
             $count++;
 
-        } while ($count < IznikTest::LOG_SLEEP);
+        } while ($count < IznikTestCase::LOG_SLEEP);
 
-        if ($count >= IznikTest::LOG_SLEEP) {
+        if ($count >= IznikTestCase::LOG_SLEEP) {
             assertFalse(TRUE, 'Failed to complete background work');
         }
     }

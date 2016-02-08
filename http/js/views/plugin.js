@@ -1484,6 +1484,7 @@ Iznik.Views.Plugin.Yahoo.BanApprovedMember = Iznik.Views.Plugin.Work.extend({
                     // Banning can fail with no decent error code, which just leaves the work sitting there.
                     // So if we had an operation which seemed to get some kind of result, assume we have done the
                     // best we can.
+                    self.succeed();
                 } else {
                     self.fail();
                 }

@@ -3,14 +3,14 @@
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTest.php';
+require_once UT_DIR . '/IznikTestCase.php';
 require_once IZNIK_BASE . '/include/db.php';
 
 /**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class dbTest extends IznikTest {
+class dbTest extends IznikTestCase {
     /** @var $dbhr LoggedPDO */
     /** @var $dbhm LoggedPDO */
     private $dbhr, $dbhm;

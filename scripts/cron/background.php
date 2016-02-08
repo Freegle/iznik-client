@@ -20,7 +20,6 @@ try {
 
         while (true) {
             $job = $pheanstalk->reserve();
-            error_log("Reserved " . $job->getId());
 
             # We have got one job.  Get any others.
             #
@@ -52,7 +51,6 @@ try {
                 }
 
                 $job = $pheanstalk->reserve(0);
-                error_log("Reserved " . $job->getId());
             } while ($job && $count < 100);
 
             if (count($sqls) > 0) {

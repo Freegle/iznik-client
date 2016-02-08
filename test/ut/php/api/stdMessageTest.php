@@ -3,7 +3,7 @@
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikAPITest.php';
+require_once UT_DIR . '/IznikAPITestCase.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
@@ -14,7 +14,7 @@ require_once(IZNIK_BASE . '/include/config/ModConfig.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class stdMessageAPITest extends IznikAPITest {
+class stdMessageAPITest extends IznikAPITestCase {
     public $dbhr, $dbhm;
 
     private $count = 0;

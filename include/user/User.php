@@ -182,7 +182,7 @@ class User extends Entity
 
     public function findByYahooId($id) {
         # Take care not to pick up empty or null else that will cause is to overmerge.
-        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooid LIKE ? AND yahooid IS NOT NULL AND LENGTH(yahooid) > 0);",
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooid LIKE ? AND yahooid IS NOT NULL AND LENGTH(yahooid) > 0;",
             [ $id ]);
 
         foreach ($users as $user) {

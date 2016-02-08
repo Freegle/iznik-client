@@ -3,7 +3,7 @@
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikTest.php';
+require_once UT_DIR . '/IznikTestCase.php';
 require_once IZNIK_BASE . '/include/message/Message.php';
 require_once IZNIK_BASE . '/include/misc/Location.php';
 require_once IZNIK_BASE . '/include/spam/Spam.php';
@@ -12,7 +12,7 @@ require_once IZNIK_BASE . '/include/spam/Spam.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class messageTest extends IznikTest {
+class messageTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
     protected function setUp() {

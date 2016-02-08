@@ -3,14 +3,14 @@
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
-require_once UT_DIR . '/IznikAPITest.php';
+require_once UT_DIR . '/IznikAPITestCase.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 
 /**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class sessionTest extends IznikAPITest {
+class sessionTest extends IznikAPITestCase {
     public function testLoggedOut() {
         error_log(__METHOD__);
 
