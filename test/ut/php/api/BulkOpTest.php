@@ -113,6 +113,52 @@ class bulkOpAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['bulkop']['id']);
 
+        # Use the config on the group.
+        $c = new ModConfig($this->dbhr, $this->dbhm, $this->cid);
+        $c->useOnGroup($this->uid, $this->groupid);
+
+        # Make the bulkop a bouncing member one.
+        $ret = $this->call('bulkop', 'PATCH', [
+            'id' => $id,
+            'runevery' => 1,
+            'action' => 'Unbounce',
+            'set' => 'Members',
+            'criterion' => 'Bouncing'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # This bulk op should now be due
+        $ret = $this->call('plugin', 'GET', []);
+        $bulkops = $ret['bulkops'];
+        error_log("Bulk ops due " . var_export($ret, TRUE));
+        assertEquals(1, count($bulkops));
+        assertEquals('Unbounce', $bulkops[0]['action']);
+
+        # Start it
+        $date = isodate("@" . time());
+
+        $ret = $this->call('bulkop', 'PATCH', [
+            'id' => $id,
+            'groupid' => $this->groupid,
+            'runstarted' => $date
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Finish it
+        $date = isodate("@" . time());
+
+        $ret = $this->call('bulkop', 'PATCH', [
+            'id' => $id,
+            'groupid' => $this->groupid,
+            'runfinished' => $date
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # No longer due
+        $ret = $this->call('plugin', 'GET', []);
+        error_log("Bulk ops not due " . var_export($ret, TRUE));
+        assertEquals(0, count($ret['bulkops']));
+
         error_log(__METHOD__ . " end");
     }
 

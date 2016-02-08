@@ -69,6 +69,17 @@ function bulkop() {
                     ];
                 } else {
                     $b->setAttributes($_REQUEST);
+
+                    $groupid = presdef('groupid', $_REQUEST, NULL);
+
+                    foreach (['runstarted', 'runfinished'] as $att) {
+                        $val = presdef($att, $_REQUEST, NULL);
+
+                        if ($val) {
+                            $b->setRunAtt($groupid, 'runstarted', $val);
+                        }
+                    }
+
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success'

@@ -73,9 +73,50 @@ class BulkOp extends Entity
         ]);
     }
 
+    public function setRunAtt($groupid, $att, $val) {
+        $rc = $this->dbhm->preExec("UPDATE mod_bulkops_run SET `$att` = ? WHERE bulkopid = ? AND groupid = ?;", [
+            $val,
+            $this->id,
+            $groupid
+        ]);
+
+        return($rc);
+    }
+
     public function canModify() {
         $c = new ModConfig($this->dbhr, $this->dbhm, $this->bulkop['configid']);
         return($c->canModify());
+    }
+
+    public function checkDue() {
+        # See which (if any) bulk ops are due to start.
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $id = $me ? $me->getId() : NULL;
+
+        # Look for groups we moderate, find configs used on those groups, find bulk ops in those configs, add any
+        # info about
+        $sql = "SELECT mod_bulkops.*, memberships.groupid, mod_bulkops_run.runstarted, mod_bulkops_run.runfinished FROM mod_bulkops INNER JOIN mod_configs ON mod_bulkops.configid = mod_configs.id INNER JOIN memberships ON memberships.configid = mod_configs.id AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') LEFT JOIN mod_bulkops_run ON mod_bulkops.id = mod_bulkops_run.bulkopid AND memberships.groupid = mod_bulkops_run.groupid;";
+        $bulkops = $this->dbhr->preQuery($sql, [
+            $id
+        ]);
+
+        $due = [];
+
+        foreach ($bulkops as $bulkop) {
+            if (!$bulkop['runstarted']) {
+                # Make sure there's an entry for this group.
+                $sql = "INSERT IGNORE INTO mod_bulkops_run (bulkopid, groupid) VALUES (?,?);";
+                $this->dbhm->preExec($sql, [ $bulkop['id'], $bulkop['groupid']]);
+            }
+
+            $hoursago = floor((time() - strtotime($bulkop['runstarted'])) / 3600);
+            if (!$bulkop['runstarted'] || $hoursago >= $bulkop['runevery']) {
+                # This one is due.
+                $due[] = $bulkop;
+            }
+        }
+
+        return($due);
     }
 
     public function delete() {

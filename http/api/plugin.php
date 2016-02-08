@@ -21,10 +21,14 @@ function plugin() {
                     $work = array_merge($work, $p->get($group));
                 }
 
+                $b = new BulkOp($dbhr, $dbhm);
+                $opsdue = $b->checkDue();
+
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
-                    'plugin' => $work
+                    'plugin' => $work,
+                    'bulkops' => $opsdue
                 ];
                 break;
             }

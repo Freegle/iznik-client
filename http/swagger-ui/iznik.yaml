@@ -836,6 +836,16 @@ paths:
         in: path
         description: User ID to modify
         type: number
+      - name: yahooDeliveryType
+        in: query
+        description: If present, filter by Yahoo Delivery Type
+        type: string
+        enum: ['DIGEST', 'NONE', 'SINGLE', 'ANNOUNCEMENT']
+      - name: yahooPostingStatus
+        in: query
+        description: If present, filter by Yahoo Posting Status
+        type: string
+        enum: ['MODERATED', 'DEFAULT', 'PROHIBITED', 'UNMODERATED']
     put:
       summary: Membership add
       tags: [Memberships]
