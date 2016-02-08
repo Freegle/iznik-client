@@ -1018,7 +1018,8 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
                     data: {
                         'groupid': this.model.get('id'),
                         'collection': this.collection,
-                        'members': this.members
+                        'members': this.members,
+                        'memberspresentbutempty': this.members.length == 0
                     },
                     success: function(ret) {
                         var self = this;

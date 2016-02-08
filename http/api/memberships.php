@@ -12,7 +12,7 @@ function memberships() {
     $search = presdef('search', $_REQUEST, NULL);
     $ctx = presdef('context', $_REQUEST, NULL);
     $settings = presdef('settings', $_REQUEST, NULL);
-    $members = presdef('members', $_REQUEST, NULL);
+    $members = presdef('members', $_REQUEST, presdef('memberspresentbutempty', $_REQUEST, 0) ? [] : NULL);
     $ban = array_key_exists('ban', $_REQUEST) ? filter_var($_REQUEST['ban'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $logctx = presdef('logcontext', $_REQUEST, NULL);
@@ -204,7 +204,7 @@ function memberships() {
                             unset($settings['configid']);
                         }
 
-                        if ($members) {
+                        if ($members !== NULL) {
                             # Check when the last member sync was.  If it's within the last few minutes, don't
                             # bother resyncing.  This helps with the case where the client times out waiting, and
                             # then retries forever but the sync has actually happened.

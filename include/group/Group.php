@@ -279,7 +279,8 @@ class Group extends Entity
             'status' => 'Success'
         ];
 
-        if (!$members) { return($ret); }
+        # Really don't want to remove all members by mistake, so don't allow it.
+        if (!$members && $collection == MembershipCollection::APPROVED) { return($ret); }
 
         try {
             #$this->dbhm->setErrorLog(TRUE);
