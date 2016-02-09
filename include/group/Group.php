@@ -445,14 +445,7 @@ class Group extends Entity
                     #
                     # This will have the effect of moving members between collections if required.
                     if ($new ||
-                        $membs[0]['role'] != $role ||
-                        $membs[0]['collection'] != $collection ||
-                        $membs[0]['yahooPostingStatus'] != $yps ||
-                        $membs[0]['yahooDeliveryType'] != $ydt ||
-                        $membs[0]['joincomment'] != $joincomment ||
-                        $membs[0]['emailid'] != $member['emailid'] ||
-                        $membs[0]['added'] != $added
-                    ) {
+                        $membs[0]['role'] != $role || $membs[0]['collection'] != $collection || $membs[0]['yahooPostingStatus'] != $yps || $membs[0]['yahooDeliveryType'] != $ydt || $membs[0]['joincomment'] != $joincomment || $membs[0]['emailid'] != $member['emailid'] || $membs[0]['added'] != $added) {
                         $sql = "UPDATE memberships SET role = '$role', collection = '$collection', yahooPostingStatus = " . $this->dbhm->quote($yps) .
                             ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", joincomment = $joincomment, emailid = {$member['emailid']}, added = $added WHERE userid = " .
                             "{$member['uid']} AND groupid = {$this->id};";

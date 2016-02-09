@@ -187,10 +187,26 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testSpamSubject() {
+    public function testSpamNoGroup() {
         error_log(__METHOD__);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
+        $msg = file_get_contents('msgs/spam');
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $msg = file_get_contents('msgs/basic');
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testSpamSubject() {
+        error_log(__METHOD__);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $subj = "Test spam subject " . microtime();
@@ -476,7 +492,7 @@ class MailRouterTest extends IznikTestCase {
 
         # Sorry, Cameroon folk.
         $msg = file_get_contents('msgs/cameroon');
-        $msg = str_replace('"freegleplayground@yahoogroups.com" <freegleplayground@yahoogroups.com>', '"a" <b.com>', $msg);
+        $msg = str_replace('freegleplayground@yahoogroups.com', 'b.com', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);

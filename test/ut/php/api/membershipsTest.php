@@ -402,10 +402,11 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
 
         $ret = $this->call('memberships', 'GET', []);
-        error_log(var_export($ret, TRUE));
+        error_log("Expected " .var_export( $savemembs, TRUE));
+        error_log("Returned " . var_export($ret, TRUE));
 
         assertEquals(2, count($ret['members']));
-        assertEquals($savemembs[0]['id'], $ret['members'][0]['id']);
+        assertEquals($savemembs[2]['id'], $ret['members'][0]['id']);
         assertEquals($savemembs[1]['id'], $ret['members'][1]['id']);
 
         error_log(__METHOD__ . " end");
