@@ -24,6 +24,8 @@ function memberships() {
     $body = presdef('body', $_REQUEST, NULL);
     $stdmsgid = presdef('stdmsgid', $_REQUEST, NULL);
     $action = presdef('action', $_REQUEST, NULL);
+    $yps = presdef('yahooPostingStatus', $_REQUEST, NULL);
+    $ydt = presdef('yahooDeliveryType', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -69,7 +71,7 @@ function memberships() {
                     }
 
                     if (count($groupids) > 0) {
-                        $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids);
+                        $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt);
 
                         if ($userid) {
                             $ret = [

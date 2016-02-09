@@ -353,6 +353,13 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals('Moderator', $ret['members'][2]['role']);
         $savemembs = $ret['members'];
 
+        # Check filters
+        error_log("Check filters");
+        $ret = $this->call('memberships', 'GET', [ 'yahooPostingStatus' => 'PROHIBITED' ]);
+        assertEquals(1, count($ret['members']));
+        $ret = $this->call('memberships', 'GET', [ 'yahooDeliveryType' => 'DIGEST' ]);
+        assertEquals(1, count($ret['members']));
+
         # Again - should get ignored
         $ret = $this->call('memberships', 'PATCH', [
             'groupid' => $this->groupid,

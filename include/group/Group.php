@@ -179,7 +179,7 @@ class Group extends Entity
         return($atts);
     }
 
-    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection = MembershipCollection::APPROVED, $groupids = NULL) {
+    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection = MembershipCollection::APPROVED, $groupids = NULL, $yps = NULL, $ydt = NULL) {
         $ret = [];
         $groupids = $groupids ? $groupids : [ $this-> id ];
 
@@ -189,6 +189,8 @@ class Group extends Entity
         $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") . ") ");
         $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : $searchq;
         $groupq = " memberships.groupid IN (" . implode(',', $groupids) . ") ";
+        $ypsq = $yps ? (" AND memberships.yahooPostingStatus = " . $this->dbhr->quote($yps)) : '';
+        $ydtq = $ydt ? (" AND memberships.yahooDeliveryType = " . $this->dbhr->quote($ydt)) : '';
 
         if ($collection == MembershipCollection::SPAM) {
             # This collection is handled separately; we use the suspectcount field.
@@ -200,7 +202,7 @@ class Group extends Entity
             $collectionq = $searchid ? '' : (' AND collection = ' . $this->dbhr->quote($collection) . ' ');
         }
 
-        $sql = "SELECT DISTINCT memberships.* FROM memberships LEFT JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq $collectionq $addq $searchq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
+        $sql = "SELECT DISTINCT memberships.* FROM memberships LEFT JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
         $members = $this->dbhr->preQuery($sql);
 
         $ctx = [ 'Added' => NULL ];
