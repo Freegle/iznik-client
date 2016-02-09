@@ -881,6 +881,5 @@ class MailRouterTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
-
 }
 

@@ -4,6 +4,7 @@ if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
 require_once UT_DIR . '/IznikTestCase.php';
+require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 require_once IZNIK_BASE . '/include/message/Message.php';
 require_once IZNIK_BASE . '/include/misc/Location.php';
 require_once IZNIK_BASE . '/include/spam/Spam.php';
@@ -155,6 +156,41 @@ class messageTest extends IznikTestCase {
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test Tuvalu High Street"));
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test Tuvalu HIGH STREET"));
         assertEquals("OFFER: test (Tuvalu High Street)", $m->suggestSubject($gid, "OFFR TEST Tuvalu HIGH STREET"));
+
+        error_log(__METHOD__ . " end");
+    }
+
+
+    public function testMerge() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_REUSE);
+        $g = new Group($this->dbhr, $this->dbhm, $gid);
+
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        # Now from a different email but the same YahooID, triggering a merge.
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $msg = str_ireplace('test@test.com', 'test2@test.com', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from2@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        # Check the merge happened.  Can't use findlog as we hide merge logs.
+        $fromuser = $m->getFromuser();
+        $sql = "SELECT * FROM logs WHERE user = ? AND type = 'User' AND subtype = 'Merged';";
+        $logs = $this->dbhr->preQuery($sql, [ $fromuser ]);
+        assertEquals(1, count($logs));
 
         error_log(__METHOD__ . " end");
     }
