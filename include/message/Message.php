@@ -1121,7 +1121,18 @@ class Message
 
             $me = whoAmI($this->dbhr, $this->dbhm);
 
+            # Find who to send it from
             $name = $me->getName();
+
+            if ($stdmsgid) {
+                $s = new StdMessage($this->dbhr, $this->dbhm, $stdmsgid);
+                $c = new ModConfig($this->dbhr, $this->dbhm, $s->getPrivate('configid'));
+                $fromname = $c->getPrivate('fromname');
+
+                if ($fromname == 'Groupname Moderator') {
+                    $name = '$groupname Moderator';
+                }
+            }
 
             # We can do a simple substitution in the from name.
             $name = str_replace('$groupname', $atts['namedisplay'], $name);

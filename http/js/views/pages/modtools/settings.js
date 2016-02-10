@@ -534,7 +534,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                             //console.log("Disable", $('.js-cc' + tag + 'form select, .js-cc' + tag + 'form button'));
 
                             // We want to dynamically disable, which backform doesn't.
-                            function handleChange(tag) {
+                            function handleChange(self, tag) {
                                 return(function(e) {
                                     var val = self.modConfigModel.get('cc' + tag + 'to');
                                     var inp = self.$("input[name='cc" + tag + "addr']");
@@ -542,7 +542,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                                 });
                             }
 
-                            self.listenTo(self.modConfigModel, 'change:cc' + tag + 'to', handleChange(tag));
+                            self.listenTo(self.modConfigModel, 'change:cc' + tag + 'to', handleChange(self, tag));
 
                             var targ = self.$("input[name='cc" + tag + "addr']");
                             var disabled = self.$("select[name='cc" + tag + "to']").val().indexOf('Specific') == -1;
@@ -1097,10 +1097,10 @@ Iznik.Views.ModTools.BulkOp = Iznik.Views.Modal.extend({
                     label: 'Action',
                     control: 'select',
                     options: [
-                        {label: 'Unbounce', value: 'Unbounce' },
-                        {label: 'Remove from Group', value: 'Remove'},
-                        {label: 'Change to Group Settings', value: 'ToGroup'},
-                        {label: 'Change to Special Notices', value: 'ToSpecialNotices'}
+                        {label: 'Yahoo Unbounce', value: 'Unbounce' },
+                        {label: 'Yahoo Remove from Group', value: 'Remove'},
+                        {label: 'Yahoo Change to Group Settings', value: 'ToGroup'},
+                        {label: 'Yahoo Change to Special Notices', value: 'ToSpecialNotices'}
                     ]
                 },
                 {

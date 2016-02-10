@@ -427,6 +427,32 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                         }
                     });
 
+                    // Now bulk ops due
+                    _.each(ret.bulkops, function(bulkop) {
+                        console.log("Bulk op due", bulkop);
+                        var group = Iznik.Session.getGroup(bulkop.groupid);
+                        var mod = new Iznik.Models.ModConfig.BulkOp(bulkop);
+
+                        // Record bulk op started on server.
+                        var started = (new moment()).format();
+                        console.log("Started", started)
+                        mod.set('runstarted', started);
+                        mod.save();
+
+                        switch (bulkop.action) {
+                            case 'Unbounce': {
+                                (new Iznik.Views.Plugin.Yahoo.SyncMembers.Bouncing({
+                                    model: group
+                                }).render());
+                                break;
+                            }
+
+                            default: {
+                                console.log("Ignore bulkop");
+                            }
+                        }
+                    });
+
                     if (hoursago >= 4 && !self.connected) {
                         $('#js-pluginbuildup').fadeIn('slow');
                     } else {
@@ -1009,29 +1035,38 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
             });
 
             if (total == 0 || members.length < this.chunkSize) {
-                // Finished.  Now pass these members to the server.
+                // Finished.
 
-                $.ajaxq('plugin', {
-                    type: 'PATCH',
-                    url: API + 'memberships',
-                    context: self,
-                    data: {
-                        'groupid': this.model.get('id'),
-                        'collection': this.collection,
-                        'members': this.members,
-                        'memberspresentbutempty': this.members.length == 0
-                    },
-                    success: function(ret) {
-                        var self = this;
+                console.log("Completed; do we have a custom?", self.completed, this.model.get('id'));
+                if (typeof self.completed === 'function') {
+                    // We have a custom callback
+                    console.log("Got custom");
+                    self.completed(self.members);
+                } else {
+                    // Pass to server
+                    console.log("Pass to server");
+                    $.ajaxq('plugin', {
+                        type: 'PATCH',
+                        url: API + 'memberships',
+                        context: self,
+                        data: {
+                            'groupid': this.model.get('id'),
+                            'collection': this.collection,
+                            'members': this.members,
+                            'memberspresentbutempty': this.members.length == 0
+                        },
+                        success: function(ret) {
+                            var self = this;
 
-                        if (ret.ret == 0) {
-                            self.succeed();
-                        } else {
-                            self.failChunk();
-                        }
-                    },
-                    error: self.failChunk
-                });
+                            if (ret.ret == 0) {
+                                self.succeed();
+                            } else {
+                                self.failChunk();
+                            }
+                        },
+                        error: self.failChunk
+                    });
+                }
             } else {
                 this.queue();
             }
@@ -1088,6 +1123,32 @@ Iznik.Views.Plugin.Yahoo.SyncMembers.Pending = Iznik.Views.Plugin.Yahoo.SyncMemb
         }
 
         return(url);
+    }
+});
+
+Iznik.Views.Plugin.Yahoo.SyncMembers.Bouncing = Iznik.Views.Plugin.Yahoo.SyncMembers.extend({
+    // Setting offset to 0 omits start from first one
+    offset: 0,
+
+    template: 'plugin_sync_bouncing_members',
+
+    crumbLocation: "/members/bouncing",
+    memberLocation: 'members',
+
+    numField: 'total',
+
+    url: function() {
+        var url = YAHOOAPI + 'groups/' + this.model.get('nameshort') + "/members/bouncing?count=" + this.chunkSize + "&chrome=raw"
+
+        if (this.offset) {
+            url += "&start=" + this.offset;
+        }
+
+        return(url);
+    },
+
+    completed: function(members) {
+        console.log("Got list of bouncing members", members);
     }
 });
 
