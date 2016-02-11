@@ -240,7 +240,7 @@ class Search
         foreach ($words as $word) {
             if (strlen($word) > 0) {
                 # Check for exact matches even for short words
-                $startq = pres('Exact', $context) ? " AND {$this->idatt} > {$context['Exact']} " : "";
+                $startq = pres('Exact', $context) ? " AND {$this->sortatt} > {$context['Exact']} " : "";
                 $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsExact($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                 #error_log(" $sql  {$this->sortatt} {$this->idatt}");
                 $batch = $this->dbhr->preQuery($sql, [
@@ -252,7 +252,7 @@ class Search
 
             if (strlen($word) >= 2) {
                 # Check for starts matches with two characters
-                $startq = pres('StartsWith', $context) ? " AND {$this->idatt} > {$context['StartsWith']} " : "";
+                $startq = pres('StartsWith', $context) ? " AND {$this->sortatt} > {$context['StartsWith']} " : "";
                 $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsStartsWith($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                 $batch = $this->dbhr->preQuery($sql, [
                     $this->sortatt,
@@ -268,7 +268,7 @@ class Search
                 #
                 # Add in sounds like.  We add these in because it's quick, and some of the extra matches might be
                 # better matches overall than some of the ones we already have.
-                $startq = pres('SoundsLike', $context) ? " AND {$this->idatt} > {$context['SoundsLike']} " : "";
+                $startq = pres('SoundsLike', $context) ? " AND {$this->sortatt} > {$context['SoundsLike']} " : "";
                 $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsSoundsLike($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                 $batch = $this->dbhr->preQuery($sql, [
                     $this->sortatt,
@@ -279,7 +279,7 @@ class Search
                 if (count($results) < $limit * Search::Comfort) {
                     # We still didn't find enough to be comfortable that we have a decent set of matches.
                     # Search for typos.  This is slow, so we need to stick a limit on it.
-                    $startq = pres('Typo', $context) ? " AND {$this->idatt} > {$context['Typo']} " : "";
+                    $startq = pres('Typo', $context) ? " AND {$this->sortatt} > {$context['Typo']} " : "";
                     $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsTypo($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                     $batch = $this->dbhr->preQuery($sql, [
                         $this->sortatt,
@@ -295,13 +295,20 @@ class Search
         # and within that the external sort attribute.
         uasort($results, function ($a, $b) {
             if ($a['count'] == $b['count']) {
-                # Same weighted count; sort descending by sort att
-                return (intval($a['items'][0]['item'][$this->sortatt]) < intval($b['items'][0]['item'][$this->sortatt]) ? 1 : -1);
+                # Same weighted count; sort ascending by sort att
+                return (intval($b['items'][0]['item'][$this->sortatt]) < intval($a['items'][0]['item'][$this->sortatt]) ? 1 : -1);
+
             } else {
                 # Sort by count.
                 return($b['count'] - $a['count']);
             }
         });
+
+//        foreach ($results as $id => $info) {
+//            $m = new Message($this->dbhr, $this->dbhm, $id);
+//            $atts = $m->getPublic();
+//            error_log("$id {$info['count']} {$atts['arrival']} {$atts['subject']} ");
+//        }
 
         # Now apply the limit.
         $ret = array();
@@ -311,7 +318,7 @@ class Search
         while ($count < $limit && count($results) > 0) {
             $key = key($results);
 
-            # Find max value of the id att to return in the context.
+            # Find min value of the sort att to return in the context.
             $thislot = $results[$key]['items'];
             $ret[] = [
                 'id' => $key,
@@ -322,7 +329,7 @@ class Search
                 $results[$key][] = $thisone['item'];
 
                 $retcont[$thisone['tag']] = pres($thisone['tag'], $retcont) ?
-                    max($retcont[$thisone['tag']], $thisone['item'][$this->idatt]) : $thisone['item'][$this->idatt];
+                    min($retcont[$thisone['tag']], $thisone['item'][$this->idatt]) : $thisone['item'][$this->idatt];
             }
 
             unset($results[$key]);

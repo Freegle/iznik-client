@@ -90,6 +90,18 @@ class messagesTest extends IznikAPITestCase {
         assertEquals($a->getID(), $msgs[0]['id']);
         assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
+        # Test search by id
+        error_log("Test by id");
+        $ret = $this->call('messages', 'GET', [
+            'subaction' => 'search',
+            'groupid' => $group1,
+            'search' => $a->getID()
+        ]);
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($a->getID(), $msgs[0]['id']);
+
         # Check the log.
         $u->setRole(User::ROLE_MODERATOR, $group1);
 

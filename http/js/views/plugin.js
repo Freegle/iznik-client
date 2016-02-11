@@ -1149,6 +1149,7 @@ Iznik.Views.Plugin.Yahoo.SyncMembers.Bouncing = Iznik.Views.Plugin.Yahoo.SyncMem
 
     completed: function(members) {
         console.log("Got list of bouncing members", members);
+        self.succeed();
     }
 });
 

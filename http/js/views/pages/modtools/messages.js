@@ -323,7 +323,7 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
     },
 
     substitutionStrings: function(text, model, config, group) {
-        console.log("substitutionstrings", text, model, config, group);
+        //console.log("substitutionstrings", text, model, config, group);
         var self = this;
 
         if (!_.isUndefined(text) && text) {

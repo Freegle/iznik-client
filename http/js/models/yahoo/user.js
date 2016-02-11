@@ -30,8 +30,6 @@ Iznik.Models.Yahoo.User = IznikModel.extend({
                 members[0]["userId"] = self.get('userId');
                 members[0][attr] = val;
 
-                console.log("Change delivery", self, members);
-
                 new majax({
                     type: "PUT",
                     url: YAHOOAPI + 'groups/' + self.get('group') + "/members?gapi_crumb=" + self.crumb,

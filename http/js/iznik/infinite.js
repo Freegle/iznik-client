@@ -61,7 +61,8 @@ Iznik.Views.Infinite = IznikView.extend({
         });
 
         self.collectionView.on('remove', function(modelView) {
-            if (modelView.collection.length == 0) {
+            console.log("Remove", modelView);
+            if (modelView.hasOwnProperty('collection') && modelView.collection.length == 0) {
                 self.$('.js-none').fadeIn('slow');
             }
         });
@@ -85,6 +86,8 @@ Iznik.Views.Infinite = IznikView.extend({
     }
 });
 
-// We add informatin dynamically after the render, and this messes up waypoints, so we need to regularly
-// tell them to sort themselves out.
-window.setInterval(Waypoint.refreshAll, 1000);
+$(document).ready(function() {
+    // We add informatin dynamically after the render, and this messes up waypoints, so we need to regularly
+    // tell them to sort themselves out.
+    window.setInterval(Waypoint.refreshAll, 1000);
+})

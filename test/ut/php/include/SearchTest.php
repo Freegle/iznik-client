@@ -206,4 +206,10 @@ class searchTest extends IznikTestCase
         $ctx = NULL;
         var_dump($s->search("sofa", $ctx, 10, NULL, [ 21354 ]));
     }
+
+    public function testNewportPagnell() {
+        $s = new Search($this->dbhr, $this->dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid');
+        $ctx = NULL;
+        var_dump($s->search("newport pagnell", $ctx, 10, NULL, [ 21529 ]));
+    }
 }

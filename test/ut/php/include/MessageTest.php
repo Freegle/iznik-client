@@ -187,6 +187,7 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
         # Check the merge happened.  Can't use findlog as we hide merge logs.
+        $this->waitBackground();
         $fromuser = $m->getFromuser();
         $sql = "SELECT * FROM logs WHERE user = ? AND type = 'User' AND subtype = 'Merged';";
         $logs = $this->dbhr->preQuery($sql, [ $fromuser ]);

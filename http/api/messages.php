@@ -55,12 +55,24 @@ function messages() {
                 case 'search':
                     # A search.
                     $search = presdef('search', $_REQUEST, NULL);
+                    $search = $search ? trim($search) : NULL;
                     $ctx = presdef('context', $_REQUEST, NULL);
                     $limit = presdef('limit', $_REQUEST, Search::Limit);
 
-                    $m = new Message($dbhr, $dbhm);
-                    $msgs = $m->search($search, $ctx, $limit, NULL, $groups);
-                    list($groups, $msgs) = $c->fillIn($msgs, $limit);
+                    if (is_numeric($search)) {
+                        $m = new Message($dbhr, $dbhm, $search);
+
+                        if ($m->getID() == $search) {
+                            # Found by message id.
+                            list($groups, $msgs) = $c->fillIn([ [ 'id' => $search ] ], $limit);
+                        }
+                    } else {
+                        # Not an id search
+                        $m = new Message($dbhr, $dbhm);
+                        $msgs = $m->search($search, $ctx, $limit, NULL, $groups);
+                        list($groups, $msgs) = $c->fillIn($msgs, $limit);
+                    }
+
                     break;
             }
 
