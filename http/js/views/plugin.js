@@ -270,7 +270,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                         if (!self.everConnected) {
                             // The plugin state might flipflop between connected and disconnected.  We don't want
                             // to trigger invitations each time.
-                            _.delay(_.bind(self.listYahooGroups, self), 2000);
+                            _.delay(_.bind(self.listYahooGroups, self), 5000);
                         }
 
                         self.everConnected = true;
@@ -1149,7 +1149,7 @@ Iznik.Views.Plugin.Yahoo.SyncMembers.Bouncing = Iznik.Views.Plugin.Yahoo.SyncMem
 
     completed: function(members) {
         console.log("Got list of bouncing members", members);
-        self.succeed();
+        this.succeed();
     }
 });
 
@@ -1259,7 +1259,13 @@ Iznik.Views.Plugin.Yahoo.ApprovePendingMember = Iznik.Views.Plugin.Work.extend({
                     self.fail();
                 }
             }, error: function(a,b,c) {
-                self.fail();
+                if (c.indexOf('Internal Server Error') !== -1) {
+                    // For some members Yahoo gives this, and never recovers.  Give up on doing this work.
+                    self.succeed();
+                } else {
+                    console.log("Approve Pending Member error", a, b, c);
+                    self.fail();
+                }
             }
         });
     }
@@ -1537,6 +1543,8 @@ Iznik.Views.Plugin.Yahoo.BanApprovedMember = Iznik.Views.Plugin.Work.extend({
             }
         ];
 
+        console.log("Ban", members);
+
         new majax({
             type: "PUT",
             url: YAHOOAPI + "groups/" + this.model.get('group').nameshort + "/members?gapi_crumb=" + self.crumb,
@@ -1553,7 +1561,16 @@ Iznik.Views.Plugin.Yahoo.BanApprovedMember = Iznik.Views.Plugin.Work.extend({
                 }
             },
             error: function (request, status, error) {
-                self.fail();
+                if (error.length == 0 && status == 'error') {
+                    // Banning can fail with no decent error code, which just leaves the work sitting there.
+                    // So if we had an operation which got a useless error, assume we have done the
+                    // best we can.
+                    console.log("Useless Yahoo error");
+                    self.succeed();
+                } else {
+                    console.log("Ban error", status, error);
+                    self.fail();
+                }
             }
         });
 
