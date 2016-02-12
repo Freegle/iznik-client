@@ -195,7 +195,7 @@ class User extends Entity
 
     public static function canonMail($email) {
         # Canonicalise TN addresses.
-        if (preg_match('/(.*)\-g(.*)(@user.trashnothing.com)/', $email, $matches)) {
+        if (preg_match('/(.*)\-(.*)(@user.trashnothing.com)/', $email, $matches)) {
             $email = $matches[1] . $matches[3];
         }
 

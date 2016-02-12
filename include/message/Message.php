@@ -251,7 +251,7 @@ class Message
         return($role);
     }
 
-    public function getPublic($messagehistory = TRUE, $related = TRUE, $suggested = FALSE) {
+    public function getPublic($messagehistory = TRUE, $related = TRUE) {
         $ret = [];
         $role = $this->getRoleForMessage();
 

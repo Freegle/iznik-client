@@ -114,23 +114,17 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         return(function() {
 
             function parseCrumb(ret) {
-                console.log("parseCrumb");
                 var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
-                console.log("match", match);
 
                 if (ret.indexOf("not allowed to perform this operation") !== -1) {
-                    console.log("Not allowed");
                     fail.call(self);
                 } else if (match) {
-                    console.log("Success");
                     success.call(self, match[1]);
                 } else {
-                    console.log("Look for redirect");
                     var match = /window.location.href = "(.*)"/.exec(ret);
 
                     if (match) {
                         var url = match[1];
-                        console.log("Redirect to", url);
                         $.ajaxq('plugin', {
                             type: "GET",
                             url: url,
@@ -466,6 +460,14 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                                     break;
                                 }
 
+                                case 'Remove': {
+                                    group.set('bouncingfor', bulkop.bouncingfor);
+                                    (new Iznik.Views.Plugin.Yahoo.RemoveBouncing({
+                                        model: group
+                                    }).render());
+                                    break;
+                                }
+
                                 default: {
                                     console.log("Ignore bulkop");
                                 }
@@ -653,6 +655,9 @@ Iznik.Views.Plugin.Work = IznikView.extend({
     },
 
     fail: function() {
+        self.trigger('fail');
+        self.trigger('complete');
+
         this.$('.glyphicon-refresh').removeClass('glyphicon-refresh rotate').addClass('glyphicon-warning-sign');
 
         // Failed - put to the back of the queue.
@@ -666,6 +671,8 @@ Iznik.Views.Plugin.Work = IznikView.extend({
 
     succeed: function() {
         var self = this;
+        self.trigger('succeed');
+        self.trigger('complete');
 
         function finished() {
             self.$el.fadeOut(2000, function () {
@@ -1057,14 +1064,11 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
             if (total == 0 || members.length < this.chunkSize) {
                 // Finished.
 
-                console.log("Completed; do we have a custom?", self.completed, this.model.get('id'));
                 if (typeof self.completed === 'function') {
                     // We have a custom callback
-                    console.log("Got custom");
                     self.completed(self.members);
                 } else {
                     // Pass to server
-                    console.log("Pass to server");
                     $.ajaxq('plugin', {
                         type: 'PATCH',
                         url: API + 'memberships',
@@ -1156,6 +1160,7 @@ Iznik.Views.Plugin.Yahoo.Unbounce = Iznik.Views.Plugin.Yahoo.SyncMembers.extend(
     memberLocation: 'members',
 
     numField: 'total',
+    dateField: 'bounceDate',
 
     url: function() {
         var url = YAHOOAPI + 'groups/' + this.model.get('nameshort') + "/members/bouncing?count=" + this.chunkSize + "&chrome=raw"
@@ -1210,6 +1215,75 @@ Iznik.Views.Plugin.Yahoo.Unbounce = Iznik.Views.Plugin.Yahoo.SyncMembers.extend(
         this.offset = 0;
         this.members = members;
         this.unbounceone();
+    }
+});
+
+Iznik.Views.Plugin.Yahoo.RemoveBouncing = Iznik.Views.Plugin.Yahoo.SyncMembers.extend({
+    // Setting offset to 0 omits start from first one
+    offset: 0,
+
+    template: 'plugin_sync_bouncing_members',
+
+    crumbLocation: "/members/bouncing",
+    memberLocation: 'members',
+
+    numField: 'total',
+    dateField: 'bounceDate',
+
+    url: function() {
+        var url = YAHOOAPI + 'groups/' + this.model.get('nameshort') + "/members/bouncing?count=" + this.chunkSize + "&chrome=raw"
+
+        if (this.offset) {
+            url += "&start=" + this.offset;
+        }
+
+        return(url);
+    },
+
+    removeone: function() {
+        var self = this;
+
+        if (self.offset < self.members.length) {
+            var percent = Math.round((self.offset / self.members.length) * 100);
+            self.$('.progress-bar:last').css('width',  percent + '%').attr('aria-valuenow', percent);
+
+            var member = self.members[self.offset++];
+            var mom = new moment(member.date);
+            var now = new moment();
+            var daysago = moment.duration(now.diff(mom)).asDays();
+
+            if (daysago > self.model.get('bouncingfor')) {
+                var data = [{
+                    userId: member.yahooUserId
+                }];
+
+                // Whatever happens, we move on; if it fails we'll get it next time.
+                new majax({
+                    type: "DELETE",
+                    url: YAHOOAPIv2 + "groups/" + this.model.get('nameshort') + "/members?gapi_crumb=" + self.crumb + "&members=" + encodeURIComponent(JSON.stringify(data)),
+                    data: data,
+                    success: function() {
+                        self.removeone();
+                    }, error: function() {
+                        self.removeone();
+                    }
+                });
+            } else {
+                self.removeone();
+            }
+        } else {
+            // Finished
+            self.succeed();
+        }
+    },
+
+    completed: function(members) {
+        // Now we have the list of bouncing members.  Switch to new template.
+        this.$el.html(window.template('plugin_bulk_remove_bouncing')(this.model.toJSON2()));
+        this.startBusy();
+        this.offset = 0;
+        this.members = members;
+        this.removeone();
     }
 });
 

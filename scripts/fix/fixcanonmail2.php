@@ -13,17 +13,23 @@ $sql = "SELECT canon, COUNT( * ) FROM users_emails GROUP BY canon HAVING COUNT( 
 $emails = $dbhr->preQuery($sql);
 $u = new User($dbhr, $dbhm);
 
+$total = count($emails);
+error_log("Got $total");
+
 foreach ($emails as $email) {
     $ids = $dbhr->preQuery("SELECT userid FROM users_emails WHERE canon = ?;", [$email['canon']]);
 
     $to = $ids[0]['userid'];
 
     for ($i = 1; $i < count($ids); $i++) {
-        $u->merge($to, $ids[$i]['userid'], "Fix: Same canon mail");
+        $from = $ids[$i]['userid'];
+        if ($from != $to) {
+            $u->merge($to, $from, "Fix: Same canon mail");
+        }
     }
 
     $at++;
     if ($at % 1000 == 0) {
-        error_log("...$at");
+        error_log("...$at/$total");
     }
 }
