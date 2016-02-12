@@ -44,6 +44,12 @@
     <div class="panel-body">
         <div class="completefull nomargin">
             <div class="row-fluid">
+                <div class="col-sm-7">
+                    <div class="msgbody botspace"><% if (obj.textbody && obj.textbody.length > 0) { %>{{obj.textbody}}<% } else { %><span class="text-muted"><em>No message body</em></span><% } %></div>
+                    <div class="row">
+                        <ul class="list-unstyled js-attlist"></ul>
+                    </div>
+                </div>
                 <div class="noleftpad col-sm-5">
                     <div class="panel panel-default">
                         <div class="panel-body small nopadbot">
@@ -68,12 +74,6 @@
                             <div class="js-otheremails" />
                             <div class="js-user"></div>
                         </div>
-                    </div>
-                </div>
-                <div class="col-sm-7">
-                    <div class="msgbody botspace"><% if (obj.textbody && obj.textbody.length > 0) { %>{{obj.textbody}}<% } else { %><span class="text-muted"><em>No message body</em></span><% } %></div>
-                    <div class="row">
-                        <ul class="list-unstyled js-attlist"></ul>
                     </div>
                 </div>
             </div>
