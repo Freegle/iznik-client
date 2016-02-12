@@ -115,7 +115,8 @@ class BulkOp extends Entity
             }
 
             $hoursago = floor((time() - strtotime($bulkop['runstarted'])) / 3600);
-            #error_log("Bulk op {$bulkop['id']} started $hoursago hours ago from {$bulkop['runstarted']}");
+            #error_log("Bulk op {$bulkop['id']} started $hoursago hours ago from {$bulkop['runstarted']}, " . max(1, $bulkop['runevery']));
+
             if (!$bulkop['runstarted'] || $hoursago >= max(1, $bulkop['runevery'])) {
                 # This one is due.
                 $due[] = $bulkop;

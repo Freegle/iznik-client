@@ -184,8 +184,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                 // We need a crumb to do the work.
                 function findCrumb(groupname, first, self) {
-                    console.log("findCrumb", groupname);
-                    self.getCrumb(groupname, first.crumblocation, function(crumb) {
+                    console.log("findCrumb", groupname, first);
+                    self.getCrumb(groupname, first.crumbLocation, function(crumb) {
                         console.log("Got crumb", crumb)
                         first.crumb = crumb;
                         first.start.call(first);
@@ -452,7 +452,11 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                             // Record bulk op started on server.
                             var started = (new moment()).format();
                             mod.set('runstarted', started);
-                            mod.save();
+                            mod.save({
+                                id: bulkop.id,
+                                groupid: bulkop.groupid,
+                                runstarted: started
+                            }, { patch: true });
 
                             switch (bulkop.action) {
                                 case 'Unbounce': {
@@ -1319,8 +1323,15 @@ Iznik.Views.Plugin.Yahoo.ApprovePendingMember = Iznik.Views.Plugin.Work.extend({
                     // For some members Yahoo gives this, and never recovers.  Give up on doing this work.
                     self.succeed();
                 } else {
-                    console.log("Approve Pending Member error", a, b, c);
-                    self.fail();
+                    var ret = a.responseJSON;
+
+                    if (ret.hasOwnProperty('ygError') && ret.ygError.hasOwnProperty('errorMessage') &&
+                        ret.ygError.errorMessage == "Internal error: Error in instantiating form object...") {
+                        // This appears to mean that the member is no longer pending.
+                        self.succeed();
+                    } else {
+                        self.fail();
+                    }
                 }
             }
         });
