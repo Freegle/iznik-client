@@ -107,6 +107,55 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         //_.delay(_.bind(this.startSyncs, this), 1200000);
     },
 
+    getCrumb: function(groupname, crumblocation, success, fail) {
+        // There's a bit of faffing to get a crumb from Yahoo to perform our actions.
+        var self = this;
+
+        return(function() {
+
+            function parseCrumb(ret) {
+                console.log("parseCrumb");
+                var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
+                console.log("match", match);
+
+                if (ret.indexOf("not allowed to perform this operation") !== -1) {
+                    console.log("Not allowed");
+                    fail.call(self);
+                } else if (match) {
+                    console.log("Success");
+                    success.call(self, match[1]);
+                } else {
+                    console.log("Look for redirect");
+                    var match = /window.location.href = "(.*)"/.exec(ret);
+
+                    if (match) {
+                        var url = match[1];
+                        console.log("Redirect to", url);
+                        $.ajaxq('plugin', {
+                            type: "GET",
+                            url: url,
+                            success: parseCrumb,
+                            error: function (request, status, error) {
+                                console.log("Redirect error", status, error);
+                                fail.call(self);
+                            }
+                        });
+                    }
+                }
+            }
+
+            $.ajaxq('plugin', {
+                type: "GET",
+                url: "https://groups.yahoo.com/neo/groups/" + groupname + crumblocation + "?" + Math.random(),
+                success: parseCrumb,
+                error: function (request, status, error) {
+                    console.log("Get crumb error", status, error);
+                    fail.call(self);
+                }
+            });
+        });
+    },
+
     checkWork: function() {
         var self = this;
         this.updatePluginCount();
@@ -133,53 +182,20 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                     //console.log("Get first crumb", groupname, first.model);
                 }
 
-                function getCrumb(ret) {
-                    var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
-
-                    if (ret.indexOf("not allowed to perform this operation") !== -1) {
-                        // We can't do this.  Drop it and hope some other mod can.
-                        //console.log("Drop", first);
-                        first.drop();
-
-                        if (self.currentItem == first) {
-                            self.currentItem = null;
-                            self.checkWork();
-                        }
-                    } else if (match) {
-                        // All work has a start method which triggers action.
-                        first.crumb = match[1];
-                        first.start();
-                    } else {
-                        var match = /window.location.href = "(.*)"/.exec(ret);
-
-                        if (match) {
-                            var url = match[1];
-                            $.ajaxq('plugin', {
-                                type: "GET",
-                                url: url,
-                                success: getCrumb,
-                                error: function (request, status, error) {
-                                    self.retryWork(self.currentItem);
-                                }
-                            });
-                        }
-                    }
-                }
-
+                // We need a crumb to do the work.
                 function findCrumb(groupname, first, self) {
-                    return(function() {
-                        $.ajaxq('plugin', {
-                            type: "GET",
-                            url: "https://groups.yahoo.com/neo/groups/" + groupname + first.crumbLocation + "?" + Math.random(),
-                            success: getCrumb,
-                            error: function (request, status, error) {
-                                self.retryWork(self.currentItem);
-                            }
-                        });
-                    });
+                    console.log("findCrumb", groupname);
+                    self.getCrumb(groupname, first.crumblocation, function(crumb) {
+                        console.log("Got crumb", crumb)
+                        first.crumb = crumb;
+                        first.start.call(first);
+                    }, function() {
+                        self.retryWork.call(self, self.currentItem);
+                    })();
                 }
 
-                _.delay(findCrumb(groupname, first, self), 500);
+                // Don't hammer Yahoo.
+                _.delay(findCrumb, 500, groupname, first, self);
             }
         }
     },
@@ -429,26 +445,26 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                     // Now bulk ops due
                     _.each(ret.bulkops, function(bulkop) {
-                        console.log("Bulk op due", bulkop);
                         var group = Iznik.Session.getGroup(bulkop.groupid);
-                        var mod = new Iznik.Models.ModConfig.BulkOp(bulkop);
+                        if (group) {
+                            var mod = new Iznik.Models.ModConfig.BulkOp(bulkop);
 
-                        // Record bulk op started on server.
-                        var started = (new moment()).format();
-                        console.log("Started", started)
-                        mod.set('runstarted', started);
-                        mod.save();
+                            // Record bulk op started on server.
+                            var started = (new moment()).format();
+                            mod.set('runstarted', started);
+                            mod.save();
 
-                        switch (bulkop.action) {
-                            case 'Unbounce': {
-                                (new Iznik.Views.Plugin.Yahoo.SyncMembers.Bouncing({
-                                    model: group
-                                }).render());
-                                break;
-                            }
+                            switch (bulkop.action) {
+                                case 'Unbounce': {
+                                    (new Iznik.Views.Plugin.Yahoo.Unbounce({
+                                        model: group
+                                    }).render());
+                                    break;
+                                }
 
-                            default: {
-                                console.log("Ignore bulkop");
+                                default: {
+                                    console.log("Ignore bulkop");
+                                }
                             }
                         }
                     });
@@ -1126,7 +1142,7 @@ Iznik.Views.Plugin.Yahoo.SyncMembers.Pending = Iznik.Views.Plugin.Yahoo.SyncMemb
     }
 });
 
-Iznik.Views.Plugin.Yahoo.SyncMembers.Bouncing = Iznik.Views.Plugin.Yahoo.SyncMembers.extend({
+Iznik.Views.Plugin.Yahoo.Unbounce = Iznik.Views.Plugin.Yahoo.SyncMembers.extend({
     // Setting offset to 0 omits start from first one
     offset: 0,
 
@@ -1147,9 +1163,49 @@ Iznik.Views.Plugin.Yahoo.SyncMembers.Bouncing = Iznik.Views.Plugin.Yahoo.SyncMem
         return(url);
     },
 
+    unbounceone: function() {
+        var self = this;
+
+        if (self.offset < self.members.length) {
+            var percent = Math.round((self.offset / self.members.length) * 100);
+            self.$('.progress-bar:last').css('width',  percent + '%').attr('aria-valuenow', percent);
+
+            var member = self.members[self.offset++];
+
+            // Whatever happens, we want to move on to the next one.  We're not precious about every last unbounce working.
+            IznikPlugin.getCrumb(self.model.get('nameshort'), '/members/all', function(crumb) {
+                new majax({
+                    type: "POST",
+                    url: YAHOOAPI + 'groups/' + self.model.get('nameshort') + "/members/users/" + member.yahooUserId + "?gapi_crumb=" + crumb,
+                    data: {
+                        unbounce: true
+                    },
+                    success: function (ret) {
+                        console.log("Unbounce returned", ret);
+                        self.unbounceone();
+                    },
+                    error: function (request, status, error) {
+                        console.log("Unbounce returned", status, error);
+                        self.unbounceone();
+                    }
+                });
+            }, function() {
+                console.log("Failed to get crumb");
+                self.unbounceone();
+            })();
+        } else {
+            // Finished
+            self.succeed();
+        }
+    },
+
     completed: function(members) {
-        console.log("Got list of bouncing members", members);
-        this.succeed();
+        // Now we have the list of bouncing members.  Switch to new template.
+        this.$el.html(window.template('plugin_bulk_unbounce_members')(this.model.toJSON2()));
+        this.startBusy();
+        this.offset = 0;
+        this.members = members;
+        this.unbounceone();
     }
 });
 

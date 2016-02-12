@@ -615,5 +615,15 @@ class userTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testCanon() {
+        error_log(__METHOD__);
+
+        assertEquals('test@test.com', User::canonMail('test@test.com'));
+        assertEquals('test@test.com', User::canonMail('test+fake@test.com'));
+        assertEquals('test@user.trashnothing.com', User::canonMail('test-g1@user.trashnothing.com'));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

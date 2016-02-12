@@ -185,26 +185,57 @@ class ModConfig extends Entity
     }
 
     public function canModify() {
-        $ret = FALSE;
         $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+        $systemrole = $me ? $me->getPublic()['systemrole'] : User::SYSTEMROLE_USER;
+
+        error_log("Canmod {$this->id} systemrole $systemrole");
+
+        if ($systemrole == User::SYSTEMROLE_SUPPORT ||
+            $systemrole == User::SYSTEMROLE_ADMIN) {
+            # These can modify any config
+            return (TRUE);
+        }
+
+        error_log("Created {$this->modconfig['createdby']} vs $myid");
+        error_log("Protected {$this->modconfig['protected']}");
+        error_log("Cansee " . $this->canSee());
+
+        return($this->canSee() && ($myid == $this->modconfig['createdby'] || !$this->modconfig['protected']));
+    }
+
+    public function canSee() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
 
         $systemrole = $me->getPublic()['systemrole'];
 
-        if ($systemrole == User::SYSTEMROLE_MODERATOR ||
-            $systemrole == User::SYSTEMROLE_SUPPORT ||
+        error_log("Cansee {$this->id} systemrole $systemrole");
+
+        if ($systemrole == User::SYSTEMROLE_SUPPORT ||
             $systemrole == User::SYSTEMROLE_ADMIN) {
-            $myconfigs = $me->getConfigs();
-            foreach ($myconfigs as $config) {
-                # Check that this is one of our configs and either we created it, or it's not protected against
-                # changes by others.
-                if ($config['id'] == $this->id &&
-                    ($config['createdby']['id'] == $me->getId() || !$config['protected'])) {
-                    $ret = TRUE;
-                }
+            # These can see any config.
+            return(TRUE);
+        }
+
+        if ($systemrole == User::SYSTEMROLE_MODERATOR) {
+            # Mods can see configs which
+            # - we created
+            # - are used by mods on groups on which we are a mod
+            # - defaults
+            $modships = $me ? $me->getModeratorships() : [];
+            $modships = count($modships) == 0 ? [0] : $modships;
+
+            $sql = "SELECT DISTINCT * FROM ((SELECT configid AS id FROM memberships WHERE groupid IN (" . implode(',', $modships) . ") AND configid IS NOT NULL) UNION (SELECT id FROM mod_configs WHERE createdby = $myid OR `default` = 1)) t WHERE id = {$this->id};";
+            $ids = $this->dbhr->preQuery($sql);
+
+            foreach ($ids as $id) {
+                error_log("Canseeit");
+                return (TRUE);
             }
         }
 
-        return($ret);
+        return(FALSE);
     }
 
     public function delete() {

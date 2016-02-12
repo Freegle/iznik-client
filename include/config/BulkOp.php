@@ -88,6 +88,11 @@ class BulkOp extends Entity
         return($c->canModify());
     }
 
+    public function canSee() {
+        $c = new ModConfig($this->dbhr, $this->dbhm, $this->bulkop['configid']);
+        return($c->canSee());
+    }
+
     public function checkDue() {
         # See which (if any) bulk ops are due to start.
         $me = whoAmI($this->dbhr, $this->dbhm);

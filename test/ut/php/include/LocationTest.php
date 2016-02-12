@@ -174,7 +174,7 @@ class locationTest extends IznikTestCase {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->findByShortName('PenrithEdenFreegle');
+        $gid = $g->findByShortName('freegle-kingston');
         $g = new Group($this->dbhr, $this->dbhm, $gid);
 
         $l = new Location($this->dbhr, $this->dbhm);
@@ -183,7 +183,7 @@ class locationTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         foreach ([
-                "wanted-stainton-wool"
+                "Offered KT2 - Children's ready mixed paints"
              ] as $subj) {
             $start = microtime(TRUE);
             error_log("$subj => " . $m->suggestSubject($gid, $subj) . " " . (microtime(TRUE) - $start));

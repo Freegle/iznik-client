@@ -62,10 +62,10 @@ function bulkop() {
             case 'PATCH': {
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
-                } else if (!$b->canModify()) {
+                } else if (!$b->canSee()) {
                     $ret = [
                         'ret' => 4,
-                        'status' => 'Don\t have rights to modify config'
+                        'status' => 'Don\t have rights to see config'
                     ];
                 } else {
                     $b->setAttributes($_REQUEST);

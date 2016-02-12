@@ -131,13 +131,14 @@ class User extends Entity
     }
 
     public function getEmails() {
-        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE userid = ? ORDER BY preferred DESC;",
+        # Don't return canon - don't need it on the client.
+        $emails = $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC;",
             [$this->id]);
         return($emails);
     }
 
     public function getEmailPreferred() {
-        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE userid = ? AND preferred = 1;",
+        $emails = $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? AND preferred = 1;",
             [$this->id]);
         return(count($emails) == 0 ? NULL : $emails[0]['email']);
     }
@@ -192,6 +193,20 @@ class User extends Entity
         return(NULL);
     }
 
+    public static function canonMail($email) {
+        # Canonicalise TN addresses.
+        if (preg_match('/(.*)\-g(.*)(@user.trashnothing.com)/', $email, $matches)) {
+            $email = $matches[1] . $matches[3];
+        }
+
+        # Remove plus addressing.
+        if (preg_match('/(.*)\+(.*)(@.*)/', $email, $matches)) {
+            $email = $matches[1] . $matches[3];
+        }
+
+        return($email);
+    }
+
     public function addEmail($email, $primary = 1)
     {
         if (stripos($email, '-owner@yahoogroups.co') !== FALSE) {
@@ -207,8 +222,8 @@ class User extends Entity
             ]);
 
             if (count($emails) == 0) {
-                $this->dbhm->preExec("INSERT IGNORE INTO users_emails (userid, email, preferred) VALUES (?, ?, ?)",
-                    [$this->id, $email, $primary]);
+                $this->dbhm->preExec("INSERT IGNORE INTO users_emails (userid, email, preferred, canon) VALUES (?, ?, ?, ?)",
+                    [$this->id, $email, $primary, User::canonMail($email)]);
                 $rc = $this->dbhm->lastInsertId();
 
                 if ($rc && $primary) {
@@ -440,8 +455,9 @@ class User extends Entity
         # - we created
         # - are used by mods on groups on which we are a mod
         # - defaults
-        $sql = "(SELECT DISTINCT configid AS id, userid, groupid FROM memberships WHERE groupid IN (SELECT groupid FROM memberships WHERE userid = {$this->id} AND role IN ('Moderator', 'Owner')) AND configid IS NOT NULL) UNION (SELECT id, NULL, NULL FROM mod_configs WHERE createdby = {$this->id} OR `default` = 1);";
-        $ids = $this->dbhr->query($sql);
+        $modships = $this->getModeratorships();
+        $sql = "SELECT DISTINCT * FROM ((SELECT configid AS id FROM memberships WHERE groupid IN (" . implode(',', $modships) . ") AND configid IS NOT NULL) UNION (SELECT id FROM mod_configs WHERE createdby = {$this->id} OR `default` = 1)) t;";
+        $ids = $this->dbhr->preQuery($sql);
 
         foreach ($ids as $id) {
             $c = new ModConfig($this->dbhr, $this->dbhm, $id['id']);
@@ -453,19 +469,29 @@ class User extends Entity
                 } else if ($thisone['default']) {
                     $thisone['cansee'] = ModConfig::CANSEE_DEFAULT;
                 } else {
-                    $thisone['cansee'] = ModConfig::CANSEE_SHARED;
-                    $u = new User($this->dbhr, $this->dbhm, $id['userid']);
-                    $g = new Group($this->dbhr, $this->dbhm, $id['groupid']);
-                    $ctx = NULL;
-                    $thisone['sharedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
-                    $thisone['sharedon'] = $g->getPublic();
+                    # Need to find out who shared it
+                    $sql = "SELECT userid, groupid FROM memberships WHERE groupid IN (" . implode(',', $modships) . ") AND userid != {$this->id} AND role IN ('Moderator', 'Owner') AND configid = {$id['id']};";
+                    $shareds = $this->dbhr->preQuery($sql);
+
+                    foreach ($shareds as $shared) {
+                        $thisone['cansee'] = ModConfig::CANSEE_SHARED;
+                        $u = new User($this->dbhr, $this->dbhm, $shared['userid']);
+                        $g = new Group($this->dbhr, $this->dbhm, $shared['groupid']);
+                        $ctx = NULL;
+                        $thisone['sharedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
+                        $thisone['sharedon'] = $g->getPublic();
+                    }
                 }
             }
 
             $u = new User($this->dbhr, $this->dbhm, $thisone['createdby']);
 
             if ($u->getId()) {
-                $thisone['createdby'] = $u->getPublic(NULL, FALSE);
+                $ctx = NULL;
+                $thisone['createdby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
+
+                # Remove their email list - which might be long - to save space.
+                unset($thisone['createdby']['emails']);
             }
 
             $ret[] = $thisone;
