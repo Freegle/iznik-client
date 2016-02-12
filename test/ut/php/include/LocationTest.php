@@ -169,31 +169,28 @@ class locationTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
-//
-//    public function testSpecial() {
-//        error_log(__METHOD__);
-//
-//        $g = new Group($this->dbhr, $this->dbhm);
-//        $gid = $g->findByShortName('Blaby-Freegle');
-//        $g = new Group($this->dbhr, $this->dbhm, $gid);
-//
-//        $l = new Location($this->dbhr, $this->dbhm);
-//        #$res = $l->search("", $gid);
-//        #$res = $l->search("", $gid);
-//
-//        $m = new Message($this->dbhr, $this->dbhm);
-//        foreach ([
-////                 "TAKEN: Beanbag (nylon) - E14",
-////                 "OFFER: Blue two seater sofa. (Bow, east London)",
-////                 "WANTED: IKEA HAMPEN rugs (Mile End/Bow/Stratford/N.Woolwich)"
-//                "OFFER: A pair of floor standing lamps (cosby le9)"
-//             ] as $subj) {
-//            $start = microtime(TRUE);
-//            error_log("$subj => " . $m->suggestSubject($gid, $subj) . " " . (microtime(TRUE) - $start));
-//        }
-//
-//        error_log(__METHOD__ . " end");
-//    }
+
+    public function testSpecial() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('PenrithEdenFreegle');
+        $g = new Group($this->dbhr, $this->dbhm, $gid);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        #$res = $l->search("", $gid);
+        #$res = $l->search("", $gid);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        foreach ([
+                "wanted-stainton-wool"
+             ] as $subj) {
+            $start = microtime(TRUE);
+            error_log("$subj => " . $m->suggestSubject($gid, $subj) . " " . (microtime(TRUE) - $start));
+        }
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
 
