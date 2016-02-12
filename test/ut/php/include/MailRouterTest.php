@@ -196,12 +196,6 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $msg = file_get_contents('msgs/basic');
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
-        assertEquals(MailRouter::INCOMING_SPAM, $rc);
-
         error_log(__METHOD__ . " end");
     }
 
