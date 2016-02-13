@@ -30,8 +30,8 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
             success: function(ret) {
                 v.close();
 
-                var coll = new Iznik.Collections.DateCounts(ret.dashboard.messagehistory);
-                var graph = new Iznik.Views.MessageGraph({
+                var coll = new Iznik.Collections.DateCounts(ret.dashboard.ApprovedMessageCount);
+                var graph = new Iznik.Views.DateGraph({
                     target: self.$('.js-messagegraph').get()[0],
                     data: coll,
                     title: 'Message History'
@@ -39,8 +39,8 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
 
                 graph.render();
 
-                coll = new Iznik.Collections.DateCounts(ret.dashboard.spammessagehistory);
-                graph = new Iznik.Views.MessageGraph({
+                coll = new Iznik.Collections.DateCounts(ret.dashboard.SpamMessageCount);
+                graph = new Iznik.Views.DateGraph({
                     target: self.$('.js-spammessagegraph').get()[0],
                     data: coll,
                     title: 'Spam Detection'
@@ -48,47 +48,43 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
 
                 graph.render();
 
-                coll = new Iznik.Collections.DateCounts(ret.dashboard.typehistory);
+                coll = new Iznik.Collections.DateCounts(ret.dashboard.SpamMemberCount);
+                graph = new Iznik.Views.DateGraph({
+                    target: self.$('.js-spammembergraph').get()[0],
+                    data: coll,
+                    title: 'Spammer Detection'
+                });
+
+                graph.render();
+
                 graph = new Iznik.Views.TypeChart({
                     target: self.$('.js-typechart').get()[0],
-                    data: coll,
+                    data: ret.dashboard.MessageBreakdown,
                     title: 'Message Balance'
                 });
 
                 graph.render();
 
-                coll = new Iznik.Collections.DateCounts(ret.dashboard.deliveryhistory);
                 graph = new Iznik.Views.DeliveryChart({
                     target: self.$('.js-deliverychart').get()[0],
-                    data: coll,
+                    data: ret.dashboard.YahooDeliveryBreakdown,
                     title: 'How Yahoo users get mail (excludes FD/TN)'
                 });
 
                 graph.render();
 
-                coll = new Iznik.Collections.DateCounts(ret.dashboard.postinghistory);
                 graph = new Iznik.Views.PostingChart({
                     target: self.$('.js-postingchart').get()[0],
-                    data: coll,
+                    data: ret.dashboard.YahooPostingBreakdown,
                     title: 'Yahoo users\' posting status'
                 });
 
                 graph.render();
 
-                coll = new Iznik.Collections.DateCounts(ret.dashboard.sourcehistory);
                 graph = new Iznik.Views.SourceChart({
                     target: self.$('.js-sourcechart').get()[0],
-                    data: coll,
+                    data: ret.dashboard.PostMethodBreakdown,
                     title: 'How people send messages'
-                });
-
-                graph.render();
-
-                coll = new Iznik.Collections.DateCounts(ret.dashboard.spammemberhistory);
-                graph = new Iznik.Views.MessageGraph({
-                    target: self.$('.js-spammembergraph').get()[0],
-                    data: coll,
-                    title: 'Spammer Detection'
                 });
 
                 graph.render();

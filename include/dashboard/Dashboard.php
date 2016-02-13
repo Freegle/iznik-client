@@ -2,123 +2,48 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/misc/Stats.php');
 
 # This gives us a summary of what we need to know for this user
 class Dashboard {
     private $dbhr;
     private $dbhm;
     private $me;
+    private $stats;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, User $me) {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
         $this->me = $me;
+        $this->stats = new Stats($dbhr, $dbhm);
     }
 
     public function get($systemwide, $allgroups, $groupid, $type) {
-        $ret = [];
+        $groupids = [];
 
-        $mysqltime = date ("Y-m-d", strtotime("Midnight 30 days ago"));
-
-        if ($type) {
-            $typeq1 = " INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type = ? ";
-            $typeq2 = " INNER JOIN groups ON groups.id = logs.groupid AND groups.type = ? ";
-            $typeq3 = " INNER JOIN groups ON groups.id = memberships.groupid AND groups.type = ? ";
-            $params = [ $type, $mysqltime ];
-        } else {
-            $typeq1 = NULL;
-            $typeq2 = NULL;
-            $typeq3 = NULL;
-            $params = [ $mysqltime ];
-        }
-
+        # Get the possible groups.
         if ($systemwide && $this->me->isAdminOrSupport()) {
-            # Get a summary of messages across the whole site for the last 30 days
-            $sql = "SELECT COUNT(*) AS count, DATE(messages.date) AS date FROM messages INNER JOIN messages_groups  ON messages.id = messages_groups.msgid $typeq1 WHERE messages.date > ? AND collection = 'Approved' GROUP BY DATE(messages.date) ORDER BY date ASC;";
-            $ret['messagehistory'] = $this->dbhr->preQuery($sql, $params);
-
-            # Show spam rate
-            $sql = "SELECT COUNT(*) AS count, DATE(timestamp) AS date FROM `logs` $typeq2 WHERE timestamp > ? AND logs.type = 'Message' AND subtype = 'ClassifiedSpam' GROUP BY date ORDER BY date ASC;";
-            $ret['spammessagehistory'] = $this->dbhr->preQuery($sql, $params);
-
-            # Get domain breakdown
-            $sql = "SELECT SUBSTRING_INDEX(`fromaddr`, '@', -1) AS domain, COUNT(*) AS count FROM messages INNER JOIN messages_groups  ON messages.id = messages_groups.msgid $typeq1 WHERE messages.date > ? AND collection = 'Approved' GROUP BY domain ORDER BY count DESC LIMIT 10;";
-            $ret['domainhistory'] = $this->dbhr->preQuery($sql, $params);
-
-            # Get source breakdown
-            $sql = "SELECT sourceheader AS source, COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $typeq1 WHERE messages.date > ? AND sourceheader IS NOT NULL AND collection = 'Approved' GROUP BY sourceheader ORDER BY count DESC LIMIT 10;";
-            $ret['sourcehistory'] = $this->dbhr->preQuery($sql, $params);
-
-            # Get message type breakdown
-            $sql = "SELECT messages.type, COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid  AND collection = 'Approved' $typeq1 WHERE messages.date > ? AND sourceheader IS NOT NULL AND collection = 'Approved' AND messages.type IS NOT NULL GROUP BY messages.type ORDER BY count DESC;";
-            $ret['typehistory'] = $this->dbhr->preQuery($sql, $params);
-
-            # Get delivery settings breakdown, excluding FD and TN which generate their own email.
-            $sql = "SELECT yahooDeliveryType, COUNT(*) AS count FROM memberships $typeq3 INNER JOIN users_emails ON memberships.userid = users_emails.userid AND email NOT LIKE 'FBUser%' AND email NOT LIKE '%trashnothing%' GROUP BY yahooDeliveryType ORDER BY count DESC;";
-            $ret['deliveryhistory'] = $this->dbhr->preQuery($sql, [ $type ] );
-
-            # Get moderation status breakdown.
-            $sql = "SELECT yahooPostingStatus, COUNT(*) AS count FROM memberships $typeq3 INNER JOIN users_emails ON memberships.userid = users_emails.userid GROUP BY yahooPostingStatus ORDER BY count DESC;";
-            $ret['postinghistory'] = $this->dbhr->preQuery($sql, [ $type ] );
-
-            # Get spam user breakdown.
-            $sql = "SELECT COUNT(*) AS count, DATE(timestamp) AS date FROM `logs` INNER JOIN spam_users ON logs.user = spam_users.userid AND collection = 'Spammer' $typeq2 WHERE logs.timestamp > ? AND logs.type = 'Group' AND `subtype` = 'Left' GROUP BY date ORDER BY date ASC;";
-            $ret['spammemberhistory'] = $this->dbhr->preQuery($sql, $params );
-        } else {
-            # We want the summaries for one or more groups.  Get the list.
-            $groups = [];
-            $membs = $this->me->getMemberships(TRUE);
-            foreach ($membs as $memb) {
-                # We want groups of the appropriate type on which we are a mod or owner
-                if (($memb['role'] == User::ROLE_OWNER || $memb['role'] == User::ROLE_MODERATOR) &&
-                    (!$type || $memb['type'] == $type)) {
-                    if ($groupid) {
-                        if ($memb['id'] == $groupid) {
-                            # We have asked for stats on a group
-                            $groups[] = $groupid;
-                        }
-                    } else if ($allgroups) {
-                        # We want all groups that we are a mod or owner on.
-                        $groups[] = $memb['id'];
-                    }
-                }
+            $groups = "SELECT id FROM groups WHERE publish = 1;";
+            foreach ($groups as $group) {
+                $groupids = $group['id'];
             }
+        } else if ($groupid) {
+            $groupids[] = $groupid;
+        } else if ($allgroups) {
+            $groupids = $this->me->getModeratorships();
+        }
 
-            if (count($groups) > 0) {
-                $groups = '(' . implode(',', $groups) . ')';
-
-                $sql = "SELECT COUNT(*) AS count, DATE(messages.date) AS date FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $typeq1 WHERE messages.date > ? AND groupid IN $groups AND collection = 'Approved' GROUP BY DATE(messages.date) ORDER BY date ASC;";
-                $ret['messagehistory'] = $this->dbhr->preQuery($sql, $params);
-
-                # Show spam rate
-                $sql = "SELECT COUNT(*) AS count, DATE(timestamp) AS date FROM `logs` $typeq2 WHERE timestamp > ?  AND `groupid` IN $groups AND logs.type = 'Message' AND subtype = 'ClassifiedSpam' GROUP BY date ORDER BY date ASC;";
-                $ret['spammessagehistory'] = $this->dbhr->preQuery($sql, $params);
-
-                # Get domain breakdown
-                $sql = "SELECT SUBSTRING_INDEX(`fromaddr`, '@', -1) AS domain, COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $typeq1 WHERE messages.date > ? AND groupid IN $groups AND collection = 'Approved' GROUP BY domain ORDER BY count DESC LIMIT 10;";
-                $ret['domainhistory'] = $this->dbhr->preQuery($sql, $params);
-
-                # Get source breakdown
-                $sql = "SELECT sourceheader AS source, COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $typeq1 WHERE messages.date > ? AND groupid IN $groups AND collection = 'Approved' AND sourceheader IS NOT NULL GROUP BY sourceheader ORDER BY count DESC LIMIT 10;";
-                $ret['sourcehistory'] = $this->dbhr->preQuery($sql, $params);
-
-                # Get message type breakdown
-                $sql = "SELECT messages.type, COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND collection = 'Approved' $typeq1 WHERE messages.date > ?  AND groupid IN $groups AND sourceheader IS NOT NULL AND collection = 'Approved' AND messages.type IS NOT NULL GROUP BY messages.type ORDER BY count DESC;";
-                $ret['typehistory'] = $this->dbhr->preQuery($sql, $params);
-
-                # Get delivery settings breakdown, excluding FD and TN which generate their own email.
-                $sql = "SELECT yahooDeliveryType, COUNT(*) AS count FROM memberships $typeq3 INNER JOIN users_emails ON memberships.userid = users_emails.userid AND email NOT LIKE 'FBUser%' AND email NOT LIKE '%trashnothing%' WHERE groupid IN $groups GROUP BY yahooDeliveryType ORDER BY count DESC;";
-                $ret['deliveryhistory'] = $this->dbhr->preQuery($sql, [ $type ]);
-
-                # Get posting status breakdown.
-                $sql = "SELECT yahooPostingStatus, COUNT(*) AS count FROM memberships $typeq3 INNER JOIN users_emails ON memberships.userid = users_emails.userid WHERE groupid IN $groups GROUP BY yahooPostingStatus ORDER BY count DESC;";
-                $ret['postinghistory'] = $this->dbhr->preQuery($sql, [ $type ]);
-
-                # Get spam user breakdown.
-                $sql = "SELECT COUNT(*) AS count, DATE(timestamp) AS date FROM `logs` INNER JOIN spam_users ON logs.user = spam_users.userid AND collection = 'Spammer' $typeq2 WHERE groupid IN $groups AND logs.timestamp > ? AND logs.type = 'Group' AND `subtype` = 'Left' GROUP BY date ORDER BY date ASC;";
-                $ret['spammemberhistory'] = $this->dbhr->preQuery($sql, $params );
+        $groupids = count($groupids) == 0 ? [0] : $groupids;
+        if ($type) {
+            # Filter by type
+            $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE id IN (" . implode(',', $groupids) . ") AND type = ?;", [ $type ]);
+            $groupids = [0];
+            foreach ($groups as $group) {
+                $groupids[] = $group['id'];
             }
         }
+
+        $ret = $this->stats->getMulti(date ("Y-m-d"), $groupids);
 
         return($ret);
     }

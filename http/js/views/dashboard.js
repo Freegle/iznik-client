@@ -26,7 +26,7 @@ var rightColours = [
     '#00441b'
 ];
 
-Iznik.Views.MessageGraph = IznikView.extend({
+Iznik.Views.DateGraph = IznikView.extend({
     template: 'dashboard_message_graph',
 
     render: function() {
@@ -38,11 +38,10 @@ Iznik.Views.MessageGraph = IznikView.extend({
 
             var data = new google.visualization.DataTable();
             data.addColumn('date', 'Date');
-            data.addColumn('number', 'Messages');
+            data.addColumn('number', 'Count');
             self.options.data.each(function(count){
-                // Don't show today's value, because it may be very low early in the day, which
-                // will confuse people.
                 if (self.options.data.indexOf(count) < self.options.data.length - 1) {
+
                     data.addRow([new Date(count.get('date')), parseInt(count.get('count'), 10)]);
                 }
             });
@@ -55,8 +54,14 @@ Iznik.Views.MessageGraph = IznikView.extend({
             self.chartOptions = {
                 title: self.options.title,
                 interpolateNulls: false,
+                animation: {
+                    duration: 5000,
+                    easing: 'out',
+                    startup: true
+                },
                 legend: {position: 'none'},
                 chartArea: {'width': '80%', 'height': '80%'},
+                vAxis:{viewWindow: {min: 0}},
                 hAxis: {
                     format: 'dd MMM'
                 },
@@ -80,8 +85,8 @@ Iznik.Views.TypeChart = IznikView.extend({
             self.$el.html(window.template(self.template)());
             var arr = [['Type', 'Count']];
 
-            self.options.data.each(function(count) {
-                arr.push([count.get('type'), count.get('count')]);
+            _.each(self.options.data, function(count, key) {
+                arr.push([key, count]);
             });
 
             self.data = google.visualization.arrayToDataTable(arr);
@@ -111,8 +116,8 @@ Iznik.Views.DeliveryChart = IznikView.extend({
             self.$el.html(window.template(self.template)());
             var arr = [['Email Delivery', 'Count']];
 
-            self.options.data.each(function(count) {
-                arr.push([count.get('yahooDeliveryType'), count.get('count')]);
+            _.each(self.options.data, function(count, key) {
+                arr.push([key, count]);
             });
 
             self.data = google.visualization.arrayToDataTable(arr);
@@ -142,39 +147,8 @@ Iznik.Views.PostingChart = IznikView.extend({
             self.$el.html(window.template(self.template)());
             var arr = [['Posting Status', 'Count']];
 
-            self.options.data.each(function(count) {
-                arr.push([count.get('yahooPostingStatus'), count.get('count')]);
-            });
-
-            self.data = google.visualization.arrayToDataTable(arr);
-            self.chart = new google.visualization.PieChart(self.options.target);
-            self.chartOptions = {
-                title: self.options.title,
-                chartArea: {'width': '80%', 'height': '80%'},
-                colors: leftColours,
-                slices2: {
-                    1: {offset: 0.2},
-                    2: {offset: 0.2}
-                }
-            };
-            self.chart.draw(self.data, self.chartOptions);
-        });
-    }
-});
-
-Iznik.Views.DomainChart = IznikView.extend({
-    template: 'dashboard_domain_chart',
-
-    render: function() {
-        var self = this;
-
-        // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
-        _.defer(function() {
-            self.$el.html(window.template(self.template)());
-            var arr = [['Domain', 'Count']];
-
-            self.options.data.each(function(count) {
-                arr.push([count.get('domain'), count.get('count')]);
+            _.each(self.options.data, function(count, key) {
+                arr.push([key, count]);
             });
 
             self.data = google.visualization.arrayToDataTable(arr);
@@ -204,8 +178,8 @@ Iznik.Views.SourceChart = IznikView.extend({
             self.$el.html(window.template(self.template)());
             var arr = [['Source', 'Count']];
 
-            self.options.data.each(function(count) {
-                arr.push([count.get('source'), count.get('count')]);
+            _.each(self.options.data, function(count, key) {
+                arr.push([key, count]);
             });
 
             self.data = google.visualization.arrayToDataTable(arr);
