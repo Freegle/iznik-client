@@ -205,6 +205,14 @@ class configAPITest extends IznikAPITestCase {
         ]);
         assertEquals(4, $ret['ret']);
 
+        # As support we should be able to see the config.
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        $ret = $this->call('modconfig', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals('UTTest', $ret['config']['name']);
+
         # Promote back
         $this->user->setRole(User::ROLE_OWNER, $this->groupid);
         assertTrue($this->user->login('testpw'));

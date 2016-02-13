@@ -84,6 +84,22 @@ class ModConfig extends Entity
 
                 $cto->setPrivate('messageorder', json_encode($order, true));
 
+                # Now copy the existing bulk ops
+                $bulkops = $cfrom->getPublic()['bulkops'];
+                foreach ($bulkops as $bulkop) {
+                    $bfrom = new BulkOp($this->dbhr, $this->dbhm, $bulkop['id']);
+                    $atts = $bfrom->getPublic();
+                    $bid = $bfrom->create($atts['title'], $toid);
+                    $bto = new BulkOp($this->dbhr, $this->dbhm, $bid);
+                    unset($atts['id']);
+                    unset($atts['title']);
+                    unset($atts['configid']);
+
+                    foreach ($atts as $att => $val) {
+                        $bto->setPrivate($att, $val);
+                    }
+                }
+
                 $id = $toid;
             }
         } catch (Exception $e) {
@@ -197,9 +213,9 @@ class ModConfig extends Entity
             return (TRUE);
         }
 
-        error_log("Created {$this->modconfig['createdby']} vs $myid");
-        error_log("Protected {$this->modconfig['protected']}");
-        error_log("Cansee " . $this->canSee());
+//        error_log("Created {$this->modconfig['createdby']} vs $myid");
+//        error_log("Protected {$this->modconfig['protected']}");
+//        error_log("Cansee " . $this->canSee());
 
         return($this->canSee() && ($myid == $this->modconfig['createdby'] || !$this->modconfig['protected']));
     }
@@ -210,7 +226,7 @@ class ModConfig extends Entity
 
         $systemrole = $me->getPublic()['systemrole'];
 
-        error_log("Cansee {$this->id} systemrole $systemrole");
+//        error_log("Cansee {$this->id} systemrole $systemrole");
 
         if ($systemrole == User::SYSTEMROLE_SUPPORT ||
             $systemrole == User::SYSTEMROLE_ADMIN) {
@@ -230,7 +246,6 @@ class ModConfig extends Entity
             $ids = $this->dbhr->preQuery($sql);
 
             foreach ($ids as $id) {
-                error_log("Canseeit");
                 return (TRUE);
             }
         }

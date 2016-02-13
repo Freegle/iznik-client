@@ -178,9 +178,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                 // We need a crumb to do the work.
                 function findCrumb(groupname, first, self) {
-                    console.log("findCrumb", groupname, first);
                     self.getCrumb(groupname, first.crumbLocation, function(crumb) {
-                        console.log("Got crumb", crumb)
                         first.crumb = crumb;
                         first.start.call(first);
                     }, function() {
@@ -655,8 +653,8 @@ Iznik.Views.Plugin.Work = IznikView.extend({
     },
 
     fail: function() {
-        self.trigger('fail');
-        self.trigger('complete');
+        this.trigger('fail');
+        this.trigger('complete');
 
         this.$('.glyphicon-refresh').removeClass('glyphicon-refresh rotate').addClass('glyphicon-warning-sign');
 

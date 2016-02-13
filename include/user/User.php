@@ -171,7 +171,9 @@ class User extends Entity
 
     public function findByEmail($email) {
         # Take care not to pick up empty or null else that will cause is to overmerge.
-        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE email LIKE ? AND email IS NOT NULL AND LENGTH(email) > 0;",
+        #
+        # Use canon to match - that handles variant TN addresses or % addressing.
+        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE canon LIKE ? AND canon IS NOT NULL AND LENGTH(canon) > 0;",
             [ $email ]);
 
         foreach ($users as $user) {

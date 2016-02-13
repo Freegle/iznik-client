@@ -60,7 +60,7 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
             }
         }
 
-        error_log("Failed to find log $type $subtype");
+        error_log("Failed to find log $type $subtype in " . var_export($logs, TRUE));
         return(NULL);
     }
 }

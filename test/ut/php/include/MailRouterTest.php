@@ -97,6 +97,7 @@ class MailRouterTest extends IznikTestCase {
         $groups = $m->getGroups();
         error_log("Groups " . var_export($groups, true));
         assertEquals($gid, $groups[0]);
+        assertTrue($m->isApproved($gid));
 
         $msg = file_get_contents('msgs/basic');
         $r = new MailRouter($this->dbhr, $this->dbhm);

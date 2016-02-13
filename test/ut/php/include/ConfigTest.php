@@ -97,6 +97,9 @@ class configTest extends IznikTestCase {
         $mid = $m->create("TestStdMessage", $id);
         assertNotNull($mid);
         $m = new StdMessage($this->dbhr, $this->dbhm, $mid);
+        $m->setPrivate('body', 'Test');
+        assertEquals('Test', $m->getPublic()['body']);
+        assertFalse(array_key_exists('body', $m->getPublic(FALSE)));
 
         assertEquals('TestConfig', $c->getPublic()['name']);
         assertEquals('TestStdMessage', $c->getPublic()['stdmsgs'][0]['title']);
@@ -111,6 +114,9 @@ class configTest extends IznikTestCase {
         $c = new ModConfig($this->dbhr, $this->dbhm, $id);
         assertNotNull($c);
         assertEquals($this->uid, $c->getPrivate('createdby'));
+        $b = new BulkOp($this->dbhr, $this->dbhm);
+        $bid = $b->create('TestBulk', $id);
+        assertNotNull($bid);
 
         $configs = $this->user->getConfigs();
 
@@ -119,6 +125,8 @@ class configTest extends IznikTestCase {
         foreach ($configs as $config) {
             if ($id == $config['id']) {
                 $found = TRUE;
+                error_log(var_export($config, TRUE));
+                assertEquals($bid, $config['bulkops'][0]['id']);
             }
         }
         assertTrue($found);
@@ -154,6 +162,7 @@ class configTest extends IznikTestCase {
         unset($oldatts['name']);
         unset($oldatts['messageorder']);
         unset($oldatts['stdmsgs']);
+        unset($oldatts['bulkops']);
 
         foreach ($oldatts as $att => $val) {
             assertEquals($val, $newatts[$att]);
