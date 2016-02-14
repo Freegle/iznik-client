@@ -22,7 +22,7 @@ class Entity
         return $this->id;
     }
 
-    function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts)
+    function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts, $cache = TRUE)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -31,9 +31,10 @@ class Entity
         $this->id = NULL;
         $this->publicatts = $publicatts;
         $this->table = $table;
+        $cacheq = $cache ? " SQL_CACHE " : " SQL_NO_CACHE ";
 
         if ($id) {
-            $entities = $dbhr->preQuery("SELECT * FROM $table WHERE id = ?;", [$id]);
+            $entities = $dbhr->preQuery("SELECT $cacheq * FROM $table WHERE id = ?;", [$id]);
             foreach ($entities as $entity) {
                 $this->$name = $entity;
                 $this->id = $id;

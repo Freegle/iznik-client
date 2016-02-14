@@ -23,9 +23,9 @@ class Dashboard {
 
         # Get the possible groups.
         if ($systemwide && $this->me->isAdminOrSupport()) {
-            $groups = "SELECT id FROM groups WHERE publish = 1;";
+            $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE publish = 1;");
             foreach ($groups as $group) {
-                $groupids = $group['id'];
+                $groupids[] = $group['id'];
             }
         } else if ($groupid) {
             $groupids[] = $groupid;

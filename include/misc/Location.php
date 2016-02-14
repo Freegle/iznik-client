@@ -166,6 +166,7 @@ class Location extends Entity
     public function search($term, $groupid, $limit = 10) {
         # We have a large table of locations.  We want to search within the ones which are close to this group, so
         # we look in the same or adjacent grid squares.
+        $termt = trim($term);
         $gridids = [];
         $ret = [];
 
@@ -175,7 +176,6 @@ class Location extends Entity
         # Exclude all numeric locations (there are some in OSM).  Also exclude amenities and shops, otherwise we get
         # some silly mappings (e.g. London).
         $exclude = " AND NOT canon REGEXP '^-?[0-9]+$' AND osm_amenity = 0 AND osm_shop = 0 AND locations_excluded.locationid IS NULL ";
-        #$exclude = " AND NOT canon REGEXP '^-?[0-9]+$' AND osm_amenity = 0 AND osm_shop = 0 AND locations.id NOT IN (SELECT locationid FROM locations_excluded WHERE groupid = " . intval($groupid) . ") ";
 
         # Find the gridid for the group.
         $sql = "SELECT locations_grids.* FROM locations_grids INNER JOIN groups ON groups.id = ? AND swlat <= groups.lat AND swlng <= groups.lng AND nelat > groups.lat AND nelng > groups.lng;";
@@ -217,7 +217,7 @@ class Location extends Entity
                 # (you might have 'Stockbridge' and 'Stockbridge Church Of England Primary School'), then ordered
                 # by most popular.
                 if ($limit > 0) {
-                    $sql = "SELECT locations.* FROM locations $exclgroup WHERE name REGEXP CONCAT('[[:<:]]', " . $this->dbhr->quote(trim($term)) . ", '[[:>:]]') AND gridid IN (" . implode(',', $gridids) . ") $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
+                    $sql = "SELECT locations.* FROM locations $exclgroup WHERE LENGTH(name) >= " . strlen($termt) . " AND name REGEXP CONCAT('[[:<:]]', " . $this->dbhr->quote($termt) . ", '[[:>:]]') AND gridid IN (" . implode(',', $gridids) . ") $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
                     #error_log("%..% $sql");
                     $locs = $this->dbhr->query($sql);
 
@@ -230,11 +230,11 @@ class Location extends Entity
                 if ($limit > 0) {
                     # We didn't find as many as we wanted.  It's possible that the location text actually contains
                     # two locations, most commonly a place and a postcode.  So do an (even slower) search to find
-                    # locations in our table which appear somewhere in the subject.  Ignore very short ones.
+                    # locations in our table which appear somewhere in the subject.  Ignore very short ones or
+                    # ones which are less than half the length of what we're looking for (to speed up the search).
                     #
                     # We also order to find the one most similar in length.
-                    $sql = "SELECT locations.* FROM locations $exclgroup WHERE gridid IN (" . implode(',', $gridids) . ") AND LENGTH(canon) > 2 AND " . $this->dbhr->quote(trim($term)) . " REGEXP CONCAT('[[:<:]]', name, '[[:>:]]') $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . "), GetMaxDimension(locations.geometry) ASC, popularity DESC LIMIT $limit;";
-                    #error_log("Substring $sql");
+                    $sql = "SELECT locations.* FROM locations $exclgroup WHERE gridid IN (" . implode(',', $gridids) . ") AND LENGTH(canon) > 2 AND LENGTH(name) >= " . strlen($termt)/2 . " AND " . $this->dbhr->quote($termt) . " REGEXP CONCAT('[[:<:]]', name, '[[:>:]]') $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . "), GetMaxDimension(locations.geometry) ASC, popularity DESC LIMIT $limit;";
                     $locs = $this->dbhr->query($sql);
 
                     foreach ($locs as $loc) {

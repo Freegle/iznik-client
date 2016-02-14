@@ -205,7 +205,7 @@ class ModConfig extends Entity
         $myid = $me ? $me->getId() : NULL;
         $systemrole = $me ? $me->getPublic()['systemrole'] : User::SYSTEMROLE_USER;
 
-        error_log("Canmod {$this->id} systemrole $systemrole");
+//        error_log("Canmod {$this->id} systemrole $systemrole");
 
         if ($systemrole == User::SYSTEMROLE_SUPPORT ||
             $systemrole == User::SYSTEMROLE_ADMIN) {
@@ -221,6 +221,7 @@ class ModConfig extends Entity
     }
 
     public function canSee() {
+        # Not quite see, exactly, as anyone can look at them.  But to be close enough to be able to run bulk ops.
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 

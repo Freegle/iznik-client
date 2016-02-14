@@ -29,7 +29,7 @@ class groupTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM users WHERE yahooid = '-testid1';");
         $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = '-testid1';");
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
-        $this->dbhm->preExec("DELETE FROM users WHERE id IN (SELECT userid FROM users_emails WHERE email LIKE '%test.com');", []);
+        $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.email LIKE '%test.com';");
     }
 
     protected function tearDown() {

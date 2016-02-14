@@ -170,6 +170,14 @@ class configTest extends IznikTestCase {
 
         assertEquals('Approve', $newatts['stdmsgs'][0]['action']);
 
+        # As support we should be able to see the config.
+        error_log("Check can see");
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        $c = new ModConfig($this->dbhr, $this->dbhm, $id);
+        $c->setPrivate('createdby', NULL);
+        assertTrue($c->canSee());
+        assertTrue($c->canModify());
+
         $c->delete();
 
         error_log(__METHOD__ . " end");

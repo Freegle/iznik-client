@@ -47,7 +47,7 @@ class dashboardTest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
-        assertGreaterThan(0, $dash['messagehistory']);
+        assertGreaterThan(0, $dash['ApprovedMessageCount']);
 
         error_log(__METHOD__ . " end");
     }
@@ -81,7 +81,7 @@ class dashboardTest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
-        assertGreaterThan(0, $dash['messagehistory']);
+        assertGreaterThan(0, $dash['ApprovedMessageCount']);
 
         # And also if we ask for our groups
         $ret = $this->call('dashboard', 'GET', [
@@ -90,7 +90,7 @@ class dashboardTest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
-        assertGreaterThan(0, $dash['messagehistory']);
+        assertGreaterThan(0, $dash['ApprovedMessageCount']);
 
         # ...but not if we ask for the wrong type
         $ret = $this->call('dashboard', 'GET', [
@@ -99,7 +99,8 @@ class dashboardTest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
-        assertFalse(array_key_exists('messagehistory', $dash));
+        error_log(var_export($dash, TRUE));
+        assertEquals(0, count($dash['ApprovedMessageCount']));
 
         error_log(__METHOD__ . " end");
     }

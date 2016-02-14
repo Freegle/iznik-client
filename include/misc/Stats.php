@@ -179,14 +179,14 @@ class Stats
         return ($ret);
     }
 
-    function getMulti($date, $groupids) {
+    function getMulti($date, $groupids, $enddate = "today") {
         # Get stats across multiple groups.
         #
         # Stats we want a value for each of the last month.
         $ret = [];
         $ret['groupids'] = $groupids;
         $start = date('Y-m-d', strtotime("30 days ago", strtotime($date)));
-        $end = date('Y-m-d', strtotime("today", strtotime($date)));
+        $end = date('Y-m-d', strtotime($enddate, strtotime($date)));
 
         foreach ([Stats::APPROVED_MESSAGE_COUNT, Stats::APPROVED_MEMBER_COUNT, Stats::SPAM_MESSAGE_COUNT, Stats::SPAM_MEMBER_COUNT] as $type) {
             $ret[$type] = [];

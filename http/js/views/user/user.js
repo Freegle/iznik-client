@@ -205,7 +205,7 @@ Iznik.Views.ModTools.User = IznikView.extend({
             })).render().el);
         });
 
-        if (comments.length == 0) {
+        if (!comments || comments.length == 0) {
             self.$('.js-comments').hide();
         }
 

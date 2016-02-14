@@ -4,24 +4,6 @@ var IznikRouter = Backbone.Router.extend({
         var self = this;
 
         this.bind('route', this.pageView);
-
-        self.listenToOnce(self, 'loadedPage', function() {
-            // We start our syncs once - after that they are responsible for restarting themselves if they want to.
-            self.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
-                if (self.modtools) {
-                    // This is a ModTools page - start any plugin work.
-                    if (loggedIn) {
-                        // Delay starting this work slightly to allow main part of page to load.
-                        _.delay(function() {
-                            IznikPlugin.startSyncs();
-                            IznikPlugin.checkWork();
-                        }, 500);
-                    }
-                }
-            });
-
-            Iznik.Session.testLoggedIn();
-        });
     },
 
     pageView: function(){

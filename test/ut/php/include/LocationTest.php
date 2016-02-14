@@ -165,6 +165,11 @@ class locationTest extends IznikTestCase {
         assertEquals(1, count($res));
         assertEquals($id2, $res[0]['id']);
 
+        # Find one where the valid location is contained within our search term
+        $res = $l->search("in Tuvalu high street area", $gid, 1);
+        assertEquals(1, count($res));
+        assertEquals($id, $res[0]['id']);
+
         assertEquals(1, $l->delete());
 
         error_log(__METHOD__ . " end");

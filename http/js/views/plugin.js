@@ -52,7 +52,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             // of groups.
             //console.log("Worthit", group.get('nameshort'));
             //console.log("Work on Yahoo", yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1);
-            //console.log("Work on MT", group.get('work')[countname]);
+            //console.log("Work on MT", group.get('work'));
 
             var worthit = yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1 ||
                     presdef(countname, group.get('work'), 0);
@@ -65,6 +65,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             // We know from our Yahoo scan whether there is any work to do.
             if (worthIt(self.yahooGroupsWithPendingMessages, group, 'pending') &&
                 doSync(group, 'showmessages')) {
+                    //console.log("Sync pending messages for", group.get('nameshort'));
                     (new Iznik.Views.Plugin.Yahoo.SyncMessages.Pending({model: group})).render();
             }
 
@@ -548,6 +549,11 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 }
             } else {
                 // We've got all the groups we're an owner/mod on.
+                //
+                // We can start our group syncs now, and also pick up any plugin work to do.
+                IznikPlugin.startSyncs();
+                IznikPlugin.checkWork();
+
                 var serverGroups = [];
                 var nameToId = [];
                 Iznik.Session.get('groups').each(function (group) {
@@ -1610,9 +1616,11 @@ Iznik.Views.Plugin.Yahoo.RemoveApprovedMember = Iznik.Views.Plugin.Work.extend({
                         }
                     }
                 } else {
+                    console.log("DELETE failed", ret);
                     self.fail();
                 }
-            }, error: function() {
+            }, error: function(a,b,c) {
+                console.log("DELETE error", a, b, c);
                 self.fail();
             }
         });

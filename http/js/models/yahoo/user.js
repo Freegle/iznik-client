@@ -15,6 +15,7 @@ Iznik.Models.Yahoo.User = IznikModel.extend({
     },
 
     changeAttr: function(attr, val) {
+        console.log("Change attr", attr, val);
         var self = this;
 
         function getCrumb(ret) {
@@ -48,6 +49,7 @@ Iznik.Models.Yahoo.User = IznikModel.extend({
                     }, error: function (request, status, error) {
                         // Couldn't make the change. Reset to old value.  This will trigger a change event and
                         // hence a re-render of any relevant view.
+                        console.log("PUT failed", status, error);
                         self.set(attr, self.previous(attr));
                         self.trigger('completed', false);
                     }
@@ -64,6 +66,7 @@ Iznik.Models.Yahoo.User = IznikModel.extend({
                         error: function (request, status, error) {
                             // Couldn't get a crumb. Reset to old value.  This will trigger a change event and
                             // hence a re-render of any relevant view.
+                            console.log("getCrumb failed", status, error);
                             self.set(attr, self.previous(attr));
                             self.trigger('completed', true);
                         }

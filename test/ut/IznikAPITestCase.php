@@ -29,10 +29,10 @@ abstract class IznikAPITestCase extends IznikTestCase {
         $_SERVER['REQUEST_URI'] = '/';
         $_SESSION['id'] = NULL;
 
-        $dbhm->exec("DELETE FROM users WHERE id in (SELECT userid FROM users_emails WHERE email IN ('test@test.com', 'test2@test.com'));");
-        $dbhm->exec("DELETE FROM users WHERE id in (SELECT userid FROM users_logins WHERE uid IN ('testid', '1234'));");
-        $dbhm->exec("DELETE FROM users WHERE yahooUserId = '420816297';");
-        $dbhm->exec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';");
+        $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.email IN ('test@test.com', 'test2@test.com');");
+        $dbhm->preExec("DELETE users, users_logins FROM users INNER JOIN users_logins ON users.id = users_logins.userid WHERE uid IN ('testid', '1234');");
+        $dbhm->preExec("DELETE FROM users WHERE yahooUserId = '420816297';");
+        $dbhm->preExec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';");
     }
 
     protected function tearDown() {

@@ -37,7 +37,8 @@ class User extends Entity
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
-        $this->fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts);
+        # Don't cache this - too many users to flood the query cache.
+        $this->fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts, FALSE);
 
         $this->log = new Log($dbhr, $dbhm);
     }
@@ -158,8 +159,8 @@ class User extends Entity
 
     public function getIdForEmail($email) {
         # Email is a unique key but conceivably we could be called with an email for another user.
-        $ids = $this->dbhr->preQuery("SELECT id, userid FROM users_emails WHERE email LIKE ?;", [
-            $email
+        $ids = $this->dbhr->preQuery("SELECT id, userid FROM users_emails WHERE canon = ?;", [
+            User::canonMail($email)
         ]);
 
         foreach ($ids as $id) {
@@ -173,8 +174,8 @@ class User extends Entity
         # Take care not to pick up empty or null else that will cause is to overmerge.
         #
         # Use canon to match - that handles variant TN addresses or % addressing.
-        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE canon LIKE ? AND canon IS NOT NULL AND LENGTH(canon) > 0;",
-            [ $email ]);
+        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE canon = ? AND canon IS NOT NULL AND LENGTH(canon) > 0;",
+            [ User::canonMail($email) ]);
 
         foreach ($users as $user) {
             return($user['userid']);
@@ -217,15 +218,19 @@ class User extends Entity
         } else {
             # If the email already exists in the table, then that's fine.  But we don't want to use INSERT IGNORE as
             # that scales badly for clusters.
-            $sql = "SELECT id, preferred FROM users_emails WHERE userid = ? AND email LIKE ?;";
+            $canon = User::canonMail($email);
+
+            # Don't cache - lots of emails so don't want to flood the query cache.
+            $sql = "SELECT SQL_NO_CACHE id, preferred FROM users_emails WHERE userid = ? AND canon = ?;";
             $emails = $this->dbhm->preQuery($sql, [
                 $this->id,
-                $email
+                $canon
             ]);
 
             if (count($emails) == 0) {
-                $this->dbhm->preExec("INSERT IGNORE INTO users_emails (userid, email, preferred, canon) VALUES (?, ?, ?, ?)",
-                    [$this->id, $email, $primary, User::canonMail($email)]);
+                $sql = "INSERT IGNORE INTO users_emails (userid, email, preferred, canon) VALUES (?, ?, ?, ?)";
+                $this->dbhm->preExec($sql,
+                    [$this->id, $email, $primary, $canon]);
                 $rc = $this->dbhm->lastInsertId();
 
                 if ($rc && $primary) {

@@ -80,7 +80,7 @@ class StdMessage extends Entity
 
         if (!$stdmsgbody) {
             # We want to save space.
-            $ret['body'] = NULL;
+            unset($ret['body']);
         }
         return($ret);
     }
