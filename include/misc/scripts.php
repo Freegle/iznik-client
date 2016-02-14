@@ -82,6 +82,7 @@ function scriptInclude($minify)
         "js/views/pages/modtools/messages_pending.js",
         "js/views/pages/modtools/messages_approved.js",
         "js/views/pages/modtools/spammerlist.js",
+        "js/views/pages/modtools/support.js",
         "js/views/pages/modtools/settings.js",
         "js/views/group/select.js",
         "js/iznik/router.js",

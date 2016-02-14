@@ -296,7 +296,6 @@ Iznik.Views.ModTools.User.Logs = Iznik.Views.Modal.extend({
             },
             success: function(model, response, options) {
                 self.logcontext = response.logcontext;
-                console.log("Log resp", response);
 
                 if (response.member.logs.length > 0) {
                     self.$('.js-more').show();

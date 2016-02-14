@@ -34,6 +34,7 @@ var IznikRouter = Backbone.Router.extend({
         "modtools/spammerlist/pendingremove(/:search)": "spammerListPendingRemove",
         "modtools/spammerlist/whitelisted(/:search)": "spammerListWhitelisted",
         "modtools/settings": "settings",
+        "modtools/support": "support",
         "*path": "home"
     },
 
@@ -234,6 +235,15 @@ var IznikRouter = Backbone.Router.extend({
                 collection: 'Whitelisted',
                 helpTemplate: 'modtools_spammerlist_help_whitelisted'
             });
+            this.loadRoute({page: page, modtools: true});
+        });
+
+        Iznik.Session.forceLogin();
+    },
+
+    support: function() {
+        this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
+            var page = new Iznik.Views.ModTools.Pages.Support();
             this.loadRoute({page: page, modtools: true});
         });
 

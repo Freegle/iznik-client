@@ -188,18 +188,21 @@ class Group extends Entity
         # TODO We ought to search on firstname/lastname too, and handle word splits.  But this is sufficient for ModTools.
         $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") . ") ");
         $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : $searchq;
-        $groupq = " memberships.groupid IN (" . implode(',', $groupids) . ") ";
+        $groupq = $groupids ? " memberships.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
         $ypsq = $yps ? (" AND memberships.yahooPostingStatus = " . $this->dbhr->quote($yps)) : '';
         $ydtq = $ydt ? (" AND memberships.yahooDeliveryType = " . $this->dbhr->quote($ydt)) : '';
 
-        if ($collection == MembershipCollection::SPAM) {
-            # This collection is handled separately; we use the suspectcount field.
-            #
-            # This is to avoid moving members into a spam collection and then having to remember whether they
-            # came from Pending or Approved.
-            $collectionq = $searchid ? '' : ' AND suspectcount > 0 ';
-        } else {
-            $collectionq = $searchid ? '' : (' AND collection = ' . $this->dbhr->quote($collection) . ' ');
+        # Collection filter.  If we're searching on a specific id then don't put it in.
+        if (!$searchid) {
+            if ($collection == MembershipCollection::SPAM) {
+                # This collection is handled separately; we use the suspectcount field.
+                #
+                # This is to avoid moving members into a spam collection and then having to remember whether they
+                # came from Pending or Approved.
+                $collectionq = ' AND suspectcount > 0 ';
+            } else {
+                $collectionq = $collection ? (' AND collection = ' . $this->dbhr->quote($collection) . ' ') : '';
+            }
         }
 
         $sql = "SELECT DISTINCT memberships.* FROM memberships LEFT JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";

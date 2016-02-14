@@ -1,0 +1,29 @@
+<p class="text-muted">These are useful tools for Support.  You need to have been given appropriate permissions before you'll see this page.</p>
+<div class="panel-group" id="settings" role="tablist" aria-multiselectable="true">
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="findhead">
+            <h4 class="panel-title">
+                <a role="button" data-toggle="collapse" data-parent="#settings" href="#find" aria-expanded="true" aria-controls="find">
+                    Find User
+                </a>
+            </h4>
+        </div>
+        <div id="find" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="findhead">
+            <div class="panel-body">
+                <p class="text-muted">You can find any user in the system.</p>
+                <div class="input-group botspace">
+                    <input type="text" class="form-control js-searchuserinp" placeholder="Search email addresses/names">
+                    <span class="input-group-btn">
+                        <button class="btn btn-success js-searchuser" type="button">
+                            <div class="glyphicon glyphicon-search" />
+                        </button>
+                    </span>
+                </div>
+                <ul class="list-unstyled js-searchuserres" />
+                <div class="js-none text-muted" style="display: none">
+                    No members found.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

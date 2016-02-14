@@ -145,6 +145,6 @@ Iznik.Collections.Members = IznikCollection.extend({
 
 Iznik.Collections.Members.Search = Iznik.Collections.Members.extend({
     url: function() {
-        return(API + 'memberships/' + this.options.groupid + '?search=' + encodeURIComponent(this.options.search) + '&collection=' + this.options.collection);
+        return(API + 'memberships/' + presdef('groupid', this.options, '') + '?search=' + encodeURIComponent(this.options.search) + '&collection=' + this.options.collection);
     }
 });

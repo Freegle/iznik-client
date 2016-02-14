@@ -83,8 +83,32 @@ class statsTest extends IznikTestCase {
         assertEquals([ 'DIGEST' => 1 ], $stats['YahooDeliveryBreakdown']);
         assertEquals([ 'MODERATED' => 1 ], $stats['YahooPostingBreakdown']);
 
-        $multistats = $s->getMulti($date, [ $gid ]);
-        assertEquals($stats, $multistats);
+        $multistats = $s->getMulti($date, [ $gid ], "tomorrow");
+        var_dump($multistats);
+        assertEquals([
+            [
+                'date' => $date,
+                'count' => 1
+            ]
+        ], $multistats['ApprovedMessageCount']);
+        assertEquals([
+            [
+                'date' => $date,
+                'count' => 1
+            ]
+        ], $multistats['ApprovedMemberCount']);
+        assertEquals([
+            [
+                'date' => $date,
+                'count' => 0
+            ]
+        ], $multistats['SpamMemberCount']);
+        assertEquals([
+            [
+                'date' => $date,
+                'count' => 0
+            ]
+        ], $multistats['SpamMessageCount']);
 
         # Now yesterday - shouldn't be any
         $s = new Stats($this->dbhr, $this->dbhm, $gid);
