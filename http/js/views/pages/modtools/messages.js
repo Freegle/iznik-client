@@ -89,12 +89,15 @@ Iznik.Views.ModTools.Message = IznikView.extend({
         var self = this;
 
         // Decide if we need to check for duplicates.
-        var check = true;
+        var check = false;
         var groups = Iznik.Session.get('groups');
+        var dupage = 31;
         _.each(self.model.get('groups'), function(group) {
             var dupsettings = Iznik.Session.getSettings(group.groupid);
-            if (dupsettings.hasOwnProperty('duplicates') && !dupsettings.duplicates.check) {
-                check = false;
+            if (dupsettings.duplicates.check) {
+                check = true;
+                var type = self.model.get('type');
+                dupage = Math.min(dupage, dupsettings.duplicates[type.toLowerCase()]);
             }
         });
 
@@ -111,6 +114,8 @@ Iznik.Views.ModTools.Message = IznikView.extend({
 
                 if (fromuser) {
                     _.each(fromuser.messagehistory, function (message) {
+                        message.dupage = dupage;
+
                         if (message.id != id && message.daysago < 60) {
                             if (canonSubj(message.subject) == subj) {
                                 // No point displaying any group tag in the duplicate.
