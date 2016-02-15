@@ -247,7 +247,7 @@ Iznik.Models.Session = IznikModel.extend({
         var settings = [];
 
         this.get('groups').each(function(group) {
-            if (group.get('groupid') == groupid) {
+            if (group.get('id') == groupid) {
                 settings = group.get('settings');
             }
         });
