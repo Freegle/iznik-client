@@ -22,9 +22,9 @@ Iznik.Views.ModTools.Pages.SpammerList = Iznik.Views.Page.extend({
         var term = this.$('.js-searchterm').val();
 
         if (term != '') {
-            Router.navigate('/modtools/spammerlist/' + this.options.urlFragment + encodeURIComponent(term), true);
+            Router.navigate('/modtools/spammerlist/' + this.options.urlfragment + '/' + encodeURIComponent(term), true);
         } else {
-            Router.navigate('/modtools/spammerlist' + this.options.urlFragment, true);
+            Router.navigate('/modtools/spammerlist' + this.options.urlfragment, true);
         }
     },
 
