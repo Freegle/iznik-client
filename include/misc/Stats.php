@@ -202,13 +202,17 @@ class Stats
             }
         }
 
-        # Breakdowns we have to parse and sum the individual values.
+        # Breakdowns we have to parse and sum the individual values.  Start from yesterday as we might not have complete
+        # data for today.
+        $start = date('Y-m-d', strtotime("yesterday", strtotime($date)));
+
         foreach ([Stats::MESSAGE_BREAKDOWN, Stats::POST_METHOD_BREAKDOWN, Stats::YAHOO_POSTING_BREAKDOWN, Stats::YAHOO_DELIVERY_BREAKDOWN] as $type) {
             $ret[$type] = [];
 
-            $breakdowns = $this->dbhr->preQuery("SELECT breakdown FROM stats WHERE date = ? AND groupid IN (" . implode(',', $groupids) . ") AND type = ?;",
+            $sql = "SELECT breakdown FROM stats WHERE date = ? AND groupid IN (" . implode(',', $groupids) . ") AND type = ?;";
+            $breakdowns = $this->dbhr->preQuery($sql,
                 [
-                    $date,
+                    $start,
                     $type
                 ]);
 
