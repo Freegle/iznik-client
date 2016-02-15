@@ -202,8 +202,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 error_log("API call $call worked after $apicallretries");
             }
 
-            if (BROWSERTRACKING && ($call != 'event_save')) {
-                # Save off the API call and result, except for the (very frequent) event tracking calls.
+            if (BROWSERTRACKING && ($call != 'event_save') && ($ret['type'] != 'GET')) {
+                # Save off the API call and result, except for the (very frequent) event tracking calls.  Don't
+                # save GET calls as they don't change the DB and there are a lot of them.
                 #
                 # Beanstalk has a limit on the size of job that it accepts; no point trying to log absurdly large
                 # API requests.
@@ -215,7 +216,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     $rsp = substr($rsp, 0, 1000);
                 }
 
-                $sql = "INSERT INTO logs_api (`session`, `request`, `response`) VALUES (" . $dbhr->quote(session_id()) .
+                $sql = "INSERT INTO logs_api (`userid`, `session`, `request`, `response`) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", " . $dbhr->quote(session_id()) .
                     ", " . $dbhr->quote($req) . ", " . $dbhr->quote($rsp) . ");";
                 $dbhm->background($sql);
             }
