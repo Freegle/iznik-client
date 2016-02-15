@@ -89,7 +89,6 @@ class Yahoo
                     if ($id) {
                         # Make sure that we have the Yahoo email recorded as one of the emails for this user.
                         $u = new User($this->dbhr, $this->dbhm, $id);
-                        $u->setPrivate('yahooid', $yahooid);
                         $u->addEmail($attrs['contact/email']);
 
                         # Now Set up a login entry.
@@ -107,6 +106,10 @@ class Yahoo
 
                 $u = new User($this->dbhr, $this->dbhm, $id);
 
+                # Make sure we record the most active yahooid for this user, rather than one we happened to pick
+                # up on a group sync.
+                $u->setPrivate('yahooid', $yahooid);
+
                 if (!$u->getPrivate('fullname') && pres('namePerson', $attrs)) {
                     # We might have syncd the membership without a good name.
                     $u->setPrivate('fullname', $attrs['namePerson']);
@@ -122,7 +125,7 @@ class Yahoo
                         'type' => Log::TYPE_USER,
                         'subtype' => Log::SUBTYPE_LOGIN,
                         'byuser' => $id,
-                        'text' => 'Using Yahoo'
+                        'text' => 'Using Yahoo ' . var_export($attrs, TRUE)
                     ]);
 
                     return([ $s, [ 'ret' => 0, 'status' => 'Success']]);

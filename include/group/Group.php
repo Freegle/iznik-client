@@ -193,6 +193,7 @@ class Group extends Entity
         $ydtq = $ydt ? (" AND memberships.yahooDeliveryType = " . $this->dbhr->quote($ydt)) : '';
 
         # Collection filter.  If we're searching on a specific id then don't put it in.
+        $collectionq = '';
         if (!$searchid) {
             if ($collection == MembershipCollection::SPAM) {
                 # This collection is handled separately; we use the suspectcount field.
@@ -200,8 +201,8 @@ class Group extends Entity
                 # This is to avoid moving members into a spam collection and then having to remember whether they
                 # came from Pending or Approved.
                 $collectionq = ' AND suspectcount > 0 ';
-            } else {
-                $collectionq = $collection ? (' AND collection = ' . $this->dbhr->quote($collection) . ' ') : '';
+            } else if ($collection) {
+                $collectionq = ' AND collection = ' . $this->dbhr->quote($collection) . ' ';
             }
         }
 
@@ -351,7 +352,9 @@ class Group extends Entity
                         $u->setPrivate('yahooUserId', $memb['yahooUserId']);
                     }
 
-                    if (pres('yahooid', $memb)) {
+                    # If we don't have a yahooid for this user, update it.  If we already have one, then stick with it
+                    # to avoid updating a user with an old Yahoo id
+                    if (pres('yahooid', $memb) && !$u->getPrivate('yahooid')) {
                         $u->setPrivate('yahooid', $memb['yahooid']);
                     }
 
@@ -384,7 +387,7 @@ class Group extends Entity
             # Save off the list of members which currently exist, so that after we've processed the ones which currently
             # exist, we can remove any which should no longer be present.
             $this->dbhm->preExec("DROP TEMPORARY TABLE IF EXISTS syncdelete; CREATE TEMPORARY TABLE syncdelete (id INT UNSIGNED, PRIMARY KEY idkey(id));");
-            $this->dbhm->preExec("INSERT INTO syncdelete (SELECT DISTINCT userid FROM memberships WHERE groupid = ?);", [
+            $this->dbhm->preExec("INSERT INTO syncdelete (SELECT DISTINCT userid FROM memberships WHERE groupid = ? AND collection = '$collection');", [
                 $this->id
             ]);
 
@@ -500,7 +503,7 @@ class Group extends Entity
                     'user' => $todelete['id'],
                     'byuser' => $meid,
                     'groupid' => $this->id,
-                    'text' => 'Sync of whole membership list'
+                    'text' => "Sync of whole $collection membership list"
                 ]);
             }
 
