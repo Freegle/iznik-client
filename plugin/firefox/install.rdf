@@ -5,16 +5,16 @@
   <RDF:Description RDF:about="rdf:#$Rc5Ec1"
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                    em:minVersion="2.0"
-                   em:maxVersion="39.*" />
+                   em:maxVersion="20.0" />
   <RDF:Description RDF:about="urn:mozilla:install-manifest"
                    em:unpack="true"
-                   em:id="ModTools@edwardhibbert"
+                   em:id="ModToolsUnlisted@edwardhibbert"
                    em:name="ModTools"
-                   em:version="0.34"
+                   em:version="0.38"
                    em:description="Make Moderating Yahoo Groups easier"
                    em:creator="edward@ehibbert.org.uk"
+                   em:updateURL="https://modtools.org/plugin/update.rdf"
                    em:homepageURL="http://modtools.org/">
     <em:targetApplication RDF:resource="rdf:#$Rc5Ec1"/>
-	<em:type>2</em:type>
   </RDF:Description>
 </RDF:RDF>

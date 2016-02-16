@@ -7,17 +7,17 @@
                    NS1:minVersion="3.5"
                    NS1:maxVersion="9.0"
                    NS1:updateLink="https://modtools.org/plugin/modtools.xpi" />
+  <RDF:Description RDF:about="urn:mozilla:extension:ModToolsUnlisted@edwardhibbert"
+                   NS1:version="0.38"
+                   NS1:updateLink="https://modtools.org/plugin/modtools.xpi"
+                   NS1:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAJWdhWLOKiKe+8Yv2nN9hednH0fm2whR8Gd3CuT6oRSozBQ1D8r5LwPhp4Haj04uBleaAaIOhZvd05NIvSC/nfKQW4M0UUQSb8QYuAoZVDcS6/jUV1sVx1Dj+nEn8cLJVqUKSPaxPbs6uUELgcLoyW5ohDUBEUF0zfLYZ4pWEf4f">
+    <NS1:updates RDF:resource="rdf:#$bmpuv2"/>
+  </RDF:Description>
   <RDF:Seq RDF:about="rdf:#$bmpuv2">
     <RDF:li RDF:resource="rdf:#$cmpuv2"/>
   </RDF:Seq>
   <RDF:Description RDF:about="rdf:#$cmpuv2"
-                   NS1:version="0.31">
+                   NS1:version="0.38">
     <NS1:targetApplication RDF:resource="rdf:#$fmpuv2"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mozilla:extension:ModTools@edwardhibbert"
-                   NS1:version="0.31"
-                   NS1:updateLink="https://modtools.org/plugin/modtools.xpi"
-                   NS1:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAKrH3zN9Spo5IoH929/9rpLDGojIJAlJyoNFi8kQfiJuvnILv/k34pVlvBrCTJxbFr7PaGzz1IhBqS8zN01jDiuq72XDcHhof593NiWDJGgzGJA4RtcsReEVbA5gEcclrCXfR93NP5Tw81PSzPw6+PAQ0v2mIFzFpDtAPV4LIP96">
-    <NS1:updates RDF:resource="rdf:#$bmpuv2"/>
   </RDF:Description>
 </RDF:RDF>

@@ -10,7 +10,6 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     yahooGroupsWithPendingMembers: [],
 
     render: function() {
-        window.setTimeout(_.bind(this.checkPluginStatus, this), 3000);
     },
 
     resume: function() {
@@ -467,6 +466,14 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                                     break;
                                 }
 
+                                case 'ToSpecialNotices': {
+                                    (new Iznik.Views.Plugin.Yahoo.ToSpecialNotices({
+                                        model: group,
+                                        bulkop: bulkop
+                                    }).render());
+                                    break;
+                                }
+
                                 default: {
                                     console.log("Ignore bulkop");
                                 }
@@ -637,6 +644,8 @@ Iznik.Views.Plugin.Info = IznikView.extend({
         var v = new Iznik.Views.Help.Box();
         v.template = 'modtools_layout_background';
         this.$('.js-background').html(v.render().el);
+
+        IznikPlugin.checkPluginStatus();
 
         return(this);
     }
@@ -1291,6 +1300,85 @@ Iznik.Views.Plugin.Yahoo.RemoveBouncing = Iznik.Views.Plugin.Yahoo.SyncMembers.e
     }
 });
 
+Iznik.Views.Plugin.Yahoo.ToSpecialNotices = Iznik.Views.Plugin.Work.extend({
+    // Setting offset to 0 omits start from first one
+    offset: 0,
+    context: null,
+    members: [],
+
+    crumbLocation: "/members/all",
+
+    template: 'plugin_to_special_notices',
+
+    changeone: function() {
+        var self = this;
+
+        if (self.offset < self.members.length) {
+            var percent = Math.round((self.offset / self.members.length) * 100);
+            self.$('.progress-bar:last').css('width',  percent + '%').attr('aria-valuenow', percent);
+
+            var member = self.members[self.offset++];
+            console.log("Changeone", member);
+            var group = Iznik.Session.getGroup(self.options.bulkop.groupid);
+            var mod = new Iznik.Models.Yahoo.User({
+                group: group.get('nameshort'),
+                email: member.email,
+                userId: member.yahooUserId
+            });
+            self.listenToOnce(mod, 'completed', function() {
+                console.log("Change complete");
+            });
+            mod.changeAttr('deliveryType', 'ANNOUNCEMENT');
+        } else {
+            // Finished
+            self.succeed();
+        }
+    },
+
+    getChunk: function() {
+        var self = this;
+        $.ajax({
+            type: 'GET',
+            url: API + 'memberships/' + self.options.bulkop.groupid,
+            context: self,
+            data: {
+                limit: 1000,
+                context: self.context ? self.context : null,
+                yahooDeliveryType: 'NONE'
+            },
+            success: function(ret) {
+                var self = this;
+                self.context = ret.context;
+
+                if (ret.members.length > 0) {
+                    // We returned some - add them to the list.
+                    _.each(ret.members, function(member) {
+                        if (member.hasOwnProperty('email') && member.email.toLowerCase().indexOf('fbuser') == -1) {
+                            // FBUser members are members on Yahoo which are allowed to be on Web Only.
+                            self.members.push(member);
+                        }
+                    });
+                    self.getChunk.call(self);
+                } else {
+                    // We got them all.
+                    self.changeone();
+                }
+            }
+        })
+    },
+
+    start: function() {
+        var self = this;
+        this.startBusy();
+
+        if (self.options.bulkop.criterion == 'WebOnly') {
+            this.getChunk();
+        } else {
+            console.error("To Special Notices bulk op only supports WebOnly filter");
+        }
+    }
+});
+
 Iznik.Views.Plugin.Yahoo.ApprovePendingMessage = Iznik.Views.Plugin.Work.extend({
     template: 'plugin_pending_approve',
     crumbLocation: "/management/pendingmessages",
@@ -1598,6 +1686,11 @@ Iznik.Views.Plugin.Yahoo.RemoveApprovedMember = Iznik.Views.Plugin.Work.extend({
             url: YAHOOAPIv2 + "groups/" + this.model.get('group').nameshort + "/members?gapi_crumb=" + self.crumb + "&members=" + encodeURIComponent(JSON.stringify(data)),
             data: data,
             success: function (ret) {
+                console.log("Delete ret", ret);
+                console.log("Type", typeof ret);
+                console.log("data?", ret.hasOwnProperty('ygData'));
+                console.log("passed?", ret.hasOwnProperty('ygData') &&
+                    ret.ygData.hasOwnProperty('numPassed'));
                 if (ret.hasOwnProperty('ygData') &&
                     ret.ygData.hasOwnProperty('numPassed')) {
                     // If the delete worked, numPassed == 1.

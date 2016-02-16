@@ -202,7 +202,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 error_log("API call $call worked after $apicallretries");
             }
 
-            if (BROWSERTRACKING && ($call != 'event_save') && ($ret['type'] != 'GET')) {
+            if (BROWSERTRACKING && ($call != 'event_save') && (presdef('type', $ret, NULL) != 'GET')) {
                 # Save off the API call and result, except for the (very frequent) event tracking calls.  Don't
                 # save GET calls as they don't change the DB and there are a lot of them.
                 #

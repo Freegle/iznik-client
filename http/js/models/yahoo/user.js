@@ -15,7 +15,6 @@ Iznik.Models.Yahoo.User = IznikModel.extend({
     },
 
     changeAttr: function(attr, val) {
-        console.log("Change attr", attr, val);
         var self = this;
 
         function getCrumb(ret) {

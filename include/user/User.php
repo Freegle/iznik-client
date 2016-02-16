@@ -202,8 +202,9 @@ class User extends Entity
             $email = $matches[1] . $matches[3];
         }
 
-        # Remove plus addressing.
-        if (preg_match('/(.*)\+(.*)(@.*)/', $email, $matches)) {
+        # Remove plus addressing, which is sometimes used by spammers as a trick, except for Facebook where it
+        # appears to be genuinely used for routing to distinct users.
+        if (preg_match('/(.*)\+(.*)(@.*)/', $email, $matches) && strpos($email, '@proxymail.facebook.com') === FALSE) {
             $email = $matches[1] . $matches[3];
         }
 

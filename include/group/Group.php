@@ -247,8 +247,8 @@ class Group extends Entity
             $thisone['email'] = $email;
             $thisone['groupid'] = $member['groupid'];
             $thisone['otheremails'] = $others;
-            $thisone['yahooDeliveryType'] = $u->getPrivate('yahooDeliveryType');
-            $thisone['yahooPostingStatus'] = $u->getPrivate('yahooPostingStatus');
+            $thisone['yahooDeliveryType'] = $member['yahooDeliveryType'];
+            $thisone['yahooPostingStatus'] = $member['yahooPostingStatus'];
             $thisone['role'] = $u->getRole($member['groupid']);
             $thisone['joincomment'] = $member['joincomment'];
 

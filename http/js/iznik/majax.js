@@ -94,11 +94,21 @@ majax.prototype.start = function () {
         // This error may have been triggered by the plugin, and we may have
         // a success to pick up.
         var rsp = $('#modtoolsrsp').text();
+
         self.deferred.resolve(self);
 
         if (rsp.length > 0) {
             // We did succeed
-            self.args.success(JSON.parse(rsp));
+            //
+            // Quite what we get back, string or JSON, depends a bit on the browser.
+            if (typeof rsp == 'string') {
+                rsp = JSON.parse(rsp);
+            }
+            if (typeof rsp == 'string') {
+                rsp = JSON.parse(rsp);
+            }
+
+            self.args.success(rsp);
         } else {
             // We failed.
             if (typeof self.args.error == 'function') {
