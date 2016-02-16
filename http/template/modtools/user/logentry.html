@@ -25,12 +25,16 @@
         <% } else if (type == 'Message') { %>
             <% if (subtype == 'Received') { %>
                 Posted #{{msgid}} <em>{{message.subject}}</em><% if (obj.group) { %> to {{obj.group.namedisplay}}<% } %> via {{message.sourceheader}}
-        <% } else if (subtype == 'Approved') { %>
+            <% } else if (subtype == 'Approved') { %>
                 Approved message #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else if (subtype == 'Rejected') { %>
                 <div class="nomargin alert alert-danger">
                     Rejected #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
                 </div>
+            <% } else if (subtype == 'Replied') { %>
+            <div class="nomargin alert alert-danger">
+                Mod sent <% if (obj.stdmsg) { %>standard message <em>{{stdmsg.title}}</em><% } else if (obj.text) { %>{{text}}<% } else { %>mail<% } %>
+            </div>
             <% } else if (subtype == 'Deleted') { %>
                 <div class="nomargin alert alert-danger">
                     Deleted #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>in {{obj.group.collection}} on {{obj.group.namedisplay}}<% } %>
@@ -83,6 +87,16 @@
                 Deleted config {{text}}
             <% } else if (subtype == 'Edit') { %>
                 Edited config {{config.name}}
+            <% } else { %>
+            <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
+            <% } %>
+        <% } else if (type == 'StdMsg') { %>
+            <% if (subtype == 'Created') { %>
+            Created standard message {{text}}
+            <% } else if (subtype == 'Deleted') { %>
+            Deleted standard message {{text}}
+            <% } else if (subtype == 'Edit') { %>
+            Edited standard message <% if (obj.stdmsg) { %>{{stdmsg.name}}<% } %>
             <% } else { %>
             <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>
