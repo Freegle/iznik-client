@@ -12,6 +12,11 @@ Iznik.Views.Infinite = IznikView.extend({
             context: self.context
         };
 
+        if (!self.context) {
+            // We're at the top.
+            $('.js-scrolltop').addClass('hidden');
+        }
+
         if (self.selected > 0) {
             // Specific group
             data.groupid = self.selected;
@@ -47,6 +52,13 @@ Iznik.Views.Infinite = IznikView.extend({
                     handler: function(direction) {
                         //console.log("Scrolled to");
                         if (direction == 'down') {
+                            $('.js-scrolltop').removeClass('hidden');
+                            $('.js-scrolltop').click(function() {
+                                $('html,body').animate({scrollTop:0},'slow', function() {
+                                    $('.scrolltop').addClass('hidden');
+                                });
+                            });
+
                             // We have scrolled to the last view.  Fetch more as long as we've not switched
                             // away to another page.
                             if (jQuery.contains(document.documentElement, modelView.el)) {
