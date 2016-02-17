@@ -537,12 +537,34 @@ Iznik.Views.ModTools.StdMessage.Edit = Iznik.Views.Modal.extend({
         );
     },
 
-    render: function() {
+    expand: function() {
         var self = this;
         this.open(this.template, this.model);
 
         var body = self.model.get('htmlbody');
         body = body ? body : self.model.get('textbody');
+
+        if (self.options.stdmsg) {
+            var subjpref = self.options.stdmsg.get('subjpref');
+            var subjsuff = self.options.stdmsg.get('subjsuff');
+            var stdbody = self.options.stdmsg.get('body');
+
+            if (stdbody) {
+                body = stdbody + '<br><br>' + body;
+            }
+
+            var subj = self.model.get('subject');
+
+            if (subjpref) {
+                subj = subjpref + subj;
+            }
+
+            if (subjsuff) {
+                subj = subj + subjsuff;
+            }
+
+            self.$('.js-subject').val(subj);
+        }
 
         if (self.options.stdmsg && self.options.stdmsg.get('edittext') == 'Correct Case') {
             body = body.toLowerCase();
@@ -591,6 +613,19 @@ Iznik.Views.ModTools.StdMessage.Edit = Iznik.Views.Modal.extend({
             statusbar: false,
             toolbar: 'bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image'
         });
+    },
+
+    render: function() {
+        var self = this;
+
+        if (self.options.stdmsg) {
+            // Need to fetch as the body is excluded from what is returned in session.
+            self.options.stdmsg.fetch().then(function() {
+                self.expand();
+            });
+        }  else {
+            self.expand();
+        }
     }
 });
 
