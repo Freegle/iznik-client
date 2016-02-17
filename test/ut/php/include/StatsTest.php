@@ -73,6 +73,7 @@ class statsTest extends IznikTestCase {
         # Now generate stats for today
         $s = new Stats($this->dbhr, $this->dbhm, $gid);
         $date = date ("Y-m-d", strtotime("today"));
+        error_log("Generate for $date");
         $s->generate($date);
 
         $stats = $s->get($date);
