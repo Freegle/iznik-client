@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "927649b44e21c373891b174dca1fcc33",
+    "hash": "56d5b48c1bb511df48b6a862a54f3381",
     "packages": [
         {
             "name": "doctrine/instantiator",
@@ -110,6 +110,39 @@
                 "maxmind"
             ],
             "time": "2015-06-30 19:03:29"
+        },
+        {
+            "name": "html2text/html2text",
+            "version": "3.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mtibben/html2text.git",
+                "reference": "dc89d6a6d32dcffd6ad4d62e0d0bd2d454589ffb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mtibben/html2text/zipball/dc89d6a6d32dcffd6ad4d62e0d0bd2d454589ffb",
+                "reference": "dc89d6a6d32dcffd6ad4d62e0d0bd2d454589ffb",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Html2Text\\": [
+                        "src/",
+                        "test/"
+                    ]
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPLv2"
+            ],
+            "description": "Converts HTML to formatted plain text",
+            "time": "2015-10-11 23:34:23"
         },
         {
             "name": "maxmind-db/reader",

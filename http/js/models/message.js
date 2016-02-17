@@ -183,13 +183,15 @@ Iznik.Models.Message = IznikModel.extend({
                                                     ret.ygData.hasOwnProperty('msgId') &&
                                                     ret.ygData.msgId == group.yahoopendingid) {
                                                     // The edit on Yahoo worked.  Miracles never cease.  Now update the copy on our server.
+                                                    //
+                                                    // We also drop the text part here too, because the server will (in its absence)
+                                                    // convert the HTML variant to text - and do a better job than we may have done on the client.
                                                     $.ajax({
                                                         type: 'PUT',
                                                         url: API + 'message',
                                                         data: {
                                                             id: self.get('id'),
                                                             subject: subject,
-                                                            textbody: textbody,
                                                             htmlbody: htmlbody
                                                         }, success: function (ret) {
                                                             console.log("Server edit returned", ret);

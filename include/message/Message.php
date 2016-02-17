@@ -58,6 +58,12 @@ class Message
     }
 
     public function edit($subject, $textbody, $htmlbody) {
+        if ($htmlbody && !$textbody) {
+            # In the interests of accessibility, let's create a text version of the HTML
+            $html = new \Html2Text\Html2Text($htmlbody);
+            $textbody = $html->getText();
+        }
+
         $me = whoAmI($this->dbhr, $this->dbhm);
         $text = ($subject ? "New subject $subject " : '');
         $text .= $textbody ? "Text body changed " : '';

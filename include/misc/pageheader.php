@@ -59,7 +59,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     ?>
     <script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCpB54NtsIUX6L9ChabAmvr6k48DZhRJs0&libraries=geometry,places,drawing,visualization"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['corechart', 'annotationchart']}]}"></script>
-    <script type="text/javascript" src="//tinymce.cachefly.net/4.3/tinymce.min.js"></script>
+    <script type="text/javascript" src="//cdn.tinymce.com/4/tinymce.min.js"></script>
 
     <!-- We use bootstrap as a base UI -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
