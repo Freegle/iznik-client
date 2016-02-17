@@ -504,6 +504,7 @@
                     this._removeModelView( modelView );
                 }
 
+                console.log("collectionView trigger remove");
                 if( this._isBackboneCourierAvailable() )
                     this.spawn( "remove" );
                 else this.trigger( "remove" );

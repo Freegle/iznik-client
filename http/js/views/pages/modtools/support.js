@@ -75,7 +75,6 @@ Iznik.Views.ModTools.Member.SupportSearch = IznikView.extend({
         // Add any emails
         self.$('.js-otheremails').empty();
         _.each(self.model.get('otheremails'), function(email) {
-            console.log("Email", email);
             if (email.preferred) {
                 self.$('.js-email').append(email.email);
             } else {

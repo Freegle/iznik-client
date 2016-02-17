@@ -85,6 +85,7 @@ function memberships() {
                                 $u = new User($dbhr, $dbhm, $userid);
                                 $atts = $u->getPublic(NULL, TRUE, $logs, $logctx);
                                 $ret['member']['logs'] = $atts['logs'];
+                                $ret['member']['merges'] = $atts['merges'];
                                 $ret['logcontext'] = $logctx;
                             }
                         } else {

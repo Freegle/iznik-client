@@ -42,6 +42,9 @@ var IznikRouter = Backbone.Router.extend({
         // Tidy any modal grey.
         $('.modal-backdrop').remove();
 
+        // The top button might be showing.
+        $('.js-scrolltop').addClass('hidden');
+
         //console.log("loadRoute"); console.log(routeOptions);
         var self = this;
         routeOptions = routeOptions || {};

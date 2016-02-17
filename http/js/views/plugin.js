@@ -437,38 +437,41 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                     // Now bulk ops due
                     _.each(ret.bulkops, function(bulkop) {
-                        var group = Iznik.Session.getGroup(bulkop.groupid);
-                        if (group) {
-                            var mod = new Iznik.Models.ModConfig.BulkOp(bulkop);
+                        var mod = Iznik.Session.getGroup(bulkop.groupid);
+                        if (mod) {
+                            var bmod = new Iznik.Models.ModConfig.BulkOp(bulkop);
 
                             // Record bulk op started on server.
                             var started = (new moment()).format();
-                            mod.set('runstarted', started);
-                            mod.save({
+                            bmod.set('runstarted', started);
+                            bmod.save({
                                 id: bulkop.id,
                                 groupid: bulkop.groupid,
                                 runstarted: started
                             }, { patch: true });
 
+                            // Set workid so that the duplicate checking works
+                            mod.set('workid', bulkop.id)
+
                             switch (bulkop.action) {
                                 case 'Unbounce': {
                                     (new Iznik.Views.Plugin.Yahoo.Unbounce({
-                                        model: group
+                                        model: mod
                                     }).render());
                                     break;
                                 }
 
                                 case 'Remove': {
-                                    group.set('bouncingfor', bulkop.bouncingfor);
+                                    mod.set('bouncingfor', bulkop.bouncingfor);
                                     (new Iznik.Views.Plugin.Yahoo.RemoveBouncing({
-                                        model: group
+                                        model: mod
                                     }).render());
                                     break;
                                 }
 
                                 case 'ToSpecialNotices': {
                                     (new Iznik.Views.Plugin.Yahoo.ToSpecialNotices({
-                                        model: group,
+                                        model: mod,
                                         bulkop: bulkop
                                     }).render());
                                     break;
@@ -1310,15 +1313,16 @@ Iznik.Views.Plugin.Yahoo.ToSpecialNotices = Iznik.Views.Plugin.Work.extend({
 
     template: 'plugin_to_special_notices',
 
-    changeone: function() {
+    changeOne: function() {
         var self = this;
+        console.log("changeOne", self.offset, self.members.length);
 
         if (self.offset < self.members.length) {
             var percent = Math.round((self.offset / self.members.length) * 100);
             self.$('.progress-bar:last').css('width',  percent + '%').attr('aria-valuenow', percent);
 
             var member = self.members[self.offset++];
-            console.log("Changeone", member);
+            console.log(member);
             var group = Iznik.Session.getGroup(self.options.bulkop.groupid);
             var mod = new Iznik.Models.Yahoo.User({
                 group: group.get('nameshort'),
@@ -1326,11 +1330,12 @@ Iznik.Views.Plugin.Yahoo.ToSpecialNotices = Iznik.Views.Plugin.Work.extend({
                 userId: member.yahooUserId
             });
             self.listenToOnce(mod, 'completed', function() {
-                console.log("Change complete");
+                self.changeOne();
             });
             mod.changeAttr('deliveryType', 'ANNOUNCEMENT');
         } else {
             // Finished
+            console.log("Finished");
             self.succeed();
         }
     },
@@ -1349,19 +1354,24 @@ Iznik.Views.Plugin.Yahoo.ToSpecialNotices = Iznik.Views.Plugin.Work.extend({
             success: function(ret) {
                 var self = this;
                 self.context = ret.context;
+                self.$('.js-count').html(ret.members.length);
 
                 if (ret.members.length > 0) {
                     // We returned some - add them to the list.
                     _.each(ret.members, function(member) {
                         if (member.hasOwnProperty('email') && member.email.toLowerCase().indexOf('fbuser') == -1) {
                             // FBUser members are members on Yahoo which are allowed to be on Web Only.
+                            console.log("Push", member);
                             self.members.push(member);
                         }
                     });
                     self.getChunk.call(self);
                 } else {
                     // We got them all.
-                    self.changeone();
+                    console.log("Got them all", self.members.length);
+                    self.$('.js-download').hide();
+                    self.$('.js-progress').show();
+                    self.changeOne();
                 }
             }
         })

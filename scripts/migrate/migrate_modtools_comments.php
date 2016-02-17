@@ -16,7 +16,7 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 $u = new User($dbhr, $dbhm);
 $g = new Group($dbhr, $dbhm);
 
-$dbhm->preExec("DELETE FROM users_comments;");
+#$dbhm->preExec("DELETE FROM users_comments;");
 
 $oldusers = $dbhold->query("SELECT membercomments.*, groups.groupname, moderators.email AS modemail FROM membercomments INNER JOIN groups ON membercomments.groupid = groups.groupid LEFT JOIN moderators ON membercomments.modid = moderators.uniqueid;");
 $count = 0;
@@ -47,42 +47,82 @@ foreach ($oldusers as $user) {
             $user10 = trim($user['user9']) != '' ? $user['user9'] : NULL;
             $user11 = trim($user['user10']) != '' ? $user['user10'] : NULL;
 
-            $id = $u->addComment($gid,
-                $user1,
-                $user2,
-                $user3,
-                $user4,
-                $user5,
-                $user6,
-                $user7,
-                $user8,
-                $user9,
-                $user10,
-                $user11,
-                $modid,
-                FALSE);
+            $already = FALSE;
+            # Check if we already have the comment.
+            $sql = "SELECT * FROM users_comments WHERE userid = ? ORDER BY date DESC;";
+            $cs = $dbhr->preQuery($sql, [ $id ]);
 
-            #error_log("Added comment $id");
+            foreach ($cs as $c) {
+                $cuser1 = trim($c['user1']) != '' ? $c['user1'] : NULL;
+                $cuser2 = trim($c['user2']) != '' ? $c['user2'] : NULL;
+                $cuser3 = trim($c['user3']) != '' ? $c['user3'] : NULL;
+                $cuser4 = trim($c['user4']) != '' ? $c['user4'] : NULL;
+                $cuser5 = trim($c['user5']) != '' ? $c['user5'] : NULL;
+                $cuser6 = trim($c['user6']) != '' ? $c['user6'] : NULL;
+                $cuser7 = trim($c['user7']) != '' ? $c['user7'] : NULL;
+                $cuser8 = trim($c['user8']) != '' ? $c['user8'] : NULL;
+                $cuser9 = trim($c['user9']) != '' ? $c['user9'] : NULL;
+                $cuser10 = trim($c['user10']) != '' ? $c['user10'] : NULL;
+                $cuser11 = trim($c['user11']) != '' ? $c['user11'] : NULL;
 
-            if (!$id) {
-                error_log("Add comment failed");
-                error_log("Add comment failed " . var_export([$gid,
-                $user1,
-                $user2,
-                $user3,
-                $user4,
-                $user5,
-                $user6,
-                $user7,
-                $user8,
-                $user9,
-                $user10,
-                $user11,
-                $modid]), TRUE);
-                exit(1);
+                #error_log("$user1 vs $cuser1");
+
+                if ($user1 == $cuser1 &&
+                    $user2 == $cuser2 &&
+                    $user3 == $cuser3 &&
+                    $user4 == $cuser4 &&
+                    $user5 == $cuser5 &&
+                    $user6 == $cuser6 &&
+                    $user7 == $cuser7 &&
+                    $user8 == $cuser8 &&
+                    $user9 == $cuser9 &&
+                    $user10 == $cuser10 &&
+                    $user11 == $cuser11) {
+                    $already = TRUE;
+                }
             }
 
-            $dbhm->preExec("UPDATE users_comments SET date = '$mysqldate' WHERE id = $id;");
+            #error_log("Got already $already");
+
+            if (!$already) {
+                $id = $u->addComment($gid,
+                    $user1,
+                    $user2,
+                    $user3,
+                    $user4,
+                    $user5,
+                    $user6,
+                    $user7,
+                    $user8,
+                    $user9,
+                    $user10,
+                    $user11,
+                    $modid,
+                    FALSE);
+
+                #error_log("Added comment $id");
+
+                if (!$id) {
+                    error_log("Add comment failed");
+                    error_log("Add comment failed " . var_export([$gid,
+                            $user1,
+                            $user2,
+                            $user3,
+                            $user4,
+                            $user5,
+                            $user6,
+                            $user7,
+                            $user8,
+                            $user9,
+                            $user10,
+                            $user11,
+                            $modid]), TRUE);
+                    exit(1);
+                }
+
+                $dbhm->preExec("UPDATE users_comments SET date = '$mysqldate' WHERE id = $id;");
+                #exit(0);
+            }
         } else {
             error_log("Ignore comment for group {$user['groupname']}");
         }

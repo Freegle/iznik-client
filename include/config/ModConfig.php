@@ -177,6 +177,10 @@ class ModConfig extends Entity
             $others = $this->dbhr->preQuery($sql, [ $groupid ]);
             foreach ($others as $other) {
                 $configid = $other['configid'];
+
+                # Record that for next time.
+                $sql = "UPDATE memberships SET configid = ? WHERE groupid = ? AND userid = ?;";
+                $this->dbhm->preExec($sql, [ $configid, $groupid, $modid ]);
             }
         }
 

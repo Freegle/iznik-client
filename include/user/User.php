@@ -814,6 +814,35 @@ class User extends Entity
 
                 $atts['logs'][] = $log;
             }
+
+            # Get merge history
+            $ids = [ $this->id ];
+            $merges = [];
+            do {
+                $added = FALSE;
+                $sql = "SELECT * FROM logs WHERE type = 'User' AND subtype = 'Merged' AND user IN (" . implode(',', $ids) . ");";
+                $logs = $this->dbhr->preQuery($sql);
+                foreach ($logs as $log) {
+                    #error_log("Consider merge log {$log['text']}");
+                    if (preg_match('/Merged (.*) into (.*?) \((.*)\)/', $log['text'], $matches)) {
+                        #error_log("Matched " . var_export($matches, TRUE));
+                        #error_log("Check ids {$matches[1]} and {$matches[2]}");
+                        if (!in_array($matches[1], $ids, TRUE)) {
+                            $added = TRUE;
+                            $ids[] = $matches[1];
+                            $merges[] = [ 'timestamp' => ISODate($log['timestamp']), 'from' => $matches[1], 'to' => $matches[2], 'reason' => $matches[3] ];
+                        }
+
+                        if (!in_array($matches[2], $ids, TRUE)) {
+                            $added = TRUE;
+                            $ids[] = $matches[2];
+                            $merges[] = [ 'timestamp' => ISODate($log['timestamp']), 'from' => $matches[1], 'to' => $matches[2], 'reason' => $matches[3] ];
+                        }
+                    }
+                }
+            } while ($added);
+
+            $atts['merges'] = $merges;
         }
 
         $atts['displayname'] = $this->getName();
