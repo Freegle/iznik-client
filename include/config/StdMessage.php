@@ -19,7 +19,6 @@ class StdMessage extends Entity
     {
         $this->fetch($dbhr, $dbhm, $id, 'mod_stdmsgs', 'stdmsg', $this->publicatts);
         $this->log = new Log($dbhr, $dbhm);
-        $this->id = $id;
     }
 
     /**

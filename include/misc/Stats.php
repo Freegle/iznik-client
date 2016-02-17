@@ -147,7 +147,7 @@ class Stats
 
     public function get($date)
     {
-        $stats = $this->dbhr->preQuery("SELECT * FROM stats WHERE date = ?;", [ $date ]);
+        $stats = $this->dbhr->preQuery("SELECT * FROM stats WHERE date = ? AND groupid = ?;", [ $date, $this->groupid ]);
         $ret = [
                 Stats::APPROVED_MESSAGE_COUNT => 0,
                 Stats::APPROVED_MEMBER_COUNT => 0,
