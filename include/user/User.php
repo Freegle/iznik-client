@@ -827,16 +827,12 @@ class User extends Entity
                     if (preg_match('/Merged (.*) into (.*?) \((.*)\)/', $log['text'], $matches)) {
                         #error_log("Matched " . var_export($matches, TRUE));
                         #error_log("Check ids {$matches[1]} and {$matches[2]}");
-                        if (!in_array($matches[1], $ids, TRUE)) {
-                            $added = TRUE;
-                            $ids[] = $matches[1];
-                            $merges[] = [ 'timestamp' => ISODate($log['timestamp']), 'from' => $matches[1], 'to' => $matches[2], 'reason' => $matches[3] ];
-                        }
-
-                        if (!in_array($matches[2], $ids, TRUE)) {
-                            $added = TRUE;
-                            $ids[] = $matches[2];
-                            $merges[] = [ 'timestamp' => ISODate($log['timestamp']), 'from' => $matches[1], 'to' => $matches[2], 'reason' => $matches[3] ];
+                        foreach ([ $matches[1], $matches[2] ] as $id) {
+                            if (!in_array($id, $ids, TRUE)) {
+                                $added = TRUE;
+                                $ids[] = $id;
+                                $merges[] = [ 'timestamp' => ISODate($log['timestamp']), 'from' => $matches[1], 'to' => $matches[2], 'reason' => $matches[3] ];
+                            }
                         }
                     }
                 }

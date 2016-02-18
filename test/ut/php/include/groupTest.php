@@ -200,6 +200,16 @@ class groupTest extends IznikTestCase {
         assertEquals('test12@test.com', $membs[0]['otheremails'][0]['email']);
         assertEquals('test11@test.com', $membs[0]['otheremails'][1]['email']);
 
+        # Test that the merge history is there.
+        $this->waitBackground();
+        error_log("Check merge history for {$membs[0]['id']}");
+        $u = new User($this->dbhr, $this->dbhm, $membs[0]['id']);
+        $ctx = NULL;
+        $atts = $u->getPublic(NULL, FALSE, TRUE, $ctx);
+        error_log("Merge history " . var_export($atts, TRUE));
+        assertEquals(1, count($atts['merges']));
+        assertEquals($membs[0]['id'], $atts['merges'][0]['from']);
+
         error_log(__METHOD__ . " end");
     }
 
