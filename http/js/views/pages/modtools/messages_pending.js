@@ -78,7 +78,9 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
         });
 
         this.listenToOnce(self.model, 'editsucceeded', function() {
-            self.render();
+            self.model.fetch().then(function() {
+                self.render();
+            });
         });
 
         v.render();
