@@ -343,12 +343,10 @@ class Group extends Entity
                         $u = new User($this->dbhr, $this->dbhm, $uid);
                     }
 
-                    if (!$emailid) {
-                        # We didn't find by email address, so make sure the email is now linked to this user.
-                        $memb['emailid'] = $u->addEmail($memb['email']);
-                    } else {
-                        $memb['emailid'] = $emailinfo['id'];
-                    }
+                    # Make sure that the email is associated with this user.  Note that this may be required even
+                    # if we succeeded in our findByEmail above, as that may have found a different email with the
+                    # same canon value.
+                    $memb['emailid'] = $u->addEmail($memb['email']);
 
                     $u = new User($this->dbhr, $this->dbhm, $uid);
 

@@ -222,10 +222,10 @@ class User extends Entity
             $canon = User::canonMail($email);
 
             # Don't cache - lots of emails so don't want to flood the query cache.
-            $sql = "SELECT SQL_NO_CACHE id, preferred FROM users_emails WHERE userid = ? AND canon = ?;";
+            $sql = "SELECT SQL_NO_CACHE id, preferred FROM users_emails WHERE userid = ? AND email = ?;";
             $emails = $this->dbhm->preQuery($sql, [
                 $this->id,
-                $canon
+                $email
             ]);
 
             if (count($emails) == 0) {
@@ -1043,6 +1043,9 @@ class User extends Entity
         # A useful query to find foreign key references is of this form:
         #
         # USE information_schema; SELECT * FROM KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = 'iznik' AND REFERENCED_TABLE_NAME = 'users';
+        #
+        # We avoid too much use of quoting in preQuery/preExec because quoted numbers can't use a numeric index and therefore
+        # perform slowly.
         #error_log("Merge $id2 into $id1");
         $l = new Log($this->dbhr, $this->dbhm);
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -1056,24 +1059,17 @@ class User extends Entity
                 $rollback = TRUE;
 
                 # Merge the memberships
-                $id2membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = ?;", [ $id2 ]);
+                $id2membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = $id2;");
                 foreach ($id2membs as $id2memb) {
                     # Jiggery-pokery with $rc for UT purposes.
                     $rc2 = $rc;
                     #error_log("$id2 member of {$id2memb['groupid']} ");
-                    $id1membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = ? AND groupid = ?;", [
-                        $id1,
-                        $id2memb['groupid']
-                    ]);
+                    $id1membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = $id1 AND groupid = {$id2memb['groupid']};");
 
                     if (count($id1membs) == 0) {
                         # id1 is not already a member.  Just change our id2 membership to id1.
                         #error_log("...$id1 not a member, UPDATE");
-                        $rc2 = $this->dbhm->preExec("UPDATE memberships SET userid = ? WHERE userid = ? AND groupid = ?;", [
-                            $id1,
-                            $id2,
-                            $id2memb['groupid']
-                        ]);
+                        $rc2 = $this->dbhm->preExec("UPDATE memberships SET userid = $id1 WHERE userid = $id2 AND groupid = {$id2memb['groupid']};");
 
                         #error_log("Membership UPDATE merge returned $rc2");
                     } else {
@@ -1085,10 +1081,8 @@ class User extends Entity
                         $role = User::roleMax($id1memb['role'], $id2memb['role']);
 
                         if ($role != $id1memb['role']) {
-                            $rc2 = $this->dbhm->preExec("UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;", [
-                                $role,
-                                $id1,
-                                $id2memb['groupid']
+                            $rc2 = $this->dbhm->preExec("UPDATE memberships SET role = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
+                                $role
                             ]);
                             #error_log("Role update returned $rc2");
                         }
@@ -1097,10 +1091,8 @@ class User extends Entity
                             #  Our added date should be the older of the two.
                             $date = min(strtotime($id1memb['added']), strtotime($id2memb['added']));
                             $mysqltime = date("Y-m-d H:i:s", $date);
-                            $rc2 = $this->dbhm->preExec("UPDATE memberships SET added = ? WHERE userid = ? AND groupid = ?;", [
-                                $mysqltime,
-                                $id1,
-                                $id2memb['groupid']
+                            $rc2 = $this->dbhm->preExec("UPDATE memberships SET added = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
+                                $mysqltime
                             ]);
                         }
 
@@ -1108,10 +1100,8 @@ class User extends Entity
                         foreach (['configid', 'emailid', 'settings', 'heldby'] as $key) {
                             if ($id2memb[$key]) {
                                 if ($rc2) {
-                                    $rc2 = $this->dbhm->preExec("UPDATE memberships SET $key = ? WHERE userid = ? AND groupid = ?;", [
-                                        $id2memb[$key],
-                                        $id1,
-                                        $id2memb['groupid']
+                                    $rc2 = $this->dbhm->preExec("UPDATE memberships SET $key = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
+                                        $id2memb[$key]
                                     ]);
                                 }
                             }
@@ -1119,10 +1109,7 @@ class User extends Entity
 
                         if ($rc2) {
                             # Now we just need to delete the id2 one.
-                            $rc2 = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = ? AND groupid = ?;", [
-                                $id2,
-                                $id2memb['groupid']
-                            ]);
+                            $rc2 = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = $id2 AND groupid = {$id2memb['groupid']};");
 
                             #error_log("Membership DELETE returned $rc2");
                         }
@@ -1135,11 +1122,8 @@ class User extends Entity
                 # can't be a conflict on email.
                 if ($rc) {
                     #error_log("Merge emails");
-                    $sql = "UPDATE users_emails SET userid = ?, preferred = 0 WHERE userid = ?;";
-                    $rc = $this->dbhm->preExec($sql, [
-                        $id1,
-                        $id2
-                    ]);
+                    $sql = "UPDATE users_emails SET userid = $id1, preferred = 0 WHERE userid = $id2;";
+                    $rc = $this->dbhm->preExec($sql);
 
                     #error_log("Emails now " . var_export($this->dbhm->preQuery("SELECT * FROM users_emails WHERE userid = $id1;"), true));
                     #error_log("Email merge returned $rc");
@@ -1148,42 +1132,36 @@ class User extends Entity
                 if ($rc) {
                     # Merge other foreign keys where success is less important.  For some of these there might already
                     # be entries, so we do an IGNORE.
-                    $this->dbhm->preExec("UPDATE locations_excluded SET userid = ? WHERE userid = ?;", [$id1, $id2]);
-                    $this->dbhm->preExec("UPDATE IGNORE spam_users SET userid = ? WHERE userid = ?;", [$id1, $id2]);
-                    $this->dbhm->preExec("UPDATE IGNORE spam_users SET byuserid = ? WHERE byuserid = ?;", [$id1, $id2]);
-                    $this->dbhm->preExec("UPDATE IGNORE users_banned SET userid = ? WHERE userid = ?;", [$id1, $id2]);
-                    $this->dbhm->preExec("UPDATE IGNORE users_banned SET byuser = ? WHERE byuser = ?;", [$id1, $id2]);
-                    $this->dbhm->preExec("UPDATE users_logins SET userid = ? WHERE userid = ?;", [$id1, $id2]);
-                    $this->dbhm->preExec("UPDATE users_comments SET userid = ? WHERE userid = ?;", [$id1, $id2]);
-                    $this->dbhm->preExec("UPDATE users_comments SET byuserid = ? WHERE byuserid = ?;", [$id1, $id2]);
-                    $this->dbhm->preExec("UPDATE sessions SET userid = ? WHERE userid = ?;", [$id1, $id2]);
+                    $this->dbhm->preExec("UPDATE locations_excluded SET userid = $id1 WHERE userid = $id2;");
+                    $this->dbhm->preExec("UPDATE IGNORE spam_users SET userid = $id1 WHERE userid = $id2;");
+                    $this->dbhm->preExec("UPDATE IGNORE spam_users SET byuserid = $id1 WHERE byuserid = $id2;");
+                    $this->dbhm->preExec("UPDATE IGNORE users_banned SET userid = $id1 WHERE userid = $id2;");
+                    $this->dbhm->preExec("UPDATE IGNORE users_banned SET byuser = $id1 WHERE byuser = $id2;");
+                    $this->dbhm->preExec("UPDATE users_logins SET userid = $id1 WHERE userid = $id2;");
+                    $this->dbhm->preExec("UPDATE users_comments SET userid = $id1 WHERE userid = $id2;");
+                    $this->dbhm->preExec("UPDATE users_comments SET byuserid = $id1 WHERE byuserid = $id2;");
+                    $this->dbhm->preExec("UPDATE sessions SET userid = $id1 WHERE userid = $id2;");
                 }
 
                 # Merge attributes we want to keep if we have them in id2 but not id1.  Some will have unique
                 # keys, so update to delete them.
                 foreach (['fullname', 'firstname', 'lastname', 'yahooUserId', 'yahooid', 'yahooUserId'] as $att) {
-                    $users = $this->dbhm->preQuery("SELECT $att FROM users WHERE id = ?;", [ $id2 ]);
+                    $users = $this->dbhm->preQuery("SELECT $att FROM users WHERE id = $id2;");
                     foreach ($users as $user) {
-                        $this->dbhm->preExec("UPDATE users SET $att = NULL WHERE id = ?;", [ $id2 ]);
-                        $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = ? AND $att IS NULL;", [ $user[$att], $id1 ]);
+                        $this->dbhm->preExec("UPDATE users SET $att = NULL WHERE id = $id2;");
+                        $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1 AND $att IS NULL;", [ $user[$att] ]);
                     }
                 }
 
                 # Merge the logs.  There should be logs both about and by each user, so we can use the rc to check success.
                 if ($rc) {
-                    $rc = $this->dbhm->preExec("UPDATE logs SET user = ? WHERE user = ?;", [
-                        $id1,
-                        $id2
-                    ]);
+                    $rc = $this->dbhm->preExec("UPDATE logs SET user = $id1 WHERE user = $id2;");
 
                     #error_log("Log merge 1 returned $rc");
                 }
 
                 if ($rc) {
-                    $rc = $this->dbhm->preExec("UPDATE logs SET byuser = ? WHERE byuser = ?;", [
-                        $id1,
-                        $id2
-                    ]);
+                    $rc = $this->dbhm->preExec("UPDATE logs SET byuser = $id1 WHERE byuser = $id2;");
 
                     #error_log("Log merge 2 returned $rc");
                 }
@@ -1192,33 +1170,23 @@ class User extends Entity
                 # if this info isn't correct, so ignore the rc.
                 #error_log("Merge messages, current rc $rc");
                 if ($rc) {
-                    $this->dbhm->preExec("UPDATE messages SET fromuser = ? WHERE fromuser = ?;", [
-                        $id1,
-                        $id2
-                    ]);
+                    $this->dbhm->preExec("UPDATE messages SET fromuser = $id1 WHERE fromuser = $id2;");
                 }
 
                 # Merge the history
                 #error_log("Merge history, current rc $rc");
                 if ($rc) {
-                    $this->dbhm->preExec("UPDATE messages_history SET fromuser = ? WHERE fromuser = ?;", [
-                        $id1,
-                        $id2
-                    ]);
-                    $this->dbhm->preExec("UPDATE memberships_history SET userid = ? WHERE userid = ?;", [
-                        $id1,
-                        $id2
-                    ]);
+                    $this->dbhm->preExec("UPDATE messages_history SET fromuser = $id1 WHERE fromuser = $id2;");
+                    $this->dbhm->preExec("UPDATE memberships_history SET userid = $id1 WHERE userid = $id2;");
                 }
 
                 # Merge the systemrole.
-                $u1s = $this->dbhr->preQuery("SELECT systemrole FROM users WHERE id =?;", [ $id1 ]);
+                $u1s = $this->dbhr->preQuery("SELECT systemrole FROM users WHERE id = $id1;");
                 foreach ($u1s as $u1) {
-                    $u2s = $this->dbhr->preQuery("SELECT systemrole FROM users WHERE id =?;", [ $id2 ]);
+                    $u2s = $this->dbhr->preQuery("SELECT systemrole FROM users WHERE id = $id2;");
                     foreach ($u2s as $u2) {
-                        $rc = $this->dbhm->preExec("UPDATE users SET systemrole = ? WHERE id = ?;", [
-                            $this->systemRoleMax($u1['systemrole'], $u2['systemrole']),
-                            $id1
+                        $rc = $this->dbhm->preExec("UPDATE users SET systemrole = ? WHERE id = $id1;", [
+                            $this->systemRoleMax($u1['systemrole'], $u2['systemrole'])
                         ]);
                     }
                 }

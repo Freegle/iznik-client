@@ -687,10 +687,13 @@ Iznik.Views.Plugin.Work = IznikView.extend({
 
     succeed: function() {
         var self = this;
+        console.log("Work succeed", self);
         self.trigger('succeed');
         self.trigger('complete');
 
         function finished() {
+            console.log("Succeed finish");
+            var self = this;
             self.$el.fadeOut(2000, function () {
                 self.remove();
                 IznikPlugin.completedWork();
@@ -704,17 +707,15 @@ Iznik.Views.Plugin.Work = IznikView.extend({
             // This work came from the server - record the success there.
             //
             // Even if this fails, continue.
-            $.ajaxq('plugin', {
+            $.ajax({
                 type: "DELETE",
                 url: API + 'plugin',
                 data: {
                     id: self.model.get('workid')
-                }, complete: function () {
-                    finished();
-                }
+                }, complete: _.bind(finished, self)
             });
         } else {
-            finished();
+            finished.call(self);
         }
     },
 
@@ -1062,10 +1063,20 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
 
             _.each(members, function(member) {
                 var mom = new moment(member[self.dateField] * 1000);
+
+                // Yahoo ids sometimes have the form of an email address, e.g. for BT users.  But it's the LHS that
+                // counts.
+                var yid = member['yid'];
+                var p = yid ? yid.indexOf('@') : -1;
+
+                if (p >= 0) {
+                    yid = yid.substring(0, p);
+                }
+
                 var thisone = {
                     email: member['email'],
                     yahooUserId: member['userId'],
-                    yahooid: member['yid'],
+                    yahooid: yid,
                     yahooPostingStatus: member.hasOwnProperty('postingStatus') ? member.postingStatus : null,
                     yahooDeliveryType: member.hasOwnProperty(self.deliveryField) ? member[self.deliveryField] : null,
                     yahooModeratorStatus: member.hasOwnProperty('moderatorStatus') ? member.moderatorStatus : 'MEMBER',
@@ -1536,7 +1547,7 @@ Iznik.Views.Plugin.Yahoo.RejectPendingMessage = Iznik.Views.Plugin.Work.extend({
                     ret.ygData.hasOwnProperty('numRejected')) {
                     // If the rection worked, then numRejected = 1.
                     // If the rejection is no longer relevant because the pending message has gone, both are 0.
-                    if (ret.ygData.numRejected== 1 ||
+                    if (ret.ygData.numRejected == 1 ||
                         (ret.ygData.numAccepted == 0 && ret.ygData.numRejected == 0)) {
                         self.succeed();
                     } else {
