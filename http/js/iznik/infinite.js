@@ -72,9 +72,9 @@ Iznik.Views.Infinite = IznikView.extend({
             }
         });
 
-        self.listenTo(self.collectionView, 'remove', function(modelView) {
-            console.log("Remove", modelView);
-            if (modelView.hasOwnProperty('collection') && modelView.collection.length == 0) {
+        self.collectionView.on('remove', function() {
+            console.log("Remove", self.collectionView);
+            if (self.collectionView.collection.length == 0) {
                 self.$('.js-none').fadeIn('slow');
                 $('.js-scrolltop').addClass('hidden');
             }
@@ -91,6 +91,7 @@ Iznik.Views.Infinite = IznikView.extend({
                 self.lastFetched = self.selected;
                 self.context = response.context;
 
+                console.log("Fetched length", collection.length);
                 if (collection.length == 0) {
                     self.$('.js-none').fadeIn('slow');
                 }

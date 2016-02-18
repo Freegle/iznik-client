@@ -79,7 +79,7 @@ Iznik.Views.ModTools.Message.Spam = Iznik.Views.ModTools.Message.extend({
                     groupid: group.id,
                     action: 'NotSpam'
                 }, success: function (ret) {
-                    self.$el.fadeOut('slow');
+                    self.model.destroy();
                 }
             });
         });
@@ -97,7 +97,7 @@ Iznik.Views.ModTools.Message.Spam = Iznik.Views.ModTools.Message.extend({
                     action: 'Delete',
                     reason: 'Deleted as spam'
                 }, success: function (ret) {
-                    self.$el.fadeOut('slow');
+                    self.model.destroy();
                 }
             });
         });

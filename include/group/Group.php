@@ -8,7 +8,7 @@ class Group extends Entity
 {
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'logo',
-        'onyahoo', 'trial', 'licensed', 'licenseduntil');
+        'onyahoo', 'trial', 'licenserequired', 'licensed', 'licenseduntil');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
@@ -175,6 +175,10 @@ class Group extends Entity
         $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = {$this->id} AND role IN ('Owner', 'Moderator');";
         $counts = $this->dbhr->preQuery($sql);
         $atts['nummods'] = $counts[0]['count'];
+
+        foreach (['trial', 'licensed', 'licenseduntil'] as $datefield) {
+            $atts[$datefield] = $atts[$datefield] ? ISODate($atts[$datefield]) : NULL;
+        }
 
         return($atts);
     }
@@ -650,5 +654,57 @@ class Group extends Entity
         $sql = "UPDATE groups SET confirmkey = ? WHERE id = ?;";
         $rc = $this->dbhm->preExec($sql, [ $key, $this->id ]);
         return($key);
+    }
+
+    public function createVoucher() {
+
+        do {
+            $voucher = randstr(20);
+            $sql = "INSERT INTO vouchers (voucher) VALUES (?);";
+            $rc = $this->dbhm->preExec($sql, [ $voucher ]);
+        } while (!$rc);
+
+        return($voucher);
+    }
+
+    public function redeemVoucher($voucher) {
+        $ret = FALSE;
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
+        $sql = "SELECT * FROM vouchers WHERE voucher = ? AND used IS NULL;";
+        $vs = $this->dbhr->preQuery($sql , [ $voucher ]);
+
+        foreach ($vs as $v) {
+            $this->dbhm->beginTransaction();
+
+            $sql = "UPDATE groups SET licensed = CURDATE(), licenseduntil = CURDATE() + INTERVAL 1 YEAR WHERE id = ?;";
+            $rc = $this->dbhm->preExec($sql, [ $this->id ]);
+
+            if ($rc) {
+                $sql = "UPDATE vouchers SET userid = NOW(), userid = ?, groupid = ? WHERE id = ?;";
+                $rc = $this->dbhm->preExec($sql, [
+                    $myid,
+                    $this->id,
+                    $v['id']
+                ]);
+
+                if ($rc) {
+                    $rc = $this->dbhm->commit();
+
+                    if ($rc) {
+                        $ret = TRUE;
+                        $this->log->log([
+                            'type' => Log::TYPE_GROUP,
+                            'subtype' => Log::SUBTYPE_LICENSED,
+                            'groupid' => $this->id,
+                            'text' => "Using voucher $voucher"
+                        ]);
+                    }
+                }
+            }
+        }
+
+        return($ret);
     }
 }

@@ -120,13 +120,6 @@ Iznik.Views.ModTools.Member.SupportSearch = IznikView.extend({
 
         this.$('.timeago').timeago();
 
-        // If we delete this member then the view should go.
-        this.listenToOnce(self.model, 'removed', function() {
-            self.$el.fadeOut('slow', function() {
-                self.remove();
-            });
-        });
-
         return(this);
     }
 });

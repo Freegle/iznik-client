@@ -305,5 +305,25 @@ class groupTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testVoucher() {
+        error_log(__METHOD__ );
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $id = $g->create('testgroup', Group::GROUP_REUSE);
+        assertNotNull($id);
+        assertNull($g->getPrivate('licensed'));
+        assertNull($g->getPrivate('licenseduntil'));
+
+        $voucher = $g->createVoucher();
+        assertNotNull($voucher);
+        assertFalse($g->redeemVoucher('wibble'));
+        assertTrue($g->redeemVoucher($voucher));
+        $g = new Group($this->dbhr, $this->dbhm, $id);
+        assertNotNull($g->getPrivate('licensed'));
+        assertNotNull($g->getPrivate('licenseduntil'));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

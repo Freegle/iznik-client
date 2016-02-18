@@ -230,11 +230,8 @@ Iznik.Views.ModTools.Spammer = Iznik.Views.ModTools.Member.Spam.extend({
 
         this.$('.timeago').timeago();
 
-        // If we approve, reject or ban this member then the view should go.
         this.listenToOnce(self.model, 'deleted removed', function() {
-            self.$el.fadeOut('slow', function() {
-                self.remove();
-            });
+            self.model.destroy();
         });
 
         return(this);

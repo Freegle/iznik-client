@@ -43,6 +43,7 @@ class Log
     const SUBTYPE_YAHOO_POSTING_STATUS = 'YahooPostingStatus';
     const SUBTYPE_ROLE_CHANGE = 'RoleChange';
     const SUBTYPE_MERGED = 'Merged';
+    const SUBTYPE_LICENSED = 'Licensed';
 
     function __construct($dbhr, $dbhm)
     {

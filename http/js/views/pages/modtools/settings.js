@@ -123,6 +123,25 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
             });
 
             group.fetch().then(function() {
+                // Add license info
+                var text;
+                console.log("License required", group, group.get('licenserequired'));
+                if (group.get('licenserequired')) {
+                    if (!group.get('licensed')) {
+                        text = '<div class="alert alert-warning">This group is using a trial license for 30 days from <abbr class="timeago" title="' + group.get('trial') + '"></abbr>.</div>'
+                    } else {
+                        text = 'This group is licensed until <abbr class="timeago" title="' + group.get('licenseduntil') + '"></abbr>.';
+                    }
+
+                    self.$('.js-addlicense').show();
+                } else {
+                    text = 'This group doesn\'t need a license.';
+                    self.$('.js-addlicense').hide();
+                }
+
+                self.$('.js-licenceinfo').html(text);
+                self.$('.timeago').timeago();
+
                 // Our settings for the group are held in the membership, so fire off a request for that.
                 var membership = new Iznik.Models.Membership({
                     groupid: self.selected,
