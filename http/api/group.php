@@ -114,6 +114,24 @@ function group() {
 
                         break;
                     }
+
+                    case 'AddLicense': {
+                        $voucher = presdef('voucher', $_REQUEST, NULL);
+                        $ret = [
+                            'ret' => 1,
+                            'status' => 'Not logged in'
+                        ];
+
+                        if ($me) {
+                            $rc = $g->redeemVoucher($voucher);
+
+                            if ($rc) {
+                                $ret = ['ret' => 0, 'status' => 'Success'];
+                            } else {
+                                $ret = ['ret' => 2, 'status' => 'Failed'];
+                            }
+                        }
+                    }
                 }
 
                 break;

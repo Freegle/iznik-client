@@ -454,7 +454,7 @@ paths:
         in: body
         description: What action to perform
         type: string
-        enum: ['ConfirmKey', 'Create']
+        enum: ['ConfirmKey', 'Create', 'AddLicense]
       - name: grouptype
         in: body
         description: For action = Create, the type of group to create
@@ -463,6 +463,10 @@ paths:
       - name: name
         in: body
         description: The short name of the group
+        type: string
+      - name: voucher
+        in: body
+        description: For action = 'AddLicense', license voucher code
         type: string
       responses:
           "200":

@@ -34,6 +34,7 @@ class groupAPITest extends IznikAPITestCase {
 
         # Create a moderator and log in as them
         $g = new Group($this->dbhr, $this->dbhm);
+        $this->group = $g;
         $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
@@ -181,6 +182,37 @@ class groupAPITest extends IznikAPITestCase {
         error_log(var_export($ret, true));
         assertEquals(0, $ret['ret']);
         $key = $ret['key'];
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testAddLicense() {
+        error_log(__METHOD__);
+
+        # Not logged in
+        $ret = $this->call('group', 'POST', [
+            'action' => 'AddLicense',
+            'id' => $this->groupid,
+            'voucher' => 'wibble'
+        ]);
+        assertEquals(1, $ret['ret']);
+
+        # Invalid voucher
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('group', 'POST', [
+            'action' => 'AddLicense',
+            'id' => $this->groupid,
+            'voucher' => 'wibble'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $voucher = $this->group->createVoucher();
+        $ret = $this->call('group', 'POST', [
+            'action' => 'AddLicense',
+            'id' => $this->groupid,
+            'voucher' => $voucher
+        ]);
+        assertEquals(0, $ret['ret']);
 
         error_log(__METHOD__ . " end");
     }

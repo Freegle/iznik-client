@@ -11,12 +11,27 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         'click .js-deleteconfig': 'deleteConfig',
         'click .js-copyconfig': 'copyConfig',
         'click .js-addgroup': 'addGroup',
+        'click .js-addlicense': 'addLicense',
         'click .js-hideall': 'hideAll'
     },
 
     addGroup: function() {
         var self = this;
         var v = new Iznik.Views.ModTools.Settings.AddGroup();
+        v.render();
+    },
+
+    addLicense: function() {
+        var self = this;
+        var group = Iznik.Session.getGroup(self.selected);
+        var v = new Iznik.Views.ModTools.Settings.AddLicense({
+            model: group
+        });
+
+        // If we license, update the display.
+        self.listenToOnce(v, 'modalCancelled modalClosed', function() {
+            self.settingsGroup();
+        });
         v.render();
     },
 
@@ -125,7 +140,6 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
             group.fetch().then(function() {
                 // Add license info
                 var text;
-                console.log("License required", group, group.get('licenserequired'));
                 if (group.get('licenserequired')) {
                     if (!group.get('licensed')) {
                         text = '<div class="alert alert-warning">This group is using a trial license for 30 days from <abbr class="timeago" title="' + group.get('trial') + '"></abbr>.</div>'
@@ -1198,5 +1212,49 @@ Iznik.Views.ModTools.BulkOp.Button = IznikView.extend({
         });
         v.render();
     }
+});
+
+Iznik.Views.ModTools.Settings.AddLicense = Iznik.Views.Modal.extend({
+    template: 'modtools_settings_addlicense',
+
+    events: {
+        'click .js-add': 'add',
+        'click .js-close': 'close',
+        'click .js-cancel': 'cancel'
+    },
+
+    licenseFailed: function() {
+        var v = new Iznik.Views.ModTools.Settings.LicenseFailed();
+        v.render();
+    },
+
+    add: function() {
+        var self = this;
+
+        $.ajax({
+            type: 'POST',
+            url: API + 'group',
+            data: {
+                action: 'AddLicense',
+                id: self.model.get('id'),
+                voucher: self.$('.js-voucher').val().trim()
+            }, success: function(ret) {
+                if (ret.ret == 0) {
+                    var v = new Iznik.Views.ModTools.Settings.LicenseSucceeded();
+                    v.render();
+                } else {
+                    self.licenseFailed();
+                }
+            }, error: self.licenseFailed
+        });
+    }
+});
+
+Iznik.Views.ModTools.Settings.LicenseSucceeded = Iznik.Views.Modal.extend({
+    template: 'modtools_settings_licensesucceeded'
+});
+
+Iznik.Views.ModTools.Settings.LicenseFailed = Iznik.Views.Modal.extend({
+    template: 'modtools_settings_licensefailed'
 });
 

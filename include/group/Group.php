@@ -682,7 +682,7 @@ class Group extends Entity
             $rc = $this->dbhm->preExec($sql, [ $this->id ]);
 
             if ($rc) {
-                $sql = "UPDATE vouchers SET userid = NOW(), userid = ?, groupid = ? WHERE id = ?;";
+                $sql = "UPDATE vouchers SET used = NOW(), userid = ?, groupid = ? WHERE id = ?;";
                 $rc = $this->dbhm->preExec($sql, [
                     $myid,
                     $this->id,
