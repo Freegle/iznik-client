@@ -209,10 +209,12 @@ class Spam {
     }
 
     public function listSpammers($collection, $search, &$context) {
+        # We exclude anyone who isn't a User (e.g. mods, support, admin) so that they don't appear on the list and
+        # get banned.
         $collectionq = ($collection ? " AND collection = '$collection'" : '');
         $startq = $context ? (" AND spam_users.id <  " . intval($context['id']) . " ") : '';
         $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") . ") ");
-        $sql = "SELECT DISTINCT spam_users.* FROM spam_users INNER JOIN users ON spam_users.userid = users.id LEFT JOIN users_emails ON users_emails.userid = spam_users.userid WHERE 1=1 $startq $collectionq $searchq ORDER BY spam_users.id DESC LIMIT 10;";
+        $sql = "SELECT DISTINCT spam_users.* FROM spam_users INNER JOIN users ON spam_users.userid = users.id LEFT JOIN users_emails ON users_emails.userid = spam_users.userid WHERE 1=1 $startq $collectionq $searchq AND users.systemrole = 'User' ORDER BY spam_users.id DESC LIMIT 10;";
         $context = [];
 
         $spammers = $this->dbhr->preQuery($sql);

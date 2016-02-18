@@ -161,7 +161,10 @@ class LoggedPDO {
             $mysqltime = date("Y-m-d H:i:s", time());
             $duration = microtime(true) - $start;
             $logret = $select ? count($ret) : ("$ret:" . $this->lastInsert);
-            $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote($sql . ", " . var_export($params, TRUE)) . "," . $this->quote($logret) . ");";
+
+            if (isset($_SESSION)) {
+                $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote($sql . ", " . var_export($params, TRUE)) . "," . $this->quote($logret) . ");";
+            }
             $this->background($logsql);
         }
 
