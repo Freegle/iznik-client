@@ -155,7 +155,10 @@ Iznik.Views.ModTools.Spammer = Iznik.Views.ModTools.Member.Spam.extend({
 
         $.ajax({
             url: API + 'spammers/' + self.model.get('id'),
-            type: 'DELETE',
+            type: 'POST',
+            headers: {
+                'X-HTTP-Method-Override': 'DELETE'
+            },
             success: function(ret) {
                 // Now over to someone else to review this report - so remove from our list.
                 self.remove();
@@ -171,7 +174,10 @@ Iznik.Views.ModTools.Spammer = Iznik.Views.ModTools.Member.Spam.extend({
             data: {
                 'collection': 'Spammer'
             },
-            type: 'PATCH',
+            type: 'POST',
+            headers: {
+                'X-HTTP-Method-Override': 'PATCH'
+            },
             success: function(ret) {
                 // Now over to someone else to review this report - so remove from our list.
                 self.remove();

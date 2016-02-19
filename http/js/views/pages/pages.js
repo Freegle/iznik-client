@@ -100,7 +100,10 @@ Iznik.Views.LeftMenu = IznikView.extend({
     logout: function() {
         $.ajax({
             url: API + 'session',
-            type: 'DELETE',
+            type: 'POST',
+            headers: {
+                'X-HTTP-Method-Override': 'DELETE'
+            },
             complete: function() {
                 // Force reload of window to clear any data.
                 window.location = window.location.protocol + '//' + window.location.host + '/modtools';

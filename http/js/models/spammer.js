@@ -15,7 +15,10 @@ Iznik.Models.ModTools.Spammer = IznikModel.extend({
         var self = this;
 
         $.ajax({
-            type: 'PATCH',
+            type: 'POST',
+            headers: {
+                'X-HTTP-Method-Override': 'PATCH'
+            },
             url: API + 'spammers/' + self.get('id'),
             data: {
                 id: self.get('id'),
@@ -31,7 +34,10 @@ Iznik.Models.ModTools.Spammer = IznikModel.extend({
         var self = this;
 
         $.ajax({
-            type: 'DELETE',
+            type: 'POST',
+            headers: {
+                'X-HTTP-Method-Override': 'DELETE'
+            },
             url: API + 'spammers/' + self.get('id'),
             data: {
                 id: self.get('id'),

@@ -187,7 +187,10 @@ Iznik.Models.Message = IznikModel.extend({
                                                     // We also drop the text part here too, because the server will (in its absence)
                                                     // convert the HTML variant to text - and do a better job than we may have done on the client.
                                                     $.ajax({
-                                                        type: 'PUT',
+                                                        type: 'POST',
+                                                        headers: {
+                                                            'X-HTTP-Method-Override': 'PUT',
+                                                        },
                                                         url: API + 'message',
                                                         data: {
                                                             id: self.get('id'),

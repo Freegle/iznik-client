@@ -80,7 +80,10 @@ Iznik.Views.ModTools.Member.Spam = Iznik.Views.ModTools.Member.extend({
 
         $.ajax({
             url: API + 'user/' + self.model.get('userid'),
-            type: 'PATCH',
+            type: 'POST',
+            headers: {
+                'X-HTTP-Method-Override': 'PATCH'
+            },
             data: {
                 'suspectcount': 0,
                 'suspectreason': null,

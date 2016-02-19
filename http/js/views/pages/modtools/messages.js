@@ -412,7 +412,10 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
 
         if (dt != 'UNCHANGED') {
             $.ajax({
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 url: API + 'user',
                 data: {
                     groupid: group.groupid,
@@ -426,7 +429,10 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
 
         if (ps != 'UNCHANGED') {
             $.ajax({
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 url: API + 'user',
                 data: {
                     groupid: group.groupid,

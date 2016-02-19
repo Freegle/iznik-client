@@ -588,7 +588,10 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 _.each(yahooMissing, function(demote) {
                     $.ajax({
                         url: API + 'memberships',
-                        type: 'PATCH',
+                        type: 'POST',
+                        headers: {
+                            'X-HTTP-Method-Override': 'PATCH'
+                        },
                         data: {
                             userid: Iznik.Session.get('me').id,
                             groupid: nameToId[demote],
@@ -687,12 +690,10 @@ Iznik.Views.Plugin.Work = IznikView.extend({
 
     succeed: function() {
         var self = this;
-        console.log("Work succeed", self);
         self.trigger('succeed');
         self.trigger('complete');
 
         function finished() {
-            console.log("Succeed finish");
             var self = this;
             self.$el.fadeOut(2000, function () {
                 self.remove();
@@ -708,7 +709,10 @@ Iznik.Views.Plugin.Work = IznikView.extend({
             //
             // Even if this fails, continue.
             $.ajax({
-                type: "DELETE",
+                type: "POST",
+                headers: {
+                    'X-HTTP-Method-Override': 'DELETE'
+                },
                 url: API + 'plugin',
                 data: {
                     id: self.model.get('workid')
@@ -851,7 +855,10 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.Work.extend({
                                 _.each(ret.missingonclient, function(missing, index, list) {
                                     if (self.deleteAllMissing || missing[self.dateField] > self.earliest) {
                                         self.promises.push($.ajaxq('plugin', {
-                                            type: "DELETE",
+                                            type: "POST",
+                                            headers: {
+                                                'X-HTTP-Method-Override': 'DELETE'
+                                            },
                                             url: API + 'message',
                                             context: self,
                                             data: {
@@ -889,7 +896,10 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.Work.extend({
                                                     data[self.idField] = missing[self.idField];
 
                                                     $.ajaxq('plugin', {
-                                                        type: "PUT",
+                                                        type: "POST",
+                                                        headers: {
+                                                            'X-HTTP-Method-Override': 'PUT'
+                                                        },
                                                         url: API + 'messages',
                                                         data: data,
                                                         context: self,
@@ -1097,7 +1107,10 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
                 } else {
                     // Pass to server
                     $.ajaxq('plugin', {
-                        type: 'PATCH',
+                        type: 'POST',
+                        headers: {
+                            'X-HTTP-Method-Override': 'PATCH'
+                        },
                         url: API + 'memberships',
                         context: self,
                         data: {
@@ -1286,7 +1299,10 @@ Iznik.Views.Plugin.Yahoo.RemoveBouncing = Iznik.Views.Plugin.Yahoo.SyncMembers.e
 
                 // Whatever happens, we move on; if it fails we'll get it next time.
                 new majax({
-                    type: "DELETE",
+                    type: "POST",
+                    headers: {
+                        'X-HTTP-Method-Override': 'DELETE'
+                    },
                     url: YAHOOAPIv2 + "groups/" + this.model.get('nameshort') + "/members?gapi_crumb=" + self.crumb + "&members=" + encodeURIComponent(JSON.stringify(data)),
                     data: data,
                     success: function() {
@@ -1803,8 +1819,6 @@ Iznik.Views.Plugin.Yahoo.BanApprovedMember = Iznik.Views.Plugin.Work.extend({
                 subscriptionStatus: 'BANNED'
             }
         ];
-
-        console.log("Ban", members);
 
         new majax({
             type: "PUT",
