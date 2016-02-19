@@ -1,3 +1,4 @@
+// TODO should this use CollectionView?  I'd reinvented that wheel before discovering it.
 Iznik.Views.Plugin.Main = IznikView.extend({
     connected: false,
     everConnected: false,

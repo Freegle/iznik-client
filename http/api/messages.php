@@ -53,7 +53,8 @@ function messages() {
                     list($groups, $msgs) = $c->get($ctx, $limit, $groups);
                     break;
                 case 'search':
-                    # A search.
+                case 'searchmess':
+                    # A search on message info.
                     $search = presdef('search', $_REQUEST, NULL);
                     $search = $search ? trim($search) : NULL;
                     $ctx = presdef('context', $_REQUEST, NULL);
@@ -73,6 +74,32 @@ function messages() {
                         list($groups, $msgs) = $c->fillIn($msgs, $limit);
                     }
 
+                    break;
+                case 'searchmemb':
+                    # A search for messages based on member.  It is most likely that this is a search where relatively
+                    # few members match, so it is quickest for us to get all the matching members, then use a context
+                    # to return paged results within those.  We put a fallback limit on the number of members to stop
+                    # ourselves exploding, though.
+                    $search = presdef('search', $_REQUEST, NULL);
+                    $search = $search ? trim($search) : NULL;
+                    $ctx = presdef('context', $_REQUEST, NULL);
+                    $limit = presdef('limit', $_REQUEST, Search::Limit);
+
+                    $groupids = $groupid ? [ $groupid ] : NULL;
+
+                    $g = new Group($dbhr, $dbhm);
+                    $membctx = NULL;
+                    $members = $g->getMembers(1000, $search, $membctx, NULL, $collection, $groupids, NULL, NULL);
+                    $userids = [];
+                    foreach ($members as $member) {
+                        $userids[] = $member['id'];
+                    }
+
+                    $members = NULL;
+
+                    # Now get the messages for those members.
+                    $c = new MessageCollection($dbhr, $dbhm, $collection);
+                    list ($groups, $msgs) = $c->get($ctx, $limit, $groupids, $userids);
                     break;
             }
 

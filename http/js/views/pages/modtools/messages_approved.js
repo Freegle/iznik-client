@@ -4,22 +4,55 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Infinite.extend({
     template: "modtools_messages_approved_main",
 
     events: {
-        'click .js-search': 'search',
-        'keyup .js-searchterm': 'keyup'
+        'click .js-searchmess': 'searchmess',
+        'keyup .js-searchtermmess': 'keyupmess',
+        'click .js-searchmemb': 'searchmemb',
+        'keyup .js-searchtermmemb': 'keyupmemb'
     },
 
-    keyup: function(e) {
+    keyupmess: function(e) {
+        // Ensure we don't try to search on both criteria
+        if (this.$('.js-searchtermmess').val().length > 0) {
+            this.$('.js-searchtermmemb, .js-searchmemb').attr('disabled', 1);
+        } else {
+            this.$('.js-searchtermmemb, .js-searchmemb').removeAttr('disabled');
+        }
+
         // Search on enter.
         if (e.which == 13) {
-            this.$('.js-search').click();
+            this.$('.js-searchmess').click();
         }
     },
 
-    search: function() {
-        var term = this.$('.js-searchterm').val();
+    searchmess: function() {
+        var term = this.$('.js-searchtermmess').val();
 
         if (term != '') {
-            Router.navigate('/modtools/messages/approved/' + encodeURIComponent(term), true);
+            Router.navigate('/modtools/messages/approved/messagesearch/' + encodeURIComponent(term), true);
+        } else {
+            Router.navigate('/modtools/messages/approved', true);
+        }
+    },
+
+    keyupmemb: function(e) {
+        // Ensure we don't try to search on both criteria
+        if (this.$('.js-searchtermmemb').val().length > 0) {
+            this.$('.js-searchtermmess, .js-searchmess').attr('disabled', 1);
+        } else {
+            this.$('.js-searchtermmess, .js-searchmess').removeAttr('disabled');
+        }
+
+        // Search on enter.
+        if (e.which == 13) {
+            this.$('.js-searchmemb').click();
+        }
+    },
+
+    searchmemb: function() {
+        var term = this.$('.js-searchtermmemb').val();
+
+        if (term != '') {
+            Router.navigate('/modtools/messages/approved/membersearch/' + encodeURIComponent(term), true);
         } else {
             Router.navigate('/modtools/messages/approved', true);
         }
@@ -31,15 +64,26 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Infinite.extend({
         Iznik.Views.Page.prototype.render.call(this);
 
         // The type of collection we're using depends on whether we're searching.  It controls how we fetch.
-        if (self.options.search) {
+        if (self.options.searchmess) {
             self.collection = new Iznik.Collections.Messages.Search(null, {
-                search: self.options.search,
+                searchmess: self.options.searchmess,
                 groupid: self.selected,
                 group: Iznik.Session.get('groups').get(self.selected),
                 collection: 'Approved'
             });
 
-            self.$('.js-searchterm').val(self.options.search);
+            self.$('.js-searchtermmess').val(self.options.searchmess);
+            self.$('.js-searchtermmemb, .js-searchmemb').attr('disabled', 1);
+        } else if (self.options.searchmemb) {
+            self.collection = new Iznik.Collections.Messages.Search(null, {
+                searchmemb: self.options.searchmemb,
+                groupid: self.selected,
+                group: Iznik.Session.get('groups').get(self.selected),
+                collection: 'Approved'
+            });
+
+            self.$('.js-searchtermmemb').val(self.options.searchmemb);
+            self.$('.js-searchtermmess, .js-searchmess').attr('disabled', 1);
         } else {
             self.collection = new Iznik.Collections.Message(null, {
                 groupid: self.selected,

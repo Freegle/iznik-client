@@ -79,8 +79,9 @@ class messagesTest extends IznikAPITestCase {
         $msgs = $ret['messages'];
         assertEquals(0, count($msgs));
 
+        # Test search by word
         $ret = $this->call('messages', 'GET', [
-            'subaction' => 'search',
+            'subaction' => 'searchmess',
             'groupid' => $group1,
             'search' => 'basic'
         ]);
@@ -93,7 +94,7 @@ class messagesTest extends IznikAPITestCase {
         # Test search by id
         error_log("Test by id");
         $ret = $this->call('messages', 'GET', [
-            'subaction' => 'search',
+            'subaction' => 'searchmess',
             'groupid' => $group1,
             'search' => $a->getID()
         ]);
@@ -101,6 +102,18 @@ class messagesTest extends IznikAPITestCase {
         $msgs = $ret['messages'];
         assertEquals(1, count($msgs));
         assertEquals($a->getID(), $msgs[0]['id']);
+
+        # Test search by member
+        $ret = $this->call('messages', 'GET', [
+            'subaction' => 'searchmemb',
+            'groupid' => $group1,
+            'search' => 'test@test.com'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($a->getID(), $msgs[0]['id']);
+        assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
         # Check the log.
         $u->setRole(User::ROLE_MODERATOR, $group1);

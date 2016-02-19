@@ -64,7 +64,7 @@ class Search
 
     private function getWordIdExact($word) {
         $id = NULL;
-        $sql = "SELECT id from {$this->wordtab} WHERE `word` = ?;";
+        $sql = "SELECT id FROM {$this->wordtab} WHERE `word` = ?;";
         $words = $this->dbhr->preQuery($sql, [
             $word
         ]);

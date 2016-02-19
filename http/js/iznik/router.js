@@ -24,7 +24,9 @@ var IznikRouter = Backbone.Router.extend({
         "modtools": "modtools",
         "modtools/supporters": "supporters",
         "modtools/messages/pending": "pendingMessages",
-        "modtools/messages/approved(/:search)": "approvedMessages",
+        "modtools/messages/approved/messagesearch/:search": "approvedMessagesSearchMessages",
+        "modtools/messages/approved/membersearch/:search": "approvedMessagesSearchMembers",
+        "modtools/messages/approved": "approvedMessages",
         "modtools/messages/spam": "spamMessages",
         "modtools/members/pending(/:search)": "pendingMembers",
         "modtools/members/approved(/:search)": "approvedMembers",
@@ -137,10 +139,20 @@ var IznikRouter = Backbone.Router.extend({
         Iznik.Session.forceLogin();
     },
 
-    approvedMessages: function(search) {
+    approvedMessagesSearchMessages: function(search) {
+        this.approvedMessages(search, null);
+    },
+
+    approvedMessagesSearchMembers: function(search) {
+        this.approvedMessages(null, search);
+    },
+
+    approvedMessages: function(searchmess, searchmemb) {
+        console.log("approvedMessages", searchmess, searchmemb)
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
             var page = new Iznik.Views.ModTools.Pages.ApprovedMessages({
-                search: search
+                searchmess: searchmess,
+                searchmemb: searchmemb
             });
             this.loadRoute({
                 page: page,

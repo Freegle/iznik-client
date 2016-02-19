@@ -73,7 +73,6 @@ Iznik.Views.Infinite = IznikView.extend({
         });
 
         self.collectionView.on('remove', function() {
-            console.log("Remove", self.collectionView);
             if (self.collectionView.collection.length == 0) {
                 self.$('.js-none').fadeIn('slow');
                 $('.js-scrolltop').addClass('hidden');

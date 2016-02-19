@@ -52,7 +52,7 @@ if (array_key_exists('HTTP_X_HTTP_METHOD_OVERRIDE', $_SERVER)) {
     #
     # We use this because when we issue a PATCH we don't seem to be able to get the body parameters.
     $_REQUEST['type'] = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
-    error_log("Request method override to {$_REQUEST['type']}");
+    #error_log("Request method override to {$_REQUEST['type']}");
 }
 
 if (array_key_exists('model', $_REQUEST)) {
