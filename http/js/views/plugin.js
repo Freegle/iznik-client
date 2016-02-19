@@ -1409,11 +1409,12 @@ Iznik.Views.Plugin.Yahoo.ToSpecialNotices = Iznik.Views.Plugin.Work.extend({
         var self = this;
         this.startBusy();
 
-        if (self.options.bulkop.criterion == 'WebOnly') {
-            this.getChunk();
-        } else {
+        if (self.options.bulkop.criterion != 'WebOnly') {
             console.error("To Special Notices bulk op only supports WebOnly filter");
+            self.options.bulkop.criterion = 'WebOnly';
         }
+
+        this.getChunk();
     }
 });
 

@@ -11,7 +11,7 @@ require_once IZNIK_BASE . '/include/group/Group.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class zMembershipsAPITest extends IznikAPITestCase {
+class membershipsAPITest extends IznikAPITestCase {
     public $dbhr, $dbhm;
 
     protected function setUp() {
