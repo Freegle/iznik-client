@@ -279,54 +279,63 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
 
         // Apply standard message settings.  Need to refetch as the textbody is not returned in the session.
-        this.options.stdmsg.fetch().then(function() {
-            var stdmsg = self.options.stdmsg.attributes;
-            var config = self.options.config ? self.options.config.attributes : null;
+        console.log("Modal", this.options.stdmsg);
+        if (this.options.stdmsg && this.options.stdmsg.get('id')) {
+            this.options.stdmsg.fetch().then(function() {
+                var stdmsg = self.options.stdmsg.attributes;
+                var config = self.options.config ? self.options.config.attributes : null;
 
-            var subj = self.model.get('subject');
+                var subj = self.model.get('subject');
 
-            if (subj) {
-                // We have a pre-existing subject to include
-                subj = (stdmsg.subjpref ? stdmsg.subjpref : 'Re') + ': ' + subj +
-                    (stdmsg.subjsuff ? stdmsg.subjsuff : '')
-                subj = self.substitutionStrings(subj, self.model.attributes, config, self.model.get('groups')[0]);
-                focuson = 'js-text';
-            } else {
-                // Just expand substitutions in the stdmsg.
-                subj = (stdmsg.subjpref ? stdmsg.subjpref : '') + (stdmsg.subjsuff ? stdmsg.subjsuff : '');
-                self.substitutionStrings(subj, self.model.attributes, config, self.model.get('groups')[0]);
-                focuson = 'js-subject';
-            }
+                if (subj) {
+                    // We have a pre-existing subject to include
+                    subj = (stdmsg.subjpref ? stdmsg.subjpref : 'Re') + ': ' + subj +
+                        (stdmsg.subjsuff ? stdmsg.subjsuff : '')
+                    subj = self.substitutionStrings(subj, self.model.attributes, config, self.model.get('groups')[0]);
+                    focuson = 'js-text';
+                } else {
+                    // Just expand substitutions in the stdmsg.
+                    subj = (stdmsg.subjpref ? stdmsg.subjpref : '') + (stdmsg.subjsuff ? stdmsg.subjsuff : '');
+                    self.substitutionStrings(subj, self.model.attributes, config, self.model.get('groups')[0]);
+                    focuson = 'js-subject';
+                }
 
-            self.$('.js-subject').val(subj);
+                self.$('.js-subject').val(subj);
 
-            self.$('.js-myname').html(Iznik.Session.get('me').displayname);
+                self.$('.js-myname').html(Iznik.Session.get('me').displayname);
 
-            // Quote original message.
-            var msg = self.model.get('textbody');
+                // Quote original message.
+                var msg = self.model.get('textbody');
 
-            if (msg) {
-                // We have an existing body to include.
-                msg = '> ' + msg.replace(/((\r\n)|\r|\n)/gm, '\n> ');
+                if (msg) {
+                    // We have an existing body to include.
+                    msg = '> ' + msg.replace(/((\r\n)|\r|\n)/gm, '\n> ');
 
-                // Add text
-                msg = (stdmsg.body ? (stdmsg.body + '\n\n') : '') + msg;
+                    // Add text
+                    msg = (stdmsg.body ? (stdmsg.body + '\n\n') : '') + msg;
 
-                // Expand substitution strings in body
-                msg = self.substitutionStrings(msg, self.model.attributes, config, self.model.get('groups')[0]);
-            } else {
-                // Just expand substitutions in the stdmsg.
-                msg = self.substitutionStrings(stdmsg.body, self.model.attributes, config, self.model.get('groups')[0]);
-            }
+                    // Expand substitution strings in body
+                    msg = self.substitutionStrings(msg, self.model.attributes, config, self.model.get('groups')[0]);
+                } else {
+                    // Just expand substitutions in the stdmsg.
+                    msg = self.substitutionStrings(stdmsg.body, self.model.attributes, config, self.model.get('groups')[0]);
+                }
 
-            // Put it in
-            self.$('.js-text').val(msg);
+                // Put it in
+                self.$('.js-text').val(msg);
 
+                self.open(null);
+                $('.modal').on('shown.bs.modal', function () {
+                    $('.modal ' + focuson).focus();
+                });
+            });
+        } else {
+            // No standard message; just open
             self.open(null);
             $('.modal').on('shown.bs.modal', function () {
                 $('.modal ' + focuson).focus();
             });
-        });
+        }
     },
 
     substitutionStrings: function(text, model, config, group) {

@@ -297,7 +297,7 @@ Iznik.Views.ModTools.User.Logs = Iznik.Views.Modal.extend({
             success: function(model, response, options) {
                 self.logcontext = response.logcontext;
 
-                if (response.member.logs.length > 0) {
+                if (response.user.logs.length > 0) {
                     self.$('.js-more').show();
                 }
             }
@@ -310,7 +310,6 @@ Iznik.Views.ModTools.User.Logs = Iznik.Views.Modal.extend({
                 });
 
                 self.$('.js-list').append(v.render().el);
-
             });
 
             if (!self.moreShown) {

@@ -245,7 +245,8 @@ class Group extends Entity
             # Defaults match ones in User.php
             $thisone['settings'] = $member['settings'] ? json_decode($member['settings'], TRUE) : [
                 'showmessages' => 1,
-                'showmembers' => 1
+                'showmembers' => 1,
+                'pushnotify' => 1
             ];
             $thisone['settings']['configid'] = $member['configid'];
             $thisone['email'] = $email;

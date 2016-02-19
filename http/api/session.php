@@ -15,6 +15,11 @@ function session() {
                 # Don't need to return this, and it might be large.
                 $ret['me']['messagehistory'] = NULL;
 
+                $n = new Notifications($dbhr, $dbhm);
+                $ret['me']['notifications'] = [
+                    'push' => $n->get($ret['me']['id'])
+                ];
+
                 $ret['groups'] = $me->getMemberships();
                 $ret['configs'] = $me->getConfigs();
                 $ret['emails'] = $me->getEmails();
@@ -116,6 +121,21 @@ function session() {
                 $settings = presdef('settings', $_REQUEST, NULL);
                 if ($settings) {
                     $me->setPrivate('settings', json_encode($settings));
+                }
+
+                $notifs = presdef('notifications', $_REQUEST, NULL);
+                if ($notifs) {
+                    error_log("Got notifs");
+                    $n = new Notifications($dbhr, $dbhm);
+                    $push = presdef('push', $notifs, NULL);
+                    if ($push) {
+                        error_log("Got push " . var_export($push, TRUE));
+                        switch ($push['type']) {
+                            case Notifications::PUSH_GOOGLE:
+                                $n->add($me->getId(), $push['type'], $push['subscription']);
+                                break;
+                        }
+                    }
                 }
 
                 $email = presdef('email', $_REQUEST, NULL);

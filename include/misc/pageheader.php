@@ -13,6 +13,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="<?php echo SITE_NAME; ?>">
     <meta name="format-detection" content="telephone=no">
+    <link rel="manifest" href="/manifest.json">
 
     <?php
     # TODO _escaped_fragment_ previews for Facebook etc.

@@ -6,6 +6,7 @@ require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
+require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/lib/spamc.php');
 
 # This class routes an incoming message
@@ -130,7 +131,18 @@ class MailRouter
 
     # Public for UT
     public function markPending() {
-        return($this->dbhm->preExec("UPDATE messages_groups SET collection = 'Pending' WHERE msgid = ?;", [ $this->msg->getID() ]));
+        # Set the message as pending.
+        $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Pending' WHERE msgid = ?;", [ $this->msg->getID() ]);
+
+        # Notify mods of new work
+        $groups = $this->msg->getGroups();
+        $n = new Notifications($this->dbhr, $this->dbhm);
+
+        foreach ($groups as $groupid) {
+            $n->notifyGroupMods($groupid);
+        }
+
+        return($rc);
     }
 
     public function route($msg = NULL, $notspam = FALSE) {
@@ -276,6 +288,10 @@ class MailRouter
                             $u->setMembershipAtt($gid, 'yahooapprove', $approve);
                             $u->setMembershipAtt($gid, 'yahooreject', $reject);
                             $u->setMembershipAtt($gid, 'joincomment', $comment);
+
+                            # Notify mods of new work
+                            $n = new Notifications($this->dbhr, $this->dbhm);
+                            $n->notifyGroupMods($gid);
 
                             # We handled it.
                             $ret = MailRouter::TO_SYSTEM;

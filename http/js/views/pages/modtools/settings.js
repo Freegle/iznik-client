@@ -47,6 +47,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                 var mod = new IznikModel(membership.get('settings'));
                 mod.set('showmessages', 0);
                 mod.set('showmembers', 0);
+                mod.set('pushnotify', 0);
                 var newdata = mod.toJSON();
                 membership.save({
                     'settings': newdata
@@ -178,6 +179,13 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                             label: 'ModConfig to use for this Group',
                             control: 'select',
                             options: configoptions
+                        },
+                        {
+                            name: 'pushnotify',
+                            label: 'Push notifications?',
+                            control: 'radio',
+                            extraClasses: [ 'row' ],
+                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
                         },
                         {
                             name: 'showmessages',

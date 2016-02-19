@@ -31,6 +31,7 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
     }
 
     public function waitBackground() {
+        sleep(1);
         $pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
         $count = 0;
         do {

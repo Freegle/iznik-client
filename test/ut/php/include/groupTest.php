@@ -167,6 +167,7 @@ class groupTest extends IznikTestCase {
         assertEquals('test1@test.com', $membs[0]['otheremails'][1]['email']);
 
         # Test merging by Yahoo User ID.
+        error_log("Test merge by Yahoo User ID");
         $rc = $g->setMembers([
             [
                 'yahooModeratorStatus' => 'OWNER',

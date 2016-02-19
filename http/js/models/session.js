@@ -3,6 +3,8 @@ var firstbeep = true;
 Iznik.Models.Session = IznikModel.extend({
     url: API + 'session',
 
+    notificationsSetup: false,
+
     initialize: function() {
     },
 
@@ -19,6 +21,48 @@ Iznik.Models.Session = IznikModel.extend({
                 if ((ret.ret == 0)) {
                     //console.log("Logged in");
                     self.set(ret);
+
+                    if (!self.notificationsSetup) {
+                        // Set up service worker for push notifications
+                        self.notificationsSetup = true;
+
+                        if ('serviceWorker' in navigator) {
+                            // Add a rand to the service worker to stop it being cached and therefore not picking
+                            // up fixes.
+                            navigator.serviceWorker.register('/js/iznik/sw.js?' + Math.random()).then(function(reg) {
+                                console.log(':^)', reg);
+                                reg.pushManager.subscribe({
+                                    userVisibleOnly: true
+                                }).then(function(sub) {
+                                    console.log('endpoint:', sub.endpoint);
+                                    var p = sub.endpoint.lastIndexOf('/');
+                                    var subscription = sub.endpoint.substring(p + 1);
+                                    var me = Iznik.Session.get('me');
+                                    if (me) {
+                                        if (me.notifications && me.notifications.push && me.notifications.push.subscription == subscription) {
+                                            console.log("Already got our permissions");
+                                        } else {
+                                            // We don't currently have this
+                                            console.log("Not got permissions; save", sub.endpoint, me.notifications.push.subscription);
+                                            Iznik.Session.save({
+                                                id: me.id,
+                                                notifications: {
+                                                    push: {
+                                                        type: 'Google',
+                                                        subscription: subscription
+                                                    }
+                                                }
+                                            }, {
+                                                patch: true
+                                            });
+                                        }
+                                    }
+                                });
+                            }).catch(function(err) {
+                                console.log(':^(', err);
+                            });
+                        }
+                    }
 
                     // We get an array of groups back - we want it to be a collection.
                     self.set('groups', new IznikCollection(ret.groups));

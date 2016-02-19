@@ -11,6 +11,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/dashboard/Dashboard.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
+require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/misc/Supporters.php');
 require_once(IZNIK_BASE . '/include/mail/MailRouter.php');
 require_once(IZNIK_BASE . '/include/misc/plugin.php');

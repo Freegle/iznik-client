@@ -640,7 +640,8 @@ class User extends Entity
         # Defaults match memberships ones in Group.php.
         $settings = [
             'showmessages' => 1,
-            'showmembers' => 1
+            'showmembers' => 1,
+            'pushnotify' => 1
         ];
 
         foreach ($sets as $set) {
@@ -717,10 +718,12 @@ class User extends Entity
         # Add in a count of recent "modmail" type logs which a mod might care about.
         #
         # Exclude the logs which are due to standard message syncing.
-        $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejeted', 'Deleted'))) AND text NOT IN ('Not present on Yahoo');";
+        $modships = $me ? $me->getModeratorships() : [];
+        $modships = count($modships) == 0 ? [0] : $modships;
+        $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND text NOT IN ('Not present on Yahoo') AND groupid IN (" . implode(',', $modships) . ");";
         $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
-        $alarms = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
-        $atts['modmails'] = $alarms[0]['count'];
+        $modmails = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
+        $atts['modmails'] = $modmails[0]['count'];
 
         if ($logs) {
             # Add in the log entries we have for this user.  We exclude some logs of little interest to mods.
