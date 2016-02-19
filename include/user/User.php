@@ -1144,6 +1144,7 @@ class User extends Entity
                     $this->dbhm->preExec("UPDATE users_comments SET userid = $id1 WHERE userid = $id2;");
                     $this->dbhm->preExec("UPDATE users_comments SET byuserid = $id1 WHERE byuserid = $id2;");
                     $this->dbhm->preExec("UPDATE sessions SET userid = $id1 WHERE userid = $id2;");
+                    $this->dbhm->preExec("UPDATE users_push_notifications SET userid = $id1 WHERE userid = $id2;");
                 }
 
                 # Merge attributes we want to keep if we have them in id2 but not id1.  Some will have unique

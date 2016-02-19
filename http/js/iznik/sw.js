@@ -40,10 +40,13 @@ self.addEventListener('push', function(event) {
                     url = '/modtools/messages/pending';
                 }
 
+                workstr = workstr == '' ? "No tasks outstanding" : workstr;
+
                 return  self.registration.showNotification("Moderation Tasks", {
                     body: workstr,
                     icon: '/images/favicon/favicon-96x96.png',
                     tag: 'work',
+                    vibrate: [300, 100, 400],
                     data: {
                         'url': url
                     }

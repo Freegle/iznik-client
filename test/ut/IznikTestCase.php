@@ -31,18 +31,20 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
     }
 
     public function waitBackground() {
-        sleep(1);
         $pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
         $count = 0;
         do {
             $stats = $pheanstalk->stats();
             $ready = $stats['current-jobs-ready'];
 
+            error_log("...waiting for background work, current $ready, try $count");
+
             if ($ready == 0) {
+                # The background processor might have removed the job, but not quite yet processed the SQL.
+                sleep(2);
                 break;
             }
 
-            error_log("...waiting for background work, current $ready, try $count");
             sleep(1);
             $count++;
 

@@ -93,6 +93,8 @@ Iznik.Views.Infinite = IznikView.extend({
                 //console.log("Fetched length", collection.length);
                 if (collection.length == 0) {
                     self.$('.js-none').fadeIn('slow');
+                } else {
+                    self.$('.js-none').hide();;
                 }
             }
         });
