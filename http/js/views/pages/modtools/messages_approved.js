@@ -141,29 +141,9 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
     collectionType: 'Approved',
 
     events: {
-        'click .js-delete' : 'deleteMe',
         'click .js-viewsource': 'viewSource',
         'click .js-excludelocation': 'excludeLocation',
         'click .js-rarelyused': 'rarelyUsed'
-    },
-
-    deleteMe: function() {
-        var self = this;
-
-        // We delete the message on all groups.  Future enhancement?
-        _.each(self.model.get('groups'), function(group) {
-            $.ajax({
-                type: 'POST',
-                url: API + 'message',
-                data: {
-                    id: self.model.get('id'),
-                    groupid: group.id,
-                    action: 'Delete'
-                }, success: function() {
-                    self.$el.fadeOut('slow');
-                }
-            })
-        });
     },
 
     render: function() {
@@ -290,7 +270,7 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
         this.$('.timeago').timeago();
 
         this.listenToOnce(self.model, 'deleted', function() {
-            self.model.destroy();
+            self.$el.fadeOut('slow')
         });
 
         return(this);

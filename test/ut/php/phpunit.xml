@@ -1,4 +1,4 @@
-<phpunit>
+<phpunit stopOnFailure="true">
     <testsuites>
         <testsuite name="Unit Tests">
             <directory>test/ut/php/</directory>

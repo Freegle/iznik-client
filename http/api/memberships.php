@@ -49,11 +49,17 @@ function memberships() {
 
                 if ($me) {
                     $groupids = [];
+                    $proceed = FALSE;
 
-                    if ($groupid && ($me->isModOrOwner($groupid) || ($userid && $userid == $me->getId()))) {
+                    if ($me->isAdminOrSupport()) {
+                        # Admin or support can search all groups.
+                        $groupids = $groupid ? [ $groupid ] : NULL;
+                        $proceed = TRUE;
+                    } else if ($groupid && ($me->isModOrOwner($groupid) || ($userid && $userid == $me->getId()))) {
                         # Get just one.  We can get this if we're a mod or it's our own.
                         $groupids[] = $groupid;
                         $limit = $userid ? 1 : $limit;
+                        $proceed = TRUE;
                     } else {
                         # No group was specified - use the current memberships, if we have any, excluding those that our
                         # preferences say shouldn't be in.
@@ -61,6 +67,7 @@ function memberships() {
                         # We always show spammers, because we want mods to act on them asap.
                         $mygroups = $me->getMemberships(TRUE);
                         foreach ($mygroups as $group) {
+                            $proceed = TRUE;
                             $settings = $me->getGroupSettings($group['id']);
                             if (!array_key_exists('showmembers', $settings) ||
                                 $settings['showmembers'] ||
@@ -70,7 +77,7 @@ function memberships() {
                         }
                     }
 
-                    if (count($groupids) > 0) {
+                    if ($proceed) {
                         $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt);
 
                         if ($userid) {

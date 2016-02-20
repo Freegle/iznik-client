@@ -385,6 +385,17 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                                 break;
                             }
 
+                            case 'DeleteApprovedMessage': {
+                                var v = new Iznik.Views.Plugin.Yahoo.DeleteApprovedMessage({
+                                    model: new IznikModel(work)
+                                });
+
+                                // Crumb location is specific to this message.
+                                v.crumbLocation = "/conversations/messages/" + work.id;
+                                v.render();
+                                break;
+                            }
+
                             case 'DeliveryType': {
                                 (new Iznik.Views.Plugin.Yahoo.DeliveryType({
                                     model: new IznikModel(work)
@@ -1581,6 +1592,41 @@ Iznik.Views.Plugin.Yahoo.RejectPendingMessage = Iznik.Views.Plugin.Work.extend({
     }
 });
 
+Iznik.Views.Plugin.Yahoo.DeleteApprovedMessage = Iznik.Views.Plugin.Work.extend({
+    template: 'plugin_message_approved_delete',
+    crumbLocation: "/conversations/messages",
+
+    server: true,
+
+    start: function() {
+        var self = this;
+        this.startBusy();
+
+        new majax({
+            type: "DELETE",
+            url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/messages/" + this.model.get('id') + "?gapi_crumb=" + self.crumb,
+            success: function (ret) {
+                if (ret.hasOwnProperty('ygData') && ret.ygData == 1) {
+                    self.succeed();
+                } else {
+                    self.fail();
+                }
+            }, error: function(request, status, error) {
+                if (error.length == 0 && status == 'error') {
+                    // Can fail with no decent error code, which just leaves the work sitting there.
+                    // So if we had an operation which got a useless error, assume we have done the
+                    // best we can.
+                    console.log("Useless Yahoo error");
+                    self.succeed();
+                } else {
+                    console.log("Delete error", status, error);
+                    self.fail();
+                }
+            }
+        });
+    }
+});
+
 Iznik.Views.Plugin.Yahoo.ChangeAttribute = Iznik.Views.Plugin.Work.extend({
     crumbLocation: "/members/all",
 
@@ -1838,6 +1884,7 @@ Iznik.Views.Plugin.Yahoo.BanApprovedMember = Iznik.Views.Plugin.Work.extend({
                 }
             },
             error: function (request, status, error) {
+                // TODO It could be that the plugin isn't returning the info correctly in the error case.
                 if (error.length == 0 && status == 'error') {
                     // Banning can fail with no decent error code, which just leaves the work sitting there.
                     // So if we had an operation which got a useless error, assume we have done the

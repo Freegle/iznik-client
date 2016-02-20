@@ -1356,6 +1356,15 @@ class Message
                         'id' => $group['yahoopendingid']
                     ]);
                 }
+
+                if ($group['yahooapprovedid']) {
+                    # We can trigger deleted via the plugin - do so.
+                    $p = new Plugin($this->dbhr, $this->dbhm);
+                    $p->add($groupid, [
+                        'type' => 'DeleteApprovedMessage',
+                        'id' => $group['yahooapprovedid']
+                    ]);
+                }
             }
 
             # If we have deleted this message from all groups, mark it as deleted in the messages table.

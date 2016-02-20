@@ -133,7 +133,7 @@ class User extends Entity
 
     public function getEmails() {
         # Don't return canon - don't need it on the client.
-        $emails = $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC;",
+        $emails = $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, email;",
             [$this->id]);
         return($emails);
     }

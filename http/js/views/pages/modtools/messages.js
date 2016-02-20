@@ -750,8 +750,13 @@ Iznik.Views.ModTools.StdMessage.Button = IznikView.extend({
 
             v.render();
         } else {
-            // No popup to show.
-            message ? message.delete() : member.delete();
+            var v = new Iznik.Views.Confirm({});
+
+            self.listenToOnce(v, 'confirmed', function() {
+                message ? message.delete() : member.delete();
+            });
+
+            v.render();
         }
     }
 });

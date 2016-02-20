@@ -185,7 +185,7 @@ class Group extends Entity
 
     public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection = MembershipCollection::APPROVED, $groupids = NULL, $yps = NULL, $ydt = NULL) {
         $ret = [];
-        $groupids = $groupids ? $groupids : [ $this-> id ];
+        $groupids = $groupids ? $groupids : ($this->id ? [ $this-> id ] : NULL);
 
         $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Added']));
         $addq = $ctx == NULL ? '' : (" AND (memberships.added < $date OR memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ") ");
