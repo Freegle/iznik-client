@@ -332,9 +332,6 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         } else {
             // No standard message; just open
             self.open(null);
-            $('.modal').on('shown.bs.modal', function () {
-                $('.modal ' + focuson).focus();
-            });
         }
     },
 
