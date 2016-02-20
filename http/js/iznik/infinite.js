@@ -34,6 +34,8 @@ Iznik.Views.Infinite = IznikView.extend({
         v.render();
 
         self.collectionView.on('add', function(modelView) {
+            self.$('.js-none').hide();
+
             var pos = modelView.collection.indexOf(modelView.model);
             //console.log("Added", pos, modelView.collection.length);
 
@@ -94,7 +96,7 @@ Iznik.Views.Infinite = IznikView.extend({
                 if (collection.length == 0) {
                     self.$('.js-none').fadeIn('slow');
                 } else {
-                    self.$('.js-none').hide();;
+                    self.$('.js-none').hide();
                 }
             }
         });
