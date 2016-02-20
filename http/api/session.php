@@ -114,9 +114,19 @@ function session() {
             if (!$me) {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
             } else {
-                $me->setPrivate('fullname', presdef('displayname', $_REQUEST, NULL));
-                $me->setPrivate('firstname', presdef('firstname', $_REQUEST, NULL));
-                $me->setPrivate('lastname', presdef('lastname', $_REQUEST, NULL));
+                $fullname = presdef('displayname', $_REQUEST, NULL);
+                $firstname = presdef('firstname', $_REQUEST, NULL);
+                $lastname = presdef('lastname', $_REQUEST, NULL);
+
+                if ($fullname) {
+                    $me->setPrivate('fullname', $fullname);
+                }
+                if ($firstname) {
+                    $me->setPrivate('firstname', $firstname);
+                }
+                if ($lastname) {
+                    $me->setPrivate('lastname', $lastname);
+                }
 
                 $settings = presdef('settings', $_REQUEST, NULL);
                 if ($settings) {
@@ -125,7 +135,6 @@ function session() {
 
                 $notifs = presdef('notifications', $_REQUEST, NULL);
                 if ($notifs) {
-                    error_log("Got notifs");
                     $n = new Notifications($dbhr, $dbhm);
                     $push = presdef('push', $notifs, NULL);
                     if ($push) {
