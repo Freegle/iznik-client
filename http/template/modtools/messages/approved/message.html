@@ -2,16 +2,8 @@
     <div class="panel-heading nopadtop nopadbot">
         <div class="row">
             <div class="panel-title msgsubj js-details">
-                <div class="col-sm-10">
+                <div class="col-sm-9">
                     <h4 class="js-coloursubj js-subject"></h4>
-                    <div class="pull-right dropdown">
-                        <button class="btn btn-white dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                            <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                            <li><a class="js-viewsource" href="#">View Source</a></li>
-                        </ul>
-                    </div>
                     <div class="small js-grouplist">
                     </div>
                     <div class="text-muted small">
@@ -29,7 +21,15 @@
                     <div class="small js-crosspostlist" />
                     <div class="small js-relatedlist" />
                 </div>
-                <div class="col-sm-2">
+                <div class="col-sm-3">
+                    <div class="pull-right dropdown">
+                        <button class="btn btn-white dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                            <li><a class="js-viewsource" href="#">View Source</a></li>
+                        </ul>
+                    </div>
                     <% if (obj.lat) { %>
                     <div class="mapimage margleft pull-right">
                         <a data-realurl="true" href="http://maps.google.com/?q={{lat}},{{lng}}" target="_blank">

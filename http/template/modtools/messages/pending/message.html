@@ -2,7 +2,7 @@
     <div class="panel-heading nopadtop nopadbot">
         <div class="row">
             <div class="panel-title msgsubj js-details">
-                <div class="col-sm-10">
+                <div class="col-sm-9">
                     <h4 class="js-coloursubj">{{subject}}</h4>
                     <div class="inline nopad nomarg pluginonly">
                         <div class="botspace input-group input-group-md">
@@ -11,15 +11,6 @@
                                 <div class="glyphicon glyphicon-floppy-save" />&nbsp;Save
                             </span>
                         </div>
-                    </div>
-                    <div class="pull-right dropdown">
-                        <button class="btn btn-white dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                            <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                            <li><a class="js-viewsource" href="#">View Source</a></li>
-                            <li><a class="js-excludelocation" href="#">Exclude this location suggestion for this group</a></li>
-                        </ul>
                     </div>
                     <div class="pull-right margright pluginonly">
                         <button class="btn btn-white js-editnotstd">
@@ -44,7 +35,16 @@
                     <div class="small js-crosspostlist" />
                     <div class="small js-relatedlist" />
                 </div>
-                <div class="col-sm-2">
+                <div class="col-sm-3">
+                    <div class="pull-right dropdown">
+                        <button class="btn btn-white dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                            <li><a class="js-viewsource" href="#">View Source</a></li>
+                            <li><a class="js-excludelocation" href="#">Exclude this location suggestion for this group</a></li>
+                        </ul>
+                    </div>
                     <% if (obj.lat) { %>
                     <div class="mapimage margleft pull-right">
                         <a data-realurl="true" href="http://maps.google.com/?q={{lat}},{{lng}}" target="_blank">
