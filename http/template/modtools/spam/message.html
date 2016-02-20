@@ -21,10 +21,10 @@
                         <% } else { %>
                         IP unavailable
                         <% } %>
+                        .<% if (obj.location && obj.location.name) { %>
+                        Mapped to {{location.name}}
+                        <% } %>
                     </div>
-                    <% if (obj.location && obj.location.name) { %>
-                    <div class="text-muted small">Mapped to {{location.name}}</div>
-                    <% } %>
                     <div class="small js-duplist" />
                     <div class="small js-crosspostlist" />
                     <div class="small js-relatedlist" />
@@ -55,7 +55,7 @@
                 </div>
                 <div class="noleftpad col-sm-5">
                     <div class="panel panel-default">
-                        <div class="panel-body small">
+                        <div class="panel-body small padmd">
                             <div class="ellipsis">
                                 <span data-toggle="tooltip" title="Email was sent from <% if (obj.envelopefrom) { %>{{envelopefrom}}<% } else { %>{{fromaddr}}<% } %>">
                                     <div class="glyphicon glyphicon-envelope" />&nbsp;<% if (obj.envelopefrom) { %>{{envelopefrom}}<% } else { %>{{fromaddr}}<% } %>

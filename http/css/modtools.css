@@ -534,10 +534,6 @@ body, #bodyContent {
     .panel {
         margin-bottom: 5px;
     }
-
-    .yahoouserinfo {
-        margin-bottom: 5px !important;
-    }
 }
 
 /* Extra Small Devices, Phones */
@@ -554,11 +550,6 @@ body, #bodyContent {
     .panel {
         margin-bottom: 10px;
     }
-
-    .yahoouserinfo {
-        margin-bottom: 10px !important;
-    }
-
 }
 
 /* Medium Devices, Desktops */
@@ -569,10 +560,6 @@ body, #bodyContent {
 
     .panel {
         margin-bottom: 20px;
-    }
-
-    .yahoouserinfo {
-        margin-bottom: 20px !important;
     }
 }
 

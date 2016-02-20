@@ -313,6 +313,11 @@ body {
     padding-bottom: 10px !important;
 }
 
+.padtopbotmd {
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+}
+
 .nopad {
     padding: 0px !important;
 }
@@ -339,7 +344,6 @@ body {
     padding-left: 0px !important;
     padding-right: 0px !important;
 }
-
 
 .marginsmall {
     margin: 2px !important;
@@ -876,22 +880,10 @@ a button {
 
 /* Medium Devices, Desktops */
 @media only screen and (min-width : 992px) {
-    .botspace {
-        margin-bottom: 10px !important;
-    }
-
-    .panel-body {
-        padding: 15px;
-    }
-
-    .panel {
-        margin-bottom: 20px;
-    }
 }
 
 /* Large Devices, Wide Screens */
 @media only screen and (min-width : 1200px) {
-
 }
 
 .scrolltop {
