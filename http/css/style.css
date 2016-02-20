@@ -720,15 +720,15 @@ a button {
 }
 
 .error {
-    color: red;
+    color: red !important;
 }
 
 .warning {
-    color: orangered;
+    color: orangered !important;
 }
 
 .success {
-    color: green;
+    color: green !important;
 }
 
 .signindisabled {
