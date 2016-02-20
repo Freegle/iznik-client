@@ -347,7 +347,9 @@ class Group extends Entity
                     # Make sure that the email is associated with this user.  Note that this may be required even
                     # if we succeeded in our findByEmail above, as that may have found a different email with the
                     # same canon value.
-                    $memb['emailid'] = $u->addEmail($memb['email']);
+                    #
+                    # Don't flag it as a primary email otherwise we might override the one we have.
+                    $memb['emailid'] = $u->addEmail($memb['email'], 0, FALSE);
 
                     $u = new User($this->dbhr, $this->dbhm, $uid);
 

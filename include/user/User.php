@@ -211,7 +211,7 @@ class User extends Entity
         return($email);
     }
 
-    public function addEmail($email, $primary = 1)
+    public function addEmail($email, $primary = 1, $changeprimary = TRUE)
     {
         if (stripos($email, '-owner@yahoogroups.co') !== FALSE) {
             # We don't allow people to add Yahoo owner addresses as the address of an individual user.
@@ -244,7 +244,7 @@ class User extends Entity
             } else {
                 $rc = $emails[0]['id'];
 
-                if ($primary != $emails[0]['preferred']) {
+                if ($changeprimary && $primary != $emails[0]['preferred']) {
                     # Change in status.
                     $this->dbhm->preExec("UPDATE users_emails SET preferred = ? WHERE id = ?;", [
                         $primary,
