@@ -297,7 +297,9 @@ Iznik.Views.ModTools.User.Logs = Iznik.Views.Modal.extend({
             success: function(model, response, options) {
                 self.logcontext = response.logcontext;
 
-                if (response.user.logs.length > 0) {
+                // TODO This can't be right.
+                if ((response.hasOwnProperty('user') && response.user.logs.length > 0) ||
+                    (response.hasOwnProperty('member') && response.member.logs.length > 0)) {
                     self.$('.js-more').show();
                 }
             }

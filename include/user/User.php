@@ -723,6 +723,7 @@ class User extends Entity
         $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND text NOT IN ('Not present on Yahoo') AND groupid IN (" . implode(',', $modships) . ");";
         $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
         $modmails = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
+        error_log("$sql, {$this->id}, $mysqltime");
         $atts['modmails'] = $modmails[0]['count'];
 
         if ($logs) {
@@ -1296,6 +1297,7 @@ class User extends Entity
             'user' => $this->id,
             'byuser' => $me ? $me->getId() : NULL,
             'text' => $subject,
+            'groupid' => $groupid,
             'stdmsgid' => $stdmsgid
         ]);
 
