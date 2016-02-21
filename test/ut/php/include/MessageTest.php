@@ -157,6 +157,17 @@ class messageTest extends IznikTestCase {
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test Tuvalu HIGH STREET"));
         assertEquals("OFFER: test (Tuvalu High Street)", $m->suggestSubject($gid, "OFFR TEST Tuvalu HIGH STREET"));
 
+        # Test per-group keywords
+        $g->setSettings([
+            'keywords' => [
+                'offer' => 'Offered'
+            ]
+        ]);
+        $keywords = $g->getSetting('keywords', []);
+        error_log("After set " . var_export($keywords, TRUE));
+
+        assertEquals("Offered: Test (Tuvalu High Street)", $m->suggestSubject($gid,$goodsubj));
+
         error_log(__METHOD__ . " end");
     }
 

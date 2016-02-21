@@ -1486,6 +1486,8 @@ class Message
 
     public function suggestSubject($groupid, $subject) {
         $newsubj = $subject;
+        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $keywords = $g->getSetting('keywords', []);
 
         # This method is used to improve subjects, and also to map - because we need to make sure we understand the
         # subject format before can map.
@@ -1573,7 +1575,8 @@ class Message
                             $residue = strtolower($residue);
                         }
 
-                        $newsubj = strtoupper($type) . ": $residue ({$loc['name']})";
+                        $typeval = presdef(strtolower($type), $keywords, strtoupper($type));
+                        $newsubj = $typeval . ": $residue ({$loc['name']})";
 
                         $this->lat = $loc['lat'];
                         $this->lng = $loc['lng'];
