@@ -100,6 +100,20 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Infinite.extend({
             id: 'approvedGroupSelect'
         });
 
+
+        // CollectionView handles adding/removing/sorting for us.
+        self.collectionView = new Backbone.CollectionView( {
+            el : self.$('.js-list'),
+            modelView : Iznik.Views.ModTools.Message.Approved,
+            modelViewOptions: {
+                collection: self.collection,
+                page: self
+            },
+            collection: self.collection
+        } );
+
+        self.collectionView.render();
+
         self.listenTo(self.groupSelect, 'selected', function(selected) {
             // Change the group selected.
             self.selected = selected;
@@ -107,19 +121,6 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Infinite.extend({
             // We haven't fetched anything for this group yet.
             self.lastFetched = null;
             self.context = null;
-
-            // CollectionView handles adding/removing/sorting for us.
-            self.collectionView = new Backbone.CollectionView( {
-                el : self.$('.js-list'),
-                modelView : Iznik.Views.ModTools.Message.Approved,
-                modelViewOptions: {
-                    collection: self.collection,
-                    page: self
-                },
-                collection: self.collection
-            } );
-
-            self.collectionView.render();
             self.fetch();
         });
 

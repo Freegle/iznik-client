@@ -20,31 +20,31 @@ Iznik.Views.ModTools.Pages.PendingMessages = Iznik.Views.Infinite.extend({
             id: 'pendingGroupSelect'
         });
 
+        self.collection = new Iznik.Collections.Message(null, {
+            groupid: self.selected,
+            group: Iznik.Session.get('groups').get(self.selected),
+            collection: 'Pending'
+        });
+
+        // CollectionView handles adding/removing/sorting for us.
+        self.collectionView = new Backbone.CollectionView( {
+            el : self.$('.js-list'),
+            modelView : Iznik.Views.ModTools.Message.Pending,
+            modelViewOptions: {
+                collection: self.collection,
+                page: self
+            },
+            collection: self.collection
+        } );
+
+        self.collectionView.render();
+
         self.listenTo(this.groupSelect, 'selected', function(selected) {
             self.selected = selected;
             
             // We haven't fetched anything for this group yet.
             self.lastFetched = null;
             self.context = null;
-            
-            self.collection = new Iznik.Collections.Message(null, {
-                groupid: self.selected,
-                group: Iznik.Session.get('groups').get(self.selected),
-                collection: 'Pending'
-            });
-            
-            // CollectionView handles adding/removing/sorting for us.
-            self.collectionView = new Backbone.CollectionView( {
-                el : self.$('.js-list'),
-                modelView : Iznik.Views.ModTools.Message.Pending,
-                modelViewOptions: {
-                    collection: self.collection,
-                    page: self
-                },
-                collection: self.collection
-            } );
-
-            self.collectionView.render();
             self.fetch();
         });
 
@@ -254,7 +254,7 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
         this.$el.fadeIn('slow');
 
         this.listenToOnce(self.model, 'approved rejected deleted', function() {
-            self.model.destroy();
+            self.$el.fadeOut('slow');
         });
 
         return(this);

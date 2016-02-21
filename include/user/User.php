@@ -133,8 +133,9 @@ class User extends Entity
 
     public function getEmails() {
         # Don't return canon - don't need it on the client.
-        $emails = $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, email;",
-            [$this->id]);
+        $sql = "SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, email ASC;";
+        #error_log("$sql, {$this->id}");
+        $emails = $this->dbhr->preQuery($sql, [$this->id]);
         return($emails);
     }
 
@@ -723,7 +724,7 @@ class User extends Entity
         $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND text NOT IN ('Not present on Yahoo') AND groupid IN (" . implode(',', $modships) . ");";
         $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
         $modmails = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
-        error_log("$sql, {$this->id}, $mysqltime");
+        #error_log("$sql, {$this->id}, $mysqltime");
         $atts['modmails'] = $modmails[0]['count'];
 
         if ($logs) {

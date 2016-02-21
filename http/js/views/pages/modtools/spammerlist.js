@@ -237,7 +237,7 @@ Iznik.Views.ModTools.Spammer = Iznik.Views.ModTools.Member.Spam.extend({
         this.$('.timeago').timeago();
 
         this.listenToOnce(self.model, 'deleted removed', function() {
-            self.model.destroy();
+            self.$el.fadeOut('slow');
         });
 
         return(this);

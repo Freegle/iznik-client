@@ -42,7 +42,7 @@ self.addEventListener('push', function(event) {
 
                 workstr = workstr == '' ? "No tasks outstanding" : workstr;
 
-                return  self.registration.showNotification("Moderation Tasks", {
+                return  self.registration.showNotification("ModTools", {
                     body: workstr,
                     icon: '/images/favicon/favicon-96x96.png',
                     tag: 'work',

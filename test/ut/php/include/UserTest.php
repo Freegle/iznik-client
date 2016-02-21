@@ -109,8 +109,8 @@ class userTest extends IznikTestCase {
         assertGreaterThan(0, $u->addEmail('test3@test.com', 0));
         $emails = $u->getEmails();
         assertEquals(2, count($emails));
-        assertEquals(0, $emails[1]['preferred']);
-        assertEquals('test3@test.com', $emails[1]['email']);
+        assertEquals(0, $emails[0]['preferred']);
+        assertEquals('test3@test.com', $emails[0]['email']);
 
         # Change to preferred.
         assertGreaterThan(0, $u->addEmail('test3@test.com', 1));

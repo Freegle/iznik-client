@@ -283,7 +283,7 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
         this.$('.timeago').timeago();
 
         this.listenToOnce(self.model, 'removed', function() {
-            self.model.destroy();
+            self.$el.fadeOut('slow');
         });
 
         return(this);

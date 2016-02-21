@@ -20,31 +20,31 @@ Iznik.Views.ModTools.Pages.SpamMessages = Iznik.Views.Infinite.extend({
             id: 'spamGroupSelect'
         });
 
+        self.collection = new Iznik.Collections.Message(null, {
+            groupid: self.selected,
+            group: Iznik.Session.get('groups').get(self.selected),
+            collection: 'Spam'
+        });
+
+        // CollectionView handles adding/removing/sorting for us.
+        self.collectionView = new Backbone.CollectionView( {
+            el : self.$('.js-list'),
+            modelView : Iznik.Views.ModTools.Message.Spam,
+            modelViewOptions: {
+                collection: self.collection,
+                page: self
+            },
+            collection: self.collection
+        } );
+
+        self.collectionView.render();
+
         self.listenTo(this.groupSelect, 'selected', function(selected) {
             self.selected = selected;
 
             // We haven't fetched anything for this group yet.
             self.lastFetched = null;
             self.context = null;
-
-            self.collection = new Iznik.Collections.Message(null, {
-                groupid: self.selected,
-                group: Iznik.Session.get('groups').get(self.selected),
-                collection: 'Spam'
-            });
-
-            // CollectionView handles adding/removing/sorting for us.
-            self.collectionView = new Backbone.CollectionView( {
-                el : self.$('.js-list'),
-                modelView : Iznik.Views.ModTools.Message.Spam,
-                modelViewOptions: {
-                    collection: self.collection,
-                    page: self
-                },
-                collection: self.collection
-            } );
-
-            self.collectionView.render();
             self.fetch();
         });
 
@@ -79,7 +79,7 @@ Iznik.Views.ModTools.Message.Spam = Iznik.Views.ModTools.Message.extend({
                     groupid: group.id,
                     action: 'NotSpam'
                 }, success: function (ret) {
-                    self.model.destroy();
+                    self.$el.fadeOut('slow');
                 }
             });
         });
@@ -97,7 +97,7 @@ Iznik.Views.ModTools.Message.Spam = Iznik.Views.ModTools.Message.extend({
                     action: 'Delete',
                     reason: 'Deleted as spam'
                 }, success: function (ret) {
-                    self.model.destroy();
+                    self.$el.fadeOut('slow');
                 }
             });
         });

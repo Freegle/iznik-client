@@ -249,7 +249,7 @@ Iznik.Views.ModTools.Member.Pending = Iznik.Views.ModTools.Member.extend({
         this.$('.timeago').timeago();
 
         this.listenToOnce(self.model, 'deleted removed rejected approved', function() {
-            self.model.destroy();
+            self.$el.fadeOut('slow');
         });
 
         return(this);
