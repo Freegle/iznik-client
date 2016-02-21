@@ -31,8 +31,7 @@ class Attachment
             'id' => $this->id
         );
 
-        # We get some pictures as images, as we'd expect, and some as octet-stream
-        if (stripos($this->contentType, 'image') !== FALSE || stripos($this->contentType, 'octet-stream') !== FALSE) {
+        if (stripos($this->contentType, 'image') !== FALSE) {
             # It's an image.  That's the only type we support.
             $ret['path'] = $this->getPath();
         }
