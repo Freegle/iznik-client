@@ -78,9 +78,9 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
         });
 
         this.listenToOnce(self.model, 'editsucceeded', function() {
-            self.model.fetch().then(function() {
-                self.render();
-            });
+            // If we've just edited, we don't want to display a diffferent subject in the edit box, as that's confusing.
+            self.model.set('suggestedsubject', self.model.get('subject'));
+            self.render();
         });
 
         v.render();

@@ -28,6 +28,12 @@ Iznik.Views.ModTools.Message = IznikView.extend({
 
         self.$('.js-savesubj .glyphicon').removeClass('glyphicon-floppy-save glyphicon-warning-sign').addClass('glyphicon-refresh rotate');
 
+        self.listenToOnce(self.model, 'editsucceeded', function() {
+            // If we've just edited, we don't want to display a diffferent subject in the edit box, as that's confusing.
+            self.model.set('suggestedsubject', self.model.get('subject'));
+            self.render();
+        });
+
         self.model.edit(
             self.$('.js-subject').val(),
             self.model.get('textbody'),
