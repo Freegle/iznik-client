@@ -1330,6 +1330,7 @@ class Message
                 ]);
 
             foreach ($groups as $group) {
+                error_log(var_export($group, TRUE));
                 $groupid = $group['groupid'];
 
                 # The message has been allocated to a group; mark it as deleted.  We keep deleted messages for
@@ -1339,24 +1340,7 @@ class Message
                     $groupid
                 ]);
 
-                # We might be deleting a pending or spam message, in which case it may also need rejecting on Yahoo.
-                $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ? AND deleted = 0;";
-                $groups = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
-
-                if ($group['yahooreject']) {
-                    # We can trigger rejection by email - do so.
-                    $this->mailer($group['yahooreject'], "My name is Iznik and I reject this message", "", NULL, '-f' . MODERATOR_EMAIL);
-                }
-
-                if ($group['yahoopendingid']) {
-                    # We can trigger rejection via the plugin - do so.
-                    $p = new Plugin($this->dbhr, $this->dbhm);
-                    $p->add($groupid, [
-                        'type' => 'RejectPendingMessage',
-                        'id' => $group['yahoopendingid']
-                    ]);
-                }
-
+                # We might be deleting an approved message or spam.
                 if ($group['yahooapprovedid']) {
                     # We can trigger deleted via the plugin - do so.
                     $p = new Plugin($this->dbhr, $this->dbhm);
@@ -1364,6 +1348,21 @@ class Message
                         'type' => 'DeleteApprovedMessage',
                         'id' => $group['yahooapprovedid']
                     ]);
+                } else {
+                    # Or we might be deleting a pending or spam message, in which case it may also need rejecting on Yahoo.
+                    if ($group['yahooreject']) {
+                        # We can trigger rejection by email - do so.
+                        $this->mailer($group['yahooreject'], "My name is Iznik and I reject this message", "", NULL, '-f' . MODERATOR_EMAIL);
+                    }
+
+                    if ($group['yahoopendingid']) {
+                        # We can trigger rejection via the plugin - do so.
+                        $p = new Plugin($this->dbhr, $this->dbhm);
+                        $p->add($groupid, [
+                            'type' => 'RejectPendingMessage',
+                            'id' => $group['yahoopendingid']
+                        ]);
+                    }
                 }
             }
 

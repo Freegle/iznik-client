@@ -565,7 +565,7 @@ class messageAPITest extends IznikAPITestCase {
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
-        $this->dbhm->preExec("UPDATE messages_groups SET yahooreject = 'test@test.com', yahoopendingid = 1 WHERE msgid = $id;");
+        $this->dbhm->preExec("UPDATE messages_groups SET yahooreject = 'test@test.com', yahoopendingid = 1, yahooapprovedid = NULL WHERE msgid = $id;");
 
         # Shouldn't be able to delete logged out
         $ret = $this->call('message', 'POST', [
@@ -604,6 +604,7 @@ class messageAPITest extends IznikAPITestCase {
         # Plugin work should exist
         $ret = $this->call('plugin', 'GET', []);
         assertEquals(0, $ret['ret']);
+        error_log("Plugin work after delete " . var_export($ret['plugin'], TRUE));
         assertEquals(1, count($ret['plugin']));
         assertEquals($group1, $ret['plugin'][0]['groupid']);
         assertEquals('{"type":"RejectPendingMessage","id":"1"}', $ret['plugin'][0]['data']);
