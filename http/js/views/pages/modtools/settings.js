@@ -411,6 +411,10 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
             });
 
             self.modConfigModel.fetch().then(function() {
+                // 0 values stripped.
+                var prot = self.modConfigModel.get('protected');
+                self.modConfigModel.set('protected', prot ? prot : 0);
+
                 self.modConfigFieldsGeneral = [
                     {
                         name: 'name',
@@ -455,7 +459,7 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                         control: 'select',
                         options: [
                             {label: 'Locked', value: 1},
-                            {label: 'Unlocked', value: 'Unlocked' }
+                            {label: 'Unlocked', value: 0 }
                         ]
                     },
                     {
