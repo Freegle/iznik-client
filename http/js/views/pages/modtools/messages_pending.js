@@ -213,36 +213,37 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
                         config: config
                     })
                 }).render().el);
+            }
 
-                if (config) {
-                    self.checkMessage(config);
-                    self.showRelated();
 
-                    // Add the other standard messages, in the order requested.
-                    var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
-                    var anyrare = false;
+            if (config) {
+                self.checkMessage(config);
+                self.showRelated();
 
-                    _.each(sortmsgs, function (stdmsg) {
-                        if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
-                            stdmsg.message = self.model;
-                            var v = new Iznik.Views.ModTools.StdMessage.Button({
-                                model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
-                                config: config
-                            });
+                // Add the other standard messages, in the order requested.
+                var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
+                var anyrare = false;
 
-                            var el = v.render().el;
-                            self.$('.js-stdmsgs').append(el);
+                _.each(sortmsgs, function (stdmsg) {
+                    if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
+                        stdmsg.message = self.model;
+                        var v = new Iznik.Views.ModTools.StdMessage.Button({
+                            model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
+                            config: config
+                        });
 
-                            if (stdmsg.rarelyused) {
-                                anyrare = true;
-                                $(el).hide();
-                            }
+                        var el = v.render().el;
+                        self.$('.js-stdmsgs').append(el);
+
+                        if (stdmsg.rarelyused) {
+                            anyrare = true;
+                            $(el).hide();
                         }
-                    });
-
-                    if (!anyrare) {
-                        self.$('.js-rarelyholder').hide();
                     }
+                });
+
+                if (!anyrare) {
+                    self.$('.js-rarelyholder').hide();
                 }
             }
 
