@@ -268,6 +268,8 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
             self.$('.js-attlist').append(v.render().el);
         });
 
+        self.addOtherInfo();
+
         this.$('.timeago').timeago();
 
         this.listenToOnce(self.model, 'deleted', function() {

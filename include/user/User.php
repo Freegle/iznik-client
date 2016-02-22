@@ -935,7 +935,7 @@ class User extends Entity
             # As well as being a member of a group, they might have joined and left, or applied and been rejected.
             # This is useful info for moderators.  If the user is suspicious then return the complete list; otherwise
             # just the recent ones.
-            $groupq = ($groupids && count($groupids) > 0) ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
+            $groupq = ($groupids && count($groupids) > 0) ? (" AND (DATEDIFF(NOW(), added) <= 31 OR groupid IN (" . implode(',', $groupids) . ")) ") : ' AND DATEDIFF(NOW(), added) <= 31 ';
             $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid = ? $groupq ORDER BY added DESC;";
             $membs = $this->dbhr->preQuery($sql, [ $this->id ]);
             foreach ($membs as &$memb) {

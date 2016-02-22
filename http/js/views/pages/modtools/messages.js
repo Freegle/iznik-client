@@ -214,33 +214,33 @@ Iznik.Views.ModTools.Message = IznikView.extend({
                     self.$('.js-otheremails').append(v.render().el);
                 }
             });
+
+            // Add any other group memberships we need to display.
+            self.$('.js-memberof').empty();
+            var groupids = [ self.model.get('groupid') ];
+            _.each(fromuser.memberof, function(group) {
+                if (groupids.indexOf(group.id) == -1) {
+                    var mod = new IznikModel(group);
+                    var v = new Iznik.Views.ModTools.Member.Of({
+                        model: mod
+                    });
+                    self.$('.js-memberof').append(v.render().el);
+                    groupids.push(group.id);
+                }
+            });
+
+            self.$('.js-applied').empty();
+            _.each(fromuser.applied, function(group) {
+                if (groupids.indexOf(group.id) == -1) {
+                    // Don't both displaying applications to groups we've just listed as them being a member of.
+                    var mod = new IznikModel(group);
+                    var v = new Iznik.Views.ModTools.Member.Applied({
+                        model: mod
+                    });
+                    self.$('.js-applied').append(v.render().el);
+                }
+            });
         }
-
-        // Add any other group memberships we need to display.
-        self.$('.js-memberof').empty();
-        var groupids = [ self.model.get('groupid') ];
-        _.each(self.model.get('memberof'), function(group) {
-            if (groupids.indexOf(group.id) == -1) {
-                var mod = new IznikModel(group);
-                var v = new Iznik.Views.ModTools.Member.Of({
-                    model: mod
-                });
-                self.$('.js-memberof').append(v.render().el);
-                groupids.push(group.id);
-            }
-        });
-
-        self.$('.js-applied').empty();
-        _.each(self.model.get('applied'), function(group) {
-            if (groupids.indexOf(group.id) == -1) {
-                // Don't both displaying applications to groups we've just listed as them being a member of.
-                var mod = new IznikModel(group);
-                var v = new Iznik.Views.ModTools.Member.Applied({
-                    model: mod
-                });
-                self.$('.js-applied').append(v.render().el);
-            }
-        });
     },
 
     wordify: function(str) {

@@ -149,6 +149,8 @@ Iznik.Views.ModTools.Message.Spam = Iznik.Views.ModTools.Message.extend({
             });
         });
 
+        self.addOtherInfo();
+
         // Add any attachments.
         _.each(self.model.get('attachments'), function(att) {
             var v = new Iznik.Views.ModTools.Message.Photo({
