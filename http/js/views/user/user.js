@@ -260,7 +260,7 @@ Iznik.Views.ModTools.User.SummaryEntry = IznikView.extend({
 
     render: function() {
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
-        var mom = new moment(this.model.get('arrival'));
+        var mom = new moment(this.model.get('date'));
         this.$('.js-date').html(mom.format('llll'));
         return(this);
     }
