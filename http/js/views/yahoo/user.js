@@ -13,12 +13,14 @@ Iznik.Views.ModTools.Yahoo.User = IznikView.extend({
 
     changeDelivery: function() {
         console.log("changeDelivery model", this.model);
+        console.log("Iznik.Views.ModTools.Yahoo.User", JSON.stringify(this.model.toJSON2()));
         var newVal = this.$('.js-delivery').val();
         this.model.changeDelivery(newVal);
     },
 
     render: function() {
         var self = this;
+        console.log("Iznik.Views.ModTools.Yahoo.User", JSON.stringify(self.model.toJSON2()));
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
 
         self.$('.js-posting').val(self.model.get('postingStatus'));

@@ -10,7 +10,9 @@ Iznik.Models.Yahoo.User = IznikModel.extend({
         if (ret.hasOwnProperty('ygData') &&
                 ret.ygData.hasOwnProperty('members') &&
                 ret.ygData.members.length == 1) {
-            return(ret.ygData.members[0]);
+            // We want our own attributes (e.g. groupid) combined with Yahoo's.
+            var obj = _.extend(this.toJSON2(), ret.ygData.members[0]);
+            return(obj);
         }
     },
 

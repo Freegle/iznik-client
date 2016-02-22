@@ -744,6 +744,14 @@ class Group extends Entity
                 "-f$from"
             );
         }
+
+        $this->mailer(
+            $from,
+            "Copy of message to {$this->group['namedisplay']}:$subject",
+            $body,
+            $headers,
+            "-f$from"
+        );
     }
 
     public function listByType($type) {

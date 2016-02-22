@@ -223,8 +223,7 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
 
             mod.fetch().then(function() {
                 // We don't want to show the Yahoo joined date because we have our own.
-                mod.clear('date');
-                console.log("Create Yahoo User", mod);
+                mod.unset('date');
                 var v = new Iznik.Views.ModTools.Yahoo.User({
                     model: mod
                 });
