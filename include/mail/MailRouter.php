@@ -450,4 +450,16 @@ class MailRouter
     public function mailer() {
         call_user_func_array('mail', func_get_args());
     }
+
+    public function mail($to, $from, $subject, $body) {
+        $headers = "From: $from <$from>\r\n";
+
+        $this->mailer(
+            $to,
+            $subject,
+            $body,
+            $headers,
+            "-f$from"
+        );
+    }
 }

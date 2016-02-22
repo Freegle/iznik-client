@@ -117,12 +117,32 @@ class sessionTest extends IznikAPITestCase {
         assertEquals('test2@test.com', $ret['me']['email']);
         assertEquals('Testing User', $ret['me']['displayname']);
 
+        $ret = $this->call('session', 'PATCH', [
+            'settings' => json_encode([ 'test' => 1]),
+            'displayname' => "Testing User",
+            'email' => 'test2@test.com',
+            'notifications' => [
+                'push' => [
+                    'type' => 'Firefox',
+                    'subscription' => 'Test'
+                ]
+            ]
+        ]);
+        assertEquals(0, $ret['ret']);
+
         # Quick test for notification coverage.
         $mock = $this->getMockBuilder('Notifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('curl_exec'))
             ->getMock();
         $mock->method('curl_exec')->willReturn('NotRegistered');
+        $mock->notify($id);
+
+        $mock = $this->getMockBuilder('Notifications')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('uthook'))
+            ->getMock();
+        $mock->method('uthook')->willThrowException(new Exception());
         $mock->notify($id);
 
         $g->delete();

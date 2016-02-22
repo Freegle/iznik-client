@@ -776,7 +776,6 @@ class Message
                 $groupname = $matches[1];
             }
         }
-        error_log("Group name is $groupname");
 
         if ($groupname) {
             if (!$this->groupid) {

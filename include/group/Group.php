@@ -747,7 +747,7 @@ class Group extends Entity
 
         $this->mailer(
             $from,
-            "Copy of message to {$this->group['namedisplay']}:$subject",
+            "Copy of message to {$this->group['nameshort']}:$subject",
             $body,
             $headers,
             "-f$from"

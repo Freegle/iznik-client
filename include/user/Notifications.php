@@ -39,6 +39,10 @@ class Notifications
         return($rc);
     }
 
+    public function uthook() {
+        # Mocked in UT to force an exception.
+    }
+
     public function notify($userid) {
         $count = 0;
         $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ?;", [ $userid ]);
@@ -47,6 +51,8 @@ class Notifications
             $count++;
             error_log("Send user $userid {$notif['subscription']}");
             try {
+                $this->uthook();
+
                 switch ($notif['type']) {
                     case Notifications::PUSH_GOOGLE: {
                         $webPush = new WebPush([
