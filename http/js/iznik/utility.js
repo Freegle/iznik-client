@@ -6,13 +6,6 @@ function isShort() {
     return window.innerHeight < 500;
 }
 
-function getURLParam(name) {
-    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-        results = regex.exec(location.search);
-    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-}
-
 function canonSubj(subj) {
     subj = subj.toLocaleLowerCase();
 
@@ -179,3 +172,49 @@ function presdef(key, obj, def) {
     var ret = obj && obj.hasOwnProperty(key) ? obj[key] : def;
     return(ret);
 }
+
+function chunkArray(array, size) {
+    var start = array.byteOffset || 0;
+    array = array.buffer || array;
+    var index = 0;
+    var result = [];
+    while(index + size <= array.byteLength) {
+        result.push(new Uint8Array(array, start + index, size));
+        index += size;
+    }
+    if (index <= array.byteLength) {
+        result.push(new Uint8Array(array, start + index));
+    }
+    return result;
+}
+
+var base64url = {
+    _strmap: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_',
+    encode: function(data) {
+        data = new Uint8Array(data);
+        var len = Math.ceil(data.length * 4 / 3);
+        return chunkArray(data, 3).map(chunk => [
+                chunk[0] >>> 2,
+                ((chunk[0] & 0x3) << 4) | (chunk[1] >>> 4),
+                ((chunk[1] & 0xf) << 2) | (chunk[2] >>> 6),
+                chunk[2] & 0x3f
+            ].map(v => base64url._strmap[v]).join('')).join('').slice(0, len);
+    },
+    _lookup: function(s, i) {
+        return base64url._strmap.indexOf(s.charAt(i));
+    },
+    decode: function(str) {
+        var v = new Uint8Array(Math.floor(str.length * 3 / 4));
+        var vi = 0;
+        for (var si = 0; si < str.length;) {
+            var w = base64url._lookup(str, si++);
+            var x = base64url._lookup(str, si++);
+            var y = base64url._lookup(str, si++);
+            var z = base64url._lookup(str, si++);
+            v[vi++] = w << 2 | x >>> 4;
+            v[vi++] = x << 4 | y >>> 2;
+            v[vi++] = y << 6 | z;
+        }
+        return v;
+    }
+};

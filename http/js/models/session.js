@@ -36,7 +36,7 @@ Iznik.Models.Session = IznikModel.extend({
                                 }).then(function(sub) {
                                     console.log('endpoint:', sub.endpoint);
                                     var p = sub.endpoint.lastIndexOf('/');
-                                    var subscription = sub.endpoint.substring(p + 1);
+                                    var subscription = sub.endpoint;
                                     var me = Iznik.Session.get('me');
                                     if (me) {
                                         if (me.notifications && me.notifications.push && me.notifications.push.subscription == subscription) {
@@ -44,11 +44,16 @@ Iznik.Models.Session = IznikModel.extend({
                                         } else {
                                             // We don't currently have this
                                             console.log("Not got permissions; save", sub.endpoint, me.notifications.push.subscription);
+                                            var type = 'Google';
+                                            var key = null;
+                                            if (subscription.indexOf('services.mozilla.com') !== -1) {
+                                                type = 'Firefox';
+                                            }
                                             Iznik.Session.save({
                                                 id: me.id,
                                                 notifications: {
                                                     push: {
-                                                        type: 'Google',
+                                                        type: type,
                                                         subscription: subscription
                                                     }
                                                 }

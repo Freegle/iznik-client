@@ -140,6 +140,7 @@ function session() {
                     if ($push) {
                         switch ($push['type']) {
                             case Notifications::PUSH_GOOGLE:
+                            case Notifications::PUSH_FIREFOX:
                                 $n->add($me->getId(), $push['type'], $push['subscription']);
                                 break;
                         }

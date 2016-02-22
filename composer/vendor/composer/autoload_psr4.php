@@ -9,6 +9,7 @@ return array(
     'Symfony\\Component\\Yaml\\' => array($vendorDir . '/symfony/yaml'),
     'PhpMimeMailParser\\' => array($vendorDir . '/php-mime-mail-parser/php-mime-mail-parser/src'),
     'Pheanstalk\\' => array($vendorDir . '/pda/pheanstalk/src'),
+    'Minishlink\\WebPush\\' => array($vendorDir . '/minishlink/web-push/src'),
     'MaxMind\\' => array($vendorDir . '/maxmind/web-service-common/src'),
     'Html2Text\\' => array($vendorDir . '/html2text/html2text/src', $vendorDir . '/html2text/html2text/test'),
     'GeoIp2\\' => array($vendorDir . '/geoip2/geoip2/src'),

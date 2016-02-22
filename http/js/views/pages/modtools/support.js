@@ -27,6 +27,7 @@ Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
         var v = new Iznik.Views.PleaseWait({
             timeout: 1
         });
+        v.render();
 
         self.collectionView.render();
         this.collection.fetch({
