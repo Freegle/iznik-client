@@ -1131,6 +1131,7 @@ Iznik.Views.ModTools.BulkOp = Iznik.Views.Modal.extend({
                     label: 'Frequency',
                     control: 'select',
                     options: [
+                        {label: 'Never', value: 0 },
                         {label: 'Hourly', value: 1 },
                         {label: 'Daily', value: 24},
                         {label: 'Weekly', value: 168},
