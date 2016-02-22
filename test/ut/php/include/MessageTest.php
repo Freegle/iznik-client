@@ -168,6 +168,8 @@ class messageTest extends IznikTestCase {
 
         assertEquals("Offered: Test (Tuvalu High Street)", $m->suggestSubject($gid,$goodsubj));
 
+        assertEquals("OFFER: Thing need (Tuvalu High Street)", "OFFER: Thing need (Tuvalu High Street)");
+
         error_log(__METHOD__ . " end");
     }
 

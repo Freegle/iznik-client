@@ -569,11 +569,16 @@ class Message
 
     public static function determineType($subj) {
         $type = Message::TYPE_OTHER;
+        $pos = PHP_INT_MAX;
 
         foreach (Message::keywords() as $keyword => $vals) {
             foreach ($vals as $val) {
-                if (preg_match('/\b' . preg_quote($val) . '\b/i', $subj)) {
-                    $type = $keyword;
+                if (preg_match('/\b(' . preg_quote($val) . ')\b/i', $subj, $matches, PREG_OFFSET_CAPTURE)) {
+                    if ($matches[1][1] < $pos) {
+                        # We want the match earliest in the string - Offerton etc.
+                        $type = $keyword;
+                        $pos = $matches[1][1];
+                    }
                 }
             }
         }

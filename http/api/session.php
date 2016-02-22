@@ -138,7 +138,6 @@ function session() {
                     $n = new Notifications($dbhr, $dbhm);
                     $push = presdef('push', $notifs, NULL);
                     if ($push) {
-                        error_log("Got push " . var_export($push, TRUE));
                         switch ($push['type']) {
                             case Notifications::PUSH_GOOGLE:
                                 $n->add($me->getId(), $push['type'], $push['subscription']);

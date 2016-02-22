@@ -37,6 +37,10 @@ class Notifications
         return($rc);
     }
 
+    public function curl_exec($ch) {
+        return curl_exec( $ch );
+    }
+
     private function googleCloud($userid, $subscription) {
         $url = 'https://gcm-http.googleapis.com/gcm/send';
 
@@ -57,7 +61,7 @@ class Notifications
         curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
         curl_setopt( $ch, CURLOPT_POSTFIELDS, json_encode( $post ) );
-        $result = curl_exec( $ch );
+        $result = $this->curl_exec( $ch );
 
         if (strpos($result, 'NotRegistered') !== FALSE) {
             # No longer registrered on this subscription.  Zap it from our DB to avoid clutter and hammering Google.

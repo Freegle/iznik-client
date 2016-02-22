@@ -188,6 +188,23 @@ class membershipsAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testSupportSearch() {
+        error_log(__METHOD__);
+
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MEMBER));
+
+        # Search across all groups.
+        $ret = $this->call('memberships', 'GET', [
+            'search' => 'est@test'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['members']));
+        assertEquals($this->uid, $ret['members'][0]['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testDemote() {
         error_log(__METHOD__);
 

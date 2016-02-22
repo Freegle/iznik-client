@@ -366,22 +366,31 @@ class LoggedPDO {
     }
 
     public function background($sql) {
-        try {
-            # This SQL needs executing, but not in the foreground, and it's not the end of the
-            # world if we drop it, or duplicate it.
-            if (!$this->pheanstalk) {
-                $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
-            }
+        $count = 0;
+        do {
+            $done = FALSE;
+            try {
+                # This SQL needs executing, but not in the foreground, and it's not the end of the
+                # world if we drop it, or duplicate it.
+                if (!$this->pheanstalk) {
+                    $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
+                }
 
-            $this->pheanstalk->put(json_encode(array(
-                'type' => 'sql',
-                'queued' => time(),
-                'sql' => $sql,
-                'ttr' => 300
-            )));
-        } catch (Exception $e) {
-            error_log("Beanstalk exception " . $e->getMessage() . " on sql of len " . strlen($sql));
-        }
+                $id = $this->pheanstalk->put(json_encode(array(
+                    'type' => 'sql',
+                    'queued' => time(),
+                    'sql' => $sql,
+                    'ttr' => 300
+                )));
+                #error_log("Backgroupd $id for $sql");
+                $done = TRUE;
+            } catch (Exception $e) {
+                # Try again in case it's a temporary error.
+                error_log("Beanstalk exception " . $e->getMessage() . " on sql of len " . strlen($sql));
+                $this->pheanstalk = NULL;
+                $count++;
+            }
+        } while (!$done && $count < 10);
     }
 
     private function giveUp($msg) {

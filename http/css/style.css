@@ -349,6 +349,10 @@ body {
     margin: 2px !important;
 }
 
+.marginmd {
+    margin: 7px !important;
+}
+
 .nomargin {
     margin: 0px !important;
     margin-bottom: 0px !important;
