@@ -216,5 +216,43 @@ class groupAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testContact() {
+        error_log(__METHOD__);
+
+        $ret = $this->call('groups', 'GET', [
+            'grouptype' => Group::GROUP_OTHER
+        ]);
+        assertEquals(1, $ret['ret']);
+
+        # TODO Would be better if this were generic, but we can't easily mock out the actual mail call when testing
+        # the API.
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('groups', 'GET', [
+            'grouptype' => Group::GROUP_OTHER
+        ]);
+        assertEquals(1, $ret['ret']);
+
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+
+        $ret = $this->call('groups', 'GET', [
+            'grouptype' => Group::GROUP_OTHER
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertGreaterThan(0, count($ret['groups']));
+
+        $gid = $this->group->findByShortName('FreeglePlayground');
+        $ret = $this->call('group', 'POST', [
+            'action' => 'Contact',
+            'id' => $gid,
+            'from' => 'info',
+            'subject' => 'Test - please ignore',
+            'body' => 'This message was sent from the Iznik Unit Test to the FreeglePlayground group owners.  Please ignore it - or leave the group.'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

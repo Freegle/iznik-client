@@ -131,6 +131,33 @@ function group() {
                                 $ret = ['ret' => 2, 'status' => 'Failed'];
                             }
                         }
+
+                        break;
+                    }
+
+                    case 'Contact': {
+                        $from = presdef('from', $_REQUEST, NULL);
+                        $subject = presdef('subject', $_REQUEST, NULL);
+                        $body = presdef('body', $_REQUEST, NULL);
+
+                        $ret = [
+                            'ret' => 1,
+                            'status' => 'Not logged in',
+                        ];
+
+                        switch ($from) {
+                            case 'info': $from = INFO_ADDR; break;
+                            case 'support': $from = SUPPORT_ADDR; break;
+                            default: $from = NULL; break;
+                        }
+
+                        if ($me && $me->isAdminOrSupport() && $from && $subject && $body) {
+                            $g->contact($from, $subject, $body);
+                            $ret = [
+                                'ret' => 0,
+                                'status' => 'Success',
+                            ];
+                        }
                     }
                 }
 

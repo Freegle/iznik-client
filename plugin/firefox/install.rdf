@@ -10,7 +10,7 @@
                    em:unpack="true"
                    em:id="ModToolsUnlisted@edwardhibbert"
                    em:name="ModTools"
-                   em:version="0.38"
+                   em:version="0.41"
                    em:description="Make Moderating Yahoo Groups easier"
                    em:creator="edward@ehibbert.org.uk"
                    em:updateURL="https://modtools.org/plugin/update.rdf"

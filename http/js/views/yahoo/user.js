@@ -12,6 +12,7 @@ Iznik.Views.ModTools.Yahoo.User = IznikView.extend({
     },
 
     changeDelivery: function() {
+        console.log("changeDelivery model", this.model);
         var newVal = this.$('.js-delivery').val();
         this.model.changeDelivery(newVal);
     },

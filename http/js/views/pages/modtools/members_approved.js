@@ -214,6 +214,7 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
         // Delay getting the Yahoo info slightly to improve apparent render speed.
         _.delay(function() {
             // The Yahoo part of the user
+            console.log("Get Yahoo info", self.model.get('email'));
             var mod = IznikYahooUsers.findUser({
                 email: self.model.get('email'),
                 group: group.get('nameshort'),
@@ -223,6 +224,7 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
             mod.fetch().then(function() {
                 // We don't want to show the Yahoo joined date because we have our own.
                 mod.clear('date');
+                console.log("Create Yahoo User", mod);
                 var v = new Iznik.Views.ModTools.Yahoo.User({
                     model: mod
                 });

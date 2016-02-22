@@ -454,7 +454,7 @@ paths:
         in: body
         description: What action to perform
         type: string
-        enum: ['ConfirmKey', 'Create', 'AddLicense]
+        enum: ['ConfirmKey', 'Create', 'AddLicense', 'Contact']
       - name: grouptype
         in: body
         description: For action = Create, the type of group to create
@@ -467,6 +467,19 @@ paths:
       - name: voucher
         in: body
         description: For action = 'AddLicense', license voucher code
+        type: string
+      - name: from
+        in: body
+        description: For action = Contact, who the contact is from
+        type: string
+        enum: ['info', 'support']
+      - name: subject
+        in: body
+        description: For action = Contact, the contact subject
+        type: string
+      - name: body
+        in: body
+        description: For action = Contact, the contact body
         type: string
       responses:
           "200":

@@ -225,7 +225,7 @@ function memberships() {
                             $time = strtotime('now') - strtotime($last);
                             error_log("Member sync for " . $g->getPrivate('nameshort') . " $last, $time ago");
 
-                            if (($time > 300 && $collection == MessageCollection::APPROVED) ||
+                            if (($time > 600 && $collection == MessageCollection::APPROVED) ||
                                 ($collection != MessageCollection::APPROVED)) {
                                 $ret = $g->setMembers($members, $collection);
                             } else {

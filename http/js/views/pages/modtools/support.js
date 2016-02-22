@@ -4,7 +4,8 @@ Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
     template: "modtools_support_main",
 
     events: {
-        'click .js-searchuser': 'searchUser'
+        'click .js-searchuser': 'searchUser',
+        'click .js-mailgroup': 'mailGroup'
     },
 
     searchUser: function() {
@@ -43,9 +44,55 @@ Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
         });
     },
 
+    mailGroup: function() {
+        var self = this;
+        var subject = self.$('.js-mailsubj').val();
+        var body = self.$('.js-mailbody').val();
+
+        console.log("Subject, body", subject, body);
+        if (subject.length > 0 && body.length > 0) {
+            $.ajax({
+                type: 'POST',
+                url: API + 'group',
+                data: {
+                    action: 'Contact',
+                    id: self.$('.js-grouplist').val(),
+                    from: self.$('.js-mailfrom').val(),
+                    subject: subject,
+                    body: body
+                }, success: function(ret) {
+                    if (ret.ret == 0) {
+                        self.$('.js-mailsuccess').fadeIn('slow');
+                    } else {
+                        self.$('.js-mailerror').fadeIn('slow');
+                    }
+                }, error: function() {
+                    self.$('.js-mailerror').fadeIn('slow');
+                }
+            });
+        }
+    },
+
     render: function() {
         var self = this;
         Iznik.Views.Page.prototype.render.call(this);
+
+        // TODO This should be more generic, but it's really part of hosting multiple networks on the same
+        // server, which we don't do.
+        var type = Iznik.Session.isAdmin() ? null : 'Freegle';
+        type = 'Freegle';
+        $.ajax({
+            url: API + 'groups',
+            data: {
+                'grouptype': type
+            }, success: function(ret) {
+                console.log("Got grouplist", ret);
+                _.each(ret.groups, function(group) {
+                    self.$('.js-grouplist').append('<option value="' + group.id + '"></option>');
+                    self.$('.js-grouplist option:last').html(group.namedisplay);
+                })
+            }
+        })
     }
 });
 

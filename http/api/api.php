@@ -34,6 +34,7 @@ require_once(IZNIK_BASE . '/http/api/memberships.php');
 require_once(IZNIK_BASE . '/http/api/spammers.php');
 require_once(IZNIK_BASE . '/http/api/supporters.php');
 require_once(IZNIK_BASE . '/http/api/group.php');
+require_once(IZNIK_BASE . '/http/api/groups.php');
 require_once(IZNIK_BASE . '/http/api/plugin.php');
 require_once(IZNIK_BASE . '/http/api/user.php');
 require_once(IZNIK_BASE . '/http/api/locations.php');
@@ -141,6 +142,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'group':
                     $ret = group();
+                    break;
+                case 'groups':
+                    $ret = groups();
                     break;
                 case 'locations':
                     $ret = locations();

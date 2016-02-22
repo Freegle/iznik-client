@@ -2,7 +2,7 @@
 //
 // We intercept requests and find ones originating from modtools.org, and set appropriate cookies.
 // Then we intercept the responses to those requests and set an Access-Control-Allow-Origin to *.
-// This fools Firefox into allowing our requests, which means our JS code on modtools.org can 
+// This fools Firefox into allowing our requests, which means our JS code on modtools.org can
 // make requests to Yahoo as though it was Yahoo's own client code.
 function endsWith(haystack, str) {
     if (haystack.length == 0) {
@@ -82,8 +82,17 @@ var httpRequestObserver =
                     log("Args " + args);
 
                     if (args.length > 0) {
+                        log("Type of args is " + typeof args);
                         args = JSON.parse(args);
-                        log("Parsed" + args);
+                        log("Type of args after parse is " + typeof args);
+                        if (typeof args == 'string') {
+                            args = JSON.parse(args);
+                        }
+                        log("Type of args after parse 2 is " + typeof args);
+
+                        log("Parsed");
+                        Application.console.log(args);
+                        log("Reencode " + JSON.stringify(args));
 
                         // Suspend the original request to make sure it doesn't complete
                         // until we're done.
@@ -202,12 +211,76 @@ function contentLoaded(event) {
     }
 }
 
+// Filename: formurlencoded.js
+// Timestamp: 2016.01.18-15:36:37 (last modified)
+// Author(s): Bumblehead (www.bumblehead.com), JBlashill (james@blashill.com)
+//
+// http://www.w3.org/TR/html5/forms.html#url-encoded-form-data
+// input: {one:1,two:2} return: '[one]=1&[two]=2'
+
+var formurlencoded = function (data, opts) {
+    opts = typeof opts === 'object' ? opts : {};
+
+    function encode (value) {
+        return String(value)
+            .replace(/[^ !'()~\*]*/g, encodeURIComponent)
+            .replace(/ /g, '+')
+            .replace(/[!'()~\*]/g, function (ch) {
+                return '%' + ch.charCodeAt().toString(16).slice(-2).toUpperCase();
+            });
+    }
+
+    function keys (obj) {
+        var keys = Object.keys(obj);
+
+        return opts.sorted ? keys.sort() : keys;
+    }
+
+    function filterjoin (arr) {
+        return arr.filter(function (e) { return e; }).join('&');
+    }
+
+    function objnest (name, obj) {
+        return filterjoin(keys(obj).map(function (key) {
+            return nest(name + '[' + key + ']', obj[key]);
+        }));
+    }
+
+    function arrnest (name, arr) {
+        return filterjoin(arr.map(function (elem) {
+            return nest(name + '[]', elem);
+        }));
+    }
+
+    function nest (name, value) {
+        var type = typeof value,
+            f = null;
+
+        if (value === f) {
+            f = opts.ignorenull ? f : encode(name) + '=' + f;
+        } else if (/string|number|boolean/.test(type)) {
+            f = encode(name) + '=' + encode(value);
+        } else if (Array.isArray(value)) {
+            f = arrnest(name, value);
+        } else if (type === 'object') {
+            f = objnest(name, value);
+        }
+
+        return f;
+    }
+
+    return filterjoin(keys(data).map(function (key) {
+        return nest(key, data[key]);
+    }));
+};
+
 function ajaxRequest(verb, url, data, cookies, success, error) {
     var xhr = new XMLHttpRequest();
     xhr.open(verb, url, true);
     //xhr.setRequestHeader('Cookie', cookies);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-    var encoded = encodeURIComponent(JSON.stringify(data));
+    var encoded = formurlencoded(data);
+    log("Encoded data " + encoded);
     xhr.setRequestHeader('Content-Length', encoded.length);
     xhr.onload = function (e) {
         if (xhr.readyState === 4) {
@@ -221,7 +294,7 @@ function ajaxRequest(verb, url, data, cookies, success, error) {
     xhr.onerror = function (e) {
         error(xhr, xhr.statusText, null);
     };
-    xhr.send(data);
+    xhr.send(encoded);
 }
 
 function contentLoad(event) {
