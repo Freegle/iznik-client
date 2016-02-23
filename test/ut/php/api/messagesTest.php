@@ -77,6 +77,7 @@ class messagesTest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
+        #error_log(var_export($msgs, TRUE));
         assertEquals(0, count($msgs));
 
         # Test search by word
@@ -107,6 +108,17 @@ class messagesTest extends IznikAPITestCase {
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'searchmemb',
             'groupid' => $group1,
+            'search' => 'test@test.com'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($a->getID(), $msgs[0]['id']);
+        assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
+
+        # Search by member on current groups
+        $ret = $this->call('messages', 'GET', [
+            'subaction' => 'searchmemb',
             'search' => 'test@test.com'
         ]);
         assertEquals(0, $ret['ret']);

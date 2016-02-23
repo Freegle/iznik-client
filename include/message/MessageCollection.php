@@ -58,41 +58,39 @@ class MessageCollection
 
         $ctx = [ 'Date' => NULL, 'id' ];
 
-        if (count($groupids) > 0) {
-            $groupq = " AND groupid IN (" . implode(',', $groupids) . ") ";
+        $groupq = count($groupids) > 0 ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
 
-            # At the moment we only support ordering by date DESC.
-            #
-            # If we have a set of users, then it is more efficient to get the relevant messages first (because there
-            # are few and it's well-indexed).
-            if ($userids) {
-                $seltab = "(SELECT id, date, fromuser, deleted FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
-            } else {
-                $seltab = "messages";
-            }
-
-            $sql = "SELECT msgid AS id, date FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC, messages.id DESC LIMIT $limit";
-
-            $msglist = $this->dbhr->preQuery($sql, [
-                $this->collection
-            ]);
-
-            # Get an array of just the message ids.
-            $msgids = [];
-            foreach ($msglist as $msg) {
-                $msgids[] = ['id' => $msg['id']];
-
-                $thisepoch = strtotime($msg['date']);
-
-                if ($ctx['Date'] == NULL || $thisepoch < $ctx['Date']) {
-                    $ctx['Date'] = $thisepoch;
-                }
-
-                $ctx['id'] = $msg['id'];
-            }
-
-            list($groups, $msgs) = $this->fillIn($msgids, $limit);
+        # At the moment we only support ordering by date DESC.
+        #
+        # If we have a set of users, then it is more efficient to get the relevant messages first (because there
+        # are few and it's well-indexed).
+        if ($userids) {
+            $seltab = "(SELECT id, date, fromuser, deleted FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
+        } else {
+            $seltab = "messages";
         }
+
+        $sql = "SELECT msgid AS id, date FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC, messages.id DESC LIMIT $limit";
+
+        $msglist = $this->dbhr->preQuery($sql, [
+            $this->collection
+        ]);
+
+        # Get an array of just the message ids.
+        $msgids = [];
+        foreach ($msglist as $msg) {
+            $msgids[] = ['id' => $msg['id']];
+
+            $thisepoch = strtotime($msg['date']);
+
+            if ($ctx['Date'] == NULL || $thisepoch < $ctx['Date']) {
+                $ctx['Date'] = $thisepoch;
+            }
+
+            $ctx['id'] = $msg['id'];
+        }
+
+        list($groups, $msgs) = $this->fillIn($msgids, $limit);
 
         return([$groups, $msgs]);
     }

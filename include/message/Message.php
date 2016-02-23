@@ -344,6 +344,8 @@ class Message
                 $m = new Message($this->dbhr, $this->dbhm, $id);
                 $ret['related'][] = $m->getPublic(FALSE, FALSE);
             }
+
+            $ret['related'] = array_unique($ret['related']);
         }
 
         if (pres('heldby', $ret)) {
@@ -1437,40 +1439,57 @@ class Message
         if ($type) {
             # We get the Damerau-Levenshtein distance between the subjects, which we can use to
             # find the closest match if there isn't an exact one.
-            $sql = "SELECT id, subject, date, DAMLEVLIM(subject, ?, 50) AS dist, MIN(DAMLEVLIM(subject, ?, 50)) AS mindist FROM messages WHERE fromuser = ? AND type = ?;";
-            $messages = $this->dbhr->preQuery($sql, [ $this->subject, $this->subject, $this->fromuser, $type ]);
+            $sql = "SELECT id, subject, date, DAMLEVLIM(subject, ?, 50) AS dist FROM messages WHERE fromuser = ? AND type = ?;";
+            $messages = $this->dbhr->preQuery($sql, [ $this->subject, $this->fromuser, $type ]);
+            #error_log($sql . var_export([ $this->subject, $this->subject, $this->fromuser, $type ], TRUE));
 
             $thistime = strtotime($this->date);
-            # Ignore the first word; probably a subject keyword.
-            $subj1 = strtolower(preg_replace('/[A-Za-z]*(.*)/', "$1", $this->subject));
+            # If we are using the standard subject line format, ignore all of the stuff that isn't the item.
+            $subj1 = $this->subject;
+            if (preg_match('/.*?\:(.*)\(.*\)/', $this->subject, $matches)) {
+                $subj1 = trim($matches[1]);
+            }
+            $mindist = PHP_INT_MAX;
+            $match = FALSE;
+            $matchmsg = NULL;
 
             foreach ($messages as $message) {
-                #error_log("{$message['subject']} vs {$this->subject} dist {$message['dist']} vs {$message['mindist']}");
+                #error_log("{$message['subject']} vs {$this->subject} dist {$message['dist']}");
                 #error_log("Compare {$message['date']} vs {$this->date}, " . strtotime($message['date']) . " vs $thistime");
-                $match = FALSE;
+                $mindist = min($mindist, $message['dist']);
 
                 if ((($datedir == 1) && strtotime($message['date']) >= $thistime) ||
                     (($datedir == -1) && strtotime($message['date']) <= $thistime)) {
-                    $subj2 = strtolower(preg_replace('/[A-Za-z]*(.*)/', "$1", $message['subject']));
-                    #error_log("Compare subjects $subj1 vs $subj2 dist lim " . (strlen($subj1) * 3 / 4));
+                    $subj2 = $message['subject'];
+                    if (preg_match('/.*?\:(.*)\(.*\)/', $message['subject'], $matches)) {
+                        $subj2 = trim($matches[1]);
+                    }
+                    #error_log("Compare subjects $subj1 vs $subj2 dist {$message['dist']} min $mindist lim " . (strlen($subj1) * 3 / 4));
 
                     if ($subj1 == $subj2) {
                         # Exact match
+                        #error_log("Exact");
                         $match = TRUE;
-                    } else if ($message['dist'] == $message['mindist'] &&
+                        $matchmsg = $message;
+                    } else if ($message['dist'] <= $mindist &&
                         $message['dist'] <= strlen($subj1) * 3 / 4) {
                         # This is the closest match, but not utterly different.
+                        #error_log("Closest");
                         $match = TRUE;
+                        $matchmsg = $message;
                     }
                 }
+            }
 
-                if ($match && $message['id']) {
-                    # We seem to get a NULL returned in circumstances I don't quite understand but but which relate to
-                    # the use of DAMLEVLIM.
-                    $sql = "INSERT INTO messages_related (id1, id2) VALUES (?,?);";
-                    $this->dbhm->preExec($sql, [ $this->id, $message['id']] );
-                    $found++;
-                }
+            #error_log("Match $match message " . var_export($matchmsg, TRUE));
+
+            if ($match && $matchmsg['id']) {
+                # We seem to get a NULL returned in circumstances I don't quite understand but but which relate to
+                # the use of DAMLEVLIM.
+                #error_log("Best match {$matchmsg['subject']}");
+                $sql = "INSERT IGNORE INTO messages_related (id1, id2) VALUES (?,?);";
+                $this->dbhm->preExec($sql, [ $this->id, $matchmsg['id']] );
+                $found++;
             }
         }
 

@@ -139,6 +139,7 @@ Iznik.Views.ModTools.Message = IznikView.extend({
                     _.each(fromuser.messagehistory, function (message) {
                         message.dupage = dupage;
 
+                        //console.log("Check message", message.id, id, message.daysago, canonSubj(message.subject), subj);
                         if (message.id != id && message.daysago < 60) {
                             if (canonSubj(message.subject) == subj) {
                                 // No point displaying any group tag in the duplicate.
