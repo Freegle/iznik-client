@@ -139,8 +139,8 @@ function memberships() {
 
                     switch ($action) {
                         case 'Delete':
-                            # The delete call will handle any rejection on Yahoo if required.
-                            $u->delete($groupid, $subject, $body, $stdmsgid);
+                            # The reject call will handle any rejection on Yahoo if required.
+                            $u->reject($groupid, NULL, NULL, NULL);
                             break;
                         case 'Reject':
                             if (!$u->isPending($groupid)) {
