@@ -332,7 +332,7 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
                 } else {
                     // Just expand substitutions in the stdmsg.
                     subj = (stdmsg.subjpref ? stdmsg.subjpref : '') + (stdmsg.subjsuff ? stdmsg.subjsuff : '');
-                    self.substitutionStrings(subj, self.model.attributes, config, self.model.get('groups')[0]);
+                    subj = self.substitutionStrings(subj, self.model.attributes, config, self.model.get('groups')[0]);
                     focuson = 'js-subject';
                 }
 

@@ -696,8 +696,8 @@ Iznik.Views.Plugin.Work = IznikView.extend({
         IznikPlugin.completedWork();
 
         // Move to the end of the list.
-        this.$el.detach();
-        $('#js-work').append(this.$el);
+        var d = this.$el.detach();
+        $('#js-work').append(d);
     },
 
     succeed: function() {
