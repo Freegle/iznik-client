@@ -42,6 +42,37 @@ Iznik.Views.ModTools.Pages.PendingMembers = Iznik.Views.Infinite.extend({
             id: 'pendingGroupSelect'
         });
 
+        // The type of collection we're using depends on whether we're searching.  It controls how we fetch.
+        if (self.options.search) {
+            self.collection = new Iznik.Collections.Members.Search(null, {
+                groupid: self.selected,
+                group: Iznik.Session.get('groups').get(self.selected),
+                search: self.options.search,
+                collection: 'Pending'
+            });
+
+            self.$('.js-searchterm').val(self.options.search);
+        } else {
+            self.collection = new Iznik.Collections.Members(null, {
+                groupid: self.selected,
+                group: Iznik.Session.get('groups').get(self.selected),
+                collection: 'Pending'
+            });
+        }
+
+        // CollectionView handles adding/removing/sorting for us.
+        self.collectionView = new Backbone.CollectionView( {
+            el : self.$('.js-list'),
+            modelView : Iznik.Views.ModTools.Member.Pending,
+            modelViewOptions: {
+                collection: self.collection,
+                page: self
+            },
+            collection: self.collection
+        } );
+
+        self.collectionView.render();
+
         self.listenTo(self.groupSelect, 'selected', function(selected) {
             // Change the group selected.
             self.selected = selected;
@@ -49,37 +80,6 @@ Iznik.Views.ModTools.Pages.PendingMembers = Iznik.Views.Infinite.extend({
             // We haven't fetched anything for this group yet.
             self.lastFetched = null;
             self.context = null;
-
-            // The type of collection we're using depends on whether we're searching.  It controls how we fetch.
-            if (self.options.search) {
-                self.collection = new Iznik.Collections.Members.Search(null, {
-                    groupid: self.selected,
-                    group: Iznik.Session.get('groups').get(self.selected),
-                    search: self.options.search,
-                    collection: 'Pending'
-                });
-
-                self.$('.js-searchterm').val(self.options.search);
-            } else {
-                self.collection = new Iznik.Collections.Members(null, {
-                    groupid: self.selected,
-                    group: Iznik.Session.get('groups').get(self.selected),
-                    collection: 'Pending'
-                });
-            }
-
-            // CollectionView handles adding/removing/sorting for us.
-            self.collectionView = new Backbone.CollectionView( {
-                el : self.$('.js-list'),
-                modelView : Iznik.Views.ModTools.Member.Pending,
-                modelViewOptions: {
-                    collection: self.collection,
-                    page: self
-                },
-                collection: self.collection
-            } );
-
-            self.collectionView.render();
             self.fetch();
         });
 
@@ -106,15 +106,14 @@ Iznik.Views.ModTools.Member.Pending = Iznik.Views.ModTools.Member.extend({
     render: function() {
         var self = this;
 
-        self.model.set('group', Iznik.Session.getGroup(self.model.get('groupid')).attributes);
+        var groupid = self.model.get('groupid');
+        var group = Iznik.Session.getGroup(groupid);
+        self.model.set('group', group.attributes);
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
         var mom = new moment(this.model.get('joined'));
         this.$('.js-joined').html(mom.format('llll'));
 
         self.addOtherInfo();
-
-        // Get the group from the session
-        var group = Iznik.Session.getGroup(self.model.get('groupid'));
 
         // Our user
         var v = new Iznik.Views.ModTools.User({

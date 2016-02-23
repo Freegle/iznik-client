@@ -51,7 +51,7 @@ function memberships() {
                     $groupids = [];
                     $proceed = FALSE;
 
-                    if ($me->isAdminOrSupport()) {
+                    if ($me->isAdminOrSupport() && $search) {
                         # Admin or support can search all groups.
                         $groupids = $groupid ? [ $groupid ] : NULL;
                         $proceed = TRUE;
