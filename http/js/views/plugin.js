@@ -1612,16 +1612,8 @@ Iznik.Views.Plugin.Yahoo.DeleteApprovedMessage = Iznik.Views.Plugin.Work.extend(
                     self.fail();
                 }
             }, error: function(request, status, error) {
-                if (error.length == 0 && status == 'error') {
-                    // Can fail with no decent error code, which just leaves the work sitting there.
-                    // So if we had an operation which got a useless error, assume we have done the
-                    // best we can.
-                    console.log("Useless Yahoo error");
-                    self.succeed();
-                } else {
-                    console.log("Delete error", status, error);
-                    self.fail();
-                }
+                console.log("Delete error", status, error);
+                self.fail();
             }
         });
     }
@@ -1884,17 +1876,8 @@ Iznik.Views.Plugin.Yahoo.BanApprovedMember = Iznik.Views.Plugin.Work.extend({
                 }
             },
             error: function (request, status, error) {
-                // TODO It could be that the plugin isn't returning the info correctly in the error case.
-                if (error.length == 0 && status == 'error') {
-                    // Banning can fail with no decent error code, which just leaves the work sitting there.
-                    // So if we had an operation which got a useless error, assume we have done the
-                    // best we can.
-                    console.log("Useless Yahoo error");
-                    self.succeed();
-                } else {
-                    console.log("Ban error", status, error);
-                    self.fail();
-                }
+                console.log("Ban error", status, error);
+                self.fail();
             }
         });
 

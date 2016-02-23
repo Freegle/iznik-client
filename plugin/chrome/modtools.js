@@ -133,7 +133,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 
                  args.error = function (request, status, error) {
                    // We failed.  Just cancel the request
-                   console.log("Failed " + status);
+                   console.log("Failed ", status, error);
                  }
 
                  // We have to make this call async.  That is so that we can process the result

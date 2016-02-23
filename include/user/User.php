@@ -384,8 +384,8 @@ class User extends Entity
         if ($rc) {
             if ($this->user['yahooUserId']) {
                 # This is a user on Yahoo.  We must try to remove them from the group on there too, via the plugin.
-                $sql = "SELECT email FROM users_emails INNER JOIN users ON users_emails.userid = users.id AND users.id = ?;";
-                $emails = $this->dbhr->preQuery($sql, [ $this->id ]);
+                $sql = "SELECT email FROM users_emails INNER JOIN memberships ON users_emails.id = memberships.emailid AND groupid = ? AND users_emails.userid = ?;";
+                $emails = $this->dbhr->preQuery($sql, [ $groupid, $this->id ]);
                 $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
 
                 if ($ban) {
@@ -398,7 +398,7 @@ class User extends Entity
                 if ($email) {
                     $p = new Plugin($this->dbhr, $this->dbhm);
                     $p->add($groupid, [
-                        'type' => $ban ? 'BanApprovedMember' : 'RemoveApprovedMember',
+                        'type' => $type,
                         'id' => $this->user['yahooUserId'],
                         'email' => $email
                     ]);
