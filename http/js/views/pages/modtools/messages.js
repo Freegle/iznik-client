@@ -240,6 +240,20 @@ Iznik.Views.ModTools.Message = IznikView.extend({
                     self.$('.js-applied').append(v.render().el);
                 }
             });
+
+            // Don't show too many
+            self.$('.js-memberof').showFirst({
+                controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                count: 5
+            });
+            self.$('.js-applied').showFirst({
+                controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                count: 5
+            });
+            self.$('.js-otheremails').showFirst({
+                controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                count: 5
+            });
         }
     },
 
