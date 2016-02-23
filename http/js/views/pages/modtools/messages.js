@@ -34,6 +34,21 @@ Iznik.Views.ModTools.Message = IznikView.extend({
             self.render();
         });
 
+        var html = self.model.get('htmlbody');
+
+        if (html) {
+            // Yahoo is quite picky about the HTML that we pass back, and can fail edits.  Passing it through TinyMCE
+            // to sanitise it works for this.
+            self.$el.append('<textarea class="hidden js-tinymce" id="js-tinymce" />');
+            self.$('.js-tinymce').val(html);
+            tinyMCE.init({
+                selector: '.js-tinymce'
+            });
+
+            var html = tinyMCE.get('js-tinymce').getContent({format : 'raw'});
+            self.model.set('htmlbody', html);
+        }
+
         self.model.edit(
             self.$('.js-subject').val(),
             self.model.get('textbody'),
