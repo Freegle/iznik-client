@@ -91,20 +91,22 @@ function encodeHTMLEntities(str) {
 // Apply a custom order to a set of messages
 function orderedMessages(stdmsgs, order) {
     var sortmsgs = [];
-    order = JSON.parse(order);
-    _.each(order, function (id) {
-        var stdmsg = null;
-        _.each(stdmsgs, function (thisone) {
-            if (thisone.id == id) {
-                stdmsg = thisone;
+    if (!_.isUndefined(order)) {
+        order = JSON.parse(order);
+        _.each(order, function (id) {
+            var stdmsg = null;
+            _.each(stdmsgs, function (thisone) {
+                if (thisone.id == id) {
+                    stdmsg = thisone;
+                }
+            });
+
+            if (stdmsg) {
+                sortmsgs.push(stdmsg);
+                stdmsgs = _.without(stdmsgs, stdmsg);
             }
         });
-
-        if (stdmsg) {
-            sortmsgs.push(stdmsg);
-            stdmsgs = _.without(stdmsgs, stdmsg);
-        }
-    });
+    }
 
     sortmsgs = $.merge(sortmsgs, stdmsgs);
     return(sortmsgs);
