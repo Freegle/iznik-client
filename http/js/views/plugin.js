@@ -1615,7 +1615,7 @@ Iznik.Views.Plugin.Yahoo.DeleteApprovedMessage = Iznik.Views.Plugin.Work.extend(
                 } else {
                     new majax({
                         type: "DELETE",
-                        url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/messages/" + this.model.get('id') + "?gapi_crumb=" + self.crumb,
+                        url: YAHOOAPI + 'groups/' + self.model.get('group').nameshort + "/messages/" + self.model.get('id') + "?gapi_crumb=" + self.crumb,
                         success: function (ret) {
                             if (ret.hasOwnProperty('ygData') && ret.ygData == 1) {
                                 self.succeed();
