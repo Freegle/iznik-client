@@ -58,7 +58,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     $tpls = addTemplate(IZNIK_BASE . '/http/template/', IZNIK_BASE . '/http/template/');
     echo implode("\n", $tpls);
     ?>
-    <script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCpB54NtsIUX6L9ChabAmvr6k48DZhRJs0&libraries=geometry,places,drawing,visualization"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['corechart', 'annotationchart']}]}"></script>
     <script type="text/javascript" src="//cdn.tinymce.com/4/tinymce.min.js"></script>
 

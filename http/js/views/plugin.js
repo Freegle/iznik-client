@@ -1602,20 +1602,37 @@ Iznik.Views.Plugin.Yahoo.DeleteApprovedMessage = Iznik.Views.Plugin.Work.extend(
         var self = this;
         this.startBusy();
 
-        new majax({
-            type: "DELETE",
-            url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/messages/" + this.model.get('id') + "?gapi_crumb=" + self.crumb,
-            success: function (ret) {
-                if (ret.hasOwnProperty('ygData') && ret.ygData == 1) {
+        // If the message has already been deleted, then Yahoo doesn't tell us that in the return - it just
+        // gives a crumb error.  So get the message here to double check.
+        var url = "https://groups.yahoo.com/neo/groups/" + this.model.get('group').nameshort + this.crumbLocation + "?" + Math.random();
+        $.ajax({
+            'type': 'GET',
+            'url': url,
+            success: function(ret) {
+                if (ret.indexOf('The item you are looking for is not available') !== -1) {
+                    // It's already been deleted, so this is a success.
                     self.succeed();
                 } else {
-                    self.fail();
+                    new majax({
+                        type: "DELETE",
+                        url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/messages/" + this.model.get('id') + "?gapi_crumb=" + self.crumb,
+                        success: function (ret) {
+                            if (ret.hasOwnProperty('ygData') && ret.ygData == 1) {
+                                self.succeed();
+                            } else {
+                                self.fail();
+                            }
+                        }, error: function(request, status, error) {
+                            console.log("Delete error", status, error);
+                            self.fail();
+                        }
+                    });
                 }
-            }, error: function(request, status, error) {
-                console.log("Delete error", status, error);
+            }, error: function() {
                 self.fail();
             }
-        });
+
+        })
     }
 });
 
