@@ -110,6 +110,11 @@ class Yahoo
                 # up on a group sync.
                 $u->setPrivate('yahooid', $yahooid);
 
+                $this->dbhm->preExec("UPDATE users_logins SET lastaccess = NOW() WHERE userid = ? AND type = 'Yahoo';",
+                    [
+                        $id
+                    ]);
+
                 if (!$u->getPrivate('fullname') && pres('namePerson', $attrs)) {
                     # We might have syncd the membership without a good name.
                     $u->setPrivate('fullname', $attrs['namePerson']);
