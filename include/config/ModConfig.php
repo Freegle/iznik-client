@@ -170,6 +170,7 @@ class ModConfig extends Entity
             $configid = $conf['configid'];
         }
 
+        $save = FALSE;
         if ($configid == NULL) {
             # This user has no config.  If there is another mod with one, then we use that.  This handles the case
             # of a new floundering mod who doesn't quite understand what's going on.  Well, partially.
@@ -177,11 +178,34 @@ class ModConfig extends Entity
             $others = $this->dbhr->preQuery($sql, [ $groupid ]);
             foreach ($others as $other) {
                 $configid = $other['configid'];
-
-                # Record that for next time.
-                $sql = "UPDATE memberships SET configid = ? WHERE groupid = ? AND userid = ?;";
-                $this->dbhm->preExec($sql, [ $configid, $groupid, $modid ]);
+                $save = TRUE;
             }
+        }
+
+        if ($configid == NULL) {
+            # Still nothing.  Choose the first one created by us - at least that's something.
+            $sql = "SELECT id FROM mod_configs WHERE createdby = ? LIMIT 1;";
+            $mines = $this->dbhr->preQuery($sql, [ $modid ]);
+            foreach ($mines as $mine) {
+                $configid = $mine['id'];
+                $save = TRUE;
+            }
+        }
+
+        if ($configid == NULL) {
+            # Still nothing.  Choose a default
+            $sql = "SELECT id FROM mod_configs WHERE `default` = 1 LIMIT 1;";
+            $defs = $this->dbhr->preQuery($sql);
+            foreach ($defs as $def) {
+                $configid = $def['id'];
+                $save = TRUE;
+            }
+        }
+
+        if ($save) {
+            # Record that for next time.
+            $sql = "UPDATE memberships SET configid = ? WHERE groupid = ? AND userid = ?;";
+            $this->dbhm->preExec($sql, [ $configid, $groupid, $modid ]);
         }
 
         return $configid;
