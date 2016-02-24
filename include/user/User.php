@@ -1132,6 +1132,7 @@ class User extends Entity
 
                     #error_log("Emails now " . var_export($this->dbhm->preQuery("SELECT * FROM users_emails WHERE userid = $id1;"), true));
                     #error_log("Email merge returned $rc");
+
                 }
 
                 if ($rc) {

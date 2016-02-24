@@ -1,4 +1,4 @@
-ej<?php
+<?php
 function message() {
     global $dbhr, $dbhm;
 
