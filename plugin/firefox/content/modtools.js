@@ -118,6 +118,11 @@ var httpRequestObserver =
                             // We failed.  Just cancel the request
                             log("Failed " + status + " " + error);
                             log("cancel");
+
+                            var rsp = JSON.stringify(request.reponseText);
+                            log("Response " + rsp);
+                            wd.getElementById('modtoolsrsp').textContent = rsp;
+
                             subject.cancel(0x804b0002);
                             log('resume');
                             subject.resume();
