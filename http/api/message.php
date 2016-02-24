@@ -1,4 +1,4 @@
-<?php
+ej<?php
 function message() {
     global $dbhr, $dbhm;
 
@@ -118,8 +118,8 @@ function message() {
 
                 switch ($action) {
                     case 'Delete':
-                        # The delete call will handle any rejection on Yahoo if required.
-                        $m->delete($reason, NULL, $subject, $body, $stdmsgid);
+                        # The reject call will handle any rejection on Yahoo if required.
+                        $m->reject($reason, NULL, NULL, NULL, NULL);
                         break;
                     case 'Reject':
                         if (!$m->isPending($groupid)) {
