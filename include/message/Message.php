@@ -339,13 +339,16 @@ class Message
             $ret['related'] = [];
             $sql = "SELECT * FROM messages_related WHERE id1 = ? OR id2 = ?;";
             $rels = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
+            $relids = [];
             foreach ($rels as $rel) {
                 $id = $rel['id1'] == $this->id ? $rel['id2'] : $rel['id1'];
-                $m = new Message($this->dbhr, $this->dbhm, $id);
-                $ret['related'][] = $m->getPublic(FALSE, FALSE);
-            }
 
-            $ret['related'] = array_unique($ret['related']);
+                if (!array_key_exists($id, $relids)) {
+                    $m = new Message($this->dbhr, $this->dbhm, $id);
+                    $ret['related'][] = $m->getPublic(FALSE, FALSE);
+                    $relids[$id] = TRUE;
+                }
+            }
         }
 
         if (pres('heldby', $ret)) {
