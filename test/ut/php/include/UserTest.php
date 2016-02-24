@@ -313,7 +313,10 @@ class userTest extends IznikTestCase {
         $settings = [ 'test' => 1];
         $u2->setGroupSettings($group2, $settings);
         assertEquals([ 'showmessages' => 1, 'showmembers' => 1, 'pushnotify' => 1 ], $u1->getGroupSettings($group2));
-        assertEquals([ 'test' => 1, 'configid' => NULL ], $u2->getGroupSettings($group2));
+
+        # We should get the group back and a default config.
+        assertEquals(1, $u2->getGroupSettings($group2)['test'] );
+        assertNotNull($u2->getGroupSettings($group2)['configid']);
 
         # Merge u2 into u1
         assertTrue($u1->merge($id1, $id2, "UT"));
@@ -322,7 +325,8 @@ class userTest extends IznikTestCase {
         $u1 = new User($this->dbhr, $this->dbhm, $id1);
         $u2 = new User($this->dbhr, $this->dbhm, $id2);
 
-        assertEquals([ 'test' => 1, 'configid' => NULL ], $u1->getGroupSettings($group2));
+        assertEquals(1, $u1->getGroupSettings($group2)['test'] );
+        assertNotNull($u1->getGroupSettings($group2)['configid']);
 
         # u2 doesn't exist
         assertNull($u2->getId());

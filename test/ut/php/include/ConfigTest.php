@@ -213,5 +213,28 @@ class configTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testCC()
+    {
+        error_log(__METHOD__);
+
+        $c = new ModConfig($this->dbhr, $this->dbhm);
+        $id = $c->create('TestConfig');
+        assertNotNull($id);
+        $m = new StdMessage($this->dbhr, $this->dbhm);
+        $mid = $m->create("TestStdMessage", $id);
+        assertNotNull($mid);
+
+        $c->setPrivate('ccrejectto', 'Specific');
+        $c->setPrivate('ccrejectaddr', 'test-specific-reject@test.com');
+        $c->setPrivate('ccfollowupto', 'Specific');
+        $c->setPrivate('ccfollowupaddr', 'test-specific-follow@test.com');
+        assertEquals('test-specific-reject@test.com', $m->getBcc());
+
+        $m->setPrivate('action', 'Delete Approved Message');
+        assertEquals('test-specific-follow@test.com', $m->getBcc());
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

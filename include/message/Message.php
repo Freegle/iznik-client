@@ -1457,8 +1457,8 @@ class Message
             $matchmsg = NULL;
 
             foreach ($messages as $message) {
-                #error_log("{$message['subject']} vs {$this->subject} dist {$message['dist']}");
-                #error_log("Compare {$message['date']} vs {$this->date}, " . strtotime($message['date']) . " vs $thistime");
+                error_log("{$message['subject']} vs {$this->subject} dist {$message['dist']}");
+                error_log("Compare {$message['date']} vs {$this->date}, " . strtotime($message['date']) . " vs $thistime");
                 $mindist = min($mindist, $message['dist']);
 
                 if ((($datedir == 1) && strtotime($message['date']) >= $thistime) ||
@@ -1467,29 +1467,29 @@ class Message
                     if (preg_match('/.*?\:(.*)\(.*\)/', $message['subject'], $matches)) {
                         $subj2 = trim($matches[1]);
                     }
-                    #error_log("Compare subjects $subj1 vs $subj2 dist {$message['dist']} min $mindist lim " . (strlen($subj1) * 3 / 4));
+                    error_log("Compare subjects $subj1 vs $subj2 dist {$message['dist']} min $mindist lim " . (strlen($subj1) * 3 / 4));
 
                     if ($subj1 == $subj2) {
                         # Exact match
-                        #error_log("Exact");
+                        error_log("Exact");
                         $match = TRUE;
                         $matchmsg = $message;
                     } else if ($message['dist'] <= $mindist &&
                         $message['dist'] <= strlen($subj1) * 3 / 4) {
                         # This is the closest match, but not utterly different.
-                        #error_log("Closest");
+                        error_log("Closest");
                         $match = TRUE;
                         $matchmsg = $message;
                     }
                 }
             }
 
-            #error_log("Match $match message " . var_export($matchmsg, TRUE));
+            error_log("Match $match message " . var_export($matchmsg, TRUE));
 
             if ($match && $matchmsg['id']) {
                 # We seem to get a NULL returned in circumstances I don't quite understand but but which relate to
                 # the use of DAMLEVLIM.
-                #error_log("Best match {$matchmsg['subject']}");
+                error_log("Best match {$matchmsg['subject']}");
                 $sql = "INSERT IGNORE INTO messages_related (id1, id2) VALUES (?,?);";
                 $this->dbhm->preExec($sql, [ $this->id, $matchmsg['id']] );
                 $found++;

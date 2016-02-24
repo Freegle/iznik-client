@@ -94,7 +94,7 @@ class messageTest extends IznikTestCase {
 
         # TAKEN after OFFER but for other item - shouldn't match
         $msg = str_replace('22 Aug 2014', '22 Aug 2016', $msg);
-        $msg = str_replace('TAKEN: Test item', 'TAKEN: Something else', $msg);
+        $msg = str_replace('TAKEN: Test item', 'TAKEN: Something completely different', $msg);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         assertEquals(0, $m->recordRelated());
 
