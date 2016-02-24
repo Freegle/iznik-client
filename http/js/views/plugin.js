@@ -213,9 +213,10 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
         if (add) {
             this.work.push(work);
-            this.updatePluginCount();
             this.checkWork();
         }
+
+        this.updatePluginCount();
     },
 
     updatePluginCount: function() {
