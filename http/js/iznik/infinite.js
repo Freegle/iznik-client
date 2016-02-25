@@ -107,4 +107,4 @@ $(document).ready(function() {
     // We add informatin dynamically after the render, and this messes up waypoints, so we need to regularly
     // tell them to sort themselves out.
     window.setInterval(Waypoint.refreshAll, 1000);
-})
+});

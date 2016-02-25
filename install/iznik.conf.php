@@ -23,5 +23,5 @@ define('SITE_DESC', 'Making moderating easier');
 define('SUPPORT_ADDR', 'support@zzz');
 define('INFO_ADDR', 'info@zzz');
 
-
-
+# This speeds up load time
+define('MINIFY', TRUE);

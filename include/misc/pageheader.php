@@ -50,6 +50,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
 
     <?php
     # Pull in all our JS.
+    error_log("Minify?" . MINIFY);
     $ret = scriptInclude(MINIFY ? (function($str) { return(JSMin::minify($str)); }) : FALSE);
     echo implode("\n", $ret[1]);
 
