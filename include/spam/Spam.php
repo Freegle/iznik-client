@@ -271,6 +271,7 @@ class Spam {
         foreach ($spammers as $spammer) {
             $g = new Group($this->dbhr, $this->dbhm, $spammer['groupid']);
             $spamcheck = $g->getSetting('spammers', [ 'check' => 1, 'remove' => 1]);
+            error_log("Spamcheck " . var_export($spamcheck, TRUE));
             if ($spamcheck['check'] && $spamcheck['remove']) {
                 $u = new User($this->dbhr, $this->dbhm, $spammer['userid']);
                 error_log("Found spammer {$spammer['userid']}");
@@ -281,11 +282,11 @@ class Spam {
 
         # Find any messages from spammers which are on groups.
         $groupq = $groupid ? " AND messages_groups.groupid = $groupid " : "";
-        $sql = "SELECT DISTINCT messages.id, reason FROM `messages` INNER JOIN spam_users ON messages.fromuser = spam_users.userid AND spam_users.collection = ? AND messages.deleted IS NULL INNER JOIN messages_groups ON messages.id = messages_groups.msgid $groupq AND messages_groups.collection IN ('Approved', 'Pending');";
+        $sql = "SELECT DISTINCT messages.id, reason, messages_groups.groupid FROM `messages` INNER JOIN spam_users ON messages.fromuser = spam_users.userid AND spam_users.collection = ? AND messages.deleted IS NULL INNER JOIN messages_groups ON messages.id = messages_groups.msgid $groupq AND messages_groups.collection IN ('Approved', 'Pending');";
         $spammsgs = $this->dbhr->preQuery($sql, [ Spam::TYPE_SPAMMER ]);
 
         foreach ($spammsgs as $spammsg) {
-            $g = new Group($this->dbhr, $this->dbhm, $spammer['groupid']);
+            $g = new Group($this->dbhr, $this->dbhm, $spammsg['groupid']);
 
             # Only remove on Freegle groups by default.
             $spamcheck = $g->getSetting('spammers', [ 'check' => 1, 'remove' => $g->getPrivate('type') == Group::GROUP_FREEGLE]);

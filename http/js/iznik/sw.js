@@ -40,17 +40,29 @@ self.addEventListener('push', function(event) {
                     url = '/modtools/messages/pending';
                 }
 
+                if (workstr != '') {
+                    // Show a notification
+                    return  self.registration.showNotification("ModTools", {
+                        body: workstr,
+                        icon: '/images/favicon/favicon-96x96.png',
+                        tag: 'work',
+                        vibrate: [300, 100, 400],
+                        data: {
+                            'url': url
+                        }
+                    })
+                } else {
+                    // Clear any we have shown.
+                    registration.getNotifications({ tag: 'work' }).then(function(notifications) {
+                        console.log("Notifications", notifications);
+                        for (var i = 0; i < notifications.length; i++) {
+                            console.log("Close", i);
+                            notifications[i].close();
+                        }
+                    });
+                }
                 workstr = workstr == '' ? "No tasks outstanding" : workstr;
 
-                return  self.registration.showNotification("ModTools", {
-                    body: workstr,
-                    icon: '/images/favicon/favicon-96x96.png',
-                    tag: 'work',
-                    vibrate: [300, 100, 400],
-                    data: {
-                        'url': url
-                    }
-                })
             });
         })
     );

@@ -8,6 +8,7 @@ require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
+require_once(IZNIK_BASE . '/include/user/Notifications.php');
 
 class User extends Entity
 {
@@ -41,6 +42,7 @@ class User extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts, FALSE);
 
         $this->log = new Log($dbhr, $dbhm);
+        $this->notif = new Notifications($this->dbhr, $this->dbhm);
     }
 
     private function hashPassword($pw) {
@@ -1349,6 +1351,8 @@ class User extends Entity
         $sql = "DELETE FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
         $this->dbhr->preExec($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
 
+        $this->notif->notifyGroupMods($groupid);
+
         $this->maybeMail($groupid, $subject, $body, $stdmsgid);
     }
 
@@ -1399,6 +1403,8 @@ class User extends Entity
             $groupid
         ]);
 
+        $this->notif->notifyGroupMods($groupid);
+
         $this->maybeMail($groupid, $subject, $body, $stdmsgid);
     }
 
@@ -1429,6 +1435,8 @@ class User extends Entity
                 $groupid
             ]);
         }
+
+        $this->notif->notifyGroupMods($groupid);
     }
 
     function hold($groupid) {
@@ -1445,6 +1453,8 @@ class User extends Entity
                 'byuser' => $me ? $me->getId() : NULL
             ]);
         }
+
+        $this->notif->notifyGroupMods($groupid);
     }
 
     function release($groupid) {
@@ -1461,6 +1471,8 @@ class User extends Entity
                 'byuser' => $me ? $me->getId() : NULL
             ]);
         }
+
+        $this->notif->notifyGroupMods($groupid);
     }
 
     public function getComments() {

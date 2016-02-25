@@ -10,6 +10,7 @@ require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/include/misc/Search.php');
+require_once(IZNIK_BASE . '/include/user/Notifications.php');
 
 class Message
 {
@@ -176,6 +177,7 @@ class Message
         $this->dbhm = $dbhm;
 
         $this->log = new Log($this->dbhr, $this->dbhm);
+        $this->notif = new Notifications($this->dbhr, $this->dbhm);
 
         if ($id) {
             $msgs = $dbhr->preQuery("SELECT * FROM messages WHERE id = ?;", [$id]);
@@ -1215,6 +1217,8 @@ class Message
             $this->id
         ]);
 
+        $this->notif->notifyGroupMods($groupid);
+
         $this->maybeMail($groupid, $subject, $body, $stdmsgid);
     }
 
@@ -1259,6 +1263,8 @@ class Message
             $myid,
             $this->id
         ]);
+
+        $this->notif->notifyGroupMods($groupid);
 
         $this->maybeMail($groupid, $subject, $body, $stdmsgid);
     }
@@ -1342,7 +1348,6 @@ class Message
                 ]);
 
             foreach ($groups as $group) {
-                error_log(var_export($group, TRUE));
                 $groupid = $group['groupid'];
 
                 # The message has been allocated to a group; mark it as deleted.  We keep deleted messages for
@@ -1376,6 +1381,8 @@ class Message
                         ]);
                     }
                 }
+
+                $this->notif->notifyGroupMods($groupid);
             }
 
             # If we have deleted this message from all groups, mark it as deleted in the messages table.
