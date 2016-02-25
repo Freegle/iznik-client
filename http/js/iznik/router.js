@@ -265,8 +265,13 @@ var IznikRouter = Backbone.Router.extend({
 
     support: function() {
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
-            var page = new Iznik.Views.ModTools.Pages.Support();
-            this.loadRoute({page: page, modtools: true});
+            if (!Iznik.Session.isAdminOrSupport()) {
+                // You're not supposed to be here, are you?
+                Router.navigate('/', true);
+            } else {
+                var page = new Iznik.Views.ModTools.Pages.Support();
+                this.loadRoute({page: page, modtools: true});
+            }
         });
 
         Iznik.Session.forceLogin();
