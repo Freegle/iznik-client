@@ -284,7 +284,7 @@ function ajaxRequest(verb, url, data, cookies, success, error) {
     xhr.open(verb, url, true);
     //xhr.setRequestHeader('Cookie', cookies);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-    var encoded = formurlencoded(data);
+    var encoded = data ? formurlencoded(data) : '';
     log("Encoded data " + encoded);
     xhr.setRequestHeader('Content-Length', encoded.length);
     xhr.onload = function (e) {

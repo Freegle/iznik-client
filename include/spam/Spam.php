@@ -214,7 +214,7 @@ class Spam {
         $collectionq = ($collection ? " AND collection = '$collection'" : '');
         $startq = $context ? (" AND spam_users.id <  " . intval($context['id']) . " ") : '';
         $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") . ") ");
-        $sql = "SELECT DISTINCT spam_users.* FROM spam_users INNER JOIN users ON spam_users.userid = users.id LEFT JOIN users_emails ON users_emails.userid = spam_users.userid WHERE 1=1 $startq $collectionq $searchq AND users.systemrole = 'User' ORDER BY spam_users.id DESC LIMIT 10;";
+        $sql = "SELECT DISTINCT spam_users.* FROM spam_users INNER JOIN users ON spam_users.userid = users.id LEFT JOIN users_emails ON users_emails.userid = spam_users.userid WHERE 1=1 $startq $collectionq $searchq ORDER BY spam_users.id DESC LIMIT 10;";
         $context = [];
 
         $spammers = $this->dbhr->preQuery($sql);
@@ -263,8 +263,9 @@ class Spam {
         $count = 0;
         $groupq = $groupid ? " AND groupid = $groupid " : "";
 
-        # Find anyone in the spammer list with a current (approved or pending) membership.
-        $sql = "SELECT * FROM memberships INNER JOIN spam_users ON memberships.userid = spam_users.userid AND spam_users.collection = ? $groupq;";
+        # Find anyone in the spammer list with a current (approved or pending) membership.  Don't remove mods
+        # in case someone wrongly gets onto the list.
+        $sql = "SELECT * FROM memberships INNER JOIN spam_users ON memberships.userid = spam_users.userid AND spam_users.collection = ? AND memberships.role = 'User' $groupq;";
         $spammers = $this->dbhr->preQuery($sql, [ Spam::TYPE_SPAMMER ]);
 
         foreach ($spammers as $spammer) {

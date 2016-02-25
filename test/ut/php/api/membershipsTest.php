@@ -202,6 +202,17 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(1, count($ret['members']));
         assertEquals($this->uid, $ret['members'][0]['id']);
 
+        # Test that a mod can't see stuff
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
+        assertEquals(1, $this->user->removeMembership($this->groupid));
+
+        # Search across all groups.
+        $ret = $this->call('memberships', 'GET', [
+            'search' => 'tes2t@test.com'
+        ]);
+        error_log("Should fail " . var_export($ret, TRUE));
+        assertEquals(2, $ret['ret']);
+
         error_log(__METHOD__ . " end");
     }
 

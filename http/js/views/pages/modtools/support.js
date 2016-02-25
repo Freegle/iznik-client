@@ -5,7 +5,15 @@ Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
 
     events: {
         'click .js-searchuser': 'searchUser',
+        'keyup .js-searchuserinp': 'keyup',
         'click .js-mailgroup': 'mailGroup'
+    },
+
+    keyup: function(e) {
+        // Search on enter.
+        if (e.which == 13) {
+            this.$('.js-searchuser').click();
+        }
     },
 
     searchUser: function() {
