@@ -78,7 +78,10 @@ class Message
         ]);
 
         if ($subject) {
+            # If the subject has been edited, then that edit is more important than any suggestion we might have
+            # come up with.
             $this->setPrivate('subject', $subject);
+            $this->setPrivate('suggestedsubject', $subject);
         }
 
         if ($textbody) {

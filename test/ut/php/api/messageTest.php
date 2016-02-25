@@ -839,6 +839,7 @@ class messageAPITest extends IznikAPITestCase {
             'id' => $id
         ]);
         assertEquals('Test edit', $ret['message']['subject']);
+        assertEquals('Test edit', $ret['message']['suggestedsubject']);
 
         $ret = $this->call('message', 'PUT', [
             'id' => $id,
