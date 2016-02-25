@@ -1599,6 +1599,45 @@ Iznik.Views.Plugin.Yahoo.DeleteApprovedMessage = Iznik.Views.Plugin.Work.extend(
 
     server: true,
 
+    checkRsp: function(ret) {
+        // We may hit a Yahoo redirect.
+        var self = this;
+
+        if (ret.indexOf("Please wait while we are redirecting") !== -1) {
+            var re = /window.location.href = "(.*)"/;
+            var match = re.exec(ret);
+            if (match[1]) {
+                $.ajax({
+                    type: 'GET',
+                    url: match[1],
+                    context: self,
+                    success: self.checkRsp,
+                    error: function() {
+                        self.fail();
+                    }
+                })
+            }
+        } else if (ret.indexOf('The item you are looking for is not available') !== -1) {
+            // It's already been deleted, so this is a success.
+            self.succeed();
+        } else {
+            new majax({
+                type: "DELETE",
+                url: YAHOOAPI + 'groups/' + self.model.get('group').nameshort + "/messages/" + self.model.get('id') + "?gapi_crumb=" + self.crumb,
+                success: function (ret) {
+                    if (ret.hasOwnProperty('ygData') && ret.ygData == 1) {
+                        self.succeed();
+                    } else {
+                        self.fail();
+                    }
+                }, error: function(request, status, error) {
+                    console.log("Delete error", status, error);
+                    self.fail();
+                }
+            });
+        }
+    },
+
     start: function() {
         var self = this;
         this.startBusy();
@@ -1609,30 +1648,11 @@ Iznik.Views.Plugin.Yahoo.DeleteApprovedMessage = Iznik.Views.Plugin.Work.extend(
         $.ajax({
             'type': 'GET',
             'url': url,
-            success: function(ret) {
-                if (ret.indexOf('The item you are looking for is not available') !== -1) {
-                    // It's already been deleted, so this is a success.
-                    self.succeed();
-                } else {
-                    new majax({
-                        type: "DELETE",
-                        url: YAHOOAPI + 'groups/' + self.model.get('group').nameshort + "/messages/" + self.model.get('id') + "?gapi_crumb=" + self.crumb,
-                        success: function (ret) {
-                            if (ret.hasOwnProperty('ygData') && ret.ygData == 1) {
-                                self.succeed();
-                            } else {
-                                self.fail();
-                            }
-                        }, error: function(request, status, error) {
-                            console.log("Delete error", status, error);
-                            self.fail();
-                        }
-                    });
-                }
-            }, error: function() {
+            context: this,
+            success: self.checkRsp,
+            error: function() {
                 self.fail();
             }
-
         })
     }
 });
