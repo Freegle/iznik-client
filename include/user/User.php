@@ -689,7 +689,7 @@ class User extends Entity
         return($rc);
     }
 
-    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE) {
+    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE) {
         $atts = parent::getPublic();
 
         $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [];
@@ -723,7 +723,8 @@ class User extends Entity
         # Exclude the logs which are due to standard message syncing.
         $modships = $me ? $me->getModeratorships() : [];
         $modships = count($modships) == 0 ? [0] : $modships;
-        $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND text NOT IN ('Not present on Yahoo') AND groupid IN (" . implode(',', $modships) . ");";
+        $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND text NOT IN ('Not present on Yahoo')";
+        $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? $modmailq AND groupid IN (" . implode(',', $modships) . ");";
         $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
         $modmails = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
         #error_log("$sql, {$this->id}, $mysqltime");
@@ -735,7 +736,8 @@ class User extends Entity
             # - deletion of users due to syncing
             $me = whoAmI($this->dbhr, $this->dbhm);
             $startq = $ctx ? " AND id < {$ctx['id']} " : '';
-            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged')) AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list')) ORDER BY id DESC LIMIT 50;";
+            $modq = $modmailsonly ? $modmailq : '';
+            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged')) AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list')) $modq ORDER BY id DESC LIMIT 50;";
             $logs = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
             $atts['logs'] = [];
             $groups = [];

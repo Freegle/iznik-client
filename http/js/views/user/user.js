@@ -7,6 +7,7 @@ Iznik.Views.ModTools.User = IznikView.extend({
         'click .js-takens': 'takens',
         'click .js-wanteds': 'wanteds',
         'click .js-receiveds': 'receiveds',
+        'click .js-modmails': 'modmails',
         'click .js-others': 'others',
         'click .js-logs': 'logs',
         'click .js-remove': 'remove',
@@ -51,6 +52,16 @@ Iznik.Views.ModTools.User = IznikView.extend({
 
     others: function() {
         this.showPosts(false, false, false, false, true);
+    },
+
+    modmails: function() {
+        var self = this;
+        var v = new Iznik.Views.ModTools.User.ModMails({
+            model: self.model,
+            modmailsonly: true
+        });
+
+        v.render();
     },
 
     logs: function() {
@@ -286,12 +297,21 @@ Iznik.Views.ModTools.User.Logs = Iznik.Views.Modal.extend({
         this.getChunk();
     },
 
+    addLog: function(log) {
+        var v = new Iznik.Views.ModTools.User.LogEntry({
+            model: new IznikModel(log)
+        });
+
+        this.$('.js-list').append(v.render().el);
+    },
+
     getChunk: function() {
         var self = this;
 
         this.model.fetch({
             data: {
                 logs: true,
+                modmailsonly: self.options.modmailsonly,
                 logcontext: this.logcontext
             },
             success: function(model, response, options) {
@@ -304,14 +324,11 @@ Iznik.Views.ModTools.User.Logs = Iznik.Views.Modal.extend({
                 }
             }
         }).then(function() {
+            self.$('.js-loading').hide();
             var logs = self.model.get('logs');
 
             _.each(logs, function (log) {
-                var v = new Iznik.Views.ModTools.User.LogEntry({
-                    model: new IznikModel(log)
-                });
-
-                self.$('.js-list').append(v.render().el);
+                self.addLog(log);
             });
 
             if (!self.moreShown) {
@@ -345,6 +362,36 @@ Iznik.Views.ModTools.User.LogEntry = IznikView.extend({
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
         var mom = new moment(this.model.get('timestamp'));
         this.$('.js-date').html(mom.format('DD-MMM-YY HH:mm'));
+        return(this);
+    }
+});
+
+// Modmails are very similar to logs.
+Iznik.Views.ModTools.User.ModMails = Iznik.Views.ModTools.User.Logs.extend({
+    template: 'modtools_user_modmails',
+    addLog: function(log) {
+        var v = new Iznik.Views.ModTools.User.ModMailEntry({
+            model: new IznikModel(log)
+        });
+
+        this.$('.js-list').append(v.render().el);
+    }
+});
+
+Iznik.Views.ModTools.User.ModMailEntry = IznikView.extend({
+    template: 'modtools_user_logentry',
+
+    render: function() {
+        var self = this;
+
+        this.$el.html(window.template(this.template)(this.model.toJSON2()));
+        var mom = new moment(this.model.get('timestamp'));
+        this.$('.js-date').html(mom.format('DD-MMM-YY HH:mm'));
+
+        // The log template will add logs, but highlighted.  We want to remove the highlighting for the modmail
+        // display.
+        this.$('div.nomargin.alert.alert-danger').removeClass('nomargin alert alert-danger');
+
         return(this);
     }
 });

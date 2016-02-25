@@ -555,6 +555,10 @@ paths:
         in: query
         description: Whether to get user's logs; defaults FALSE
         type: boolean
+      - name: modmailsonly
+        in: query
+        description: When logs = TRUE, whether to only get modmail type logs
+        type: boolean
       responses:
           "200":
             description: "Successful response"

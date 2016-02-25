@@ -1328,17 +1328,6 @@ class Message
         }
 
         if ($this->id) {
-            $this->log->log([
-                'type' => Log::TYPE_MESSAGE,
-                'subtype' => Log::SUBTYPE_DELETED,
-                'msgid' => $this->id,
-                'user' => $this->fromuser,
-                'byuser' => $me ? $me->getId() : NULL,
-                'text' => $reason,
-                'groupid' => $groupid,
-                'stdmsgid' => $stdmsgid
-            ]);
-
             # Delete from a specific or all groups that it's on.
             $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND " . ($groupid ? " groupid = ?" : " ?") . ";";
             $groups = $this->dbhr->preQuery($sql,
@@ -1349,6 +1338,17 @@ class Message
 
             foreach ($groups as $group) {
                 $groupid = $group['groupid'];
+
+                $this->log->log([
+                    'type' => Log::TYPE_MESSAGE,
+                    'subtype' => Log::SUBTYPE_DELETED,
+                    'msgid' => $this->id,
+                    'user' => $this->fromuser,
+                    'byuser' => $me ? $me->getId() : NULL,
+                    'text' => $reason,
+                    'groupid' => $groupid,
+                    'stdmsgid' => $stdmsgid
+                ]);
 
                 # The message has been allocated to a group; mark it as deleted.  We keep deleted messages for
                 # PD.
