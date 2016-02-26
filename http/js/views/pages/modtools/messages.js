@@ -315,7 +315,6 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
 
         // Apply standard message settings.  Need to refetch as the textbody is not returned in the session.
-        console.log("Modal", this.options.stdmsg);
         if (this.options.stdmsg && this.options.stdmsg.get('id')) {
             this.options.stdmsg.fetch().then(function() {
                 var stdmsg = self.options.stdmsg.attributes;

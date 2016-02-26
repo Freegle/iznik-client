@@ -1270,7 +1270,16 @@ class User extends Entity
 
             $me = whoAmI($this->dbhr, $this->dbhm);
 
+            # Find who to send it from.  If we have a config to use for this group then it will tell us.
             $name = $me->getName();
+            $c = new ModConfig($this->dbhr, $this->dbhm);
+            $cid = $c->getForGroup($me->getId(), $groupid);
+            $c = new ModConfig($this->dbhr, $this->dbhm, $cid);
+            $fromname = $c->getPrivate('fromname');
+
+            if ($fromname == 'Groupname Moderator') {
+                $name = '$groupname Moderator';
+            }
 
             # We can do a simple substitution in the from name.
             $name = str_replace('$groupname', $atts['namedisplay'], $name);
