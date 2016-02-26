@@ -164,8 +164,8 @@ class LoggedPDO {
 
             if (isset($_SESSION)) {
                 $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote($sql . ", " . var_export($params, TRUE)) . "," . $this->quote($logret) . ");";
+                $this->background($logsql);
             }
-            $this->background($logsql);
         }
 
         if ($this->errorLog) {
