@@ -192,20 +192,19 @@ function chunkArray(array, size) {
 
 var base64url = {
     _strmap: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_',
-    encode: function(data) {
+    encode: function encode(data) {
         data = new Uint8Array(data);
         var len = Math.ceil(data.length * 4 / 3);
-        return chunkArray(data, 3).map(chunk => [
-                chunk[0] >>> 2,
-                ((chunk[0] & 0x3) << 4) | (chunk[1] >>> 4),
-                ((chunk[1] & 0xf) << 2) | (chunk[2] >>> 6),
-                chunk[2] & 0x3f
-            ].map(v => base64url._strmap[v]).join('')).join('').slice(0, len);
+        return chunkArray(data, 3).map(function (chunk) {
+            return [chunk[0] >>> 2, (chunk[0] & 0x3) << 4 | chunk[1] >>> 4, (chunk[1] & 0xf) << 2 | chunk[2] >>> 6, chunk[2] & 0x3f].map(function (v) {
+                return base64url._strmap[v];
+            }).join('');
+        }).join('').slice(0, len);
     },
-    _lookup: function(s, i) {
+    _lookup: function _lookup(s, i) {
         return base64url._strmap.indexOf(s.charAt(i));
     },
-    decode: function(str) {
+    decode: function decode(str) {
         var v = new Uint8Array(Math.floor(str.length * 3 / 4));
         var vi = 0;
         for (var si = 0; si < str.length;) {
