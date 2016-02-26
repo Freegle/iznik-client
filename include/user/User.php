@@ -880,7 +880,8 @@ class User extends Entity
                     $memberof[] = [
                         'id' => $group['groupid'],
                         'namedisplay' => $name,
-                        'added' => ISODate($group['added'])
+                        'added' => ISODate($group['added']),
+                        'collection' => $group['collection']
                     ];
 
                     if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
@@ -916,7 +917,8 @@ class User extends Entity
                 $memberof[] = [
                     'id' => $group['groupid'],
                     'namedisplay' => $name,
-                    'added' => ISODate($group['added'])
+                    'added' => ISODate($group['added']),
+                    'collection' => $group['collection']
                 ];
 
                 if ($group['lat'] && $group['lng']) {
