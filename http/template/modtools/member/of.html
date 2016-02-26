@@ -1,5 +1,5 @@
 <span class="text-muted warning">
     <small>
-        On {{namedisplay}} from <abbr class="timeago" title="{{added}}"/>
+        <% if (collection == 'Pending') { %>Pending on<% } else if (collection == 'Spam') { %>Spam on <% } else { %>On<% } %> {{namedisplay}} from <abbr class="timeago" title="{{added}}"/>
     </small>
 </span>
