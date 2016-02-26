@@ -92,7 +92,9 @@ class sessionTest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
+        error_log("Session get");
         $ret = $this->call('session','GET', []);
+        error_log("Session got");
         assertEquals(0, $ret['ret']);
         assertEquals($group1, $ret['groups'][0]['id']);
         assertEquals('test@test.com', $ret['emails'][0]['email']);

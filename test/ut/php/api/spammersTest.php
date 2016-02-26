@@ -76,8 +76,7 @@ class spammersAPITest extends IznikAPITestCase {
         $ret = $this->call('spammers', 'GET', [
             'search' => 'Test User'
         ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals(0, count($ret['spammers']));
+        assertEquals(2, $ret['ret']);
 
         # Things we can't do when not logged in
         $ret = $this->call('spammers', 'POST', [
@@ -133,6 +132,7 @@ class spammersAPITest extends IznikAPITestCase {
         $sid = $ret['id'];
         assertNotNull($sid);
 
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_SPAMMER,
             'search' => 'Test User'

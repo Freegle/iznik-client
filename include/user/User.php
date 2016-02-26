@@ -1437,8 +1437,6 @@ class User extends Entity
                 $groupid
             ]);
         }
-
-        $this->notif->notifyGroupMods($groupid);
     }
 
     function hold($groupid) {

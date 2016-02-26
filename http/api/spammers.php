@@ -28,8 +28,13 @@ function spammers() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            $ret = [ 'ret' => 0, 'status' => 'Success', 'spammers' => $s->listSpammers($collection, $search, $context) ];
-            $ret['context'] = $context;
+            $ret = ['ret' => 2, 'status' => 'Permission denied'];
+
+            if ($me && $me->isModerator()) {
+                # Only mods can see the list.
+                $ret = [ 'ret' => 0, 'status' => 'Success', 'spammers' => $s->listSpammers($collection, $search, $context) ];
+                $ret['context'] = $context;
+            }
             break;
         }
 
