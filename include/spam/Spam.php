@@ -271,7 +271,6 @@ class Spam {
         foreach ($spammers as $spammer) {
             $g = new Group($this->dbhr, $this->dbhm, $spammer['groupid']);
             $spamcheck = $g->getSetting('spammers', [ 'check' => 1, 'remove' => 1]);
-            error_log("Spamcheck " . var_export($spamcheck, TRUE));
             if ($spamcheck['check'] && $spamcheck['remove']) {
                 $u = new User($this->dbhr, $this->dbhm, $spammer['userid']);
                 error_log("Found spammer {$spammer['userid']}");

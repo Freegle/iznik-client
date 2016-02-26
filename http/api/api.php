@@ -221,7 +221,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     $rsp = substr($rsp, 0, 1000);
                 }
 
-                $sql = "INSERT INTO logs_api (`userid`, `session`, `request`, `response`) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", " . $dbhr->quote(session_id()) .
+                $sql = "INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '{$_SERVER['REMOTE_ADDR']}', " . $dbhr->quote(session_id()) .
                     ", " . $dbhr->quote($req) . ", " . $dbhr->quote($rsp) . ");";
                 $dbhm->background($sql);
             }

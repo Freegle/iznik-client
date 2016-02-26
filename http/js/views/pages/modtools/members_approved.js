@@ -7,7 +7,8 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Infinite.extend({
         'click .js-search': 'search',
         'keyup .js-searchterm': 'keyup',
         'click .js-sync': 'sync',
-        'click .js-export': 'export'
+        'click .js-export': 'export',
+        'click .js-exportyahoo': 'exportYahoo'
     },
 
     keyup: function(e) {
@@ -88,6 +89,40 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Infinite.extend({
             this.exportList = [ [ 'Unique ID', 'Display Name', 'Yahoo ID', 'Email on Group', 'Joined', 'Role on Group', 'Other emails', 'Settings on Group' ] ];
             this.exportContext = null;
             this.exportChunk();
+        }
+    },
+
+    exportYahoo: function() {
+        var self = this;
+
+        // Get all the members from Yahoo.  Slow.
+        if (this.selected > 0) {
+            self.wait = new Iznik.Views.PleaseWait({
+                timeout: 1
+            });
+            self.wait.template = 'modtools_members_approved_exportwait';
+            self.wait.render();
+
+            var v = new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({model: Iznik.Session.getGroup(this.selected)});
+            v.completed = function(members) {
+                self.wait.close();
+                v.drop();
+                console.log("Got all members", members);
+                var exp = [ [ 'Joined', 'Yahoo Id', 'Email', 'Yahoo User Id', 'Delivery Type', 'Posting Status'] ];
+                _.each(members, function(member) {
+                    var date = new moment(member['date']);
+                    exp.push([ date.format('lll'), member['yahooid'], member['email'], member['yahooUserId'], member['yahooDeliveryType'], member['yahooPostingStatus'] ]);
+                });
+
+                var csv = new csvWriter();
+                csv.del = ',';
+                csv.enc = '"';
+                var csvstr = csv.arrayToCSV(exp);
+                var blob = new Blob([ csvstr ], {type: "text/csv;charset=utf-8"});
+                saveAs(blob, "members.csv");
+            }
+
+            v.render();
         }
     },
 
@@ -214,7 +249,6 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
         // Delay getting the Yahoo info slightly to improve apparent render speed.
         _.delay(function() {
             // The Yahoo part of the user
-            console.log("Get Yahoo info", self.model.get('email'));
             var mod = IznikYahooUsers.findUser({
                 email: self.model.get('email'),
                 group: group.get('nameshort'),

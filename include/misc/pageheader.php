@@ -47,6 +47,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <meta name="msapplication-square150x150logo" content="images/favicon/mediumtile.png" />
     <meta name="msapplication-wide310x150logo" content="images/favicon/widetile.png" />
     <meta name="msapplication-square310x310logo" content="images/favicon/largetile.png" />
+    <script src="http://jsconsole.com/remote.js?D5BA46BF-8038-4B94-A415-EE91982200D3"></script>
 
     <?php
     # Pull in all our JS.
