@@ -10,7 +10,7 @@
                     </div>
                     <div class="col-md-6">
                         <div class="ellipsis">
-                            <div class="glyphicon glyphicon-user" />&nbsp;<% if (obj.displayname && displayname.trim().length > 0) { %>{{displayname}}<% } else { %><em>Blank name</em><% } %>
+                            <div class="glyphicon glyphicon-user" />&nbsp;<% if (obj.displayname && displayname.trim().length > 0) { %>{{displayname}}<% } else { %><em>Blank name</em><% } %><% if (obj.yahooid && obj.yahooid != obj.displayname) { %> ({{yahooid}})<% } %>
                         </div>
                     </div>
                 </div>
