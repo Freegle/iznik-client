@@ -23,7 +23,7 @@ Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
 
         self.collection = new Iznik.Collections.Members.Search(null, {
             collection: 'Approved',
-            search: this.$('.js-searchuserinp').val()
+            search: this.$('.js-searchuserinp').val().trim()
         });
 
         self.collectionView = new Backbone.CollectionView( {
