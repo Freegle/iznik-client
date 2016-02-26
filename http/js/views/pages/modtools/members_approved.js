@@ -56,6 +56,8 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Infinite.extend({
                             member.joined,
                             member.role,
                             otheremails.join(', '),
+                            member.yahooDeliveryType,
+                            member.yahooPostingStatus,
                             JSON.stringify(member.settings,null,0)
                         ]);
                     });
@@ -86,7 +88,7 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Infinite.extend({
             v.template = 'modtools_members_approved_exportwait';
             v.render();
             this.exportWait = v;
-            this.exportList = [ [ 'Unique ID', 'Display Name', 'Yahoo ID', 'Email on Group', 'Joined', 'Role on Group', 'Other emails', 'Settings on Group' ] ];
+            this.exportList = [ [ 'Unique ID', 'Display Name', 'Yahoo ID', 'Email on Group', 'Joined', 'Role on Group', 'Other emails', 'Yahoo Delivery Type', 'Yahoo Posting Status', 'Settings on Group' ] ];
             this.exportContext = null;
             this.exportChunk();
         }
