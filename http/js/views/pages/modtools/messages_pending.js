@@ -289,7 +289,6 @@ Iznik.Views.ModTools.StdMessage.Pending.Approve = Iznik.Views.ModTools.StdMessag
 
     render: function() {
         this.expand();
-        this.closeWhenRequired();
         return(this);
     }
 });
@@ -311,7 +310,6 @@ Iznik.Views.ModTools.StdMessage.Pending.Reject = Iznik.Views.ModTools.StdMessage
 
     render: function() {
         this.expand();
-        this.closeWhenRequired();
         return(this);
     }
 });

@@ -363,11 +363,17 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
                 $('.modal').on('shown.bs.modal', function () {
                     $('.modal ' + focuson).focus();
                 });
+
+                if (self.options.stdmsg.get('autosend')) {
+                    self.$('.js-send').click();
+                }
             });
         } else {
             // No standard message; just open
             self.open(null);
         }
+
+        self.closeWhenRequired();
     },
 
     substitutionStrings: function(text, model, config, group) {
@@ -524,10 +530,6 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
             });
             self.close();
         });
-
-        if (self.options.stdmsg.get('autosend')) {
-            self.$('.js-send').click();
-        }
     }
 });
 
@@ -846,7 +848,6 @@ Iznik.Views.ModTools.StdMessage.Leave = Iznik.Views.ModTools.StdMessage.Modal.ex
 
     render: function() {
         this.expand();
-        this.closeWhenRequired();
         return(this);
     }
 });
@@ -879,7 +880,6 @@ Iznik.Views.ModTools.StdMessage.Delete = Iznik.Views.ModTools.StdMessage.Modal.e
 
     render: function() {
         this.expand();
-        this.closeWhenRequired();
         return(this);
     }
 });
