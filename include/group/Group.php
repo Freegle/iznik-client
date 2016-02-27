@@ -423,65 +423,67 @@ class Group extends Entity
 
                     $added = pres('date', $member) ? ("'" . date("Y-m-d H:i:s", strtotime($member['date'])) . "'") : 'NULL';
 
-                    if (count($membs) == 0) {
-                        # Make sure the membership is present.  We don't want to REPLACE as that might lose settings.
-                        # We also don't want to just do INSERT IGNORE as that doesn't perform well in clusters.
-                        $sql = "INSERT IGNORE INTO memberships (userid, groupid, emailid, collection) VALUES ({$member['uid']}, {$this->id}, {$member['emailid']}, '$collection');";
-                        $bulksql .= $sql;
-                        $membs = [
-                            [
-                                'role' => User::ROLE_MEMBER
-                            ]
-                        ];
+                    if ($member['emailid']) {
+                        if (count($membs) == 0) {
+                            # Make sure the membership is present.  We don't want to REPLACE as that might lose settings.
+                            # We also don't want to just do INSERT IGNORE as that doesn't perform well in clusters.
+                            $sql = "INSERT IGNORE INTO memberships (userid, groupid, emailid, collection) VALUES ({$member['uid']}, {$this->id}, {$member['emailid']}, '$collection');";
+                            $bulksql .= $sql;
+                            $membs = [
+                                [
+                                    'role' => User::ROLE_MEMBER
+                                ]
+                            ];
 
-                        # Make sure we have a history entry.
-                        $sql = "SELECT * FROM memberships_history WHERE userid = ? AND groupid = ?;";
-                        $hists = $this->dbhr->preQuery($sql, [$member['uid'], $this->id]);
+                            # Make sure we have a history entry.
+                            $sql = "SELECT * FROM memberships_history WHERE userid = ? AND groupid = ?;";
+                            $hists = $this->dbhr->preQuery($sql, [$member['uid'], $this->id]);
 
-                        if (count($hists) == 0) {
-                            $sql = "INSERT INTO memberships_history (userid, groupid, collection, added) VALUES ({$member['uid']},{$this->id},'$collection',$added);";
+                            if (count($hists) == 0) {
+                                $sql = "INSERT INTO memberships_history (userid, groupid, collection, added) VALUES ({$member['uid']},{$this->id},'$collection',$added);";
+                                $bulksql .= $sql;
+                            }
+                        }
+
+                        # If we are promoting a member, then we can only promote as high as we are.  This prevents
+                        # moderators setting owner status.
+                        if ($role == User::ROLE_OWNER &&
+                            $myrole != User::ROLE_OWNER &&
+                            $membs[0]['role'] != User::ROLE_OWNER
+                        ) {
+                            $role = User::ROLE_MODERATOR;
+                        }
+
+                        # Now update with any new settings.  Having this if test looks a bit clunky but it means that
+                        # when resyncing a group where most members have not changed settings, we can avoid many UPDATEs.
+                        #
+                        # This will have the effect of moving members between collections if required.
+                        if ($new ||
+                            $membs[0]['role'] != $role || $membs[0]['collection'] != $collection || $membs[0]['yahooPostingStatus'] != $yps || $membs[0]['yahooDeliveryType'] != $ydt || $membs[0]['joincomment'] != $joincomment || $membs[0]['emailid'] != $member['emailid'] || $membs[0]['added'] != $added) {
+                            $sql = "UPDATE memberships SET role = '$role', collection = '$collection', yahooPostingStatus = " . $this->dbhm->quote($yps) .
+                                ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", joincomment = $joincomment, emailid = {$member['emailid']}, added = $added WHERE userid = " .
+                                "{$member['uid']} AND groupid = {$this->id};";
                             $bulksql .= $sql;
                         }
-                    }
 
-                    # If we are promoting a member, then we can only promote as high as we are.  This prevents
-                    # moderators setting owner status.
-                    if ($role == User::ROLE_OWNER &&
-                        $myrole != User::ROLE_OWNER &&
-                        $membs[0]['role'] != User::ROLE_OWNER
-                    ) {
-                        $role = User::ROLE_MODERATOR;
-                    }
+                        # If this is a mod/owner, make sure the systemrole reflects that.
+                        if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+                            $sql = "UPDATE users SET systemrole = 'Moderator' WHERE id = {$member['uid']} AND systemrole = 'User';";
+                            $bulksql .= $sql;
+                        }
 
-                    # Now update with any new settings.  Having this if test looks a bit clunky but it means that
-                    # when resyncing a group where most members have not changed settings, we can avoid many UPDATEs.
-                    #
-                    # This will have the effect of moving members between collections if required.
-                    if ($new ||
-                        $membs[0]['role'] != $role || $membs[0]['collection'] != $collection || $membs[0]['yahooPostingStatus'] != $yps || $membs[0]['yahooDeliveryType'] != $ydt || $membs[0]['joincomment'] != $joincomment || $membs[0]['emailid'] != $member['emailid'] || $membs[0]['added'] != $added) {
-                        $sql = "UPDATE memberships SET role = '$role', collection = '$collection', yahooPostingStatus = " . $this->dbhm->quote($yps) .
-                            ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", joincomment = $joincomment, emailid = {$member['emailid']}, added = $added WHERE userid = " .
-                            "{$member['uid']} AND groupid = {$this->id};";
-                        $bulksql .= $sql;
-                    }
+                        # Record that this member still exists by deleting their id from the temp table
+                        $bulksql .= "DELETE FROM syncdelete WHERE id = {$member['uid']};";
 
-                    # If this is a mod/owner, make sure the systemrole reflects that.
-                    if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
-                        $sql = "UPDATE users SET systemrole = 'Moderator' WHERE id = {$member['uid']} AND systemrole = 'User';";
-                        $bulksql .= $sql;
-                    }
-
-                    # Record that this member still exists by deleting their id from the temp table
-                    $bulksql .= "DELETE FROM syncdelete WHERE id = {$member['uid']};";
-
-                    if ($count > 0 && $count % 1000 == 0) {
-                        # Do a chunk of work.  If this doesn't work correctly we'll end up with fewer members
-                        # and fail the count below.  Or we'll have incorrect settings until the next sync, but
-                        # that's ok - better than failing it.
-                        error_log("Execute batch $count {$this->group['nameshort']}");
-                        $this->dbhm->exec($bulksql);
-                        error_log("Executed batch $count {$this->group['nameshort']}");
-                        $bulksql = '';
+                        if ($count > 0 && $count % 1000 == 0) {
+                            # Do a chunk of work.  If this doesn't work correctly we'll end up with fewer members
+                            # and fail the count below.  Or we'll have incorrect settings until the next sync, but
+                            # that's ok - better than failing it.
+                            error_log("Execute batch $count {$this->group['nameshort']}");
+                            $this->dbhm->exec($bulksql);
+                            error_log("Executed batch $count {$this->group['nameshort']}");
+                            $bulksql = '';
+                        }
                     }
                 }
             }
@@ -499,6 +501,7 @@ class Group extends Entity
             $todeletes = $this->dbhm->preQuery("SELECT id FROM syncdelete;", [$this->id]);
             $meid = $me ? $me->getId() : NULL;
             foreach ($todeletes as $todelete) {
+                error_log("Delete " . var_export($todelete, TRUE));
                 # Long
                 set_time_limit(60);
 

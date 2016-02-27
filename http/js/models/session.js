@@ -1,7 +1,7 @@
-var firstbeep = true;
-
 Iznik.Models.Session = IznikModel.extend({
     url: API + 'session',
+
+    playBeep: false,
 
     notificationsSetup: false,
 
@@ -14,6 +14,15 @@ Iznik.Models.Session = IznikModel.extend({
 
     testLoggedIn: function() {
         var self = this;
+
+        // We don't want to beep if we are visible.
+        $(document).on('hide', function() {
+            self.playBeep = true;
+        });
+
+        $(document).on('show', function() {
+            self.playBeep = false;
+        });
 
         $.ajax({
             url: API + 'session',
@@ -166,12 +175,10 @@ Iznik.Models.Session = IznikModel.extend({
                                 if (ret.work[count.fi] > 0 && count.sound) {
                                     var settings = Iznik.Session.get('me').settings;
 
-                                    if (presdef('playbeep', settings, 1) && !firstbeep) {
+                                    if (presdef('playbeep', settings, 1) && self.playBeep) {
                                         var sound = new Audio("/sounds/alert.wav");
                                         sound.play();
                                     }
-
-                                    firstbeep = false;
                                 }
                             }
                         } else {

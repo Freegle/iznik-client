@@ -48,7 +48,6 @@ class Notifications
         $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ?;", [ $userid ]);
 
         foreach ($notifs as $notif) {
-            $count++;
             error_log("Send user $userid {$notif['subscription']}");
             try {
                 $this->uthook();
@@ -67,6 +66,7 @@ class Notifications
                 }
 
                 $rc = $webPush->sendNotification($notif['subscription'], null, null, true);
+                $count++;
             } catch (Exception $e) {
                 $rc = [ 'exception' => $e->getMessage() ];
             }

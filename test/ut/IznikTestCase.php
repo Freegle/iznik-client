@@ -21,6 +21,7 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        set_time_limit(600);
     }
 
     protected function tearDown() {

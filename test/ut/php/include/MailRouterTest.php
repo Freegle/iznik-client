@@ -876,5 +876,14 @@ class MailRouterTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testMailer() {
+        error_log(__METHOD__);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r->mail("test@blackhole.io", "test2@blackhole.io", "Test", "test");
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
