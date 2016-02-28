@@ -13,7 +13,8 @@ Iznik.Views.ModTools.User = IznikView.extend({
         'click .js-remove': 'remove',
         'click .js-ban': 'ban',
         'click .js-addcomment': 'addComment',
-        'click .js-spammer': 'spammer'
+        'click .js-spammer': 'spammer',
+        'click .js-whitelist': 'whitelist'
     },
 
     showPosts: function(offers, wanteds, takens, receiveds, others) {
@@ -59,6 +60,28 @@ Iznik.Views.ModTools.User = IznikView.extend({
         var v = new Iznik.Views.ModTools.User.ModMails({
             model: self.model,
             modmailsonly: true
+        });
+
+        v.render();
+    },
+
+    whitelist: function() {
+        var self = this;
+
+        var v = new Iznik.Views.ModTools.EnterReason();
+        self.listenToOnce(v, 'reason', function(reason) {
+            $.ajax({
+                url: API + 'spammers',
+                type: 'POST',
+                data: {
+                    userid: self.model.get('id'),
+                    reason: reason,
+                    collection: 'Whitelisted'
+                }, success: function(ret) {
+                    // Now over to someone else to review this report - so remove from our list.
+                    self.clearSuspect();
+                }
+            });
         });
 
         v.render();
@@ -227,6 +250,10 @@ Iznik.Views.ModTools.User = IznikView.extend({
             });
 
             self.$('.js-spammerinfo').append(v.render().el);
+        }
+
+        if (Iznik.Session.isAdmin()) {
+            self.$('.js-adminonly').removeClass('hidden');
         }
 
         return (this);
