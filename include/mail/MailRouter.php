@@ -88,7 +88,7 @@ class MailRouter
     public function markApproved() {
         # It's possible that we had the message in Pending.  If so, we might have a record of someone approving it
         # on here - which we want to retain.  Then delete the message because we will be adding it again.
-        $sql = "SELECT approvedby FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid WHERE messageid = ? AND fromaddr LIKE ? AND source = ?;";
+        $sql = "SELECT approvedby FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid WHERE messageid = ? AND fromaddr = ? AND source = ?;";
         $messages = $this->dbhr->preQuery($sql,  [
             $this->msg->getMessageID(),
             $this->msg->getFromaddr(),
@@ -99,7 +99,7 @@ class MailRouter
 
         foreach ($messages as $message) {
             $approvedby = $message['approvedby'];
-            $sql = "DELETE FROM messages WHERE messageid = ? AND fromaddr LIKE ? AND source = ?;";
+            $sql = "DELETE FROM messages WHERE messageid = ? AND fromaddr = ? AND source = ?;";
             $this->dbhm->preExec($sql, [
                 $this->msg->getMessageID(),
                 $this->msg->getFromaddr(),

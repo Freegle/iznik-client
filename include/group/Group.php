@@ -64,7 +64,7 @@ class Group extends Entity
         try {
             # Check for duplicate.  Might still occur in a timing window but in that rare case we'll get an exception
             # and catch that, failing the call.
-            $groups = $this->dbhm->preQuery("SELECT id FROM groups WHERE nameshort LIKE ?;", [ $shortname ]);
+            $groups = $this->dbhm->preQuery("SELECT id FROM groups WHERE nameshort = ?;", [ $shortname ]);
             foreach ($groups as $group) {
                 return(NULL);
             }
@@ -109,7 +109,7 @@ class Group extends Entity
     }
 
     public function findByShortName($name) {
-        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE nameshort LIKE ?;",
+        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE nameshort = ?;",
             [$name]);
         foreach ($groups as $group) {
             return($group['id']);

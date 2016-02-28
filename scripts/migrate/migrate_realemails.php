@@ -53,7 +53,7 @@ $lockh = fopen($lock, 'a');
 if (flock($lockh, LOCK_EX | LOCK_NB, $block)) {
     $users = $dbhr->preQuery("SELECT DISTINCT users.id, users_emails.email FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE gotrealemail = 0 AND email LIKE 'FBUser%';");
     foreach ($users as $user) {
-        $sql = "SELECT useremail FROM users WHERE groupsemail LIKE " . $dbhold->quote($user['email']) . ";";
+        $sql = "SELECT useremail FROM users WHERE groupsemail = " . $dbhold->quote($user['email']) . ";";
         $fdusers = $dbhold->query($sql);
         foreach ($fdusers as $fduser) {
             try {

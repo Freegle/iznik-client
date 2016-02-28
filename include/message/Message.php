@@ -1404,7 +1404,7 @@ class Message
         # Try to find by message id.
         $msgid = $this->getMessageID();
         if ($msgid) {
-            $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid IN (SELECT id FROM messages WHERE messageid LIKE ?) AND messages_groups.groupid = ?;", [
+            $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid IN (SELECT id FROM messages WHERE messageid = ?) AND messages_groups.groupid = ?;", [
                 $msgid,
                 $groupid
             ]);
@@ -1413,7 +1413,7 @@ class Message
         # Also try to find by TN post id
         $tnpostid = $this->getTnpostid();
         if ($tnpostid) {
-            $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid IN (SELECT id FROM messages WHERE tnpostid LIKE ?) AND messages_groups.groupid = ?;;", [
+            $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid IN (SELECT id FROM messages WHERE tnpostid = ?) AND messages_groups.groupid = ?;;", [
                 $tnpostid,
                 $groupid
             ]);

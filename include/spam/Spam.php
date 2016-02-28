@@ -76,7 +76,7 @@ class Spam {
 
             # Now see if we're blocking all mails from that country.  This is legitimate if our service is for a
             # single country and we are vanishingly unlikely to get legitimate emails from certain others.
-            $countries = $this->dbhr->preQuery("SELECT * FROM spam_countries WHERE country LIKE ?;", [$country]);
+            $countries = $this->dbhr->preQuery("SELECT * FROM spam_countries WHERE country = ?;", [$country]);
             foreach ($countries as $country) {
                 # Gotcha.
                 return(array(true, Spam::REASON_COUNTRY_BLOCKED, "Blocking IP $ip as it's in {$country['country']}"));
@@ -129,7 +129,7 @@ class Spam {
                 if ($count['count'] >= Spam::SUBJECT_THRESHOLD) {
                     # Possible spam subject - but check against our whitelist.
                     $found = FALSE;
-                    $sql = "SELECT id FROM spam_whitelist_subjects WHERE subject LIKE ?;";
+                    $sql = "SELECT id FROM spam_whitelist_subjects WHERE subject = ?;";
                     $whites = $this->dbhr->preQuery($sql, [$subj]);
                     foreach ($whites as $white) {
                         $found = TRUE;

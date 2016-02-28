@@ -93,7 +93,7 @@ class Search
     private function getWordsExact($word, $limit) {
         # We do this rather than a subquery because we can't apply a limit in a subquery, and the workarounds for doing
         # so are too complex for maintenance.
-        $sql = "SELECT id FROM {$this->wordtab} WHERE `word` LIKE ? ORDER BY popularity LIMIT $limit;";
+        $sql = "SELECT id FROM {$this->wordtab} WHERE `word` = ? ORDER BY popularity LIMIT $limit;";
         $res = array();
         $ids = $this->dbhr->preQuery($sql, [
             $word

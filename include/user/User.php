@@ -189,7 +189,7 @@ class User extends Entity
 
     public function findByYahooId($id) {
         # Take care not to pick up empty or null else that will cause is to overmerge.
-        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooid LIKE ? AND yahooid IS NOT NULL AND LENGTH(yahooid) > 0;",
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooid = ? AND yahooid IS NOT NULL AND LENGTH(yahooid) > 0;",
             [ $id ]);
 
         foreach ($users as $user) {
@@ -265,7 +265,7 @@ class User extends Entity
 
     public function removeEmail($email)
     {
-        $rc = $this->dbhm->preExec("DELETE FROM users_emails WHERE userid = ? AND email LIKE ?;",
+        $rc = $this->dbhm->preExec("DELETE FROM users_emails WHERE userid = ? AND email = ?;",
             [$this->id, $email]);
         return($rc);
     }
@@ -564,7 +564,7 @@ class User extends Entity
 
     public function removeLogin($type, $uid)
     {
-        $rc = $this->dbhm->preExec("DELETE FROM users_logins WHERE userid = ? AND type = ? AND uid LIKE ?;",
+        $rc = $this->dbhm->preExec("DELETE FROM users_logins WHERE userid = ? AND type = ? AND uid = ?;",
             [$this->id, $type, $uid]);
         return($rc);
     }
