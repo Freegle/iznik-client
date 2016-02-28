@@ -234,6 +234,10 @@ Iznik.Views.ModTools.User = IznikView.extend({
 
         var comments = this.model.get('comments');
         _.each(comments, function(comment) {
+            if (comment.groupid) {
+                comment.group = Iznik.Session.getGroup(comment.groupid).toJSON2();
+            }
+
             self.$('.js-comments').append((new Iznik.Views.ModTools.User.Comment({
                 model: new Iznik.Models.ModTools.User.Comment(comment)
             })).render().el);
@@ -525,6 +529,18 @@ Iznik.Views.ModTools.User.Comment = IznikView.extend({
 
     render: function() {
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
+
+        var hideedit = true;
+        var group = this.model.get('group');
+        if (group && (group.role == 'Moderator' || group.role == 'Moderator')) {
+            // We are a mod on this group - we can modify it.
+            hideedit = false;
+        }
+
+        if (hideedit) {
+            self.$('.js-editnote, js-deletenote').hide();
+        }
+
         this.$('.timeago').timeago();
         return(this);
     }

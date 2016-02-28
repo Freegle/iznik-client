@@ -14,10 +14,10 @@
     <% if (obj.user9) { %>{{user9}}<br /><% } %>
     <% if (obj.user10) { %>{{user10}}<br /><% } %>
     <% if (obj.user11) { %>{{user11}}<br /><% } %>
-    <% if (obj.byuser) { %>
+    <% if (obj.byuser || obj.group) { %>
         <div class="text-muted">
             <small>
-                <div class="glyphicon glyphicon-tag" />&nbsp;by {{byuser.displayname}} <abbr class="timeago" title="{{date}}" />
+                <div class="glyphicon glyphicon-tag" />&nbsp;<% if (obj.byuser) { %>by {{byuser.displayname}} <% } %><abbr class="timeago" title="{{date}}" /><% if (obj.group) { %> on {{obj.group.namedisplay}}<% } %>
             </small>
         </div>
     <% } %>
