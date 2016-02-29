@@ -930,7 +930,7 @@ Iznik.Views.ModTools.Settings.StdMessage = Iznik.Views.Modal.extend({
                     name: 'rarelyused',
                     label: 'How often do you use this?',
                     control: 'select',
-                    options: [{label: 'Frequently', value: 1}, {label: 'Rarely', value: 0 }]
+                    options: [{label: 'Frequently', value: 0}, {label: 'Rarely', value: 1 }]
                 },
                 {
                     name: 'newmodstatus',
