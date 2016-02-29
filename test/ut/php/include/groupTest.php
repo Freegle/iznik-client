@@ -27,7 +27,9 @@ class groupTest extends IznikTestCase {
         $this->dbhm->exec("DELETE FROM groups WHERE nameshort = 'testgroup2';");
         $this->dbhm->exec("DELETE FROM groups WHERE nameshort = 'testgroup';");
         $this->dbhm->preExec("DELETE FROM users WHERE yahooid = '-testid1';");
+        $this->dbhm->preExec("DELETE FROM users WHERE yahooid = '-testyahooid';");
         $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = '-testid1';");
+        $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = '-testyahoouserid';");
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.email LIKE '%test.com';");
     }
@@ -211,69 +213,24 @@ class groupTest extends IznikTestCase {
         assertEquals(1, count($atts['merges']));
         assertEquals($membs[0]['id'], $atts['merges'][0]['from']);
 
+        # Split out
+        $g->split('test12@test.com');
+
         error_log(__METHOD__ . " end");
     }
 
     public function testSplit() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
-        assertNotNull($gid);
-        $g = new Group($this->dbhr, $this->dbhm, $gid);
-
-        # Create owner
         $u = new User($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        $u->addMembership($gid, User::ROLE_OWNER);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
-
-        # Set up some users
-        $rc = $g->setMembers([
-            [
-                'yahooModeratorStatus' => 'OWNER',
-                'email' => 'test@test.com'
-            ],
-            [
-                'yahooid' => '-testid1',
-                'email' => 'test1@test.com'
-            ],
-            [
-                'yahooUserId' => -1,
-                'email' => 'test2@test.com'
-            ]
-        ], MembershipCollection::APPROVED);
-        assertEquals(0, $rc['ret']);
-
-        # Now set again with different Yahoo IDs and Yahoo User IDs.  This should trigger a split
-        $rc = $g->setMembers([
-            [
-                'yahooModeratorStatus' => 'OWNER',
-                'email' => 'test@test.com'
-            ],
-            [
-                'yahooid' => '-testid2',
-                'email' => 'test1@test.com'
-            ],
-            [
-                'yahooUserId' => -2,
-                'email' => 'test2@test.com'
-            ],
-            [
-                'yahooid' => '-testid1',
-                'email' => 'test1-1@test.com'
-            ],
-            [
-                'yahooUserId' => -1,
-                'email' => 'test2-2@test.com'
-            ]
-        ], MembershipCollection::APPROVED);
-        assertEquals(0, $rc['ret']);
-
-        $membs = $g->getMembers();
-        error_log(var_export($membs, TRUE));
-        assertEquals(5, count($membs));
+        $u->setPrivate('yahooid', '-testyahooid');
+        $u->setPrivate('yahooUserId', '-testyahoouserid');
+        assertNotNull($u->addEmail('test@test.com'));
+        $u->split('test@test.com', '-testyahooid', '-testyahoouserid');
+        assertNull($u->findByEmail('test@test.com'));
+        assertNull($u->findByYahooId('-testyahooid'));
+        assertNull($u->findByYahooUserId('-testyahoouserid'));
 
         error_log(__METHOD__ . " end");
     }

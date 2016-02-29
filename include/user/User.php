@@ -854,8 +854,10 @@ class User extends Entity
 
         if ($me && $this->id == $me->getId()) {
             # Add in private attributes for our own entry.
-            $atts['email'] = $me->getEmailPreferred();
             $atts['emails'] = $me->getEmails();
+
+            # The emails are returned with the preferred one first, so we don't need a separate call to get that.
+            $atts['email'] = count($atts['emails']) > 0 ? $atts['emails'][0]['email'] : NULL;
         }
 
         if ($comments) {
@@ -1152,8 +1154,8 @@ class User extends Entity
                     $this->dbhm->preExec("UPDATE users_logins SET userid = $id1 WHERE userid = $id2;");
                     $this->dbhm->preExec("UPDATE users_comments SET userid = $id1 WHERE userid = $id2;");
                     $this->dbhm->preExec("UPDATE users_comments SET byuserid = $id1 WHERE byuserid = $id2;");
-                    $this->dbhm->preExec("UPDATE sessions SET userid = $id1 WHERE userid = $id2;");
-                    $this->dbhm->preExec("UPDATE users_push_notifications SET userid = $id1 WHERE userid = $id2;");
+                    $this->dbhm->preExec("UPDATE IGNORE sessions SET userid = $id1 WHERE userid = $id2;");
+                    $this->dbhm->preExec("UPDATE IGNORE users_push_notifications SET userid = $id1 WHERE userid = $id2;");
                 }
 
                 # Merge attributes we want to keep if we have them in id2 but not id1.  Some will have unique
@@ -1634,7 +1636,7 @@ class User extends Entity
 
         $l->log([
             'type' => Log::TYPE_USER,
-            'subtype' => Log::SUBTYPE_MERGED,
+            'subtype' => Log::SUBTYPE_SPLIT,
             'user' => $this->id,
             'byuser' => $me ? $me->getId() : NULL,
             'text' => "Split $email, YID $yahooid, YUID $yahoouserid"
