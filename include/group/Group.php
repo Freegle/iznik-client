@@ -521,7 +521,6 @@ class Group extends Entity
             $todeletes = $this->dbhm->preQuery("SELECT id FROM syncdelete;", [$this->id]);
             $meid = $me ? $me->getId() : NULL;
             foreach ($todeletes as $todelete) {
-                error_log("Delete " . var_export($todelete, TRUE));
                 # Long
                 set_time_limit(60);
 

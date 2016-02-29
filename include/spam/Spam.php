@@ -265,10 +265,11 @@ class Spam {
 
         # Find anyone in the spammer list with a current (approved or pending) membership.  Don't remove mods
         # in case someone wrongly gets onto the list.
-        $sql = "SELECT * FROM memberships INNER JOIN spam_users ON memberships.userid = spam_users.userid AND spam_users.collection = ? AND memberships.role = 'User' $groupq;";
+        $sql = "SELECT * FROM memberships INNER JOIN spam_users ON memberships.userid = spam_users.userid AND spam_users.collection = ? AND memberships.role = 'Member' $groupq;";
         $spammers = $this->dbhr->preQuery($sql, [ Spam::TYPE_SPAMMER ]);
 
         foreach ($spammers as $spammer) {
+            error_log("Found spammer " . var_export($spammer, TRUE));
             $g = new Group($this->dbhr, $this->dbhm, $spammer['groupid']);
             $spamcheck = $g->getSetting('spammers', [ 'check' => 1, 'remove' => 1]);
             if ($spamcheck['check'] && $spamcheck['remove']) {
@@ -281,7 +282,7 @@ class Spam {
 
         # Find any messages from spammers which are on groups.
         $groupq = $groupid ? " AND messages_groups.groupid = $groupid " : "";
-        $sql = "SELECT DISTINCT messages.id, reason, messages_groups.groupid FROM `messages` INNER JOIN spam_users ON messages.fromuser = spam_users.userid AND spam_users.collection = ? AND messages.deleted IS NULL INNER JOIN messages_groups ON messages.id = messages_groups.msgid $groupq AND messages_groups.collection IN ('Approved', 'Pending');";
+        $sql = "SELECT DISTINCT messages.id, reason, messages_groups.groupid FROM `messages` INNER JOIN spam_users ON messages.fromuser = spam_users.userid AND spam_users.collection = ? AND messages.deleted IS NULL INNER JOIN messages_groups ON messages.id = messages_groups.msgid INNER JOIN users ON messages.fromuser = users.id AND users.systemrole = 'User' $groupq AND messages_groups.collection IN ('Approved', 'Pending');";
         $spammsgs = $this->dbhr->preQuery($sql, [ Spam::TYPE_SPAMMER ]);
 
         foreach ($spammsgs as $spammsg) {

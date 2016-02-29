@@ -49,6 +49,12 @@ class messageTest extends IznikTestCase {
                     ]);
             }
         }
+
+        # Delete any UT playground messages
+        $g = new Group($dbhr, $dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+        $sql = "DELETE FROM messages_groups WHERE groupid = $gid AND yahooapprovedid < 500;";
+        $this->dbhm->preExec($sql);
     }
 
     protected function tearDown() {
@@ -73,7 +79,7 @@ class messageTest extends IznikTestCase {
         error_log(__METHOD__);
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
-        $msg = str_replace('Basic test', 'OFFER: Test item', $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -100,7 +106,7 @@ class messageTest extends IznikTestCase {
 
         # TAKEN with similar wording - should match
         $msg = $this->unique(file_get_contents('msgs/basic'));
-        $msg = str_replace('Basic test', 'TAKEN: Test thing', $msg);
+        $msg = str_replace('Basic test', 'TAKEN: Test items (location)', $msg);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         assertEquals(1, $m->recordRelated());
 

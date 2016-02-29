@@ -40,6 +40,12 @@ class spammersAPITest extends IznikAPITestCase {
         $this->user->addEmail('test2@test.com');
         assertEquals(1, $this->user->addMembership($this->groupid));
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        # Delete any UT playground messages
+        $g = new Group($dbhr, $dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+        $sql = "DELETE FROM messages_groups WHERE groupid = $gid AND yahooapprovedid < 500;";
+        $this->dbhm->preExec($sql);
     }
 
     protected function tearDown() {
@@ -186,7 +192,9 @@ class spammersAPITest extends IznikAPITestCase {
             'collection' => Spam::TYPE_SPAMMER,
             'search' => 'Test User'
         ]);
+        error_log("Should be on list ". var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['spammers']));
 
         $found = FALSE;
 
@@ -214,8 +222,11 @@ class spammersAPITest extends IznikAPITestCase {
         assertFalse($found);
 
         # Trigger removal
+        $membs = $u->getMemberships();
+        error_log("Memberships " . var_export($membs, TRUE));
+        assertEquals(User::ROLE_MEMBER, $membs[0]['role']);
         $s = new Spam($this->dbhr, $this->dbhm);
-        assertEquals(1, $s->removeSpamMembers($this->groupid));
+        assertEquals(2, $s->removeSpamMembers($this->groupid));
 
         # Request removal
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
