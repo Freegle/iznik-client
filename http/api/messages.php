@@ -126,25 +126,29 @@ function messages() {
             $g = new Group($dbhr, $dbhm, $groupid);
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-            if ($g && $me && $me->isModOrOwner($groupid)) {
+            if ($source && $g && $me && $me->isModOrOwner($groupid)) {
                 $r = new MailRouter($dbhr, $dbhm);
                 $id = $r->received($source, $from, $g->getPrivate('nameshort') . '@yahoogroups.com', $message, $groupid);
-                $rc = $r->route();
-                $m = new Message($dbhr, $dbhm, $id);
+                $ret = ['ret' => 3, 'status' => 'Failed to create message - possible duplicate'];
 
-                if ($yahoopendingid) {
-                    $m->setYahooPendingId($groupid, $yahoopendingid);
+                if ($id) {
+                    $rc = $r->route();
+                    $m = new Message($dbhr, $dbhm, $id);
+
+                    if ($yahoopendingid) {
+                        $m->setYahooPendingId($groupid, $yahoopendingid);
+                    }
+
+                    if ($yahooapprovedid) {
+                        $m->setYahooApprovedId($groupid, $yahooapprovedid);
+                    }
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'routed' => $rc
+                    ];
                 }
-
-                if ($yahooapprovedid) {
-                    $m->setYahooApprovedId($groupid, $yahooapprovedid);
-                }
-
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success',
-                    'routed' => $rc
-                ];
             }
         }
         break;

@@ -353,6 +353,26 @@ class Group extends Entity
 
                     $u = new User($this->dbhr, $this->dbhm, $uid);
 
+                    # Check for existing users who appear to have been wrongly merged.  This happened early on due to a bug.
+                    #
+                    # If we find such a wrong merge, then we split out the current member's info and create a new one
+                    if ((pres('yahooid', $memb) && $u->getPrivate('yahooid') && $u->getPrivate('yahooid') != $memb['yahooid']) ||
+                        (pres('yahooUserId', $memb) && $u->getPrivate('yahooUserId') && $u->getPrivate('yahooUserId') != $memb['yahooUserId'])) {
+                        error_log("Wrongly merged #$uid");
+                        $u->split($memb['email'], $u->getPrivate('yahooid'), $u->getPrivate('yahooUserId'));
+                        preg_match('/(.*)@/', $memb['email'], $matches);
+                        $name = presdef('name', $memb, $matches[1]);
+                        $uid = $u->create(NULL, NULL, $name, "Split SetMembers for {$this->group['nameshort']}");
+                        $u = new User($this->dbhr, $this->dbhm, $uid);
+
+                        if ($memb['email']) {
+                            # Most important thing when splitting is to ensure we record who messages are from.
+                            $this->dbhm->preExec("UPDATE messages SET fromuser = ? WHERE fromaddr = ?;", [ $uid, $memb['email']]);
+                        }
+
+                        $memb['emailid'] = $u->addEmail($memb['email'], 1);
+                    }
+
                     if (pres('yahooUserId', $memb)) {
                         $u->setPrivate('yahooUserId', $memb['yahooUserId']);
                     }

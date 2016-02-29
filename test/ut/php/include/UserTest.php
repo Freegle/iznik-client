@@ -178,6 +178,7 @@ class userTest extends IznikTestCase {
         error_log(__METHOD__);
 
         $u = new User($this->dbhr, $this->dbhm);
+        assertEquals(0, $u->addEmail('test-owner@yahoogroups.com'));
 
         $mock = $this->getMockBuilder('LoggedPDO')
             ->disableOriginalConstructor()
@@ -255,7 +256,7 @@ class userTest extends IznikTestCase {
         // Support and admin users have a mod role on the group even if not a member
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
-        $msg = file_get_contents('msgs/basic');
+        $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test item (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);

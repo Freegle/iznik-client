@@ -15,6 +15,8 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
 
     private $dbhr, $dbhm;
 
+    public static $unique = 1;
+
     protected function setUp() {
         parent::setUp ();
 
@@ -29,6 +31,13 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
     }
 
     public function __construct() {
+    }
+
+    public function unique($msg) {
+        $unique = IznikTestCase::$unique++;
+        $newmsg = preg_replace('/X-Yahoo-Newman-Id: (.*)\-m\d*/i', "X-Yahoo-Newman-Id: $1-m$unique", $msg);
+        assertNotEquals($msg, $newmsg);
+        return($newmsg);
     }
 
     public function waitBackground() {

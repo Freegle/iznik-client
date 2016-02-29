@@ -214,6 +214,70 @@ class groupTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testSplit() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        assertNotNull($gid);
+        $g = new Group($this->dbhr, $this->dbhm, $gid);
+
+        # Create owner
+        $u = new User($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $u->addMembership($gid, User::ROLE_OWNER);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        # Set up some users
+        $rc = $g->setMembers([
+            [
+                'yahooModeratorStatus' => 'OWNER',
+                'email' => 'test@test.com'
+            ],
+            [
+                'yahooid' => '-testid1',
+                'email' => 'test1@test.com'
+            ],
+            [
+                'yahooUserId' => -1,
+                'email' => 'test2@test.com'
+            ]
+        ], MembershipCollection::APPROVED);
+        assertEquals(0, $rc['ret']);
+
+        # Now set again with different Yahoo IDs and Yahoo User IDs.  This should trigger a split
+        $rc = $g->setMembers([
+            [
+                'yahooModeratorStatus' => 'OWNER',
+                'email' => 'test@test.com'
+            ],
+            [
+                'yahooid' => '-testid2',
+                'email' => 'test1@test.com'
+            ],
+            [
+                'yahooUserId' => -2,
+                'email' => 'test2@test.com'
+            ],
+            [
+                'yahooid' => '-testid1',
+                'email' => 'test1-1@test.com'
+            ],
+            [
+                'yahooUserId' => -1,
+                'email' => 'test2-2@test.com'
+            ]
+        ], MembershipCollection::APPROVED);
+        assertEquals(0, $rc['ret']);
+
+        $membs = $g->getMembers();
+        error_log(var_export($membs, TRUE));
+        assertEquals(5, count($membs));
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testErrors() {
         error_log(__METHOD__);
 

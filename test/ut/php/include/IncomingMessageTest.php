@@ -34,7 +34,7 @@ class IncomingMessageTest extends IznikTestCase {
     public function testBasic() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/basic');
+        $msg = $this->unique(file_get_contents('msgs/basic'));
         $t = "TestUser" . microtime(true) . "@test.com";
         $msg = str_replace('From: "Test User" <test@test.com>', 'From: "' . $t . '" <test@test.com>', $msg);
         $m = new Message($this->dbhr, $this->dbhm);

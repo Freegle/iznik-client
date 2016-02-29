@@ -34,6 +34,8 @@ class LoggedPDO {
     private $pheanstalk = NULL;
     private $readconn;
 
+    const DUPLICATE_KEY = 1062;
+
     /**
      * @param int $tries
      */

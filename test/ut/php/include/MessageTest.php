@@ -72,7 +72,7 @@ class messageTest extends IznikTestCase {
     public function testRelated() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/basic');
+        $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test item', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
@@ -99,7 +99,7 @@ class messageTest extends IznikTestCase {
         assertEquals(0, $m->recordRelated());
 
         # TAKEN with similar wording - should match
-        $msg = file_get_contents('msgs/basic');
+        $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace('Basic test', 'TAKEN: Test thing', $msg);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         assertEquals(1, $m->recordRelated());
@@ -135,7 +135,7 @@ class messageTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
 
-        $msg = file_get_contents('msgs/basic');
+        $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test item (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
@@ -181,7 +181,7 @@ class messageTest extends IznikTestCase {
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
         $g = new Group($this->dbhr, $this->dbhm, $gid);
 
-        $msg = file_get_contents('msgs/basic');
+        $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -190,7 +190,7 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
         # Now from a different email but the same YahooID, triggering a merge.
-        $msg = file_get_contents('msgs/basic');
+        $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $msg = str_ireplace('test@test.com', 'test2@test.com', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);

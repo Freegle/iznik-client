@@ -41,7 +41,7 @@ class messagesTest extends IznikAPITestCase {
         $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
 
         # Create a group with a message on it
-        $msg = file_get_contents('msgs/basic');
+        $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
@@ -221,6 +221,55 @@ class messagesTest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testDups() {
+        error_log(__METHOD__);
+
+        # Duplicate ID
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = $this->unique($msg);
+        if (preg_match('/X-Yahoo-Newman-Id: .*\-m(.*)/', $msg, $matches)) {
+            error_log(var_export($matches, TRUE));
+            $aid = $matches[1];
+        }
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $id = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $id);
+        $u->addMembership($group1);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $u->setRole(User::ROLE_MODERATOR, $group1);
+
+        error_log("Put first");
+        $ret = $this->call('messages', 'PUT', [
+            'groupid' => $group1,
+            'source' => Message::YAHOO_APPROVED,
+            'from' => 'test@test.com',
+            'yahooapprovedid' => $aid,
+            'message' => $msg
+        ]);
+
+        # Should work
+        assertEquals(0, $ret['ret']);
+
+        error_log("Put second");
+        $ret = $this->call('messages', 'PUT', [
+            'groupid' => $group1,
+            'source' => Message::YAHOO_APPROVED,
+            'from' => 'test@test.com',
+            'yahooapprovedid' => $aid,
+            'message' => $msg
+        ]);
+
+        # Should work
+        error_log(var_export($ret, TRUE));
+        assertEquals(3, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testError() {
         error_log(__METHOD__);
 
@@ -241,7 +290,7 @@ class messagesTest extends IznikAPITestCase {
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
-        $msg = file_get_contents('msgs/basic');
+        $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
@@ -301,14 +350,14 @@ class messagesTest extends IznikAPITestCase {
 
         $g = new Group($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-        $msg = file_get_contents('msgs/basic');
+        $msg = $this->unique(file_get_contents('msgs/basic'));
 
         $ret = $this->call('messages', 'PUT', [
             'groupid' => $group1,
             'source' => Message::YAHOO_PENDING,
             'from' => 'test@test.com',
             'yahoopendingid' => 833,
-            'message' => $msg
+            'message' => $this->unique($msg)
         ]);
 
         # Should fail - not a mod
@@ -326,7 +375,7 @@ class messagesTest extends IznikAPITestCase {
             'source' => Message::YAHOO_PENDING,
             'from' => 'test@test.com',
             'yahoopendingid' => 833,
-            'message' => $msg
+            'message' => $this->unique($msg)
         ]);
 
         # Should work
@@ -339,17 +388,17 @@ class messagesTest extends IznikAPITestCase {
             'source' => 'wibble',
             'from' => 'test@test.com',
             'yahooapprovedid' => 833,
-            'message' => $msg
+            'message' => $this->unique($msg)
         ]);
 
-        assertEquals(997, $ret['ret']);
+        assertEquals(2, $ret['ret']);
 
         $ret = $this->call('messages', 'PUT', [
             'groupid' => $group1,
             'source' => Message::YAHOO_APPROVED,
             'from' => 'test@test.com',
             'yahooapprovedid' => 833,
-            'message' => $msg
+            'message' => $this->unique($msg)
         ]);
 
         # Should work

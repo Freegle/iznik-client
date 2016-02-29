@@ -924,6 +924,24 @@ class Message
 
     # Save a parsed message to the DB
     public function save() {
+        # Check this is not a dup.  There's a window here, but if we hit it then the INSERT later will fail.
+        $att = $this->yahoopendingid ? 'yahoopendingid' : ($this->yahooapprovedid ? 'yahooapprovedid' : NULL);
+        $val = $this->yahoopendingid ? $this->yahoopendingid : ($this->yahooapprovedid ? $this->yahooapprovedid : NULL);
+
+        if ($att && $val) {
+            $sql = "SELECT * FROM messages_groups WHERE groupid = ? AND $att = ?;";
+            $msgs = $this->dbhr->preQuery($sql, [
+                $this->groupid,
+                $val
+            ]);
+
+            if (count($msgs) > 0) {
+                # Duplicate
+                error_log("Duplicate message $sql, {$this->groupid}, $att, $val");
+                return(NULL);
+            }
+        }
+
         # A message we are saving as approved may previously have been in system, for example as pending.  When it
         # comes back to us, it might not be the same, so we should remove any old one first.
         #

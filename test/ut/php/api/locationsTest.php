@@ -84,7 +84,7 @@ class locationsAPITest extends IznikAPITestCase {
         $this->group->setPrivate('lng', 179.3);
 
         # Create a message which should have the first subject suggested.
-        $msg = file_get_contents('msgs/basic');
+        $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_ireplace('Basic test', 'OFFER: Test (Tuvalu High Street)', $msg);
 

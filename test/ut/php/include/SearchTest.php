@@ -47,7 +47,7 @@ class searchTest extends IznikTestCase
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
 
-        $msg = file_get_contents('msgs/basic');
+        $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'OFFER: Test zzzutzzz', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
@@ -140,7 +140,7 @@ class searchTest extends IznikTestCase
     {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/basic');
+        $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test zzzutzzz', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setSearch($this->s);
@@ -150,7 +150,7 @@ class searchTest extends IznikTestCase
         $m1->setSearch($this->s);
         error_log("Created message id $id1");
 
-        $msg = file_get_contents('msgs/basic');
+        $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test yyyutyyy', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setSearch($this->s);

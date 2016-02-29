@@ -216,46 +216,51 @@ class User extends Entity
 
     public function addEmail($email, $primary = 1, $changeprimary = TRUE)
     {
-        # If the email already exists in the table, then that's fine.  But we don't want to use INSERT IGNORE as
-        # that scales badly for clusters.
-        $canon = User::canonMail($email);
-
-        # Don't cache - lots of emails so don't want to flood the query cache.
-        $sql = "SELECT SQL_NO_CACHE id, preferred FROM users_emails WHERE userid = ? AND email = ?;";
-        $emails = $this->dbhm->preQuery($sql, [
-            $this->id,
-            $email
-        ]);
-
-        if (count($emails) == 0) {
-            $sql = "INSERT IGNORE INTO users_emails (userid, email, preferred, canon) VALUES (?, ?, ?, ?)";
-            $this->dbhm->preExec($sql,
-                [$this->id, $email, $primary, $canon]);
-            $rc = $this->dbhm->lastInsertId();
-
-            if ($rc && $primary) {
-                # Make sure no other email is flagged as primary
-                $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE userid = ? AND id != ?;", [
-                    $this->id,
-                    $rc
-                ]);
-            }
+        if (stripos($email, '-owner@yahoogroups.co') !== FALSE) {
+            # We don't allow people to add Yahoo owner addresses as the address of an individual user.
+            $rc = 0;
         } else {
-            $rc = $emails[0]['id'];
+            # If the email already exists in the table, then that's fine.  But we don't want to use INSERT IGNORE as
+            # that scales badly for clusters.
+            $canon = User::canonMail($email);
 
-            if ($changeprimary && $primary != $emails[0]['preferred']) {
-                # Change in status.
-                $this->dbhm->preExec("UPDATE users_emails SET preferred = ? WHERE id = ?;", [
-                    $primary,
-                    $rc
-                ]);
+            # Don't cache - lots of emails so don't want to flood the query cache.
+            $sql = "SELECT SQL_NO_CACHE id, preferred FROM users_emails WHERE userid = ? AND email = ?;";
+            $emails = $this->dbhm->preQuery($sql, [
+                $this->id,
+                $email
+            ]);
 
-                if ($primary) {
+            if (count($emails) == 0) {
+                $sql = "INSERT IGNORE INTO users_emails (userid, email, preferred, canon) VALUES (?, ?, ?, ?)";
+                $this->dbhm->preExec($sql,
+                    [$this->id, $email, $primary, $canon]);
+                $rc = $this->dbhm->lastInsertId();
+
+                if ($rc && $primary) {
                     # Make sure no other email is flagged as primary
                     $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE userid = ? AND id != ?;", [
                         $this->id,
                         $rc
                     ]);
+                }
+            } else {
+                $rc = $emails[0]['id'];
+
+                if ($changeprimary && $primary != $emails[0]['preferred']) {
+                    # Change in status.
+                    $this->dbhm->preExec("UPDATE users_emails SET preferred = ? WHERE id = ?;", [
+                        $primary,
+                        $rc
+                    ]);
+
+                    if ($primary) {
+                        # Make sure no other email is flagged as primary
+                        $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE userid = ? AND id != ?;", [
+                            $this->id,
+                            $rc
+                        ]);
+                    }
                 }
             }
         }
@@ -1607,6 +1612,33 @@ class User extends Entity
         }
 
         return($rc);
+    }
+
+    public function split($email, $yahooid, $yahoouserid) {
+        # We want to ensure that the current user has no reference to these values.
+        #
+        # This will leave logs pointing to the old user, but there's no way to recover that.
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $l = new Log($this->dbhr, $this->dbhm);
+        if ($email) {
+            $this->removeEmail($email);
+        }
+
+        if ($yahooid && $this->user['yahooid'] && $this->user['yahooid'] == $yahooid) {
+            $this->setPrivate('yahooid', NULL);
+        }
+
+        if ($yahoouserid && $this->user['yahooUserId'] && $this->user['yahooUserId'] == $yahoouserid) {
+            $this->setPrivate('yahooUserId', NULL);
+        }
+
+        $l->log([
+            'type' => Log::TYPE_USER,
+            'subtype' => Log::SUBTYPE_MERGED,
+            'user' => $this->id,
+            'byuser' => $me ? $me->getId() : NULL,
+            'text' => "Split $email, YID $yahooid, YUID $yahoouserid"
+        ]);
     }
 
     public function delete($groupid = NULL, $subject = NULL, $body = NULL, $stdmsgid = NULL) {
