@@ -12,6 +12,7 @@ function message() {
     $subject = presdef('subject', $_REQUEST, NULL);
     $body = presdef('body', $_REQUEST, NULL);
     $stdmsgid = presdef('stdmsgid', $_REQUEST, NULL);
+    $messagehistory = array_key_exists('messagehistory', $_REQUEST) ? filter_var($_REQUEST['messagehistory'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -68,7 +69,7 @@ function message() {
                         'ret' => 0,
                         'status' => 'Success',
                         'groups' => [],
-                        'message' => $m->getPublic(FALSE, FALSE)
+                        'message' => $m->getPublic($messagehistory, FALSE)
                     ];
 
                     foreach ($ret['message']['groups'] as &$group) {

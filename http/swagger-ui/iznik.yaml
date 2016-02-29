@@ -151,6 +151,10 @@ paths:
         description: Which collection the message is in; default is approved
         type: string
         enum: ['approved', 'pending', 'spam']
+      - name: messagehistory
+        in: query
+        description: Whether to get the full message history of the sending user (defaults FALSE)
+        type: boolean
       responses:
           "200":
             description: "Successful response"

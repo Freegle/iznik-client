@@ -200,7 +200,11 @@ Iznik.Models.Message = IznikModel.extend({
                                                             console.log("Server edit returned", ret);
                                                             if (ret.ret == 0) {
                                                                 // Make sure we're up to date.
-                                                                self.fetch().then(function () {
+                                                                self.fetch({
+                                                                    data: {
+                                                                        messagehistory: true
+                                                                    }
+                                                                }).then(function () {
                                                                     self.trigger('editsucceeded');
                                                                 });
                                                             } else {
