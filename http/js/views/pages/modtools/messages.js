@@ -337,7 +337,14 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
 
                 self.$('.js-subject').val(subj);
 
-                self.$('.js-myname').html(Iznik.Session.get('me').displayname);
+                // Decide who the mail will look as though it comes from.
+                var name = Iznik.Session.get('me').displayname;
+                console.log("Config is", config);
+                if (config && config.fromname == 'Groupname Moderator') {
+                    name = self.model.get('groups')[0].nameshort + " Moderator";
+                }
+
+                self.$('.js-myname').html(name);
 
                 // Quote original message.
                 var msg = self.model.get('textbody');
