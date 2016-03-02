@@ -9,6 +9,7 @@ require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
+require_once(IZNIK_BASE . '/mailtemplates/modtools/verifymail.php');
 
 class User extends Entity
 {
@@ -218,7 +219,7 @@ class User extends Entity
     {
         if (stripos($email, '-owner@yahoogroups.co') !== FALSE) {
             # We don't allow people to add Yahoo owner addresses as the address of an individual user.
-            $rc = 0;
+            $rc = NULL;
         } else {
             # If the email already exists in the table, then that's fine.  But we don't want to use INSERT IGNORE as
             # that scales badly for clusters.
@@ -1641,6 +1642,55 @@ class User extends Entity
             'byuser' => $me ? $me->getId() : NULL,
             'text' => "Split $email, YID $yahooid, YUID $yahoouserid"
         ]);
+    }
+
+    public function verifyEmail($email) {
+        # If this is one of our current emails, then we can just make it the primary.
+        $emails = $this->getEmails();
+        $handled = FALSE;
+
+        foreach ($emails as $anemail) {
+            if ($anemail['email'] == $email) {
+                # It's one of ours already; make sure it's flagged as primary.
+                $this->addEmail($email, 1);
+                $handled = TRUE;
+            }
+        }
+
+        if (!$handled) {
+            # This email is new to this user.  It may or may not currently be in use for another user.  Either
+            # way we want to send a verification mail.
+            $headers = "From: ModTools <" . NOREPLY_ADDR . ">\nContent-Type: multipart/alternative; boundary=\"_I_Z_N_I_K_\"\nMIME-Version: 1.0";
+            $canon = User::canonMail($email);
+            $key = uniqid();
+            $sql = "INSERT INTO users_emails (email, canon, validatekey) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE validatekey = ?;";
+            $this->dbhm->preExec($sql,
+                [$email, $canon, $key, $key]);
+            $confirm = "https://" . $_SERVER['HTTP_HOST'] . "/modtools/settings/confirmmail/" . urlencode($key);
+            $this->mailer($email, "Please verify your email", modtools_verify_email($email, $confirm), $headers, "-f" . NOREPLY_ADDR);
+        }
+
+        return($handled);
+    }
+
+    public function confirmEmail($key) {
+        $rc = FALSE;
+        $sql = "SELECT * FROM users_emails WHERE validatekey = ?;";
+        $mails = $this->dbhr->preQuery($sql, [ $key ]);
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        foreach ($mails as $mail) {
+            if ($mail['userid'] && $mail['userid'] != $me->getId()) {
+                # This email belongs to another user.  But we've confirmed that it is ours.  So merge.
+                $this->merge($this->id, $mail['userid']);
+            }
+
+            $this->dbhm->preExec("UPDATE users_emails SET userid = ?, validated = NOW() WHERE id = ?;", [ $this->id, $mail['id']]);
+            $this->addEmail($mail['email'], 1);
+            $rc = TRUE;
+        }
+
+        return($rc);
     }
 
     public function delete($groupid = NULL, $subject = NULL, $body = NULL, $stdmsgid = NULL) {

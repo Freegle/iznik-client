@@ -22,6 +22,7 @@ define('SITE_DESC', 'Making moderating easier');
 # Contact emails
 define('SUPPORT_ADDR', 'support@zzz');
 define('INFO_ADDR', 'info@zzz');
+define('NOREPLY_ADDR', 'noreply@zzz');
 
 # This speeds up load time
 define('MINIFY', TRUE);

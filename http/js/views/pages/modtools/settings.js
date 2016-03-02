@@ -709,9 +709,16 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
     error: function(model, response, options) {
         console.log("Error", model, response, options);
-        (new Iznik.Views.ModTools.Settings.SaveFailed({
-            model: new IznikModel(response)
-        })).render();
+
+        if (response.ret == 10) {
+            (new Iznik.Views.ModTools.Settings.VerifyRequired({
+                model: new IznikModel(response)
+            })).render();
+        } else {
+            (new Iznik.Views.ModTools.Settings.SaveFailed({
+                model: new IznikModel(response)
+            })).render();
+        }
     },
 
     render: function() {
@@ -1007,10 +1014,19 @@ Iznik.Views.ModTools.Settings.Saved = Iznik.Views.Modal.extend({
 });
 
 Iznik.Views.ModTools.Settings.SaveFailed = Iznik.Views.Modal.extend({
-    template: 'modtools_settings_savefailed',
-    render: function() {
-        Iznik.Views.Modal.prototype.render.call(this);
-    }
+    template: 'modtools_settings_savefailed'
+});
+
+Iznik.Views.ModTools.Settings.VerifyRequired = Iznik.Views.Modal.extend({
+    template: 'modtools_settings_verifyrequired'
+});
+
+Iznik.Views.ModTools.Settings.VerifyFailed = Iznik.Views.Modal.extend({
+    template: 'modtools_settings_verifyfailed'
+});
+
+Iznik.Views.ModTools.Settings.VerifySucceeded = Iznik.Views.Modal.extend({
+    template: 'modtools_settings_verifysucceeded'
 });
 
 Iznik.Views.ModTools.Settings.AddGroup = Iznik.Views.Modal.extend({

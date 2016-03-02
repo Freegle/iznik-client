@@ -52,7 +52,7 @@ Iznik.Views.Infinite = IznikView.extend({
                 self.lastWaypoint = new Waypoint({
                     element: modelView.el,
                     handler: function(direction) {
-                        //console.log("Scrolled to");
+                        console.log("Scrolled to");
                         if (direction == 'down') {
                             $('.js-scrolltop').removeClass('hidden');
                             $('.js-scrolltop').click(function() {

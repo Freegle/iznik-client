@@ -112,6 +112,14 @@ paths:
         in: body
         description: Last name
         type: string
+      - name: email
+        in: body
+        description: Email
+        type: string
+      - name: key
+        in: body
+        description: If we tried to set an email before, we might have got an error 10 back indicating verification was required.  This is providing the key to verify the email
+        type: string
       responses:
           "200":
             description: "Successful response"

@@ -942,6 +942,14 @@ class Message
             }
         }
 
+        $sql = "SELECT * FROM messages WHERE messageid = ?;";
+        $msgs = $this->dbhr->preQuery($sql, [ $this->messageid ]);
+        foreach ($msgs as $msg) {
+            # Duplicate
+            error_log("Duplicate message $sql, {$this->messageid}");
+            return(NULL);
+        }
+
         # A message we are saving as approved may previously have been in system, for example as pending.  When it
         # comes back to us, it might not be the same, so we should remove any old one first.
         #

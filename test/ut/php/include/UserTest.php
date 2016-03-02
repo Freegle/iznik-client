@@ -27,6 +27,8 @@ class userTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM users WHERE firstname = 'Test' AND lastname = 'User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';");
+        $dbhm->preExec("DELETE FROM users_emails WHERE email = 'bit-bucket@test.smtp.org'");
+        $dbhm->preExec("DELETE FROM users_emails WHERE email = 'test@test.com'");
     }
 
     protected function tearDown() {
@@ -616,6 +618,37 @@ class userTest extends IznikTestCase {
                 assertEquals(2, count($membs));
             }
         }
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testVerifyMail() {
+        error_log(__METHOD__);
+
+        $_SERVER['HTTP_HOST'] = 'localhost';
+
+        # Test add when it's not in use anywhere
+        $u1 = new User($this->dbhr, $this->dbhm);
+        $id1 = $u1->create('Test', 'User', NULL);
+        $u1 = new User($this->dbhr, $this->dbhm, $id1);
+        assertFalse($u1->verifyEmail('bit-bucket@test.smtp.org'));
+
+        # Confirm it
+        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email = 'bit-bucket@test.smtp.org';");
+        assertEquals(1, count($emails));
+        foreach ($emails as $email) {
+            assertTrue($u1->confirmMail($email['validatekey']));
+        }
+
+        # Test add when it's in use for another user
+        $u2 = new User($this->dbhr, $this->dbhm);
+        $id2 = $u2->create('Test', 'User', NULL);
+        $u2 = new User($this->dbhr, $this->dbhm, $id2);
+        assertFalse($u2->verifyEmail('bit-bucket@test.smtp.org'));
+
+        # Test add when it's already one of ours.
+        assertNotNull($u1->addEmail('test@test.com'));
+        assertTrue($u1->verifyEmail('test@test.com'));
 
         error_log(__METHOD__ . " end");
     }

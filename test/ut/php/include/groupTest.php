@@ -213,9 +213,6 @@ class groupTest extends IznikTestCase {
         assertEquals(1, count($atts['merges']));
         assertEquals($membs[0]['id'], $atts['merges'][0]['from']);
 
-        # Split out
-        $g->split('test12@test.com');
-
         error_log(__METHOD__ . " end");
     }
 

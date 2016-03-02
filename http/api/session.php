@@ -1,4 +1,5 @@
 <?php
+require_once(IZNIK_BASE . '/mailtemplates/modtools/verifymail.php');
 function session() {
     global $dbhr, $dbhm;
 
@@ -117,6 +118,7 @@ function session() {
                 $fullname = presdef('displayname', $_REQUEST, NULL);
                 $firstname = presdef('firstname', $_REQUEST, NULL);
                 $lastname = presdef('lastname', $_REQUEST, NULL);
+                $key = presdef('key', $_REQUEST, NULL);
 
                 if ($fullname) {
                     $me->setPrivate('fullname', $fullname);
@@ -147,14 +149,18 @@ function session() {
                     }
                 }
 
-                $email = presdef('email', $_REQUEST, NULL);
-
                 $ret = ['ret' => 0, 'status' => 'Success'];
 
+                $email = presdef('email', $_REQUEST, NULL);
                 if ($email) {
-                    $rc = $me->addEmail($email, 1);
-                    if (!$rc) {
-                        $ret = ['ret' => 3, 'status' => 'Email already in use by another user'];
+                    if (!$me->verifyEmail($email)) {
+                        $ret = ['ret' => 10, 'status' => "We've sent a verification mail; please check your mailbox." ];
+                    }
+                }
+
+                if ($key) {
+                    if (!$me->confirmEmail($key)) {
+                        $ret = ['ret' => 11, 'status' => 'Confirmation failed'];
                     }
                 }
             }
