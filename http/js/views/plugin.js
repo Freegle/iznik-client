@@ -1628,7 +1628,12 @@ Iznik.Views.Plugin.Yahoo.DeleteApprovedMessage = Iznik.Views.Plugin.Work.extend(
                     if (ret.hasOwnProperty('ygData') && ret.ygData == 1) {
                         self.succeed();
                     } else {
-                        self.fail();
+                        if (ret.hasOwnProperty('ygError') && ret.ygError.errorCode == 1319) {
+                            // We get this if we try to delete something invalid.
+                            self.succeed();
+                        } else {
+                            self.fail();
+                        }
                     }
                 }, error: function(request, status, error) {
                     console.log("Delete error", status, error);
