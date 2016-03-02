@@ -980,6 +980,10 @@ paths:
         description: When members is supplied, which set of members to update.
         type: string
         enum: ['Approved', 'Pending']
+      - name: synctime
+        in: body
+        description: 'Date sync started.  This is to avoid removing members who have joined since the sync started'
+        type: string
       responses:
           "200":
             description: "Successful response"

@@ -637,7 +637,7 @@ class userTest extends IznikTestCase {
         $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email = 'bit-bucket@test.smtp.org';");
         assertEquals(1, count($emails));
         foreach ($emails as $email) {
-            assertTrue($u1->confirmMail($email['validatekey']));
+            assertTrue($u1->confirmEmail($email['validatekey']));
         }
 
         # Test add when it's in use for another user

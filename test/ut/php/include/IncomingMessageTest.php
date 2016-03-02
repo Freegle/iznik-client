@@ -72,7 +72,6 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         assertEquals('Hey.', $m->getTextbody());
         assertEquals('from@test.com', $m->getEnvelopefrom());
         assertEquals('to@test.com', $m->getEnvelopeto());
-        assertEquals('emff7a66f1-e0ed-4792-b493-17a75d806a30@edward-x1', $m->getMessageID());
         assertEquals("<HTML><HEAD>
 <STYLE id=eMClientCss>
 blockquote.cite { margin-left: 5px; margin-right: 0px; padding-left: 10px; padding-right:0px; border-left: 1px solid #cccccc }
@@ -183,7 +182,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
     public function testTN() {
         error_log(__METHOD__);
 
-        $msg = file_get_contents('msgs/tn');
+        $msg = $this->unique(file_get_contents('msgs/tn'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals('20065945', $m->getTnpostid());

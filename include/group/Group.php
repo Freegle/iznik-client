@@ -8,7 +8,7 @@ class Group extends Entity
 {
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'logo',
-        'onyahoo', 'trial', 'licenserequired', 'licensed', 'licenseduntil');
+        'onyahoo', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
@@ -165,9 +165,6 @@ class Group extends Entity
 
         # Add in derived properties.
         $atts['namedisplay'] = $atts['namefull'] ? $atts['namefull'] : $atts['nameshort'];
-        $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = {$this->id};";
-        $counts = $this->dbhr->preQuery($sql);
-        $atts['membercount'] = $counts[0]['count'];
         $atts['lastyahoomembersync'] = ISODate($this->group['lastyahoomembersync']);
         $atts['lastyahoomessagesync'] = ISODate($this->group['lastyahoomessagesync']);
         $atts['settings'] = json_decode($atts['settings'], true);
@@ -270,7 +267,7 @@ class Group extends Entity
         return($ret);
     }
 
-    public function setMembers($members, $collection) {
+    public function setMembers($members, $collection, $synctime = NULL) {
         # This is used to set the whole of the membership list for a group.  It's only used when the group is
         # mastered on Yahoo, rather than by us.
         #
@@ -289,6 +286,8 @@ class Group extends Entity
             'ret' => 0,
             'status' => 'Success'
         ];
+
+        $synctime = $synctime ? $synctime : ISODate("@" . time());
 
         # Really don't want to remove all members by mistake, so don't allow it.
         if (!$members && $collection == MembershipCollection::APPROVED) { return($ret); }
@@ -391,8 +390,12 @@ class Group extends Entity
 
             # Save off the list of members which currently exist, so that after we've processed the ones which currently
             # exist, we can remove any which should no longer be present.
+            #
+            # We only want the members upto the point where the sync started, otherwise we might remove a member who has
+            # just joined.
+            $mysqltime = date("Y-m-d H:i:s", strtotime($synctime));
             $this->dbhm->preExec("DROP TEMPORARY TABLE IF EXISTS syncdelete; CREATE TEMPORARY TABLE syncdelete (id INT UNSIGNED, PRIMARY KEY idkey(id));");
-            $this->dbhm->preExec("INSERT INTO syncdelete (SELECT DISTINCT userid FROM memberships WHERE groupid = ? AND collection = '$collection');", [
+            $this->dbhm->preExec("INSERT INTO syncdelete (SELECT DISTINCT userid FROM memberships WHERE groupid = ? AND collection = '$collection' AND added < '$mysqltime');", [
                 $this->id
             ]);
 
@@ -599,7 +602,7 @@ class Group extends Entity
                 $missing = true;
 
                 foreach ($cs as $c) {
-                    /** @var Collection $c */
+                    /** @var MessageCollection $c */
                     $id = NULL;
 
                     switch (($c->getCollection())) {
@@ -626,7 +629,7 @@ class Group extends Entity
         # $messages.
         /** @var Collection $c */
         foreach ($cs as $c) {
-            $sql = "SELECT id, fromaddr, yahoopendingid, yahooapprovedid, subject, date FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0;";
+            $sql = "SELECT id, fromaddr, yahoopendingid, yahooapprovedid, subject, date, messageid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0;";
             $ourmsgs = $this->dbhr->preQuery(
                 $sql,
                 [
@@ -643,7 +646,10 @@ class Group extends Entity
                         'email' => $msg['fromaddr'],
                         'subject' => $msg['subject'],
                         'collection' => $c->getCollection(),
-                        'date' => ISODate($msg['date'])
+                        'date' => ISODate($msg['date']),
+                        'messageid' => $msg['messageid'],
+                        'yahoopendingid' => $msg['yahoopendingid'],
+                        'yahooapprovedid' => $msg['yahooapprovedid']
                     ];
                 }
             }

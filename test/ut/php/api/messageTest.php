@@ -627,6 +627,8 @@ class messageAPITest extends IznikAPITestCase {
         assertEquals(3, $ret['ret']);
 
         # Route and delete approved.
+        error_log("Route and delete approved");
+        $msg = $this->unique($msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();

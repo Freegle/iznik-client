@@ -223,11 +223,12 @@ function memberships() {
                             # then retries forever but the sync has actually happened.
                             $last = $g->getPrivate('lastyahoomembersync');
                             $time = strtotime('now') - strtotime($last);
+                            $synctime = presdef('synctime', $_REQUEST, ISODate("@" . time()));
                             error_log("Member sync for " . $g->getPrivate('nameshort') . " $last, $time ago");
 
                             if (($time > 600 && $collection == MessageCollection::APPROVED) ||
                                 ($collection != MessageCollection::APPROVED)) {
-                                $ret = $g->setMembers($members, $collection);
+                                $ret = $g->setMembers($members, $collection, $synctime);
                             } else {
                                 $ret = [ 'ret' => 0, 'status' => 'Ignore member sync as happened recently'];
                                 error_log("Ignore member sync for " . $g->getPrivate('nameshort') . " as last sync at $last");

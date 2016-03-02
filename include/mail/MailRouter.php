@@ -421,7 +421,7 @@ class MailRouter
             }
         }
 
-        error_log("Routed " . $this->msg->getSubject() . " " . $ret);
+        error_log("Routed " . $this->msg->getMessageID() . " " . $this->msg->getSubject() . " " . $ret);
 
         return($ret);
     }

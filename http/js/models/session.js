@@ -28,7 +28,6 @@ Iznik.Models.Session = IznikModel.extend({
     testLoggedIn: function() {
         var self = this;
 
-        console.log("testLoggedIn"); console.trace();
         var now = moment().valueOf();
 
         // Only query the server if it's the first time (perhaps since we loggged out) or it's been a while.  This

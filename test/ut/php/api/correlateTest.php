@@ -162,7 +162,7 @@ class correlateTest extends IznikAPITestCase {
             'messages' => [
                 [
                     'email' => 'test@test.com',
-                    'subject' => 'Basic test',
+                    'subject' => 'Basic test 1',
                     'yahooapprovedid' => 1,
                     'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
                 ]
@@ -184,7 +184,7 @@ class correlateTest extends IznikAPITestCase {
             'messages' => [
                 [
                     'email' => 'test1@test.com',
-                    'subject' => 'Basic test',
+                    'subject' => 'Basic test 2',
                     'yahooapprovedid' => 2,
                     'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
                 ]
@@ -213,18 +213,25 @@ class correlateTest extends IznikAPITestCase {
         assertEquals(isodate('Sat, 22 Aug 2015 10:45:58 +0000'), $ret['missingonclient'][0]['date']);
 
         # Now test with multiple messages.
+        error_log("Test multiple");
         $msg = str_ireplace('freegleplayground', 'testgroup', $origmsg);
         $msg = str_ireplace('Date: Sat, 22 Aug 2015 10:45:58 +0000', 'Date: Sat, 20 Aug 2015 10:45:58 +0000', $msg);
-        $msg = str_ireplace('X-Yahoo-Newman-ID: 19440136-m1', 'X-Yahoo-Newman-ID: 19440136-m2', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
+        $msg = $this->unique($msg);
+        $msg = preg_replace('/X-Yahoo-Newman-ID: (.*)/i', 'X-Yahoo-Newman-ID: 19440136-m2', $msg);
+        $msg = str_replace('Subject: [Test Group] Basic test', 'Subject: [Test Group] Basic test 2', $msg);
+        error_log("First $msg");
         $msgid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
         $msg = str_ireplace('freegleplayground', 'testgroup', $origmsg);
         $msg = str_ireplace('Date: Sat, 22 Aug 2015 10:45:58 +0000', 'Date: Sat, 21 Aug 2015 10:45:58 +0000', $msg);
-        $msg = str_ireplace('X-Yahoo-Newman-ID: 19440136-m1', 'X-Yahoo-Newman-ID: 19440136-m3', $msg);
+        $msg = $this->unique($msg);
+        $msg = preg_replace('/X-Yahoo-Newman-ID: (.*)/i', 'X-Yahoo-Newman-ID: 19440136-m3', $msg);
+        $msg = str_replace('Subject: [Test Group] Basic test', 'Subject: [Test Group] Basic test 3', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
+        error_log("Second $msg");
         $msgid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -239,14 +246,14 @@ class correlateTest extends IznikAPITestCase {
             'messages' => [
                 [
                     'email' => 'test1@test.com',
-                    'subject' => 'Basic test',
-                    'yahooapprovedid' => 2,
+                    'subject' => 'Basic test 1',
+                    'yahooapprovedid' => 1,
                     'date' => isodate('Sat, 20 Aug 2015 10:45:58 +0000')
                 ],
                 [
                     'email' => 'test1@test.com',
-                    'subject' => 'Basic test',
-                    'yahooapprovedid' => 2,
+                    'subject' => 'Basic test 3',
+                    'yahooapprovedid' => 3,
                     'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
                 ]
             ]
@@ -268,13 +275,13 @@ class correlateTest extends IznikAPITestCase {
             'messages' => [
                 [
                     'email' => 'test1@test.com',
-                    'subject' => 'Basic test',
-                    'yahooapprovedid' => 2,
+                    'subject' => 'Basic test 1',
+                    'yahooapprovedid' => 1,
                     'date' => isodate('Sat, 20 Aug 2015 10:45:58 +0000')
                 ],
                 [
                     'email' => 'test1@test.com',
-                    'subject' => 'Basic test',
+                    'subject' => 'Basic test 2',
                     'yahooapprovedid' => 2,
                     'date' => isodate('Sat, 21 Aug 2015 10:45:58 +0000')
                 ]
@@ -298,14 +305,14 @@ class correlateTest extends IznikAPITestCase {
             'messages' => [
                 [
                     'email' => 'test1@test.com',
-                    'subject' => 'Basic test',
+                    'subject' => 'Basic test 2',
                     'yahooapprovedid' => 2,
                     'date' => isodate('Sat, 21 Aug 2015 10:45:58 +0000')
                 ],
                 [
                     'email' => 'test1@test.com',
-                    'subject' => 'Basic test',
-                    'yahooapprovedid' => 2,
+                    'subject' => 'Basic test 3',
+                    'yahooapprovedid' => 3,
                     'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
                 ]
             ],

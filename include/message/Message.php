@@ -58,6 +58,10 @@ class Message
         }
     }
 
+    public function getPrivate($att) {
+        return($this->$att);
+    }
+
     public function edit($subject, $textbody, $htmlbody) {
         if ($htmlbody && !$textbody) {
             # In the interests of accessibility, let's create a text version of the HTML
@@ -924,33 +928,7 @@ class Message
 
     # Save a parsed message to the DB
     public function save() {
-        # Check this is not a dup.  There's a window here, but if we hit it then the INSERT later will fail.
-        $att = $this->yahoopendingid ? 'yahoopendingid' : ($this->yahooapprovedid ? 'yahooapprovedid' : NULL);
-        $val = $this->yahoopendingid ? $this->yahoopendingid : ($this->yahooapprovedid ? $this->yahooapprovedid : NULL);
-
-        if ($att && $val) {
-            $sql = "SELECT * FROM messages_groups WHERE groupid = ? AND $att = ?;";
-            $msgs = $this->dbhr->preQuery($sql, [
-                $this->groupid,
-                $val
-            ]);
-
-            if (count($msgs) > 0) {
-                # Duplicate
-                error_log("Duplicate message $sql, {$this->groupid}, $att, $val");
-                return(NULL);
-            }
-        }
-
-        $sql = "SELECT * FROM messages WHERE messageid = ?;";
-        $msgs = $this->dbhr->preQuery($sql, [ $this->messageid ]);
-        foreach ($msgs as $msg) {
-            # Duplicate
-            error_log("Duplicate message $sql, {$this->messageid}");
-            return(NULL);
-        }
-
-        # A message we are saving as approved may previously have been in system, for example as pending.  When it
+        # A message we are saving as approved may previously have been in the system, for example as pending.  When it
         # comes back to us, it might not be the same, so we should remove any old one first.
         #
         # This can happen if a message is handled on another system, e.g. moderated directly on Yahoo.
@@ -1376,7 +1354,9 @@ class Message
 
                 # The message has been allocated to a group; mark it as deleted.  We keep deleted messages for
                 # PD.
-                $rc = $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid = ? AND groupid = ?;", [
+                #
+                # We must zap the Yahoo IDs as we have a unique index on them.
+                $rc = $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1, yahooapprovedid = NULL, yahoopendingid = NULL WHERE msgid = ? AND groupid = ?;", [
                     $this->id,
                     $groupid
                 ]);
@@ -1414,7 +1394,8 @@ class Message
             $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
 
             if (count($groups) === 0) {
-                $rc = $this->dbhm->preExec("UPDATE messages SET deleted = NOW() WHERE id = ?;", [ $this->id ]);
+                # We must zap the messageid as we have a unique index on it
+                $rc = $this->dbhm->preExec("UPDATE messages SET deleted = NOW(), messageid = NULL WHERE id = ?;", [ $this->id ]);
 
                 # Remove from the search index.
                 $this->s->delete($this->id);
@@ -1426,23 +1407,12 @@ class Message
         return($rc);
     }
 
-    public function removeByMessageID($groupid) {
-        # Try to find by message id.
-        $msgid = $this->getMessageID();
-        if ($msgid) {
-            $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid IN (SELECT id FROM messages WHERE messageid = ?) AND messages_groups.groupid = ?;", [
-                $msgid,
-                $groupid
-            ]);
-        }
-
-        # Also try to find by TN post id
-        $tnpostid = $this->getTnpostid();
-        if ($tnpostid) {
-            $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid IN (SELECT id FROM messages WHERE tnpostid = ?) AND messages_groups.groupid = ?;;", [
-                $tnpostid,
-                $groupid
-            ]);
+    public function removeByMessageID() {
+        $sql = "SELECT * FROM messages WHERE messageid = ?;";
+        $msgs = $this->dbhr->preQuery($sql, [ $this->getMessageID() ]);
+        foreach ($msgs as $msg) {
+            $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
+            $m->delete('Received later copy of message with same Message-ID');
         }
     }
 

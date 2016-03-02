@@ -172,7 +172,7 @@ class LoggedPDO {
         }
 
         if ($this->errorLog) {
-            error_log(((microtime(true) - $start) * 1000) . "ms for $sql");
+            error_log(((microtime(true) - $start) * 1000) . "ms for $sql " . var_export($params, TRUE));
         }
 
         return($ret);

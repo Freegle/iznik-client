@@ -12,6 +12,14 @@ require_once IZNIK_BASE . '/include/user/Notifications.php';
  * @backupStaticAttributes disabled
  */
 class sessionTest extends IznikAPITestCase {
+    protected function setUp() {
+        parent::setUp ();
+
+        global $dbhr, $dbhm;
+        $this->dbhr = $dbhr;
+        $this->dbhm = $dbhm;
+    }
+
     public function testLoggedOut() {
         error_log(__METHOD__);
 
@@ -111,13 +119,24 @@ class sessionTest extends IznikAPITestCase {
                 ]
             ]
         ]);
-        assertEquals(0, $ret['ret']);
+        assertEquals(10, $ret['ret']);
         $ret = $this->call('session','GET', []);
         assertEquals(0, $ret['ret']);
         error_log(var_export($ret, true));
         assertEquals('{"test":1}', $ret['me']['settings']);
-        assertEquals('test2@test.com', $ret['me']['email']);
         assertEquals('Testing User', $ret['me']['displayname']);
+        assertEquals('test@test.com', $ret['me']['email']);
+
+        # Confirm it
+        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email = 'test2@test.com';");
+        assertEquals(1, count($emails));
+        foreach ($emails as $email) {
+            assertTrue($u->confirmEmail($email['validatekey']));
+        }
+
+        $ret = $this->call('session','GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals('test2@test.com', $ret['me']['email']);
 
         $ret = $this->call('session', 'PATCH', [
             'settings' => json_encode([ 'test' => 1]),
@@ -192,7 +211,7 @@ class sessionTest extends IznikAPITestCase {
             'settings' => json_encode([ 'test' => 1]),
             'email' => 'test3@test.com'
         ]);
-        assertEquals(3, $ret['ret']);
+        assertEquals(10, $ret['ret']);
 
         $u->delete();
 

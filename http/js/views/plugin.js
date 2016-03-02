@@ -1046,6 +1046,8 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
 
     start: function() {
         var self = this;
+        self.synctime = moment().format();
+
         this.startBusy();
 
         // Need to create this here rather than as a property, otherwise the same array is shared between instances
@@ -1127,10 +1129,11 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.Work.extend({
                         url: API + 'memberships',
                         context: self,
                         data: {
-                            'groupid': this.model.get('id'),
-                            'collection': this.collection,
-                            'members': this.members,
-                            'memberspresentbutempty': this.members.length == 0
+                            groupid: this.model.get('id'),
+                            collection: this.collection,
+                            synctime: self.synctime,
+                            members: this.members,
+                            memberspresentbutempty: this.members.length == 0
                         },
                         success: function(ret) {
                             var self = this;

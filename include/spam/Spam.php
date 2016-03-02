@@ -277,6 +277,8 @@ class Spam {
                 error_log("Found spammer {$spammer['userid']}");
                 $u->removeMembership($spammer['groupid'], TRUE, TRUE);
                 $count++;
+            } else {
+                error_log("Don't remove " . var_export($spamcheck, TRUE));
             }
         }
 

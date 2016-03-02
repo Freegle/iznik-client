@@ -356,7 +356,6 @@ class MailRouterTest extends IznikTestCase {
         assertNull($pend->getFromhost());
         assertNotNull($pend->getGroups()[0]);
         assertEquals($id, $pend->getID());
-        assertEquals('emff7a66f1-e0ed-4792-b493-17a75d806a30@edward-x1', $pend->getMessageID());
         assertEquals($msg, $pend->getMessage());
         assertEquals(Message::YAHOO_PENDING, $pend->getSource());
         assertEquals('from@test.com', $pend->getEnvelopefrom());
@@ -386,7 +385,7 @@ class MailRouterTest extends IznikTestCase {
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setSettings([ 'autoapprove' => [ 'members' => 1 ]]);
 
-        $msg = file_get_contents('msgs/approvemember');
+        $msg = $this->unique(file_get_contents('msgs/approvemember'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
@@ -423,7 +422,6 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull(new Message($this->dbhr, $this->dbhm, $id));
         error_log("Pending id $id");
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -431,7 +429,7 @@ class MailRouterTest extends IznikTestCase {
 
         # The pending message should now have been deleted
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertNull($m->getID());
+        assertNotNull($m->getPrivate('deleted'));
 
         # Now the same, but with a TN post which has no messageid.
         error_log("Now TN post");

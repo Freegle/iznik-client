@@ -23,6 +23,14 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+
+        $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'emff7a66f1-e0ed-4792-b493-17a75d806a30@edward-x1' ]);
+        $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'em01169273-046c-46be-b8f7-69ad036067d0@edward-x1' ]);
+        $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'em47d9afc0-8c92-4fc8-b791-f63ff69360a2@edward-x1' ]);
+        $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'GTUBE1.1010101@example.net' ]);
+        $this->dbhm->preExec("DELETE FROM users_emails WHERE email LIKE '%test.com';");
+        $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = 1;");
+
         set_time_limit(600);
     }
 
@@ -34,10 +42,14 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
     }
 
     public function unique($msg) {
-        $unique = IznikTestCase::$unique++;
-        $newmsg = preg_replace('/X-Yahoo-Newman-Id: (.*)\-m\d*/i', "X-Yahoo-Newman-Id: $1-m$unique", $msg);
-        assertNotEquals($msg, $newmsg);
-        return($newmsg);
+
+        $unique = time() . rand(1,1000000) . IznikTestCase::$unique++;
+        $newmsg1 = preg_replace('/X-Yahoo-Newman-Id: (.*)\-m\d*/i', "X-Yahoo-Newman-Id: $1-m$unique", $msg);
+        #assertNotEquals($msg, $newmsg1, "Newman-ID");
+        $newmsg2 = preg_replace('/Message-Id:.*\<.*\>/i', 'Message-Id: <' . $unique . "@test>", $newmsg1);
+        #assertNotEquals($newmsg2, $newmsg1, "Message-Id");
+        #error_log("Unique $newmsg2");
+        return($newmsg2);
     }
 
     public function waitBackground() {
