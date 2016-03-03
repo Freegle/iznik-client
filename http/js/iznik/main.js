@@ -1,7 +1,8 @@
 window.Iznik = {
     Models     : {
         ModTools: {},
-        Yahoo: {}
+        Yahoo: {},
+        Plugin: {}
     },
     Views      : {
         ModTools: {

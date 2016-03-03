@@ -38,8 +38,8 @@ Iznik.Views.Page = IznikView.extend({
             var s = new Iznik.Views.Supporters();
             rightaccordion.append(s.render().el);
 
-            var s = new Iznik.Views.Plugin.Info();
-            rightaccordion.append(s.render().el);
+            IznikPlugin = new Iznik.Views.Plugin.Main();
+            rightaccordion.append(IznikPlugin.render().el);
             rightaccordion.accordionPersist();
         } else {
             rightaccordion.empty().append(rightbar);

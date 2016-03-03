@@ -348,9 +348,6 @@ $(document).ready(function(){
         console.log("Top-level exception", e);
         console.trace();
     }
-
-    // Start the plugin
-    IznikPlugin.render();
 });
 
 // We can flag anchors as not to be handled via Backbone using data-realurl
