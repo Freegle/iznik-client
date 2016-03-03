@@ -131,7 +131,15 @@ class sessionTest extends IznikAPITestCase {
         $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email = 'test2@test.com';");
         assertEquals(1, count($emails));
         foreach ($emails as $email) {
-            assertTrue($u->confirmEmail($email['validatekey']));
+            $ret = $this->call('session', 'PATCH', [
+                'key' => 'wibble'
+            ]);
+            assertEquals(11, $ret['ret']);
+
+            $ret = $this->call('session', 'PATCH', [
+                'key' => $email['validatekey']
+            ]);
+            assertEquals(0, $ret['ret']);
         }
 
         $ret = $this->call('session','GET', []);

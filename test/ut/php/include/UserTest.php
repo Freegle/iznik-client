@@ -204,12 +204,15 @@ class userTest extends IznikTestCase {
         $u = new User($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
         $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = $id;");
+        $eid = $u->addEmail('test@test.com');
+        assertGreaterThan(0, $eid);
+        $u->setPrivate('yahooUserId', 1);
         $u = new User($this->dbhr, $this->dbhm, $id);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
         assertEquals($u->getRole($group1), User::ROLE_NONMEMBER);
         assertFalse($u->isModOrOwner($group1));
 
-        $u->addMembership($group1, User::ROLE_MEMBER);
+        $u->addMembership($group1, User::ROLE_MEMBER, $eid);
         assertEquals($u->getRole($group1), User::ROLE_MEMBER);
         assertFalse($u->isModOrOwner($group1));
         $u->setGroupSettings($group1, [
@@ -254,6 +257,15 @@ class userTest extends IznikTestCase {
         $membs = $u->getMemberships();
         assertEquals(1, count($membs));
         assertEquals($group2, $membs[0]['id']);
+
+        # Plugin work should exist
+        $p = new Plugin($this->dbhr, $this->dbhm);
+        $work = $p->get($group1);
+        assertEquals(1, count($work));
+        assertEquals($group1, $work[0]['groupid']);
+        assertEquals('{"type":"RemoveApprovedMember","id":"1","email":"test@test.com"}', $work[0]['data']);
+        $pid = $work[0]['id'];
+        $p->delete($pid);
 
         // Support and admin users have a mod role on the group even if not a member
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -646,9 +658,18 @@ class userTest extends IznikTestCase {
         $u2 = new User($this->dbhr, $this->dbhm, $id2);
         assertFalse($u2->verifyEmail('bit-bucket@test.smtp.org'));
 
+        # Now confirm that- should trigger a merge.
+        assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u2->login('testpw'));
+        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email = 'bit-bucket@test.smtp.org';");
+        assertEquals(1, count($emails));
+        foreach ($emails as $email) {
+            assertTrue($u2->confirmEmail($email['validatekey']));
+        }
+
         # Test add when it's already one of ours.
-        assertNotNull($u1->addEmail('test@test.com'));
-        assertTrue($u1->verifyEmail('test@test.com'));
+        assertNotNull($u2->addEmail('test@test.com'));
+        assertTrue($u2->verifyEmail('test@test.com'));
 
         error_log(__METHOD__ . " end");
     }

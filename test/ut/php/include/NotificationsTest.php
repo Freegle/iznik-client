@@ -48,6 +48,8 @@ class notificationsTest extends IznikTestCase {
         $n = new Notifications($this->dbhr, $this->dbhm);
         $n->add($id, Notifications::PUSH_GOOGLE, 'test');
         assertEquals(0, $mock->notify($id));
+        $n->add($id, Notifications::PUSH_FIREFOX, 'test2');
+        assertEquals(1, $n->notify($id));
 
         error_log(__METHOD__ . " end");
     }

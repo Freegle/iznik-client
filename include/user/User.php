@@ -313,6 +313,7 @@ class User extends Entity
             return(FALSE);
         }
 
+        #error_log("Add membership {$this->id} to $groupid with $emailid");
         $rc = $this->dbhm->preExec("REPLACE INTO memberships (userid, groupid, role, emailid, collection) VALUES (?,?,?,?,?);", [
             $this->id,
             $groupid,
@@ -378,6 +379,11 @@ class User extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
         $meid = $me ? $me->getId() : NULL;
 
+        # Get the email before we remove the membership.
+        $sql = "SELECT email FROM users_emails INNER JOIN memberships ON users_emails.id = memberships.emailid AND groupid = ? AND users_emails.userid = ?;";
+        $emails = $this->dbhr->preQuery($sql, [ $groupid, $this->id ]);
+        #error_log("Remove membership {$this->id} from $groupid emails " . var_export($emails, TRUE));
+
         $rc = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = ? AND groupid = ?;",
             [
                 $this->id,
@@ -387,8 +393,6 @@ class User extends Entity
         if ($rc) {
             if ($this->user['yahooUserId']) {
                 # This is a user on Yahoo.  We must try to remove them from the group on there too, via the plugin.
-                $sql = "SELECT email FROM users_emails INNER JOIN memberships ON users_emails.id = memberships.emailid AND groupid = ? AND users_emails.userid = ?;";
-                $emails = $this->dbhr->preQuery($sql, [ $groupid, $this->id ]);
                 $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
 
                 if ($ban) {
@@ -1281,10 +1285,7 @@ class User extends Entity
             $cid = $c->getForGroup($me->getId(), $groupid);
             $c = new ModConfig($this->dbhr, $this->dbhm, $cid);
             $fromname = $c->getPrivate('fromname');
-
-            if ($fromname == 'Groupname Moderator') {
-                $name = '$groupname Moderator';
-            }
+            $name = ($fromname == 'Groupname Moderator') ? '$groupname Moderator' : $name;
 
             # We can do a simple substitution in the from name.
             $name = str_replace('$groupname', $atts['namedisplay'], $name);
@@ -1682,7 +1683,7 @@ class User extends Entity
         foreach ($mails as $mail) {
             if ($mail['userid'] && $mail['userid'] != $me->getId()) {
                 # This email belongs to another user.  But we've confirmed that it is ours.  So merge.
-                $this->merge($this->id, $mail['userid']);
+                $this->merge($this->id, $mail['userid'], "Verified ownership of email {$mail['email']}");
             }
 
             $this->dbhm->preExec("UPDATE users_emails SET userid = ?, validated = NOW() WHERE id = ?;", [ $this->id, $mail['id']]);
