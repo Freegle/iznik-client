@@ -1320,7 +1320,7 @@ class Message
         }
     }
 
-    function delete($reason = NULL, $groupid = NULL, $subject = NULL, $body = NULL, $stdmsgid = NULL)
+    function delete($reason = NULL, $groupid = NULL, $subject = NULL, $body = NULL, $stdmsgid = NULL, $localonly = FALSE)
     {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $rc = true;
@@ -1361,28 +1361,30 @@ class Message
                     $groupid
                 ]);
 
-                # We might be deleting an approved message or spam.
-                if ($group['yahooapprovedid']) {
-                    # We can trigger deleted via the plugin - do so.
-                    $p = new Plugin($this->dbhr, $this->dbhm);
-                    $p->add($groupid, [
-                        'type' => 'DeleteApprovedMessage',
-                        'id' => $group['yahooapprovedid']
-                    ]);
-                } else {
-                    # Or we might be deleting a pending or spam message, in which case it may also need rejecting on Yahoo.
-                    if ($group['yahooreject']) {
-                        # We can trigger rejection by email - do so.
-                        $this->mailer($group['yahooreject'], "My name is Iznik and I reject this message", "", NULL, '-f' . MODERATOR_EMAIL);
-                    }
-
-                    if ($group['yahoopendingid']) {
-                        # We can trigger rejection via the plugin - do so.
+                if (!$localonly) {
+                    # We might be deleting an approved message or spam.
+                    if ($group['yahooapprovedid']) {
+                        # We can trigger deleted via the plugin - do so.
                         $p = new Plugin($this->dbhr, $this->dbhm);
                         $p->add($groupid, [
-                            'type' => 'RejectPendingMessage',
-                            'id' => $group['yahoopendingid']
+                            'type' => 'DeleteApprovedMessage',
+                            'id' => $group['yahooapprovedid']
                         ]);
+                    } else {
+                        # Or we might be deleting a pending or spam message, in which case it may also need rejecting on Yahoo.
+                        if ($group['yahooreject']) {
+                            # We can trigger rejection by email - do so.
+                            $this->mailer($group['yahooreject'], "My name is Iznik and I reject this message", "", NULL, '-f' . MODERATOR_EMAIL);
+                        }
+
+                        if ($group['yahoopendingid']) {
+                            # We can trigger rejection via the plugin - do so.
+                            $p = new Plugin($this->dbhr, $this->dbhm);
+                            $p->add($groupid, [
+                                'type' => 'RejectPendingMessage',
+                                'id' => $group['yahoopendingid']
+                            ]);
+                        }
                     }
                 }
 
@@ -1412,7 +1414,7 @@ class Message
         $msgs = $this->dbhr->preQuery($sql, [ $this->getMessageID() ]);
         foreach ($msgs as $msg) {
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
-            $m->delete('Received later copy of message with same Message-ID');
+            $m->delete('Received later copy of message with same Message-ID', TRUE);
         }
     }
 

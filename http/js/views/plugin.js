@@ -73,7 +73,7 @@ Iznik.Collections.Plugin = IznikCollection.extend({
 });
 
 Iznik.Views.Plugin.Main = IznikView.extend({
-    className: "panel panel-default js-plugin",
+    className: "padbotbig panel panel-default js-plugin",
     template: "layout_plugin",
 
     connected: false,
