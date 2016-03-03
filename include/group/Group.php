@@ -214,7 +214,7 @@ class Group extends Entity
 
         foreach ($members as $member) {
             $u = new User($this->dbhr, $this->dbhm, $member['userid']);
-            $thisone = $u->getPublic(NULL, TRUE);
+            $thisone = $u->getPublic($groupids, TRUE);
             $thisone['userid'] = $thisone['id'];
             $thisepoch = strtotime($member['added']);
 

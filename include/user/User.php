@@ -703,23 +703,28 @@ class User extends Entity
 
         if ($history) {
             # Add in the message history - from any of the emails associated with this user.
+            $atts['messagehistory'] = [];
+            $sql = NULL;
+
             if ($groupids && count($groupids) > 0) {
                 # On these groups
                 $groupq = implode(',', $groupids);
                 $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC;";
-            } else {
-                # On all groups.
+            } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
+                # We can see all groups.
                 $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC;";
             }
 
-            $atts['messagehistory'] = $this->dbhr->preQuery($sql, [
-                MessageCollection::APPROVED,
-                $this->id
-            ]);
+            if ($sql) {
+                $atts['messagehistory'] = $this->dbhr->preQuery($sql, [
+                    MessageCollection::APPROVED,
+                    $this->id
+                ]);
 
-            foreach ($atts['messagehistory'] as &$hist) {
-                $hist['arrival'] = ISODate($hist['arrival']);
-                $hist['date'] = ISODate($hist['date']);
+                foreach ($atts['messagehistory'] as &$hist) {
+                    $hist['arrival'] = ISODate($hist['arrival']);
+                    $hist['date'] = ISODate($hist['date']);
+                }
             }
         }
 
