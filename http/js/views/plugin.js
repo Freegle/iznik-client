@@ -1,3 +1,4 @@
+// TODO crumb, crumblocation
 // Plugin work.
 //
 // We have a collection for the work items, some of which come from the server, and some of which are generated
@@ -10,8 +11,16 @@ Iznik.Models.Plugin.Work = IznikModel.extend({
     },
 
     retry: function() {
-        this.set('retrying', true);
+        console.log("Retry work", this);
+        this.set('running', false);
+        var count = this.get('retrycount');
+        count = count ? (count + 1) : 1;
+        this.set('retrycount', count);
+
         this.collection.sort();
+        _.delay(function() {
+            IznikPlugin.checkWork();
+        }, 500);
     }
 });
 
@@ -24,20 +33,31 @@ Iznik.Collections.Plugin = IznikCollection.extend({
         this.comparator = function(a, b) {
             var ret;
 
-            // Retrying work goes later
-            if (!a.get('retrying') && b.get('retrying')) {
-                ret = -1;
-            } else if (a.get('retrying') && !b.get('retrying')) {
-                ret = 1;
+            // Running work comes first.
+            if (a.get('running')) {
+                return(-1);
+            } else if (b.get('running')) {
+                return (1)
             } else {
-                // Bulk work goes later.
-                if (!a.get('bulk') && b.get('bulk')) {
+                // Retrying work goes later
+                if (!a.get('retrycount') && b.get('retrycount')) {
                     ret = -1;
-                } else if (a.get('bulk') && !b.get('bulk')) {
+                } else if (a.get('retrycount') && !b.get('retrycount')) {
                     ret = 1;
                 } else {
-                    // By time.
-                    ret = b.get('added') - a.get('added');
+                    if (a.get('retrycount') != b.get('retrycount')) {
+                        ret = a.get('retrycount') - b.get('retrycount');
+                    } else {
+                        // Bulk work goes later.
+                        if (!a.get('bulk') && b.get('bulk')) {
+                            ret = -1;
+                        } else if (a.get('bulk') && !b.get('bulk')) {
+                            ret = 1;
+                        } else {
+                            // By time.
+                            ret = b.get('added') - a.get('added');
+                        }
+                    }
                 }
             }
 
@@ -75,6 +95,10 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
         // Update our count when the number of work items changes.
         self.listenTo(self.collection, 'add remove', self.updatePluginCount);
+
+        // Also check for work to do when a new item is added
+        self.listenTo(self.collection, 'add', self.checkWork);
+
         self.collectionView.render();
 
         self.checkPluginStatus();
@@ -107,7 +131,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 sync = !settings.hasOwnProperty(key) || settings[key];
             }
 
-            // We rely on groupid being present for crumb.
+            // We rely on groupid being present when we get the crumb.
             group.set('groupid', group.get('id'));
 
             //console.log("doSync", group.get('nameshort'), key, sync, group);
@@ -136,6 +160,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 doSync(group, 'showmessages')) {
                     //console.log("Sync pending messages for", group.get('nameshort'));
                     self.collection.add(new Iznik.Models.Plugin.Work({
+                        id: group.get('nameshort') + '.SyncMessages.Pending',
                         subview: new Iznik.Views.Plugin.Yahoo.SyncMessages.Pending({
                             model: group
                         }),
@@ -146,6 +171,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             if (worthIt(self.yahooGroupsWithPendingMessages, group, 'pendingmembers') &&
                 doSync(group, 'showmembers')) {
                     self.collection.add(new Iznik.Models.Plugin.Work({
+                        id: group.get('nameshort') + '.SyncMembers.Pending',
                         subview: new Iznik.Views.Plugin.Yahoo.SyncMembers.Pending({
                             model: group
                         }),
@@ -162,6 +188,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                 if ((_.isUndefined(lastsync) || hoursago >= 24) && doSync(group, 'showmessages')) {
                     self.collection.add(new Iznik.Models.Plugin.Work({
+                        id: group.get('nameshort') + '.SyncMessages.Approved',
                         subview: new Iznik.Views.Plugin.Yahoo.SyncMessages.Approved({
                             model: group
                         }),
@@ -180,6 +207,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                 if ((_.isUndefined(lastsync) || hoursago >= 24) && doSync(group, 'showmembers')) {
                     self.collection.add(new Iznik.Models.Plugin.Work({
+                        id: group.get('nameshort') + '.SyncMembers.Approved',
                         subview: new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({
                             model: group
                         }),
@@ -228,9 +256,11 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 }
             }
 
+            var url = "https://groups.yahoo.com/neo/groups/" + groupname + crumblocation + "?" + Math.random();
+
             $.ajaxq('plugin', {
                 type: "GET",
-                url: "https://groups.yahoo.com/neo/groups/" + groupname + crumblocation + "?" + Math.random(),
+                url: url,
                 success: parseCrumb,
                 error: function (request, status, error) {
                     console.log("Get crumb error", status, error);
@@ -241,48 +271,39 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     },
 
     checkWork: function() {
-        console.log("Check work");
-        return;
-
         var self = this;
-        var first = this.collection.get(0);
 
-        if (!first.get('running')) {
-            // Get any first item of work to do.
+        // Get any first item of work to do.
+        var first = this.collection.at(0);
 
-            if (first) {
-                first.set('running', true);
-                //console.log("First item", first);
+        if (first && !first.get('running')) {
+            first.set('running', true);
+            //console.log("First item", first);
 
-                var groupname;
+            var groupname;
+            var v = first.get('subview');
+            var mod = v.model;
 
-                if (first.model.get('groupid')) {
-                    // Get a crumb from the relevant group
-                    var group = Iznik.Session.getGroup(first.model.get('groupid'));
-                    groupname = group.get('nameshort');
-                    //console.log("Get relevant crumb", groupname, first.model);
-                } else {
-                    // We're not acting on a specific group.  Get a crumb from one of ours.
-                    var groups = Iznik.Session.get('groups');
-                    groupname = groups && groups.length > 0 ? groups.at(0).get('nameshort') : null;
-                    //console.log("Get first crumb", groupname, first.model);
-                }
-
-                // We need a crumb to do the work.
-                function findCrumb(groupname, first, self) {
-                    self.getCrumb(groupname, first.crumbLocation, function(crumb) {
-                        first.set('crumb', crumb);
-                        var v = first.get('subview');
-                        console.log("Start", v, first, crumb);
-                        v.start.call(v);
-                    }, function() {
-                        self.collection.get(0).retry();
-                    })();
-                }
-
-                // Don't hammer Yahoo.
-                _.delay(findCrumb, 500, groupname, first, self);
+            if (mod.get('groupid')) {
+                // Get a crumb from the relevant group
+                var group = Iznik.Session.getGroup(mod.get('groupid'));
+                groupname = group.get('nameshort');
+                //console.log("Get relevant crumb", groupname, first);
+            } else {
+                // We're not acting on a specific group.  Get a crumb from one of ours.
+                var groups = Iznik.Session.get('groups');
+                groupname = groups && groups.length > 0 ? groups.at(0).get('nameshort') : null;
+                //console.log("Get first crumb", groupname, first);
             }
+
+            // We need a crumb to do the work.
+            self.getCrumb(groupname, v.crumbLocation, function(crumb) {
+                v.crumb = crumb;
+                console.log("Start", v, first, crumb);
+                v.start.call(v);
+            }, function() {
+                self.collection.at(0).retry();
+            })();
         }
     },
 
@@ -298,11 +319,6 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         }
 
         this.count = count;
-    },
-
-    completedWork: function() {
-        this.collection.shift();
-        this.checkWork();
     },
 
     checkPluginStatus: function() {
@@ -344,15 +360,15 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             });
         }
 
-        var first = self.collection.get(0);
-        console.log("checkPluginStatus, first", first);
+        var first = self.collection.at(0);
+        //console.log("checkPluginStatus, first", first);
         if (first && first.get('running')) {
             // We are in the middle of work.  Don't query Yahoo as we'll break our crumb.
-            console.log("Running item - don't query");
+            //console.log("Running item - don't query");
             window.setTimeout(_.bind(self.checkPluginStatus, self), 10000);
         } else {
             // Check if we are connected to Yahoo by issuing an API call.
-            console.log("Not running item - query Yahoo");
+            //console.log("Not running item - query Yahoo");
             new majax({
                 type: 'GET',
                 url: 'https://groups.yahoo.com/api/v1/user/groups/all',
@@ -582,7 +598,6 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
                     // Now look for work which has been removed from the server because it isn't necessary any more.
                     self.collection.each(function(item) {
-                        console.log("scan", item);
                         if (item.get('server')) {
                             var got = false;
 
@@ -734,6 +749,16 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 });
 
 Iznik.Views.Plugin.Work = IznikView.extend({
+    render: function() {
+        // This view is just a wrapper - the meat of the view is in the subview, so get that back and render it.
+        var v = this.model.get('subview');
+        var el = v.render().el;
+        this.$el.html(el);
+        return(this);
+    }
+});
+
+Iznik.Views.Plugin.SubView = IznikView.extend({
     startBusy: function() {
         // Change icon
         this.$('.glyphicon-time, glyphicon-warning-sign').removeClass('glyphicon-time, glyphicon-warning-sign').addClass('glyphicon-refresh rotate');
@@ -745,7 +770,7 @@ Iznik.Views.Plugin.Work = IznikView.extend({
 
     fail: function() {
         this.$('.glyphicon-refresh').removeClass('glyphicon-refresh rotate').addClass('glyphicon-warning-sign');
-        this.model.retry();
+        IznikPlugin.collection.at(0).retry();
         IznikPlugin.collection.sort();
     },
 
@@ -753,13 +778,15 @@ Iznik.Views.Plugin.Work = IznikView.extend({
         var self = this;
 
         function finished() {
-            IznikPlugin.collection.remove(this.model);
+            console.log("Finished work item", this);
+            IznikPlugin.collection.shift();
         }
 
         if (self.server) {
             // This work came from the server - record the success there.
             //
             // Even if this fails, continue.
+            console.log("Server", self.model.get('workid'));
             $.ajax({
                 type: "POST",
                 headers: {
@@ -772,23 +799,13 @@ Iznik.Views.Plugin.Work = IznikView.extend({
             });
         } else {
             // Not on server - just remove
-            IznikPlugin.collection.remove(this.model);
+            console.log("Not on server");
+            finished.call(this);
         }
-    },
-
-    render: function() {
-        // This view is just a wrapper - the meat of the view is in the subview, so get that back and render it.
-        console.log("Render plugin work", this);
-        var v = this.model.get('subview');
-        console.log("View", v);
-        var el = v.render().el;
-        console.log("Element", el);
-        this.$el.html(el);
-        return(this);
     }
-});
+})
 
-Iznik.Views.Plugin.Yahoo.SyncMessages = IznikView.extend({
+Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.SubView.extend({
     offset: 1,
 
     chunkSize: 100,
@@ -1061,7 +1078,7 @@ Iznik.Views.Plugin.Yahoo.SyncMessages.Approved = Iznik.Views.Plugin.Yahoo.SyncMe
     }
 });
 
-Iznik.Views.Plugin.Yahoo.SyncMembers = IznikView.extend({
+Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.SubView.extend({
     offset: 1,
 
     crumbLocation: "/members/all",
@@ -1371,7 +1388,7 @@ Iznik.Views.Plugin.Yahoo.RemoveBouncing = Iznik.Views.Plugin.Yahoo.SyncMembers.e
     }
 });
 
-Iznik.Views.Plugin.Yahoo.ToSpecialNotices = IznikView.extend({
+Iznik.Views.Plugin.Yahoo.ToSpecialNotices = Iznik.Views.Plugin.SubView.extend({
     // Setting offset to 0 omits start from first one
     offset: 0,
     context: null,
@@ -1458,7 +1475,7 @@ Iznik.Views.Plugin.Yahoo.ToSpecialNotices = IznikView.extend({
     }
 });
 
-Iznik.Views.Plugin.Yahoo.ApprovePendingMessage = IznikView.extend({
+Iznik.Views.Plugin.Yahoo.ApprovePendingMessage = Iznik.Views.Plugin.SubView.extend({
     template: 'plugin_pending_approve',
     crumbLocation: "/management/pendingmessages",
 
@@ -1496,7 +1513,7 @@ Iznik.Views.Plugin.Yahoo.ApprovePendingMessage = IznikView.extend({
     }
 });
 
-Iznik.Views.Plugin.Yahoo.RejectPendingMember = IznikView.extend({
+Iznik.Views.Plugin.Yahoo.RejectPendingMember = Iznik.Views.Plugin.SubView.extend({
     template: 'plugin_member_pending_reject',
     crumbLocation: "/management/pendingmembers",
 
@@ -1533,7 +1550,7 @@ Iznik.Views.Plugin.Yahoo.RejectPendingMember = IznikView.extend({
     }
 });
 
-Iznik.Views.Plugin.Yahoo.ApprovePendingMember = IznikView.extend({
+Iznik.Views.Plugin.Yahoo.ApprovePendingMember = Iznik.Views.Plugin.SubView.extend({
     template: 'plugin_member_pending_approve',
     crumbLocation: "/management/pendingmembers",
 
@@ -1583,7 +1600,7 @@ Iznik.Views.Plugin.Yahoo.ApprovePendingMember = IznikView.extend({
     }
 });
 
-Iznik.Views.Plugin.Yahoo.RejectPendingMessage = IznikView.extend({
+Iznik.Views.Plugin.Yahoo.RejectPendingMessage = Iznik.Views.Plugin.SubView.extend({
     template: 'plugin_pending_reject',
     crumbLocation: "/management/pendingmessages",
 
@@ -1621,7 +1638,7 @@ Iznik.Views.Plugin.Yahoo.RejectPendingMessage = IznikView.extend({
     }
 });
 
-Iznik.Views.Plugin.Yahoo.DeleteApprovedMessage = IznikView.extend({
+Iznik.Views.Plugin.Yahoo.DeleteApprovedMessage = Iznik.Views.Plugin.SubView.extend({
     template: 'plugin_message_approved_delete',
     crumbLocation: "/conversations/messages",
 
@@ -1656,7 +1673,7 @@ Iznik.Views.Plugin.Yahoo.DeleteApprovedMessage = IznikView.extend({
                     if (ret.hasOwnProperty('ygData') && ret.ygData == 1) {
                         self.succeed();
                     } else {
-                        if (ret.hasOwnProperty('ygError') && ret.ygError.errorCode == 1319) {
+                        if (ret.hasOwnProperty('ygError') && (ret.ygError.errorCode == 1319 || ret.ygError.errorCode == 1002)) {
                             // We get this if we try to delete something invalid.
                             self.succeed();
                         } else {
@@ -1690,7 +1707,7 @@ Iznik.Views.Plugin.Yahoo.DeleteApprovedMessage = IznikView.extend({
     }
 });
 
-Iznik.Views.Plugin.Yahoo.ChangeAttribute = IznikView.extend({
+Iznik.Views.Plugin.Yahoo.ChangeAttribute = Iznik.Views.Plugin.SubView.extend({
     crumbLocation: "/members/all",
 
     server: true,
@@ -1726,7 +1743,7 @@ Iznik.Views.Plugin.Yahoo.ChangeAttribute = IznikView.extend({
     }
 });
 
-Iznik.Views.Plugin.FakeFail = IznikView.extend({
+Iznik.Views.Plugin.FakeFail = Iznik.Views.Plugin.SubView.extend({
     template: 'plugin_fakefail',
 
     start: function() {
@@ -1750,7 +1767,7 @@ Iznik.Views.Plugin.Yahoo.PostingStatus = Iznik.Views.Plugin.Yahoo.ChangeAttribut
     attr: 'postingStatus'
 });
 
-Iznik.Views.Plugin.Yahoo.Invite = IznikView.extend({
+Iznik.Views.Plugin.Yahoo.Invite = Iznik.Views.Plugin.SubView.extend({
     crumbLocation: "/members/all",
     template: 'plugin_invite',
 
@@ -1815,7 +1832,7 @@ Iznik.Views.Plugin.Yahoo.ConfirmMod = Iznik.Views.Plugin.Yahoo.Invite.extend({
     }
 });
 
-Iznik.Views.Plugin.Yahoo.RemoveApprovedMember = IznikView.extend({
+Iznik.Views.Plugin.Yahoo.RemoveApprovedMember = Iznik.Views.Plugin.SubView.extend({
     template: 'plugin_member_approved_remove',
 
     crumbLocation: "/members/all",
@@ -1870,7 +1887,7 @@ Iznik.Views.Plugin.Yahoo.RemoveApprovedMember = IznikView.extend({
     }
 });
 
-Iznik.Views.Plugin.Yahoo.BanPendingMember = IznikView.extend({
+Iznik.Views.Plugin.Yahoo.BanPendingMember = Iznik.Views.Plugin.SubView.extend({
     template: 'plugin_member_pending_ban',
 
     crumbLocation: "/members/all",
@@ -1914,7 +1931,7 @@ Iznik.Views.Plugin.Yahoo.BanPendingMember = IznikView.extend({
     }
 });
 
-Iznik.Views.Plugin.Yahoo.BanApprovedMember = IznikView.extend({
+Iznik.Views.Plugin.Yahoo.BanApprovedMember = Iznik.Views.Plugin.SubView.extend({
     template: 'plugin_member_approved_ban',
 
     crumbLocation: "/members/all",
