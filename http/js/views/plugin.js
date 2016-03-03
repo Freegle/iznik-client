@@ -21,6 +21,12 @@ Iznik.Models.Plugin.Work = IznikModel.extend({
         _.delay(function() {
             IznikPlugin.checkWork();
         }, 500);
+    },
+
+    requeue: function() {
+        this.set('running', false);
+        this.collection.sort();
+        IznikPlugin.checkWork();
     }
 });
 
@@ -299,7 +305,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             // We need a crumb to do the work.
             self.getCrumb(groupname, v.crumbLocation, function(crumb) {
                 v.crumb = crumb;
-                console.log("Start", v, first, crumb);
+                //console.log("Start", v, first, crumb);
                 v.start.call(v);
             }, function() {
                 self.collection.at(0).retry();
@@ -764,14 +770,18 @@ Iznik.Views.Plugin.SubView = IznikView.extend({
         this.$('.glyphicon-time, glyphicon-warning-sign').removeClass('glyphicon-time, glyphicon-warning-sign').addClass('glyphicon-refresh rotate');
     },
 
+    requeue: function() {
+        IznikPlugin.collection.at(0).requeue();
+    },
+
     drop: function() {
-        IznikPlugin.collection.remove(this.model);
+        IznikPlugin.collection.shift();
+        IznikPlugin.checkWork();
     },
 
     fail: function() {
         this.$('.glyphicon-refresh').removeClass('glyphicon-refresh rotate').addClass('glyphicon-warning-sign');
         IznikPlugin.collection.at(0).retry();
-        IznikPlugin.collection.sort();
     },
 
     succeed: function() {
@@ -780,6 +790,7 @@ Iznik.Views.Plugin.SubView = IznikView.extend({
         function finished() {
             console.log("Finished work item", this);
             IznikPlugin.collection.shift();
+            IznikPlugin.checkWork();
         }
 
         if (self.server) {
@@ -1190,7 +1201,7 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.SubView.extend({
                     });
                 }
             } else {
-                this.queue();
+                this.requeue();
             }
         }
     }

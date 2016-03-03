@@ -248,6 +248,10 @@ body {
     padding-bottom: 0px !important;
 }
 
+.padbotbit {
+    padding-bottom: 50px !important;
+}
+
 .menu {
     margin-top: 3px;
     height: 30px;
@@ -311,6 +315,13 @@ body {
 
 .padbot {
     padding-bottom: 10px !important;
+}
+
+.padmdbotplus {
+    padding-top: 5px !important;
+    padding-bottom: 40px !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
 }
 
 .padtopbotmd {

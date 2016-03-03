@@ -19,7 +19,14 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Infinite.extend({
     },
 
     sync: function() {
-        (new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({model: Iznik.Session.getGroup(this.selected)})).render();
+        var group = Iznik.Session.getGroup(this.selected)
+        IznikPlugin.collection.add(new Iznik.Models.Plugin.Work({
+            id: group.get('nameshort') + '.SyncMessages.Approved',
+            subview: new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({
+                model: group
+            }),
+            bulk: true
+        }));
     },
 
     exportChunk: function() {
@@ -105,7 +112,11 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Infinite.extend({
             self.wait.template = 'modtools_members_approved_exportwait';
             self.wait.render();
 
-            var v = new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({model: Iznik.Session.getGroup(this.selected)});
+            var group = Iznik.Session.getGroup(this.selected);
+            var v = new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({
+                model: group
+            });
+
             v.completed = function(members) {
                 self.wait.close();
                 v.drop();
@@ -124,7 +135,11 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Infinite.extend({
                 saveAs(blob, "members.csv");
             }
 
-            v.render();
+            IznikPlugin.collection.add(new Iznik.Models.Plugin.Work({
+                id: group.get('nameshort') + '.SyncMessages.Approved',
+                subview: v,
+                bulk: true
+            }));
         }
     },
 
