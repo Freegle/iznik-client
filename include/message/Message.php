@@ -1414,7 +1414,7 @@ class Message
         $msgs = $this->dbhr->preQuery($sql, [ $this->getMessageID() ]);
         foreach ($msgs as $msg) {
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
-            $m->delete('Received later copy of message with same Message-ID', TRUE);
+            $m->delete('Received later copy of message with same Message-ID', NULL, NULL, NULL, NULL, TRUE);
         }
     }
 
