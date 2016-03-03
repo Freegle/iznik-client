@@ -411,7 +411,12 @@ class MailRouterTest extends IznikTestCase {
     function testPendingToApproved() {
         error_log(__METHOD__);
 
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+
         $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
+
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $id = $m->save();
@@ -422,14 +427,31 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull(new Message($this->dbhr, $this->dbhm, $id));
         error_log("Pending id $id");
 
+        # Approve
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u->addMembership($gid, User::ROLE_OWNER);
+        assertTrue($u->login('testpw'));
+
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->approve($gid, NULL, NULL, NULL);
+
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id2 = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        error_log("New id $id2");
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
         # The pending message should now have been deleted
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertNotNull($m->getPrivate('deleted'));
+
+        # But the approvedby should be preserved
+        $m = new Message($this->dbhr, $this->dbhm, $id2);
+        $groups = $m->getPublic()['groups'];
+        error_log("Groups " . var_export($groups, TRUE));
+        assertEquals($uid, $groups[0]['approvedby']['id']);
 
         # Now the same, but with a TN post which has no messageid.
         error_log("Now TN post");

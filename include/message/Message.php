@@ -935,6 +935,37 @@ class Message
         #
         # We don't need a transaction for this - transactions aren't great for scalability and worst case we
         # leave a spurious message around which a mod will handle.
+        #
+        # But we do want to preserve any information we had about who approved a message.
+        $sql = "SELECT approvedby FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid WHERE messageid = ? AND fromaddr = ?;";
+        $messages = $this->dbhr->preQuery($sql,  [
+            $this->getMessageID(),
+            $this->getFromaddr()
+        ]);
+
+        $approvedby = NULL;
+
+        foreach ($messages as $message) {
+            error_log(var_export($message, TRUE));
+            $approvedby = $message['approvedby'];
+            error_log("Found previous approved $approvedby");
+        }
+
+        if (!$approvedby) {
+            # See if we have a record of approval from Yahoo.
+            $approval = $this->getHeader('x-egroups-approved-by');
+            error_log("Approval $approval");
+
+            if ($approval && preg_match('/(.*) via/', $approval, $matches)) {
+                # We've got an approval.  See if we can find the mod.
+                $by = $matches[1];
+                $u = new User($this->dbhr, $this->dbhm);
+                $idid = $u->findByEmail($by);
+                $approvedby =  $idid ? $idid : $u->findByEmail($by);
+            }
+        }
+
+        # Now we can zap the old copy.
         $this->removeByMessageID($this->groupid);
 
         # Reduce the size of the message source
@@ -993,14 +1024,15 @@ class Message
         if ($this->groupid) {
             # Save the group we're on.  If we crash or fail at this point we leave the message stranded, which is ok
             # given the perf cost of a transaction.
-            $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection) VALUES (?,?,?,?,?,?,?);", [
+            $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby) VALUES (?,?,?,?,?,?,?,?);", [
                 $this->id,
                 $this->groupid,
                 $this->yahoopendingid,
                 $this->yahooapprovedid,
                 $this->yahooreject,
                 $this->yahooapprove,
-                MessageCollection::INCOMING
+                MessageCollection::INCOMING,
+                $approvedby
             ]);
         }
 
@@ -1259,12 +1291,15 @@ class Message
             }
         }
 
-        $sql = "UPDATE messages_groups SET collection = ?, approvedby = ? WHERE msgid = ?;";
-        $this->dbhm->preExec($sql, [
+        $sql = "UPDATE messages_groups SET collection = ?, approvedby = ? WHERE msgid = ? AND groupid = ?;";
+        $rc = $this->dbhm->preExec($sql, [
             MessageCollection::APPROVED,
             $myid,
-            $this->id
+            $this->id,
+            $groupid
         ]);
+
+        error_log("Approve $rc from $sql, $myid, {$this->id}, $groupid");
 
         $this->notif->notifyGroupMods($groupid);
 

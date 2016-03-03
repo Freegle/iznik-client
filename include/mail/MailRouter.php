@@ -86,43 +86,8 @@ class MailRouter
 
     # Public for UT
     public function markApproved() {
-        # It's possible that we had the message in Pending.  If so, we might have a record of someone approving it
-        # on here - which we want to retain.  Then delete the message because we will be adding it again.
-        $sql = "SELECT approvedby FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid WHERE messageid = ? AND fromaddr = ? AND source = ?;";
-        $messages = $this->dbhr->preQuery($sql,  [
-            $this->msg->getMessageID(),
-            $this->msg->getFromaddr(),
-            Message::YAHOO_PENDING
-        ]);
-
-        $approvedby = NULL;
-
-        foreach ($messages as $message) {
-            $approvedby = $message['approvedby'];
-            $sql = "DELETE FROM messages WHERE messageid = ? AND fromaddr = ? AND source = ?;";
-            $this->dbhm->preExec($sql, [
-                $this->msg->getMessageID(),
-                $this->msg->getFromaddr(),
-                Message::YAHOO_PENDING
-            ]);
-        }
-
-        if (!$approvedby) {
-            # See if we have a record of approval from Yahoo.
-            $approval = $this->msg->getHeader('x-egroups-approved-by');
-
-            if ($approval && preg_match('/(.*) via/', $approval, $matches)) {
-                # We've got an approval.  See if we can find the mod.
-                $by = $matches[1];
-                $u = new User($this->dbhr, $this->dbhm);
-                $idid = $u->findByEmail($by);
-                $approvedby =  $idid ? $idid : $u->findByEmail($by);
-            }
-        }
-
-        # Now set this message to be in the Approved collection.
-        $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Approved', approvedby = ? WHERE msgid = ?;", [
-            $approvedby,
+        # Set this message to be in the Approved collection.
+        $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Approved' WHERE msgid = ?;", [
             $this->msg->getID()
         ]);
 
