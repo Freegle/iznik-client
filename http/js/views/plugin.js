@@ -1155,6 +1155,7 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.SubView.extend({
                     email: member['email'],
                     yahooUserId: member['userId'],
                     yahooid: yid,
+                    yahooAlias: member['yalias'],
                     yahooPostingStatus: member.hasOwnProperty('postingStatus') ? member.postingStatus : null,
                     yahooDeliveryType: member.hasOwnProperty(self.deliveryField) ? member[self.deliveryField] : null,
                     yahooModeratorStatus: member.hasOwnProperty('moderatorStatus') ? member.moderatorStatus : 'MEMBER',

@@ -121,15 +121,15 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Infinite.extend({
                 self.wait.close();
                 v.drop();
                 console.log("Got all members", members);
-                var exp = [ [ 'Joined', 'Yahoo Id', 'Email', 'Yahoo User Id', 'Delivery Type', 'Posting Status'] ];
+                var exp = [ [ 'Joined', 'Yahoo Id', 'Yahoo Alias', 'Email', 'Yahoo User Id', 'Delivery Type', 'Posting Status'] ];
                 _.each(members, function(member) {
                     var date = new moment(member['date']);
-                    exp.push([ date.format('lll'), member['yahooid'], member['email'], member['yahooUserId'], member['yahooDeliveryType'], member['yahooPostingStatus'] ]);
+                    exp.push([ date.format(), member['yahooid'], member['yahooAlias'], member['email'], member['yahooUserId'], member['yahooDeliveryType'], member['yahooPostingStatus'] ]);
                 });
 
                 var csv = new csvWriter();
                 csv.del = ',';
-                csv.enc = '"';
+                csv.enc = '';
                 var csvstr = csv.arrayToCSV(exp);
                 var blob = new Blob([ csvstr ], {type: "text/csv;charset=utf-8"});
                 saveAs(blob, "members.csv");
