@@ -1026,7 +1026,7 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.SubView.extend({
 
     render: function() {
         this.$el.html(window.template(this.template)(this.model.toJSON2()));
-        this.progressBar();
+        this.ourSyncProgressBar();
         return(this);
     }
 });
@@ -1934,7 +1934,9 @@ Iznik.Views.Plugin.Yahoo.BanPendingMember = Iznik.Views.Plugin.SubView.extend({
         new majax({
             type: "PUT",
             url: YAHOOAPI + "groups/" + this.model.get('group').nameshort + "/members/pending?gapi_crumb=" + self.crumb,
-            data: "members=" + JSON.stringify(members),
+            data: {
+                members: JSON.stringify(members)
+            },
             success: function (ret) {
                 console.log("Ban returned", ret);
                 if (ret.hasOwnProperty('ygData') &&
@@ -1978,7 +1980,9 @@ Iznik.Views.Plugin.Yahoo.BanApprovedMember = Iznik.Views.Plugin.SubView.extend({
         new majax({
             type: "PUT",
             url: YAHOOAPI + "groups/" + this.model.get('group').nameshort + "/members?gapi_crumb=" + self.crumb,
-            data: "members=" + JSON.stringify(members),
+            data: {
+                members: JSON.stringify(members)
+            },
             success: function (ret) {
                 console.log("Ban returned", ret);
                 if (ret.hasOwnProperty('ygData')) {

@@ -525,6 +525,7 @@ class Group extends Entity
             if ($collection == MessageCollection::APPROVED) {
                 # Record the sync.
                 $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [$this->id]);
+                $this->dbhm->preExec("REPLACE INTO memberships_yahoo (groupid, members) VALUES (?,?);", [$this->id, json_encode($members)]);
             }
         } catch (Exception $e) {
             $ret = [ 'ret' => 2, 'status' => "Sync failed with " . $e->getMessage() ];
