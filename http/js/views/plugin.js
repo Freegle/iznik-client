@@ -810,7 +810,7 @@ Iznik.Views.Plugin.SubView = IznikView.extend({
             });
         } else {
             // Not on server - just remove
-            console.log("Not on server");
+            //console.log("Not on server");
             finished.call(this);
         }
     }
@@ -1018,8 +1018,16 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.SubView.extend({
                     },
                     error: self.failChunk
                 });
+            } else {
+                this.requeue();
             }
         }
+    },
+
+    render: function() {
+        this.$el.html(window.template(this.template)(this.model.toJSON2()));
+        this.progressBar();
+        return(this);
     }
 });
 
@@ -1100,6 +1108,7 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.SubView.extend({
     start: function() {
         var self = this;
         self.synctime = moment().format();
+        self.progressBar();
 
         this.startBusy();
 
@@ -1205,6 +1214,12 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.SubView.extend({
                 this.requeue();
             }
         }
+    },
+
+    render: function() {
+        this.$el.html(window.template(this.template)(this.model.toJSON2()));
+        this.progressBar();
+        return(this);
     }
 });
 
