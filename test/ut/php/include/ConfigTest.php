@@ -178,6 +178,14 @@ class configTest extends IznikTestCase {
         assertTrue($c->canSee());
         assertTrue($c->canModify());
 
+        # Export and import
+        $exp = $c->export();
+        error_log("Export $exp");
+        $id = $c->import($exp);
+        $pub = $c->getPublic();
+        error_log(var_export($pub, TRUE));
+        assertEquals(2, count($pub['stdmsgs']));
+
         $c->delete();
 
         error_log(__METHOD__ . " end");

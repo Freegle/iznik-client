@@ -282,6 +282,30 @@ class ModConfig extends Entity
         return(FALSE);
     }
 
+    public function export() {
+        return(json_encode($this->getPublic(TRUE)));
+    }
+
+    public function import($str) {
+        $conf = json_decode($str, TRUE);
+        $c = $this->create($conf['name'], $conf['createdby']);
+        $s = new StdMessage($this->dbhr, $this->dbhm);
+        $order = [];
+        foreach ($conf['stdmsgs'] as $stdmsg) {
+            $m = $s->create($stdmsg['title'], $c);
+            $order[] = $m;
+            foreach ($stdmsg as $key => $val) {
+                if ($key != 'id' && $key != 'configid' && $key != 'messageorder') {
+                    $s->setPrivate($key, $val);
+                }
+            }
+
+            $this->setPrivate('messageorder', json_encode($order, true));
+        }
+
+        return($c);
+    }
+
     public function delete() {
         $name = $this->modconfig['name'];
         $rc = $this->dbhm->preExec("DELETE FROM mod_configs WHERE id = ?;", [$this->id]);

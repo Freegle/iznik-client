@@ -12,11 +12,15 @@ Iznik.Models.Session = IznikModel.extend({
         var self = this;
 
         // We don't want to beep if we are visible.
+        self.playBeep = document.hidden;
+
         $(document).on('hide', function() {
+            console.log("Hide");
             self.playBeep = true;
         });
 
         $(document).on('show', function() {
+            console.log("Show");
             self.playBeep = false;
         });
     },
@@ -174,6 +178,7 @@ Iznik.Models.Session = IznikModel.extend({
                                 var countel = $(count.el);
                                 var currcount = countel.html();
                                 countel.html(ret.work[count.fi]);
+                                console.log("Sound", ret.work[count.fi], currcount, self.playBeep);
 
                                 if (ret.work[count.fi] > currcount || currcount == 0) {
                                     // Only trigger this when the counts increase.  This will pick up new messages

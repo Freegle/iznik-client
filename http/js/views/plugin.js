@@ -788,7 +788,7 @@ Iznik.Views.Plugin.SubView = IznikView.extend({
         var self = this;
 
         function finished() {
-            console.log("Finished work item", this);
+            //console.log("Finished work item", this);
             IznikPlugin.collection.shift();
             IznikPlugin.checkWork();
         }
@@ -797,7 +797,7 @@ Iznik.Views.Plugin.SubView = IznikView.extend({
             // This work came from the server - record the success there.
             //
             // Even if this fails, continue.
-            console.log("Server", self.model.get('workid'));
+            //console.log("Server", self.model.get('workid'));
             $.ajax({
                 type: "POST",
                 headers: {

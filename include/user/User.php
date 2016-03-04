@@ -474,7 +474,7 @@ class User extends Entity
         $modships = $me ? $this->getModeratorships() : [];
         $modships = count($modships) > 0 ? $modships : [0];
 
-        $sql = "SELECT DISTINCT * FROM ((SELECT configid AS id FROM memberships WHERE groupid IN (" . implode(',', $modships) . ") AND configid IS NOT NULL) UNION (SELECT id FROM mod_configs WHERE createdby = {$this->id} OR `default` = 1)) t;";
+        $sql = "SELECT DISTINCT * FROM ((SELECT configid AS id FROM memberships WHERE groupid IN (" . implode(',', $modships) . ") AND role IN ('Owner', 'Moderator') AND configid IS NOT NULL) UNION (SELECT id FROM mod_configs WHERE createdby = {$this->id} OR `default` = 1)) t;";
         $ids = $this->dbhr->preQuery($sql);
 
         foreach ($ids as $id) {
