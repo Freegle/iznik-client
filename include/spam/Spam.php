@@ -310,6 +310,7 @@ class Spam {
     public function addSpammer($userid, $collection, $reason) {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $text = NULL;
+        $id = NULL;
 
         switch ($collection) {
             case Spam::TYPE_WHITELIST: {
@@ -330,15 +331,28 @@ class Spam {
             'text' => $text
         ]);
 
-        $sql = "REPLACE INTO spam_users (userid, collection, reason, byuserid) VALUES (?,?,?,?);";
-        $rc = $this->dbhm->preExec($sql, [
-            $userid,
-            $collection,
-            $reason,
-            $me ? $me->getId() : NULL
-        ]);
+        $proceed = TRUE;
 
-        $id = $rc ? $this->dbhm->lastInsertId() : NULL;
+        if ($collection == Spam::TYPE_PENDING_ADD) {
+            # We don't want to overwrite an existing entry in the spammer list just because someone tries to
+            # report it again.
+            $spammers = $this->dbhr->preQuery("SELECT * FROM spam_users WHERE userid = ?;", [ $userid ]);
+            foreach ($spammers as $spammer) {
+                $proceed = FALSE;
+            }
+        }
+
+        if ($proceed) {
+            $sql = "REPLACE INTO spam_users (userid, collection, reason, byuserid) VALUES (?,?,?,?);";
+            $rc = $this->dbhm->preExec($sql, [
+                $userid,
+                $collection,
+                $reason,
+                $me ? $me->getId() : NULL
+            ]);
+
+            $id = $rc ? $this->dbhm->lastInsertId() : NULL;
+        }
 
         return($id);
     }

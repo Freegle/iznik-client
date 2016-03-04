@@ -354,6 +354,31 @@ class spammersAPITest extends IznikAPITestCase {
 
         assertTrue($found);
 
+        # Try reporting as a pending spammer - should fail as on whitelist, leaving them still on the whitelist.
+        $ret = $this->call('spammers', 'POST', [
+            'userid' => $uid,
+            'collection' => Spam::TYPE_PENDING_ADD,
+            'reason' => 'Test reason',
+            'dup' => 83
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('spammers', 'GET', [
+            'collection' => Spam::TYPE_WHITELIST,
+            'search' => 'Test User'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $found = FALSE;
+
+        foreach ($ret['spammers'] as $spammer) {
+            if ($spammer['id'] == $sid && $spammer['userid'] == $uid) {
+                $found = TRUE;
+            }
+        }
+
+        assertTrue($found);
+
         $ret = $this->call('spammers', 'DELETE', [
             'id' => $sid
         ]);
