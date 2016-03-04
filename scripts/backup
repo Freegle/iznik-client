@@ -13,9 +13,6 @@ timestamp=$(date +%Y-%m-%d-%H-%M)
 # run a backup and stream the output directly to Google storage
 $BACKUP | /root/gsutil/gsutil cp - gs://freegle_backup/iznik-$timestamp.tar > /tmp/gsutil.out 2>&1
 
-# ...and one to our archive server
-$BACKUP | ssh root@archive \ "cat - > /backups/iznik-$timestamp.tar"
-
 if [ $? == 0 ]; then
   if [ $? == 0 ]; then
     cat /tmp/gsutil.out | mail -s "BACKUP SUCCESS: backed up to $BACKUPDIR/$MOST_RECENT" $EMAIL
@@ -26,3 +23,7 @@ else
    # problem with initial backup :(
    echo "Couldn't do a mysql backup" | mail -s "BACKUP ERROR: Mysql backup failed" $EMAIL
 fi
+
+# ...and one to our archive server
+$BACKUP | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.tar"
+

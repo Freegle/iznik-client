@@ -362,5 +362,25 @@ class spammersAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testExport() {
+        error_log(__METHOD__);
+
+        $key = randstr(64);
+        $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`) VALUES ('UT', ?);", [$key]);
+        assertNotNull($id);
+
+        $ret = $this->call('spammers', 'GET', [
+            'collection' => Spam::TYPE_SPAMMER,
+            'partner' => $key,
+            'action' => 'export'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertGreaterThan(0, count($ret['spammers']));
+
+        $this->dbhm->preExec("DELETE FROM partners_keys WHERE partner = 'UT';");
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

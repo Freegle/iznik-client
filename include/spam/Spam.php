@@ -208,6 +208,12 @@ class Spam {
         return($count);
     }
 
+    public function exportSpammers() {
+        $sql = "SELECT spam_users.id, spam_users.added, reason, email FROM spam_users INNER JOIN users_emails ON spam_users.userid = users_emails.userid WHERE collection = ?;";
+        $spammers = $this->dbhr->preQuery($sql, [ Spam::TYPE_SPAMMER ]);
+        return($spammers);
+    }
+
     public function listSpammers($collection, $search, &$context) {
         # We exclude anyone who isn't a User (e.g. mods, support, admin) so that they don't appear on the list and
         # get banned.

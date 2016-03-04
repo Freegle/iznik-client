@@ -37,6 +37,16 @@ function prepareSession($dbhr, $dbhm) {
     }
 }
 
+function partner($dbhr, $key) {
+    $ret = FALSE;
+    $partners = $dbhr->preQuery("SELECT * FROM partners_keys WHERE `key` = ?;", [ $key ]);
+    foreach ($partners as $partner) {
+        $ret = TRUE;
+    }
+
+    return($ret);
+}
+
 function whoAmI(LoggedPDO $dbhr, $dbhm, $writeaccess = false)
 {
     prepareSession($dbhr, $dbhm);

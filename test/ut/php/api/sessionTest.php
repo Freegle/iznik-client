@@ -11,16 +11,19 @@ require_once IZNIK_BASE . '/include/user/Notifications.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class sessionTest extends IznikAPITestCase {
-    protected function setUp() {
-        parent::setUp ();
+class sessionTest extends IznikAPITestCase
+{
+    protected function setUp()
+    {
+        parent::setUp();
 
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
     }
 
-    public function testLoggedOut() {
+    public function testLoggedOut()
+    {
         error_log(__METHOD__);
 
         $ret = $this->call('session', 'GET', []);
@@ -29,7 +32,8 @@ class sessionTest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testYahoo() {
+    public function testYahoo()
+    {
         error_log(__METHOD__);
 
         # Logged out should cause redirect
@@ -68,19 +72,20 @@ class sessionTest extends IznikAPITestCase {
         assertEquals(2, $ret['ret']);
 
         # Logout
-        $ret = $this->call('session','DELETE', []);
+        $ret = $this->call('session', 'DELETE', []);
         assertEquals(0, $ret['ret']);
-        $ret = $this->call('session','DELETE', []);
+        $ret = $this->call('session', 'DELETE', []);
         assertEquals(0, $ret['ret']);#
 
         # Should be logged out
-        $ret = $this->call('session','GET', []);
+        $ret = $this->call('session', 'GET', []);
         assertEquals(1, $ret['ret']);
 
         error_log(__METHOD__ . " end");
     }
 
-    public function testNative() {
+    public function testNative()
+    {
         error_log(__METHOD__);
 
         $u = new User($this->dbhm, $this->dbhm);
@@ -101,7 +106,7 @@ class sessionTest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
 
         error_log("Session get");
-        $ret = $this->call('session','GET', []);
+        $ret = $this->call('session', 'GET', []);
         error_log("Session got");
         assertEquals(0, $ret['ret']);
         assertEquals($group1, $ret['groups'][0]['id']);
@@ -109,7 +114,7 @@ class sessionTest extends IznikAPITestCase {
 
         # Set something
         $ret = $this->call('session', 'PATCH', [
-            'settings' => json_encode([ 'test' => 1]),
+            'settings' => json_encode(['test' => 1]),
             'displayname' => "Testing User",
             'email' => 'test2@test.com',
             'notifications' => [
@@ -120,7 +125,7 @@ class sessionTest extends IznikAPITestCase {
             ]
         ]);
         assertEquals(10, $ret['ret']);
-        $ret = $this->call('session','GET', []);
+        $ret = $this->call('session', 'GET', []);
         assertEquals(0, $ret['ret']);
         error_log(var_export($ret, true));
         assertEquals('{"test":1}', $ret['me']['settings']);
@@ -142,12 +147,12 @@ class sessionTest extends IznikAPITestCase {
             assertEquals(0, $ret['ret']);
         }
 
-        $ret = $this->call('session','GET', []);
+        $ret = $this->call('session', 'GET', []);
         assertEquals(0, $ret['ret']);
         assertEquals('test2@test.com', $ret['me']['email']);
 
         $ret = $this->call('session', 'PATCH', [
-            'settings' => json_encode([ 'test' => 1]),
+            'settings' => json_encode(['test' => 1]),
             'displayname' => "Testing User",
             'email' => 'test2@test.com',
             'notifications' => [
@@ -179,7 +184,8 @@ class sessionTest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testPatch() {
+    public function testPatch()
+    {
         error_log(__METHOD__);
 
         $u = new User($this->dbhm, $this->dbhm);
@@ -206,7 +212,7 @@ class sessionTest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        $ret = $this->call('session','GET', []);
+        $ret = $this->call('session', 'GET', []);
         assertEquals(0, $ret['ret']);
         assertEquals('Test2', $ret['me']['firstname']);
         assertEquals('User2', $ret['me']['lastname']);
@@ -216,7 +222,7 @@ class sessionTest extends IznikAPITestCase {
         $id = $u->create('Test', 'User', NULL);
         assertNotNull($u->addEmail('test3@test.com'));
         $ret = $this->call('session', 'PATCH', [
-            'settings' => json_encode([ 'test' => 1]),
+            'settings' => json_encode(['test' => 1]),
             'email' => 'test3@test.com'
         ]);
         assertEquals(10, $ret['ret']);
@@ -226,7 +232,8 @@ class sessionTest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testWork() {
+    public function testWork()
+    {
         error_log(__METHOD__);
 
         $u = new User($this->dbhm, $this->dbhm);
@@ -270,7 +277,7 @@ class sessionTest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        $ret = $this->call('session','GET', []);
+        $ret = $this->call('session', 'GET', []);
         error_log(var_export($ret, true));
         assertEquals(0, $ret['ret']);
         assertEquals($group1, $ret['groups'][0]['id']);
@@ -287,5 +294,19 @@ class sessionTest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
-}
 
+    public function testPartner()
+    {
+        error_log(__METHOD__);
+
+        $key = randstr(64);
+        $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`) VALUES ('UT', ?);", [$key]);
+        assertNotNull($id);
+        assertFalse(partner($this->dbhr, 'wibble'));
+        assertTrue(partner($this->dbhr, $key));
+
+        $this->dbhm->preExec("DELETE FROM partners_keys WHERE partner = 'UT';");
+
+        error_log(__METHOD__ . " end");
+    }
+}

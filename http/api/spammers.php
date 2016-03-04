@@ -30,10 +30,14 @@ function spammers() {
         case 'GET': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-            if ($me && $me->isModerator()) {
+            if (($me && $me->isModerator()) || partner($dbhr, presdef('partner', $_REQUEST, NULL))) {
                 # Only mods can see the list.
-                $ret = [ 'ret' => 0, 'status' => 'Success', 'spammers' => $s->listSpammers($collection, $search, $context) ];
-                $ret['context'] = $context;
+                if (presdef('action', $_REQUEST, NULL) == 'export') {
+                    $ret = [ 'ret' => 0, 'status' => 'Success', 'spammers' => $s->exportSpammers() ];
+                } else {
+                    $ret = [ 'ret' => 0, 'status' => 'Success', 'spammers' => $s->listSpammers($collection, $search, $context) ];
+                    $ret['context'] = $context;
+                }
             }
             break;
         }
