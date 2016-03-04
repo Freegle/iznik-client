@@ -325,6 +325,9 @@ var IznikRouter = Backbone.Router.extend({
 var Router;
 
 $(document).ready(function(){
+    // Hide the page loader
+    $('#pageloader').remove();
+
     // We have a busy indicator.
     $(document).ajaxStop(function () {
         $('#spinner').hide();

@@ -10,8 +10,11 @@ BACKUP="$XTRABACKUP $OPTIONS $BACKUPDIR"
 
 timestamp=$(date +%Y-%m-%d-%H-%M)
 
-# run a backup and stream the output directly
+# run a backup and stream the output directly to Google storage
 $BACKUP | /root/gsutil/gsutil cp - gs://freegle_backup/iznik-$timestamp.tar > /tmp/gsutil.out 2>&1
+
+# ...and one to our archive server
+$BACKUP | ssh root@archive \ "cat - > /backups/iznik-$timestamp.tar"
 
 if [ $? == 0 ]; then
   if [ $? == 0 ]; then

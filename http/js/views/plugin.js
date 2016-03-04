@@ -11,7 +11,7 @@ Iznik.Models.Plugin.Work = IznikModel.extend({
     },
 
     retry: function() {
-        console.log("Retry work", this);
+        //console.log("Retry work", this);
         this.set('running', false);
         var count = this.get('retrycount');
         count = count ? (count + 1) : 1;
