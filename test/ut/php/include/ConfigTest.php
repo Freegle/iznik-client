@@ -82,6 +82,9 @@ class configTest extends IznikTestCase {
         assertEquals($id, $c->getForGroup($uid2, $group1));
 
         assertTrue($u2->login('testpw'));
+
+        # Sleep for redis cache to expire
+        sleep(REDIS_TTL+1);
         $configs = $u2->getConfigs();
         $found = FALSE;
         foreach ($configs as $config) {

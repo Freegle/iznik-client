@@ -80,7 +80,7 @@ Iznik.Views.Group.Select = IznikView.extend({
                         var total = 0;
                         var work = group.get('work');
                         _.each(self.options.counts, function(count) {
-                            if (work.hasOwnProperty(count)) {
+                            if (work && work.hasOwnProperty(count)) {
                                 total += work[count];
                             }
                         });

@@ -444,15 +444,38 @@ class User extends Entity
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
 
+        $cache = new Redis();
+        $cache->pconnect(REDIS_CONNECT);
+
         foreach ($groups as $group) {
-            $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
-            $one = $g->getPublic();
+            $g = NULL;
+            # We cache the groups in redis - there are a lot of ops involved in getting all of our groups.
+            $cachekey = "group-{$group['groupid']}";
+            $cached = $cache->get($cachekey);
+            if ($cached) {
+                $one = json_decode($cached, TRUE);
+            } else {
+                $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+                $one = $g->getPublic();
+                $cache->setex($cachekey, REDIS_TTL, json_encode($one));
+            }
+
             $one['role'] = $group['role'];
             $one['configid'] = $c->getForGroup($this->id, $group['groupid']);
 
             $one['mysettings'] = $this->getGroupSettings($group['groupid']);
 
-            if ($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER) {
+            # We only need to bother finding out how much work there is if we are interested in seeing it.
+            $showmessages = !array_key_exists('showmessages', $one['mysettings']) || $one['mysettings']['showmessages'];
+            $showmembers = !array_key_exists('showmembers', $one['mysettings']) || $one['mysettings']['showmembers'];
+
+            if ((($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER)) &&
+                ($showmessages || $showmembers)) {
+                if (!$g) {
+                    # We need to have an actual group object for this.
+                    $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+                }
+
                 # Give a summary of outstanding work.
                 $one['work'] = $g->getWorkCounts($one['mysettings']);
             }
@@ -476,10 +499,20 @@ class User extends Entity
 
         $sql = "SELECT DISTINCT * FROM ((SELECT configid AS id FROM memberships WHERE groupid IN (" . implode(',', $modships) . ") AND role IN ('Owner', 'Moderator') AND configid IS NOT NULL) UNION (SELECT id FROM mod_configs WHERE createdby = {$this->id} OR `default` = 1)) t;";
         $ids = $this->dbhr->preQuery($sql);
+        $cache = new Redis();
+        $cache->pconnect(REDIS_CONNECT);
 
         foreach ($ids as $id) {
-            $c = new ModConfig($this->dbhr, $this->dbhm, $id['id']);
-            $thisone = $c->getPublic(FALSE);
+            # We cache the configs in redis - there are a lot of ops involved in getting the config and all its standard messages.
+            $cachekey = "modconfig-{$id['id']}";
+            $cached = $cache->get($cachekey);
+            if ($cached) {
+                $thisone = json_decode($cached, TRUE);
+            } else {
+                $c = new ModConfig($this->dbhr, $this->dbhm, $id['id']);
+                $thisone = $c->getPublic(FALSE);
+                $cache->setex($cachekey, REDIS_TTL, json_encode($thisone));
+            }
 
             if ($me) {
                 if ($thisone['createdby'] == $me->getId()) {

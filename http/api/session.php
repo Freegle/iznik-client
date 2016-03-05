@@ -21,9 +21,9 @@ function session() {
                     'push' => $n->get($ret['me']['id'])
                 ];
 
-                $ret['groups'] = $me->getMemberships();
                 $ret['configs'] = $me->getConfigs();
                 $ret['emails'] = $me->getEmails();
+                $ret['groups'] = $me->getMemberships();
                 $ret['work'] = [];
 
                 foreach ($ret['groups'] as $group) {
