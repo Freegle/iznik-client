@@ -53,12 +53,14 @@ Iznik.Views.Infinite = IznikView.extend({
                     element: modelView.el,
                     handler: function(direction) {
                         if (direction == 'down') {
-                            $('.js-scrolltop').removeClass('hidden');
-                            $('.js-scrolltop').click(function() {
-                                $('html,body').animate({scrollTop:0},'slow', function() {
-                                    $('.scrolltop').addClass('hidden');
+                            if (modelView.collection.length > 3) {
+                                $('.js-scrolltop').removeClass('hidden');
+                                $('.js-scrolltop').click(function() {
+                                    $('html,body').animate({scrollTop:0},'slow', function() {
+                                        $('.scrolltop').addClass('hidden');
+                                    });
                                 });
-                            });
+                            }
 
                             // We have scrolled to the last view.  Fetch more as long as we've not switched
                             // away to another page.
