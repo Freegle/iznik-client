@@ -951,8 +951,9 @@ class User extends Entity
             $systemrole == User::SYSTEMROLE_SUPPORT)) {
             # We haven't provided the complete list; get the recent ones (which preserves some privacy for the user but
             # allows us to spot abuse) and any which are on our groups.
+            $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
             $modids = array_merge([0], $me->getModeratorships());
-            $sql = "SELECT DISTINCT memberships.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), added) <= 31 OR memberships.groupid IN (" . implode(',', $modids) . "));";
+            $sql = "SELECT DISTINCT memberships.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
             $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
             $memberof = [];
 
@@ -1207,7 +1208,11 @@ class User extends Entity
                     $users = $this->dbhm->preQuery("SELECT $att FROM users WHERE id = $id2;");
                     foreach ($users as $user) {
                         $this->dbhm->preExec("UPDATE users SET $att = NULL WHERE id = $id2;");
-                        $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1 AND $att IS NULL;", [ $user[$att] ]);
+
+                        if ($att != 'fullname' || stripos($user[$att], 'fbuser') === FALSE) {
+                            # We don't want to overwrite a name with FBUser.
+                            $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1 AND $att IS NULL;", [$user[$att]]);
+                        }
                     }
                 }
 
