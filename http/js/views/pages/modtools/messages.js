@@ -117,10 +117,10 @@ Iznik.Views.ModTools.Message = IznikView.extend({
         var dupage = 31;
         _.each(self.model.get('groups'), function(group) {
             var dupsettings = Iznik.Session.getSettings(group.groupid);
-            if (dupsettings.duplicates.check) {
+            if (!dupsettings || !dupsettings.hasOwnProperty('duplicates') || dupsettings.duplicates.check) {
                 check = true;
                 var type = self.model.get('type');
-                dupage = Math.min(dupage, dupsettings.duplicates[type.toLowerCase()]);
+                dupage = Math.min(dupage, dupsettings.hasOwnProperty('duplicates') ? dupsettings.duplicates[type.toLowerCase()] : 31);
             }
         });
 
