@@ -32,15 +32,15 @@ if (preg_match('/MODERATE -- (.*) posted to (.*)/', $msg, $matches)) {
     error_log("MODERATE");
     $r->received(Message::YAHOO_PENDING, NULL, $envto, $msg);
     $rc = $r->route();
-} else if (stripos($envfrom, "@returns.groups.yahoo.com") !== FALSE && (stripos($envfrom, "notify-return-") !== FALSE)) {
-    # This is a system message.
-    error_log("From Yahoo System");
-    $id = $r->received(Message::YAHOO_SYSTEM, $envfrom, $envto, $msg);
-    $rc = $r->route();
 } else if (stripos($envfrom, "@returns.groups.yahoo.com") !== FALSE && (stripos($envfrom, "sentto-") !== FALSE)) {
     # This is a message sent out to us as a user on the group, so it's an approved message.
     error_log("Approved message");
     $r->received(Message::YAHOO_APPROVED, NULL, $envto, $msg);
+    $rc = $r->route();
+} else if (stripos($envfrom, "@returns.groups.yahoo.com") !== FALSE) {
+    # This is a system message.
+    error_log("From Yahoo System");
+    $id = $r->received(Message::YAHOO_SYSTEM, $envfrom, $envto, $msg);
     $rc = $r->route();
 }
 
