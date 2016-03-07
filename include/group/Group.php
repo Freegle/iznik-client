@@ -180,6 +180,15 @@ class Group extends Entity
         return($atts);
     }
 
+    public function exportYahoo($groupid) {
+        $members = $this->dbhr->preQuery("SELECT members FROM memberships_yahoo WHERE groupid = ?;", [ $groupid ]);
+        foreach ($members as $member) {
+            return(json_decode($member['members'], TRUE));
+        }
+
+        return(NULL);
+    }
+
     public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection = MembershipCollection::APPROVED, $groupids = NULL, $yps = NULL, $ydt = NULL) {
         $ret = [];
         $groupids = $groupids ? $groupids : ($this->id ? [ $this-> id ] : NULL);

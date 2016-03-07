@@ -112,34 +112,34 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Infinite.extend({
             self.wait.template = 'modtools_members_approved_exportwait';
             self.wait.render();
 
-            var group = Iznik.Session.getGroup(this.selected);
-            var v = new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({
-                model: group
-            });
+            $.ajax({
+                type: 'GET',
+                url: API + 'memberships',
+                data: {
+                    groupid: self.selected,
+                    action: 'exportyahoo'
+                },
+                success: function(ret) {
+                    self.wait.close();
+                    if (ret.ret == 0) {
+                        var members = ret.members;
+                        var exp = [ [ 'Joined', 'Yahoo Id', 'Yahoo Alias', 'Email', 'Yahoo User Id', 'Delivery Type', 'Posting Status'] ];
+                        _.each(members, function(member) {
+                            var date = new moment(member['date']);
+                            exp.push([ date.format(), member['yahooid'], member['yahooAlias'], member['email'], member['yahooUserId'], member['yahooDeliveryType'], member['yahooPostingStatus'] ]);
+                        });
 
-            v.completed = function(members) {
-                self.wait.close();
-                v.drop();
-                console.log("Got all members", members);
-                var exp = [ [ 'Joined', 'Yahoo Id', 'Yahoo Alias', 'Email', 'Yahoo User Id', 'Delivery Type', 'Posting Status'] ];
-                _.each(members, function(member) {
-                    var date = new moment(member['date']);
-                    exp.push([ date.format(), member['yahooid'], member['yahooAlias'], member['email'], member['yahooUserId'], member['yahooDeliveryType'], member['yahooPostingStatus'] ]);
-                });
-
-                var csv = new csvWriter();
-                csv.del = ',';
-                csv.enc = '';
-                var csvstr = csv.arrayToCSV(exp);
-                var blob = new Blob([ csvstr ], {type: "text/csv;charset=utf-8"});
-                saveAs(blob, "members.csv");
-            }
-
-            IznikPlugin.collection.add(new Iznik.Models.Plugin.Work({
-                id: group.get('nameshort') + '.SyncMessages.Approved',
-                subview: v,
-                bulk: true
-            }));
+                        var csv = new csvWriter();
+                        csv.del = ',';
+                        csv.enc = '';
+                        var csvstr = csv.arrayToCSV(exp);
+                        var blob = new Blob([ csvstr ], {type: "text/csv;charset=utf-8"});
+                        saveAs(blob, "members.csv");
+                    }
+                }, error: function() {
+                    self.wait.close();
+                }
+            })
         }
     },
 

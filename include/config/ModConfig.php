@@ -3,6 +3,7 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/config/StdMessage.php');
+require_once(IZNIK_BASE . '/include/config/BulkOp.php');
 
 class ModConfig extends Entity
 {

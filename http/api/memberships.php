@@ -78,31 +78,39 @@ function memberships() {
                     }
 
                     if ($proceed) {
-                        $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt);
-
-                        if ($userid) {
+                        if (count($groupids) == 1 && $action == 'exportyahoo') {
                             $ret = [
-                                'member' => count($members) == 1 ? $members[0] : NULL,
-                                'context' => $ctx,
+                                'members' => $g->exportYahoo($groupids[0]),
                                 'ret' => 0,
                                 'status' => 'Success'
                             ];
-
-                            if ($logs) {
-                                $u = new User($dbhr, $dbhm, $userid);
-                                $atts = $u->getPublic(NULL, TRUE, $logs, $logctx);
-                                $ret['member']['logs'] = $atts['logs'];
-                                $ret['member']['merges'] = $atts['merges'];
-                                $ret['logcontext'] = $logctx;
-                            }
                         } else {
-                            # Get some/all.
-                            $ret = [
-                                'members' => $members,
-                                'context' => $ctx,
-                                'ret' => 0,
-                                'status' => 'Success'
-                            ];
+                            $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt);
+
+                            if ($userid) {
+                                $ret = [
+                                    'member' => count($members) == 1 ? $members[0] : NULL,
+                                    'context' => $ctx,
+                                    'ret' => 0,
+                                    'status' => 'Success'
+                                ];
+
+                                if ($logs) {
+                                    $u = new User($dbhr, $dbhm, $userid);
+                                    $atts = $u->getPublic(NULL, TRUE, $logs, $logctx);
+                                    $ret['member']['logs'] = $atts['logs'];
+                                    $ret['member']['merges'] = $atts['merges'];
+                                    $ret['logcontext'] = $logctx;
+                                }
+                            } else {
+                                # Get some/all.
+                                $ret = [
+                                    'members' => $members,
+                                    'context' => $ctx,
+                                    'ret' => 0,
+                                    'status' => 'Success'
+                                ];
+                            }
                         }
                     }
                 }

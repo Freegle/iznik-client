@@ -2,13 +2,14 @@
 require_once(IZNIK_BASE . '/include/misc/scripts.php');
 require_once(IZNIK_BASE . '/include/misc/template.php');
 ?><!DOCTYPE HTML>
-<html>
+<html  manifest="/manifest.appcache">
 <head>
     <meta name="msapplication-tap-highlight" content="no"/>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
     <meta name="viewport"
           content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes, minimal-ui">
     <meta name="robots" content="nofollow, noindex, noarchive, nocache">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="<?php echo SITE_NAME; ?>">
@@ -48,6 +49,33 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <meta name="msapplication-wide310x150logo" content="images/favicon/widetile.png" />
     <meta name="msapplication-square310x310logo" content="images/favicon/largetile.png" />
 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/css/bootstrap-select.min.css">
+    <link rel="stylesheet" href="/css/bootstrap-switch.min.css">
+    <link rel="stylesheet" href="/css/datepicker3.css">
+    <link rel="stylesheet" href="/js/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css">
+    <link rel="stylesheet" href="/css/dd.css">
+
+    <!-- And then we do custom styling on top. -->
+    <!--[if !IE]><!-->
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <![endif]-->
+    <!--[if gte IE 9]>
+    <link rel="stylesheet" type="text/css" href="/css/style.css"><![endif]-->
+    <!--[if lt IE 9]>
+    <link rel="stylesheet" type="text/css" href="/css/ie-only.css">
+    <![endif]-->
+
+    <!-- And then some custom styles for our different apps -->
+    <?php
+    if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
+        ?><link rel="stylesheet" type="text/css" href="/css/modtools.css"><?php
+    } else {
+        ?><link rel="stylesheet" type="text/css" href="/css/user.css"><?php
+    }
+    ?>
+
     <?php
     # Pull in all our JS.
     $ret = scriptInclude(MINIFY ? (function($str) { return(JSMin::minify($str)); }) : FALSE);
@@ -62,10 +90,6 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['corechart', 'annotationchart']}]}"></script>
     <script type="text/javascript" src="//cdn.tinymce.com/4/tinymce.min.js"></script>
 
-    <!-- We use bootstrap as a base UI -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
-
     <!--[if lt IE 9]>
     <script src="/js/lib/html5shiv.js"></script>
     <script src="/js/lib/respond.min.js"></script>
@@ -73,31 +97,6 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
 
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 
-    <!-- Plugins -->
-    <link rel="stylesheet" href="/css/bootstrap-select.min.css">
-    <link rel="stylesheet" href="/css/bootstrap-switch.min.css">
-    <link rel="stylesheet" href="/css/datepicker3.css">
-    <link rel="stylesheet" href="/js/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css">
-    <link rel="stylesheet" href="/css/dd.css">
-
-    <!-- And then we do custom styling on top. -->
-    <!--[if !IE]><!-->
-    <link rel="stylesheet" type="text/css" href="/css/style.css?t=<?php echo date("YmdHis", filemtime(IZNIK_BASE . "/http/css/style.css")); ?>">
-    <![endif]-->
-    <!--[if gte IE 9]>
-    <link rel="stylesheet" type="text/css" href="/css/style.css?t=<?php echo date("YmdHis", filemtime(IZNIK_BASE . "/http/css/style.css")); ?>"><![endif]-->
-    <!--[if lt IE 9]>
-    <link rel="stylesheet" type="text/css" href="/css/ie-only.css?t=<?php echo date("YmdHis", filemtime(IZNIK_BASE . "/http/css/ie-only.css")); ?>">
-    <![endif]-->
-
-    <!-- And then some custom styles for our different apps -->
-    <?php
-    if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
-        ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?t=<?php echo date("YmdHis", filemtime(IZNIK_BASE . "/http/css/modtools.css")); ?>"><?php
-    } else {
-        ?><link rel="stylesheet" type="text/css" href="/css/user.css?t=<?php echo date("YmdHis", filemtime(IZNIK_BASE . "/http/css/user.css")); ?>"><?php
-    }
-    ?>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
     <meta name="HandheldFriendly" content="true">
 

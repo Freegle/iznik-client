@@ -105,8 +105,13 @@ Iznik.Views.LeftMenu = IznikView.extend({
                 'X-HTTP-Method-Override': 'DELETE'
             },
             complete: function() {
+                // Zap our session cache - we're no longer logged in.
+                try {
+                    localStorage.removeItem('session');
+                } catch (e) {}
+
                 // Force reload of window to clear any data.
-                window.location = window.location.protocol + '//' + window.location.host + '/modtools';
+                window.location = window.location.protocol + '//' + window.location.host + '/modtools?signedout';
             }
         })
     },

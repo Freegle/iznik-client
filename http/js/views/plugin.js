@@ -279,37 +279,39 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     checkWork: function() {
         var self = this;
 
-        // Get any first item of work to do.
-        var first = this.collection.at(0);
+        if (self.connected) {
+            // Get any first item of work to do.
+            var first = this.collection.at(0);
 
-        if (first && !first.get('running')) {
-            first.set('running', true);
-            //console.log("First item", first);
+            if (first && !first.get('running')) {
+                first.set('running', true);
+                //console.log("First item", first);
 
-            var groupname;
-            var v = first.get('subview');
-            var mod = v.model;
+                var groupname;
+                var v = first.get('subview');
+                var mod = v.model;
 
-            if (mod.get('groupid')) {
-                // Get a crumb from the relevant group
-                var group = Iznik.Session.getGroup(mod.get('groupid'));
-                groupname = group.get('nameshort');
-                //console.log("Get relevant crumb", groupname, first);
-            } else {
-                // We're not acting on a specific group.  Get a crumb from one of ours.
-                var groups = Iznik.Session.get('groups');
-                groupname = groups && groups.length > 0 ? groups.at(0).get('nameshort') : null;
-                //console.log("Get first crumb", groupname, first);
+                if (mod.get('groupid')) {
+                    // Get a crumb from the relevant group
+                    var group = Iznik.Session.getGroup(mod.get('groupid'));
+                    groupname = group.get('nameshort');
+                    //console.log("Get relevant crumb", groupname, first);
+                } else {
+                    // We're not acting on a specific group.  Get a crumb from one of ours.
+                    var groups = Iznik.Session.get('groups');
+                    groupname = groups && groups.length > 0 ? groups.at(0).get('nameshort') : null;
+                    //console.log("Get first crumb", groupname, first);
+                }
+
+                // We need a crumb to do the work.
+                self.getCrumb(groupname, v.crumbLocation, function(crumb) {
+                    v.crumb = crumb;
+                    //console.log("Start", v, first, crumb);
+                    v.start.call(v);
+                }, function() {
+                    self.collection.at(0).retry();
+                })();
             }
-
-            // We need a crumb to do the work.
-            self.getCrumb(groupname, v.crumbLocation, function(crumb) {
-                v.crumb = crumb;
-                //console.log("Start", v, first, crumb);
-                v.start.call(v);
-            }, function() {
-                self.collection.at(0).retry();
-            })();
         }
     },
 

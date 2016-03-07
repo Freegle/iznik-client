@@ -20,6 +20,6 @@ if (count($opts) < 2) {
         $c = new ModConfig($dbhr, $dbhm, $i);
         file_put_contents($f, $c->export());
     } else if ($a == 'import') {
-        $c->import(file_get_contents($f));
+        error_log("Created " . $c->import(file_get_contents($f)));
     }
 }

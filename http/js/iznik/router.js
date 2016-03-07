@@ -60,13 +60,7 @@ var IznikRouter = Backbone.Router.extend({
             self.trigger('loadedPage');
         }
 
-        // Load the FB API.  If we're in a canvas app, it'll check if we're logged in, and if not try to do so.  Otherwise
-        // it'll just complete, at which point we load the page.
-        self.listenToOnce(FBLoad, 'fbloaded', function(){
-            loadPage();
-        });
-
-        FBLoad.render();
+        loadPage();
     },
 
     home: function(){
@@ -326,6 +320,7 @@ var Router;
 
 $(document).ready(function(){
     // Hide the page loader
+    console.log("Document ready");
     $('#pageloader').remove();
 
     // We have a busy indicator.

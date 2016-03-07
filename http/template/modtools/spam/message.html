@@ -12,8 +12,7 @@
                         from IP {{fromip}} <% if (obj.fromcountry) { %>in {{fromcountry}}<% } %>
                         <% } else { %>
                         IP unavailable
-                        <% } %>
-                        .<% if (obj.location && obj.location.name) { %>
+                        <% } %>.<% if (obj.location && obj.location.name) { %>
                         Mapped to {{location.name}}
                         <% } %>
                     </div>
