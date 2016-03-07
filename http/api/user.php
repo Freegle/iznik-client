@@ -125,7 +125,7 @@ function user() {
 
                 switch ($action) {
                     case 'Mail':
-                        $u->mail($groupid, $subject, $body, $stdmsgid);
+                        $u->mail($groupid, $subject, $body, NULL);
                         break;
                 }
             }

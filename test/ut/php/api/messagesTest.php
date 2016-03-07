@@ -56,7 +56,7 @@ class messagesTest extends IznikAPITestCase {
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1
         ]);
-        error_log(var_export($ret, true));
+        error_log("Get when logged out " . var_export($ret, true));
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         assertEquals(1, count($msgs));

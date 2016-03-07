@@ -1165,7 +1165,7 @@ class Message
         return(count($groups) > 0);
     }
 
-    private function maybeMail($groupid, $subject, $body, $stdmsgid) {
+    private function maybeMail($groupid, $subject, $body, $action) {
         if ($subject) {
             # We have a mail to send.
             $to = $this->getEnvelopefrom();
@@ -1191,8 +1191,7 @@ class Message
 
             $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
 
-            $s = new StdMessage($this->dbhr, $this->dbhm, $stdmsgid);
-            $bcc = $s->getBcc();
+            $bcc = $c->getBcc($action);
 
             if ($bcc) {
                 $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
@@ -1250,7 +1249,7 @@ class Message
 
         $this->notif->notifyGroupMods($groupid);
 
-        $this->maybeMail($groupid, $subject, $body, $stdmsgid);
+        $this->maybeMail($groupid, $subject, $body, 'Reject');
     }
 
     public function approve($groupid, $subject, $body, $stdmsgid) {
@@ -1300,7 +1299,7 @@ class Message
 
         $this->notif->notifyGroupMods($groupid);
 
-        $this->maybeMail($groupid, $subject, $body, $stdmsgid);
+        $this->maybeMail($groupid, $subject, $body, 'Approve');
     }
 
     public function reply($groupid, $subject, $body, $stdmsgid) {
@@ -1317,7 +1316,11 @@ class Message
             'stdmsgid' => $stdmsgid
         ]);
 
-        $this->maybeMail($groupid, $subject, $body, $stdmsgid);
+        $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ?;";
+        $groups = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
+        foreach ($groups as $group) {
+            $this->maybeMail($groupid, $subject, $body, $group['collection'] == MessageCollection::APPROVED ? 'Leave Approved Message' : 'Leave');
+        }
     }
 
     function hold() {
@@ -1420,7 +1423,10 @@ class Message
                     }
                 }
 
-                $this->notif->notifyGroupMods($groupid);
+                if ($groupid) {
+                    $this->notif->notifyGroupMods($groupid);
+                    $this->maybeMail($groupid, $subject, $body, $group['collection'] == MessageCollection::APPROVED ? 'Delete Approved Message' : 'Delete');
+                }
             }
 
             # If we have deleted this message from all groups, mark it as deleted in the messages table.
@@ -1434,8 +1440,6 @@ class Message
                 # Remove from the search index.
                 $this->s->delete($this->id);
             }
-
-            $this->maybeMail($groupid, $subject, $body, $stdmsgid);
         }
 
         return($rc);

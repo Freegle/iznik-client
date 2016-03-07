@@ -87,9 +87,11 @@ Iznik.Models.Membership = IznikModel.extend({
 
         $.ajax({
             type: 'POST',
-            url: API + 'user/' + self.get('userid'),
+            url: API + 'memberships',
             data: {
-                action: 'Mail',
+                userid:  self.get('userid'),
+                groupid: self.get('groupid'),
+                action: self.collection.options.collection == 'Approved' ? 'Leave Approved Member' : 'Leave Member',
                 subject: subject,
                 body: body,
                 stdmsgid: stdmsgid,
@@ -107,7 +109,7 @@ Iznik.Models.Membership = IznikModel.extend({
             type: 'POST',
             url: API + 'memberships',
             data: {
-                userid: self.get('id'),
+                userid: self.get('userid'),
                 groupid: self.get('groupid'),
                 action: 'Delete'
             }, success: function(ret) {

@@ -240,10 +240,10 @@ class configTest extends IznikTestCase {
         $c->setPrivate('ccrejectaddr', 'test-specific-reject@test.com');
         $c->setPrivate('ccfollowupto', 'Specific');
         $c->setPrivate('ccfollowupaddr', 'test-specific-follow@test.com');
-        assertEquals('test-specific-reject@test.com', $m->getBcc());
+        assertEquals('test-specific-reject@test.com', $c->getBcc('Reject'));
 
         $m->setPrivate('action', 'Delete Approved Message');
-        assertEquals('test-specific-follow@test.com', $m->getBcc());
+        assertEquals('test-specific-follow@test.com', $c->getBcc('Delete Approved Message'));
 
         error_log(__METHOD__ . " end");
     }

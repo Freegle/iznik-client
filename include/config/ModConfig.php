@@ -307,6 +307,50 @@ class ModConfig extends Entity
         return($c);
     }
 
+    private function evalIt($to, $addr) {
+        $ret = NULL;
+        $to = $this->getPrivate($to);
+        $addr = $this->getPrivate($addr);
+
+        if ($to == 'Me') {
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $ret = $me->getEmailPreferred();
+        } else if ($to == 'Specific') {
+            $ret = $addr;
+        }
+
+        return($ret);
+    }
+
+    public function getBcc($action)
+    {
+        # Work out whether we have a BCC address to use for this config
+        switch ($action) {
+            case 'Approve':
+            case 'Reject':
+            case 'Leave':
+                $ret = $this->evalIt('ccrejectto', 'ccrejectaddr');
+                break;
+            case 'Approve Member':
+            case 'Reject Member':
+            case'Leave Member':
+                $ret = $this->evalIt('ccrejmembto', 'ccrejmembaddr');
+                break;
+            case 'Leave Approved Message':
+            case 'Delete Approved Message':
+                $ret = $this->evalIt('ccfollowupto', 'ccfollowupaddr');
+                break;
+            case 'Leave Approved Member':
+            case 'Delete Approved Member':
+                $ret = $this->evalIt('ccfollmembto', 'ccfollmembaddr');
+                break;
+            default:
+                $ret = NULL;
+        }
+
+        return($ret);
+    }
+
     public function delete() {
         $name = $this->modconfig['name'];
         $rc = $this->dbhm->preExec("DELETE FROM mod_configs WHERE id = ?;", [$this->id]);

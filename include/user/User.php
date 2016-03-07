@@ -1313,7 +1313,7 @@ class User extends Entity
         call_user_func_array('mail', func_get_args());
     }
 
-    private function maybeMail($groupid, $subject, $body, $stdmsgid) {
+    private function maybeMail($groupid, $subject, $body, $action) {
         if ($body) {
             # We have a mail to send.
             $to = $this->getEmailPreferred();
@@ -1334,8 +1334,7 @@ class User extends Entity
             $name = str_replace('$groupname', $atts['namedisplay'], $name);
 
             $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
-            $s = new StdMessage($this->dbhr, $this->dbhm, $stdmsgid);
-            $bcc = $s->getBcc();
+            $bcc = $c->getBcc($action);
 
             if ($bcc) {
                 $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
@@ -1352,7 +1351,7 @@ class User extends Entity
         }
     }
 
-    public function mail($groupid, $subject, $body, $stdmsgid) {
+    public function mail($groupid, $subject, $body, $stdmsgid, $action = NULL) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         $this->log->log([
@@ -1365,7 +1364,7 @@ class User extends Entity
             'stdmsgid' => $stdmsgid
         ]);
 
-        $this->maybeMail($groupid, $subject, $body, $stdmsgid);
+        $this->maybeMail($groupid, $subject, $body, $action);
     }
 
     public function reject($groupid, $subject, $body, $stdmsgid) {
@@ -1413,7 +1412,7 @@ class User extends Entity
 
         $this->notif->notifyGroupMods($groupid);
 
-        $this->maybeMail($groupid, $subject, $body, $stdmsgid);
+        $this->maybeMail($groupid, $subject, $body, 'Reject Member');
     }
 
     public function approve($groupid, $subject, $body, $stdmsgid) {
@@ -1465,7 +1464,7 @@ class User extends Entity
 
         $this->notif->notifyGroupMods($groupid);
 
-        $this->maybeMail($groupid, $subject, $body, $stdmsgid);
+        $this->maybeMail($groupid, $subject, $body, 'Approve Member');
     }
 
     public function markApproved($groupid) {
@@ -1737,7 +1736,7 @@ class User extends Entity
         return($rc);
     }
 
-    public function delete($groupid = NULL, $subject = NULL, $body = NULL, $stdmsgid = NULL) {
+    public function delete($groupid = NULL, $subject = NULL, $body = NULL) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         $rc = $this->dbhm->preExec("DELETE FROM users WHERE id = ?;", [$this->id]);
@@ -1750,8 +1749,6 @@ class User extends Entity
                 'byuser' => $me ? $me->getId() : NULL,
                 'text' => $this->getName()
             ]);
-
-            $this->maybeMail($groupid, $subject, $body, $stdmsgid);
         }
 
         return($rc);

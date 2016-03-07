@@ -224,7 +224,12 @@ class Group extends Entity
         foreach ($members as $member) {
             $u = new User($this->dbhr, $this->dbhm, $member['userid']);
             $thisone = $u->getPublic($groupids, TRUE);
+
+            # We want to return an id of the membership, because the same user might be pending on two groups, and
+            # a userid of the user's id.
             $thisone['userid'] = $thisone['id'];
+            $thisone['id'] = $member['id'];
+
             $thisepoch = strtotime($member['added']);
 
             if ($ctx['Added'] == NULL || $thisepoch < $ctx['Added']) {

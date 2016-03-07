@@ -14,6 +14,10 @@ function locations() {
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
     switch ($_REQUEST['type']) {
+        case 'GET': {
+            break;
+        }
+
         case 'POST': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             $role = $me ? $me->getRole($groupid) : User::ROLE_NONMEMBER;
@@ -37,6 +41,8 @@ function locations() {
                         break;
                 }
             }
+
+            break;
         }
     }
 

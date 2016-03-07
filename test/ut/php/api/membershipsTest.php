@@ -146,7 +146,7 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['members']));
-        assertEquals($this->uid, $ret['members'][0]['id']);
+        assertEquals($this->uid, $ret['members'][0]['userid']);
 
         # Sleep for background logging
         $this->waitBackground();
@@ -157,7 +157,7 @@ class membershipsAPITest extends IznikAPITestCase {
             'logs' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals($this->uid, $ret['member']['id']);
+        assertEquals($this->uid, $ret['member']['userid']);
 
         $log = $this->findLog('Group', 'Joined', $ret['member']['logs']);
         assertEquals($this->groupid, $log['group']['id']);
@@ -168,7 +168,7 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['members']));
-        assertEquals($this->uid, $ret['members'][0]['id']);
+        assertEquals($this->uid, $ret['members'][0]['userid']);
 
         $ret = $this->call('memberships', 'GET', [
             'groupid' => $this->groupid,
@@ -176,7 +176,7 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['members']));
-        assertEquals($this->uid, $ret['members'][0]['id']);
+        assertEquals($this->uid, $ret['members'][0]['userid']);
 
         $ret = $this->call('memberships', 'GET', [
             'groupid' => $this->groupid,
@@ -201,7 +201,7 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['members']));
-        assertEquals($this->uid, $ret['members'][0]['id']);
+        assertEquals($this->uid, $ret['members'][0]['userid']);
 
         # Test that a mod can't see stuff
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
