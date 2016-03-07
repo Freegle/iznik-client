@@ -128,7 +128,7 @@ Iznik.Views.Group.Select = IznikView.extend({
             self.trigger('selected', self.dropdown.value);
 
             // If any of our counts change, re-render the select in case it includes counts in the dropdown
-            self.listenTo(Iznik.Session, 'countschanged', self.render);
+            self.listenToOnce(Iznik.Session, 'countschanged', self.render);
 
             // We've built the dropdown so we can show it now.
             $('.dd').css('visibility', 'visible');
