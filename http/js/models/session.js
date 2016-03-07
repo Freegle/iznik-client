@@ -196,16 +196,20 @@ Iznik.Models.Session = IznikModel.extend({
                     ];
 
                     var total = 0;
+                    var countschanged = false;
 
                     _.each(counts, function(count) {
-                        if (ret.work[count.fi]) {
+                        var countel = $(count.el);
+                        var currcount = countel.html();
+                        if (ret.work[count.fi] != currcount) {
+                            countschanged = true;
+                        }
 
+                        if (ret.work[count.fi]) {
                             if (count.window) {
                                 total += ret.work[count.fi];
                             }
 
-                            var countel = $(count.el);
-                            var currcount = countel.html();
                             countel.html(ret.work[count.fi]);
                             console.log("Sound", ret.work[count.fi], currcount, self.playBeep);
 
@@ -232,6 +236,11 @@ Iznik.Models.Session = IznikModel.extend({
                     })
 
                     document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
+
+                    if (countschanged) {
+                        console.log("Trigger counts changed");
+                        Iznik.Session.trigger('countschanged');
+                    }
                 } else {
                     // We're not logged in - clear our local storage.
                     try {

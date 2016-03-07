@@ -8,8 +8,30 @@ Iznik.Views.Group.Select = IznikView.extend({
     persist: false,
     dropdown: null,
 
+    getName: function(group) {
+        var self = this;
+        var name = group.get('namedisplay');
+        if (self.options.hasOwnProperty('counts')) {
+            // We need to annotate the name with counts.
+            var total = 0;
+            var work = group.get('work');
+            _.each(self.options.counts, function(count) {
+                if (work && work.hasOwnProperty(count)) {
+                    total += work[count];
+                }
+            });
+
+            if (total > 0) {
+                name += ' (' + total + ')';
+            }
+        }
+
+        return(name);
+    },
+
     render: function() {
         var self = this;
+        console.log("Render select");
 
         // We hide the raw select now otherwise it shows briefly.  We set visibility on the dropdown once it's built.
         self.$el.css('visibility', 'hidden');
@@ -74,24 +96,8 @@ Iznik.Views.Group.Select = IznikView.extend({
                 var role = group.get('role');
 
                 if (!self.options.mod || role == 'Owner' || role ==  'Moderator') {
-                    var name = group.get('namedisplay');
-                    if (self.options.hasOwnProperty('counts')) {
-                        // We need to annotate the name with counts.
-                        var total = 0;
-                        var work = group.get('work');
-                        _.each(self.options.counts, function(count) {
-                            if (work && work.hasOwnProperty(count)) {
-                                total += work[count];
-                            }
-                        });
-
-                        if (total > 0) {
-                            name += ' (' + total + ')';
-                        }
-                    }
-
                     self.dropdown.add({
-                        text: name,
+                        text: self.getName(group),
                         value: group.get('id'),
                         title: group.get('namedisplay'),
                         image: group.get('grouplogo')
@@ -120,6 +126,9 @@ Iznik.Views.Group.Select = IznikView.extend({
             });
 
             self.trigger('selected', self.dropdown.value);
+
+            // If any of our counts change, re-render the select in case it includes counts in the dropdown
+            self.listenTo(Iznik.Session, 'countschanged', self.render);
 
             // We've built the dropdown so we can show it now.
             $('.dd').css('visibility', 'visible');

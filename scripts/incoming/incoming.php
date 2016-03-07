@@ -19,15 +19,29 @@ while (!feof(STDIN)) {
 $log = "/tmp/iznik_incoming.log";
 $logh = fopen($log, 'a');
 
-fwrite($logh, "-----\n$msg\n-----\n");
-
-error_log(var_export($_ENV, true));
+fwrite($logh, "-----\nFrom $envfrom to $envto Message\n$msg\n-----\n");
 
 $r = new MailRouter($dbhr, $dbhm);
 
-if ((preg_match('/.*\-owner\@yahoogroups.com$/', $envfrom) !== FALSE) ||
-    (preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.com/', $envfrom) !== FALSE)) {
+error_log("\n----------------------\n$envfrom => $envto");
+
+$rc = MailRouter::DROPPED;
+
+if (preg_match('/MODERATE -- (.*) posted to (.*)/', $msg, $matches)) {
+    # This is a moderation notification for a pending message.
+    error_log("MODERATE");
+    $r->received(Message::YAHOO_PENDING, NULL, $envto, $msg);
+    $rc = $r->route();
+} else if (stripos($envfrom, "@returns.groups.yahoo.com") !== FALSE && (stripos($envfrom, "notify-return-") !== FALSE)) {
+    # This is a system message.
+    error_log("From Yahoo System");
     $id = $r->received(Message::YAHOO_SYSTEM, $envfrom, $envto, $msg);
+    $rc = $r->route();
+} else if (stripos($envfrom, "@returns.groups.yahoo.com") !== FALSE && (stripos($envfrom, "sentto-") !== FALSE)) {
+    # This is a message sent out to us as a user on the group, so it's an approved message.
+    error_log("Approved message");
+    $r->received(Message::YAHOO_APPROVED, NULL, $envto, $msg);
     $rc = $r->route();
 }
 
+fwrite($logh, "Route returned $rc");

@@ -48,7 +48,7 @@ class Notifications
         $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ?;", [ $userid ]);
 
         foreach ($notifs as $notif) {
-            error_log("Send user $userid {$notif['subscription']}");
+            #error_log("Send user $userid {$notif['subscription']}");
             try {
                 $this->uthook();
 
@@ -78,7 +78,6 @@ class Notifications
                     $notif['subscription']
                 ]);
             } else {
-                error_log("Push Notification worked");
                 $this->dbhm->preExec("UPDATE users_push_notifications SET lastsent = NOW() WHERE userid = ? AND subscription = ?;", [
                     $userid,
                     $notif['subscription']
@@ -99,7 +98,7 @@ class Notifications
             $settings = $u->getGroupSettings($groupid);
 
             if (!array_key_exists('pushnotify', $settings) || $settings['pushnotify']) {
-                error_log("Notify {$mod['userid']} for $groupid notify " . presdef('pushnotify', $settings, TRUE) . " settings " . var_export($settings, TRUE));
+                #error_log("Notify {$mod['userid']} for $groupid notify " . presdef('pushnotify', $settings, TRUE) . " settings " . var_export($settings, TRUE));
                 $count += $this->notify($mod['userid'], $groupid);
             }
         }

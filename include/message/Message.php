@@ -946,15 +946,12 @@ class Message
         $approvedby = NULL;
 
         foreach ($messages as $message) {
-            error_log(var_export($message, TRUE));
             $approvedby = $message['approvedby'];
-            error_log("Found previous approved $approvedby");
         }
 
         if (!$approvedby) {
             # See if we have a record of approval from Yahoo.
             $approval = $this->getHeader('x-egroups-approved-by');
-            error_log("Approval $approval");
 
             if ($approval && preg_match('/(.*) via/', $approval, $matches)) {
                 # We've got an approval.  See if we can find the mod.
