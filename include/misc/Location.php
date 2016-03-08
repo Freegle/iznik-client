@@ -353,4 +353,19 @@ class Location extends Entity
 
         return $d;
     }
+
+    public function closestPostcode($lat, $lng) {
+        # Find the grids nearest to this lat/lng
+        $sql = "SELECT id FROM locations_grids WHERE ABS(swlat - ?) <= 0.2 AND ABS(swlng - ?) <= 0.2 OR ABS(nelat - ?) <= 0.2 AND ABS(nelng - ?) <= 0.2;";
+        $grids = $this->dbhr->preQuery($sql, [ $lat, $lng, $lat, $lng ]);
+        $gridids = [];
+        foreach ($grids as $grid) {
+            $gridids[] = $grid['id'];
+        }
+
+        $sql = "SELECT id, name, lat, lng, ST_distance(geometry, Point(?,?)) AS dist FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND type = 'Postcode' ORDER BY ST_distance(geometry, Point(?,?)) ASC LIMIT 1;";
+        $locs = $this->dbhr->preQuery($sql, [ $lng, $lat, $lng, $lat ]);
+
+        return(count($locs) == 1 ? $locs[0] : NULL);
+    }
 }

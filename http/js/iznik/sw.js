@@ -49,12 +49,10 @@ self.addEventListener('push', function(event) {
 
                 workstr = workstr == '' ? "No tasks outstanding" : workstr;
 
-                // Show a notification
-                //
-                // Don't vibrate - that would be too annoying.
+                // Show a notification.  Don't vibrate - that would be too annoying.
                 return  self.registration.showNotification("ModTools", {
                     body: workstr,
-                    icon: '/images/favicon/favicon-96x96.png',
+                    icon: '/images/favicon/modtools/favicon-96x96.png',
                     tag: 'work',
                     data: {
                         'url': url

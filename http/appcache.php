@@ -14,7 +14,7 @@ CACHE MANIFEST
 # We use our script code to get a version number; we get a cache file name which depends
 # on the timestamps of the JS code.
 #
-# v0.3
+# v0.4
 
 list ($cachefile, $scripts) = scriptInclude((function($str) { return($str); }));
 echo $cachefile;
@@ -27,25 +27,25 @@ CACHE:
 /images/Firefox.png
 /images/ajax-loader.gif
 /images/pageloader.gif
-/images/favicon/smalltile.png
-/images/favicon/android-chrome-192x192.png
-/images/favicon/apple-touch-icon-57x57.png
-/images/favicon/apple-touch-icon-60x60.png
-/images/favicon/apple-touch-icon-72x72.png
-/images/favicon/apple-touch-icon-76x76.png
-/images/favicon/apple-touch-icon-114x114.png
-/images/favicon/apple-touch-icon-120x120.png
-/images/favicon/apple-touch-icon-144x144.png
-/images/favicon/apple-touch-icon-152x152.png
-/images/favicon/apple-touch-icon-180x180.png
-/images/favicon/favicon.ico
-/images/favicon/favicon-16x16.png
-/images/favicon/favicon-32x32.png
-/images/favicon/favicon-96x96.png
-/images/favicon/largetile.png
-/images/favicon/mediumtile.png
-/images/favicon/smalltile.png
-/images/favicon/widetile.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/smalltile.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/android-chrome-192x192.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-57x57.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-60x60.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-72x72.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-76x76.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-114x114.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-120x120.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-144x144.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-152x152.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-180x180.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/favicon.ico
+/images/favicon/<?php echo FAVICON_HOME; ?>/favicon-16x16.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/favicon-32x32.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/favicon-96x96.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/largetile.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/mediumtile.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/smalltile.png
+/images/favicon/<?php echo FAVICON_HOME; ?>/widetile.png
 /images/yahoo.png
 /manifest.json
 https://maps.google.com/maps/api/staticmap?size=110x110&center=55.640268,-3.113631&maptype=roadmap&markers=icon:/images/mapmarker.gif|55.640268,-3.113631&sensor=false&key=AIzaSyArVxoX781qdcbmQZi1PKHX-qa0bPbboH4&zoom=9
@@ -53,20 +53,20 @@ https://maps.google.com/maps/api/staticmap?size=110x110&center=55.651414,-3.1773
 https://www.paypalobjects.com/en_GB/i/scr/pixel.gif
 
 #internal HTML documents
-/modtools
-/modtools/members/approved
-/modtools/members/pending
-/modtools/members/spam
-/modtools/messages/approved
-/modtools/messages/pending
-/modtools/messages/spam
-/modtools/settings
-/modtools/spammerlist/confirmed
-/modtools/spammerlist/pendingadd
-/modtools/spammerlist/pendingremove
-/modtools/spammerlist/whitelisted
-/modtools/support
-/modtools/supporters
+/<?php echo FAVICON_HOME; ?>
+/<?php echo FAVICON_HOME; ?>/members/approved
+/<?php echo FAVICON_HOME; ?>/members/pending
+/<?php echo FAVICON_HOME; ?>/members/spam
+/<?php echo FAVICON_HOME; ?>/messages/approved
+/<?php echo FAVICON_HOME; ?>/messages/pending
+/<?php echo FAVICON_HOME; ?>/messages/spam
+/<?php echo FAVICON_HOME; ?>/settings
+/<?php echo FAVICON_HOME; ?>/spammerlist/confirmed
+/<?php echo FAVICON_HOME; ?>/spammerlist/pendingadd
+/<?php echo FAVICON_HOME; ?>/spammerlist/pendingremove
+/<?php echo FAVICON_HOME; ?>/spammerlist/whitelisted
+/<?php echo FAVICON_HOME; ?>/support
+/<?php echo FAVICON_HOME; ?>/supporters
 /user
 
 #style sheets
@@ -74,7 +74,7 @@ https://www.paypalobjects.com/en_GB/i/scr/pixel.gif
 /css/bootstrap-switch.min.css
 /css/datepicker3.css
 /css/dd.css
-/css/modtools.css
+/css/<?php echo FAVICON_HOME; ?>.css
 /css/style.css
 /js/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css
 https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css
@@ -180,18 +180,19 @@ js/views/help.js
 js/views/dashboard.js
 js/views/user/user.js
 js/views/yahoo/user.js
-js/views/pages/landing.js
-js/views/pages/modtools/landing.js
-js/views/pages/modtools/messages.js
-js/views/pages/modtools/members_pending.js
-js/views/pages/modtools/members_approved.js
-js/views/pages/modtools/members_spam.js
-js/views/pages/modtools/messages_spam.js
-js/views/pages/modtools/messages_pending.js
-js/views/pages/modtools/messages_approved.js
-js/views/pages/modtools/spammerlist.js
-js/views/pages/modtools/support.js
-js/views/pages/modtools/settings.js
+js/views/pages/user/landing.js
+js/views/pages/user/find.js
+js/views/pages/<?php echo FAVICON_HOME; ?>/landing.js
+js/views/pages/<?php echo FAVICON_HOME; ?>/messages.js
+js/views/pages/<?php echo FAVICON_HOME; ?>/members_pending.js
+js/views/pages/<?php echo FAVICON_HOME; ?>/members_approved.js
+js/views/pages/<?php echo FAVICON_HOME; ?>/members_spam.js
+js/views/pages/<?php echo FAVICON_HOME; ?>/messages_spam.js
+js/views/pages/<?php echo FAVICON_HOME; ?>/messages_pending.js
+js/views/pages/<?php echo FAVICON_HOME; ?>/messages_approved.js
+js/views/pages/<?php echo FAVICON_HOME; ?>/spammerlist.js
+js/views/pages/<?php echo FAVICON_HOME; ?>/support.js
+js/views/pages/<?php echo FAVICON_HOME; ?>/settings.js
 js/views/group/select.js
 js/iznik/router.js
 js/lib/binaryajax.js

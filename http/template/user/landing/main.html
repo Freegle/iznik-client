@@ -1,0 +1,25 @@
+<% if (obj.me) { %>
+<h1>Welcome, <% if (me.firstname) { %>{{me.firstname}}<% } else { %>{{me.fullname}}<% } %></h1>
+<% } %>
+<h1 class="text-center largest">Freegle</h1>
+<h1 class="text-center">Online dating.  For stuff.</h1>
+<p class="text-center">
+    Got stuff you don't need?  We'll match you with someone who wants it.  Looking for something?  We'll pair you
+    with someone giving it away.
+</p>
+<p class="text-center botspace">
+    All completely free.
+</p>
+<div class="row"></div>
+<div class="row topspace">
+    <div class="col-md-5">
+        <div class="topspace btn btn-lg btn-block btn-info">Give something</div>
+    </div>
+    <div class="col-md-2">
+    </div>
+    <div class="col-md-5">
+        <a href="/user/find/whereami">
+            <div class="topspace btn btn-lg btn-block btn-primary">Find something</div>
+        </a>
+    </div>
+</div>

@@ -196,6 +196,16 @@ class locationTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testClosestPostcode() {
+        error_log(__METHOD__);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $loc = $l->closestPostcode(53.856556299999994, -2.6401651999999998);
+        assertEquals("PR3 2NE", $loc['name']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
 

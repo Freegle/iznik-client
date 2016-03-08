@@ -2,7 +2,7 @@
 require_once(IZNIK_BASE . '/include/misc/scripts.php');
 require_once(IZNIK_BASE . '/include/misc/template.php');
 ?><!DOCTYPE HTML>
-<html  manifest="/manifest.appcache">
+<html <?php if (MANIFEST) { ?>manifest="/manifest.appcache"<?php } ?>>
 <head>
     <meta name="msapplication-tap-highlight" content="no"/>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
@@ -25,29 +25,29 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <meta property="og:title" content="<?php echo SITE_NAME; ?>"/>
     <meta property="og:url" content="<?php get_current_url(); ?>">
     <meta property="og:description" content="<?php echo SITE_DESC; ?>"/>
-    <meta property="og:image" content="/images/logo.png"/>
+    <meta property="og:image" content="/images/favicon/<?php echo FAVICON_HOME; ?>largetile.png"/>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta property="description" content="<?php echo SITE_DESC; ?>"/>
 
     <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/jekkhomlnoblcnangfcdohhaipmmaddc">
-    <link rel="shortcut icon" href="/images/favicon/favicon.ico" type="image/x-icon" />
-    <link rel="apple-touch-icon" sizes="57x57" href="/images/favicon/apple-touch-icon-57x57.png">
-    <link rel="apple-touch-icon" sizes="60x60" href="/images/favicon/apple-touch-icon-60x60.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="/images/favicon/apple-touch-icon-72x72.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="/images/favicon/apple-touch-icon-76x76.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="/images/favicon/apple-touch-icon-114x114.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="/images/favicon/apple-touch-icon-120x120.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="/images/favicon/apple-touch-icon-144x144.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/images/favicon/apple-touch-icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon-180x180.png">
-    <link rel="icon" type="image/png" href="/images/favicon/favicon-16x16.png" sizes="16x16">
-    <link rel="icon" type="image/png" href="/images/favicon/favicon-32x32.png" sizes="32x32">
-    <link rel="icon" type="image/png" href="/images/favicon/favicon-96x96.png" sizes="96x96">
-    <link rel="icon" type="image/png" href="/images/favicon/android-chrome-192x192.png" sizes="192x192">
-    <meta name="msapplication-square70x70logo" content="images/favicon/smalltile.png" />
-    <meta name="msapplication-square150x150logo" content="images/favicon/mediumtile.png" />
-    <meta name="msapplication-wide310x150logo" content="images/favicon/widetile.png" />
-    <meta name="msapplication-square310x310logo" content="images/favicon/largetile.png" />
+    <link rel="shortcut icon" href="/images/favicon/<?php echo FAVICON_HOME; ?>/favicon/<?php echo FAVICON_HOME; ?>.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-180x180.png">
+    <link rel="icon" type="image/png" href="/images/favicon/<?php echo FAVICON_HOME; ?>/favicon/<?php echo FAVICON_HOME; ?>-16x16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="/images/favicon/<?php echo FAVICON_HOME; ?>/favicon/<?php echo FAVICON_HOME; ?>-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/images/favicon/<?php echo FAVICON_HOME; ?>/favicon/<?php echo FAVICON_HOME; ?>-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/png" href="/images/favicon/<?php echo FAVICON_HOME; ?>/android-chrome-192x192.png" sizes="192x192">
+    <meta name="msapplication-square70x70logo" content="images/favicon/<?php echo FAVICON_HOME; ?>/smalltile.png" />
+    <meta name="msapplication-square150x150logo" content="images/favicon/<?php echo FAVICON_HOME; ?>/mediumtile.png" />
+    <meta name="msapplication-wide310x150logo" content="images/favicon/<?php echo FAVICON_HOME; ?>/widetile.png" />
+    <meta name="msapplication-square310x310logo" content="images/favicon/<?php echo FAVICON_HOME; ?>/largetile.png" />
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">

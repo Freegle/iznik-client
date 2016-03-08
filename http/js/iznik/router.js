@@ -38,7 +38,8 @@ var IznikRouter = Backbone.Router.extend({
         "modtools/settings/confirmmail/(:key)": "confirmMail",
         "modtools/settings": "settings",
         "modtools/support": "support",
-        "user": "userHome"
+        "user/find/whereami": "userWhereAmI",
+        "*path": "userHome"
     },
 
     loadRoute: function(routeOptions){
@@ -71,6 +72,11 @@ var IznikRouter = Backbone.Router.extend({
         });
 
         Iznik.Session.testLoggedIn();
+    },
+
+    userWhereAmI: function() {
+        var page = new Iznik.Views.User.Pages.Find.WhereAmI();
+        this.loadRoute({page: page});
     },
 
     getURLParam: function(name) {
@@ -314,7 +320,6 @@ var Router;
 
 $(document).ready(function(){
     // Hide the page loader
-    console.log("Document ready");
     $('#pageloader').remove();
 
     // We have a busy indicator.

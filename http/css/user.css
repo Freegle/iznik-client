@@ -261,7 +261,11 @@
 }
 
 h1,h2,h3,h4 {
-    color: #000080 !important;
+    color: #1d6607 !important;
+}
+
+.largest {
+    font-size: 54px;
 }
 
 .faintback {
