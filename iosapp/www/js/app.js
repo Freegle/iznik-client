@@ -4,47 +4,20 @@
 
 var version = "0.1.0, 8 March 2016";
 
-
-// This file is a suggested starting place for your code.
-// It is completely optional and not required.
-// Note the reference that includes it in the index.html file.
-
-
 /*jslint browser:true, devel:true, white:true, vars:true */
 /*global $:false, intel:false app:false, dev:false, cordova:false */
 
-
-// For improved debugging and maintenance of your app, it is highly
-// recommended that you separate your JavaScript from your HTML files.
-// Use the addEventListener() method to associate events with DOM elements.
-
-// For example:
-
-// var el ;
-// el = document.getElementById("id_myButton") ;
-// el.addEventListener("click", myEventHandler, false) ;
-
-
-
-// The function below is an example of the best way to "start" your app.
-// This example is calling the standard Cordova "hide splashscreen" function.
-// You can add other code to it or add additional functions that are triggered
-// by the same event or other events.
-
 function onAppReady() {
-    if( navigator.splashscreen && navigator.splashscreen.hide ) {   // Cordova API detected
+    if( navigator.splashscreen && navigator.splashscreen.hide ) {
         navigator.splashscreen.hide() ;
     }
 
     var registrationId = null;
-	//alert("STARTED!");
     $("#version").text(version);
     $("#registrationId").val("Not set yet");
 
     $(document).on("click", ".ext-link", function (evt) {
     	var linktarget = $(this).prop("href");
-    	//window.open(linktarget, '_system', 'location=yes,menubar=yes');
-    	//alert(linktarget);
     	window.open(linktarget, '_system');
     	return false;
     })
@@ -55,7 +28,6 @@ function onAppReady() {
     		return false;
     	}
     	var mt = "http://www.penrithedenfreegle.org.uk/modtools/simplepush.php?id=" + registrationId;
-    	//alert(mt);
     	window.open(mt, '_system');
     	return false;
     });
@@ -78,13 +50,6 @@ function onAppReady() {
     });
 
     push.on('notification', function (data) {
-    	// data.message,
-    	// data.title,
-    	// data.count,
-    	// data.sound,
-    	// data.image,
-    	// data.additionalData
-    	//alert("notification: " + data.message);
     	$('#nTitle').text(data.title);
     	$('#nMessage').text(data.message);
     	$('#nCount').text(data.count);
@@ -99,7 +64,6 @@ function onAppReady() {
     });
 
     push.on('error', function (e) {
-    	// e.message
     	alert("error: " + e.message);
     });
 }
@@ -112,7 +76,7 @@ document.addEventListener("app.Ready", onAppReady, false) ;
 // more details. You can use a different event to start your app, instead of
 // this event. A few examples are shown in the sample code above. If you are
 // using Cordova plugins you need to either use this app.Ready event or the
-// standard Crordova deviceready event. Others will either not work or will
+// standard Cordova deviceready event. Others will either not work or will
 // work poorly.
 
 // NOTE: change "dev.LOG" in "init-dev.js" to "true" to enable some console.log
