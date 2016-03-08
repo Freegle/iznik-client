@@ -15,6 +15,12 @@ function locations() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
+            $lat = presdef('lat', $_REQUEST, NULL);
+            $lng = presdef('lng', $_REQUEST, NULL);
+
+            if ($lat && $lng) {
+                $ret = [ 'ret' => 0, 'status' => 'Success', 'location' => $l->closestPostcode($lat, $lng) ];
+            }
             break;
         }
 
@@ -34,7 +40,6 @@ function locations() {
                             $m = new Message($dbhr, $dbhm, $messageid);
                             $m->setPrivate('suggestedsubject', $m->suggestSubject($groupid, $m->getSubject()));
                             $ret['message'] = $m->getPublic(FALSE, FALSE);
-                            error_log("Set new location {$ret['message']['location']['id']} for {$messageid}");
                             $m->setPrivate('locationid', $ret['message']['location']['id']);
                         }
 

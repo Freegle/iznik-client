@@ -14,11 +14,13 @@ require_once IZNIK_BASE . '/include/misc/Location.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class locationsAPITest extends IznikAPITestCase {
+class locationsAPITest extends IznikAPITestCase
+{
     public $dbhr, $dbhm;
 
-    protected function setUp() {
-        parent::setUp ();
+    protected function setUp()
+    {
+        parent::setUp();
 
         /** @var LoggedPDO $dbhr */
         /** @var LoggedPDO $dbhm */
@@ -64,14 +66,17 @@ class locationsAPITest extends IznikAPITestCase {
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
+    protected function tearDown()
+    {
+        parent::tearDown();
     }
 
-    public function __construct() {
+    public function __construct()
+    {
     }
 
-    public function testPost() {
+    public function testPost()
+    {
         error_log(__METHOD__);
 
         # Create two locations
@@ -129,5 +134,17 @@ class locationsAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-}
+    public function testPostcode()
+    {
+        error_log(__METHOD__);
 
+        $ret = $this->call('locations', 'GET', [
+            'lat' => 53.856556299999994,
+            'lng' => -2.6401651999999998
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals('PR3 2NE', $ret['location']['name']);
+
+        error_log(__METHOD__ . " end");
+    }
+}

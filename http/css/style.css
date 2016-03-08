@@ -850,6 +850,10 @@ a button {
     font-size: 24px;
 }
 
+.glyphicon-behemoth {
+    font-size: 100px;
+}
+
 /* Override some bootstrap styles */
 
 /*==================================================

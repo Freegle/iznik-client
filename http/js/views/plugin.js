@@ -174,7 +174,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                     }));
             }
 
-            if (worthIt(self.yahooGroupsWithPendingMessages, group, 'pendingmembers') &&
+            if (worthIt(self.yahooGroupsWithPendingMembers, group, 'pendingmembers') &&
                 doSync(group, 'showmembers')) {
                     self.collection.add(new Iznik.Models.Plugin.Work({
                         id: group.get('nameshort') + '.SyncMembers.Pending',

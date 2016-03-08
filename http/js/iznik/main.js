@@ -23,7 +23,9 @@ window.Iznik = {
             Yahoo: {}
         },
         User: {
-            Pages: {}
+            Pages: {
+                Find: {}
+            }
         },
         Group: {},
         Help: {}

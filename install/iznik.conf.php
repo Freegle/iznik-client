@@ -16,8 +16,20 @@ define('GOOGLE_PROJECT', 'zzz');
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');
 
-define('SITE_NAME', 'Iznik');
-define('SITE_DESC', 'Making moderating easier');
+switch($_SERVER['HTTP_HOST']) {
+    case 'iznik.modtools.org':
+    case 'dev.modtools.org':
+    case 'modtools.org':
+        define('SITE_NAME', 'Iznik');
+        define('SITE_DESC', 'Making moderating easier');
+        define('MANIFEST', TRUE);
+        break;
+    case 'iznik.ilovefreegle.org':
+        define('SITE_NAME', 'Freegle');
+        define('SITE_DESC', 'Online dating for stuff');
+        define('MANIFEST', FALSE);
+        break;
+}
 
 # Contact emails
 define('SUPPORT_ADDR', 'support@zzz');

@@ -13,22 +13,22 @@ header('Content-type: application/json');
     "gcm_sender_id": "<?php echo GOOGLE_PROJECT; ?>",
     "icons": [
         {
-            "src": "/images/favicon/favicon-96x96.png",
+            "src": "/images/favicon/<?php echo FAVICON_HOME; ?>/favicon-96x96.png",
             "sizes": "96x96",
             "type": "image/png"
         },
         {
-            "src": "/images/favicon/favicon-144x144.png",
+            "src": "/images/favicon/<?php echo FAVICON_HOME; ?>/favicon-144x144.png",
             "sizes": "144x144",
             "type": "image/png"
         },
         {
-            "src": "/images/favicon/favicon-180x180.png",
+            "src": "/images/favicon/<?php echo FAVICON_HOME; ?>/favicon-180x180.png",
             "sizes": "180x180",
             "type": "image/png"
         }
     ],
-    "start_url": "/modtools",
+    "start_url": "/<?php echo MANIFEST_STARTURL; ?>",
     "display": "standalone",
     "orientation": "portrait"
 }
