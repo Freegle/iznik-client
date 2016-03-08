@@ -29,6 +29,31 @@ Iznik.Views.Group.Select = IznikView.extend({
         return(name);
     },
 
+    updateCounts: function() {
+        // TODO This code is hacky - it scans the whole DOM, and surely there's either a method inside the select
+        // we could use, or we should be using a different select.
+        var self = this;
+
+        if (self.$el.closest('body').length > 0) {
+            // Still in DOM
+            self.$('option').each(function() {
+                var group = Iznik.Session.getGroup($(this).val());
+                if (group) {
+                    var name = self.getName(group);
+                    var seek = group.get('namedisplay');
+                    $(this).text(name);
+                    $('li._msddli_').each(function() {
+                        if ($(this).prop('title') == seek) {
+                            $(this).find('span').html(name);
+                        }
+                    })
+                }
+            });
+
+            self.listenToOnce(Iznik.Session, 'countschanged', self.updateCounts);
+        }
+    },
+
     render: function() {
         var self = this;
         console.log("Render select");
@@ -128,7 +153,7 @@ Iznik.Views.Group.Select = IznikView.extend({
             self.trigger('selected', self.dropdown.value);
 
             // If any of our counts change, re-render the select in case it includes counts in the dropdown
-            self.listenToOnce(Iznik.Session, 'countschanged', self.render);
+            self.listenToOnce(Iznik.Session, 'countschanged', self.updateCounts);
 
             // We've built the dropdown so we can show it now.
             $('.dd').css('visibility', 'visible');

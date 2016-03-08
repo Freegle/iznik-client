@@ -14,7 +14,7 @@ CACHE MANIFEST
 # We use our script code to get a version number; we get a cache file name which depends
 # on the timestamps of the JS code.
 #
-# v0.2
+# v0.3
 
 list ($cachefile, $scripts) = scriptInclude((function($str) { return($str); }));
 echo $cachefile;
@@ -67,6 +67,7 @@ https://www.paypalobjects.com/en_GB/i/scr/pixel.gif
 /modtools/spammerlist/whitelisted
 /modtools/support
 /modtools/supporters
+/user
 
 #style sheets
 /css/bootstrap-select.min.css

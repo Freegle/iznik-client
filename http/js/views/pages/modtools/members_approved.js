@@ -248,8 +248,15 @@ Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
         var self = this;
 
         self.$el.html(window.template(self.template)(self.model.toJSON2()));
+        var now = new moment();
         var mom = new moment(this.model.get('joined'));
+        var age = now.diff(mom, 'days');
         this.$('.js-joined').html(mom.format('llll'));
+
+        if (age <= 31) {
+            // Flag recent joiners.
+            this.$('.js-joined').addClass('error');
+        }
 
         self.addOtherInfo();
 

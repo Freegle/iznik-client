@@ -38,7 +38,7 @@ var IznikRouter = Backbone.Router.extend({
         "modtools/settings/confirmmail/(:key)": "confirmMail",
         "modtools/settings": "settings",
         "modtools/support": "support",
-        "*path": "home"
+        "user": "userHome"
     },
 
     loadRoute: function(routeOptions){
@@ -63,17 +63,11 @@ var IznikRouter = Backbone.Router.extend({
         loadPage();
     },
 
-    home: function(){
+    userHome: function(){
         var self = this;
         this.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
-            if (loggedIn || location.host.indexOf("modtools") != -1) {
-                Router.navigate('/modtools', {
-                    trigger: true
-                });
-            } else {
-                var page = new Iznik.Views.User.Pages.Landing();
-                self.loadRoute({page: page});
-            }
+            var page = new Iznik.Views.User.Pages.Landing();
+            self.loadRoute({page: page});
         });
 
         Iznik.Session.testLoggedIn();

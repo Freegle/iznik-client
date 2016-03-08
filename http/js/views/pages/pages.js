@@ -30,25 +30,29 @@ Iznik.Views.Page = IznikView.extend({
             window.template('layout_layout'));
         $('.js-pageContent').html(this.$el);
 
-        var m = new Iznik.Views.LeftMenu();
-        $('.js-leftsidebar').html(m.render().el);
-        rightaccordion = $('#rightaccordion');
+        if (this.modtools) {
+            // ModTools menu and sidebar.
+            var m = new Iznik.Views.ModTools.LeftMenu();
+            $('.js-leftsidebar').html(m.render().el);
 
-        if (!rightbar) {
-            var s = new Iznik.Views.Supporters();
-            rightaccordion.append(s.render().el);
+            rightaccordion = $('#rightaccordion');
 
-            IznikPlugin = new Iznik.Views.Plugin.Main();
-            rightaccordion.append(IznikPlugin.render().el);
-            rightaccordion.accordionPersist();
-        } else {
-            rightaccordion.empty().append(rightbar);
-        }
+            if (!rightbar) {
+                var s = new Iznik.Views.Supporters();
+                rightaccordion.append(s.render().el);
 
-        if (options.noSupporters) {
-            $('.js-supporters').hide();
-        } else {
-            $('.js-supporters').show();
+                IznikPlugin = new Iznik.Views.Plugin.Main();
+                rightaccordion.append(IznikPlugin.render().el);
+                rightaccordion.accordionPersist();
+            } else {
+                rightaccordion.empty().append(rightbar);
+            }
+
+            if (options.noSupporters) {
+                $('.js-supporters').hide();
+            } else {
+                $('.js-supporters').show();
+            }
         }
 
         // Put this page in
@@ -90,7 +94,7 @@ Iznik.Views.User.Pages.NotFound = Iznik.Views.Page.extend({
     template: "notfound"
 });
 
-Iznik.Views.LeftMenu = IznikView.extend({
+Iznik.Views.ModTools.LeftMenu = IznikView.extend({
     template: "layout_leftmenu",
 
     events: {
