@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html>
+<!--
+  * Please see the included README.md file for license terms and conditions.
+  -->
+<head>
+    <title>Blank Cordova Mobile App Project Template (Lite)</title>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+
+    <!-- see http://webdesign.tutsplus.com/tutorials/htmlcss-tutorials/quick-tip-dont-forget-the-viewport-meta-tag -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <style>
+        /* following two viewport lines are equivalent to the meta viewport statement above, needed for Windows */
+        /* see http://www.quirksmode.org/blog/archives/2014/05/html5_dev_conf.html and http://dev.w3.org/csswg/css-device-adapt/ */
+        @-ms-viewport { width: 100vw ; zoom: 100% ; }  @viewport { width: 100vw ; zoom: 100% ; }
+        @-ms-viewport { user-zoom: fixed ; }           @viewport { user-zoom: fixed ; }
+    </style>
+
+    <script src="cordova.js"></script>          <!-- phantom library, needed for Cordova api calls, added during build -->
+    <script src="js/app.js"></script>           <!-- recommended location of your JavaScript code relative to other JS files -->
+    <script src="xdk/init-dev.js"></script>     <!-- normalizes device and document ready events, see README for details -->
+	<script src="js/jquery-2.2.1.min.js"></script>
+</head>
+
+<body>
+
+    <p>
+			<div style="float:right; width:50%;text-align:right" id="version"></div>
+			Hello, geeks</p>
+	<p>
+		<a href="https://modtools.org/modtools/" class="ext-link">Start modtools</a>
+	</p>
+	<p>
+		<label for="registrationId">registrationId:</label>
+		<input type="text" id="registrationId" />
+		<input type="button" value="Go" id="goOnline" />
+	</p>
+	<div>
+		<p>
+			title: <span id="nTitle">...</span>
+		</p>
+		<p>
+			message: <span id="nMessage">...</span>
+		</p>
+		<p>
+			count: <span id="nCount">...</span>
+		</p>
+		<p>
+			sound: <span id="nSound">...</span>
+		</p>
+		<p>
+			image: <span id="nImage">...</span>
+		</p>
+		<p>
+			additionalData: <span id="nAdditionalData">...</span>
+		</p>
+		<p>
+			data: <span id="nData">...</span>
+		</p>
+	</div>
+</body>
+</html>
