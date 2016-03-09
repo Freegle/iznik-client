@@ -503,6 +503,17 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(3, $ret['ret']);
 
+        # Should be able to mail.
+        $ret = $this->call('memberships', 'POST', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'action' => 'Leave Member',
+            'subject' => "Test",
+            'body' => "Test",
+            'dup' => 2
+        ]);
+        assertEquals(0, $ret['ret']);
+
         # Should work as a moderator, and will not be pending any more.
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $cid = $c->create('Test');
@@ -721,6 +732,13 @@ class membershipsAPITest extends IznikAPITestCase {
             'duplicate' => 1
         ]);
         assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('memberships', 'GET', [
+            'userid' => $uid,
+            'groupid' => $this->groupid,
+            'collection' => 'Wibble'
+        ]);
+        assertEquals(3, $ret['ret']);
 
         $ret = $this->call('memberships', 'GET', [
             'userid' => $uid,

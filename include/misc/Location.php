@@ -368,4 +368,19 @@ class Location extends Entity
 
         return(count($locs) == 1 ? $locs[0] : NULL);
     }
+
+    public function typeahead($query) {
+        # We want to select full postcodes (with a space in them)
+        $sql = "SELECT * FROM locations WHERE name LIKE ? AND name LIKE '% %' AND type = 'Postcode' LIMIT 10;";
+        $pcs = $this->dbhr->preQuery($sql, [ "$query%" ]);
+        $ret = [];
+        foreach ($pcs as $pc) {
+            $thisone = [];
+            foreach ($this->publicatts as $att) {
+                $thisone[$att] = $pc[$att];
+            }
+            $ret[] = $thisone;
+        }
+        return($ret);
+    }
 }

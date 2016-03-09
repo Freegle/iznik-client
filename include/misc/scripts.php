@@ -45,6 +45,7 @@ function scriptInclude($minify)
         "js/lib/jquery.waypoints.js",
         "js/lib/jquery-show-first.js",
         "js/lib/jquery-visibility.js",
+        "js/lib/typeahead.jquery.js",
         "js/iznik/dateshim.js",
         "js/iznik/zombies.js",
         "js/iznik/underscore.js",

@@ -17,9 +17,12 @@ function locations() {
         case 'GET': {
             $lat = presdef('lat', $_REQUEST, NULL);
             $lng = presdef('lng', $_REQUEST, NULL);
+            $typeahead = presdef('typeahead', $_REQUEST, NULL);
 
             if ($lat && $lng) {
                 $ret = [ 'ret' => 0, 'status' => 'Success', 'location' => $l->closestPostcode($lat, $lng) ];
+            } else if ($typeahead) {
+                $ret = [ 'ret' => 0, 'status' => 'Success', 'locations' => $l->typeahead($typeahead) ];
             }
             break;
         }

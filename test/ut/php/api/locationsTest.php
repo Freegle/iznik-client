@@ -145,6 +145,12 @@ class locationsAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals('PR3 2NE', $ret['location']['name']);
 
+        $ret = $this->call('locations', 'GET', [
+            'typeahead' => 'PR3'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals('PR3 0AA', $ret['locations'][0]['name']);
+
         error_log(__METHOD__ . " end");
     }
 }

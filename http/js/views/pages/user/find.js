@@ -38,6 +38,26 @@ Iznik.Views.User.Pages.Find.WhereAmI = Iznik.Views.Page.extend({
         })
     },
 
+    postcodeSource: function(query, syncResults, asyncResults) {
+        console.log("postcodeSource", query);
+        var self = this;
+
+        $.ajax({
+            type: 'GET',
+            url: API + 'locations',
+            data: {
+                typeahead: query
+            }, success: function(ret) {
+                var matches = [];
+                _.each(ret.locations, function(location) {
+                    matches.push(location.name);
+                })
+
+                asyncResults(matches);
+            }
+        })
+    },
+
     render: function() {
         Iznik.Views.Page.prototype.render.call(this);
 
@@ -54,6 +74,19 @@ Iznik.Views.User.Pages.Find.WhereAmI = Iznik.Views.Page.extend({
             }
         } catch (e) {};
 
+        this.$('.js-postcode').typeahead({
+            minLength: 2,
+            hint: false,
+            highlight: true
+        }, {
+            name: 'postcodes',
+            source: this.postcodeSource
+        });
+
         return(this);
     }
+});
+
+Iznik.Views.User.Pages.Find.Search = Iznik.Views.Page.extend({
+    template: "user_find_search"
 });

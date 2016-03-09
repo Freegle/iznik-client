@@ -238,7 +238,6 @@ Iznik.Models.Session = IznikModel.extend({
                     document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
 
                     if (countschanged) {
-                        console.log("Trigger counts changed");
                         Iznik.Session.trigger('countschanged');
                     }
                 } else {

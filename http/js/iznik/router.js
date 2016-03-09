@@ -39,6 +39,7 @@ var IznikRouter = Backbone.Router.extend({
         "modtools/settings": "settings",
         "modtools/support": "support",
         "user/find/whereami": "userWhereAmI",
+        "user/find/search": "userSearch",
         "*path": "userHome"
     },
 
@@ -76,6 +77,11 @@ var IznikRouter = Backbone.Router.extend({
 
     userWhereAmI: function() {
         var page = new Iznik.Views.User.Pages.Find.WhereAmI();
+        this.loadRoute({page: page});
+    },
+
+    userSearch: function() {
+        var page = new Iznik.Views.User.Pages.Find.Search();
         this.loadRoute({page: page});
     },
 
@@ -344,6 +350,10 @@ $(document).ready(function(){
         window.alert("Top-level exception " + e);
         console.log("Top-level exception", e);
         console.trace();
+    }
+
+    if (document.URL.indexOf('action=') !== -1) {
+        Router.navigate('/modtools', true);
     }
 });
 
