@@ -39,7 +39,6 @@ Iznik.Views.User.Pages.Find.WhereAmI = Iznik.Views.Page.extend({
     },
 
     postcodeSource: function(query, syncResults, asyncResults) {
-        console.log("postcodeSource", query);
         var self = this;
 
         $.ajax({
@@ -88,5 +87,39 @@ Iznik.Views.User.Pages.Find.WhereAmI = Iznik.Views.Page.extend({
 });
 
 Iznik.Views.User.Pages.Find.Search = Iznik.Views.Page.extend({
-    template: "user_find_search"
+    template: "user_find_search",
+
+    itemSource: function(query, syncResults, asyncResults) {
+        var self = this;
+
+        $.ajax({
+            type: 'GET',
+            url: API + 'item',
+            data: {
+                typeahead: query
+            }, success: function(ret) {
+                var matches = [];
+                _.each(ret.items, function(item) {
+                    matches.push(item.item.name);
+                })
+
+                asyncResults(matches);
+            }
+        })
+    },
+
+    render: function() {
+        Iznik.Views.Page.prototype.render.call(this);
+
+        this.$('.js-search').typeahead({
+            minLength: 2,
+            hint: false,
+            highlight: true
+        }, {
+            name: 'items',
+            source: this.itemSource
+        });
+
+        return(this);
+    }
 });

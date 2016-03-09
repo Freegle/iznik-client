@@ -187,5 +187,18 @@ class itemAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testTypeahead() {
+        error_log(__METHOD__);
+
+        # Get invalid id
+        $ret = $this->call('item', 'GET', [
+            'typeahead' => 'sof'
+        ]);
+        assertEquals(0, $ret['ret']);
+        error_log(var_export($ret, TRUE));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

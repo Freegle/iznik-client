@@ -7,17 +7,25 @@ function item() {
     $me = whoAmI($dbhr, $dbhm);
 
     $id = presdef('id', $_REQUEST, NULL);
+    $typeahead = presdef('typeahead', $_REQUEST, NULL);
     $i = new Item($dbhr, $dbhm, $id);
 
-    if ($id && $i->getId() || $_REQUEST['type'] == 'POST') {
+    if ($id && $i->getId() || $_REQUEST['type'] == 'POST' || $typeahead) {
         switch ($_REQUEST['type']) {
             case 'GET': {
-                $ret = [
-                    'ret
-                    ' => 0,
-                    'status' => 'Success',
-                    'item' => $i->getPublic()
-                ];
+                if ($typeahead) {
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'items' => $i->typeahead($typeahead)
+                    ];
+                } else {
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'item' => $i->getPublic()
+                    ];
+                }
 
                 break;
             }
