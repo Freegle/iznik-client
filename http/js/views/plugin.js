@@ -1593,7 +1593,7 @@ Iznik.Views.Plugin.Yahoo.ApprovePendingMember = Iznik.Views.Plugin.SubView.exten
             type: "POST",
             url: YAHOOAPIv2 + 'groups/' + this.model.get('group').nameshort + "/pending/members?gapi_crumb=" + this.crumb,
             data: {
-                A: this.model.get('id')
+                A: '[{"userId": "' + this.model.get('id') + '"}]'
             }, success: function (ret) {
                 if (ret.hasOwnProperty('ygData') &&
                     ret.ygData.hasOwnProperty('numAccepted') &&
