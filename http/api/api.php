@@ -10,6 +10,7 @@ require_once(IZNIK_BASE . '/include/session/Yahoo.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/dashboard/Dashboard.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
+require_once(IZNIK_BASE . '/include/message/Item.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/misc/Supporters.php');
@@ -30,6 +31,7 @@ require_once(IZNIK_BASE . '/http/api/comment.php');
 require_once(IZNIK_BASE . '/http/api/dashboard.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
 require_once(IZNIK_BASE . '/http/api/message.php');
+require_once(IZNIK_BASE . '/http/api/item.php');
 require_once(IZNIK_BASE . '/http/api/memberships.php');
 require_once(IZNIK_BASE . '/http/api/spammers.php');
 require_once(IZNIK_BASE . '/http/api/supporters.php');
@@ -124,6 +126,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'message':
                     $ret = message();
+                    break;
+                case 'item':
+                    $ret = item();
                     break;
                 case 'memberships':
                     $ret = memberships();

@@ -1417,6 +1417,95 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+  /item:
+    get:
+      summary: Item Get
+      tags: [Item]
+      description:
+        Retrieve item details
+      parameters:
+      - name: id
+        in: path
+        description: Item id to query.
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    patch:
+      summary: Update an item
+      tags: [Item]
+      description:
+        Doesn't work in Swagger.
+      parameters:
+      - name: id
+        in: path
+        description: Item id to update.
+        type: string
+      - name: name
+        in: body
+        description: The item name
+        type: string
+      - name: weight
+        in: body
+        description: Item weight in kg
+        type: number
+      - name: popularity
+        in: body
+        description: How often users have chosen this item
+        type: number
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    post:
+      summary: Create an item
+      tags: [Item]
+      description:
+        Create an
+      parameters:
+      - name: name
+        in: query
+        description: Name of item
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
+    delete:
+      summary: Delete an item
+      tags: [Item]
+      description:
+        Delete an item
+      parameters:
+      - name: id
+        in: path
+        description: Item to delete
+        type: number
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
   /spammers:
     get:
       summary: Get spammer list

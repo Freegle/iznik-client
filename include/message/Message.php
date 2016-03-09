@@ -1295,7 +1295,7 @@ class Message
             $groupid
         ]);
 
-        error_log("Approve $rc from $sql, $myid, {$this->id}, $groupid");
+        #error_log("Approve $rc from $sql, $myid, {$this->id}, $groupid");
 
         $this->notif->notifyGroupMods($groupid);
 
