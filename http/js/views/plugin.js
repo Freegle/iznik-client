@@ -33,6 +33,8 @@ Iznik.Models.Plugin.Work = IznikModel.extend({
 Iznik.Collections.Plugin = IznikCollection.extend({
     model: Iznik.Models.Plugin.Work,
 
+    outstandingSyncs: 0,
+
     initialize: function (models, options) {
         this.options = options;
 
@@ -159,11 +161,12 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             return(worthit);
         }
 
-        // Start pending syncs first because if they're wrong, that's normally more annoying.
-        Iznik.Session.get('groups').each(function (group) {
-            // We know from our Yahoo scan whether there is any work to do.
-            if (worthIt(self.yahooGroupsWithPendingMessages, group, 'pending') &&
-                doSync(group, 'showmessages')) {
+        if (this.outstandingSyncs == 0) {
+            // Start pending syncs first because if they're wrong, that's normally more annoying.
+            Iznik.Session.get('groups').each(function (group) {
+                // We know from our Yahoo scan whether there is any work to do.
+                if (worthIt(self.yahooGroupsWithPendingMessages, group, 'pending') &&
+                    doSync(group, 'showmessages')) {
                     //console.log("Sync pending messages for", group.get('nameshort'));
                     self.collection.add(new Iznik.Models.Plugin.Work({
                         id: group.get('nameshort') + '.SyncMessages.Pending',
@@ -172,10 +175,10 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                         }),
                         bulk: true
                     }));
-            }
+                }
 
-            if (worthIt(self.yahooGroupsWithPendingMembers, group, 'pendingmembers') &&
-                doSync(group, 'showmembers')) {
+                if (worthIt(self.yahooGroupsWithPendingMembers, group, 'pendingmembers') &&
+                    doSync(group, 'showmembers')) {
                     self.collection.add(new Iznik.Models.Plugin.Work({
                         id: group.get('nameshort') + '.SyncMembers.Pending',
                         subview: new Iznik.Views.Plugin.Yahoo.SyncMembers.Pending({
@@ -183,52 +186,54 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                         }),
                         bulk: true
                     }));
-            }
-        });
-
-        Iznik.Session.get('groups').each(function (group) {
-            if (doSync(group, 'showmessages')) {
-                var lastsync = group.get('lastyahoomessagesync');
-                var last = moment(lastsync);
-                var hoursago = moment.duration(now.diff(last)).asHours();
-
-                if ((_.isUndefined(lastsync) || hoursago >= 24) && doSync(group, 'showmessages')) {
-                    self.collection.add(new Iznik.Models.Plugin.Work({
-                        id: group.get('nameshort') + '.SyncMessages.Approved',
-                        subview: new Iznik.Views.Plugin.Yahoo.SyncMessages.Approved({
-                            model: group
-                        }),
-                        bulk: true
-                    }));
                 }
-            }
-        });
+            });
 
-        Iznik.Session.get('groups').each(function (group) {
-            //console.log("Consider membersync", group.get('nameshort'), group.get('lastyahoomembersync'), doSync(group, 'showmembers'));
-            if (doSync(group, 'showmembers')) {
-                var lastsync = group.get('lastyahoomembersync');
-                var last = moment(lastsync);
-                var hoursago = moment.duration(now.diff(last)).asHours();
+            Iznik.Session.get('groups').each(function (group) {
+                if (doSync(group, 'showmessages')) {
+                    var lastsync = group.get('lastyahoomessagesync');
+                    var last = moment(lastsync);
+                    var hoursago = moment.duration(now.diff(last)).asHours();
 
-                if ((_.isUndefined(lastsync) || hoursago >= 24) && doSync(group, 'showmembers')) {
-                    self.collection.add(new Iznik.Models.Plugin.Work({
-                        id: group.get('nameshort') + '.SyncMembers.Approved',
-                        subview: new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({
-                            model: group
-                        }),
-                        bulk: true
-                    }));
+                    if ((_.isUndefined(lastsync) || hoursago >= 24) && doSync(group, 'showmessages')) {
+                        self.collection.add(new Iznik.Models.Plugin.Work({
+                            id: group.get('nameshort') + '.SyncMessages.Approved',
+                            subview: new Iznik.Views.Plugin.Yahoo.SyncMessages.Approved({
+                                model: group
+                            }),
+                            bulk: true
+                        }));
+                    }
                 }
-            }
-        });
+            });
 
-        // Sync every twenty minutes.  Most changes will be picked up by the session poll, but it's possible
-        // that someone will delete messages directly on Yahoo which we need to notice have gone.
+            Iznik.Session.get('groups').each(function (group) {
+                //console.log("Consider membersync", group.get('nameshort'), group.get('lastyahoomembersync'), doSync(group, 'showmembers'));
+                if (doSync(group, 'showmembers')) {
+                    var lastsync = group.get('lastyahoomembersync');
+                    var last = moment(lastsync);
+                    var hoursago = moment.duration(now.diff(last)).asHours();
+
+                    if ((_.isUndefined(lastsync) || hoursago >= 24) && doSync(group, 'showmembers')) {
+                        self.collection.add(new Iznik.Models.Plugin.Work({
+                            id: group.get('nameshort') + '.SyncMembers.Approved',
+                            subview: new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({
+                                model: group
+                            }),
+                            bulk: true
+                        }));
+                    }
+                }
+            });
+        }
+
+        // Sync regularly.  Most changes will be picked up by the session poll, but it's possible
+        // that someone will delete messages directly on Yahoo which we need to notice have gone, or
+        // if Yahoo is not sending out email notifications then we won't find out anything until we
+        // sync via the plugin.
         //
         // Delay doesn't set the right context by default.
-        // TODO don't do this until we stop them starting while the last lot are still running.
-        //_.delay(_.bind(this.startSyncs, this), 1200000);
+        _.delay(_.bind(this.listYahooGroups, this), 120000);
     },
 
     getCrumb: function(groupname, crumblocation, success, fail) {
@@ -831,6 +836,9 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.SubView.extend({
 
     start: function() {
         var self = this;
+
+        IznikPlugin.outstandingSyncs++;
+
         this.startBusy();
 
         // Need to create this here rather than as a property, otherwise the same array is shared between instances
@@ -1006,12 +1014,15 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.SubView.extend({
                                         if (self.promisesCount >= self.promisesLen) {
                                             // Once they're all done, we have succeeded.
                                             self.succeed();
+
+                                            IznikPlugin.outstandingSyncs--;
                                         }
                                     });
                                 });
 
                                 if (self.promisesLen == 0) {
                                     self.succeed();
+                                    IznikPlugin.outstandingSyncs--;
                                 }
                             } else {
                                 self.failChunk();
@@ -1109,6 +1120,9 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.SubView.extend({
 
     start: function() {
         var self = this;
+
+        IznikPlugin.outstandingSyncs++;
+
         self.synctime = moment().format();
         self.progressBar();
 
@@ -1184,6 +1198,7 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.SubView.extend({
                 if (typeof self.completed === 'function') {
                     // We have a custom callback
                     self.completed(self.members);
+                    IznikPlugin.outstandingSyncs--;
                 } else {
                     // Pass to server
                     $.ajaxq('plugin', {
@@ -1205,6 +1220,7 @@ Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.SubView.extend({
 
                             if (ret.ret == 0) {
                                 self.succeed();
+                                IznikPlugin.outstandingSyncs--;
                             } else {
                                 self.failChunk();
                             }

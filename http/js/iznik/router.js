@@ -39,6 +39,7 @@ var IznikRouter = Backbone.Router.extend({
         "modtools/settings": "settings",
         "modtools/support": "support",
         "user/find/whereami": "userWhereAmI",
+        "user/find/search/(:search)": "userSearched",
         "user/find/search": "userSearch",
         "*path": "userHome"
     },
@@ -82,6 +83,14 @@ var IznikRouter = Backbone.Router.extend({
 
     userSearch: function() {
         var page = new Iznik.Views.User.Pages.Find.Search();
+        this.loadRoute({page: page});
+    },
+
+    userSearched: function(query) {
+        var page = new Iznik.Views.User.Pages.Find.Search({
+            search: query
+        });
+
         this.loadRoute({page: page});
     },
 
@@ -156,7 +165,6 @@ var IznikRouter = Backbone.Router.extend({
     },
 
     approvedMessages: function(searchmess, searchmemb) {
-        console.log("approvedMessages", searchmess, searchmemb)
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
             var page = new Iznik.Views.ModTools.Pages.ApprovedMessages({
                 searchmess: searchmess,

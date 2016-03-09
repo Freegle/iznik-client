@@ -90,12 +90,12 @@ class MessageCollection
             $ctx['id'] = $msg['id'];
         }
 
-        list($groups, $msgs) = $this->fillIn($msgids, $limit);
+        list($groups, $msgs) = $this->fillIn($msgids, $limit, NULL);
 
         return([$groups, $msgs]);
     }
 
-    public function fillIn($msglist, $limit) {
+    public function fillIn($msglist, $limit, $messagetype) {
         $msgs = [];
         $groups = [];
 
@@ -103,6 +103,13 @@ class MessageCollection
         # message API call.
         foreach ($msglist as $msg) {
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
+
+            $type = $m->getType();
+            if ($messagetype && $type != $messagetype) {
+                # Wrong message type
+                continue;
+            }
+
             $role = $m->getRoleForMessage();
 
             $thisgroups = $m->getGroups();

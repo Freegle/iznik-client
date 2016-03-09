@@ -314,9 +314,14 @@ paths:
         type: number
       - name: collection
         in: query
-        description: Which collection the message is in; default is Approved
+        description: Which collection to get; default is Approved
         type: string
         enum: ['Approved', 'Pending', 'Spam']
+      - name: messagetype
+        in: query
+        description: Any specific message type to fetch.
+        type: string
+        enum: ['Offer', 'Wanted', 'Taken', 'Received', 'Admin', 'Other']
       - name: context
         in: query
         description: For paging results

@@ -62,6 +62,8 @@ function messages() {
                     $search = $search ? trim($search) : NULL;
                     $ctx = presdef('context', $_REQUEST, NULL);
                     $limit = presdef('limit', $_REQUEST, Search::Limit);
+                    $messagetype = presdef('messagetype', $_REQUEST, NULL);
+                    $nearlocation = presdef('nearlocation', $_REQUEST, NULL);
 
                     if (is_numeric($search)) {
                         $m = new Message($dbhr, $dbhm, $search);
@@ -74,7 +76,7 @@ function messages() {
                         # Not an id search
                         $m = new Message($dbhr, $dbhm);
                         $msgs = $m->search($search, $ctx, $limit, NULL, $groups);
-                        list($groups, $msgs) = $c->fillIn($msgs, $limit);
+                        list($groups, $msgs) = $c->fillIn($msgs, $limit, $messagetype);
                     }
 
                     break;
