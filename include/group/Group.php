@@ -167,7 +167,7 @@ class Group extends Entity
         $atts['namedisplay'] = $atts['namefull'] ? $atts['namefull'] : $atts['nameshort'];
         $atts['lastyahoomembersync'] = ISODate($this->group['lastyahoomembersync']);
         $atts['lastyahoomessagesync'] = ISODate($this->group['lastyahoomessagesync']);
-        $atts['settings'] = json_decode($atts['settings'], true);
+        $atts['settings'] = array_merge($this->defaultSettings, json_decode($atts['settings'], true));
 
         $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = {$this->id} AND role IN ('Owner', 'Moderator');";
         $counts = $this->dbhr->preQuery($sql);
