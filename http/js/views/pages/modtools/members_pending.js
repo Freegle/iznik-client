@@ -115,9 +115,11 @@ Iznik.Views.ModTools.Member.Pending = Iznik.Views.ModTools.Member.extend({
 
         self.addOtherInfo();
 
-        // Our user
+        // Our user.  In memberships the id is that of the member, so we need to get the userid.
+        var mod = self.model.clone();
+        mod.set('id', self.model.get('userid'));
         var v = new Iznik.Views.ModTools.User({
-            model: self.model
+            model: mod
         });
 
         self.$('.js-user').html(v.render().el);

@@ -163,9 +163,11 @@ Iznik.Views.ModTools.Member.Spam = Iznik.Views.ModTools.Member.extend({
         // Get the group from the session
         var group = Iznik.Session.getGroup(self.model.get('groupid'));
 
-        // Our user
+        // Our user.  In memberships the id is that of the member, so we need to get the userid.
+        var mod = self.model.clone();
+        mod.set('id', self.model.get('userid'));
         var v = new Iznik.Views.ModTools.User({
-            model: self.model
+            model: mod
         });
 
         self.$('.js-user').html(v.render().el);
