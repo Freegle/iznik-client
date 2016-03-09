@@ -214,8 +214,11 @@ class MailRouter
                     $email = trim($matches[1]);
 
                     if (preg_match('/(.*) \<(.*)\>/', $email, $matches) && count($matches) == 3) {
-                        $name = $matches[1];
                         $email = $matches[2];
+
+                        if (strpos($email, '-owner@yahoogroups') === FALSE) {
+                            $name = $matches[1];
+                        }
                     }
                 }
 
