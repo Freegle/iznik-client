@@ -48,8 +48,6 @@ CACHE:
 /images/favicon/<?php echo FAVICON_HOME; ?>/widetile.png
 /images/yahoo.png
 /manifest.json
-https://maps.google.com/maps/api/staticmap?size=110x110&center=55.640268,-3.113631&maptype=roadmap&markers=icon:/images/mapmarker.gif|55.640268,-3.113631&sensor=false&key=AIzaSyArVxoX781qdcbmQZi1PKHX-qa0bPbboH4&zoom=9
-https://maps.google.com/maps/api/staticmap?size=110x110&center=55.651414,-3.177382&maptype=roadmap&markers=icon:/images/mapmarker.gif|55.651414,-3.177382&sensor=false&key=AIzaSyArVxoX781qdcbmQZi1PKHX-qa0bPbboH4&zoom=9
 https://www.paypalobjects.com/en_GB/i/scr/pixel.gif
 
 #internal HTML documents

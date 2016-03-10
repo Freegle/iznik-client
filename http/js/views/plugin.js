@@ -174,7 +174,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                         subview: new Iznik.Views.Plugin.Yahoo.SyncMessages.Pending({
                             model: group
                         }),
-                        bulk: true
+                        bulk: false
                     }));
                 }
 
@@ -185,7 +185,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                         subview: new Iznik.Views.Plugin.Yahoo.SyncMembers.Pending({
                             model: group
                         }),
-                        bulk: true
+                        bulk: false
                     }));
                 }
             });
