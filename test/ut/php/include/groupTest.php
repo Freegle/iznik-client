@@ -150,6 +150,8 @@ class groupTest extends IznikTestCase {
         ], MembershipCollection::APPROVED);
         assertEquals(0, $rc['ret']);
 
+        $this->dbhm->preExec("UPDATE users_emails SET preferred = 1 WHERE email IN ('test1@test.com', 'test2@test.com')");
+
         $rc = $g->setMembers([
             [
                 'yahooModeratorStatus' => 'OWNER',
@@ -165,8 +167,8 @@ class groupTest extends IznikTestCase {
         $membs = $g->getMembers();
         error_log(var_export($membs, TRUE));
         assertEquals('-testid1', $membs[0]['yahooid']);
-        assertEquals('test1@test.com', $membs[0]['otheremails'][0]['email']);
-        assertEquals('test2@test.com', $membs[0]['otheremails'][1]['email']);
+        assertEquals('test2@test.com', $membs[0]['otheremails'][0]['email']);
+        assertEquals('test1@test.com', $membs[0]['otheremails'][1]['email']);
 
         # Test merging by Yahoo User ID.
         error_log("Test merge by Yahoo User ID");

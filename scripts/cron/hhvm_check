@@ -1,0 +1,8 @@
+#!/bin/bash
+tail /var/log/hhvm/error.log | grep "Fatal error"
+
+if [ $? -eq 0 ]
+then
+    echo "Fatal error found - touch"
+    find /var/www/iznik -name \*.php -exec touch {} \;
+fi

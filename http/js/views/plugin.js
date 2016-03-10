@@ -33,8 +33,6 @@ Iznik.Models.Plugin.Work = IznikModel.extend({
 Iznik.Collections.Plugin = IznikCollection.extend({
     model: Iznik.Models.Plugin.Work,
 
-    outstandingSyncs: 0,
-
     initialize: function (models, options) {
         this.options = options;
 
@@ -84,6 +82,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
     yahooGroups: [],
     yahooGroupsWithPendingMessages: [],
     yahooGroupsWithPendingMembers: [],
+
+    outstandingSyncs: 0,
 
     render: function() {
         var self = this;
@@ -161,6 +161,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             return(worthit);
         }
 
+        console.log("Consider sync ", this.outstandingSyncs)
         if (this.outstandingSyncs == 0) {
             // Start pending syncs first because if they're wrong, that's normally more annoying.
             Iznik.Session.get('groups').each(function (group) {
@@ -195,7 +196,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                     var last = moment(lastsync);
                     var hoursago = moment.duration(now.diff(last)).asHours();
 
-                    if ((_.isUndefined(lastsync) || hoursago >= 24) && doSync(group, 'showmessages')) {
+                    if ((_.isUndefined(lastsync) || hoursago >= 1) && doSync(group, 'showmessages')) {
                         self.collection.add(new Iznik.Models.Plugin.Work({
                             id: group.get('nameshort') + '.SyncMessages.Approved',
                             subview: new Iznik.Views.Plugin.Yahoo.SyncMessages.Approved({

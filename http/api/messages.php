@@ -70,13 +70,13 @@ function messages() {
 
                         if ($m->getID() == $search) {
                             # Found by message id.
-                            list($groups, $msgs) = $c->fillIn([ [ 'id' => $search ] ], $limit);
+                            list($groups, $msgs) = $c->fillIn([ [ 'id' => $search ] ], $limit, NULL);
                         }
                     } else {
                         # Not an id search
                         $m = new Message($dbhr, $dbhm);
                         $msgs = $m->search($search, $ctx, $limit, NULL, $groups);
-                        list($groups, $msgs) = $c->fillIn($msgs, $limit, $messagetype);
+                        list($groups, $msgs) = $c->fillIn($msgs, $limit, $messagetype, NULL);
                     }
 
                     break;

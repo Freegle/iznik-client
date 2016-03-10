@@ -68,12 +68,18 @@ var IznikRouter = Backbone.Router.extend({
 
     userHome: function(){
         var self = this;
-        this.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
-            var page = new Iznik.Views.User.Pages.Landing();
-            self.loadRoute({page: page});
-        });
 
-        Iznik.Session.testLoggedIn();
+
+        if (document.URL.indexOf('modtools') !== -1) {
+            Router.navigate('/modtools', true);
+        } else {
+            this.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
+                var page = new Iznik.Views.User.Pages.Landing();
+                self.loadRoute({page: page});
+            });
+
+            Iznik.Session.testLoggedIn();
+        }
     },
 
     userWhereAmI: function() {

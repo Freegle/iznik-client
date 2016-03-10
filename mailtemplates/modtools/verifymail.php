@@ -137,7 +137,7 @@ Content-Transfer-Encoding: quoted-printable
                                                                 <tr>
                                                                     <td width="280" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:14px; line-height:20px;">
                                                                         <p>Someone, probably you, has said that <b>$email</b> is their email address.<p>
-                                                                        <p>If this was you, please click to verify the address; if this wasn't you,
+                                                                        <p>If this was you, please click on the link below to verify the address; if this wasn't you,
                                                                         please just ignore this mail.</p>
                                                                     </td>
                                                                 </tr>

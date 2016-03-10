@@ -54,19 +54,10 @@ https://www.paypalobjects.com/en_GB/i/scr/pixel.gif
 
 #internal HTML documents
 /<?php echo FAVICON_HOME; ?>
-/<?php echo FAVICON_HOME; ?>/members/approved
 /<?php echo FAVICON_HOME; ?>/members/pending
 /<?php echo FAVICON_HOME; ?>/members/spam
-/<?php echo FAVICON_HOME; ?>/messages/approved
 /<?php echo FAVICON_HOME; ?>/messages/pending
 /<?php echo FAVICON_HOME; ?>/messages/spam
-/<?php echo FAVICON_HOME; ?>/settings
-/<?php echo FAVICON_HOME; ?>/spammerlist/confirmed
-/<?php echo FAVICON_HOME; ?>/spammerlist/pendingadd
-/<?php echo FAVICON_HOME; ?>/spammerlist/pendingremove
-/<?php echo FAVICON_HOME; ?>/spammerlist/whitelisted
-/<?php echo FAVICON_HOME; ?>/support
-/<?php echo FAVICON_HOME; ?>/supporters
 /user
 
 #style sheets

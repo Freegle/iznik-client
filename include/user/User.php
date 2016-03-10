@@ -1178,13 +1178,30 @@ class User extends Entity
                 # Merge the emails.  Both might have a primary address; id1 wins.  There is a unique index, so there
                 # can't be a conflict on email.
                 if ($rc) {
+                    $primary = NULL;
+                    $sql = "SELECT * FROM users_emails WHERE userid = $id2 AND preferred = 1;";
+                    $emails = $this->dbhr->preQuery($sql);
+                    foreach ($emails as $email) {
+                        $primary = $email['id'];
+                    }
+
+                    $sql = "SELECT * FROM users_emails WHERE userid = $id1 AND preferred = 1;";
+                    $emails = $this->dbhr->preQuery($sql);
+                    foreach ($emails as $email) {
+                        $primary = $email['id'];
+                    }
+
                     #error_log("Merge emails");
                     $sql = "UPDATE users_emails SET userid = $id1, preferred = 0 WHERE userid = $id2;";
                     $rc = $this->dbhm->preExec($sql);
 
+                    if ($primary) {
+                        $sql = "UPDATE users_emails SET preferred = 1 WHERE id = $primary;";
+                        $rc = $this->dbhm->preExec($sql);
+                    }
+
                     #error_log("Emails now " . var_export($this->dbhm->preQuery("SELECT * FROM users_emails WHERE userid = $id1;"), true));
                     #error_log("Email merge returned $rc");
-
                 }
 
                 if ($rc) {
