@@ -206,6 +206,27 @@ class locationTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testGroupsNear() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        error_log("Created group $gid");
+        $g = new Group($this->dbhr, $this->dbhm, $gid);
+
+        $g->setPrivate('lng', 179.15);
+        $g->setPrivate('lat', 8.4);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+
+        $groups = $l->groupsNear();
+        assertEquals(1, count($groups));
+        assertEquals($gid, $groups[0]);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
 

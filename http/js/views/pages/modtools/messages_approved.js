@@ -144,7 +144,8 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
     events: {
         'click .js-viewsource': 'viewSource',
         'click .js-excludelocation': 'excludeLocation',
-        'click .js-rarelyused': 'rarelyUsed'
+        'click .js-rarelyused': 'rarelyUsed',
+        'click .js-spam': 'spam'
     },
 
     render: function() {
@@ -224,6 +225,14 @@ Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
                     action: 'Delete Approved Message',
                     message: self.model,
                     config: config
+                })
+            }).render().el);
+
+            self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
+                model: new IznikModel({
+                    title: 'Spam',
+                    action: 'Spam',
+                    message: self.model
                 })
             }).render().el);
 

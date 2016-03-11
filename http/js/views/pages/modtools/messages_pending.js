@@ -67,7 +67,8 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
         'click .js-excludelocation': 'excludeLocation',
         'click .js-rarelyused': 'rarelyUsed',
         'click .js-savesubj': 'saveSubject',
-        'click .js-editnotstd': 'edit'
+        'click .js-editnotstd': 'edit',
+        'click .js-spam': 'spam'
     },
 
     edit: function() {
@@ -213,8 +214,15 @@ Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
                         config: config
                     })
                 }).render().el);
-            }
 
+                self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
+                    model: new IznikModel({
+                        title: 'Spam',
+                        action: 'Spam',
+                        message: self.model
+                    })
+                }).render().el);
+            }
 
             if (config) {
                 self.checkMessage(config);

@@ -94,8 +94,7 @@ Iznik.Views.ModTools.Message.Spam = Iznik.Views.ModTools.Message.extend({
                 data: {
                     id: self.model.get('id'),
                     groupid: group.id,
-                    action: 'Delete',
-                    reason: 'Deleted as spam'
+                    action: 'Spam'
                 }, success: function (ret) {
                     self.$el.fadeOut('slow');
                 }

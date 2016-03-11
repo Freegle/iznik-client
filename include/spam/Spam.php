@@ -10,6 +10,8 @@ class Spam {
     CONST TYPE_WHITELIST = 'Whitelisted';
     CONST TYPE_PENDING_ADD = 'PendingAdd';
     CONST TYPE_PENDING_REMOVE = 'PendingRemove';
+    CONST SPAM = 'Spam';
+    CONST HAM = 'Ham';
 
     CONST USER_THRESHOLD = 10;
     CONST GROUP_THRESHOLD = 20;

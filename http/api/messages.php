@@ -75,6 +75,20 @@ function messages() {
                     } else {
                         # Not an id search
                         $m = new Message($dbhr, $dbhm);
+
+                        if ($nearlocation) {
+                            # We need to look in the groups near this location.
+                            $l = new Location($dbhr, $dbhm);
+                            $id = $l->findByName($nearlocation);
+                            error_log("Found location $id");
+
+                            if ($id) {
+                                $l = new Location($dbhr, $dbhm, $id);
+                                $groups = $l->groupsNear();
+                                error_log("Found nearby groups " . var_export($groups, TRUE));
+                            }
+                        }
+
                         $msgs = $m->search($search, $ctx, $limit, NULL, $groups);
                         list($groups, $msgs) = $c->fillIn($msgs, $limit, $messagetype, NULL);
                     }

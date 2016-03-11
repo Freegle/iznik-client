@@ -78,6 +78,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
 
     connected: false,
     everConnected: false,
+    confirmedMod: false,
 
     yahooGroups: [],
     yahooGroupsWithPendingMessages: [],
@@ -721,42 +722,46 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                     })
                 });
 
-                // If we're a mod on Yahoo but not on the server, and it's a group the server knows about,
-                // then we need to prove to the server that we're a mod so that we can auto-add it to
-                // our list of groups.  We do this by triggering an invitation, which is something only mods
-                // can do.
-                //
-                // No point doing too many as Yahoo has a limit on invitations.
-                _.each(_.first(serverMissing, 50), function(group) {
-                    var g = new Iznik.Models.Group({ id: group});
+                if (!self.confirmedMod) {
+                    // If we're a mod on Yahoo but not on the server, and it's a group the server knows about,
+                    // then we need to prove to the server that we're a mod so that we can auto-add it to
+                    // our list of groups.  We do this by triggering an invitation, which is something only mods
+                    // can do.
+                    //
+                    // No point doing too many as Yahoo has a limit on invitations.
+                    self.confirmedMod = true;
 
-                    g.fetch().then(function() {
-                        // The group is hosted by the server; trigger a confirm.  First we need a confirm key.
-                        $.ajax({
-                            url: API + 'group',
-                            type: 'POST',
-                            data: {
-                                id: g.get('id'),
-                                action: 'ConfirmKey'
-                            },
-                            success: function(ret) {
-                                if (ret.ret == 0) {
-                                    var email = 'modconfirm-' + g.get('id') + '-' +
-                                        Iznik.Session.get('me').id + '-' + ret.key + '@' + location.host;
+                    _.each(_.first(serverMissing, 50), function(group) {
+                        var g = new Iznik.Models.Group({ id: group});
 
-                                    self.collection.add(new Iznik.Models.Plugin.Work({
-                                        subview: new Iznik.Views.Plugin.Yahoo.ConfirmMod({
-                                            model: new IznikModel({
-                                                nameshort: group,
-                                                email: email
+                        g.fetch().then(function() {
+                            // The group is hosted by the server; trigger a confirm.  First we need a confirm key.
+                            $.ajax({
+                                url: API + 'group',
+                                type: 'POST',
+                                data: {
+                                    id: g.get('id'),
+                                    action: 'ConfirmKey'
+                                },
+                                success: function(ret) {
+                                    if (ret.ret == 0) {
+                                        var email = 'modconfirm-' + g.get('id') + '-' +
+                                            Iznik.Session.get('me').id + '-' + ret.key + '@' + location.host;
+
+                                        self.collection.add(new Iznik.Models.Plugin.Work({
+                                            subview: new Iznik.Views.Plugin.Yahoo.ConfirmMod({
+                                                model: new IznikModel({
+                                                    nameshort: group,
+                                                    email: email
+                                                })
                                             })
-                                        })
-                                    }));
+                                        }));
+                                    }
                                 }
-                            }
-                        })
+                            })
+                        });
                     });
-                });
+                }
             }
         }
     }

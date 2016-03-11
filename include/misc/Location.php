@@ -369,6 +369,17 @@ class Location extends Entity
         return(count($locs) == 1 ? $locs[0] : NULL);
     }
 
+    public function groupsNear($radius = 20) {
+        $sql = "SELECT id FROM groups WHERE lat IS NOT NULL AND lng IS NOT NULL AND haversine(lat, lng, ?, ?) <= ?;";
+        $groups = $this->dbhr->preQuery($sql, [ $this->loc['lat'], $this->loc['lng'], $radius]);
+        error_log("groupsNear $sql " . var_export([ $this->loc['lat'], $this->loc['lng'], $radius], TRUE));
+        $ret = [];
+        foreach ($groups as $group) {
+            $ret[] = $group['id'];
+        }
+        return($ret);
+    }
+
     public function typeahead($query) {
         # We want to select full postcodes (with a space in them)
         $sql = "SELECT * FROM locations WHERE name LIKE ? AND name LIKE '% %' AND type = 'Postcode' LIMIT 10;";
@@ -382,5 +393,13 @@ class Location extends Entity
             $ret[] = $thisone;
         }
         return($ret);
+    }
+
+    public function findByName($query)
+    {
+        # We want to select full postcodes (with a space in them)
+        $sql = "SELECT * FROM locations WHERE name = ? LIMIT 1;";
+        $locs = $this->dbhr->preQuery($sql, [$query]);
+        return (count($locs) == 1 ? $locs[0]['id'] : NULL);
     }
 }

@@ -25,6 +25,7 @@ class messagesTest extends IznikAPITestCase {
 
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
     }
 
     protected function tearDown() {
@@ -355,6 +356,41 @@ class messagesTest extends IznikAPITestCase {
         # Should work
         assertEquals(0, $ret['ret']);
         assertEquals(MailRouter::APPROVED, $ret['routed']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testNear() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
+
+        $g->setPrivate('lng', 179.15);
+        $g->setPrivate('lat', 8.4);
+
+        # Create a group with a message on it
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        error_log("Approved id $id");
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+
+        $ret = $this->call('messages', 'GET', [
+            'search' => 'basic',
+            'subaction' => 'searchmess',
+            'nearlocation' => 'Tuvalu High Street'
+        ]);
+        error_log("Get near " . var_export($ret, true));
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($id, $msgs[0]['id']);
 
         error_log(__METHOD__ . " end");
     }

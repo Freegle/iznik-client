@@ -681,7 +681,8 @@ class messageAPITest extends IznikAPITestCase {
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $group1,
-            'action' => 'NotSpam'
+            'action' => 'NotSpam',
+            'dup' => 2
         ]);
         assertEquals(2, $ret['ret']);
 
@@ -709,6 +710,21 @@ class messageAPITest extends IznikAPITestCase {
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1,
             'collection' => 'Spam'
+        ]);
+        $msgs = $ret['messages'];
+        assertEquals(0, count($msgs));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Spam'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Pending should be empty.
+        $ret = $this->call('messages', 'GET', [
+            'groupid' => $group1,
+            'collection' => 'Pending'
         ]);
         $msgs = $ret['messages'];
         assertEquals(0, count($msgs));

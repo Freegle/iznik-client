@@ -167,7 +167,9 @@ Iznik.Views.User.Pages.Find.Search = Iznik.Views.Page.extend({
                 remove: true,
                 data: {
                     messagetype: 'Offer',
-                    nearlocation: mylocation
+                    nearlocation: mylocation,
+                    search: this.options.search,
+                    subaction: 'searchmess'
                 },
                 success: function(collection, response, options) {
                     v.close();

@@ -276,6 +276,25 @@ Iznik.Views.ModTools.Message = IznikView.extend({
     wordify: function(str) {
         str = str.replace(/\b(\w*)/g, "<span>$1</span>");
         return(str);
+    },
+
+    spam: function() {
+        var self = this;
+
+        _.each(self.model.get('groups'), function(group) {
+            var groupid = group.groupid;
+            $.ajax({
+                type: 'POST',
+                url: API + 'message',
+                data: {
+                    action: 'Spam',
+                    id: self.model.get('id'),
+                    groupid: groupid
+                }
+            });
+        });
+
+        self.model.collection.remove(self.model);
     }
 });
 

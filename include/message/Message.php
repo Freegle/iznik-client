@@ -1541,6 +1541,15 @@ class Message
         return($found);
     }
 
+    public function spam($groupid) {
+        # We mark is as spam on all groups, and delete it on the specific one in question.
+        $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;", [ MessageCollection::SPAM, $this->id ]);
+        $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid = ? AND groupid = ? ;", [ $this->id, $groupid ]);
+
+        # Record for training.
+        $this->dbhm->preExec("REPLACE INTO messages_spamham (msgid, spamham) VALUES (?, ?);", [ $this->id , Spam::SPAM ]);
+    }
+
     public function notSpam() {
         if ($this->spamtype == Spam::REASON_SUBJECT_USED_FOR_DIFFERENT_GROUPS) {
             # This subject is probably fine, then.
@@ -1549,6 +1558,9 @@ class Message
         }
 
         # We leave the spamreason and type set in the message, because it can be useful for later PD.
+        #
+        # Record for training.
+        $this->dbhm->preExec("REPLACE INTO messages_spamham (msgid, spamham) VALUES (?, ?);", [ $this->id , Spam::HAM ]);
     }
 
     public function suggestSubject($groupid, $subject) {

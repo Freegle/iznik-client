@@ -150,6 +150,9 @@ function message() {
                         $r = new MailRouter($dbhr, $dbhm);
                         $r->route($m, TRUE);
                         break;
+                    case 'Spam':
+                        $m->spam($groupid);
+                        break;
                 }
             }
         }
