@@ -75,10 +75,7 @@ Iznik.Models.Session = IznikModel.extend({
                         self.notificationsSetup = true;
 
                         if ('serviceWorker' in navigator) {
-                            // Add a rand to the service worker to stop it being cached and therefore not picking
-                            // up fixes.
-                            navigator.serviceWorker.register('/js/iznik/sw.js?' + Math.random()).then(function(reg) {
-                                console.log(':^)', reg);
+                            navigator.serviceWorker.register('/js/iznik/sw.js').then(function(reg) {
                                 reg.pushManager.subscribe({
                                     userVisibleOnly: true
                                 }).then(function(sub) {
