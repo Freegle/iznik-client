@@ -1544,7 +1544,7 @@ class Message
     public function spam($groupid) {
         # We mark is as spam on all groups, and delete it on the specific one in question.
         $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;", [ MessageCollection::SPAM, $this->id ]);
-        $this->dbhm->preExec("UPDATE messages_groups SET deleted = 1 WHERE msgid = ? AND groupid = ? ;", [ $this->id, $groupid ]);
+        $this->delete("Deleted as spam", $groupid);
 
         # Record for training.
         $this->dbhm->preExec("REPLACE INTO messages_spamham (msgid, spamham) VALUES (?, ?);", [ $this->id , Spam::SPAM ]);
