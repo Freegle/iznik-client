@@ -20,7 +20,7 @@ Iznik.Models.Plugin.Work = IznikModel.extend({
         this.collection.sort();
         _.delay(function() {
             IznikPlugin.checkWork();
-        }, 500);
+        }, Math.max(30000, 500 * 2 ^ this.get('retrycount')));
     },
 
     requeue: function() {
