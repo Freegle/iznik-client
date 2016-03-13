@@ -24,7 +24,8 @@ window.Iznik = {
         },
         User: {
             Pages: {
-                Find: {}
+                Find: {},
+                Give: {}
             },
             Message: {}
         },

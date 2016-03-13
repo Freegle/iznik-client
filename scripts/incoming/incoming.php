@@ -37,7 +37,7 @@ if (preg_match('/MODERATE -- (.*) posted to (.*)/', $msg, $matches)) {
     error_log("Approved message");
     $r->received(Message::YAHOO_APPROVED, NULL, $envto, $msg);
     $rc = $r->route();
-} else if (stripos($envfrom, "@returns.groups.yahoo.com") !== FALSE) {
+} else if (stripos($envfrom, "@returns.groups.yahoo.com") !== FALSE || stripos($envto, "modconfirm-") !== FALSE) {
     # This is a system message.
     error_log("From Yahoo System");
     $id = $r->received(Message::YAHOO_SYSTEM, $envfrom, $envto, $msg);

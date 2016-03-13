@@ -313,6 +313,10 @@ body {
     padding: 5px !important;
 }
 
+.padlarge {
+    padding: 15px !important;
+}
+
 .padbot {
     padding-bottom: 10px !important;
 }
@@ -852,6 +856,23 @@ a button {
 
 .glyphicon-behemoth {
     font-size: 100px;
+}
+
+.fileinput-button {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+}
+.fileinput-button input {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    opacity: 0;
+    -ms-filter: 'alpha(opacity=0)';
+    font-size: 200px !important;
+    direction: ltr;
+    cursor: pointer;
 }
 
 /* Override some bootstrap styles */

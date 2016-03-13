@@ -70,6 +70,11 @@ class Item extends Entity
         return($results);
     }
 
+    public function find($query) {
+        $items = $this->dbhr->preQuery("SELECT * FROM items WHERE name = ? ORDER BY popularity DESC limit 1;", [ $query ]);
+        return($items);
+    }
+
     public function delete() {
         # Remove from the search index.
         $this->s->delete($this->id);

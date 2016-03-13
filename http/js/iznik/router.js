@@ -38,9 +38,11 @@ var IznikRouter = Backbone.Router.extend({
         "modtools/settings/confirmmail/(:key)": "confirmMail",
         "modtools/settings": "settings",
         "modtools/support": "support",
-        "user/find/whereami": "userWhereAmI",
+        "user/find/whereami": "userFindWhereAmI",
         "user/find/search/(:search)": "userSearched",
         "user/find/search": "userSearch",
+        "user/give/whereami": "userGiveWhereAmI",
+        "user/give/whatisit": "userGiveWhatIsIt",
         "*path": "userHome"
     },
 
@@ -69,7 +71,6 @@ var IznikRouter = Backbone.Router.extend({
     userHome: function(){
         var self = this;
 
-
         if (document.URL.indexOf('modtools') !== -1) {
             Router.navigate('/modtools', true);
         } else {
@@ -82,7 +83,7 @@ var IznikRouter = Backbone.Router.extend({
         }
     },
 
-    userWhereAmI: function() {
+    userFindWhereAmI: function() {
         var page = new Iznik.Views.User.Pages.Find.WhereAmI();
         this.loadRoute({page: page});
     },
@@ -97,6 +98,16 @@ var IznikRouter = Backbone.Router.extend({
             search: query
         });
 
+        this.loadRoute({page: page});
+    },
+
+    userGiveWhereAmI: function() {
+        var page = new Iznik.Views.User.Pages.Give.WhereAmI();
+        this.loadRoute({page: page});
+    },
+
+    userGiveWhatIsIt: function() {
+        var page = new Iznik.Views.User.Pages.Give.WhatIsIt();
         this.loadRoute({page: page});
     },
 

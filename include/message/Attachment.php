@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
+require_once(IZNIK_BASE . '/include/message/Item.php');
 
 # This is a base class
 class Attachment
@@ -54,6 +55,16 @@ class Attachment
         }
     }
 
+    public function create($msgid, $ct, $data) {
+        $rc = $this->dbhm->preExec("INSERT INTO messages_attachments (`msgid`, `contenttype`, `data`) VALUES (?, ?, ?);", [
+            $msgid,
+            $ct,
+            $data
+        ]);
+
+        return($rc ? $this->dbhm->lastInsertId() : NULL);
+    }
+
     public static function getById($dbhr, $dbhm, $id) {
         $sql = "SELECT id FROM messages_attachments WHERE msgid = ? ORDER BY id;";
         $atts = $dbhr->preQuery($sql, [$id]);
@@ -75,5 +86,50 @@ class Attachment
         }
 
         return($ret);
+    }
+
+    public function identify() {
+        # Identify objects in an attachment using Google Vision API.
+        $base64 = base64_encode($this->getData());
+
+        $r_json ='{
+			  	"requests": [
+					{
+					  "image": {
+					    "content":"' . $base64. '"
+					  },
+					  "features": [
+					      {
+					      	"type": "LABEL_DETECTION",
+							"maxResults": 20
+					      }
+					  ]
+					}
+				]
+			}';
+
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $r_json);
+        $json_response = curl_exec($curl);
+        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $items = [];
+
+        if ($status) {
+            $rsp = json_decode($json_response, TRUE);
+            $rsps = $rsp['responses'][0]['labelAnnotations'];
+            $i = new Item($this->dbhr, $this->dbhm);
+
+            foreach ($rsps as $rsp) {
+                $items = array_merge($items, $i->find($rsp['description']));
+            }
+        }
+
+        curl_close($curl);
+
+        return($items);
     }
 }

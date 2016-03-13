@@ -571,7 +571,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                                         id: bulkop.id,
                                         subview: new Iznik.Views.Plugin.Yahoo.Unbounce({
                                             model: mod
-                                        })
+                                        }),
+                                        bulk: true
                                     }));
                                     break;
                                 }
@@ -582,7 +583,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                                         id: bulkop.id,
                                         subview: new Iznik.Views.Plugin.Yahoo.RemoveBouncing({
                                             model: mod
-                                        })
+                                        }),
+                                        bulk: true
                                     }));
                                     break;
                                 }
@@ -593,7 +595,8 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                                         subview: new Iznik.Views.Plugin.Yahoo.ToSpecialNotices({
                                             model: mod,
                                             bulkop: bulkop
-                                        })
+                                        }),
+                                        bulk: true
                                     }));
                                     break;
                                 }

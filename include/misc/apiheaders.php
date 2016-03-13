@@ -1,10 +1,12 @@
 <?php
 $call = array_key_exists('call', $_REQUEST) ? $_REQUEST['call'] : NULL;
+$type = array_key_exists('type', $_REQUEST) ? $_REQUEST['type'] : 'GET';
+error_log("Call $call type $type");
 
 // We allow anyone to use our API.
 //
 // Suppress errors on the header command for UT
-if ($call != 'image') {
+if (!($call == 'image' && $type == 'GET')) {
     # For images we'll set the content type later.
     @header('Content-type: application/json');
 }

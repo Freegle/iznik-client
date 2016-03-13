@@ -10,8 +10,9 @@ define('MODERATOR_EMAIL', 'zzzz');
 define('TNKEY', 'zzzzz');
 
 # We can use push notifications
-define('GOOGLE_PUSH_KEY', 'zzzz');
 define('GOOGLE_PROJECT', 'zzz');
+define('GOOGLE_PUSH_KEY', 'zzzz');
+define('GOOGLE_VISION_KEY', 'zzz');
 
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');

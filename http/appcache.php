@@ -141,6 +141,12 @@ js/lib/jquery.waypoints.js
 js/lib/jquery-show-first.js
 js/lib/jquery-visibility.js
 js/lib/typeahead.jquery.js
+js/lib/jquery-file-upload/load-image.all.min.js
+js/lib/jquery-file-upload/canvas-to-blob.min.js
+js/lib/jquery-file-upload/jquery.iframe-transport.js
+js/lib/jquery-file-upload/jquery.fileupload.js
+js/lib/jquery-file-upload/jquery.fileupload-process.js
+js/lib/jquery-file-upload/jquery.fileupload-image.js
 js/iznik/dateshim.js
 js/iznik/zombies.js
 js/iznik/underscore.js
@@ -171,7 +177,9 @@ js/views/dashboard.js
 js/views/user/user.js
 js/views/yahoo/user.js
 js/views/pages/user/landing.js
+js/views/pages/user/pages.js
 js/views/pages/user/find.js
+js/views/pages/user/give.js
 js/views/pages/<?php echo FAVICON_HOME; ?>/landing.js
 js/views/pages/<?php echo FAVICON_HOME; ?>/messages.js
 js/views/pages/<?php echo FAVICON_HOME; ?>/members_pending.js

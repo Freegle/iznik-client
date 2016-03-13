@@ -1,6 +1,17 @@
 <?php
 $scriptstart = microtime(true);
 
+$_SERVER['REQUEST_METHOD'] = strtoupper($_SERVER['REQUEST_METHOD']);
+$_REQUEST['type'] = $_SERVER['REQUEST_METHOD'];
+
+if (array_key_exists('HTTP_X_HTTP_METHOD_OVERRIDE', $_SERVER)) {
+    # Used by Backbone's emulateHTTP to work around servers which don't handle verbs like PATCH very well.
+    #
+    # We use this because when we issue a PATCH we don't seem to be able to get the body parameters.
+    $_REQUEST['type'] = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
+    #error_log("Request method override to {$_REQUEST['type']}");
+}
+
 require_once('../../include/misc/apiheaders.php');
 require_once('../../include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
@@ -21,6 +32,8 @@ require_once(IZNIK_BASE . '/include/misc/Search.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/config/StdMessage.php');
 require_once(IZNIK_BASE . '/include/config/BulkOp.php');
+require_once(IZNIK_BASE . '/lib/UploadHandler.php');
+require_once(IZNIK_BASE . '/include/misc/CustomUploadHandler.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/session.php');
@@ -41,23 +54,13 @@ require_once(IZNIK_BASE . '/http/api/plugin.php');
 require_once(IZNIK_BASE . '/http/api/user.php');
 require_once(IZNIK_BASE . '/http/api/locations.php');
 require_once(IZNIK_BASE . '/http/api/image.php');
+require_once(IZNIK_BASE . '/http/api/upload.php');
 
 $includetime = microtime(true) - $scriptstart;
 
 # All API calls come through here.
 #error_log("Request " . var_export($_REQUEST, TRUE));
 #error_log("Server " . var_export($_SERVER, TRUE));
-
-$_SERVER['REQUEST_METHOD'] = strtoupper($_SERVER['REQUEST_METHOD']);
-$_REQUEST['type'] = $_SERVER['REQUEST_METHOD'];
-
-if (array_key_exists('HTTP_X_HTTP_METHOD_OVERRIDE', $_SERVER)) {
-    # Used by Backbone's emulateHTTP to work around servers which don't handle verbs like PATCH very well.
-    #
-    # We use this because when we issue a PATCH we don't seem to be able to get the body parameters.
-    $_REQUEST['type'] = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
-    #error_log("Request method override to {$_REQUEST['type']}");
-}
 
 if (array_key_exists('model', $_REQUEST)) {
     # Used by Backbone's emulateJSON to work around servers which don't handle requests encoded as
@@ -120,6 +123,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     throw new Exception();
                 case 'image':
                     $ret = image();
+                    break;
+                case 'upload':
+                    $ret = upload();
                     break;
                 case 'messages':
                     $ret = messages();
@@ -186,7 +192,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             }
 
             # If we get here, everything worked.
-            if (pres('img', $ret)) {
+            if ($call == 'upload') {
+                # Output is handled within the lib.
+            } else if (pres('img', $ret)) {
                 # This is an image we want to output.  Can cache forever - if an image changes it would get a new id
                 @header('Content-Type: image/jpeg');
                 @header('Content-Length: ' . strlen($ret['img']));
