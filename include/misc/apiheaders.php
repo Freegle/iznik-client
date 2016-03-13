@@ -1,7 +1,6 @@
 <?php
 $call = array_key_exists('call', $_REQUEST) ? $_REQUEST['call'] : NULL;
 $type = array_key_exists('type', $_REQUEST) ? $_REQUEST['type'] : 'GET';
-error_log("Call $call type $type");
 
 // We allow anyone to use our API.
 //

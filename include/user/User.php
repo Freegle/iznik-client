@@ -1226,9 +1226,11 @@ class User extends Entity
                     foreach ($users as $user) {
                         $this->dbhm->preExec("UPDATE users SET $att = NULL WHERE id = $id2;");
 
-                        if ($att != 'fullname' || stripos($user[$att], 'fbuser') === FALSE) {
-                            # We don't want to overwrite a name with FBUser.
+                        if ($att != 'fullname') {
                             $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1 AND $att IS NULL;", [$user[$att]]);
+                        } else if (stripos($user[$att], 'fbuser') === FALSE) {
+                            # We don't want to overwrite a name with FBUser.
+                            $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1;", [$user[$att]]);
                         }
                     }
                 }
