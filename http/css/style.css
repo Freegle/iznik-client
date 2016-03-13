@@ -750,6 +750,11 @@ a button {
     color: green !important;
 }
 
+.error-border {
+    border-color: red !important;
+    outline-coor: red !important;
+}
+
 .signindisabled {
     opacity: 0.2;
 }

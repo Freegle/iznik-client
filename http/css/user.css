@@ -413,10 +413,10 @@ select[multiple].input-group.input-group-lg .twitter-typeahead .tt-hint {
     border-bottom-right-radius: 6px;
     border-top-right-radius: 6px;
 }
-.twitter-typeahead {
-    width: 100%;
-    float: left;
-}
+/*.twitter-typeahead {*/
+    /*width: 100%;*/
+    /*float: left;*/
+/*}*/
 .input-group .twitter-typeahead {
     display: table-cell !important;
 }
@@ -438,7 +438,7 @@ fieldset[disabled] .twitter-typeahead .tt-input {
     top: 100%;
     left: 0;
     z-index: 1000;
-    min-width: 160px;
+    min-width: 250px;
     width: 100%;
     padding: 5px 0;
     margin: 2px 0 0;

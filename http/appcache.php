@@ -123,8 +123,7 @@ js/lib/FormRepo.js
 js/lib/canvasResize.js
 js/lib/notify.js
 js/lib/timeago.js
-js/lib/jquery.validate.min.js
-js/lib/jquery.validate.additional-methods.js
+js/lib/validator.min.js
 js/lib/jquery.geocomplete.min.js
 js/lib/jquery.dd.min.js
 js/lib/richMarker.js
@@ -147,6 +146,7 @@ js/lib/jquery-file-upload/jquery.iframe-transport.js
 js/lib/jquery-file-upload/jquery.fileupload.js
 js/lib/jquery-file-upload/jquery.fileupload-process.js
 js/lib/jquery-file-upload/jquery.fileupload-image.js
+js/lib/bootstrap-tagsinput.js
 js/iznik/dateshim.js
 js/iznik/zombies.js
 js/iznik/underscore.js
