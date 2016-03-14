@@ -395,7 +395,32 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
                 }
             });
         } else {
-            // No standard message; just open
+            // No standard message; just quote and open
+            var subj = self.model.get('subject');
+            subj = 'Re: ' + self.substitutionStrings(subj, self.model.attributes, null, self.model.get('groups')[0]);
+            self.$('.js-subject').val(subj);
+
+            // Decide who the mail will look as though it comes from.
+            var name = Iznik.Session.get('me').displayname;
+            self.$('.js-myname').html(name);
+
+            // Quote original message.
+            var msg = self.model.get('textbody');
+
+            if (msg) {
+                // We have an existing body to include.
+                msg = '> ' + msg.replace(/((\r\n)|\r|\n)/gm, '\n> ');
+
+                // Expand substitution strings in body
+                msg = self.substitutionStrings(msg, self.model.attributes, null, self.model.get('groups')[0]);
+            } else {
+                // Just expand substitutions in the stdmsg.
+                msg = self.substitutionStrings(stdmsg.body, self.model.attributes, null, self.model.get('groups')[0]);
+            }
+
+            // Put it in
+            self.$('.js-text').val(msg);
+
             self.open(null);
         }
 
