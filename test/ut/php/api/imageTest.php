@@ -13,11 +13,13 @@ require_once IZNIK_BASE . '/include/message/MessageCollection.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class imageAPITest extends IznikAPITestCase {
+class imageAPITest extends IznikAPITestCase
+{
     public $dbhr, $dbhm;
 
-    protected function setUp() {
-        parent::setUp ();
+    protected function setUp()
+    {
+        parent::setUp();
 
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
@@ -27,14 +29,17 @@ class imageAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
+    protected function tearDown()
+    {
+        parent::tearDown();
     }
 
-    public function __construct() {
+    public function __construct()
+    {
     }
 
-    public function testApproved() {
+    public function testApproved()
+    {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
@@ -77,6 +82,33 @@ class imageAPITest extends IznikAPITestCase {
 
         $a->delete();
         $g->delete();
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testPut()
+    {
+        error_log(__METHOD__);
+
+        $data = file_get_contents('images/chair.jpg');
+        file_put_contents(IZNIK_BASE . "/http/uploads/chair.jpg", $data);
+
+        $ret = $this->call('image', 'PUT', [
+            'filename' => 'chair.jpg',
+            'identify' => TRUE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        var_dump($ret);
+        assertEquals('chair', $ret['items'][1]['name']);
+
+        # Get coverage for the upload call.  Don't test it properly, as all it does is call a 3rd party component.
+        $ret = $this->call('upload', 'POST', [
+        ]);
+
+        error_log("Upload returned " . var_export($ret, TRUE));
+        assertEquals(NULL, $ret);
 
         error_log(__METHOD__ . " end");
     }

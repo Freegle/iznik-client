@@ -33,7 +33,6 @@ function image() {
 
         case 'PUT': {
             $fn = IZNIK_BASE . "/http/uploads/" . basename($fn);
-            error_log("Get from $fn");
             $data = file_get_contents($fn);
             $a = new Attachment($dbhr, $dbhm);
             $id = $a->create($msgid, mime_content_type($fn), $data);

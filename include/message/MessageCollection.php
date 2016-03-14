@@ -13,6 +13,7 @@ class MessageCollection
     const APPROVED = 'Approved';
     const PENDING = 'Pending';
     const SPAM = 'Spam';
+    const DRAFT = 'Draft';
 
     /** @var  $dbhr LoggedPDO */
     public $dbhr;

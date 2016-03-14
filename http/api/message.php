@@ -29,7 +29,8 @@ function message() {
             } else {
                 switch ($collection) {
                     case MessageCollection::APPROVED:
-                        # No special checks for approved - we could even be logged out.
+                    case MessageCollection::DRAFT:
+                        # No special checks for approved or draft - we could even be logged out.
                         break;
                     case MessageCollection::PENDING:
                         if (!$me) {
@@ -78,20 +79,26 @@ function message() {
                     }
 
                 } else if ($_REQUEST['type'] == 'PUT') {
-                    $role = $m->getRoleForMessage();
-                    if ($role != User::ROLE_OWNER && $role != User::ROLE_MODERATOR) {
-                        $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                    if ($collection == MessageCollection::DRAFT) {
+                        # Draft messages are created by users, rather than parsed out from emails.  We might be
+                        # creating one, or updating one.
+
                     } else {
-                        $subject = presdef('subject', $_REQUEST, NULL);
-                        $textbody = presdef('textbody', $_REQUEST, NULL);
-                        $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
+                        $role = $m->getRoleForMessage();
+                        if ($role != User::ROLE_OWNER && $role != User::ROLE_MODERATOR) {
+                            $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                        } else {
+                            $subject = presdef('subject', $_REQUEST, NULL);
+                            $textbody = presdef('textbody', $_REQUEST, NULL);
+                            $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
 
-                        $m->edit($subject, $textbody, $htmlbody);
+                            $m->edit($subject, $textbody, $htmlbody);
 
-                        $ret = [
-                            'ret' => 0,
-                            'status' => 'Success'
-                        ];
+                            $ret = [
+                                'ret' => 0,
+                                'status' => 'Success'
+                            ];
+                        }
                     }
                 } else if ($_REQUEST['type'] == 'DELETE') {
                     $role = $m->getRoleForMessage();
