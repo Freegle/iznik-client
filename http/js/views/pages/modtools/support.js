@@ -3,10 +3,12 @@ Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
 
     template: "modtools_support_main",
 
-    events: {
-        'click .js-searchuser': 'searchUser',
-        'keyup .js-searchuserinp': 'keyup',
-        'click .js-mailgroup': 'mailGroup'
+    events: function(){
+        return _.extend({}, Iznik.Views.Page.prototype.events,{
+            'click .js-searchuser': 'searchUser',
+            'keyup .js-searchuserinp': 'keyup',
+            'click .js-mailgroup': 'mailGroup'
+        });
     },
 
     keyup: function(e) {

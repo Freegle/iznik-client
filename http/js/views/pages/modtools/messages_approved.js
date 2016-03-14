@@ -3,11 +3,13 @@ Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Infinite.extend({
 
     template: "modtools_messages_approved_main",
 
-    events: {
-        'click .js-searchmess': 'searchmess',
-        'keyup .js-searchtermmess': 'keyupmess',
-        'click .js-searchmemb': 'searchmemb',
-        'keyup .js-searchtermmemb': 'keyupmemb'
+    events: function(){
+        return _.extend({}, Iznik.Views.Page.prototype.events,{
+            'click .js-searchmess': 'searchmess',
+            'keyup .js-searchtermmess': 'keyupmess',
+            'click .js-searchmemb': 'searchmemb',
+            'keyup .js-searchtermmemb': 'keyupmemb'
+        });
     },
 
     keyupmess: function(e) {

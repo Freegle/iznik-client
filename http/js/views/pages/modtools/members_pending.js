@@ -3,9 +3,11 @@ Iznik.Views.ModTools.Pages.PendingMembers = Iznik.Views.Infinite.extend({
 
     template: "modtools_members_pending_main",
 
-    events: {
-        'click .js-search': 'search',
-        'keyup .js-searchterm': 'keyup'
+    events: function(){
+        return _.extend({}, Iznik.Views.Page.prototype.events,{
+            'click .js-search': 'search',
+            'keyup .js-searchterm': 'keyup'
+        });
     },
 
     keyup: function(e) {

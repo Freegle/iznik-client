@@ -620,6 +620,22 @@ class Message
         return($subj);
     }
 
+    public function createDraft() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+        $sess = session_id();
+
+        $rc = $this->dbhm->preExec("INSERT INTO messages VALUES();");
+        $id = $rc ? $this->dbhm->lastInsertId() : NULL;
+
+        if ($id) {
+            $rc = $this->dbhm->preExec("INSERT INTO messages_drafts (msgid, user, session) VALUES (?, ?, ?);", [ $rc, $myid, $sess ]);
+            $id = $rc ? $id : NULL;
+        }
+
+        return($id);
+    }
+
     # Parse a raw SMTP message.
     public function parse($source, $envelopefrom, $envelopeto, $msg, $groupid = NULL)
     {
@@ -1043,6 +1059,7 @@ class Message
             $fn = $this->attach_dir . DIRECTORY_SEPARATOR . $att->getFilename();
 
             # Can't use LOAD_FILE as server may be remote.
+            error_log("Get attachment $fn");
             $data = file_get_contents($fn);
 
             # Scale the image if it's large.  Ideally we'd store the full size image, but images can be many meg, and
@@ -1666,6 +1683,28 @@ class Message
         }
 
         return($newsubj);
+    }
+
+    public function replaceAttachments($atts) {
+        # We have a list of attachments which may or may not currently be attached to the message we're interested in,
+        # which might have other attachments which need zapping.
+        $oldids = [];
+        $oldatts = $this->dbhm->preQuery("SELECT id FROM messages_attachments WHERE msgid = ?;", [ $this->id ]);
+        foreach ($oldatts as $oldatt) {
+            $oldids[] = $oldatt['id'];
+        }
+
+        foreach ($atts as $attid) {
+            $this->dbhm->preExec("UPDATE messages_attachments SET msgid = ? WHERE id = ?;", [ $this->id, $attid ]);
+            $key = array_search($attid, $oldids);
+            if ($key !== FALSE) {
+                unset($oldids[$key]);
+            }
+        }
+
+        foreach ($oldids as $oldid) {
+            $this->dbhm->preExec("DELETE FROM messages_attachments WHERE id = ?;", [ $oldid ]);
+        }
     }
 
     public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL) {

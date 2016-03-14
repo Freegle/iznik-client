@@ -3,9 +3,11 @@ Iznik.Views.ModTools.Pages.SpammerList = Iznik.Views.Page.extend({
     members: null,
     context: null,
 
-    events: {
-        'click .js-search': 'search',
-        'keyup .js-searchterm': 'keyup'
+    events: function(){
+        return _.extend({}, Iznik.Views.Page.prototype.events,{
+            'click .js-search': 'search',
+            'keyup .js-searchterm': 'keyup'
+        });
     },
 
     template: "modtools_spammerlist_main",

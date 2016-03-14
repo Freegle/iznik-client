@@ -3,6 +3,13 @@ var currentPage = null;
 Iznik.Views.Page = IznikView.extend({
     modtools: false,
 
+    events: {
+    },
+
+    home: function() {
+        Router.navigate(this.modtools ? '/modtools' : '/', true);
+    },
+
     render: function(options) {
         var self = this;
 
@@ -87,6 +94,9 @@ Iznik.Views.Page = IznikView.extend({
 
         // Let anyone who cares know.
         this.trigger('pageContentAdded');
+
+        // This doesn't work as an event so attach manually.
+        $('#bodyContent .js-home').click(this.home);
     }
 });
 
@@ -97,8 +107,10 @@ Iznik.Views.User.Pages.NotFound = Iznik.Views.Page.extend({
 Iznik.Views.ModTools.LeftMenu = IznikView.extend({
     template: "layout_leftmenu",
 
-    events: {
-        'click .js-logout': 'logout'
+    events: function(){
+        return _.extend({}, Iznik.Views.Page.prototype.events,{
+            'click .js-logout': 'logout'
+        });
     },
 
     logout: function() {

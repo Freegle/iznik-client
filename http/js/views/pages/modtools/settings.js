@@ -3,16 +3,18 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
     template: "modtools_settings_main",
 
-    events: {
-        'change .js-configselect': 'configSelect',
-        'click .js-addbulkop': 'addBulkOp',
-        'click .js-addstdmsg': 'addStdMsg',
-        'click .js-addconfig': 'addConfig',
-        'click .js-deleteconfig': 'deleteConfig',
-        'click .js-copyconfig': 'copyConfig',
-        'click .js-addgroup': 'addGroup',
-        'click .js-addlicense': 'addLicense',
-        'click .js-hideall': 'hideAll'
+    events: function(){
+        return _.extend({}, Iznik.Views.Page.prototype.events,{
+            'change .js-configselect': 'configSelect',
+            'click .js-addbulkop': 'addBulkOp',
+            'click .js-addstdmsg': 'addStdMsg',
+            'click .js-addconfig': 'addConfig',
+            'click .js-deleteconfig': 'deleteConfig',
+            'click .js-copyconfig': 'copyConfig',
+            'click .js-addgroup': 'addGroup',
+            'click .js-addlicense': 'addLicense',
+            'click .js-hideall': 'hideAll'
+        });
     },
 
     addGroup: function() {

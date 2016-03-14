@@ -5,9 +5,11 @@ Iznik.Views.User.Pages.Find.WhereAmI = Iznik.Views.User.Pages.WhereAmI.extend({
 Iznik.Views.User.Pages.Find.Search = Iznik.Views.Page.extend({
     template: "user_find_search",
 
-    events: {
-        'click #searchbutton': 'doSearch',
-        'keyup .js-search': 'keyup'
+    events: function(){
+        return _.extend({}, Iznik.Views.Page.prototype.events,{
+            'click #searchbutton': 'doSearch',
+            'keyup .js-search': 'keyup'
+        });
     },
 
     keyup: function(e) {

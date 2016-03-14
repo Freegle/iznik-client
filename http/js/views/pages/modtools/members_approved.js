@@ -3,12 +3,14 @@ Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Infinite.extend({
 
     template: "modtools_members_approved_main",
 
-    events: {
-        'click .js-search': 'search',
-        'keyup .js-searchterm': 'keyup',
-        'click .js-sync': 'sync',
-        'click .js-export': 'export',
-        'click .js-exportyahoo': 'exportYahoo'
+    events: function(){
+        return _.extend({}, Iznik.Views.Page.prototype.events,{
+            'click .js-search': 'search',
+            'keyup .js-searchterm': 'keyup',
+            'click .js-sync': 'sync',
+            'click .js-export': 'export',
+            'click .js-exportyahoo': 'exportYahoo'
+        });
     },
 
     keyup: function(e) {

@@ -5,9 +5,11 @@ Iznik.Views.User.Pages.Give.WhereAmI = Iznik.Views.User.Pages.WhereAmI.extend({
 Iznik.Views.User.Pages.Give.WhatIsIt = Iznik.Views.Page.extend({
     template: "user_give_whatisit",
 
-    events: {
-        'click .js-next': 'next',
-        'change .js-items': 'changedItems'
+    events: function(){
+        return _.extend({}, Iznik.Views.Page.prototype.events,{
+            'click .js-next': 'next',
+            'change .js-items': 'changedItems'
+        });
     },
 
     changedItems: function() {

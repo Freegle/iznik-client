@@ -1,6 +1,8 @@
 Iznik.Views.User.Pages.WhereAmI = Iznik.Views.Page.extend({
-    events: {
-        'click .js-getloc': 'getLocation'
+    events: function(){
+        return _.extend({}, Iznik.Views.Page.prototype.events,{
+            'click .js-getloc': 'getLocation'
+        });
     },
 
     getLocation: function() {
@@ -57,6 +59,7 @@ Iznik.Views.User.Pages.WhereAmI = Iznik.Views.Page.extend({
 
     render: function() {
         Iznik.Views.Page.prototype.render.call(this);
+        console.log("Whereami events", this.events(), this.home);
 
         if (!navigator.geolocation) {
             this.$('.js-geoloconly').hide();

@@ -82,7 +82,37 @@ function message() {
                     if ($collection == MessageCollection::DRAFT) {
                         # Draft messages are created by users, rather than parsed out from emails.  We might be
                         # creating one, or updating one.
+                        if (!$id) {
+                            $id = $m->createDraft();
+                            $m = new Message($dbhr, $dbhm, $id);
+                        }
 
+                        if ($m->getID()) {
+                            # Drafts have:
+                            # - a locationid
+                            # - a type
+                            # - an item (which we store in the subject)
+                            # - a fromuser if known (we might not have logged in yet)
+                            # - a textbody
+                            # - one or more attachments
+                            $locationid = intval(presdef('locationid', $_REQUEST, NULL));
+                            $type = presdef('type', $_REQUEST, NULL);
+                            $item = presdef('item', $_REQUEST, NULL);
+                            $fromuser = $me ? $me->getId() : NULL;
+                            $textbody = presdef('textbody', $_REQUEST, NULL);
+                            $attachments = presdef('attachments', $_REQUEST, []);
+                            $m->setPrivate('locationid', $locationid);
+                            $m->setPrivate('type', $type);
+                            $m->setPrivate('subject', $item);
+                            $m->setPrivate('fromuser', $fromuser);
+                            $m->setPrivate('textbody', $textbody);
+                            $m->replaceAttachments($attachments);
+
+                            $ret = [
+                                'ret' => 0,
+                                'status' => 'Success'
+                            ];
+                        }
                     } else {
                         $role = $m->getRoleForMessage();
                         if ($role != User::ROLE_OWNER && $role != User::ROLE_MODERATOR) {
