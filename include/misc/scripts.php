@@ -73,6 +73,7 @@ function scriptInclude($minify)
         "js/models/user/user.js",
         "js/models/yahoo/user.js",
         "js/models/membership.js",
+        "js/models/user/message.js",
         "js/views/plugin.js",
         "js/views/modal.js",
         "js/views/signinup.js",

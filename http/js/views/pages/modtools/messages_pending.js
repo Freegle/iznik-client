@@ -312,7 +312,7 @@ Iznik.Views.ModTools.StdMessage.Pending.Reject = Iznik.Views.ModTools.StdMessage
         this.model.reject(
             this.$('.js-subject').val(),
             this.$('.js-text').val(),
-            this.options.stdmsg.get('id')
+            this.options.stdmsg ? this.options.stdmsg.get('id') : null
         );
     },
 

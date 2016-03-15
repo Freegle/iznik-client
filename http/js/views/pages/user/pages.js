@@ -12,12 +12,12 @@ Iznik.Views.User.Pages.WhereAmI = Iznik.Views.Page.extend({
     recordLocation: function(location) {
         var self = this;
 
-        self.$('.js-postcode').val(location);
+        self.$('.js-postcode').val(location.name);
         self.$('.js-next').fadeIn('slow');
         self.$('.js-ok').fadeIn('slow');
 
         try {
-            localStorage.setItem('mylocation', location);
+            localStorage.setItem('mylocation', JSON.stringify(location))
         } catch (e) {};
     },
 
@@ -32,7 +32,7 @@ Iznik.Views.User.Pages.WhereAmI = Iznik.Views.Page.extend({
                 lng: position.coords.longitude,
             }, success: function(ret) {
                 if (ret.ret == 0 && ret.location) {
-                    self.recordLocation(ret.location.name);
+                    self.recordLocation(ret.location);
                 }
             }
         })
@@ -70,7 +70,7 @@ Iznik.Views.User.Pages.WhereAmI = Iznik.Views.Page.extend({
             var mylocation = localStorage.getItem('mylocation');
 
             if (mylocation) {
-                this.recordLocation(mylocation);
+                this.recordLocation(JSON.parse(mylocation));
             }
         } catch (e) {};
 

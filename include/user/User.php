@@ -1335,38 +1335,42 @@ class User extends Entity
     private function maybeMail($groupid, $subject, $body, $action) {
         if ($body) {
             # We have a mail to send.
-            $to = $this->getEmailPreferred();
-            $g = new Group($this->dbhr, $this->dbhm, $groupid);
-            $atts = $g->getPublic();
+            $mails = $this->getEmails();
 
-            $me = whoAmI($this->dbhr, $this->dbhm);
+            if (count($mails) > 0) {
+                $to = $mails[0]['email'];
+                $g = new Group($this->dbhr, $this->dbhm, $groupid);
+                $atts = $g->getPublic();
 
-            # Find who to send it from.  If we have a config to use for this group then it will tell us.
-            $name = $me->getName();
-            $c = new ModConfig($this->dbhr, $this->dbhm);
-            $cid = $c->getForGroup($me->getId(), $groupid);
-            $c = new ModConfig($this->dbhr, $this->dbhm, $cid);
-            $fromname = $c->getPrivate('fromname');
-            $name = ($fromname == 'Groupname Moderator') ? '$groupname Moderator' : $name;
+                $me = whoAmI($this->dbhr, $this->dbhm);
 
-            # We can do a simple substitution in the from name.
-            $name = str_replace('$groupname', $atts['namedisplay'], $name);
+                # Find who to send it from.  If we have a config to use for this group then it will tell us.
+                $name = $me->getName();
+                $c = new ModConfig($this->dbhr, $this->dbhm);
+                $cid = $c->getForGroup($me->getId(), $groupid);
+                $c = new ModConfig($this->dbhr, $this->dbhm, $cid);
+                $fromname = $c->getPrivate('fromname');
+                $name = ($fromname == 'Groupname Moderator') ? '$groupname Moderator' : $name;
 
-            $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
-            $bcc = $c->getBcc($action);
+                # We can do a simple substitution in the from name.
+                $name = str_replace('$groupname', $atts['namedisplay'], $name);
 
-            if ($bcc) {
-                $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
-                $headers .= "Bcc: $bcc\r\n";
+                $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
+                $bcc = $c->getBcc($action);
+
+                if ($bcc) {
+                    $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
+                    $headers .= "Bcc: $bcc\r\n";
+                }
+
+                $this->mailer(
+                    $to,
+                    $subject,
+                    $body,
+                    $headers,
+                    "-f" . $g->getModsEmail()
+                );
             }
-
-            $this->mailer(
-                $to,
-                $subject,
-                $body,
-                $headers,
-                "-f" . $g->getModsEmail()
-            );
         }
     }
 

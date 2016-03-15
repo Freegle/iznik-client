@@ -377,7 +377,7 @@ Iznik.Views.ModTools.StdMessage.Modal = Iznik.Views.Modal.extend({
 
                     // Expand substitution strings in body
                     msg = self.substitutionStrings(msg, self.model.attributes, config, self.model.get('groups')[0]);
-                } else {
+                } else if (stdmsg) {
                     // Just expand substitutions in the stdmsg.
                     msg = self.substitutionStrings(stdmsg.body, self.model.attributes, config, self.model.get('groups')[0]);
                 }

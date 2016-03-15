@@ -8,26 +8,76 @@ Iznik.Views.User.Pages.Give.WhatIsIt = Iznik.Views.Page.extend({
     events: function(){
         return _.extend({}, Iznik.Views.Page.prototype.events,{
             'click .js-next': 'next',
-            'change .js-items': 'changedItems'
+            'change .js-items': 'checkNext'
         });
     },
 
     changedItems: function() {
+        // We show the next button if we have an item and either a picture or a description.
         var self = this;
         if (self.$('.js-items').length == 0) {
             self.$('.bootstrap-tagsinput').addClass('error-border');
-        } else {
+            self.$('.js-next').fadeOut('slow');
+            self.$('.js-ok').fadeOut('slow');
+        } else if (self.$('.js-description').val().length > 0 || self.photos.length > 0) {
             self.$('.bootstrap-tagsinput').removeClass('error-border');
+            self.$('.js-next').fadeIn('slow');
+            self.$('.js-ok').fadeIn('slow');
         }
     },
 
-    next: function() {
+    save: function() {
+        // Save the current message as a draft.
         var items = this.$('.js-items').tagsinput('items');
-        console.log("Items", this.$('.js-items').val(), items);
         if (items.length == 0) {
             self.$('.tt-input').focus();
             self.$('.bootstrap-tagsinput').addClass('error-border');
         }
+
+        var locationid = null;
+        try {
+            var loc = localStorage.getItem('mylocation');
+            locationid = loc ? JSON.parse(loc).id : null;
+        } catch (e) {};
+
+        var d = jQuery.Deferred();
+        var attids = [];
+        this.photos.each(function(photo) {
+            attids.push(photo.get('id'))
+        });
+
+        $.ajax({
+            type: 'PUT',
+            url: API + 'message',
+            data: {
+                collection: 'Draft',
+                locationid: locationid,
+                messagetype: 'Offer',
+                item: items.join(' '),
+                textbody: self.$('.js-description').val(),
+                attachments: attids
+            }, success: function(ret) {
+                if (ret.ret == 0) {
+                    d.resolve();
+                } else {
+                    d.reject();
+                }
+            }, error: function() {
+                d.reject();
+            }
+        });
+
+        return(d.promise());
+    },
+
+    next: function() {
+        var self = this;
+
+        this.save().done(function() {
+            Router.navigate('/user/give/whoami', true);
+        }).fail(function() {
+            self.$('.js-saveerror').fadeIn('slow');
+        });
     },
 
     itemSource: function(query, syncResults, asyncResults) {
@@ -55,8 +105,6 @@ Iznik.Views.User.Pages.Give.WhatIsIt = Iznik.Views.Page.extend({
         var self = this;
 
         Iznik.Views.Page.prototype.render.call(this);
-        console.log("Resize", window.navigator.userAgent, /Android(?!.*Chrome)|Opera/
-            .test(window.navigator.userAgent));
 
         self.$('.js-items').tagsinput({
             freeInput: true,
@@ -68,6 +116,20 @@ Iznik.Views.User.Pages.Give.WhatIsIt = Iznik.Views.Page.extend({
                 source: this.itemSource
             }
         });
+
+        // CollectionView handles adding/removing for us.
+        self.photos = new IznikCollection();
+        self.collectionView = new Backbone.CollectionView( {
+            el : self.$('.js-thumbnails'),
+            modelView : Iznik.Views.User.Pages.Give.Thumbnail,
+            modelViewOptions: {
+                collection: self.photos,
+                page: self
+            },
+            collection: self.photos
+        } );
+
+        self.collectionView.render();
 
         self.$('.js-upload').fileupload({
             url: API + 'upload',
@@ -96,20 +158,10 @@ Iznik.Views.User.Pages.Give.WhatIsIt = Iznik.Views.Page.extend({
             },
             done: function (e, data) {
                 self.$('.js-uploading').addClass('hidden');
-                self.$('.js-uploaded').removeClass('hidden');
                 var promises = [];
                 self.tagcount = 0;
 
                 _.each(data.result.files, function(file) {
-                    // Add thumbnail.
-                    var v = new Iznik.Views.User.Pages.Give.Thumbnail({
-                        model: new IznikModel({
-                            src: file.thumbnailUrl
-                        })
-                    });
-
-                    self.$('.js-thumbnails').append(v.render().el);
-
                     // Create attachment object and try to identify this as an object
                     promises.push($.ajax({
                         type: 'PUT',
@@ -119,34 +171,45 @@ Iznik.Views.User.Pages.Give.WhatIsIt = Iznik.Views.Page.extend({
                             filename: file.name
                         }, success: function(ret) {
                             if (ret.ret === 0) {
+                                // Add thumbnail.
+                                var mod = new Iznik.Models.Message.Attachment({
+                                    id: ret.id,
+                                    src: file.thumbnailUrl
+                                });
+
+                                self.photos.add(mod);
+
+                                // Add any hints about the item
                                 _.each(ret.items, function(item) {
                                     self.$('.js-items').tagsinput('add', item.name);
                                     self.tagcount++;
                                 });
                             }
-                            console.log("Completed PUT");
                         }
                     }));
                 });
 
                 $.when.apply($, promises).done(function() {
                     self.pleaseWait.close();
+
+                    if (self.tagcount > 0) {
+                        var v = new Iznik.Views.Help.Box();
+                        v.template = 'user_give_suggestions';
+                        self.$('.js-sugghelp').html(v.render().el);
+                    }
                 });
             },
             progressall: function (e, data) {
                 self.$('.js-addprompt').addClass('hidden');
-                self.$('.js-uploaded').addClass('hidden');
                 self.$('.js-uploading').removeClass('hidden');
                 var progress = parseInt(data.loaded / data.total * 100, 10);
 
-                console.log("Progress", progress,  self.pleaseWait.$('.js-progress .progress-bar'));
                 self.pleaseWait.$('.js-progress .progress-bar').css(
                     'width',
                     progress + '%'
                 );
             }
         }).on('fileuploadfail', function (e, data) {
-            self.$('.js-uploaded').addClass('hidden');
             self.$('.js-uploading').addClass('hidden');
             self.$('.js-uploadfailed').removeClass('hidden');
         });
@@ -161,5 +224,59 @@ Iznik.Views.User.Pages.Give.Thumbnail = IznikView.extend({
     template: "user_give_thumbnail",
 
     events: {
+        'click .js-remove': 'removeMe'
+    },
+
+    removeMe: function() {
+        this.model.destroy();
+    }
+});
+
+Iznik.Views.User.Pages.Give.WhoAmI = Iznik.Views.Page.extend({
+    template: "user_give_whoami",
+
+    events: {
+        'change .js-email': 'changeEmail'
+    },
+
+    changeEmail: function() {
+        var email = this.$('.js-email').val();
+        try {
+            localStorage.setItem('myemail', email);
+        } catch (e) {}
+
+        if (isValidEmailAddress(email)) {
+            this.$('.js-email').removeClass('error-border');
+            this.$('.js-next').removeClass('disabled');
+            this.$('.js-ok').fadeIn('slow');
+        } else {
+            this.$('.js-email').addClass('error-border');
+            this.$('.js-next').addClass('disabled');
+            this.$('.js-ok').hide();
+        }
+    },
+
+    render: function() {
+        var self = this;
+
+        Iznik.Views.Page.prototype.render.call(this);
+
+        this.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
+            if (loggedIn) {
+                // We know our email address from the session
+                self.$('.js-email').val(Iznik.Session.get('me').email);
+            } else {
+                // We're not logged in - but we might have remembered one.
+                try {
+                    var email = localStorage.getItem('myemail');
+                    if (email) {
+                        self.$('.js-email').val(email);
+                        self.changeEmail();
+                    }
+                } catch (e) {}
+            }
+        });
+
+        Iznik.Session.testLoggedIn();
     }
 });

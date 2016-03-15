@@ -92,20 +92,20 @@ Iznik.Models.Session = IznikModel.extend({
                                             var type = 'Google';
                                             var key = null;
                                             if (subscription.indexOf('services.mozilla.com') !== -1) {
-                                                type = 'Firefox';
-                                            }
-                                            Iznik.Session.save({
-                                                id: me.id,
-                                                notifications: {
-                                                    push: {
-                                                        type: type,
-                                                        subscription: subscription
-                                                    }
-                                                }
-                                            }, {
-                                                patch: true
-                                            });
+                                            type = 'Firefox';
                                         }
+                                        Iznik.Session.save({
+                                            id: me.id,
+                                            notifications: {
+                                                push: {
+                                                    type: type,
+                                                    subscription: subscription
+                                                }
+                                            }
+                                        }, {
+                                            patch: true
+                                        });
+                                    }
                                     }
                                 });
                             }).catch(function(err) {

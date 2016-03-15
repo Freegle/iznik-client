@@ -13,11 +13,13 @@ require_once IZNIK_BASE . '/include/message/MessageCollection.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class messageAPITest extends IznikAPITestCase {
+class messageAPITest extends IznikAPITestCase
+{
     public $dbhr, $dbhm;
 
-    protected function setUp() {
-        parent::setUp ();
+    protected function setUp()
+    {
+        parent::setUp();
 
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
@@ -27,14 +29,17 @@ class messageAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
+    protected function tearDown()
+    {
+        parent::tearDown();
     }
 
-    public function __construct() {
+    public function __construct()
+    {
     }
 
-    public function testApproved() {
+    public function testApproved()
+    {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
@@ -112,7 +117,8 @@ class messageAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testPending() {
+    public function testPending()
+    {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
@@ -167,7 +173,8 @@ class messageAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testSpam() {
+    public function testSpam()
+    {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
@@ -249,7 +256,8 @@ class messageAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testApprove() {
+    public function testApprove()
+    {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
@@ -371,7 +379,8 @@ class messageAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testReject() {
+    public function testReject()
+    {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
@@ -471,7 +480,8 @@ class messageAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testReply() {
+    public function testReply()
+    {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
@@ -552,7 +562,8 @@ class messageAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testDelete() {
+    public function testDelete()
+    {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
@@ -645,7 +656,8 @@ class messageAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testNotSpam() {
+    public function testNotSpam()
+    {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
@@ -732,7 +744,8 @@ class messageAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testHold() {
+    public function testHold()
+    {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
@@ -804,7 +817,8 @@ class messageAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testEdit() {
+    public function testEdit()
+    {
         error_log(__METHOD__);
 
         $g = new Group($this->dbhr, $this->dbhm);
@@ -885,5 +899,81 @@ class messageAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
-}
 
+    public function testDraft()
+    {
+        error_log(__METHOD__);
+
+        # Can create drafts when not logged in.
+        $data = file_get_contents('images/chair.jpg');
+        file_put_contents(IZNIK_BASE . "/http/uploads/chair.jpg", $data);
+
+        $ret = $this->call('image', 'PUT', [
+            'filename' => 'chair.jpg',
+            'identify' => TRUE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $attid = $ret['id'];
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'textbody' => 'Text body',
+            'attachments' => [ $attid ]
+        ]);
+        error_log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        $msg = $ret['message'];
+        assertEquals('Offer', $msg['type']);
+        assertEquals('a thing', $msg['subject']);
+        assertEquals('Text body', $msg['textbody']);
+        assertEquals($attid, $msg['attachments'][0]['id']);
+
+        # Now create a new attachment and update the draft.
+        $ret = $this->call('image', 'PUT', [
+            'filename' => 'chair.jpg',
+            'identify' => TRUE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $attid2 = $ret['id'];
+
+        $ret = $this->call('message', 'PUT', [
+            'id' => $id,
+            'collection' => 'Draft',
+            'messagetype' => 'Wanted',
+            'item' => 'a thing2',
+            'textbody' => 'Text body2',
+            'attachments' => [ $attid2 ]
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['id']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        $msg = $ret['message'];
+        assertEquals('Wanted', $msg['type']);
+        assertEquals('a thing2', $msg['subject']);
+        assertEquals('Text body2', $msg['textbody']);
+        assertEquals($attid2, $msg['attachments'][0]['id']);
+
+        $ret = $this->call('messages', 'GET', [
+            'collection' => 'Draft'
+        ]);
+        error_log("Messages " . var_export($ret, TRUE));
+        assertEquals($id, $ret['messages'][0]['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+}

@@ -23,7 +23,7 @@ function message() {
             $m = NULL;
             $m = new Message($dbhr, $dbhm, $id);
 
-            if (!$m->getID() || $m->getDeleted()) {
+            if ((!$m->getID() && $collection != MessageCollection::DRAFT) || $m->getDeleted()) {
                 $ret = ['ret' => 3, 'status' => 'Message does not exist'];
                 $m = NULL;
             } else {
@@ -96,7 +96,7 @@ function message() {
                             # - a textbody
                             # - one or more attachments
                             $locationid = intval(presdef('locationid', $_REQUEST, NULL));
-                            $type = presdef('type', $_REQUEST, NULL);
+                            $type = presdef('messagetype', $_REQUEST, NULL);
                             $item = presdef('item', $_REQUEST, NULL);
                             $fromuser = $me ? $me->getId() : NULL;
                             $textbody = presdef('textbody', $_REQUEST, NULL);
@@ -106,11 +106,13 @@ function message() {
                             $m->setPrivate('subject', $item);
                             $m->setPrivate('fromuser', $fromuser);
                             $m->setPrivate('textbody', $textbody);
+                            $m->setPrivate('fromip', presdef('REMOTE_ADDR', $_SERVER, NULL));
                             $m->replaceAttachments($attachments);
 
                             $ret = [
                                 'ret' => 0,
-                                'status' => 'Success'
+                                'status' => 'Success',
+                                'id' => $id
                             ];
                         }
                     } else {

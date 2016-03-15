@@ -23,23 +23,25 @@ function messages() {
         case 'GET': {
             $groups = [];
 
-            if ($groupid) {
-                # A group was specified
-                $groups[] = $groupid;
-            } else if ($me) {
-                # No group was specified - use the current memberships, if we have any, excluding those that our
-                # preferences say shouldn't be in.
-                $mygroups = $me->getMemberships(TRUE);
-                foreach ($mygroups as $group) {
-                    $settings = $me->getGroupSettings($group['id']);
-                    if (!array_key_exists('showmessages', $settings) ||
-                        $settings['showmessages']) {
-                        $groups[] = $group['id'];
+            if ($collection != MessageCollection::DRAFT) {
+                if ($groupid) {
+                    # A group was specified
+                    $groups[] = $groupid;
+                } else if ($me) {
+                    # No group was specified - use the current memberships, if we have any, excluding those that our
+                    # preferences say shouldn't be in.
+                    $mygroups = $me->getMemberships(TRUE);
+                    foreach ($mygroups as $group) {
+                        $settings = $me->getGroupSettings($group['id']);
+                        if (!array_key_exists('showmessages', $settings) ||
+                            $settings['showmessages']) {
+                            $groups[] = $group['id'];
+                        }
                     }
-                }
 
-                # Ensure that if we aren't in any groups, we don't treat this as a systemwide search.
-                $groups[] = 0;
+                    # Ensure that if we aren't in any groups, we don't treat this as a systemwide search.
+                    $groups[] = 0;
+                }
             }
 
             $msgs = NULL;

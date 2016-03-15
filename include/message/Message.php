@@ -263,6 +263,19 @@ class Message
             }
         }
 
+        if ($role == User::ROLE_NONMEMBER) {
+            # We can potentially upgrade our role if this is one of our drafts.
+            $drafts = $this->dbhr->preQuery("SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid = ? AND userid IS NOT NULL);", [
+                $this->id,
+                session_id(),
+                $me ? $me->getId() : NULL
+            ]);
+
+            foreach ($drafts as $draft) {
+                $role = User::ROLE_MODERATOR;
+            }
+        }
+
         return($role);
     }
 
@@ -615,7 +628,9 @@ class Message
         $subj = trim($subj);
 
         # Remove any odd characters.
-        $subj = @iconv('UTF-8', 'UTF-8//IGNORE', $subj);
+        $convmap= array(0x0100, 0xFFFF, 0, 0xFFFF);
+        $encutf= mb_encode_numericentity($subj, $convmap, 'UTF-8');
+        $subj= utf8_decode($encutf);
 
         return($subj);
     }
@@ -629,7 +644,7 @@ class Message
         $id = $rc ? $this->dbhm->lastInsertId() : NULL;
 
         if ($id) {
-            $rc = $this->dbhm->preExec("INSERT INTO messages_drafts (msgid, user, session) VALUES (?, ?, ?);", [ $rc, $myid, $sess ]);
+            $rc = $this->dbhm->preExec("INSERT INTO messages_drafts (msgid, userid, session) VALUES (?, ?, ?);", [ $id, $myid, $sess ]);
             $id = $rc ? $id : NULL;
         }
 
@@ -771,7 +786,11 @@ class Message
             #
             # Wait for 60 seconds to fetch.  We don't want to wait forever, but we see occasional timeouts from Yahoo
             # at 30 seconds.
-            if (stripos($src, 'http://') === 0 || stripos($src, 'https://') === 0) {
+            #
+            # We don't want Yahoo's megaphone images - they're just generic footer images.
+            if ((stripos($src, 'http://') === 0 || stripos($src, 'https://') === 0) &&
+                (stripos($src, 'https://s.yimg.com/ru/static/images/yg/img/megaphone') === FALSE)) {
+                error_log("Get inline image $src");
                 $ctx = stream_context_create(array('http'=>
                     array(
                         'timeout' => 60
@@ -1059,7 +1078,6 @@ class Message
             $fn = $this->attach_dir . DIRECTORY_SEPARATOR . $att->getFilename();
 
             # Can't use LOAD_FILE as server may be remote.
-            error_log("Get attachment $fn");
             $data = file_get_contents($fn);
 
             # Scale the image if it's large.  Ideally we'd store the full size image, but images can be many meg, and

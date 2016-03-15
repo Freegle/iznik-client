@@ -39,6 +39,7 @@ class MessageCollection
             case MessageCollection::APPROVED:
             case MessageCollection::PENDING:
             case MessageCollection::SPAM:
+            case MessageCollection::DRAFT:
                 $this->collection = $collection;
                 break;
             default:
@@ -48,47 +49,59 @@ class MessageCollection
 
     function get(&$ctx, $limit, $groupids, $userids = NULL) {
         $groups = [];
-        $msgs = [];
-
-        $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Date']));
-        $dateq = $ctx == NULL ? ' 1=1 ' : (" (messages.date < $date OR messages.date = $date AND messages.id < " . $this->dbhr->quote($ctx['id']) . ") ");
-
-        # We only want to show spam messages upto 7 days old to avoid seeing too many, especially on first use.
-        $mysqltime = date ("Y-m-d", strtotime("Midnight 7 days ago"));
-        $oldest = $this->collection == MessageCollection::SPAM ? " AND messages.date >= '$mysqltime' " : '';
-
-        $ctx = [ 'Date' => NULL, 'id' ];
-
-        $groupq = count($groupids) > 0 ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
-
-        # At the moment we only support ordering by date DESC.
-        #
-        # If we have a set of users, then it is more efficient to get the relevant messages first (because there
-        # are few and it's well-indexed).
-        if ($userids) {
-            $seltab = "(SELECT id, date, fromuser, deleted FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
-        } else {
-            $seltab = "messages";
-        }
-
-        $sql = "SELECT msgid AS id, date FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC, messages.id DESC LIMIT $limit";
-
-        $msglist = $this->dbhr->preQuery($sql, [
-            $this->collection
-        ]);
-
-        # Get an array of just the message ids.
         $msgids = [];
-        foreach ($msglist as $msg) {
-            $msgids[] = ['id' => $msg['id']];
 
-            $thisepoch = strtotime($msg['date']);
+        if ($this->collection == MessageCollection::DRAFT) {
+            # Draft messages are handled differently, as they're not attached to any group.
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $msgs = $this->dbhr->preQuery("SELECT msgid FROM messages_drafts WHERE session = ? OR (userid = ? AND userid IS NOT NULL);", [
+                session_id(),
+                $me ? $me->getId() : NULL
+            ]);
 
-            if ($ctx['Date'] == NULL || $thisepoch < $ctx['Date']) {
-                $ctx['Date'] = $thisepoch;
+            foreach ($msgs as $msg) {
+                $msgids[] = ['id' => $msg['msgid']];
+            }
+        } else {
+            $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Date']));
+            $dateq = $ctx == NULL ? ' 1=1 ' : (" (messages.date < $date OR messages.date = $date AND messages.id < " . $this->dbhr->quote($ctx['id']) . ") ");
+
+            # We only want to show spam messages upto 7 days old to avoid seeing too many, especially on first use.
+            $mysqltime = date ("Y-m-d", strtotime("Midnight 7 days ago"));
+            $oldest = $this->collection == MessageCollection::SPAM ? " AND messages.date >= '$mysqltime' " : '';
+
+            $ctx = [ 'Date' => NULL, 'id' ];
+
+            $groupq = count($groupids) > 0 ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
+
+            # At the moment we only support ordering by date DESC.
+            #
+            # If we have a set of users, then it is more efficient to get the relevant messages first (because there
+            # are few and it's well-indexed).
+            if ($userids) {
+                $seltab = "(SELECT id, date, fromuser, deleted FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
+            } else {
+                $seltab = "messages";
             }
 
-            $ctx['id'] = $msg['id'];
+            $sql = "SELECT msgid AS id, date FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC, messages.id DESC LIMIT $limit";
+
+            $msglist = $this->dbhr->preQuery($sql, [
+                $this->collection
+            ]);
+
+            # Get an array of just the message ids.
+            foreach ($msglist as $msg) {
+                $msgids[] = ['id' => $msg['id']];
+
+                $thisepoch = strtotime($msg['date']);
+
+                if ($ctx['Date'] == NULL || $thisepoch < $ctx['Date']) {
+                    $ctx['Date'] = $thisepoch;
+                }
+
+                $ctx['id'] = $msg['id'];
+            }
         }
 
         list($groups, $msgs) = $this->fillIn($msgids, $limit, NULL);
@@ -112,9 +125,10 @@ class MessageCollection
             }
 
             $role = $m->getRoleForMessage();
+            error_log("Got role $role");
 
             $thisgroups = $m->getGroups();
-            $cansee = FALSE;
+            $cansee = ($role == User::ROLE_MODERATOR) || ($role == User::ROLE_OWNER);
 
             foreach ($thisgroups as $groupid) {
                 if (!array_key_exists($groupid, $groups)) {
@@ -135,6 +149,15 @@ class MessageCollection
 
             if ($cansee) {
                 switch ($this->collection) {
+                    case MessageCollection::DRAFT:
+                        if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+                            # Only visible to moderators or owners, or self (which returns a role of moderator).
+                            $n = $m->getPublic(TRUE, TRUE);
+                            unset($n['message']);
+                            $msgs[] = $n;
+                            $limit--;
+                        }
+                        break;
                     case MessageCollection::APPROVED:
                         $n = $m->getPublic(TRUE, TRUE);
                         unset($n['message']);
