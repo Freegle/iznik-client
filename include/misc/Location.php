@@ -4,11 +4,12 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/session/Session.php');
+require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 
 class Location extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'osm_id', 'name', 'type', 'popularity', 'gridid', 'postcodeid', 'areaid');
+    var $publicatts = array('id', 'osm_id', 'name', 'type', 'popularity', 'gridid', 'postcodeid', 'areaid', 'lat', 'lng', 'maxdimension');
 
     /** @var  $log Log */
     private $log;
@@ -64,8 +65,6 @@ class Location extends Entity
                 $sql = "UPDATE locations SET gridid = ?, maxdimension = GetMaxDimension(geometry) WHERE id = ?;";
                 $this->dbhm->preExec($sql, [ $grid['gridid'], $id ]);
             }
-
-            $this->setParents($id, $gridid);
         } catch (Exception $e) {
             error_log("Location create exception");
             $id = NULL;
@@ -84,71 +83,6 @@ class Location extends Entity
             return ($id);
         } else {
             return (NULL);
-        }
-    }
-
-    public function setParents($id, $gridid) {
-        # For each location, we also want to store the area and first-part-postcode which this location is within.
-        #
-        # This allows us to standardise subjects on groups.
-        $locs = $this->dbhr->preQuery("SELECT name, type, gridid, geometry, AsText(geometry) AS geomtext FROM locations WHERE id = ?;", [ $id ]);
-
-        if (count($locs) > 0) {
-            #echo "{$locs[0]['name']} ";
-
-            # We can speed up our query if we restrict the search to this grid square and adjacent ones.
-            $gridids = [];
-
-            # Find the gridid for the group.
-            $sql = "SELECT locations_grids.* FROM locations_grids WHERE id = ?;";
-            $grids = $this->dbhr->preQuery($sql, [
-                $locs[0]['gridid']
-            ]);
-
-            foreach ($grids as $grid) {
-                $gridids[] = $grid['id'];
-
-                # Now find grids which touch that.  That avoids issues where our group is near the boundary of a grid square.
-                $sql = "SELECT id FROM locations_grids WHERE MBRTouches (GeomFromText('POLYGON(({$grid['swlng']} {$grid['swlat']}, {$grid['swlng']} {$grid['nelat']}, {$grid['nelng']} {$grid['nelat']}, {$grid['nelng']} {$grid['swlat']}, {$grid['swlng']} {$grid['swlat']}))'), box);";
-                $neighbours = $this->dbhr->query($sql);
-                foreach ($neighbours as $neighbour) {
-                    $gridids[] = $neighbour['id'];
-                }
-            }
-
-            if ($locs[0]['type'] == 'Postcode' && strlen($locs[0]['name']) <= 4) {
-                # This location is itself what we want.
-                #echo("  postcode {$locs[0]['name']}\n");
-                $rc = $this->dbhm->preExec("UPDATE locations SET postcodeid = ? WHERE id = ?;", [ $id, $id ]);
-            } else {
-                $sql = "SELECT id, name FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND type = 'Postcode' AND LENGTH(name) <= 4 ORDER BY ST_Distance(?, geometry) ASC LIMIT 1;";
-                #echo ("Check postcode $sql " . implode(',', $gridids) . " {$locs[0]['geomtext']}\n");
-                $intersects = $this->dbhr->preQuery($sql, [ $locs[0]['geometry']]);
-                if (count($intersects) > 0) {
-                    # TODO We might choose one which overlaps, but not as much as another one would.
-                    #echo("  postcode {$intersects[0]['name']}\n");
-                    $rc = $this->dbhm->preExec("UPDATE locations SET postcodeid = ? WHERE id = ?;", [ $intersects[0]['id'], $id ]);
-                }
-            }
-
-            if ($locs[0]['type'] == 'Polygon') {
-                # This location is itself what we want.
-                #echo("  area {$locs[0]['name']}\n");
-                $rc = $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [ $id, $id ]);
-            } else {
-                # Search for an area which intersects this one.  We want the smallest such.
-                $sql = "SELECT id, name, AsText(geometry) AS geomtext, GetMaxDimension(locations.geometry) AS span FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND type = 'Polygon' AND MBRIntersects(geometry, ?) ORDER BY GetMaxDimension(locations.geometry) ASC LIMIT 10;";
-                $intersects = $this->dbhr->preQuery($sql, [ $locs[0]['geometry']]);
-                if (count($intersects) > 0) {
-//                    foreach ($intersects as $intersect) {
-//                        echo "...intesects {$intersect['id']} {$intersect['name']} {$intersect['span']}\n";
-//                    }
-
-                    # TODO We might choose one which overlaps, but not as much as another one would.
-                    #echo("  area {$intersects[0]['name']}\n");
-                    $rc = $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [ $intersects[0]['id'], $id ]);
-                }
-            }
         }
     }
 
@@ -285,11 +219,10 @@ class Location extends Entity
             $gridids[] = $grid['id'];
 
             # Now find grids which touch that.  That avoids issues where our group is near the boundary of a grid square.
-            $sql = "SELECT id FROM locations_grids WHERE MBRTouches (GeomFromText('POLYGON(({$grid['swlng']} {$grid['swlat']}, {$grid['swlng']} {$grid['nelat']}, {$grid['nelng']} {$grid['nelat']}, {$grid['nelng']} {$grid['swlat']}, {$grid['swlng']} {$grid['swlat']}))'), box);";
-            #error_log("Get neighbours $sql");
-            $neighbours = $this->dbhr->query($sql);
+            $sql = "SELECT touches FROM locations_grids_touches WHERE gridid = ?;";
+            $neighbours = $this->dbhr->preQuery($sql, [ $grid['id'] ]);
             foreach ($neighbours as $neighbour) {
-                $gridids[] = $neighbour['id'];
+                $gridids[] = $neighbour['touches'];
             }
 
             # Now we have a list of gridids within which we want to find locations.
@@ -401,5 +334,81 @@ class Location extends Entity
         $sql = "SELECT * FROM locations WHERE name = ? LIMIT 1;";
         $locs = $this->dbhr->preQuery($sql, [$query]);
         return (count($locs) == 1 ? $locs[0]['id'] : NULL);
+    }
+
+    public function geomAsText() {
+        $locs = $this->dbhr->preQuery("SELECT AsText(geometry) AS geomtext, AsText(ourgeometry) AS ourgeomtext FROM locations WHERE id = ?;", [ $this->id ]);
+        $ret = $locs[0]['ourgeomtext'] ? $locs[0]['ourgeomtext'] : $locs[0]['geomtext'];
+        return($ret);
+    }
+
+    public function withinBox($swlat, $swlng, $nelat, $nelng) {
+        # Return the areas within the box, along with a polygon which shows their shape.  This allows us to
+        # display our areas on a map.
+        $g = new geoPHP();
+
+        $sql = "SELECT DISTINCT areaid FROM locations WHERE lat >= ? AND lng >= ? AND lat <= ? AND lng <= ? AND areaid IS NOT NULL;";
+        $areas = $this->dbhr->preQuery($sql, [ $swlat, $swlng, $nelat, $nelng ]);
+        $ret = [];
+        $total = count($areas);
+        $count = 0;
+
+        foreach ($areas as $area) {
+            $a = new Location($this->dbhr, $this->dbhm, $area['areaid']);
+            $thisone = $a->getPublic();
+            $thisone['polygon'] = NULL;
+
+            $geom = $a->geomAsText();
+
+            if (strpos($geom, 'POLYGON') === FALSE) {
+                # We don't have a polygon for this area.  This is common for OSM data, where many towns etc are just
+                # recorded as points.  Invent our best guess based on the convex hull of the postcodes which we have
+                # decided are in this area.
+                $pcs = $this->dbhr->preQuery("SELECT * FROM locations WHERE areaid = ?;", [ $area['areaid'] ]);
+                $points = [];
+                foreach ($pcs as $pc) {
+                    $pstr = "POINT({$pc['lng']} {$pc['lat']})";
+                    #error_log("...{$pc['name']} $pstr");
+                    $points[] = $g::load($pstr);
+                }
+
+                $mp = new MultiPoint($points);
+                $hull = $mp->convexHull();
+
+                # We might not get a hull back if we're running in HHVM, because it relies on a PHP extension.
+                $geom = $hull ? $hull->asText() : NULL;
+
+                if ($geom) {
+                    $thisone['polygon'] = $geom;
+
+                    # Save it for next time.
+                    $this->dbhm->preExec("UPDATE locations SET ourgeometry = GeomFromText(?) WHERE id = ?;", [
+                        $geom,
+                        $area['areaid']
+                    ]);
+                }
+            } else {
+                $thisone['polygon'] = $geom;
+            }
+
+            # Get the top-level postcode.
+            $tpcid = $a->getPrivate('postcodeid');
+            #error_log("Postcode $tpcid for " . $a->getPrivate('name'));
+
+            if ($tpcid) {
+                $tpc = new Location($this->dbhr, $this->dbhm, $tpcid);
+                $thisone['postcode'] = $tpc->getPublic();
+            }
+
+            $ret[] = $thisone;
+
+            $count++;
+
+            if ($count % 1000 === 0) {
+                error_log("...$count/$total");
+            }
+        }
+
+        return($ret);
     }
 }

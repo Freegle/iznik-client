@@ -23,3 +23,21 @@ for ($swlat = 49; $swlat < 61; $swlat += 0.1) {
             ]);
     }
 }
+
+# Record which ones touch others, which speeds up queries.
+error_log("Record touches");
+$grids = $dbhr->preQuery("SELECT * FROM locations_grids;");
+$total = count($grids);
+foreach ($grids as $grid) {
+    $sql = "SELECT id FROM locations_grids WHERE MBRTouches (GeomFromText('POLYGON(({$grid['swlng']} {$grid['swlat']}, {$grid['swlng']} {$grid['nelat']}, {$grid['nelng']} {$grid['nelat']}, {$grid['nelng']} {$grid['swlat']}, {$grid['swlng']} {$grid['swlat']}))'), box);";
+    $touches = $dbhr->preQuery($sql);
+    foreach ($touches as $touch) {
+        $dbhm->preExec("INSERT IGNORE INTO locations_grids_touches (gridid, touches) VALUES (?, ?);", [ $grid['id'], $touch['id'] ]);
+    }
+
+    $count++;
+
+    if ($count % 100 == 0) {
+        error_log("...$count / $total");
+    }
+}

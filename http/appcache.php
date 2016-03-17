@@ -147,6 +147,8 @@ js/lib/jquery-file-upload/jquery.fileupload.js
 js/lib/jquery-file-upload/jquery.fileupload-process.js
 js/lib/jquery-file-upload/jquery.fileupload-image.js
 js/lib/bootstrap-tagsinput.js
+js/lib/wicket.js
+js/lib/wicket-gmap3.js
 js/iznik/dateshim.js
 js/iznik/zombies.js
 js/iznik/underscore.js
@@ -160,6 +162,7 @@ js/iznik/majax.js
 js/iznik/infinite.js
 js/models/session.js
 js/models/message.js
+js/models/location.js
 js/models/group.js
 js/models/config/modconfig.js
 js/models/config/stdmsg.js

@@ -153,4 +153,40 @@ class locationsAPITest extends IznikAPITestCase
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testWithinBox()
+    {
+        error_log(__METHOD__);
+
+        # Edinburgh
+        $swlng = -3.417;
+        $swlat = 55.867;
+        $nelng = -2.947;
+        $nelat = 56.021;
+
+        # Ribble Valley
+        $swlng = -2.6518;
+        $swlat = 53.7562;
+        $nelng = -2.1846;
+        $nelat = 54.0491;
+
+        # UK
+        $swlng = -14.99;
+        $swlat = 49.72;
+        $nelng = 6.86;
+        $nelat = 61.4;
+
+        $ret = $this->call('locations', 'GET', [
+            'swlat' => $swlat,
+            'swlng' => $swlng,
+            'nelat' => $nelat,
+            'nelng' => $nelng
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertGreaterThan(0, count($ret['locations']));
+
+        #error_log(var_export($ret, TRUE));
+
+        error_log(__METHOD__ . " end");
+    }
 }

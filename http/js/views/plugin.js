@@ -162,7 +162,6 @@ Iznik.Views.Plugin.Main = IznikView.extend({
             return(worthit);
         }
 
-        console.log("Consider sync ", this.outstandingSyncs)
         if (this.outstandingSyncs == 0) {
             // Start pending syncs first because if they're wrong, that's normally more annoying.
             Iznik.Session.get('groups').each(function (group) {

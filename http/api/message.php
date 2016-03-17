@@ -192,6 +192,42 @@ function message() {
                     case 'Spam':
                         $m->spam($groupid);
                         break;
+                    case 'JoinAndPost':
+                        # This is the mainline case for someone posting a message.  We sign them up to the group if
+                        # need be, and then post the message.  We do this without being logged in, because that reduces
+                        # friction.  If there is abuse of this, then we will find other ways to block the abuse.
+                        $ret = ['ret' => 3, 'status' => 'Failed to post'];
+
+                        $email = presdef('email', $_REQUEST, NULL);
+                        $u = new User($dbhr, $dbhm);
+                        $uid = $u->findByEmail($email);
+
+                        if (!$uid) {
+                            # We don't yet know this user.  Create them.
+                            $name = substr($email, 0, strpos($email, '@'));
+                            $u->create(NULL, NULL, $name, 'Created to allow post');
+                            $eid = $u->addEmail($email, 1);
+                        } else {
+                            $u = new User($dbhr, $dbhm, $uid);
+                            $eid = $u->getIdForEmail($email);
+                        }
+
+                        $ret = ['ret' => 4, 'status' => 'Failed to create user or email'];
+
+                        if ($u->getId() && $eid) {
+                            # Now we have a user and an email.  We need to make sure they're a member of the
+                            # group in question.
+                            $eidforgroup = $u->getEmailForGroup($groupid);
+                            $ret = ['ret' => 5, 'status' => 'Failed to join group'];
+                            $rc = true;
+
+                            if (!$eidforgroup) {
+                                # Not a member yet.
+                                $rc = $u->addMembership($groupid, User::ROLE_MEMBER, $eid, MembershipCollection::APPROVED);
+                            }
+                        }
+
+                        break;
                 }
             }
         }

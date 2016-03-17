@@ -13,7 +13,8 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
             'click .js-copyconfig': 'copyConfig',
             'click .js-addgroup': 'addGroup',
             'click .js-addlicense': 'addLicense',
-            'click .js-hideall': 'hideAll'
+            'click .js-hideall': 'hideAll',
+            'click .js-mapsettings': 'mapSettings'
         });
     },
 
@@ -351,6 +352,12 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
 
                 // Layout messes up a bit for radio buttons.
                 self.groupForm.$(':radio').closest('.form-group').addClass('clearfix');
+
+                if (group.get('type') == 'Freegle') {
+                    self.$('.js-freegleonly').show();
+                } else {
+                    self.$('.js-freegleonly').hide();
+                }
             });
         }
     },
@@ -721,6 +728,10 @@ Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
                 model: new IznikModel(response)
             })).render();
         }
+    },
+
+    mapSettings: function() {
+        Router.navigate('/modtools/settings/' + this.selected + '/map', true);
     },
 
     render: function() {
@@ -1289,3 +1300,233 @@ Iznik.Views.ModTools.Settings.LicenseFailed = Iznik.Views.Modal.extend({
     template: 'modtools_settings_licensefailed'
 });
 
+Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
+    modtools: true,
+
+    template: "modtools_settings_map",
+
+    features: [],
+
+    clearMap: function() {
+        var i;
+
+        this.$('.js-wkt').val('');
+
+        for (i in this.features) {
+            if (this.features.hasOwnProperty(i)) {
+                this.features[i].setMap(null);
+            }
+        }
+
+        this.features.length = 0;
+    },
+
+    getAreas: function() {
+        var self = this;
+
+        var bounds = self.map.getBounds();
+        self.areas = new Iznik.Collections.Locations({
+            swlat: bounds.getSouthWest().lat(),
+            swlng: bounds.getSouthWest().lng(),
+            nelat: bounds.getNorthEast().lat(),
+            nelng: bounds.getNorthEast().lng()
+        });
+
+        self.areas.fetch().then(function() {
+            self.clearMap();
+            self.areas.each(function(area) {
+                var poly = area.get('polygon');
+
+                if (poly) {
+                    self.mapWKT(poly, area);
+                    var mapLabel = new MapLabel({
+                        text: area.get('name'),
+                        position: new google.maps.LatLng(area.get('lat'), area.get('lng')),
+                        map: self.map,
+                        fontSize: 20,
+                        fontColor: 'red',
+                        align: 'right'
+                    });
+                    area.set('label', mapLabel);
+                }
+            });
+        })
+    },
+
+    updateWKT: function() {
+        console.log("Update", self);
+        var wkt = new Wkt.Wkt();
+        wkt.fromObject(this.features[0]);
+        this.$('.js-wkt').val(wkt.write());
+    },
+    
+    mapWKT: function(wktstr, area) {
+        var self = this;
+        var wkt = new Wkt.Wkt();
+
+        try { // Catch any malformed WKT strings
+            wkt.read(wktstr);
+        } catch (e1) {
+            try {
+                wkt.read(el.value.replace('\n', '').replace('\r', '').replace('\t', ''));
+            } catch (e2) {
+                if (e2.name === 'WKTError') {
+                    console.error("Ignore invalid WKT", wktstr);
+                    return;
+                }
+            }
+        }
+
+        var obj = wkt.toObject(this.map.defaults); // Make an object
+
+        // Add listeners for overlay editing events
+        if (!Wkt.isArray(obj) && wkt.type !== 'point') {
+            function changeHandler(area) {
+                return(function(n) {
+                    console.log("Click on", area);
+                    self.$('.js-name').val(area.get('name'));
+                    self.$('.js-wkt').val(area.get('polygon'));
+                    self.updateWKT.call(self);
+                });
+            }
+            // New vertex is inserted
+            google.maps.event.addListener(obj.getPath(), 'insert_at', changeHandler(area));
+
+            // Existing vertex is removed (insertion is undone)
+            google.maps.event.addListener(obj.getPath(), 'remove_at', changeHandler(area));
+
+            // Existing vertex is moved (set elsewhere)
+            google.maps.event.addListener(obj.getPath(), 'set_at', changeHandler(area));
+
+            // Click to show info
+            function clickHandler(self, area) {
+                return(function(n) {
+                    console.log("Click on", area);
+                    self.$('.js-name').val(area.get('name'));
+                    self.$('.js-wkt').val(area.get('polygon'));
+                });
+            }
+            google.maps.event.addListener(obj, 'clickHandler', clickHandler(self, area));
+        } else {
+            if (obj.setEditable) {obj.setEditable(false);}
+        }
+
+        var bounds = new google.maps.LatLngBounds();
+
+        if (Wkt.isArray(obj)) { // Distinguish multigeometries (Arrays) from objects
+            for (i in obj) {
+                if (obj.hasOwnProperty(i) && !Wkt.isArray(obj[i])) {
+                    obj[i].setMap(self.map);
+                    this.features.push(obj[i]);
+
+                    if(wkt.type === 'point' || wkt.type === 'multipoint')
+                        bounds.extend(obj[i].getPosition());
+                    else
+                        obj[i].getPath().forEach(function(element,index){bounds.extend(element)});
+                }
+            }
+
+            self.features = self.features.concat(obj);
+        } else {
+            obj.setMap(this.map); // Add it to the map
+            self.features.push(obj);
+
+            if(wkt.type === 'point' || wkt.type === 'multipoint')
+                bounds.extend(obj.getPosition());
+            else
+                obj.getPath().forEach(function(element,index){bounds.extend(element)});
+        }
+
+        return obj;
+    },
+
+    render: function() {
+        var self = this;
+
+        Iznik.Views.Page.prototype.render.call(this);
+
+        _.defer(function() {
+            var group = Iznik.Session.getGroup(self.options.groupid);
+            var centre = new google.maps.LatLng(group.get('lat'), group.get('lng'));
+            var mapsettings = group.get('settings').map;
+
+            var options = {
+                center: centre,
+                zoom: 14,
+                defaults: {
+                    icon: 'red_dot.png',
+                    shadow: 'dot_shadow.png',
+                    editable: true,
+                    strokeColor: '#990000',
+                    fillColor: '#EEFFCC',
+                    fillOpacity: 0.6
+                },
+                disableDefaultUI: true,
+                mapTypeControl: true,
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                mapTypeControlOptions: {
+                    position: google.maps.ControlPosition.TOP_LEFT,
+                    style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+                },
+                panControl: false,
+                streetViewControl: false,
+                zoomControl: true,
+                zoomControlOptions: {
+                    position: google.maps.ControlPosition.LEFT_TOP,
+                    style: google.maps.ZoomControlStyle.SMALL
+                }
+            };
+
+            self.map = new google.maps.Map(document.getElementById("map"), options);
+
+            self.map.drawingManager = new google.maps.drawing.DrawingManager({
+                drawingControlOptions: {
+                    position: google.maps.ControlPosition.TOP_CENTER,
+                    drawingModes: [
+                        google.maps.drawing.OverlayType.POLYGON
+                    ]
+                },
+                markerOptions: self.map.defaults,
+                polygonOptions: self.map.defaults,
+                polylineOptions: self.map.defaults,
+                rectangleOptions: self.map.defaults
+            });
+            self.map.drawingManager.setMap(self.map);
+
+            google.maps.event.addListener(self.map.drawingManager, 'overlaycomplete', function (event) {
+                var wkt;
+
+                // Set the drawing mode to "pan" (the hand) so users can immediately edit
+                this.setDrawingMode(null);
+
+                // Polygon drawn
+                if (event.type === google.maps.drawing.OverlayType.POLYGON || event.type === google.maps.drawing.OverlayType.POLYLINE) {
+                    // New vertex is inserted
+                    google.maps.event.addListener(event.overlay.getPath(), 'insert_at', function (n) {
+                        self.updateWKT.call(self);
+                    });
+
+                    // Existing vertex is removed (insertion is undone)
+                    google.maps.event.addListener(event.overlay.getPath(), 'remove_at', function (n) {
+                        self.updateWKT.call(self);
+                    });
+
+                    // Existing vertex is moved (set elsewhere)
+                    google.maps.event.addListener(event.overlay.getPath(), 'set_at', function (n) {
+                        self.updateWKT.call(self);
+                    });
+                } else if (event.type === google.maps.drawing.OverlayType.RECTANGLE) { // Rectangle drawn
+                    // Listen for the 'bounds_changed' event and update the geometry
+                    google.maps.event.addListener(event.overlay, 'bounds_changed', function () {
+                        self.updateWKT.call(self);
+                    });
+                }
+
+                self.features.push(event.overlay);
+                self.updateWKT();
+            });
+
+            google.maps.event.addListener(self.map, 'idle', _.bind(self.getAreas, self));
+        });
+    }
+});

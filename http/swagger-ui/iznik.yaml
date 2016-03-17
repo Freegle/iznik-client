@@ -219,7 +219,7 @@ paths:
         in: query
         description: Whether to approve or reject
         type: string
-        enum: ['Approve', 'Reject', 'Delete']
+        enum: ['Approve', 'Reject', 'Delete', 'Hold', 'Release', 'NotSpam', 'Spam', 'JoinAndPost']
         required: true
       - name: subject
         in: body
@@ -231,7 +231,11 @@ paths:
         type: string
       - name: bcc
         in: body
-        description: Any email address to BCC message to
+        description: Any email address to BCC rejection/approval message to
+        type: string
+      - name: from
+        in: body
+        description: Any from email for Action = JoinAndPost
         type: string
       responses:
           "200":

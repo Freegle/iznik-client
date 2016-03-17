@@ -59,7 +59,12 @@ var IznikModel = Backbone.Model.extend({
 });
 
 var IznikCollection = Backbone.Collection.extend({
-    model: IznikModel
+    model: IznikModel,
+
+    constructor: function(options) {
+        this.options = options || {};
+        Backbone.Collection.apply(this, arguments);
+    }
 });
 
 // Set options into this.options by default.

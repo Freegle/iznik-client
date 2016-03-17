@@ -35,6 +35,7 @@ var IznikRouter = Backbone.Router.extend({
         "modtools/spammerlist/confirmed(/:search)": "spammerListConfirmed",
         "modtools/spammerlist/pendingremove(/:search)": "spammerListPendingRemove",
         "modtools/spammerlist/whitelisted(/:search)": "spammerListWhitelisted",
+        "modtools/settings/:id/map": "mapSettings",
         "modtools/settings/confirmmail/(:key)": "confirmMail",
         "modtools/settings": "settings",
         "modtools/support": "support",
@@ -347,6 +348,17 @@ var IznikRouter = Backbone.Router.extend({
     settings: function() {
         this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
             var page = new Iznik.Views.ModTools.Pages.Settings();
+            this.loadRoute({page: page, modtools: true});
+        });
+
+        Iznik.Session.forceLogin();
+    },
+
+    mapSettings: function(groupid) {
+        this.listenToOnce(Iznik.Session, 'loggedIn', function(loggedIn){
+            var page = new Iznik.Views.ModTools.Pages.MapSettings({
+                groupid: groupid
+            });
             this.loadRoute({page: page, modtools: true});
         });
 

@@ -88,6 +88,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     echo implode("\n", $tpls);
     ?>
     <script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization"></script>
+    <script type="text/javascript" src="https://google-maps-utility-library-v3.googlecode.com/svn/trunk/maplabel/src/maplabel-compiled.js"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['corechart', 'annotationchart']}]}"></script>
     <script type="text/javascript" src="//cdn.tinymce.com/4/tinymce.min.js"></script>
 

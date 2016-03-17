@@ -436,6 +436,10 @@ body, #bodyContent {
     background: none;
 }
 
+#map {
+    height: 600px;
+}
+
 .mapimage {
     display: none;
 }
