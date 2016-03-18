@@ -394,7 +394,7 @@ class Location extends Entity
     }
 
     public function setGeometry($val) {
-        $rc = $this->dbhm->preExec("UPDATE locations SET `ourgeometry` = GeomFromText(?) WHERE id = {$this->id};", [$val]);
+        $rc = $this->dbhm->preExec("UPDATE locations SET `type` = 'Polygon', `ourgeometry` = GeomFromText(?) WHERE id = {$this->id};", [$val]);
         if ($rc) {
             # The centre point and max dimensions will also have changed.
             $rc = $this->dbhm->preExec("UPDATE locations SET maxdimension = GetMaxDimension(ourgeometry), lat = Y(GetCenterPoint(ourgeometry)), lng = X(GetCenterPoint(ourgeometry)) WHERE id = {$this->id};", [$val]);

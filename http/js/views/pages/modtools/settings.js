@@ -1303,7 +1303,31 @@ Iznik.Views.ModTools.Settings.LicenseFailed = Iznik.Views.Modal.extend({
 Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
     modtools: true,
 
+    selected: null,
+
     template: "modtools_settings_map",
+
+    events: {
+        'click .js-save': 'save'
+    },
+
+    save: function() {
+        var self = this;
+
+        if (self.selected) {
+            var id = self.selected.get('id');
+            var wkt = self.$('.js-wkt').val();
+            self.selected.set('polygon', wkt);
+
+            var changes = {
+                'id': id,
+                'polygon': wkt
+            };
+            self.selected.save(changes, {
+                patch: true
+            });
+        }
+    },
 
     features: [],
 
@@ -1324,6 +1348,14 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
     getAreas: function() {
         var self = this;
 
+        // No longer got one selected.
+        self.selected = null;
+        self.$('.js-wkt').val('');
+        self.$('.js-name').val('');
+        _.each(self.features, function(feature) {
+            feature.setOptions({strokeColor: '#990000'});
+        });
+
         var bounds = self.map.getBounds();
         self.areas = new Iznik.Collections.Locations({
             swlat: bounds.getSouthWest().lat(),
@@ -1336,30 +1368,44 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
             self.clearMap();
             self.areas.each(function(area) {
                 var poly = area.get('polygon');
+                var lat = area.get('lat');
+                var lng = area.get('lng');
 
-                if (poly) {
-                    self.mapWKT(poly, area);
-                    var mapLabel = new MapLabel({
-                        text: area.get('name'),
-                        position: new google.maps.LatLng(area.get('lat'), area.get('lng')),
-                        map: self.map,
-                        fontSize: 20,
-                        fontColor: 'red',
-                        align: 'right'
-                    });
-                    area.set('label', mapLabel);
+                if (poly || lat || lng) {
+                    if (poly) {
+                        self.mapWKT(poly, area);
+                    } else {
+                        var wkt = 'POINT(' + lng + ' ' + lat + ')';
+                        console.log(wkt);
+                        self.mapWKT(wkt, area);
+                    }
                 }
             });
         })
     },
 
-    updateWKT: function() {
-        console.log("Update", self);
+    updateWKT: function(obj) {
+        console.log("Update", self, obj);
         var wkt = new Wkt.Wkt();
-        wkt.fromObject(this.features[0]);
+        wkt.fromObject(obj);
         this.$('.js-wkt').val(wkt.write());
     },
-    
+
+    changeHandler: function(self, area, obj) {
+        return(function(n) {
+            self.selected = area;
+            self.$('.js-name').val(area.get('name'));
+            self.$('.js-wkt').val(area.get('polygon'));
+            self.updateWKT.call(self, obj);
+
+            /// Set the border colour so it's obvious which one we're on.
+            _.each(self.features, function(feature) {
+                feature.setOptions({strokeColor: '#990000'});
+            });
+            obj.setOptions({strokeColor: 'blue'});
+        });
+    },
+
     mapWKT: function(wktstr, area) {
         var self = this;
         var wkt = new Wkt.Wkt();
@@ -1381,41 +1427,31 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
 
         // Add listeners for overlay editing events
         if (!Wkt.isArray(obj) && wkt.type !== 'point') {
-            function changeHandler(area) {
-                return(function(n) {
-                    console.log("Click on", area);
-                    self.$('.js-name').val(area.get('name'));
-                    self.$('.js-wkt').val(area.get('polygon'));
-                    self.updateWKT.call(self);
-                });
-            }
             // New vertex is inserted
-            google.maps.event.addListener(obj.getPath(), 'insert_at', changeHandler(area));
+            google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj));
 
             // Existing vertex is removed (insertion is undone)
-            google.maps.event.addListener(obj.getPath(), 'remove_at', changeHandler(area));
+            google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj));
 
             // Existing vertex is moved (set elsewhere)
-            google.maps.event.addListener(obj.getPath(), 'set_at', changeHandler(area));
-
-            // Click to show info
-            function clickHandler(self, area, obj) {
-                return(function(n) {
-                    console.log("Click on", area);
-                    self.$('.js-name').val(area.get('name'));
-                    self.$('.js-wkt').val(area.get('polygon'));
-
-                    /// Set the border colour so it's obvious which one we're on.
-                    _.each(self.features, function(feature) {
-                        feature.setOptions({strokeColor: '#990000'});
-                    });
-                    obj.setOptions({strokeColor: 'blue'});
-                });
-            }
-            google.maps.event.addListener(obj, 'click', clickHandler(self, area, obj));
-        } else {
-            if (obj.setEditable) {obj.setEditable(false);}
+            google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj));
         }
+
+        // Click to show info
+        google.maps.event.addListener(obj, 'click', self.changeHandler(self, area, obj));
+
+        self.features.push(obj);
+
+        var mapLabel = new MapLabel({
+            text: area.get('name'),
+            position: new google.maps.LatLng(area.get('lat'), area.get('lng')),
+            map: self.map,
+            fontSize: 20,
+            fontColor: 'red',
+            align: 'right'
+        });
+
+        area.set('label', mapLabel);
 
         var bounds = new google.maps.LatLngBounds();
 
@@ -1451,6 +1487,10 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
 
         Iznik.Views.Page.prototype.render.call(this);
 
+        var v = new Iznik.Views.Help.Box();
+        v.template = 'modtools_settings_maphelp';
+        this.$('.js-help').html(v.render().el);
+
         _.defer(function() {
             var group = Iznik.Session.getGroup(self.options.groupid);
             var centre = new google.maps.LatLng(group.get('lat'), group.get('lng'));
@@ -1460,8 +1500,8 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
                 center: centre,
                 zoom: 14,
                 defaults: {
-                    icon: 'red_dot.png',
-                    shadow: 'dot_shadow.png',
+                    icon: '/images/red_dot.png',
+                    shadow: '/images/dot_shadow.png',
                     editable: true,
                     strokeColor: '#990000',
                     fillColor: '#EEFFCC',
@@ -1500,36 +1540,29 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
             self.map.drawingManager.setMap(self.map);
 
             google.maps.event.addListener(self.map.drawingManager, 'overlaycomplete', function (event) {
+                console.log("Completed draw", event);
                 var wkt;
 
                 // Set the drawing mode to "pan" (the hand) so users can immediately edit
                 this.setDrawingMode(null);
 
                 // Polygon drawn
+                var obj = event.overlay;
+                var area = self.selected;
+
                 if (event.type === google.maps.drawing.OverlayType.POLYGON || event.type === google.maps.drawing.OverlayType.POLYLINE) {
                     // New vertex is inserted
-                    google.maps.event.addListener(event.overlay.getPath(), 'insert_at', function (n) {
-                        self.updateWKT.call(self);
-                    });
+                    google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj));
 
                     // Existing vertex is removed (insertion is undone)
-                    google.maps.event.addListener(event.overlay.getPath(), 'remove_at', function (n) {
-                        self.updateWKT.call(self);
-                    });
+                    google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj));
 
                     // Existing vertex is moved (set elsewhere)
-                    google.maps.event.addListener(event.overlay.getPath(), 'set_at', function (n) {
-                        self.updateWKT.call(self);
-                    });
-                } else if (event.type === google.maps.drawing.OverlayType.RECTANGLE) { // Rectangle drawn
-                    // Listen for the 'bounds_changed' event and update the geometry
-                    google.maps.event.addListener(event.overlay, 'bounds_changed', function () {
-                        self.updateWKT.call(self);
-                    });
+                    google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj));
                 }
 
                 self.features.push(event.overlay);
-                self.updateWKT();
+                self.changeHandler(self, area, obj)();
             });
 
             google.maps.event.addListener(self.map, 'idle', _.bind(self.getAreas, self));

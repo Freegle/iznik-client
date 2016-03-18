@@ -165,10 +165,10 @@ class locationsAPITest extends IznikAPITestCase
         $nelat = 56.021;
 
         # Ribble Valley
-//        $swlng = -2.6518;
-//        $swlat = 53.7562;
-//        $nelng = -2.1846;
-//        $nelat = 54.0491;
+        $swlng = -2.6518;
+        $swlat = 53.7562;
+        $nelng = -2.1846;
+        $nelat = 54.0491;
 
         # UK
 //        $swlng = -14.99;

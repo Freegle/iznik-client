@@ -862,6 +862,31 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+    patch:
+      summary: Edit location
+      tags: [Locations]
+      description: |
+        Perform an action on a location
+      parameters:
+      - name: id
+        in: path
+        description: ID of the location
+        type: number
+        require: true
+      - name: polygon
+        in: body
+        description: Polygon data to set.
+        type: string
+        require: false
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
   /memberships:
     get:
       summary: Get membership(s)

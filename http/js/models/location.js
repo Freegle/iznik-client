@@ -1,6 +1,6 @@
 Iznik.Models.Location = IznikModel.extend({
     url: function() {
-        return (API + 'location/' + this.get('id'));
+        return (API + 'locations/' + this.get('id'));
     },
 
     parse: function(ret) {
