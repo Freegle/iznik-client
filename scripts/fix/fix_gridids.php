@@ -6,6 +6,8 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 
 $locs = $dbhr->preQuery("SELECT * FROM locations_ni WHERE gridid IS NULL;");
+$total = count($locs);
+$count = 0;
 
 foreach ($locs as $loc) {
     $sql = "SELECT locations_grids.id AS gridid FROM `locations_ni` INNER JOIN locations_grids ON locations_ni.id = ? AND MBRIntersects(locations_ni.geometry, locations_grids.box) LIMIT 1;";
@@ -14,5 +16,11 @@ foreach ($locs as $loc) {
         $gridid = $grid['gridid'];
         $sql = "UPDATE locations_ni SET gridid = ?, maxdimension = GetMaxDimension(geometry) WHERE id = ?;";
         $dbhm->preExec($sql, [ $grid['gridid'], $loc['id'] ]);
+    }
+
+    $count++;
+
+    if ($count % 1000 == 0) {
+        error_log("...$count/$total");
     }
 }

@@ -150,18 +150,18 @@ Iznik.Views.ModTools.User = IznikView.extend({
         });
 
         self.listenToOnce(v, 'confirmed', function() {
-            var mod = new Iznik.Models.Membership({
-                userid: this.model.get('id'),
-                groupid: this.model.get('groupid'),
-                ban: true
-            });
-
-            mod.fetch().then(function () {
-                mod.destroy({
-                    success: function (model, response) {
-                        self.model.trigger('removed');
+            $.ajax({
+                url: API + 'memberships',
+                type: 'DELETE',
+                data: {
+                    userid: this.model.get('id'),
+                    groupid: this.model.get('groupid'),
+                    ban: true
+                }, success: function(ret) {
+                    if (ret.ret == 0) {
+                        self.$el.fadeOut('slow');
                     }
-                });
+                }
             });
         });
 

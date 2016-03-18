@@ -45,6 +45,16 @@ class locationTest extends IznikTestCase {
                     ]);
             }
         }
+
+        $grids = $dbhr->preQuery("SELECT * FROM locations_grids WHERE swlng >= 179.1 AND swlng <= 179.3;");
+        foreach ($grids as $grid) {
+            $sql = "SELECT id FROM locations_grids WHERE MBRTouches (GeomFromText('POLYGON(({$grid['swlng']} {$grid['swlat']}, {$grid['swlng']} {$grid['nelat']}, {$grid['nelng']} {$grid['nelat']}, {$grid['nelng']} {$grid['swlat']}, {$grid['swlng']} {$grid['swlat']}))'), box);";
+            $touches = $dbhr->preQuery($sql);
+            foreach ($touches as $touch) {
+                $sql = "INSERT IGNORE INTO locations_grids_touches (gridid, touches) VALUES (?, ?);";
+                $rc = $dbhm->preExec($sql, [ $grid['id'], $touch['id'] ]);
+            }
+        }
     }
 
     protected function tearDown() {
@@ -87,11 +97,10 @@ class locationTest extends IznikTestCase {
         error_log("Area id $areaid");
         assertNotNull($areaid);
 
-        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)', 0);
         error_log("Loc id $id");
         $l = new Location($this->dbhr, $this->dbhm, $id);
         $atts = $l->getPublic();
-        assertEquals($pcid, $atts['postcodeid']);
         assertEquals($areaid, $atts['areaid']);
 
         error_log(__METHOD__ . " end");

@@ -244,6 +244,7 @@ class configTest extends IznikTestCase {
 
         $m->setPrivate('action', 'Delete Approved Message');
         assertEquals('test-specific-follow@test.com', $c->getBcc('Delete Approved Message'));
+        assertEquals(NULL, $c->getBcc('Delete Approved Member'));
 
         error_log(__METHOD__ . " end");
     }

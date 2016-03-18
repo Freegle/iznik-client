@@ -112,6 +112,7 @@ class MailRouter
 
     public function route($msg = NULL, $notspam = FALSE) {
         $ret = NULL;
+        $log = FALSE;
 
         # We route messages to one of the following destinations:
         # - to a handler for system messages
@@ -132,17 +133,19 @@ class MailRouter
             $from = $this->msg->getEnvelopefrom();
             $replyto = $this->msg->getHeader('reply-to');
 
+            if ($log) { error_log("To is $to"); }
+
             if (preg_match('/modconfirm-(.*)-(.*)-(.*)@/', $to, $matches) !== FALSE && count($matches) == 4) {
                 # This purports to be a mail to confirm moderation status on Yahoo.
                 $groupid = $matches[1];
                 $userid = $matches[2];
                 $key = $matches[3];
-                #error_log("Confirm moderation status for $userid on $groupid using $key");
+                if ($log) { error_log("Confirm moderation status for $userid on $groupid using $key"); }
 
                 # Get the first header.  This is added by our local EXIM and therefore can't be faked by a remote
                 # system.  Check that it comes from Yahoo.
                 $rcvd = $this->msg->getHeader('received');
-                #error_log("Headers " . var_export($rcvd, true));
+                if ($log) { error_log("Headers " . var_export($rcvd, true)); }
 
                 if (preg_match('/from .*yahoo\.com \(/', $rcvd)) {
                     # See if we can find the group with this key.  If not then we just drop it - it's either a fake
@@ -150,7 +153,7 @@ class MailRouter
                     $sql = "SELECT id FROM groups WHERE id = ? AND confirmkey = ?;";
                     $groups = $this->dbhr->preQuery($sql, [$groupid, $key]);
 
-                    #error_log("Check key $key for group $groupid");
+                    if ($log) { error_log("Check key $key for group $groupid"); }
 
                     foreach ($groups as $group) {
                         # The confirm looks valid.  Promote this user.  We only promote to moderator because we can't
@@ -158,25 +161,25 @@ class MailRouter
                         $u = new User($this->dbhr, $this->dbhm, $userid);
 
                         if ($u->getPublic()['id'] == $userid) {
-                            #error_log("Userid $userid is valid");
+                            if ($log) { error_log("Userid $userid is valid"); }
                             $role = $u->getRole($groupid, FALSE);
-                            #error_log("Role is $role");
+                            if ($log) { error_log("Role is $role"); }
 
                             if ($role == User::ROLE_NONMEMBER) {
                                 # We aren't a member yet.  Add ourselves.
                                 #
                                 # We don't know which email we use but it'll get set on the next sync.
-                                #error_log("Not a member yet");
+                                if ($log) { error_log("Not a member yet"); }
                                 $u->addMembership($groupid, User::ROLE_MODERATOR, NULL);
                                 $ret = MailRouter::TO_SYSTEM;
                             } else if ($role == User::ROLE_MEMBER) {
                                 # We're already a member.  Promote.
-                                #error_log("We were a member, promote");
+                                if ($log) { error_log("We were a member, promote"); }
                                 $u->setRole(User::ROLE_MODERATOR, $groupid);
                                 $ret = MailRouter::TO_SYSTEM;
                             } else {
                                 # Mod or owner.  Don't demote owner to a mod!
-                                #error_log("Already a mod/owner, no action");
+                                if ($log) { error_log("Already a mod/owner, no action"); }
                                 $ret = MailRouter::TO_SYSTEM;
                             }
                         }
@@ -187,6 +190,7 @@ class MailRouter
                 }
             } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) !== FALSE && count($matches) == 4) {
                 # This is a request by Yahoo to confirm a subscription for one of our members.  We always do that.
+                if ($log) { error_log("Confirm subscription"); }
                 $this->mail($replyto, $to, "Yes please", "I confirm this");
                 $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/(.*)-acceptsub(.*)@yahoogroups.co.*/', $replyto, $matches) !== FALSE && count($matches) == 3) {
@@ -197,6 +201,7 @@ class MailRouter
                 #
                 # The user could also be approved/rejected elsewhere - but that'll sort itself out when we do a sync,
                 # or worst case a mod will handle it.
+                if ($log) { error_log("Member applied to group"); }
                 $ret = MailRouter::DROPPED;
                 $all = $this->msg->getMessage();
                 $approve = $replyto;
@@ -274,6 +279,7 @@ class MailRouter
                     }
                 }
             } else if (preg_match('/New (.*) member/', $this->msg->getSubject(), $matches)) {
+                if ($log) { error_log("New member joined"); }
                 $nameshort = $matches[1];
                 $all = $this->msg->getMessage();
 
@@ -295,6 +301,7 @@ class MailRouter
                     }
                 }
             } else {
+                if ($log) { error_log("Dropped 1"); }
                 $ret = MailRouter::DROPPED;
             }
         } else {
@@ -323,6 +330,7 @@ class MailRouter
                         ]);
                     }
 
+                    error_log("Classified as spam {$rc[2]}");
                     $ret = MailRouter::FAILURE;
 
                     if ($this->markAsSpam($rc[1], $rc[2])) {
@@ -361,12 +369,14 @@ class MailRouter
                             if ($this->markAsSpam(Spam::REASON_SPAMASSASSIN, "SpamAssassin flagged this as possible spam; score $spamscore (high is bad)")) {
                                 $ret = MailRouter::INCOMING_SPAM;
                             } else {
+                                error_log("Failed to mark as spam");
                                 $this->msg->recordFailure('Failed to mark spam');
                                 $ret = MailRouter::FAILURE;
                             }
                         }
                     } else {
                         # We have failed to check that this is spam.  Record the failure.
+                        error_log("Failed to check spam");
                         $this->msg->recordFailure('Spam Assassin check failed');
                         $ret = MailRouter::FAILURE;
                     }
@@ -389,7 +399,7 @@ class MailRouter
             }
         }
 
-        error_log("Routed " . $this->msg->getMessageID() . " " . $this->msg->getSubject() . " " . $ret);
+        error_log("Routed #" . $this->msg->getID(). " " . $this->msg->getMessageID() . " " . $this->msg->getSubject() . " " . $ret);
 
         return($ret);
     }
@@ -408,7 +418,7 @@ class MailRouter
                 }
             } catch (Exception $e) {
                 # Ignore this and continue routing the rest.
-                error_log("Route failed " . $e->getMessage() . " stack " . $e->getTraceAsString());
+                error_log("Route #" . $this->msg->getID() . " failed " . $e->getMessage() . " stack " . $e->getTraceAsString());
                 $this->dbhm->rollBack();
             }
         }

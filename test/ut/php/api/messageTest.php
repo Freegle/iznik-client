@@ -974,6 +974,25 @@ class messageAPITest extends IznikAPITestCase
         error_log("Messages " . var_export($ret, TRUE));
         assertEquals($id, $ret['messages'][0]['id']);
 
+        # Now remove the attachment
+        $ret = $this->call('message', 'PUT', [
+            'id' => $id,
+            'collection' => 'Draft',
+            'messagetype' => 'Wanted',
+            'item' => 'a thing2',
+            'textbody' => 'Text body2'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['id']);
+
+        $ret = $this->call('messages', 'GET', [
+            'collection' => 'Draft'
+        ]);
+        error_log("Messages " . var_export($ret, TRUE));
+        assertEquals($id, $ret['messages'][0]['id']);
+        assertEquals(0, count($ret['messages'][0]['attachments']));
+
         error_log(__METHOD__ . " end");
     }
 }

@@ -916,5 +916,19 @@ class MailRouterTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testPound() {
+        error_log(__METHOD__);
+
+        $msg = $this->unique(file_get_contents('msgs/poundsign'));
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertNotNull($id);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

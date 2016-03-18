@@ -165,16 +165,16 @@ class locationsAPITest extends IznikAPITestCase
         $nelat = 56.021;
 
         # Ribble Valley
-        $swlng = -2.6518;
-        $swlat = 53.7562;
-        $nelng = -2.1846;
-        $nelat = 54.0491;
+//        $swlng = -2.6518;
+//        $swlat = 53.7562;
+//        $nelng = -2.1846;
+//        $nelat = 54.0491;
 
         # UK
-        $swlng = -14.99;
-        $swlat = 49.72;
-        $nelng = 6.86;
-        $nelat = 61.4;
+//        $swlng = -14.99;
+//        $swlat = 49.72;
+//        $nelng = 6.86;
+//        $nelat = 61.4;
 
         $ret = $this->call('locations', 'GET', [
             'swlat' => $swlat,
@@ -186,7 +186,79 @@ class locationsAPITest extends IznikAPITestCase
         assertGreaterThan(0, count($ret['locations']));
 
         #error_log(var_export($ret, TRUE));
+        # Again as we'll have created a geometry.
+        error_log("And again");
+        $ret = $this->call('locations', 'GET', [
+            'swlat' => $swlat,
+            'swlng' => $swlng,
+            'nelat' => $nelat,
+            'nelng' => $nelng
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertGreaterThan(0, count($ret['locations']));
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testPatch()
+    {
+        error_log(__METHOD__);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $lid2 = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.22 8.53, 179.22 8.54, 179.21 8.54, 179.21 8.53))');
+        $lid1 = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)',0);
+        error_log("Created location $lid1");
+
+        $ret = $this->call('locations', 'GET', [
+            'swlng' => 179.2,
+            'swlat' => 8.5,
+            'nelng' => 179.3,
+            'nelat' => 8.6
+        ]);
+        error_log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(179.215, $ret['locations'][0]['lng']);
+        assertEquals(8.535, $ret['locations'][0]['lat']);
+
+        # Not logged in
+        $ret = $this->call('locations', 'PATCH', [
+            'id' => $lid2,
+            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $this->user->setRole(User::ROLE_MEMBER, $this->groupid);
+        assertTrue($this->user->login('testpw'));
+
+        # Member only
+        $ret = $this->call('locations', 'PATCH', [
+            'id' => $lid2,
+            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Mod
+        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+        $ret = $this->call('locations', 'PATCH', [
+            'id' => $lid2,
+            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('locations', 'GET', [
+            'swlng' => 179.2,
+            'swlat' => 8.5,
+            'nelng' => 179.3,
+            'nelat' => 8.6
+        ]);
+        error_log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+
+        # The centre cannot hold, but things should not fall apart.
+        assertEquals(179.2125, $ret['locations'][0]['lng']);
+        assertEquals(8.535, $ret['locations'][0]['lat']);
+
+        error_log(__METHOD__ . " end");
+    }
+
 }

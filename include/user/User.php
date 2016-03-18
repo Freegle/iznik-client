@@ -827,7 +827,7 @@ class User extends Entity
                         $groups[$log['groupid']]['myrole'] != User::ROLE_MODERATOR) {
                         # We can only see logs for this group if we have a mod role, or if we have appropriate system
                         # rights.  Skip this log.
-                        break;
+                        continue;
                     }
 
                     $log['group'] = presdef($log['groupid'], $groups, NULL);

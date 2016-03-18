@@ -628,9 +628,11 @@ class Message
         $subj = trim($subj);
 
         # Remove any odd characters.
-        $convmap= array(0x0100, 0xFFFF, 0, 0xFFFF);
-        $encutf= mb_encode_numericentity($subj, $convmap, 'UTF-8');
-        $subj= utf8_decode($encutf);
+//        error_log("Before remove $subj charset " . mb_detect_encoding($subj));
+//        $convmap = array(0x0100, 0xFFFF, 0, 0xFFFF);
+//        $encutf = mb_encode_numericentity($subj, $convmap, 'UTF-8');
+//        $subj = utf8_decode($encutf);
+//        error_log("After remove $subj charset " . mb_detect_encoding($subj));
 
         return($subj);
     }

@@ -29,7 +29,7 @@ foreach ($pcs as $pc) {
 $count = 0;
 $found = 0;
 
-$sql = "SELECT id, gridid, name, type, lat, lng, geometry, AsText(geometry) AS geomtext FROM locations WHERE name NOT LIKE 'BT%' AND LOCATE(' ', name) > 0 AND type = 'Postcode' AND areaid IS NULL ORDER BY name ASC;";
+$sql = "SELECT id, gridid, name, type, lat, lng, geometry, AsText(geometry) AS geomtext FROM locations WHERE LOCATE(' ', name) > 0 AND type = 'Postcode' AND areaid IS NULL ORDER BY name ASC;";
 #$sql = "SELECT id, gridid, name, type, lat, lng, geometry, AsText(geometry) AS geomtext FROM locations WHERE LOCATE(' ', name) > 0 AND type = 'Postcode' AND name = 'PR3 2NX';";
 
 $locs = $dbhr->preQuery($sql);
@@ -39,7 +39,7 @@ foreach ($locs as $loc) {
     $gridid = $loc['gridid'];
 
     # Now we want to find the area.  We can speed up our query if we restrict the search to this grid square
-    # and adjacent ones, but we need to work outwards until we find or location or it gets silly.
+    # and adjacent ones, but we need to work outwards until we find our location or it gets silly.
     $gridids = [ $gridid ];
 
     do {

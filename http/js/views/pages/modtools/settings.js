@@ -1399,14 +1399,20 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
             google.maps.event.addListener(obj.getPath(), 'set_at', changeHandler(area));
 
             // Click to show info
-            function clickHandler(self, area) {
+            function clickHandler(self, area, obj) {
                 return(function(n) {
                     console.log("Click on", area);
                     self.$('.js-name').val(area.get('name'));
                     self.$('.js-wkt').val(area.get('polygon'));
+
+                    /// Set the border colour so it's obvious which one we're on.
+                    _.each(self.features, function(feature) {
+                        feature.setOptions({strokeColor: '#990000'});
+                    });
+                    obj.setOptions({strokeColor: 'blue'});
                 });
             }
-            google.maps.event.addListener(obj, 'clickHandler', clickHandler(self, area));
+            google.maps.event.addListener(obj, 'click', clickHandler(self, area, obj));
         } else {
             if (obj.setEditable) {obj.setEditable(false);}
         }

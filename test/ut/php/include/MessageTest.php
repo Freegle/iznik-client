@@ -50,6 +50,15 @@ class messageTest extends IznikTestCase {
             }
         }
 
+        $grids = $dbhr->preQuery("SELECT * FROM locations_grids WHERE swlng >= 179.1 AND swlng <= 179.3;");
+        foreach ($grids as $grid) {
+            $sql = "SELECT id FROM locations_grids WHERE MBRTouches (GeomFromText('POLYGON(({$grid['swlng']} {$grid['swlat']}, {$grid['swlng']} {$grid['nelat']}, {$grid['nelng']} {$grid['nelat']}, {$grid['nelng']} {$grid['swlat']}, {$grid['swlng']} {$grid['swlat']}))'), box);";
+            $touches = $dbhr->preQuery($sql);
+            foreach ($touches as $touch) {
+                $dbhm->preExec("INSERT IGNORE INTO locations_grids_touches (gridid, touches) VALUES (?, ?);", [ $grid['id'], $touch['id'] ]);
+            }
+        }
+
         # Delete any UT playground messages
         $g = new Group($dbhr, $dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
@@ -159,7 +168,9 @@ class messageTest extends IznikTestCase {
         assertEquals($goodsubj, $m->suggestSubject($gid, $goodsubj));
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test (High Street)"));
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR - Test  - (High Street)"));
+        error_log("--1");
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test Tuvalu High Street"));
+        error_log("--2");
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test Tuvalu HIGH STREET"));
         assertEquals("OFFER: test (Tuvalu High Street)", $m->suggestSubject($gid, "OFFR TEST Tuvalu HIGH STREET"));
 

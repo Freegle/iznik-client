@@ -45,7 +45,7 @@ class Location extends Entity
         return($str);
     }
 
-    public function create($osm_id, $name, $type, $geometry)
+    public function create($osm_id, $name, $type, $geometry, $osmparentsonly = 1)
     {
         try {
             $rc = $this->dbhm->preExec("INSERT INTO locations (osm_id, name, type, geometry, canon) VALUES (?, ?, ?, GeomFromText(?), ?)",
@@ -65,8 +65,10 @@ class Location extends Entity
                 $sql = "UPDATE locations SET gridid = ?, maxdimension = GetMaxDimension(geometry) WHERE id = ?;";
                 $this->dbhm->preExec($sql, [ $grid['gridid'], $id ]);
             }
+
+            $this->setParents($id, $gridid, $osmparentsonly);
         } catch (Exception $e) {
-            error_log("Location create exception");
+            error_log("Location create exception " . $e->getMessage() . " " . $e->getTraceAsString());
             $id = NULL;
             $rc = 0;
         }
@@ -83,6 +85,54 @@ class Location extends Entity
             return ($id);
         } else {
             return (NULL);
+        }
+    }
+
+    public function setParents($id, $gridid, $osmonly = 1) {
+        # For each location, we also want to store the area and first-part-postcode which this location is within.
+        #
+        # This allows us to standardise subjects on groups.
+        $sql = "SELECT name, lat, lng, type, gridid, geometry, AsText(geometry) AS geomtext FROM locations WHERE id = ?;";
+        $locs = $this->dbhr->preQuery($sql, [ $id ]);
+        #error_log($sql . ", $id");
+
+        if (count($locs) > 0) {
+            $loc = $locs[0];
+
+            # Now we want to find the area.  We can speed up our query if we restrict the search to this grid square
+            # and adjacent ones, but we need to work outwards until we find our location or it gets silly.
+            $gridids = [ $gridid ];
+            $lastcount = 0;
+
+            do {
+                # Now find grids which touch.  That avoids issues where our group is near the boundary of a grid square.
+                $sql = "SELECT touches FROM locations_grids_touches WHERE gridid IN (" . implode(',', $gridids) . ");";
+                #error_log($sql);
+                $neighbours = $this->dbhr->preQuery($sql, [ $gridid ]);
+                $lastcount = count($gridids);
+                foreach ($neighbours as $neighbour) {
+                    $gridids[] = $neighbour['touches'];
+                }
+
+                $gridids = array_unique($gridids);
+
+                # We choose the smallest non-postcode place location.  A place location is either one where the OSM data
+                # says it's a place (osm_place) or the type of the location means it would work as one (not point,
+                # basically).  We can't use MBRContains or MBRIntersects as some places are only present in OSM as points.
+                $sql = "SELECT id, name, AsText(geometry) AS geomtext, haversine(lat, lng, ?, ?) AS dist FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = $osmonly ORDER BY dist ASC LIMIT 2;";
+                #error_log("For $id $sql, {$loc['lat']}, {$loc['lng']}");
+                $intersects = $this->dbhr->preQuery($sql, [
+                    $loc['lat'],
+                    $loc['lng']
+                ]);
+            } while (count($gridids) != $lastcount && count($intersects) < 2 && count($gridids) < 10000);
+
+            if (count($intersects) > 1) {
+                # Quicker query if we omit AND id != $id and handle it here.
+                $iid = $intersects[0]['id'] != $id ? $intersects[0]['id'] : $intersects[1]['id'];
+                $sql = "UPDATE locations SET areaid = $iid WHERE id = $id;";
+                $this->dbhm->preExec($sql);
+            }
         }
     }
 
@@ -226,6 +276,7 @@ class Location extends Entity
             }
 
             # Now we have a list of gridids within which we want to find locations.
+            error_log("Got gridids " . var_export($gridids, TRUE));
             if (count($gridids) > 0) {
                 $sql = "SELECT locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") ORDER BY popularity ASC;";
                 $ret = $this->dbhr->query($sql);
@@ -290,8 +341,9 @@ class Location extends Entity
     public function closestPostcode($lat, $lng) {
         # Find the grids nearest to this lat/lng
         $sql = "SELECT id FROM locations_grids WHERE ABS(swlat - ?) <= 0.2 AND ABS(swlng - ?) <= 0.2 OR ABS(nelat - ?) <= 0.2 AND ABS(nelng - ?) <= 0.2;";
+        error_log($sql);
         $grids = $this->dbhr->preQuery($sql, [ $lat, $lng, $lat, $lng ]);
-        $gridids = [];
+        $gridids = [0];
         foreach ($grids as $grid) {
             $gridids[] = $grid['id'];
         }
@@ -305,7 +357,6 @@ class Location extends Entity
     public function groupsNear($radius = 20) {
         $sql = "SELECT id FROM groups WHERE lat IS NOT NULL AND lng IS NOT NULL AND haversine(lat, lng, ?, ?) <= ?;";
         $groups = $this->dbhr->preQuery($sql, [ $this->loc['lat'], $this->loc['lng'], $radius]);
-        error_log("groupsNear $sql " . var_export([ $this->loc['lat'], $this->loc['lng'], $radius], TRUE));
         $ret = [];
         foreach ($groups as $group) {
             $ret[] = $group['id'];
@@ -337,9 +388,22 @@ class Location extends Entity
     }
 
     public function geomAsText() {
-        $locs = $this->dbhr->preQuery("SELECT AsText(geometry) AS geomtext, AsText(ourgeometry) AS ourgeomtext FROM locations WHERE id = ?;", [ $this->id ]);
-        $ret = $locs[0]['ourgeomtext'] ? $locs[0]['ourgeomtext'] : $locs[0]['geomtext'];
+        $locs = $this->dbhr->preQuery("SELECT CASE WHEN ourgeometry IS NOT NULL THEN AsText(ourgeometry) ELSE AsText(geometry) END AS geomtext FROM locations WHERE id = ?;", [ $this->id ]);
+        $ret = $locs[0]['geomtext'];
         return($ret);
+    }
+
+    public function setGeometry($val) {
+        $rc = $this->dbhm->preExec("UPDATE locations SET `ourgeometry` = GeomFromText(?) WHERE id = {$this->id};", [$val]);
+        if ($rc) {
+            # The centre point and max dimensions will also have changed.
+            $rc = $this->dbhm->preExec("UPDATE locations SET maxdimension = GetMaxDimension(ourgeometry), lat = Y(GetCenterPoint(ourgeometry)), lng = X(GetCenterPoint(ourgeometry)) WHERE id = {$this->id};", [$val]);
+
+            if ($rc) {
+                $this->fetch($this->dbhr, $this->dbhm, $this->id, 'locations', 'loc', $this->publicatts);
+            }
+        }
+        return($rc);
     }
 
     public function withinBox($swlat, $swlng, $nelat, $nelng) {
@@ -347,11 +411,10 @@ class Location extends Entity
         # display our areas on a map.
         $g = new geoPHP();
 
-        $sql = "SELECT DISTINCT areaid FROM locations WHERE lat >= ? AND lng >= ? AND lat <= ? AND lng <= ? AND areaid IS NOT NULL;";
+        $sql = "SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.id = locations_excluded.locationid WHERE lat >= ? AND lng >= ? AND lat <= ? AND lng <= ? AND areaid IS NOT NULL AND locations_excluded.locationid IS NULL;";
         $areas = $this->dbhr->preQuery($sql, [ $swlat, $swlng, $nelat, $nelng ]);
+        #error_log("$sql " . var_export([ $swlat, $swlng, $nelat, $nelng ], TRUE));
         $ret = [];
-        $total = count($areas);
-        $count = 0;
 
         foreach ($areas as $area) {
             $a = new Location($this->dbhr, $this->dbhm, $area['areaid']);
@@ -382,7 +445,7 @@ class Location extends Entity
                     $thisone['polygon'] = $geom;
 
                     # Save it for next time.
-                    $this->dbhm->preExec("UPDATE locations SET ourgeometry = GeomFromText(?) WHERE id = ?;", [
+                    $rc = $this->dbhm->preExec("UPDATE locations SET ourgeometry = GeomFromText(?) WHERE id = ?;", [
                         $geom,
                         $area['areaid']
                     ]);
@@ -401,12 +464,6 @@ class Location extends Entity
             }
 
             $ret[] = $thisone;
-
-            $count++;
-
-            if ($count % 1000 === 0) {
-                error_log("...$count/$total");
-            }
         }
 
         return($ret);

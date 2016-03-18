@@ -1,0 +1,40 @@
+Return-Path: <test@yahoo.co.uk>
+Received: (qmail 72389 invoked from network); 9 Apr 2011 00:06:56 -0000
+Received: from unknown (98.137.34.44)
+  by m3.grp.sp2.yahoo.com with QMQP; 9 Apr 2011 00:06:56 -0000
+Received: from unknown (HELO n42b.bullet.mail.sp1.yahoo.com) (66.163.168.156)
+  by mta1.grp.sp2.yahoo.com with SMTP; 9 Apr 2011 00:06:56 -0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoogroups.com; s=lima; t=1302307616; bh=ga4iTln1WYSTtMZpb7+/VZGs2Wz4Duaezhe59XCcAq0=; h=Received:Received:X-Sender:X-Apparently-To:X-Received:X-Received:X-Received:X-Received:X-Received:Date:To:Message-ID:User-Agent:MIME-Version:Content-Type:Content-Transfer-Encoding:X-Mailer:X-Yahoo-Newman-Property:X-Originating-IP:X-Yahoo-Post-IP:From:Subject:X-Yahoo-Group-Post:X-Yahoo-Profile:X-YGroups-SubInfo:Sender:X-eGroups-Approved-By:X-eGroups-Auth; b=SKZjJc8CLULCY1yriyWK4S0yQrBkRr5dhZg7i0neK75JkVtHyw/piarsYQSbw6lUSFTKXkAeidgvjmQIgvBAkHllj+yt54krcfL+IgolihaE3C48C1YkssnGRXMiW0Qt
+Received: from [69.147.65.147] by n42.bullet.mail.sp1.yahoo.com with NNFMP; 09 Apr 2011 00:06:56 -0000
+Received: from [98.137.34.72] by t10.bullet.mail.sp1.yahoo.com with NNFMP; 09 Apr 2011 00:06:55 -0000
+X-Sender: test@yahoo.co.uk
+X-Apparently-To: FreeglePlayground@yahoogroups.com
+X-Received: (qmail 30495 invoked from network); 7 Apr 2011 18:59:49 -0000
+X-Received: from unknown (66.196.94.107)
+  by m13.grp.re1.yahoo.com with QMQP; 7 Apr 2011 18:59:49 -0000
+X-Received: from unknown (HELO n44d.bullet.mail.sp1.yahoo.com) (66.163.169.158)
+  by mta3.grp.re1.yahoo.com with SMTP; 7 Apr 2011 18:59:49 -0000
+X-Received: from [69.147.65.174] by n44.bullet.mail.sp1.yahoo.com with NNFMP; 07 Apr 2011 18:59:48 -0000
+X-Received: from [98.137.34.33] by t12.bullet.mail.sp1.yahoo.com with NNFMP; 07 Apr 2011 18:59:48 -0000
+Date: Thu, 07 Apr 2011 18:59:47 -0000
+To: FreeglePlayground@yahoogroups.com
+Message-ID: <inl1j3+dv3g@eGroups.com>
+User-Agent: eGroups-EW/0.82
+MIME-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: quoted-printable
+X-Mailer: Yahoo Groups Message Poster
+X-Yahoo-Newman-Property: groups-system
+X-Originating-IP: 66.163.169.158
+X-Yahoo-Post-IP: 81.99.120.44
+From: "jonathan" <test@yahoo.co.uk>
+Subject: =?iso-8859-1?q?DFS_VOUCHER_WORTH_=A340_HELLO_FREEGLER?=
+X-Yahoo-Group-Post: member; u=129480156; y=W26O9jm17TYWyaTJbKU86DBFgYTuI-wPP_aVHgLwYp9ePSu3Eqmk
+X-Yahoo-Profile: test
+
+TEST TEST TEST
+TEST  =
+TEST TEST TEST
+TEST
+
+
