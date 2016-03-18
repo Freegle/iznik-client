@@ -62,7 +62,6 @@ function locations() {
         case 'PATCH': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             $role = $me ? $me->getPrivate('systemrole') : User::ROLE_NONMEMBER;
-            error_log("System role $role");
 
             if ($role == User::SYSTEMROLE_MODERATOR || $role == User::SYSTEMROLE_SUPPORT || $role == User::SYSTEMROLE_ADMIN) {
                 $polygon = presdef('polygon', $_REQUEST, NULL);

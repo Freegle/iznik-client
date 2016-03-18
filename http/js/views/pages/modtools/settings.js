@@ -1308,7 +1308,8 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
     template: "modtools_settings_map",
 
     events: {
-        'click .js-save': 'save'
+        'click .js-save': 'save',
+        'click .js-delete': 'exclude'
     },
 
     save: function() {
@@ -1325,6 +1326,23 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
             };
             self.selected.save(changes, {
                 patch: true
+            });
+        }
+    },
+
+    exclude: function() {
+        var self = this;
+
+        if (self.selected) {
+            $.ajax({
+                url: API + '/locations/' + self.selected.get('id'),
+                type: 'POST',
+                data: {
+                    action: 'Exclude',
+                    groupid: self.options.groupid
+                }, complete: function() {
+                    self.getAreas();
+                }
             });
         }
     },
@@ -1376,7 +1394,6 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
                         self.mapWKT(poly, area);
                     } else {
                         var wkt = 'POINT(' + lng + ' ' + lat + ')';
-                        console.log(wkt);
                         self.mapWKT(wkt, area);
                     }
                 }

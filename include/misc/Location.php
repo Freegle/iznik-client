@@ -411,9 +411,9 @@ class Location extends Entity
         # display our areas on a map.
         $g = new geoPHP();
 
-        $sql = "SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.id = locations_excluded.locationid WHERE lat >= ? AND lng >= ? AND lat <= ? AND lng <= ? AND areaid IS NOT NULL AND locations_excluded.locationid IS NULL;";
+        $sql = "SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.id = locations_excluded.locationid WHERE lat >= ? AND lng >= ? AND lat <= ? AND lng <= ? AND areaid IS NOT NULL AND locations_excluded.areaid IS NULL;";
         $areas = $this->dbhr->preQuery($sql, [ $swlat, $swlng, $nelat, $nelng ]);
-        #error_log("$sql " . var_export([ $swlat, $swlng, $nelat, $nelng ], TRUE));
+        error_log("$sql " . var_export([ $swlat, $swlng, $nelat, $nelng ], TRUE));
         $ret = [];
 
         foreach ($areas as $area) {

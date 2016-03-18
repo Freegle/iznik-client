@@ -125,7 +125,6 @@ class MessageCollection
             }
 
             $role = $m->getRoleForMessage();
-            error_log("Got role $role");
 
             $thisgroups = $m->getGroups();
             $cansee = ($role == User::ROLE_MODERATOR) || ($role == User::ROLE_OWNER);
