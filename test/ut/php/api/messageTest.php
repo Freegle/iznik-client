@@ -928,6 +928,19 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
 
+        # And again to exercise codepath
+        $ret = $this->call('message', 'PUT', [
+            'id' => $id,
+            'collection' => 'Draft',
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'textbody' => 'Text body',
+            'attachments' => [ $attid ]
+        ]);
+        error_log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+
         $ret = $this->call('message', 'GET', [
             'id' => $id
         ]);

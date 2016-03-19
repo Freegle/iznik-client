@@ -23,7 +23,7 @@ self.addEventListener('push', function(event) {
 
                 // The order of these is intentional, because it controls what the value of url will be and therefore
                 // where we go when we click the notification.
-                var spam = work.spam + work.spammembers + work.spammerpendingadd + work.spammerpendingremove;
+                var spam = work.spam + work.spammembers + (Iznik.Session.isAdminOrSupport() ? (work.spammerpendingadd + work.spammerpendingremove) : 0);
 
                 if (spam > 0) {
                     workstr += spam + ' spam ' + " \n";

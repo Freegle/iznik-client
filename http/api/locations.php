@@ -8,6 +8,7 @@ function locations() {
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
     $messageid = intval(presdef('messageid', $_REQUEST, NULL));
     $action = presdef('action', $_REQUEST, NULL);
+    $byname = array_key_exists('byname', $_REQUEST) ? filter_var($_REQUEST['byname'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $l = new Location($dbhr, $dbhm, $id);
 
@@ -42,7 +43,7 @@ function locations() {
 
                 switch ($action) {
                     case 'Exclude':
-                        $l->exclude($groupid, $me->getId());
+                        $l->exclude($groupid, $me->getId(), $byname);
 
                         if ($messageid) {
                             # Suggest a new subject for this message.
@@ -74,6 +75,28 @@ function locations() {
 
                 if ($worked) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                }
+            }
+
+            break;
+        }
+
+        case 'PUT': {
+            $ret = ['ret' => 2, 'status' => 'Permission denied'];
+            $role = $me ? $me->getPrivate('systemrole') : User::ROLE_NONMEMBER;
+
+            if ($role == User::SYSTEMROLE_MODERATOR || $role == User::SYSTEMROLE_SUPPORT || $role == User::SYSTEMROLE_ADMIN) {
+                $polygon = presdef('polygon', $_REQUEST, NULL);
+                $name = presdef('name', $_REQUEST, NULL);
+
+                # This parameter is used in UT.
+                $osmparentsonly = array_key_exists('osmparentsonly', $_REQUEST) ? $_REQUEST['osmparentsonly'] : 1;
+
+                if ($polygon && $name) {
+                    # We create this as a place, which can be used as an area - the client wouldn't have created it
+                    # if they didn't want that.
+                    $id = $l->create(NULL, $name, 'Polygon', $polygon, $osmparentsonly, TRUE);
+                    $ret = [ 'ret' => 0, 'status' => 'Success', 'id' => $id ];
                 }
             }
 

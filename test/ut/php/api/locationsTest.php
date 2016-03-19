@@ -111,7 +111,8 @@ class locationsAPITest extends IznikAPITestCase
             'id' => $lid1,
             'groupid' => $this->groupid,
             'messageid' => $id,
-            'action' => 'Exclude'
+            'action' => 'Exclude',
+            'byname' => true
         ]);
         assertEquals(2, $ret['ret']);
 
@@ -121,6 +122,7 @@ class locationsAPITest extends IznikAPITestCase
             'groupid' => $this->groupid,
             'messageid' => $id,
             'action' => 'Exclude',
+            'byname' => true,
             'dup' => 2
         ]);
         assertEquals(0, $ret['ret']);
@@ -261,4 +263,46 @@ class locationsAPITest extends IznikAPITestCase
         error_log(__METHOD__ . " end");
     }
 
+    public function testPut()
+    {
+        error_log(__METHOD__);
+
+        # Create a fake postcode which should end up being mapped to our area.
+        $l = new Location($this->dbhr, $this->dbhm);
+        $lid1 = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        error_log("Postcode id $lid1");
+
+        # Not logged in
+        $ret = $this->call('locations', 'PUT', [
+            'name' => 'Tuvalu Central',
+            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $this->user->setRole(User::ROLE_MEMBER, $this->groupid);
+        assertTrue($this->user->login('testpw'));
+
+        # Member only
+        $ret = $this->call('locations', 'PUT', [
+            'name' => 'Tuvalu Central',
+            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Mod
+        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+        $ret = $this->call('locations', 'PUT', [
+            'name' => 'Tuvalu Central',
+            'osmparentsonly' => 0,
+            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $areaid = $ret['id'];
+
+        $l = new Location($this->dbhr, $this->dbhm, $lid1);
+        assertEquals($areaid, $l->getPrivate('areaid'));
+
+        error_log(__METHOD__ . " end");
+    }
 }

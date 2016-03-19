@@ -23,6 +23,11 @@ foreach ($pcs as $pc) {
     }
 }
 
+$locs = $dbhr->preQuery("select id from locations where areaid not in (select id from locations);");
+foreach ($locs as $loc) {
+    $dbhm->preExec("UPDATE locations SET areaid = NULL WHERE id = ?;", [ $loc['id'] ]);
+}
+
 # We look at all full postcodes
 #
 # Edinburgh bounding box -3.417,55.867,-2.947,56.021
@@ -30,7 +35,7 @@ $count = 0;
 $found = 0;
 
 $sql = "SELECT id, gridid, name, type, lat, lng, geometry, AsText(geometry) AS geomtext FROM locations WHERE LOCATE(' ', name) > 0 AND type = 'Postcode' AND areaid IS NULL ORDER BY name ASC;";
-#$sql = "SELECT id, gridid, name, type, lat, lng, geometry, AsText(geometry) AS geomtext FROM locations WHERE LOCATE(' ', name) > 0 AND type = 'Postcode' AND name = 'PR3 2NX';";
+$sql = "SELECT id, gridid, name, type, lat, lng, geometry, AsText(geometry) AS geomtext FROM locations WHERE LOCATE(' ', name) > 0 AND type = 'Postcode' AND lat <= 55 AND lat >= 54.9 AND lng <= -1.52 AND lng >= -1.75;";
 
 $locs = $dbhr->preQuery($sql);
 $total = count($locs);

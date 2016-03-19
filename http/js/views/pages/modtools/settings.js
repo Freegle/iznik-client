@@ -1314,19 +1314,41 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
 
     save: function() {
         var self = this;
+        var wkt = self.$('.js-wkt').val();
+        var name = self.$('.js-name').val();
+
+        var v = new Iznik.Views.PleaseWait({
+            timeout: 100
+        });
+        v.render();
 
         if (self.selected) {
+            // Existing location - patch it.
             var id = self.selected.get('id');
-            var wkt = self.$('.js-wkt').val();
             self.selected.set('polygon', wkt);
 
             var changes = {
-                'id': id,
-                'polygon': wkt
+                id: id,
+                polygon: wkt
             };
             self.selected.save(changes, {
                 patch: true
+            }).then(function() {
+                v.close();
             });
+        } else {
+            // New location - create it.
+            $.ajax({
+                url: API + 'locations',
+                type: 'PUT',
+                data: {
+                    name: name,
+                    polygon: wkt
+                }, complete: function() {
+                    v.close();
+                    self.getAreas();
+                }
+            })
         }
     },
 
@@ -1339,6 +1361,7 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
                 type: 'POST',
                 data: {
                     action: 'Exclude',
+                    byname: false,
                     groupid: self.options.groupid
                 }, complete: function() {
                     self.getAreas();
@@ -1370,6 +1393,8 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
         self.selected = null;
         self.$('.js-wkt').val('');
         self.$('.js-name').val('');
+        self.$('.js-name').prop('readonly', false);
+
         _.each(self.features, function(feature) {
             feature.setOptions({strokeColor: '#990000'});
         });
@@ -1381,6 +1406,11 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
             nelat: bounds.getNorthEast().lat(),
             nelng: bounds.getNorthEast().lng()
         });
+
+        var v = new Iznik.Views.PleaseWait({
+            timeout: 100
+        });
+        v.render();
 
         self.areas.fetch().then(function() {
             self.clearMap();
@@ -1398,6 +1428,7 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
                     }
                 }
             });
+            v.close();
         })
     },
 
@@ -1411,11 +1442,21 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
     changeHandler: function(self, area, obj) {
         return(function(n) {
             self.selected = area;
-            self.$('.js-name').val(area.get('name'));
-            self.$('.js-wkt').val(area.get('polygon'));
+            self.$('.js-id').val('');
+            self.$('.js-wkt').val('');
+
+            if (area) {
+                self.$('.js-name').val(area.get('name'));
+                self.$('.js-wkt').val(area.get('polygon'));
+                self.$('.js-id').html(area.get('id'));
+            }
+
+            // We can only edit the name on a new area.
+            self.$('.js-name').prop('readonly', area != null);
+
             self.updateWKT.call(self, obj);
 
-            /// Set the border colour so it's obvious which one we're on.
+            // Set the border colour so it's obvious which one we're on.
             _.each(self.features, function(feature) {
                 feature.setOptions({strokeColor: '#990000'});
             });
@@ -1525,7 +1566,7 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
                     fillOpacity: 0.6
                 },
                 disableDefaultUI: true,
-                mapTypeControl: true,
+                mapTypeControl: false,
                 mapTypeId: google.maps.MapTypeId.ROADMAP,
                 mapTypeControlOptions: {
                     position: google.maps.ControlPosition.TOP_LEFT,
@@ -1534,6 +1575,7 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
                 panControl: false,
                 streetViewControl: false,
                 zoomControl: true,
+                minZoom: 12,
                 zoomControlOptions: {
                     position: google.maps.ControlPosition.LEFT_TOP,
                     style: google.maps.ZoomControlStyle.SMALL
@@ -1544,7 +1586,7 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
 
             self.map.drawingManager = new google.maps.drawing.DrawingManager({
                 drawingControlOptions: {
-                    position: google.maps.ControlPosition.TOP_CENTER,
+                    position: google.maps.ControlPosition.TOP_RIGHT,
                     drawingModes: [
                         google.maps.drawing.OverlayType.POLYGON
                     ]
@@ -1580,6 +1622,36 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
 
                 self.features.push(event.overlay);
                 self.changeHandler(self, area, obj)();
+            });
+
+            // Searchbox
+            var input = document.getElementById('pac-input');
+            self.searchBox = new google.maps.places.SearchBox(input);
+            self.map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+
+            self.map.addListener('bounds_changed', function() {
+                self.searchBox.setBounds(self.map.getBounds());
+            });
+
+            self.searchBox.addListener('places_changed', function() {
+                // Put the map here.
+                var places = self.searchBox.getPlaces();
+
+                if (places.length == 0) {
+                    return;
+                }
+
+                var bounds = new google.maps.LatLngBounds();
+                places.forEach(function(place) {
+                    if (place.geometry.viewport) {
+                        // Only geocodes have viewport.
+                        bounds.union(place.geometry.viewport);
+                    } else {
+                        bounds.extend(place.geometry.location);
+                    }
+                });
+
+                self.map.fitBounds(bounds);
             });
 
             google.maps.event.addListener(self.map, 'idle', _.bind(self.getAreas, self));

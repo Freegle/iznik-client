@@ -29,11 +29,11 @@
                 Approved message #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else if (subtype == 'Rejected') { %>
                 <div class="nomargin alert alert-danger">
-                    Rejected #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
+                    Rejected #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.text && obj.text.length > 0) { %> with <em>{{text}} </em><% } else if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
                 </div>
             <% } else if (subtype == 'Replied') { %>
             <div class="nomargin alert alert-danger">
-                Mod sent <% if (obj.stdmsg) { %>standard message <em>{{stdmsg.title}}</em><% } else if (obj.text) { %>{{text}}<% } else { %>mail<% } %>
+                Mod sent <% if (obj.text && obj.text.length > 0) { %> with <em>{{text}} </em><% } else if (obj.stdmsg) { %> standard message <em>{{stdmsg.title}} </em><% } else { %>mail<% } %>
             </div>
             <% } else if (subtype == 'Deleted') { %>
                 <div class="nomargin alert alert-danger">
@@ -69,7 +69,7 @@
             Deleted member {{text}} <% if (obj.group) { %>on {{group.namedisplay}}<% } %>
             <% } else if (subtype == 'Mailed') { %>
             <div class="nomargin alert alert-danger">
-                Mod sent <% if (obj.stdmsg) { %>standard message <em>{{stdmsg.title}}</em><% } else if (obj.text) { %>{{text}}<% } else { %>mail<% } %>
+                Mod sent <% if (obj.text && obj.text.length > 0) { %> <em>{{text}} </em><% } else if (obj.stdmsg) { %> standard message <em>{{stdmsg.title}} </em><% } else { %>mail <% } %>
             </div>
             <% } else if (subtype == 'Hold') { %>
             Held member {{user.displayname}} on {{group.namedisplay}}

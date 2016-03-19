@@ -509,7 +509,7 @@ class userTest extends IznikTestCase {
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $cid = $c->create('Test');
-        $c->setPrivate('ccfollmembto', 'Specifc');
+        $c->setPrivate('ccfollmembto', 'Specific');
         $c->setPrivate('ccfollmembaddr', 'test@test.com');
 
         $s = new StdMessage($this->dbhr, $this->dbhm);
@@ -524,7 +524,8 @@ class userTest extends IznikTestCase {
         $sid = $s->create('Test', $cid);
         $s->setPrivate('action', 'Leave Approved Member');
 
-        $u->mail($group, "test", "test", $sid);
+        error_log("Mail them");
+        $u->mail($group, "test", "test", $sid, 'Leave Approved Member');
 
         $s->delete();
         $c->delete();

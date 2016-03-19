@@ -124,9 +124,7 @@ class Group extends Entity
         #error_log("Getworkcounts " . error_log(var_export($mysettings, true)));
         $showmessages = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'];
         $showmembers = !array_key_exists('showmembers', $mysettings) || $mysettings['showmembers'];
-        $pend = $showmessages ? 'pending' : 'pendingother';
         $spam = $showmessages ? 'spam' : 'spamother';
-        $pendmemb = $showmembers ? 'pendingmembers' : 'pendingmembersother';
 
         # We only want to show spam messages upto 7 days old to avoid seeing too many, especially on first use.
         $mysqltime = date ("Y-m-d", strtotime("Midnight 7 days ago"));

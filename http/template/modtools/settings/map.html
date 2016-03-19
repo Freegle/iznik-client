@@ -1,17 +1,15 @@
-<div class="alert alert-warning">
-    This is still experimental and subject to change.  Don't get worried if you don't like what you see.
-</div>
 <div class="js-help" />
 <div class="row-fluid">
+    <input id="pac-input" class="controls" type="text" placeholder="Search Box">
     <div id="map" class="col-md-7">
     </div>
     <div class="col-md-5">
-        <h3>Location Name</h3>
-        <input class="form-control js-name" readonly />
+        <h3>Location Name&nbsp;<span class="small faded">#</span><span class="small faded js-id"></span></h3>
+        <input class="form-control js-name"  />
         <div class="botspace" />
         <div class="btn btn-success js-save"><div class="glyphicon glyphicon-floppy-save" />&nbsp;Save Changes</div>
         <div class="btn btn-danger js-delete"><div class="glyphicon glyphicon-trash" />&nbsp;Delete Location</div>
         <div class="text-muted topspace">The following information is for debugging only:</div>
-        <textarea class="topspace form-control js-wkt" lines="5" readonly />
+        <textarea class="topspace form-control js-wkt" lines="10" readonly />
     </div>
 </div>

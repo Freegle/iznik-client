@@ -887,6 +887,30 @@ paths:
             description: Unexpected error,
             schema:
               $ref: '#/definitions/Error'
+  /locations:
+    put:
+      summary: Create a location
+      tags: [Locations]
+      description: |
+        Create a location
+      parameters:
+      - name: name
+        in: body
+        description: Name of the new location
+        type: string
+      - name: polygon
+        in: body
+        description: WKT polygon of the new location
+        type: string
+      responses:
+          "200":
+            description: "Successful response"
+            schema:
+              $ref: '#/definitions/Response'
+          default:
+            description: Unexpected error,
+            schema:
+              $ref: '#/definitions/Error'
   /memberships:
     get:
       summary: Get membership(s)

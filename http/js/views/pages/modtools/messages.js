@@ -86,6 +86,7 @@ Iznik.Views.ModTools.Message = IznikView.extend({
                     url: API + 'locations',
                     data: {
                         action: 'Exclude',
+                        byname: true,
                         id: self.model.get('location').id,
                         groupid: groupid,
                         messageid: self.model.get('id')

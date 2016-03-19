@@ -45,11 +45,12 @@ class Location extends Entity
         return($str);
     }
 
-    public function create($osm_id, $name, $type, $geometry, $osmparentsonly = 1)
+    public function create($osm_id, $name, $type, $geometry, $osmparentsonly = 1, $place = FALSE)
     {
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO locations (osm_id, name, type, geometry, canon) VALUES (?, ?, ?, GeomFromText(?), ?)",
-                [$osm_id, $name, $type, $geometry, $this->canon($name)]);
+            # TODO osm_place is really just place.
+            $rc = $this->dbhm->preExec("INSERT INTO locations (osm_id, name, type, geometry, canon, osm_place) VALUES (?, ?, ?, GeomFromText(?), ?, ?)",
+                [$osm_id, $name, $type, $geometry, $this->canon($name), $place]);
             $id = $this->dbhm->lastInsertId();
             
             if ($rc) {
@@ -66,7 +67,33 @@ class Location extends Entity
                 $this->dbhm->preExec($sql, [ $grid['gridid'], $id ]);
             }
 
+            # Set any area and postcode for this new location.
             $this->setParents($id, $gridid, $osmparentsonly);
+
+            if ($type == 'Polygon') {
+                # We might have postcodes which should now map to this new area rather than wherever they mapped
+                # previously.
+                $g = new geoPHP();
+                $p = $g->load($geometry);
+                $bbox = $p->getBBox();
+                #error_log("Bounding box " . var_export($bbox, TRUE));
+
+                # We need to decide which postcodes to scan.  Choose a slightly arbitrary larger box.
+                $swlat = $bbox['miny'] - 0.01;
+                $nelat = $bbox['maxy'] + 0.01;
+                $swlng = $bbox['minx'] - 0.01;
+                $nelng = $bbox['maxx'] + 0.01;
+
+                $sql = "SELECT * FROM locations WHERE $swlat <= lat AND lat <= $nelat AND $swlng <= lng AND lng <= $nelng AND type = 'Postcode' AND LOCATE(' ', name) > 0;";
+                #error_log($sql);
+                $locs = $this->dbhr->preQuery($sql);
+                foreach ($locs as $loc) {
+                    if ($loc['id'] != $id) {
+                        #error_log("Re-evaluate {$loc['id']} {$loc['name']}");
+                        $this->setParents($loc['id'], $gridid, 1);
+                    }
+                }
+            }
         } catch (Exception $e) {
             error_log("Location create exception " . $e->getMessage() . " " . $e->getTraceAsString());
             $id = NULL;
@@ -99,6 +126,21 @@ class Location extends Entity
         if (count($locs) > 0) {
             $loc = $locs[0];
 
+            $p = strpos($loc['name'], ' ');
+
+            if ($loc['type'] == 'Postcode' && $p !== FALSE) {
+                # This is a full postcode - find the parent.
+                $sql = "SELECT id FROM locations WHERE name LIKE ? AND type = 'Postcode';";
+                $pcs = $this->dbhr->preQuery($sql, [ substr($loc['name'], 0, $p) ]);
+                foreach ($pcs as $pc) {
+                    $this->dbhr->preExec("UPDATE locations SET postcodeid = ? WHERE id = ?;",
+                        [
+                            $pc['id'],
+                            $id
+                        ]);
+                }
+            }
+
             # Now we want to find the area.  We can speed up our query if we restrict the search to this grid square
             # and adjacent ones, but we need to work outwards until we find our location or it gets silly.
             $gridids = [ $gridid ];
@@ -119,7 +161,7 @@ class Location extends Entity
                 # We choose the smallest non-postcode place location.  A place location is either one where the OSM data
                 # says it's a place (osm_place) or the type of the location means it would work as one (not point,
                 # basically).  We can't use MBRContains or MBRIntersects as some places are only present in OSM as points.
-                $sql = "SELECT id, name, AsText(geometry) AS geomtext, haversine(lat, lng, ?, ?) AS dist FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = $osmonly ORDER BY dist ASC LIMIT 2;";
+                $sql = "SELECT id, name, CASE WHEN ourgeometry IS NOT NULL THEN AsText(ourgeometry) ELSE AsText(geometry) END AS geomtext, haversine(lat, lng, ?, ?) AS dist FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = $osmonly ORDER BY dist ASC LIMIT 2;";
                 #error_log("For $id $sql, {$loc['lat']}, {$loc['lng']}");
                 $intersects = $this->dbhr->preQuery($sql, [
                     $loc['lat'],
@@ -127,7 +169,7 @@ class Location extends Entity
                 ]);
             } while (count($gridids) != $lastcount && count($intersects) < 2 && count($gridids) < 10000);
 
-            if (count($intersects) > 1) {
+            if (count($intersects) > 1 || (count($intersects) == 1 && $intersects[0]['id'] != $id)) {
                 # Quicker query if we omit AND id != $id and handle it here.
                 $iid = $intersects[0]['id'] != $id ? $intersects[0]['id'] : $intersects[1]['id'];
                 $sql = "UPDATE locations SET areaid = $iid WHERE id = $id;";
@@ -286,10 +328,10 @@ class Location extends Entity
         return($ret);
     }
 
-    public function exclude($groupid, $userid) {
-        # We want to exclude a specific location.  Exclude all locations with the same name as this one; our DB has
+    public function exclude($groupid, $userid, $byname = FALSE) {
+        # We want to exclude a specific location.  Potentially exclude all locations with the same name as this one; our DB has
         # duplicate names.
-        $sql = "SELECT id FROM locations WHERE name = (SELECT name FROM locations WHERE id = ?);";
+        $sql = $byname ? "SELECT id FROM locations WHERE name = (SELECT name FROM locations WHERE id = ?);" : "SELECT id FROM locations WHERE id = ?;";
         $locs = $this->dbhr->preQuery($sql, [ $this->id ]);
 
         foreach ($locs as $loc) {
@@ -389,7 +431,7 @@ class Location extends Entity
 
     public function geomAsText() {
         $locs = $this->dbhr->preQuery("SELECT CASE WHEN ourgeometry IS NOT NULL THEN AsText(ourgeometry) ELSE AsText(geometry) END AS geomtext FROM locations WHERE id = ?;", [ $this->id ]);
-        $ret = $locs[0]['geomtext'];
+        $ret = count($locs) == 1 ? $locs[0]['geomtext'] : NULL;
         return($ret);
     }
 
@@ -411,59 +453,61 @@ class Location extends Entity
         # display our areas on a map.
         $g = new geoPHP();
 
-        $sql = "SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.id = locations_excluded.locationid WHERE lat >= ? AND lng >= ? AND lat <= ? AND lng <= ? AND areaid IS NOT NULL AND locations_excluded.areaid IS NULL;";
+        $sql = "SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE lat >= ? AND lng >= ? AND lat <= ? AND lng <= ? AND areaid IS NOT NULL AND locations_excluded.locationid IS NULL;";
         $areas = $this->dbhr->preQuery($sql, [ $swlat, $swlng, $nelat, $nelng ]);
-        error_log("$sql " . var_export([ $swlat, $swlng, $nelat, $nelng ], TRUE));
         $ret = [];
 
         foreach ($areas as $area) {
             $a = new Location($this->dbhr, $this->dbhm, $area['areaid']);
-            $thisone = $a->getPublic();
-            $thisone['polygon'] = NULL;
+            if ($a->getId()) {
+                $thisone = $a->getPublic();
+                $thisone['polygon'] = NULL;
 
-            $geom = $a->geomAsText();
+                $geom = $a->geomAsText();
+                #error_log("For {$area['areaid']} {$thisone['name']} geom $geom");
 
-            if (strpos($geom, 'POLYGON') === FALSE) {
-                # We don't have a polygon for this area.  This is common for OSM data, where many towns etc are just
-                # recorded as points.  Invent our best guess based on the convex hull of the postcodes which we have
-                # decided are in this area.
-                $pcs = $this->dbhr->preQuery("SELECT * FROM locations WHERE areaid = ?;", [ $area['areaid'] ]);
-                $points = [];
-                foreach ($pcs as $pc) {
-                    $pstr = "POINT({$pc['lng']} {$pc['lat']})";
-                    #error_log("...{$pc['name']} $pstr");
-                    $points[] = $g::load($pstr);
-                }
+                if (strpos($geom, 'POLYGON') === FALSE) {
+                    # We don't have a polygon for this area.  This is common for OSM data, where many towns etc are just
+                    # recorded as points.  Invent our best guess based on the convex hull of the postcodes which we have
+                    # decided are in this area.
+                    $pcs = $this->dbhr->preQuery("SELECT * FROM locations WHERE areaid = ?;", [$area['areaid']]);
+                    $points = [];
+                    foreach ($pcs as $pc) {
+                        $pstr = "POINT({$pc['lng']} {$pc['lat']})";
+                        #error_log("...{$pc['name']} $pstr");
+                        $points[] = $g::load($pstr);
+                    }
 
-                $mp = new MultiPoint($points);
-                $hull = $mp->convexHull();
+                    $mp = new MultiPoint($points);
+                    $hull = $mp->convexHull();
 
-                # We might not get a hull back if we're running in HHVM, because it relies on a PHP extension.
-                $geom = $hull ? $hull->asText() : NULL;
+                    # We might not get a hull back if we're running in HHVM, because it relies on a PHP extension.
+                    $geom = $hull ? $hull->asText() : NULL;
 
-                if ($geom) {
+                    if ($geom) {
+                        $thisone['polygon'] = $geom;
+
+                        # Save it for next time.
+                        $rc = $this->dbhm->preExec("UPDATE locations SET ourgeometry = GeomFromText(?) WHERE id = ?;", [
+                            $geom,
+                            $area['areaid']
+                        ]);
+                    }
+                } else {
                     $thisone['polygon'] = $geom;
-
-                    # Save it for next time.
-                    $rc = $this->dbhm->preExec("UPDATE locations SET ourgeometry = GeomFromText(?) WHERE id = ?;", [
-                        $geom,
-                        $area['areaid']
-                    ]);
                 }
-            } else {
-                $thisone['polygon'] = $geom;
+
+                # Get the top-level postcode.
+                $tpcid = $a->getPrivate('postcodeid');
+                #error_log("Postcode $tpcid for " . $a->getPrivate('name'));
+
+                if ($tpcid) {
+                    $tpc = new Location($this->dbhr, $this->dbhm, $tpcid);
+                    $thisone['postcode'] = $tpc->getPublic();
+                }
+
+                $ret[] = $thisone;
             }
-
-            # Get the top-level postcode.
-            $tpcid = $a->getPrivate('postcodeid');
-            #error_log("Postcode $tpcid for " . $a->getPrivate('name'));
-
-            if ($tpcid) {
-                $tpc = new Location($this->dbhr, $this->dbhm, $tpcid);
-                $thisone['postcode'] = $tpc->getPublic();
-            }
-
-            $ret[] = $thisone;
         }
 
         return($ret);

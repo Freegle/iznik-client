@@ -29,6 +29,7 @@ class locationTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 8.3 AND swlat <= 8.7;");
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 179.1 AND swlat <= 179.3;");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13';");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE '??%';");
         for ($swlat = 8.3; $swlat <= 8.6; $swlat += 0.1) {
             for ($swlng = 179.1; $swlng <= 179.3; $swlng += 0.1) {
