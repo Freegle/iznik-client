@@ -1307,12 +1307,25 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
 
     selected: null,
 
+    editing: false,
+
     template: "modtools_settings_map",
 
     events: {
         'click .js-save': 'save',
         'click .js-delete': 'exclude',
-        'click #js-shade': 'shade'
+        'click #js-shade': 'shade',
+        'keyup .js-wkt': 'paste',
+        'click .js-discard': 'discard'
+    },
+
+    discard: function() {
+        this.editing = false;
+        this.getAreas();
+    },
+
+    paste: function() {
+        this.mapWKT(this.$('.js-wkt').val(), null);
     },
 
     shade: function() {
@@ -1386,6 +1399,8 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
     clearMap: function() {
         var i;
 
+        this.editing = false;
+
         this.$('.js-wkt').val('');
 
         for (i in this.features) {
@@ -1405,6 +1420,7 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
         self.$('.js-wkt').val('');
         self.$('.js-name').val('');
         self.$('.js-name').prop('readonly', false);
+        self.$('.js-discard').addClass('disabled');
 
         _.each(self.features, function(feature) {
             feature.setOptions({strokeColor: '#990000'});
@@ -1450,8 +1466,13 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
         this.$('.js-wkt').val(wkt.write());
     },
 
-    changeHandler: function(self, area, obj) {
+    changeHandler: function(self, area, obj, edit) {
         return(function(n) {
+            if (edit) {
+                self.editing = edit;
+                self.$('.js-discard').removeClass('disabled');
+            }
+
             self.selected = area;
             self.$('.js-id').val('');
             self.$('.js-wkt').val('');
@@ -1497,30 +1518,32 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
         // Add listeners for overlay editing events
         if (!Wkt.isArray(obj) && wkt.type !== 'point') {
             // New vertex is inserted
-            google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj));
+            google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj, true));
 
             // Existing vertex is removed (insertion is undone)
-            google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj));
+            google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj, true));
 
             // Existing vertex is moved (set elsewhere)
-            google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj));
+            google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj, true));
         }
 
         // Click to show info
-        google.maps.event.addListener(obj, 'click', self.changeHandler(self, area, obj));
+        google.maps.event.addListener(obj, 'click', self.changeHandler(self, area, obj, false));
 
         self.features.push(obj);
 
-        var mapLabel = new MapLabel({
-            text: area.get('name'),
-            position: new google.maps.LatLng(area.get('lat'), area.get('lng')),
-            map: self.map,
-            fontSize: 20,
-            fontColor: 'red',
-            align: 'right'
-        });
+        if (area) {
+            var mapLabel = new MapLabel({
+                text: area.get('name'),
+                position: new google.maps.LatLng(area.get('lat'), area.get('lng')),
+                map: self.map,
+                fontSize: 20,
+                fontColor: 'red',
+                align: 'right'
+            });
 
-        area.set('label', mapLabel);
+            area.set('label', mapLabel);
+        }
 
         var bounds = new google.maps.LatLngBounds();
 
@@ -1610,7 +1633,6 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
             self.map.drawingManager.setMap(self.map);
 
             google.maps.event.addListener(self.map.drawingManager, 'overlaycomplete', function (event) {
-                console.log("Completed draw", event);
                 var wkt;
 
                 // Set the drawing mode to "pan" (the hand) so users can immediately edit
@@ -1622,17 +1644,17 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
 
                 if (event.type === google.maps.drawing.OverlayType.POLYGON || event.type === google.maps.drawing.OverlayType.POLYLINE) {
                     // New vertex is inserted
-                    google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj));
+                    google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj, true));
 
                     // Existing vertex is removed (insertion is undone)
-                    google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj));
+                    google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj, true));
 
                     // Existing vertex is moved (set elsewhere)
-                    google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj));
+                    google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj, true));
                 }
 
                 self.features.push(event.overlay);
-                self.changeHandler(self, area, obj)();
+                self.changeHandler(self, area, obj, false)();
             });
 
             // Searchbox
@@ -1665,7 +1687,11 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
                 self.map.fitBounds(bounds);
             });
 
-            google.maps.event.addListener(self.map, 'idle', _.bind(self.getAreas, self));
+            google.maps.event.addListener(self.map, 'idle', _.bind(function() {
+                if (!this.editing) {
+                    this.getAreas();
+                }
+            }, self));
         });
     }
 });
