@@ -889,6 +889,8 @@ Iznik.Views.ModTools.Settings.ActionSelect = Backform.InputControl.extend({
 Iznik.Views.ModTools.Settings.StdMessage = Iznik.Views.Modal.extend({
     template: 'modtools_settings_stdmsg',
 
+    shaded: true,
+
     events: {
         'click .js-save': 'save',
         'click .js-delete': 'delete'
@@ -1309,7 +1311,16 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
 
     events: {
         'click .js-save': 'save',
-        'click .js-delete': 'exclude'
+        'click .js-delete': 'exclude',
+        'click #js-shade': 'shade'
+    },
+
+    shade: function() {
+        var self = this;
+        this.shaded = this.shaded ? false : true;
+        _.each(this.features, function(feature) {
+            feature.setOptions({fillOpacity: self.shaded ? 0 : 0.6 });
+        });
     },
 
     save: function() {
