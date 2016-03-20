@@ -1359,6 +1359,7 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
                 patch: true
             }).then(function() {
                 v.close();
+                self.getAreas();
             });
         } else {
             // New location - create it.
@@ -1414,6 +1415,7 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
 
     getAreas: function() {
         var self = this;
+        console.log("GetAreas start");
 
         // No longer got one selected.
         self.selected = null;
@@ -1422,39 +1424,22 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
         self.$('.js-name').prop('readonly', false);
         self.$('.js-discard').addClass('disabled');
 
-        _.each(self.features, function(feature) {
-            feature.setOptions({strokeColor: '#990000'});
-        });
-
-        var bounds = self.map.getBounds();
-        self.areas = new Iznik.Collections.Locations({
-            swlat: bounds.getSouthWest().lat(),
-            swlng: bounds.getSouthWest().lng(),
-            nelat: bounds.getNorthEast().lat(),
-            nelng: bounds.getNorthEast().lng()
-        });
-
         var v = new Iznik.Views.PleaseWait({
             timeout: 100
         });
         v.render();
 
-        self.areas.fetch().then(function() {
-            self.clearMap();
-            self.areas.each(function(area) {
-                var poly = area.get('polygon');
-                var lat = area.get('lat');
-                var lng = area.get('lng');
+        var bounds = self.map.getBounds();
 
-                if (poly || lat || lng) {
-                    if (poly) {
-                        self.mapWKT(poly, area);
-                    } else {
-                        var wkt = 'POINT(' + lng + ' ' + lat + ')';
-                        self.mapWKT(wkt, area);
-                    }
-                }
-            });
+        self.areas.fetch({
+            data: {
+                swlat: bounds.getSouthWest().lat(),
+                swlng: bounds.getSouthWest().lng(),
+                nelat: bounds.getNorthEast().lat(),
+                nelng: bounds.getNorthEast().lng()
+            }
+        }).then(function() {
+            console.log("Fetched");
             v.close();
         })
     },
@@ -1530,6 +1515,7 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
         // Click to show info
         google.maps.event.addListener(obj, 'click', self.changeHandler(self, area, obj, false));
 
+        area.set('obj', obj);
         self.features.push(obj);
 
         if (area) {
@@ -1685,6 +1671,28 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
                 });
 
                 self.map.fitBounds(bounds);
+            });
+
+            self.areas = new Iznik.Collections.Locations();
+            self.listenTo(self.areas, 'add', function(area) {
+                var poly = area.get('polygon');
+                var lat = area.get('lat');
+                var lng = area.get('lng');
+
+                if (poly || lat || lng) {
+                    if (poly) {
+                        self.mapWKT(poly, area);
+                    } else {
+                        var wkt = 'POINT(' + lng + ' ' + lat + ')';
+                        self.mapWKT(wkt, area);
+                    }
+                }
+            });
+
+            self.listenTo(self.areas, 'remove', function(area) {
+                var obj = area.get('obj');
+                obj.setMap(null);
+                self.features = _.without(self.areas, area.get('obj'));
             });
 
             google.maps.event.addListener(self.map, 'idle', _.bind(function() {
