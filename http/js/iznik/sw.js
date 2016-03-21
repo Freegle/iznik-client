@@ -42,12 +42,24 @@ self.addEventListener('push', function(event) {
                         url = '/modtools/messages/pending';
                     }
 
-                    // Clear any we have shown.
+                    // Clear any we have shown so far.
                     registration.getNotifications({ tag: 'work' }).then(function(notifications) {
                         for (var i = 0; i < notifications.length; i++) {
                             notifications[i].close();
                         }
                     });
+
+                    if (workstr == '') {
+                        // We have to show a popup, otherwise we'll get the "updated in the background" message.  But
+                        // we can start a timer to clear the notifications later.
+                        setTimeout(function() {
+                            registration.getNotifications({ tag: 'work' }).then(function(notifications) {
+                                for (var i = 0; i < notifications.length; i++) {
+                                    notifications[i].close();
+                                }
+                            });
+                        }, 1000);
+                    }
 
                     workstr = workstr == '' ? "No tasks outstanding" : workstr;
                 } catch (e) {
