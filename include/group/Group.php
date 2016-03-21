@@ -600,7 +600,19 @@ class Group extends Entity
 
         # First find messages which are missing on the server, i.e. present in $messages but not
         # present in any of $collections.
+        $pending = FALSE;
+        $approved = FALSE;
+
         foreach ($collections as $collection) {
+            # We can get called with Spam for either an approved or a pending correlate; we want to
+            # know which it is.
+            if ($collection == MessageCollection::APPROVED) {
+                $approved = TRUE;
+            }
+            if ($collection == MessageCollection::PENDING) {
+                $pending = TRUE;
+            }
+
             $c = new MessageCollection($this->dbhr, $this->dbhm, $collection);
             $cs[] = $c;
 
@@ -646,7 +658,7 @@ class Group extends Entity
         # $messages.
         /** @var Collection $c */
         foreach ($cs as $c) {
-            $sql = "SELECT id, fromaddr, yahoopendingid, yahooapprovedid, subject, date, messageid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0;";
+            $sql = "SELECT id, source, fromaddr, yahoopendingid, yahooapprovedid, subject, date, messageid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0;";
             $ourmsgs = $this->dbhr->preQuery(
                 $sql,
                 [
@@ -658,16 +670,23 @@ class Group extends Entity
             foreach ($ourmsgs as $msg) {
                 $key = $this->getKey($msg);
                 if (!array_key_exists($key, $supplied)) {
-                    $missingonclient[] = [
-                        'id' => $msg['id'],
-                        'email' => $msg['fromaddr'],
-                        'subject' => $msg['subject'],
-                        'collection' => $c->getCollection(),
-                        'date' => ISODate($msg['date']),
-                        'messageid' => $msg['messageid'],
-                        'yahoopendingid' => $msg['yahoopendingid'],
-                        'yahooapprovedid' => $msg['yahooapprovedid']
-                    ];
+                    # We check where the message came from to decide whether to return it.  This is because we
+                    # might have a message currently in spam from YAHOO_APPROVED, and we might be doing a
+                    # correlate on pending, and we don't want to return that message as missing.
+                    $source = $msg['source'];
+                    if (($pending && $source == Message::YAHOO_PENDING) ||
+                        ($approved && $source == Message::YAHOO_APPROVED)) {
+                        $missingonclient[] = [
+                            'id' => $msg['id'],
+                            'email' => $msg['fromaddr'],
+                            'subject' => $msg['subject'],
+                            'collection' => $c->getCollection(),
+                            'date' => ISODate($msg['date']),
+                            'messageid' => $msg['messageid'],
+                            'yahoopendingid' => $msg['yahoopendingid'],
+                            'yahooapprovedid' => $msg['yahooapprovedid']
+                        ];
+                    }
                 }
             }
         }

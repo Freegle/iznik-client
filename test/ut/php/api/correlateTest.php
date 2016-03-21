@@ -325,6 +325,25 @@ class correlateTest extends IznikAPITestCase {
         assertEquals(1, count($ret['missingonclient']));
         assertEquals(isodate('Sat, 20 Aug 2015 10:45:58 +0000'), $ret['missingonclient'][0]['date']);
 
+        # Now move a message into spam, and test correlate on pending, to make sure the spam approved message
+        # doesn't get returned for spam pending.
+        $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Spam' WHERE msgid = ?;", [ $msgid ]);
+
+        $ret = $this->call('messages', 'POST', [
+            'groupid' => $group1,
+            'collections' => [
+                'Pending',
+                'Spam'
+            ],
+            'messages' => [
+            ]
+        ]);
+        error_log("Spam and pending " . var_export($ret, true));
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['missingonserver']));
+        assertEquals(0, count($ret['missingonclient']));
+
         $u->delete();
         $g->delete();
 
