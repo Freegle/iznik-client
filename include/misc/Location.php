@@ -318,10 +318,10 @@ class Location extends Entity
             }
 
             # Now we have a list of gridids within which we want to find locations.
-            error_log("Got gridids " . var_export($gridids, TRUE));
+            #error_log("Got gridids " . var_export($gridids, TRUE));
             if (count($gridids) > 0) {
                 $sql = "SELECT locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") ORDER BY popularity ASC;";
-                $ret = $this->dbhr->query($sql);
+                $ret = $this->dbhr->preQuery($sql);
             }
         }
 
@@ -383,7 +383,6 @@ class Location extends Entity
     public function closestPostcode($lat, $lng) {
         # Find the grids nearest to this lat/lng
         $sql = "SELECT id FROM locations_grids WHERE ABS(swlat - ?) <= 0.2 AND ABS(swlng - ?) <= 0.2 OR ABS(nelat - ?) <= 0.2 AND ABS(nelng - ?) <= 0.2;";
-        error_log($sql);
         $grids = $this->dbhr->preQuery($sql, [ $lat, $lng, $lat, $lng ]);
         $gridids = [0];
         foreach ($grids as $grid) {

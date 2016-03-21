@@ -1,4 +1,3 @@
-// TODO crumb, crumblocation
 // Plugin work.
 //
 // We have a collection for the work items, some of which come from the server, and some of which are generated

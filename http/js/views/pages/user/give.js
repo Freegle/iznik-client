@@ -12,6 +12,14 @@ Iznik.Views.User.Pages.Give.WhatIsIt = Iznik.Views.Page.extend({
         });
     },
 
+    checkNext: function() {
+        if (this.$('.js-items').length > 0) {
+            this.$('.js-next').fadeIn('slow');
+        } else {
+            this.$('.js-next').fadeOut('slow');
+        }
+    },
+
     changedItems: function() {
         // We show the next button if we have an item and either a picture or a description.
         var self = this;

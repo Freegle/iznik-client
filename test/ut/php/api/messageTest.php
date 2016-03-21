@@ -7,6 +7,7 @@ require_once UT_DIR . '/IznikAPITestCase.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
+require_once IZNIK_BASE . '/include/misc/Location.php';
 require_once IZNIK_BASE . '/include/message/MessageCollection.php';
 
 /**
@@ -1005,6 +1006,64 @@ class messageAPITest extends IznikAPITestCase
         error_log("Messages " . var_export($ret, TRUE));
         assertEquals($id, $ret['messages'][0]['id']);
         assertEquals(0, count($ret['messages'][0]['attachments']));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testSubmit()
+    {
+        error_log(__METHOD__);
+
+        # This is similar to the actions on the client
+        # - find a location close to a lat/lng
+        # - upload a picture
+        # - create a draft with a location
+        # - find the closest group to that location
+        # - submit it
+        $l = new Location($this->dbhr, $this->dbhm);
+        $loc = $l->closestPostcode(55.958542, -3.212203);
+        assertNotNull($loc);
+        $locid = $loc['id'];
+
+        $data = file_get_contents('images/chair.jpg');
+        file_put_contents(IZNIK_BASE . "/http/uploads/chair.jpg", $data);
+
+        $ret = $this->call('image', 'PUT', [
+            'filename' => 'chair.jpg',
+            'identify' => TRUE
+        ]);
+
+        error_log("Create attachment " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $attid = $ret['id'];
+
+        # Find a location
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'textbody' => 'Text body',
+            'attachments' => [ $attid ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+
+
+        # This will get sent; it'll be bounced by Yahoo as not a member, and the bounce will go into a black hole.
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'JoinAndPost',
+            'groupid' => $gid,
+            'email' => 'test@blackhole.io'
+        ]);
+
+        error_log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
 
         error_log(__METHOD__ . " end");
     }

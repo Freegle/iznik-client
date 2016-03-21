@@ -159,8 +159,11 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $atts = $m->getPublic();
         error_log("Public " . var_export($atts, true));
-        assertEquals($id, $atts['locationid']);
-        assertEquals($id, $atts['location']['id']);
+
+        # Shouldn't be able to see actual location
+        assertFalse(array_key_exists('locationid', $atts));
+        assertFalse(array_key_exists('location', $atts));
+        assertEquals($id, $m->getPrivate('locationid'));
 
         $goodsubj = "OFFER: Test (Tuvalu High Street)";
 

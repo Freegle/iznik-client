@@ -1,4 +1,4 @@
-<?php
+ <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');

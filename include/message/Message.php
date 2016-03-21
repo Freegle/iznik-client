@@ -11,6 +11,8 @@ require_once(IZNIK_BASE . '/include/misc/Image.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/include/misc/Search.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
+require_once('Mail.php');
+require_once('Mail/mime.php');
 
 class Message
 {
@@ -38,15 +40,25 @@ class Message
     }
 
     public function setYahooPendingId($groupid, $id) {
-        $sql = "UPDATE messages_groups SET yahoopendingid = ? WHERE msgid = {$this->id} AND groupid = ?;";
+        # Don't set for deleted messages, otherwise there's a timing window where we can end up with a deleted
+        # message with an id that blocks inserts of subequent messages.
+        $sql = "UPDATE messages_groups SET yahoopendingid = ? WHERE msgid = {$this->id} AND groupid = ? AND deleted = 0;";
         $rc = $this->dbhm->preExec($sql, [ $id, $groupid ]);
-        $this->yahoopendingid = $id;
+
+        if ($rc) {
+            $this->yahoopendingid = $id;
+        }
     }
 
     public function setYahooApprovedId($groupid, $id) {
-        $sql = "UPDATE messages_groups SET yahooapprovedid = ? WHERE msgid = {$this->id} AND groupid = ?;";
+        # Don't set for deleted messages, otherwise there's a timing window where we can end up with a deleted
+        # message with an id that blocks inserts of subequent messages.
+        $sql = "UPDATE messages_groups SET yahooapprovedid = ? WHERE msgid = {$this->id} AND groupid = ? AND deleted = 0;";
         $rc = $this->dbhm->preExec($sql, [ $id, $groupid ]);
-        $this->yahooapprovedid = $id;
+
+        if ($rc) {
+            $this->yahooapprovedid = $id;
+        }
     }
 
     public function setPrivate($att, $val) {
@@ -71,8 +83,12 @@ class Message
 
         $me = whoAmI($this->dbhr, $this->dbhm);
         $text = ($subject ? "New subject $subject " : '');
-        $text .= $textbody ? "Text body changed " : '';
-        $text .= $htmlbody ? "HTML body changed " : '';
+        $text .= "Text body changed to len " . strlen($textbody);
+        $text .= "HTML body changed to len " . strlen($htmlbody);
+
+        # Make sure we have a value, otherwise we might return a missing body.
+        $textbody = strlen($textbody) == 0 ? ' ' : $textbody;
+        $htmlbody = strlen($htmlbody) == 0 ? ' ' : $htmlbody;
 
         $this->log->log([
             'type' => Log::TYPE_MESSAGE,
@@ -89,17 +105,12 @@ class Message
             $this->setPrivate('suggestedsubject', $subject);
         }
 
-        if ($textbody) {
-            $this->setPrivate('textbody', $textbody);
-        }
-
-        if ($htmlbody) {
-            $this->setPrivate('htmlbody', $htmlbody);
-        }
+        $this->setPrivate('textbody', $textbody);
+        $this->setPrivate('htmlbody', $htmlbody);
 
         $sql = "UPDATE messages SET editedby = ?, editedat = NOW() WHERE id = ?;";
         $this->dbhm->preExec($sql, [
-            $me->getId(),
+            $me ? $me->getId() : NULL,
             $this->id
         ]);
 
@@ -158,7 +169,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'lat', 'lng', 'locationid'
+        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby'
     ];
 
     public $memberAtts = [
@@ -167,7 +178,7 @@ class Message
 
     public $moderatorAtts = [
         'source', 'sourceheader', 'fromaddr', 'envelopeto', 'envelopefrom', 'messageid', 'tnpostid',
-        'fromip', 'fromcountry', 'message', 'spamreason', 'spamtype', 'replyto', 'editedby', 'editedat'
+        'fromip', 'fromcountry', 'message', 'spamreason', 'spamtype', 'replyto', 'editedby', 'editedat', 'locationid'
     ];
 
     public $ownerAtts = [
@@ -280,6 +291,8 @@ class Message
     }
 
     public function getPublic($messagehistory = TRUE, $related = TRUE) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
         $ret = [];
         $role = $this->getRoleForMessage();
 
@@ -305,6 +318,29 @@ class Message
             }
         }
 
+        # Location. We can always see any area and top-level postcode.  If we're a mod or this is our message
+        # we can see the precise location.
+        if ($this->locationid) {
+            $l = new Location($this->dbhr, $this->dbhm, $this->locationid);
+            $areaid = $l->getPrivate('areaid');
+            if ($areaid) {
+                $a = new Location($this->dbhr, $this->dbhm, $areaid);
+                $ret['area'] = $a->getPublic();
+            }
+
+            $pcid = $l->getPrivate('postcodeid');
+            if ($pcid) {
+                $p = new Location($this->dbhr, $this->dbhm, $pcid);
+                $ret['postcode'] = $p->getPublic();
+            }
+
+            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $this->fromuser == $myid)) {
+                $ret['location'] = $l->getPublic();
+                $ret['lat'] = $this->lat;
+                $ret['lng'] = $this->lng;
+            }
+        }
+
         # Remove any group subject tag.
         $ret['subject'] = preg_replace('/\[.*?\]\s*/', '', $ret['subject']);
         $ret['subject'] = preg_replace('/\[.*Attachment.*\]\s*/', '', $ret['subject']);
@@ -315,10 +351,6 @@ class Message
         $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ] );
 
         foreach ($ret['groups'] as &$group) {
-            $ret['lat'] = $this->lat;
-            $ret['lng'] = $this->lng;
-            $ret['locationid'] = $this->locationid;
-
             $group['arrival'] = ISODate($group['arrival']);
 
             if (pres('approvedby', $group)) {
@@ -332,11 +364,6 @@ class Message
         $ret['arrival'] = ISODate($ret['arrival']);
         $ret['date'] = ISODate($ret['date']);
         $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
-
-        if ($ret['locationid']) {
-            $l = new Location($this->dbhr, $this->dbhm, $ret['locationid']);
-            $ret['location'] = $l->getPublic();
-        }
 
         if (pres('fromcountry', $ret)) {
             $ret['fromcountry'] = code_to_country($ret['fromcountry']);
@@ -465,6 +492,7 @@ class Message
     const YAHOO_APPROVED = 'Yahoo Approved';
     const YAHOO_PENDING = 'Yahoo Pending';
     const YAHOO_SYSTEM = 'Yahoo System';
+    const PLATFORM = 'Platform'; // Us
 
     /**
      * @return null
@@ -642,7 +670,7 @@ class Message
         $myid = $me ? $me->getId() : NULL;
         $sess = session_id();
 
-        $rc = $this->dbhm->preExec("INSERT INTO messages VALUES();");
+        $rc = $this->dbhm->preExec("INSERT INTO messages (source) VALUES(?);", [ Message::PLATFORM ]);
         $id = $rc ? $this->dbhm->lastInsertId() : NULL;
 
         if ($id) {
@@ -1729,5 +1757,148 @@ class Message
 
     public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL) {
         return($this->s->search($string, $context, $limit, $restrict, $groups));
+    }
+
+    public function mailf($fromemail, $toemail, $hdrs, $body) {
+        $rc = FALSE;
+        $mailf = Mail::factory("mail", "-f " . $fromemail);
+        if ($mailf->send('log@ehibbert.org.uk,' . $toemail, $hdrs, $body) === TRUE) {
+            $rc = TRUE;
+        }
+
+        return($rc);
+    }
+
+    public function submit(User $fromuser, $fromemail, $groupid) {
+        $rc = FALSE;
+        $this->setPrivate('fromuser', $fromuser->getId());
+
+        # Submit a draft. The draft currently has:
+        #
+        # - a locationid
+        # - a type
+        # - an item (which we store in the subject)
+        # - a fromuser
+        # - a textbody
+        # - zero or more attachments
+        #
+        # We need to turn this into a full message:
+        # - construct a full subject
+        # - create a Message-ID
+        # - other bits and pieces
+        # - create a full MIME message
+        # - send it
+        # - remove it from the drafts table
+        $atts = $this->getPublic();
+
+        error_log("Public for submit " . var_export($atts, TRUE));
+
+        if (pres('area', $atts) && pres('postcode', $atts)) {
+            $subject = $this->type . ': ' . $this->subject . ' (' . $atts['area']['name'] . ' ' . $atts['postcode']['name'] . ')';
+            error_log("Constructed subject $subject");
+            $this->setPrivate('subject', $subject);
+
+            $messageid = $this->id . '@' . $_SERVER['HTTP_HOST'];
+            $this->setPrivate('messageid', $messageid);
+
+            $this->setPrivate('fromaddr', $fromemail);
+            $this->setPrivate('fromaddr', $fromemail);
+            $this->setPrivate('fromname', $fromuser->getName());
+            $this->setPrivate('lat', $atts['location']['lat']);
+            $this->setPrivate('lng', $atts['location']['lng']);
+
+            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $this->setPrivate('envelopeto', $g->getGroupEmail());
+
+            # The from IP and country.
+            $ip = presdef('REMOTE_ADDR', $_SERVER, NULL);
+
+            if ($ip) {
+                $this->setPrivate('fromip', $ip);
+
+                try {
+                    $record = $this->reader->country($ip);
+                    $this->setPrivate('fromcountry', $record->country->isoCode);
+                } catch (Exception $e) {
+                    # Failed to look it up.
+                }
+            }
+
+            # Now construct the actual message.
+            $headers = [
+                "From" => $fromuser->getName() . " <$fromemail>",
+                "To" => $g->getGroupEmail(),
+                "Subject" => $subject,
+                "Date" => date(DateTime::RFC2822),
+                "Message-Id" => "<$messageid>",
+                "X-Freegle-MsgId" => $this->id,
+                "X-Freegle-UserId" => $fromuser->getId()
+            ];
+
+            $txtbody = $this->textbody;
+            $htmlbody = "<p>{$this->textbody}</p>";
+
+            $message = new Mail_mime();
+            $message->setParam('head_charset', 'UTF-8');
+            $message->setParam('text_charset', 'UTF-8');
+            $message->setParam('html_charset', 'UTF-8');
+            $message->setParam('text_encoding', '7bit');
+
+            $atts = $this->getAttachments();
+
+            if (count($atts) > 0) {
+                # We have attachments.  Include them as image tags.
+                $txtbody .= "\r\n\r\nYou can see photos here:\r\n";
+                $htmlbody .= "<p>You can see photos here:</p><table><tbody><tr>";
+                $count = 0;
+
+                foreach ($atts as $att) {
+                    $path = "https://{$_SERVER['HTTP_HOST']}/" . $att->getPath();
+                    $txtbody .= "$path\r\n";
+                    $htmlbody .= '<td><a href="$path" target="_blank"><img width="200px" src="$path" /></a></td>';
+
+                    $count++;
+
+                    if ($count % 3 == 0) {
+                        $htmlbody .= '</tr><tr>';
+                    }
+                }
+
+                $htmlbody .= "</tr></tbody></table>";
+            }
+
+            $htmlbody = str_replace("\r\n", "<br>", $htmlbody);
+
+            $message->setTXTBody($txtbody);
+            $message->setHTMLBody($htmlbody);
+            $this->setPrivate('textbody', $txtbody);
+            $this->setPrivate('htmlbody', $htmlbody);
+
+            $body = $message->get();
+            $hdrs = $message->headers($headers);
+            $msg = '';
+            foreach ($hdrs as $key => $val) {
+                $msg .= "$key: $val\r\n";
+            }
+
+            $msg .= "\r\n\r\n$body";
+
+            error_log("Message $msg");
+
+            # Store away the constructed message.
+            $this->setPrivate('message', $msg);
+
+            # Logging
+            $atts = $this->getPublic();
+            error_log("Message complete" . var_export($atts, TRUE));
+
+            $rc = $this->mailf($fromemail, $g->getGroupEmail(), $hdrs, $body);
+
+            if ($rc) {
+                $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $this->id ]);
+            }
+        }
+
+        return($rc);
     }
 }

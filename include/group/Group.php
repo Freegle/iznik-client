@@ -95,6 +95,10 @@ class Group extends Entity
         return($this->group['nameshort'] . "-owner@yahoogroups.com");
     }
 
+    public function getGroupEmail() {
+        return($this->group['nameshort'] . "@yahoogroups.com");
+    }
+
     public function delete() {
         $rc = $this->dbhm->preExec("DELETE FROM groups WHERE id = ?;", [$this->id]);
         if ($rc) {

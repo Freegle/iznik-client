@@ -3,6 +3,7 @@ function message() {
     global $dbhr, $dbhm;
 
     $me = whoAmI($dbhr, $dbhm);
+    $myid = $me ? $me->getId() : NULL;
 
     $collection = presdef('collection', $_REQUEST, MessageCollection::APPROVED);
     $id = intval(presdef('id', $_REQUEST, NULL));
@@ -85,16 +86,24 @@ function message() {
                         if (!$id) {
                             $id = $m->createDraft();
                             $m = new Message($dbhr, $dbhm, $id);
+                        } else {
+                            # The message should be ours.
+                            $sql = "SELECT * FROM messages_drafts WHERE session = ? OR (userid IS NOT NULL AND userid = ?);";
+                            $drafts = $dbhr->preQuery($sql, [ session_id(), $myid ]);
+                            $m = NULL;
+                            foreach ($drafts as $draft) {
+                                $m = new Message($dbhr, $dbhm, $draft['msgid']);
+                            }
                         }
 
-                        if ($m->getID()) {
+                        if ($m) {
                             # Drafts have:
                             # - a locationid
                             # - a type
                             # - an item (which we store in the subject)
                             # - a fromuser if known (we might not have logged in yet)
                             # - a textbody
-                            # - one or more attachments
+                            # - zero or more attachments
                             $locationid = intval(presdef('locationid', $_REQUEST, NULL));
                             $type = presdef('messagetype', $_REQUEST, NULL);
                             $item = presdef('item', $_REQUEST, NULL);
@@ -224,6 +233,25 @@ function message() {
                             if (!$eidforgroup) {
                                 # Not a member yet.
                                 $rc = $u->addMembership($groupid, User::ROLE_MEMBER, $eid, MembershipCollection::APPROVED);
+                            }
+
+                            if ($rc) {
+                                # Now we have a user who is a member of the appropriate group.
+                                #
+                                # The message we have in hand should be nobody else'
+                                $ret = ['ret' => 6, 'status' => 'Not our message'];
+                                $sql = "SELECT * FROM messages_drafts WHERE session = ? OR (userid IS NOT NULL AND userid = ?);";
+                                $drafts = $dbhr->preQuery($sql, [ session_id(), $myid ]);
+
+                                foreach ($drafts as $draft) {
+                                    $m = new Message($dbhr, $dbhm, $draft['msgid']);
+                                    $ret = ['ret' => 7, 'status' => 'Failed to submit'];
+
+                                    if ($m->submit($u, $email, $groupid)) {
+                                        # We sent it.
+                                        $ret = ['ret' => 0, 'status' => 'Success'];
+                                    }
+                                }
                             }
                         }
 
