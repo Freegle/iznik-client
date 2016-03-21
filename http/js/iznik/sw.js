@@ -16,38 +16,43 @@ self.addEventListener('push', function(event) {
             credentials: 'include'
         }).then(function(response) {
             return response.json().then(function(ret) {
-                // Now we can decide what notification to show.
-                var work = ret.work;
                 var workstr = '';
                 var url = '/modtools';
 
-                // The order of these is intentional, because it controls what the value of url will be and therefore
-                // where we go when we click the notification.
-                var spam = work.spam + work.spammembers + (Iznik.Session.isAdminOrSupport() ? (work.spammerpendingadd + work.spammerpendingremove) : 0);
+                try {
+                    // Now we can decide what notification to show.
+                    var work = ret.work;
 
-                if (spam > 0) {
-                    workstr += spam + ' spam ' + " \n";
-                    url = '/modtools/messages/spam';
-                }
+                    // The order of these is intentional, because it controls what the value of url will be and therefore
+                    // where we go when we click the notification.
+                    var spam = work.spam + work.spammembers + ((ret.systemrole == 'Admin' || ret.systemrole == 'Support') ? (work.spammerpendingadd + work.spammerpendingremove) : 0);
 
-                if (work.pendingmembers > 0) {
-                    workstr += work.pendingmembers + ' pending member' + ((work.pendingmembers != 1) ? 's' : '') + " \n";
-                    url = '/modtools/members/pending';
-                }
-
-                if (work.pending > 0) {
-                    workstr += work.pending + ' pending message' + ((work.pending != 1) ? 's' : '') + " \n";
-                    url = '/modtools/messages/pending';
-                }
-
-                // Clear any we have shown.
-                registration.getNotifications({ tag: 'work' }).then(function(notifications) {
-                    for (var i = 0; i < notifications.length; i++) {
-                        notifications[i].close();
+                    if (spam > 0) {
+                        workstr += spam + ' spam ' + " \n";
+                        url = '/modtools/messages/spam';
                     }
-                });
 
-                workstr = workstr == '' ? "No tasks outstanding" : workstr;
+                    if (work.pendingmembers > 0) {
+                        workstr += work.pendingmembers + ' pending member' + ((work.pendingmembers != 1) ? 's' : '') + " \n";
+                        url = '/modtools/members/pending';
+                    }
+
+                    if (work.pending > 0) {
+                        workstr += work.pending + ' pending message' + ((work.pending != 1) ? 's' : '') + " \n";
+                        url = '/modtools/messages/pending';
+                    }
+
+                    // Clear any we have shown.
+                    registration.getNotifications({ tag: 'work' }).then(function(notifications) {
+                        for (var i = 0; i < notifications.length; i++) {
+                            notifications[i].close();
+                        }
+                    });
+
+                    workstr = workstr == '' ? "No tasks outstanding" : workstr;
+                } catch (e) {
+                    workstr = "Exception " + e.message;
+                }
 
                 // Show a notification.  Don't vibrate - that would be too annoying.
                 return  self.registration.showNotification("ModTools", {
