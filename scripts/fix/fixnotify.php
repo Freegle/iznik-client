@@ -10,4 +10,5 @@ $l = new Notifications($dbhr, $dbhm);
 $g = new Group($dbhr, $dbhm);
 
 $gid = $g->findByShortName('EdinburghFreegle');
-$l->notifyGroupMods($gid);
+#$l->notifyGroupMods($gid);
+$l->notify(13875006);

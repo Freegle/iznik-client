@@ -23,45 +23,49 @@ self.addEventListener('push', function(event) {
                     // Now we can decide what notification to show.
                     var work = ret.work;
 
-                    // The order of these is intentional, because it controls what the value of url will be and therefore
-                    // where we go when we click the notification.
-                    var spam = work.spam + work.spammembers + ((ret.systemrole == 'Admin' || ret.systemrole == 'Support') ? (work.spammerpendingadd + work.spammerpendingremove) : 0);
+                    if (!_.isUndefined(work)) {
+                        // The order of these is intentional, because it controls what the value of url will be and therefore
+                        // where we go when we click the notification.
+                        var spam = work.spam + work.spammembers + ((ret.systemrole == 'Admin' || ret.systemrole == 'Support') ? (work.spammerpendingadd + work.spammerpendingremove) : 0);
 
-                    if (spam > 0) {
-                        workstr += spam + ' spam ' + " \n";
-                        url = '/modtools/messages/spam';
-                    }
-
-                    if (work.pendingmembers > 0) {
-                        workstr += work.pendingmembers + ' pending member' + ((work.pendingmembers != 1) ? 's' : '') + " \n";
-                        url = '/modtools/members/pending';
-                    }
-
-                    if (work.pending > 0) {
-                        workstr += work.pending + ' pending message' + ((work.pending != 1) ? 's' : '') + " \n";
-                        url = '/modtools/messages/pending';
-                    }
-
-                    // Clear any we have shown so far.
-                    registration.getNotifications({ tag: 'work' }).then(function(notifications) {
-                        for (var i = 0; i < notifications.length; i++) {
-                            notifications[i].close();
+                        if (spam > 0) {
+                            workstr += spam + ' spam ' + " \n";
+                            url = '/modtools/messages/spam';
                         }
-                    });
 
-                    if (workstr == '') {
-                        // We have to show a popup, otherwise we'll get the "updated in the background" message.  But
-                        // we can start a timer to clear the notifications later.
-                        setTimeout(function() {
-                            registration.getNotifications({ tag: 'work' }).then(function(notifications) {
-                                for (var i = 0; i < notifications.length; i++) {
-                                    notifications[i].close();
-                                }
-                            });
-                        }, 1000);
+                        if (work.pendingmembers > 0) {
+                            workstr += work.pendingmembers + ' pending member' + ((work.pendingmembers != 1) ? 's' : '') + " \n";
+                            url = '/modtools/members/pending';
+                        }
+
+                        if (work.pending > 0) {
+                            workstr += work.pending + ' pending message' + ((work.pending != 1) ? 's' : '') + " \n";
+                            url = '/modtools/messages/pending';
+                        }
+
+                        // Clear any we have shown so far.
+                        registration.getNotifications({tag: 'work'}).then(function (notifications) {
+                            for (var i = 0; i < notifications.length; i++) {
+                                notifications[i].close();
+                            }
+                        });
+
+                        if (workstr == '') {
+                            // We have to show a popup, otherwise we'll get the "updated in the background" message.  But
+                            // we can start a timer to clear the notifications later.
+                            setTimeout(function () {
+                                registration.getNotifications({tag: 'work'}).then(function (notifications) {
+                                    for (var i = 0; i < notifications.length; i++) {
+                                        notifications[i].close();
+                                    }
+                                });
+                            }, 1000);
+                        }
+
+                        workstr = workstr == '' ? "No tasks outstanding" : workstr;
+                    } else {
+                        workstr = "No tasks outstanding";
                     }
-
-                    workstr = workstr == '' ? "No tasks outstanding" : workstr;
                 } catch (e) {
                     workstr = "Exception " + e.message;
                 }

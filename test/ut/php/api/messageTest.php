@@ -1053,7 +1053,6 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
 
-
         # This will get sent; it'll be bounced by Yahoo as not a member, and the bounce will go into a black hole.
         $ret = $this->call('message', 'POST', [
             'id' => $id,

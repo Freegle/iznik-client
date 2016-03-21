@@ -396,8 +396,8 @@ class Location extends Entity
     }
 
     public function groupsNear($radius = 20) {
-        $sql = "SELECT id FROM groups WHERE lat IS NOT NULL AND lng IS NOT NULL AND haversine(lat, lng, ?, ?) <= ?;";
-        $groups = $this->dbhr->preQuery($sql, [ $this->loc['lat'], $this->loc['lng'], $radius]);
+        $sql = "SELECT id, haversine(lat, lng, ?, ?) AS dist FROM groups WHERE lat IS NOT NULL AND lng IS NOT NULL AND haversine(lat, lng, ?, ?) <= ? ORDER BY dist ASC LIMIT 10;";
+        $groups = $this->dbhr->preQuery($sql, [ $this->loc['lat'], $this->loc['lng'], $this->loc['lat'], $this->loc['lng'], $radius]);
         $ret = [];
         foreach ($groups as $group) {
             $ret[] = $group['id'];

@@ -67,6 +67,9 @@ Iznik.Views.User.Pages.Give.WhatIsIt = Iznik.Views.Page.extend({
             }, success: function(ret) {
                 if (ret.ret == 0) {
                     d.resolve();
+                    try {
+                        localStorage.setItem('draft', ret.id);
+                    } catch (e) {}
                 } else {
                     d.reject();
                 }
@@ -244,7 +247,35 @@ Iznik.Views.User.Pages.Give.WhoAmI = Iznik.Views.Page.extend({
     template: "user_give_whoami",
 
     events: {
-        'change .js-email': 'changeEmail'
+        'change .js-email': 'changeEmail',
+        'click .js-next': 'doit'
+    },
+
+    doit: function() {
+        var email = this.$('.js-email').val();
+        var id = null;
+        
+        try {
+            id = localStorage.getItem('draft');
+        } catch (e) {}
+        
+        if (id) {
+            $.ajax({
+                type: 'POST',
+                url: API + 'message',
+                data: {
+                    action: 'JoinAndPost',
+                    email: email,
+                    id: id
+                }, success: function(ret) {
+                    if (ret.ret == 0) {
+
+                    } else {
+                        self.fail();
+                    }
+                }, error: self.fail
+            });
+        }
     },
 
     changeEmail: function() {
@@ -255,11 +286,11 @@ Iznik.Views.User.Pages.Give.WhoAmI = Iznik.Views.Page.extend({
 
         if (isValidEmailAddress(email)) {
             this.$('.js-email').removeClass('error-border');
-            this.$('.js-next').removeClass('disabled');
+            this.$('.js-next').fadeIn('slow');
             this.$('.js-ok').fadeIn('slow');
         } else {
             this.$('.js-email').addClass('error-border');
-            this.$('.js-next').addClass('disabled');
+            this.$('.js-next').fadeOut('slow');
             this.$('.js-ok').hide();
         }
     },

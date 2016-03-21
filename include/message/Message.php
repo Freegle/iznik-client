@@ -1791,11 +1791,8 @@ class Message
         # - remove it from the drafts table
         $atts = $this->getPublic();
 
-        error_log("Public for submit " . var_export($atts, TRUE));
-
         if (pres('area', $atts) && pres('postcode', $atts)) {
             $subject = $this->type . ': ' . $this->subject . ' (' . $atts['area']['name'] . ' ' . $atts['postcode']['name'] . ')';
-            error_log("Constructed subject $subject");
             $this->setPrivate('subject', $subject);
 
             $messageid = $this->id . '@' . $_SERVER['HTTP_HOST'];
@@ -1848,14 +1845,14 @@ class Message
 
             if (count($atts) > 0) {
                 # We have attachments.  Include them as image tags.
-                $txtbody .= "\r\n\r\nYou can see photos here:\r\n";
+                $txtbody .= "\r\n\r\nYou can see photos here:\r\n\r\n";
                 $htmlbody .= "<p>You can see photos here:</p><table><tbody><tr>";
                 $count = 0;
 
                 foreach ($atts as $att) {
-                    $path = "https://{$_SERVER['HTTP_HOST']}/" . $att->getPath();
+                    $path = "https://{$_SERVER['HTTP_HOST']}" . $att->getPath();
                     $txtbody .= "$path\r\n";
-                    $htmlbody .= '<td><a href="$path" target="_blank"><img width="200px" src="$path" /></a></td>';
+                    $htmlbody .= '<td><a href="' . $path . '" target="_blank"><img width="200px" src="' . $path . '" /></a></td>';
 
                     $count++;
 
@@ -1883,14 +1880,11 @@ class Message
 
             $msg .= "\r\n\r\n$body";
 
-            error_log("Message $msg");
-
             # Store away the constructed message.
             $this->setPrivate('message', $msg);
 
             # Logging
             $atts = $this->getPublic();
-            error_log("Message complete" . var_export($atts, TRUE));
 
             $rc = $this->mailf($fromemail, $g->getGroupEmail(), $hdrs, $body);
 

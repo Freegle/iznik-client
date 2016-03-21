@@ -87,7 +87,6 @@ function messages() {
                             if ($id) {
                                 $l = new Location($dbhr, $dbhm, $id);
                                 $groups = $l->groupsNear();
-                                error_log("Found nearby groups " . var_export($groups, TRUE));
                             }
                         }
 

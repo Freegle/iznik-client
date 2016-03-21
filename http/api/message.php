@@ -88,8 +88,8 @@ function message() {
                             $m = new Message($dbhr, $dbhm, $id);
                         } else {
                             # The message should be ours.
-                            $sql = "SELECT * FROM messages_drafts WHERE session = ? OR (userid IS NOT NULL AND userid = ?);";
-                            $drafts = $dbhr->preQuery($sql, [ session_id(), $myid ]);
+                            $sql = "SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid IS NOT NULL AND userid = ?);";
+                            $drafts = $dbhr->preQuery($sql, [ $id, session_id(), $myid ]);
                             $m = NULL;
                             foreach ($drafts as $draft) {
                                 $m = new Message($dbhr, $dbhm, $draft['msgid']);
@@ -202,54 +202,67 @@ function message() {
                         $m->spam($groupid);
                         break;
                     case 'JoinAndPost':
-                        # This is the mainline case for someone posting a message.  We sign them up to the group if
-                        # need be, and then post the message.  We do this without being logged in, because that reduces
-                        # friction.  If there is abuse of this, then we will find other ways to block the abuse.
-                        $ret = ['ret' => 3, 'status' => 'Failed to post'];
+                        # This is the mainline case for someone posting a message.  We find the nearest group, sign
+                        # them up if need be, and then post the message.  We do this without being logged in, because
+                        # that reduces friction.  If there is abuse of this, then we will find other ways to block the
+                        # abuse.
+                        #
+                        # The message we have in hand should be nobody else'
+                        $ret = ['ret' => 3, 'status' => 'Not our message'];
+                        $sql = "SELECT * FROM messages_drafts WHERE msgid = ? AND (session = ? OR (userid IS NOT NULL AND userid = ?));";
+                        $drafts = $dbhr->preQuery($sql, [$id, session_id(), $myid]);
+                        error_log("$sql, $id, " . session_id() . ", $myid");
 
-                        $email = presdef('email', $_REQUEST, NULL);
-                        $u = new User($dbhr, $dbhm);
-                        $uid = $u->findByEmail($email);
+                        foreach ($drafts as $draft) {
+                            $m = new Message($dbhr, $dbhm, $draft['msgid']);
 
-                        if (!$uid) {
-                            # We don't yet know this user.  Create them.
-                            $name = substr($email, 0, strpos($email, '@'));
-                            $u->create(NULL, NULL, $name, 'Created to allow post');
-                            $eid = $u->addEmail($email, 1);
-                        } else {
-                            $u = new User($dbhr, $dbhm, $uid);
-                            $eid = $u->getIdForEmail($email);
-                        }
+                            # Find the group nearest the location.
+                            $l = new Location($dbhr, $dbhm, $m->getPrivate('locationid'));
+                            $ret = ['ret' => 4, 'status' => 'No nearby groups found'];
+                            $nears = $l->groupsNear(200);
 
-                        $ret = ['ret' => 4, 'status' => 'Failed to create user or email'];
+                            if (count($nears) > 0) {
+                                $groupid = $nears[0];
 
-                        if ($u->getId() && $eid) {
-                            # Now we have a user and an email.  We need to make sure they're a member of the
-                            # group in question.
-                            $eidforgroup = $u->getEmailForGroup($groupid);
-                            $ret = ['ret' => 5, 'status' => 'Failed to join group'];
-                            $rc = true;
+                                # Now we know which group we'd like to post on.  Make sure we have a user set up.
+                                $email = presdef('email', $_REQUEST, NULL);
+                                $u = new User($dbhr, $dbhm);
+                                $uid = $u->findByEmail($email);
 
-                            if (!$eidforgroup) {
-                                # Not a member yet.
-                                $rc = $u->addMembership($groupid, User::ROLE_MEMBER, $eid, MembershipCollection::APPROVED);
-                            }
+                                if (!$uid) {
+                                    # We don't yet know this user.  Create them.
+                                    $name = substr($email, 0, strpos($email, '@'));
+                                    $u->create(NULL, NULL, $name, 'Created to allow post');
+                                    $eid = $u->addEmail($email, 1);
+                                } else {
+                                    $u = new User($dbhr, $dbhm, $uid);
+                                    $eid = $u->getIdForEmail($email)['id'];
+                                }
 
-                            if ($rc) {
-                                # Now we have a user who is a member of the appropriate group.
-                                #
-                                # The message we have in hand should be nobody else'
-                                $ret = ['ret' => 6, 'status' => 'Not our message'];
-                                $sql = "SELECT * FROM messages_drafts WHERE session = ? OR (userid IS NOT NULL AND userid = ?);";
-                                $drafts = $dbhr->preQuery($sql, [ session_id(), $myid ]);
+                                $ret = ['ret' => 5, 'status' => 'Failed to create user or email'];
 
-                                foreach ($drafts as $draft) {
-                                    $m = new Message($dbhr, $dbhm, $draft['msgid']);
-                                    $ret = ['ret' => 7, 'status' => 'Failed to submit'];
+                                if ($u->getId() && $eid) {
+                                    # Now we have a user and an email.  We need to make sure they're a member of the
+                                    # group in question.
+                                    $eidforgroup = $u->getEmailForGroup($groupid);
+                                    $ret = ['ret' => 6, 'status' => 'Failed to join group'];
+                                    $rc = true;
 
-                                    if ($m->submit($u, $email, $groupid)) {
-                                        # We sent it.
-                                        $ret = ['ret' => 0, 'status' => 'Success'];
+                                    if (!$eidforgroup) {
+                                        # Not a member yet.
+                                        $rc = $u->addMembership($groupid, User::ROLE_MEMBER, $eid, MembershipCollection::APPROVED);
+                                    }
+
+                                    if ($rc) {
+                                        # Now we have a user who is a member of the appropriate group.
+                                        #
+                                        # We're good to go.
+                                        $ret = ['ret' => 7, 'status' => 'Failed to submit'];
+
+                                        if ($m->submit($u, $email, $groupid)) {
+                                            # We sent it.
+                                            $ret = ['ret' => 0, 'status' => 'Success'];
+                                        }
                                     }
                                 }
                             }

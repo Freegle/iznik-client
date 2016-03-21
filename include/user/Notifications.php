@@ -99,7 +99,7 @@ class Notifications
 
             if (!array_key_exists('pushnotify', $settings) || $settings['pushnotify']) {
                 #error_log("Notify {$mod['userid']} for $groupid notify " . presdef('pushnotify', $settings, TRUE) . " settings " . var_export($settings, TRUE));
-                $count += $this->notify($mod['userid'], $groupid);
+                $count += $this->notify($mod['userid']);
             }
         }
 

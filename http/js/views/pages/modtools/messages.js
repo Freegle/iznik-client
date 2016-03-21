@@ -629,9 +629,7 @@ Iznik.Views.ModTools.StdMessage.Edit = Iznik.Views.Modal.extend({
         });
 
         var html = tinyMCE.activeEditor.getContent({format : 'raw'});
-        console.log("Edited HTML", html);
         var text = tinyMCE.activeEditor.getContent({format : 'text'});
-        console.log("Edited text", text);
 
         self.model.edit(
             self.$('.js-subject').val(),
