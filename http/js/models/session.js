@@ -75,7 +75,7 @@ Iznik.Models.Session = IznikModel.extend({
                         self.notificationsSetup = true;
 
                         if ('serviceWorker' in navigator) {
-                            navigator.serviceWorker.register('/js/iznik/sw.js?a=10').then(function(reg) {
+                            navigator.serviceWorker.register('/js/iznik/sw.js?a=11').then(function(reg) {
                                 reg.pushManager.subscribe({
                                     userVisibleOnly: true
                                 }).then(function(sub) {

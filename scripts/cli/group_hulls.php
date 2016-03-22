@@ -18,26 +18,29 @@ if (count($opts) > 1) {
     $groups = $dbhr->preQuery($sql);
 
     foreach ($groups as $group) {
-        echo "...{$group['nameshort']}\n";
         $sql = "SELECT DISTINCT lat, lng FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid WHERE messages_groups.groupid = ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL;";
         $msgs = $dbhr->preQuery($sql, [ $group['id'] ]);
-        $data = [];
+        echo "...{$group['nameshort']} " . count($msgs) . "\n";
 
-        $str = "lat, lng\n";
+        if (count($msgs) >= 15) {
+            $data = [];
 
-        # Intentionally wrong way round.
-        foreach ($msgs as $msg) {
-            $str .= "{$msg['lng']},{$msg['lat']}\n";
-        }
+            $str = "lat, lng\n";
 
-        file_put_contents("/tmp/points.csv", $str);
-        exec("R --no-save < /var/www/iznik/scripts/cli/hulls.r > /tmp/r.out 2>&1", $op);
-        $wkt = file_get_contents("/tmp/poly");
-        if ($groupname) {
-            echo $wkt;
-        }
-        if (preg_match('/.*"(.*)"/', $wkt, $matches)) {
-            $dbhm->preExec("UPDATE groups SET poly = ? WHERE id = ?;", [ $matches[1], $group['id'] ]);
+            # Intentionally wrong way round.
+            foreach ($msgs as $msg) {
+                $str .= "{$msg['lng']},{$msg['lat']}\n";
+            }
+
+            file_put_contents("/tmp/points.csv", $str);
+            exec("R --no-save < /var/www/iznik/scripts/cli/hulls.r > /tmp/r.out 2>&1", $op);
+            $wkt = file_get_contents("/tmp/poly");
+            if ($groupname) {
+                echo $wkt;
+            }
+            if (preg_match('/.*"(.*)"/', $wkt, $matches)) {
+                $dbhm->preExec("UPDATE groups SET poly = ? WHERE id = ?;", [ $matches[1], $group['id'] ]);
+            }
         }
     }
 }

@@ -23,7 +23,7 @@ self.addEventListener('push', function(event) {
                     // Now we can decide what notification to show.
                     var work = ret.work;
 
-                    if (!_.isUndefined(work)) {
+                    if (typeof(work) != 'undefined') {
                         // The order of these is intentional, because it controls what the value of url will be and therefore
                         // where we go when we click the notification.
                         var spam = work.spam + work.spammembers + ((ret.systemrole == 'Admin' || ret.systemrole == 'Support') ? (work.spammerpendingadd + work.spammerpendingremove) : 0);
