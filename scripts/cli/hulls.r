@@ -1,0 +1,13 @@
+library(adehabitatHR)
+library(maptools)
+library(rgeos)
+invisible
+cls <- c(lat="numeric", lon="numeric")
+points <- read.csv(file="/tmp/points.csv",head=TRUE,sep=",")
+points$lat <- as.numeric(points$lat)
+points$lng <- as.numeric(points$lng)
+pointssp <- SpatialPoints(points)
+cp <- mcp(pointssp, percent=80)
+sink("/tmp/poly", append=FALSE, split=FALSE)
+writeWKT(cp, byid = FALSE)
+q(save="no")
