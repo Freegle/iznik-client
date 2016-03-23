@@ -166,7 +166,7 @@ function memberships() {
                             break;
                         case 'Leave Member':
                         case 'Leave Approved Member':
-                            $u->mail($groupid, $subject, $body, $action);
+                            $u->mail($groupid, $subject, $body, $stdmsgid, $action);
                             break;
                         case 'Hold':
                             $u->hold($groupid);
