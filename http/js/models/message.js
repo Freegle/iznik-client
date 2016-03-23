@@ -189,17 +189,25 @@ Iznik.Models.Message = IznikModel.extend({
                                                             //
                                                             // We also drop the text part here too, because the server will (in its absence)
                                                             // convert the HTML variant to text - and do a better job than we may have done on the client.
+                                                            var data = {
+                                                                id: self.get('id'),
+                                                                subject: subject
+                                                            };
+
+                                                            if (htmlbody) {
+                                                                data.htmlbody = htmlbody;
+                                                            } else {
+                                                                data.textbody = textbody;
+                                                            }
+
                                                             $.ajax({
                                                                 type: 'POST',
                                                                 headers: {
                                                                     'X-HTTP-Method-Override': 'PUT',
                                                                 },
                                                                 url: API + 'message',
-                                                                data: {
-                                                                    id: self.get('id'),
-                                                                    subject: subject,
-                                                                    htmlbody: htmlbody
-                                                                }, success: function (ret) {
+                                                                data: data,
+                                                                success: function (ret) {
                                                                     console.log("Server edit returned", ret);
                                                                     if (ret.ret == 0) {
                                                                         // Make sure we're up to date.
