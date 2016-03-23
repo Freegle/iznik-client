@@ -101,7 +101,8 @@ class stdMessageAPITest extends IznikAPITestCase {
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         $ret = $this->call('stdmsg', 'POST', [
             'title' => 'UTTest2',
-            'configid' => $this->cid
+            'configid' => $this->cid,
+            'action' => 'Reject Member'
         ]);
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
@@ -112,6 +113,7 @@ class stdMessageAPITest extends IznikAPITestCase {
         error_log("Returned " . var_export($ret, true));
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['stdmsg']['id']);
+        assertEquals('Reject Member', $ret['stdmsg']['action']);
 
         error_log(__METHOD__ . " end");
     }

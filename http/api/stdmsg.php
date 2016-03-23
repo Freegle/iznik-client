@@ -52,6 +52,9 @@ function stdmsg() {
                             'status' => 'Success',
                             'id' => $s->create($name, $configid)
                         ];
+
+                        # Update the other attributes.
+                        $s->setAttributes($_REQUEST);
                     }
                 }
 
