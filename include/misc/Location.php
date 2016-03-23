@@ -8,6 +8,8 @@ require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 
 class Location extends Entity
 {
+    const NEARBY = 20; // In miles.
+
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'osm_id', 'name', 'type', 'popularity', 'gridid', 'postcodeid', 'areaid', 'lat', 'lng', 'maxdimension');
 
@@ -392,15 +394,33 @@ class Location extends Entity
         $sql = "SELECT id, name, lat, lng, ST_distance(geometry, Point(?,?)) AS dist FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND type = 'Postcode' ORDER BY ST_distance(geometry, Point(?,?)) ASC LIMIT 1;";
         $locs = $this->dbhr->preQuery($sql, [ $lng, $lat, $lng, $lat ]);
 
-        return(count($locs) == 1 ? $locs[0] : NULL);
+        $ret = NULL;
+
+        if (count($locs) == 1) {
+            $ret = $locs[0];
+            $l = new Location($this->dbhr, $this->dbhm, $ret['id']);
+            $ret['groupsnear'] = $l->groupsNear(Location::NEARBY, TRUE);
+        }
+
+        return($ret);
     }
 
-    public function groupsNear($radius = 20) {
-        $sql = "SELECT id, haversine(lat, lng, ?, ?) AS dist FROM groups WHERE lat IS NOT NULL AND lng IS NOT NULL AND haversine(lat, lng, ?, ?) <= ? ORDER BY dist ASC LIMIT 10;";
-        $groups = $this->dbhr->preQuery($sql, [ $this->loc['lat'], $this->loc['lng'], $this->loc['lat'], $this->loc['lng'], $radius]);
+    public function groupsNear($radius = Location::NEARBY, $expand = FALSE) {
+        # We use the Haversine distance as a quick filter for the radius, but we order by the distance to the group
+        # polygon, rather than to the centre, because that reflects which group you are genuinely closest to.
+        $sql = "SELECT id, nameshort, ST_distance(POINT(?, ?), GeomFromText(poly)) AS dist, haversine(lat, lng, ?, ?) AS hav FROM groups WHERE poly IS NOT NULL HAVING hav < ? ORDER BY dist ASC LIMIT 10;";
+        $groups = $this->dbhr->preQuery($sql, [ $this->loc['lng'], $this->loc['lat'], $this->loc['lat'], $this->loc['lng'], $radius ]);
         $ret = [];
         foreach ($groups as $group) {
-            $ret[] = $group['id'];
+            if ($expand) {
+                $g = new Group($this->dbhr, $this->dbhm, $group['id']);
+                $thisone = $g->getPublic();
+                $thisone['distance'] = $group['hav'];
+                $thisone['polydist'] = $group['dist'];
+                $ret[] = $thisone;
+            } else {
+                $ret[] = $group['id'];
+            }
         }
         return($ret);
     }
@@ -415,6 +435,10 @@ class Location extends Entity
             foreach ($this->publicatts as $att) {
                 $thisone[$att] = $pc[$att];
             }
+
+            $l = new Location($this->dbhr, $this->dbhm, $pc['id']);
+            $thisone['groupsnear'] = $l->groupsNear(Location::NEARBY, TRUE);
+
             $ret[] = $thisone;
         }
         return($ret);

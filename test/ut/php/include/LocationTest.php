@@ -227,6 +227,7 @@ class locationTest extends IznikTestCase {
 
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.4);
+        $g->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
 
         $l = new Location($this->dbhr, $this->dbhm);
         $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');

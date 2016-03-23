@@ -229,6 +229,21 @@ class messageTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testHebrew() {
+        error_log(__METHOD__);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Basic test', '=?windows-1255?B?UkU6IE1hdGFub3MgTGFFdnlvbmltIFB1cmltIDIwMTYg7sf6yMzw5Q==?=
+=?windows-1255?B?yfog7MjgxuHA6cnwxOnt?=', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        error_log(__METHOD__ . " end");
+    }
+
     // For manual testing
 //    public function testSpecial() {
 //        error_log(__METHOD__);

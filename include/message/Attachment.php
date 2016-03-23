@@ -34,7 +34,7 @@ class Attachment
 
         if (stripos($this->contentType, 'image') !== FALSE) {
             # It's an image.  That's the only type we support.
-            $ret['path'] = $this->getPath();
+            $ret['path'] = "https://" . IMAGE_DOMAIN . $this->getPath();
         }
 
         return($ret);

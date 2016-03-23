@@ -233,7 +233,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
         // sync via the plugin.
         //
         // Delay doesn't set the right context by default.
-        _.delay(_.bind(this.listYahooGroups, this), 120000);
+        _.delay(_.bind(this.listYahooGroups, this), 600000);
     },
 
     getCrumb: function(groupname, crumblocation, success, fail) {

@@ -256,6 +256,8 @@ class MailRouter
                             }
                         }
 
+                        $notify = FALSE;
+
                         # Now add them as a pending member.
                         if ($u->addMembership($gid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING)) {
                             $u->setMembershipAtt($gid, 'yahooapprove', $approve);
@@ -263,8 +265,7 @@ class MailRouter
                             $u->setMembershipAtt($gid, 'joincomment', $comment);
 
                             # Notify mods of new work
-                            $n = new Notifications($this->dbhr, $this->dbhm);
-                            $n->notifyGroupMods($gid);
+                            $notify = TRUE;
 
                             # We handled it.
                             $ret = MailRouter::TO_SYSTEM;
@@ -275,6 +276,12 @@ class MailRouter
                             # a Yahoo issue which means that you can't shift a group from approving members to
                             # not doing so.
                             $u->approve($gid, "Auto-approved", NULL, NULL);
+                            $notify = FALSE;
+                        }
+
+                        if ($notify) {
+                            $n = new Notifications($this->dbhr, $this->dbhm);
+                            $n->notifyGroupMods($gid);
                         }
                     }
                 }

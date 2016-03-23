@@ -23,6 +23,6 @@ foreach ($pgroups as $pgroup) {
     $found = FALSE;
     foreach ($groups as $group) {
         $found = TRUE;
-        $dbhm->preExec("UPDATE groups SET publish = ? WHERE id = ?;", [ $pgroup['groupPublished'], $group['id'] ]);
+        $dbhm->preExec("UPDATE groups SET namefull = ?, publish = ? WHERE id = ?;", [ $pgroup['groupTitle'], $pgroup['groupPublished'], $group['id'] ]);
     }
 }

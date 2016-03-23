@@ -82,7 +82,6 @@ function messages() {
                             # We need to look in the groups near this location.
                             $l = new Location($dbhr, $dbhm);
                             $id = $l->findByName($nearlocation);
-                            error_log("Found location $id");
 
                             if ($id) {
                                 $l = new Location($dbhr, $dbhm, $id);

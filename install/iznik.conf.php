@@ -32,6 +32,9 @@ switch($_SERVER['HTTP_HOST']) {
         break;
 }
 
+# Image host domain
+define('IMAGE_DOMAIN', 'zzzz');
+
 # Contact emails
 define('SUPPORT_ADDR', 'support@zzz');
 define('INFO_ADDR', 'info@zzz');

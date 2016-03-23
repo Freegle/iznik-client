@@ -43,9 +43,11 @@ Iznik.Views.User.Pages.Give.WhatIsIt = Iznik.Views.Page.extend({
         }
 
         var locationid = null;
+        var groupid = null;
         try {
             var loc = localStorage.getItem('mylocation');
             locationid = loc ? JSON.parse(loc).id : null;
+            groupid = localStorage.getItem('myhomegroup');
         } catch (e) {};
 
         var d = jQuery.Deferred();
@@ -63,7 +65,8 @@ Iznik.Views.User.Pages.Give.WhatIsIt = Iznik.Views.Page.extend({
                 messagetype: 'Offer',
                 item: items.join(' '),
                 textbody: self.$('.js-description').val(),
-                attachments: attids
+                attachments: attids,
+                groupid: groupid
             }, success: function(ret) {
                 if (ret.ret == 0) {
                     d.resolve();

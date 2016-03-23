@@ -56,7 +56,6 @@ Iznik.Views.Group.Select = IznikView.extend({
 
     render: function() {
         var self = this;
-        console.log("Render select");
 
         // We hide the raw select now otherwise it shows briefly.  We set visibility on the dropdown once it's built.
         self.$el.css('visibility', 'hidden');

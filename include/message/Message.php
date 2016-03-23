@@ -656,11 +656,7 @@ class Message
         $subj = trim($subj);
 
         # Remove any odd characters.
-//        error_log("Before remove $subj charset " . mb_detect_encoding($subj));
-//        $convmap = array(0x0100, 0xFFFF, 0, 0xFFFF);
-//        $encutf = mb_encode_numericentity($subj, $convmap, 'UTF-8');
-//        $subj = utf8_decode($encutf);
-//        error_log("After remove $subj charset " . mb_detect_encoding($subj));
+        $subj = quoted_printable_encode($subj);
 
         return($subj);
     }
@@ -1001,8 +997,9 @@ class Message
         # We don't need a transaction for this - transactions aren't great for scalability and worst case we
         # leave a spurious message around which a mod will handle.
         #
-        # But we do want to preserve any information we had about who approved a message.
-        $sql = "SELECT approvedby FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid WHERE messageid = ? AND fromaddr = ?;";
+        # But we do want to preserve any information we had about who approved a message, and also any Yahoo pending/
+        # approved ids (to prevent the message being resync'd).
+        $sql = "SELECT approvedby, yahooapprovedid, yahoopendingid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid WHERE messageid = ? AND fromaddr = ?;";
         $messages = $this->dbhr->preQuery($sql,  [
             $this->getMessageID(),
             $this->getFromaddr()
@@ -1012,6 +1009,9 @@ class Message
 
         foreach ($messages as $message) {
             $approvedby = $message['approvedby'];
+            
+            $this->yahoopendingid = $this->yahoopendingid ? $this->yahoopendingid : $message['yahoopendingid'];
+            $this->yahooapprovedid = $this->yahooapprovedid ? $this->yahooapprovedid : $message['yahooapprovedid'];
         }
 
         if (!$approvedby) {
@@ -1850,7 +1850,7 @@ class Message
                 $count = 0;
 
                 foreach ($atts as $att) {
-                    $path = "https://{$_SERVER['HTTP_HOST']}" . $att->getPath();
+                    $path = "https://" . IMAGE_DOMAIN . $att->getPath();
                     $txtbody .= "$path\r\n";
                     $htmlbody .= '<td><a href="' . $path . '" target="_blank"><img width="200px" src="' . $path . '" /></a></td>';
 

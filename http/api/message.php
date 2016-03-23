@@ -99,12 +99,18 @@ function message() {
                         if ($m) {
                             # Drafts have:
                             # - a locationid
+                            # - a groupid (optional)
                             # - a type
                             # - an item (which we store in the subject)
                             # - a fromuser if known (we might not have logged in yet)
                             # - a textbody
                             # - zero or more attachments
                             $locationid = intval(presdef('locationid', $_REQUEST, NULL));
+
+                            if ($groupid) {
+                                $dbhm->preExec("UPDATE messages_drafts SET groupid = ? WHERE msgid = ?;", [$groupid, $m->getID()]);
+                            }
+                            
                             $type = presdef('messagetype', $_REQUEST, NULL);
                             $item = presdef('item', $_REQUEST, NULL);
                             $fromuser = $me ? $me->getId() : NULL;
@@ -216,10 +222,15 @@ function message() {
                         foreach ($drafts as $draft) {
                             $m = new Message($dbhr, $dbhm, $draft['msgid']);
 
-                            # Find the group nearest the location.
-                            $l = new Location($dbhr, $dbhm, $m->getPrivate('locationid'));
-                            $ret = ['ret' => 4, 'status' => 'No nearby groups found'];
-                            $nears = $l->groupsNear(200);
+                            if (!$draft['groupid']) {
+                                # No group specified.  Find the group nearest the location.
+                                $l = new Location($dbhr, $dbhm, $m->getPrivate('locationid'));
+                                $ret = ['ret' => 4, 'status' => 'No nearby groups found'];
+                                $nears = $l->groupsNear(200);
+                            } else {
+                                # A preferred group for this message.
+                                $nears = [ $draft['groupid'] ];
+                            }
 
                             if (count($nears) > 0) {
                                 $groupid = $nears[0];
