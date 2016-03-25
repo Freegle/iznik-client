@@ -810,8 +810,8 @@ class Message
 
             # We only want to get images from http or https to avoid the security risk of fetching a local file.
             #
-            # Wait for 60 seconds to fetch.  We don't want to wait forever, but we see occasional timeouts from Yahoo
-            # at 30 seconds.
+            # Wait for 120 seconds to fetch.  We don't want to wait forever, but we see occasional timeouts from Yahoo
+            # at 60 seconds.
             #
             # We don't want Yahoo's megaphone images - they're just generic footer images.
             if ((stripos($src, 'http://') === 0 || stripos($src, 'https://') === 0) &&
@@ -819,7 +819,7 @@ class Message
                 error_log("Get inline image $src");
                 $ctx = stream_context_create(array('http'=>
                     array(
-                        'timeout' => 60
+                        'timeout' => 120
                     )
                 ));
                 $data = file_get_contents($src, false, $ctx);

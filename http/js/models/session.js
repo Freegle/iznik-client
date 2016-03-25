@@ -28,6 +28,56 @@ Iznik.Models.Session = IznikModel.extend({
         this.testLoggedIn();
     },
 
+    gotSubscription: function(sub) {
+        console.log('Subscription endpoint:', sub);
+        var subscription = sub.endpoint;
+
+        try {
+            // Pass the subscription to the service worker, so that it can use it to authenticate to the server if we
+            // later log out from the client.  We need this because there is no payload in the push notification and
+            // therefore the only way we can work out what to show the client is to query the server, and we must
+            // therefore have a way to identify ourselves to the server - otherwise we'll get the dread "updated in the
+            // background" message.
+            navigator.serviceWorker.controller.postMessage({
+                type: 'subscription',
+                subscription: subscription
+            });
+            console.log("Passed to service worker");
+        } catch (e) {
+            // This can happen when you do a Ctrl+Shift+R.
+            console.log("Passed to service worker failed", e.message);
+        }
+
+        // See if we have this stored on the server.
+        var me = Iznik.Session.get('me');
+        if (me) {
+            if (me.notifications && me.notifications.push && me.notifications.push.subscription == subscription) {
+                console.log("Already got our permissions");
+            } else {
+                // We don't currently have this
+                console.log("Not got permissions; save", sub.endpoint, me.notifications.push.subscription);
+                var type = 'Google';
+                var key = null;
+                if (subscription.indexOf('services.mozilla.com') !== -1) {
+                    type = 'Firefox';
+                }
+
+                // Save the subscription to the server.
+                Iznik.Session.save({
+                    id: me.id,
+                    notifications: {
+                        push: {
+                            type: type,
+                            subscription: subscription
+                        }
+                    }
+                }, {
+                    patch: true
+                });
+            }
+        }
+    },
+
     testLoggedIn: function() {
         var self = this;
 
@@ -75,37 +125,29 @@ Iznik.Models.Session = IznikModel.extend({
                         self.notificationsSetup = true;
 
                         if ('serviceWorker' in navigator) {
-                            navigator.serviceWorker.register('/js/iznik/sw.js?a=11').then(function(reg) {
-                                reg.pushManager.subscribe({
-                                    userVisibleOnly: true
-                                }).then(function(sub) {
-                                    console.log('endpoint:', sub.endpoint);
-                                    var p = sub.endpoint.lastIndexOf('/');
-                                    var subscription = sub.endpoint;
-                                    var me = Iznik.Session.get('me');
-                                    if (me) {
-                                        if (me.notifications && me.notifications.push && me.notifications.push.subscription == subscription) {
-                                            console.log("Already got our permissions");
-                                        } else {
-                                            // We don't currently have this
-                                            console.log("Not got permissions; save", sub.endpoint, me.notifications.push.subscription);
-                                            var type = 'Google';
-                                            var key = null;
-                                            if (subscription.indexOf('services.mozilla.com') !== -1) {
-                                            type = 'Firefox';
-                                        }
-                                        Iznik.Session.save({
-                                            id: me.id,
-                                            notifications: {
-                                                push: {
-                                                    type: type,
-                                                    subscription: subscription
-                                                }
+                            // Add rand to avoid SW code being cached.
+                            navigator.serviceWorker.register('/sw.js?' + Math.random()).then(function(reg) {
+                                console.log("Registered service worker");
+                                // Spot when the service worker has been activated.
+                                navigator.serviceWorker.addEventListener('message', function(event){
+                                    if (event.data.type == 'activated') {
+                                        console.log("SW has been activated");
+                                        reg.pushManager.getSubscription().then(function(subscription) {
+                                            if (!subscription) {
+                                                console.log("No existing sub");
+                                                var p = reg.pushManager.subscribe({
+                                                    userVisibleOnly: true
+                                                });
+                                                pushManagerPromise = p;
+                                                console.log("promise", p);
+                                                p.then(self.gotSubscription, function(error) {
+                                                    console.log("Subscribe error", error);
+                                                });
+                                            } else {
+                                                console.log("Got existing sub", subscription);
+                                                self.gotSubscription(subscription);
                                             }
-                                        }, {
-                                            patch: true
                                         });
-                                    }
                                     }
                                 });
                             }).catch(function(err) {

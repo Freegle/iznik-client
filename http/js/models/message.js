@@ -135,121 +135,125 @@ Iznik.Models.Message = IznikModel.extend({
                     $.ajax({
                         type: 'GET',
                         url: YAHOOAPI + 'groups/' + group.nameshort + "/pending/messages/1/parts?start=1&count=100&chrome=raw",
+                        context: self,
                         success: function(ret) {
                             var found = false;
+                            var self = this;
                             if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('pendingMessages')) {
                                 _.each(ret.ygData.pendingMessages, function (msg) {
                                     if (msg.msgId == group.yahoopendingid) {
                                         found = true;
 
-                                        var parts = [];
+                                        self.parts = [];
 
                                         // We might be passed both an HTML and a text bodypart.  In this case we drop the
                                         // text one when editing on Yahoo.  This is because Yahoo only seems to handle having
                                         // one of them, and tends to convert text/plain messages to text/html when you edit -
                                         // so we follow suit.
                                         if (htmlbody) {
-                                            parts.push({
+                                            self.parts.push({
                                                 msgPartId: msg.messageParts[0].msgPartId,
                                                 contentType: 'text/html',
                                                 textContent: htmlbody
                                             });
                                         } else if (textbody) {
                                             // Convert to HTML
-                                            parts.push({
+                                            self.parts.push({
                                                 msgPartId: msg.messageParts[0].msgPartId,
                                                 contentType: 'text/html',
                                                 textContent: '<p>' + textbody + '</p>'
                                             });
                                         }
 
-                                        var data = {
+                                        self.data = {
                                             subject: subject,
-                                            messageParts: parts
+                                            messageParts: self.parts
                                         }
 
                                         // Get a crumb from Yahoo to do the work.
-                                        function getCrumb(ret) {
-                                            var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
-
-                                            if (match) {
-                                                self.crumb = match[1];
-                                                new majax({
-                                                    type: "POST",
-                                                    url: YAHOOAPI + 'groups/' + groupname + "/pending/messages/" + group.yahoopendingid + "?gapi_crumb=" + self.crumb,
-                                                    data: {
-                                                        messageParts: JSON.stringify(data),
-                                                        action: 'SAVE'
-                                                    },
-                                                    success: function (ret) {
-                                                        if (ret.hasOwnProperty('ygData') &&
-                                                            ret.ygData.hasOwnProperty('msgId') &&
-                                                            ret.ygData.msgId == group.yahoopendingid) {
-                                                            // The edit on Yahoo worked.  Miracles never cease.  Now update the copy on our server.
-                                                            //
-                                                            // We also drop the text part here too, because the server will (in its absence)
-                                                            // convert the HTML variant to text - and do a better job than we may have done on the client.
-                                                            var data = {
-                                                                id: self.get('id'),
-                                                                subject: subject
-                                                            };
-
-                                                            if (htmlbody) {
-                                                                data.htmlbody = htmlbody;
-                                                            } else {
-                                                                data.textbody = textbody;
-                                                            }
-
-                                                            $.ajax({
-                                                                type: 'POST',
-                                                                headers: {
-                                                                    'X-HTTP-Method-Override': 'PUT',
-                                                                },
-                                                                url: API + 'message',
-                                                                data: data,
-                                                                success: function (ret) {
-                                                                    console.log("Server edit returned", ret);
-                                                                    if (ret.ret == 0) {
-                                                                        // Make sure we're up to date.
-                                                                        self.fetch({
-                                                                            data: {
-                                                                                messagehistory: true
-                                                                            }
-                                                                        }).then(function () {
-                                                                            self.trigger('editsucceeded');
-                                                                        });
-                                                                    } else {
-                                                                        self.trigger('editfailed');
-                                                                    }
-                                                                }, error: function (request, status, error) {
-                                                                    console.log("Server edit failed", request, status, error)
-                                                                    self.trigger('editfailed');
-                                                                }
-                                                            })
-                                                        } else {
-                                                            self.trigger('editfailed');
-                                                        }
-                                                    }, error: function (request, status, error) {
-                                                        console.log("Edit failed", request, status, error)
-                                                        self.trigger('editfailed');
-                                                    }
-                                                });
-                                            } else {
-                                                var match = /window.location.href = "(.*)"/.exec(ret);
+                                        function getCrumb(self) {
+                                            return(function(ret) {
+                                                var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
 
                                                 if (match) {
-                                                    var url = match[1];
-                                                    $.ajaxq('plugin', {
-                                                        type: "GET",
-                                                        url: url,
-                                                        success: getCrumb,
-                                                        error: function (request, status, error) {
-                                                            console.log("Get crumb failed");
+                                                    self.crumb = match[1];
+                                                    new majax({
+                                                        type: "POST",
+                                                        url: YAHOOAPI + 'groups/' + groupname + "/pending/messages/" + group.yahoopendingid + "?gapi_crumb=" + self.crumb,
+                                                        data: {
+                                                            messageParts: JSON.stringify(self.data),
+                                                            action: 'SAVE'
+                                                        },
+                                                        success: function (ret) {
+                                                            if (ret.hasOwnProperty('ygData') &&
+                                                                ret.ygData.hasOwnProperty('msgId') &&
+                                                                ret.ygData.msgId == group.yahoopendingid) {
+                                                                // The edit on Yahoo worked.  Miracles never cease.  Now update the copy on our server.
+                                                                //
+                                                                // We also drop the text part here too, because the server will (in its absence)
+                                                                // convert the HTML variant to text - and do a better job than we may have done on the client.
+                                                                self.data2 = {
+                                                                    id: self.get('id'),
+                                                                    subject: subject
+                                                                };
+
+                                                                if (htmlbody) {
+                                                                    self.data2.htmlbody = htmlbody;
+                                                                } else {
+                                                                    self.data2.textbody = textbody;
+                                                                }
+
+                                                                $.ajax({
+                                                                    type: 'POST',
+                                                                    headers: {
+                                                                        'X-HTTP-Method-Override': 'PUT',
+                                                                    },
+                                                                    url: API + 'message',
+                                                                    data: self.data2,
+                                                                    success: function (ret) {
+                                                                        console.log("Server edit returned", ret);
+                                                                        if (ret.ret == 0) {
+                                                                            // Make sure we're up to date.
+                                                                            self.fetch({
+                                                                                data: {
+                                                                                    messagehistory: true
+                                                                                }
+                                                                            }).then(function () {
+                                                                                self.trigger('editsucceeded');
+                                                                            });
+                                                                        } else {
+                                                                            self.trigger('editfailed');
+                                                                        }
+                                                                    }, error: function (request, status, error) {
+                                                                        console.log("Server edit failed", request, status, error)
+                                                                        self.trigger('editfailed');
+                                                                    }
+                                                                })
+                                                            } else {
+                                                                self.trigger('editfailed');
+                                                            }
+                                                        }, error: function (request, status, error) {
+                                                            console.log("Edit failed", request, status, error)
                                                             self.trigger('editfailed');
                                                         }
                                                     });
+                                                } else {
+                                                    var match = /window.location.href = "(.*)"/.exec(ret);
+
+                                                    if (match) {
+                                                        var url = match[1];
+                                                        $.ajaxq('plugin', {
+                                                            type: "GET",
+                                                            url: url,
+                                                            success: getCrumb(self),
+                                                            error: function (request, status, error) {
+                                                                console.log("Get crumb failed");
+                                                                self.trigger('editfailed');
+                                                            }
+                                                        });
+                                                    }
                                                 }
-                                            }
+                                            });
                                         }
 
                                         // Do this synchronously to increase the chance that the crumb will still be valid
@@ -258,7 +262,7 @@ Iznik.Models.Message = IznikModel.extend({
                                         $.ajaxq('plugin', {
                                             type: "GET",
                                             url: "https://groups.yahoo.com/neo/groups/" + groupname + "/management/pendingmessages?" + Math.random(),
-                                            success: getCrumb,
+                                            success: getCrumb(self),
                                             async: false,
                                             error: function (request, status, error) {
                                                 console.log("Get crumb failed");

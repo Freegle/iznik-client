@@ -20,6 +20,8 @@ class sessionTest extends IznikAPITestCase
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+
+        $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE `type` = 'Test';");
     }
 
     public function testLoggedOut()
@@ -306,6 +308,32 @@ class sessionTest extends IznikAPITestCase
         assertTrue(partner($this->dbhr, $key));
 
         $this->dbhm->preExec("DELETE FROM partners_keys WHERE partner = 'UT';");
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testPushCreds()
+    {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        error_log("Created user $id");
+
+        $n = new Notifications($this->dbhr, $this->dbhm);
+        assertTrue($n->add($id, Notifications::PUSH_TEST, 'test'));
+        
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(1, $ret['ret']);
+        
+        # Now log in using our creds
+        $ret = $this->call('session', 'GET', [
+            'pushcreds' => 'test'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['me']['id']);
+
+        assertEquals(1, $n->remove($id));
 
         error_log(__METHOD__ . " end");
     }

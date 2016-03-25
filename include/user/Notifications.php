@@ -10,6 +10,7 @@ class Notifications
 {
     const PUSH_GOOGLE = 'Google';
     const PUSH_FIREFOX = 'Firefox';
+    const PUSH_TEST = 'Test';
 
     private $dbhr, $dbhm, $log;
 
@@ -36,6 +37,12 @@ class Notifications
     public function add($userid, $type, $val) {
         $sql = "INSERT IGNORE INTO users_push_notifications (`userid`, `type`, `subscription`) VALUES (?, ?, ?);";
         $rc = $this->dbhm->preExec($sql, [ $userid, $type, $val ]);
+        return($rc);
+    }
+
+    public function remove($userid) {
+        $sql = "DELETE FROM users_push_notifications WHERE userid = ?;";
+        $rc = $this->dbhm->preExec($sql, [ $userid ] );
         return($rc);
     }
 

@@ -19,21 +19,38 @@ if (!isset($_SESSION)) {
 }
 
 function prepareSession($dbhr, $dbhm) {
-    if ((!pres('id', $_SESSION)) &&
-        (array_key_exists(COOKIE_NAME, $_COOKIE))) {
-        # Check our cookie to see if it's a valid session
-        $cookie = json_decode($_COOKIE[COOKIE_NAME], true);
-        #error_log("Cookie " . var_export($cookie, TRUE));
+    if (!pres('id', $_SESSION)) {
+        $userid = NULL;
 
-        if ((array_key_exists('id', $cookie)) &&
-            (array_key_exists('series', $cookie)) &&
-            (array_key_exists('token', $cookie))) {
-            $s = new Session($dbhr, $dbhm);
+        if (array_key_exists(COOKIE_NAME, $_COOKIE)) {
+            # Check our cookie to see if it's a valid session
+            $cookie = json_decode($_COOKIE[COOKIE_NAME], true);
+            #error_log("Cookie " . var_export($cookie, TRUE));
 
-            $s->verify($cookie['id'], $cookie['series'], $cookie['token']);
+            if ((array_key_exists('id', $cookie)) &&
+                (array_key_exists('series', $cookie)) &&
+                (array_key_exists('token', $cookie))
+            ) {
+                $s = new Session($dbhr, $dbhm);
+                $userid = $s->verify($cookie['id'], $cookie['series'], $cookie['token']);
+            }
         }
-    } else {
-        #error_log("No cookie or logged in");
+
+        if (!$userid) {
+            # We might not have a cookie, but we might have push credentials.  This happens when we are logged out
+            # on the client but get a notification.  That is sufficient to log us in.
+            $pushcreds = presdef('pushcreds', $_REQUEST, NULL);
+            error_log("No session, pushcreds $pushcreds " . var_exporT($_REQUEST, TRUE));
+            if ($pushcreds) {
+                $sql = "SELECT * FROM users_push_notifications WHERE subscription = ?;";
+                $pushes = $dbhr->preQuery($sql, [$pushcreds]);
+                foreach ($pushes as $push) {
+                    $s = new Session($dbhr, $dbhm);
+                    error_log("Log in as {$push['userid']}");
+                    $s->create($push['userid']);
+                }
+            }
+        }
     }
 }
 
@@ -127,6 +144,7 @@ class Session {
 
         #error_log("Logged in as $userid");
         $_SESSION['id'] = $userid;
+        $_SESSION['logged_in'] = TRUE;
 
         $ss = array(
             'id' => $id,

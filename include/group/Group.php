@@ -627,28 +627,16 @@ class Group extends Entity
             foreach ($messages as $message) {
                 $key = $this->getKey($message);
                 $supplied[$key] = true;
+                $id = NULL;
 
-                $missing = true;
-
-                foreach ($cs as $c) {
-                    /** @var MessageCollection $c */
-                    $id = NULL;
-
-                    switch (($c->getCollection())) {
-                        case MessageCollection::APPROVED:
-                            $id = $c->findByYahooApprovedId($this->id, $message['yahooapprovedid']);
-                            break;
-                        case MessageCollection::PENDING:
-                            $id = $c->findByYahooPendingId($this->id, $message['yahoopendingid']);
-                            break;
-                    }
-
-                    if ($id) {
-                        $missing = false;
-                    }
+                # Don't use the collection to find it, as it could be in spam.
+                if (pres('yahooapprovedid', $message)) {
+                    $id = $c->findByYahooApprovedId($this->id, $message['yahooapprovedid']);
+                } else if (pres('yahoopendingid', $message)) {
+                    $id = $c->findByYahooPendingId($this->id, $message['yahoopendingid']);
                 }
 
-                if ($missing) {
+                if (!$id) {
                     $missingonserver[] = $message;
                 }
             }

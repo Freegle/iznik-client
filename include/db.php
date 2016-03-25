@@ -36,6 +36,7 @@ class LoggedPDO {
     private $readconn;
 
     const DUPLICATE_KEY = 1062;
+    const MAX_LOG_SIZE = 100000;
 
     /**
      * @param int $tries
@@ -166,7 +167,9 @@ class LoggedPDO {
             $logret = $select ? count($ret) : ("$ret:" . $this->lastInsert);
 
             if (isset($_SESSION)) {
-                $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote($sql . ", " . var_export($params, TRUE)) . "," . $this->quote($logret) . ");";
+                $logparams = var_export($params, TRUE);
+                $logparams = substr($logparams, 0, LoggedPDO::MAX_LOG_SIZE);
+                $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote($sql) . ", " . $this->quote($logparams) . "," . $this->quote($logret) . ");";
                 $this->background($logsql);
             }
         }
