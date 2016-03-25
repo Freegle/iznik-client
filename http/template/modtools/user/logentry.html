@@ -77,6 +77,8 @@
             Released member {{user.displayname}} on {{group.namedisplay}}
             <% } else if (subtype == 'Suspect') { %>
             Detected as suspicious<% if (obj.text) { %>: {{text}}<% } %>
+            <% } else if (subtype == 'Split') { %>
+            Split out into two users - {{text}}
             <% } else { %>
                 <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>
