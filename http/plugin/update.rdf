@@ -2,22 +2,22 @@
 <RDF:RDF xmlns:NS1="http://www.mozilla.org/2004/em-rdf#"
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <RDF:Description RDF:about="rdf:#$cmpuv2"
-                   NS1:version="0.43">
-    <NS1:targetApplication RDF:resource="rdf:#$fmpuv2"/>
+  <RDF:Description RDF:about="urn:mozilla:extension:ModToolsUnlisted@edwardhibbert"
+                   NS1:version="0.44"
+                   NS1:updateLink="https://modtools.org/plugin/modtools.xpi"
+                   NS1:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAImkITIvpE8JxV7LRRjdRkF17Mqq0WFhSOGF1KCWlBiFvL0bKpTYbAahRw7ZPJQSGk2L+d1Gr1hRvZEPrvIacEI5OymOgXzY2W08zF0BAM3OZ5TxV67FMxZaPugUN/6SSSxoVd/1ZwfE/zQSZwHPLj6SS9tm43XHQo2xy8VLRfbD">
+    <NS1:updates RDF:resource="rdf:#$bmpuv2"/>
   </RDF:Description>
   <RDF:Seq RDF:about="rdf:#$bmpuv2">
     <RDF:li RDF:resource="rdf:#$cmpuv2"/>
   </RDF:Seq>
-  <RDF:Description RDF:about="urn:mozilla:extension:ModToolsUnlisted@edwardhibbert"
-                   NS1:version="0.43"
-                   NS1:updateLink="https://modtools.org/plugin/modtools.xpi"
-                   NS1:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAJ/CmsVDuOBf5gBF45yDzfQL6KXHvwpO23ZcwS4kMb/NJyuLg0HvKaCfTIQ8FszICwxGLPv6HyQ7Oy7LPVLGOKrhzoV+eDEjHGd3xtQBiK6ZSUy/sREfLtRXO2xZ0et2JI9pRYINBf3Ij8hkm81unOmknJQZB0VcK4S6zdRy6/n9">
-    <NS1:updates RDF:resource="rdf:#$bmpuv2"/>
-  </RDF:Description>
   <RDF:Description RDF:about="rdf:#$fmpuv2"
                    NS1:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                    NS1:minVersion="3.5"
                    NS1:maxVersion="9.0"
                    NS1:updateLink="https://modtools.org/plugin/modtools.xpi" />
+  <RDF:Description RDF:about="rdf:#$cmpuv2"
+                   NS1:version="0.44">
+    <NS1:targetApplication RDF:resource="rdf:#$fmpuv2"/>
+  </RDF:Description>
 </RDF:RDF>

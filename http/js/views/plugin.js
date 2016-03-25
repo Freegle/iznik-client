@@ -1733,8 +1733,16 @@ Iznik.Views.Plugin.Yahoo.DeleteApprovedMessage = Iznik.Views.Plugin.SubView.exte
                         }
                     }
                 }, error: function(request, status, error) {
-                    console.log("Delete error", status, error);
-                    self.fail();
+                    console.log("Delete error", status, error, status.indexOf('Not found'));
+                    if (status.indexOf('Not Found') !== -1) {
+                        // Another way in which we can be told that the item no longer exists; typically because of a 403
+                        // error.
+                        console.log("Worked really");
+                        self.succeed();
+                    } else {
+                        console.log("Failed really");
+                        self.fail();
+                    }
                 }
             });
         }

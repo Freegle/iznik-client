@@ -101,14 +101,19 @@ majax.prototype.start = function () {
             // We did succeed
             //
             // Quite what we get back, string or JSON, depends a bit on the browser.
-            if (typeof rsp == 'string') {
-                rsp = JSON.parse(rsp);
-            }
-            if (typeof rsp == 'string') {
-                rsp = JSON.parse(rsp);
-            }
+            try {
+                if (typeof rsp == 'string') {
+                    rsp = JSON.parse(rsp);
+                }
+                if (typeof rsp == 'string') {
+                    rsp = JSON.parse(rsp);
+                }
 
-            self.args.success(rsp);
+                self.args.success(rsp);
+            } catch (e) {
+                console.log("Parse error", e);
+                self.args.error(request, rsp, null);
+            }
         } else {
             // We failed.
             if (typeof self.args.error == 'function') {

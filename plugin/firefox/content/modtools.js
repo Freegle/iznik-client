@@ -119,7 +119,7 @@ var httpRequestObserver =
                             log("Failed " + status + " " + error);
                             log("cancel");
 
-                            var rsp = JSON.stringify(request.reponseText);
+                            var rsp = JSON.stringify(request.hasOwnProperty('responseText') ? request.reponseText : status);
                             log("Response " + rsp);
                             wd.getElementById('modtoolsrsp').textContent = rsp;
 
