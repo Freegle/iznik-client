@@ -171,8 +171,8 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         assertEquals('from@test.com', $m->getEnvelopefrom());
         assertEquals('to@test.com', $m->getEnvelopeto());
         assertEquals('FDv2', $m->getSourceheader());
-        assertEquals('ehtest-accept-ow3u5p5maxnf4tpmee4hjnr0wsla@yahoogroups.com', $m->getYahooapprove());
-        assertEquals('ehtest-reject-ow3u5p5maxnf4tpmee4hjnr0wsla@yahoogroups.com', $m->getYahooreject());
+        assertEquals('freegleplayground-accept-ow3u5p5maxnf4tpmee4hjnr0wsla@yahoogroups.com', $m->getYahooapprove());
+        assertEquals('freegleplayground-reject-ow3u5p5maxnf4tpmee4hjnr0wsla@yahoogroups.com', $m->getYahooreject());
 
         $m->delete();
 

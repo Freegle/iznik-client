@@ -394,18 +394,27 @@ class MailRouter
                 # Not obviously spam.
                 $ret = MailRouter::FAILURE;
 
-                if ($this->msg->getSource() == Message::YAHOO_PENDING) {
-                    if ($this->markPending()) {
-                        $ret = MailRouter::PENDING;
+                $groups = $this->msg->getGroups();
+
+                if (count($groups) > 0) {
+                    if ($this->msg->getSource() == Message::YAHOO_PENDING) {
+                        if ($this->markPending()) {
+                            $ret = MailRouter::PENDING;
+                        }
+                    } else if ($this->msg->getSource() == Message::YAHOO_APPROVED) {
+                        if ($this->markApproved()) {
+                            $ret = MailRouter::APPROVED;
+                        }
                     }
-                } else if ($this->msg->getSource() == Message::YAHOO_APPROVED) {
-                    if ($this->markApproved()) {
-                        $ret = MailRouter::APPROVED;
-                    }
+                } else {
+                    # Message for a group we don't have.
+                    $ret = MailRouter::DROPPED;
                 }
             }
         }
 
+        # Dropped messages will get tidied up by an event in the DB, but we leave them around in case we need to
+        # look at them for PD.
         error_log("Routed #" . $this->msg->getID(). " " . $this->msg->getMessageID() . " " . $this->msg->getSubject() . " " . $ret);
 
         return($ret);

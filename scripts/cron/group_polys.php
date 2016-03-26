@@ -7,7 +7,21 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 
 function canon($name) {
-    foreach (['freegle', 'reuse', 'recycle', 'freeworld_recycling', 'greencycle', 'uk', '-', ' and ', '_', ' ', '&'] as $word) {
+    foreach ([
+        'greencyclesussex' => 'brighton',
+        'blackcountryfreeworld_recycling' => 'dudley',
+        'morecombe' => 'morecambe',
+        'maccclesfield' => 'macclesfield',
+        'hartlepool' => 'pools',
+        'recyclegiftingmidsussex' => 'burgess hill',
+        'st_albans' => 'st. albans',
+        'ashfield dc' => 'ashfield',
+        'wos' => 'westcliff on sea',
+             ] as $key => $val) {
+        $name = str_ireplace($key, $val, $name);
+    }
+
+    foreach (['waste-not-want-not-', ' of ', 'vale-of-', 'realcycle', '_reuse', 'freerecyclers', 'freegleland', '_group', 'north', 'central', 'recycleforfree', 'freeshare', 'freegle', 'reuse', 'e-recycle', 'and', 'Bedfont', 'Hanwoth', 'Hanworth', 'surrey', 'heath', 'recycle', 'district', 'freeworld', 'recycling', 'greencycle', 'uk', '-and-', ' & ', '-', ' and ', '_', ' ', '&'] as $word) {
         $name = str_ireplace($word, '', $name);
     }
     return(strtolower($name));
@@ -35,7 +49,7 @@ if ($kml) {
             $p = strpos($kname, ':');
             $kname = $p ? trim(substr($kname, $p + 1)) : $kname;
 
-            #error_log("Compare " . canon($name) . ", " . canon($kname) . " = " . strcmp(canon($name), canon($kname)));
+            error_log("Compare " . canon($name) . ", " . canon($kname) . " = " . strcmp(canon($name), canon($kname)));
 
             if (strcmp(canon($name), canon($kname)) === 0) {
                 $poly = $kgroup->Polygon;

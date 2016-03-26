@@ -1445,7 +1445,6 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
     },
 
     updateWKT: function(obj) {
-        console.log("Update", self, obj);
         var wkt = new Wkt.Wkt();
         wkt.fromObject(obj);
         this.$('.js-wkt').val(wkt.write());
@@ -1453,6 +1452,7 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
 
     changeHandler: function(self, area, obj, edit) {
         return(function(n) {
+            console.log("changeHandler", self, area, obj, edit);
             if (edit) {
                 self.editing = edit;
                 self.$('.js-discard').removeClass('disabled');
@@ -1691,8 +1691,10 @@ Iznik.Views.ModTools.Pages.MapSettings = Iznik.Views.Page.extend({
 
             self.listenTo(self.areas, 'remove', function(area) {
                 var obj = area.get('obj');
+                var oldlen = self.features.length;
+                self.features = _.without(self.features, obj);
+                console.log("Removed", oldlen, self.features.length);
                 obj.setMap(null);
-                self.features = _.without(self.areas, area.get('obj'));
             });
 
             google.maps.event.addListener(self.map, 'idle', _.bind(function() {

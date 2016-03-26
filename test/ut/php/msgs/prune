@@ -1,0 +1,631 @@
+From sentto-13138063-87455-1458953419-modtools=modtools.org@returns.groups.yahoo.com Sat Mar 26 12:40:47 2016
+Return-path: <sentto-13138063-87455-1458953419-modtools=modtools.org@returns.groups.yahoo.com>
+Envelope-to: modtools@modtools.org
+Received: from ng11-vm10.bullet.mail.gq1.yahoo.com ([98.136.219.140])
+	by bulk1.ilovefreegle.org with esmtp (Exim 4.82)
+	(envelope-from <sentto-13138063-87455-1458953419-modtools=modtools.org@returns.groups.yahoo.com>)
+	id 1ajcQs-0000uk-BE
+	for modtools@modtools.org; Sat, 26 Mar 2016 00:50:26 +0000
+Received: from [98.137.0.83] by ng11.bullet.mail.gq1.yahoo.com with NNFMP; 26 Mar 2016 00:50:20 -0000
+Received: from [10.193.39.61] by tg3.bullet.mail.gq1.yahoo.com with NNFMP; 26 Mar 2016 00:50:20 -0000
+X-Yahoo-Newman-Id: 13138063-m87455
+Received: (qmail 1124 invoked by uid 102); 26 Mar 2016 00:50:18 -0000
+Received: from unknown (HELO mtaq6.grp.bf1.yahoo.com) (10.193.84.37)
+  by m12.grp.bf1.yahoo.com with SMTP; 26 Mar 2016 00:50:18 -0000
+Received: (qmail 6140 invoked from network); 26 Mar 2016 00:50:18 -0000
+Received: from unknown (HELO mta1003.groups.mail.bf1.yahoo.com) (98.139.170.167)
+  by mtaq6.grp.bf1.yahoo.com with SMTP; 26 Mar 2016 00:50:18 -0000
+Received-SPF: none (domain of sbcglobal.net does not designate permitted sender hosts)
+X-Rocket-Track: cat=UK; info=cconsam:UK;cip_features:UK;ip:NN<ip=66.196.81.198,policy=n-w0,n100,g0,s>;cmsgbl:UK<toosmall, 3>;cmsgbk:UK<toosmall, 3>;csubbl:UK;url2db:NN<url=sbcglobal.net,pri=3>;sgor:UK;abaca:UK<131, fh=mta1003; fi=98.139.172.200:14050; rg=U; GT=0; fs=131; ns=131; ws=-47,A,30,-265,-60,48,0,0,0,0,200,0,0,N,N; nn=1,-60,-9,200,0,0; cn=843,3342,1,0,284,-15047,0,63,0,0; ex=N,b,0000,FILMQRSTUVY; sk=E5Y4Tqd9xaE; yd=5,5,0,-1; st=AAS; id=Uwp8wgd9-2Q0050I2.; rv=inbound.0.40+110-g9aaebb9/98.139.172.200:14051; ts=OK4Fl; gv=96; fp=BPxkg; or=BAA; gd=1; fl=EAAIAA; ip=66.196.81.198; po=66.196.81.178; ht=1; so=3; oc=0; oL=3; co=n; hv=1; td=1; ha=FuDPOchz66s; hs=CFp8DFHkPSw; ho=DWcVworHqgA; hd=FuDPOchz66s; hf=NlSy4/PvRVg; hF=O0hSo4M2tuQ; hj=Fx9UkBYE60l; hr=LF7qIN7jt1w; sd=NYDD8Jd6ZyN,0:0,0,0:0,0,0,0,1,1,1,0,w,w; dm=Mg09CyLwpe8,1; ZM=G+efbxEYcT7; ZB=Fb2bHkNwQ7f; ZB=N2/UalaEo3d; ZF=D9C3++3mOlX; Zi=HhkimKaA0Da;, SRV_OR=1,WS_OR=1,WSS_OR=1,OR=1,AB_WS_IP=0,AB_WSS_IP=0>
+X-Rocket-Filter: dmarc-result=pass;
+X-Rocket-MIMEInfo: 001.001,TG9va2luZyBmb3IgYSBjb3VwbGUgb2Ygb2xkIGJlYXQgdXAgYmFz
+ ZWJhbGxzIHdpdGggdG9ybiBjb3ZlcnMuIE15IG5ldyBwdXBweSBsb3ZlcyBw
+ bGF5aW5nIHdpdGggdGhlbS4gVGhhbmtzIFN1c2FuIHNhdmFzdHVrQHNiY2ds
+ b2JhbC5uZXQgATABAQEB
+X-YMailISG: I9O7pggWLDsockPlSCcbhpgP.kOgxn3nh9bfAZeKH0ag3TeL
+ VtQYE9gHpkvF2vslHVW9kasazByJEeTHW_ZLI18acft1i92Dd7kMBivD1Vas
+ Alo.w47h2ie_yV7aAuMEOL2jQdhXqnecSoMQj0DZB.uqXiHtGDnaF0JGB4bK
+ L60LPruyt4YyfpEBozsOGZhWrxl1rQzNU2lhBH0x1E0WrrbprWyv_LWLpSzs
+ bdbXkDwZZfYOSZc3aC7RnMiCRcqQe0bnSC6P_ikUkDd6H7LLMFaQUDXogRpt
+ qFmijUUHrhRar4C5FuQe.JjxAuynd20hFYoXkpRJVuMT9Zhf5Wn596OgM3Ba
+ FQbNzm_X0.5MNpc8ncr6AQCIpX2u8OBeNVyaG1zkyZoORCPdEqJejKZD18k1
+ HLRMoZsh9nKtb_427c.YkhFepkD_g4mu7zmn2W7BmDMte1qHkwxmkj8JoOzr
+ XSp67RwjFL.H7b51M0L_M0kCG5ROVlaI9SkJIc6N0hN9ysDLXxSdBEXmaKad
+ d6em5DoyQ2wCeBpBtEsmVzD3l1IWRbWcS.58LV0ibl56rrxA4ChoZGMiI5kR
+ uwjgMBMiJD7SizYiPqwFbp7TyUZURK4V0.oB1GeKSScfTZ5QgdTF1Au_i8NL
+ SXSIc6iww2fmmJ39UULk18BV3GlAvj9JWqyWSYkCYGBdHxJzZsNlBIdZQT2M
+ Te2h.mteThRwzdDgi6yOFpPGuqyC5OE7CTlbP.XrznnSRvriBHwfKK5YkWEq
+ HFFhNsl9BWHgkkkdtODq2rJ5rycm86H_H3Z27UU9IjlcwZkJiqSgGmux9ozQ
+ h4q1cbFuFj2VHf_wpGI3f6y1fN0hBaZR186dURdpgXOC3D9LAAPLRLd7HPrI
+ hcyzwUxOIeJNDQy4rEnIwbkQL4bM_ovNjfw6dkGqYmr0XoOaIg2csGZ67XzH
+ lIvxUZZs8TXkHLvkXhRB1UkID67dwItt6JaiCz7.a5_5Nahq48UdYDxvKnK3
+ DlzJ_T.Kzw2NMUXnA_I.Dk3eFEg_CmNbHP9Waq5le5Xww9jPdt6MYizibkkU
+ 8HdBenrOK20zKVv_W5.Bqun5sQ0NJpSk057QKF1.cmfxvEV8gTeOQz1FWfQh
+ wH7kdypz8tvgOBgVdMXVnem_pLRzZcUVNuvDom5KwMR1uI2y51iaINrZfEt4
+ 6t5C61mNXYzS6a1O2ttPcpiCuhPLg.gdInJxr6kT98M1jUWKOcu_FnkbZ7M.
+ J0hQ37psrrRvBUe8j4Ikf4pePDMsNhTBS0Y0DLAOHt..R5p3cr6IxtPK8ae.
+ b__hu47C7ZlvdlYi3lg-
+X-RocketHELO: n11-vm7.bullet.mail.bf1.yahoo.com
+X-RocketMAILFROM: test@test.com
+X-RocketRCPTTO: 0-freegleplayground@yahoogroups.com
+X-RocketMSGID:1458953418.469395.21670@mta1003.groups.mail.bf1.yahoo.com#0
+X-Originating-IP: [66.196.81.198]
+Authentication-Results: mta1003.groups.mail.bf1.yahoo.com  from=yahoogroups.com; domainkeys=neutral (no sig);  from=yahoogroups.com; dkim=pass (ok)
+Received: from 127.0.0.1  (EHLO n11-vm7.bullet.mail.bf1.yahoo.com) (66.196.81.198)
+  by mta1003.groups.mail.bf1.yahoo.com with SMTPS; Sat, 26 Mar 2016 00:50:18 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoogroups.com; s=echoe; t=1458953418; bh=Dwa7lo/plAIyShojoUlxKPHRLHsinNy/FqWY5ibDKXU=; h=Date:Subject:From:Reply-To:To:From:Subject; b=prMbXu3Jg0KOnDSi0zzMuc+SQ3IuJHIhdqlLM7qRazaG0vX+bUC12L63mNqK+c1Skorl5WmC1jv4MVLvoZ1XsquXw+qNZe+uOWUkVriZIytBAFDRUAiJmW8mmwtJUT0vy2rGPPQsevNdSEKBhv7QAKRBkdkyerzibksqYUAcu1k=
+Received: from [66.196.81.178] by n11.bullet.mail.bf1.yahoo.com with NNFMP; 26 Mar 2016 00:50:18 -0000
+Received: from [10.193.39.251] by t8.bullet.mail.bf1.yahoo.com with NNFMP; 26 Mar 2016 00:50:18 -0000
+Received: from [127.0.0.1] by gapi15.grp.bf1.yahoo.com with NNFMP; 26 Mar 2016 00:50:18 -0000
+X-Sender: test@test.com
+X-Apparently-To: freegleplayground@yahoogroups.com
+X-Received: (qmail 3214 invoked by uid 102); 25 Mar 2016 23:09:58 -0000
+X-Received: from unknown (HELO mtaq3.grp.bf1.yahoo.com) (10.193.84.142)
+  by m17.grp.bf1.yahoo.com with SMTP; 25 Mar 2016 23:09:58 -0000
+X-Received: (qmail 27805 invoked from network); 25 Mar 2016 23:09:58 -0000
+X-Received: from unknown (HELO mta1005.groups.mail.ne1.yahoo.com) (98.138.100.120)
+  by mtaq3.grp.bf1.yahoo.com with SMTP; 25 Mar 2016 23:09:58 -0000
+X-Original-Return-Path: <test@test.com>
+X-Received-SPF: none (domain of sbcglobal.net does not designate permitted sender hosts)
+X-YMailISG: EowOtQIWLDumsIsKv7sOoSsk2Rg4Qrx1X_TYIkXATFakSQGq
+ YRLDT6r5JobrO.1u0p7wrn35e_9TV7W79xLuv2MbyKtX2je.3lQEU.Mf_lDD
+ Kek7oOe9Mx9ioCJ2aLy6SKdOHpEoZ5ll0GmeE15mlW5JQPzvXVlvr8dcoBpc
+ 3T8LVkhB73ifxyDPYDOBR44.k0OvTiVZMuajtd9VEXBZUzAP2YqPlazQMmIx
+ GX.fBxgrSjlg5.bjXCMnTwY0QeAvGzC1n1brh0fCtkliETt6DfGir7MlqUmQ
+ ZdFcXqJRSRR3fz052i3PXymE.mxGHQmREb1OMyJG2BNNyRTyAz8aPanEipjN
+ HEj_ihFPEH9sfe4CsQtPSMRXoxo2mSWKAXX8iJavUx7VG05sqXflgPphGtDN
+ 8uOZ2okxj4p_MQ7t9j83ASnJtj_RLW4Y01go_o_6s7kU.fflMCOWi3uOCpNz
+ bE8Mc1ENaAlKkc78D873Gp.dQa3T21PCEyliY.MDg6IV1Pg1pl8j9tskDmzF
+ SArTktA9Ql9crILpuBQToITNnUvFL3iEjUaEnt3x2F7P7uSvoowy_VvfoSBZ
+ KFGf7_Pq.LDro23zTnpkjEwim7l1ec8DnrBlfxbPaXwtaj7yiSywUWEaFVN.
+ hFvjb0TP6V2muFrGWo2zjvLD_h4Jz4E5cLBkbb2tej5I5AfjrTL.L0CowX89
+ dDR61ENEMD7PJ0Lvo9Fby7jqAl2VX_ALhdlnO0fCUAIm8NV.s3ZyEBNCO2s4
+ qqdfZnUbvT5yjuY5UZKfJL.KyuQIlhNdHXrkLQe1fvTX0WZ8KtjbsdIJgHzp
+ Ne5_YfLot9_nhX.VGxLsBHQQIT48viMwnZdjypUhdM1fuDqRdPBNP1GxoopE
+ kHrm9mH8l4HldnFbTFIxHbO5NHz8Aer4VDQDmwvK9zwfz41AbNjleAhp5dul
+ EC.BlwHC7AmlJZLd5i5SHF_2KxQu.G6PHldKP0uH60nyzij8NrHsexHJmfVi
+ I1bQVEsfpdBf8EP2jr1_9QB8tfv3s3v3NyjUiTpcofyH5Hd8puuz377jsHVq
+ ET0kgCAatEW_F_pgLPRkB5NOmrbjFohz.HdLUsGwCnOXvR5OupABZ0OVPnr7
+ tuvSrbCKG_cNc8FVBmBWiTCNlc7BeADPa1QVF64Fv3RaXpb.6Oe5phe2PqFJ
+ 50yUaZHO7miBmjGWsC1yIeti0mzmQPqs
+Authentication-Results: mta1005.groups.mail.ne1.yahoo.com  from=sbcglobal.net; domainkeys=neutral (no sig);  from=sbcglobal.net; dkim=pass (ok)
+X-Received: from 127.0.0.1  (EHLO nm6-vm1.bullet.mail.ne1.yahoo.com) (98.138.91.71)
+  by mta1005.groups.mail.ne1.yahoo.com with SMTPS; Fri, 25 Mar 2016 23:09:58 +0000
+X-Received: from [98.138.226.180] by nm6.bullet.mail.ne1.yahoo.com with NNFMP; 25 Mar 2016 23:09:58 -0000
+X-Received: from [98.138.84.41] by tm15.bullet.mail.ne1.yahoo.com with NNFMP; 25 Mar 2016 23:09:58 -0000
+X-Received: from [127.0.0.1] by smtp109.mail.ne1.yahoo.com with NNFMP; 25 Mar 2016 23:09:58 -0000
+X-YMail-OSG: gUKyyZ8VM1mw8azsmHifNQVfS6fRw6V0sWczhLBQ4yCMPot
+ K6OsRawyW8O9jd9JX9szHYO8BHU971Sj1kq7BPmhCZSrnIejjtUHhsrIvNC8
+ DyHbkX8FkJsqQJpEXqvAJ_gDGHIlz06X8i1zjtQzsEgjX9UcJab9dew6fP4E
+ CdM2AQxjRBjIRhpWhKJQOwTs80pUrCKoWxUSAY6XA5o1_X6fvnmagaJ_64qx
+ 6qY4diIpIKWiJL1TcWT73St101rUXyDR2mPma1D3gM86JIg9.uaXzfkTto51
+ qqBERNXwYFNmLl2TBvCretH_DG6Y4aattHGdmDW818qevgGOpTUZ9ICEqeMs
+ XiB2mjKyR1_O62idAUkx7PUGdnOvhsg1xjknG7pF4Z.Z9MiGwFzx_64_aYU_
+ ApkFTuXKooD0W_Bg.H59UR0w5mmCy2GYIzmGn3JqxcS0JRwzlyQ0n_0eOTYS
+ tP32lOBS7Aih1Hd98O.r7tsMqoxmDqJXi_HM9sFoKChxMJDTh331DhJmp0qf
+ KwEyrYgWUFhr21sPD3ru99BqgTGUBVJbkpdHm_ILdykYblR0BIU1KY5Q77w-
+ -
+X-Yahoo-SMTP: ZXfi5e.swBD_n6z.Vz0pu83WBQDbUClGghasc0UCbv9vEmc-
+X-Mailer: iPad Mail (13E233)
+Message-Id: <49B4B417-ECB6-4FFC-8695-7C71C32CFD60@sbcglobal.net>
+X-Originating-IP: 98.138.100.120
+X-Yahoo-Profile: susan_test
+From: "Susan test test@test.com [freegleplayground]" <freegleplayground-noreply@yahoogroups.com>
+X-Original-From: Susan test <test@test.com>
+To: freegleplayground@yahoogroups.com
+X-eGroups-Approved-By: nursemarcey via web; 25 Mar 2016 17:50:18 -0000
+Sender: freegleplayground@yahoogroups.com
+MIME-Version: 1.0
+Mailing-List: list freegleplayground@yahoogroups.com; contact freegleplayground-owner@yahoogroups.com
+Delivered-To: mailing list freegleplayground@yahoogroups.com
+List-Id: <freegleplayground.yahoogroups.com>
+Precedence: bulk
+List-Unsubscribe: <mailto:freegleplayground-unsubscribe@yahoogroups.com>
+Date: Fri, 25 Mar 2016 19:09:57 -0400
+Subject: [BBIN freecycle™] Wanted Old beat up baseballs
+Reply-To: Susan test <test@test.com>
+X-Yahoo-Newman-Property: groups-email-ff-m
+Content-Type: multipart/alternative;
+ boundary="b9mKLgbKFtmwuKa8QgegeBPZLVkfkxQL4ChOrGh"
+
+--b9mKLgbKFtmwuKa8QgegeBPZLVkfkxQL4ChOrGh
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Looking for a couple of old beat up baseballs with torn covers.
+My new puppy loves playing with them.
+Thanks
+Susan
+test@test.com
+
+--b9mKLgbKFtmwuKa8QgegeBPZLVkfkxQL4ChOrGh
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+
+
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+</head>
+
+
+
+
+
+
+
+<body style="background-color: #fff;">
+<span style="display:none">&nbsp;</span>
+
+<!--~-|**|PrettyHtmlStartT|**|-~-->
+<div id="ygrp-mlmsg" style="position:relative;">
+  <div id="ygrp-msg" style="z-index: 1;">
+<!--~-|**|PrettyHtmlEndT|**|-~-->
+
+    <div id="ygrp-text" >
+
+
+      <p>Looking for a couple of old beat up baseballs with torn covers. <br>
+My new puppy loves playing with them.<br>
+Thanks <br>
+Susan<br>
+test@test.com<br>
+</p>
+
+    </div>
+
+
+    <!--~-|**|PrettyHtmlStart|**|-~-->
+    <div style="color: #fff; height: 0;">__._,_.___</div>
+
+
+
+
+
+
+    <div style="clear:both"> </div>
+
+    <div id="fromDMARC" style="margin-top: 10px;">
+        <hr style="height:2px ; border-width:0; color:#E3E3E3; background-color:#E3E3E3;">
+        Posted by: Susan test &lt;test@test.com&gt;        <hr style="height:2px ; border-width:0; color:#E3E3E3; background-color:#E3E3E3;">
+     </div>
+    <div style="clear:both"> </div>
+
+    <table cellspacing=4px style="margin-top: 10px; margin-bottom: 10px; color: #2D50FD;">
+      <tbody>
+        <tr>
+          <td style="font-size: 12px; font-family: arial; font-weight: bold; padding: 7px 5px 5px;"  >
+                          <a style="text-decoration: none; color: #2D50FD" href="https://groups.yahoo.com/neo/groups/freegleplayground/conversations/messages/87455;_ylc=X3oDMTJyMnVxZjIzBF9TAzk3MzU5NzE0BGdycElkAzEzMTM4MDYzBGdycHNwSWQDMTcwNTA2NDIzNQRtc2dJZAM4NzQ1NQRzZWMDZnRyBHNsawNycGx5BHN0aW1lAzE0NTg5NTM0MTk-?act=reply&messageNum=87455">Reply via web post</a>
+                      </td>
+          <td>&bull;</td>
+          <td style="font-size: 12px; font-family: arial; padding: 7px 5px 5px;" >
+            <a href="mailto:test@test.com?subject=Re%3A%20Wanted%20Old%20beat%20up%20baseballs" style="text-decoration: none; color: #2D50FD;">
+               Reply to sender            </a>
+          </td>
+          <td>&bull;</td>
+          <td style="font-size: 12px; font-family: arial; padding: 7px 5px 5px;">
+            <a href="mailto:freegleplayground@yahoogroups.com?subject=Re%3A%20Wanted%20Old%20beat%20up%20baseballs" style="text-decoration: none; color: #2D50FD">
+              Reply to group            </a>
+          </td>
+          <td>&bull;</td>
+          <td style="font-size: 12px; font-family: arial; padding: 7px 5px 5px;" >
+            <a href="https://groups.yahoo.com/neo/groups/freegleplayground/conversations/newtopic;_ylc=X3oDMTJmaWIwOTBqBF9TAzk3MzU5NzE0BGdycElkAzEzMTM4MDYzBGdycHNwSWQDMTcwNTA2NDIzNQRzZWMDZnRyBHNsawNudHBjBHN0aW1lAzE0NTg5NTM0MTk-" style="text-decoration: none; color: #2D50FD">Start a New Topic</a>
+          </td>
+          <td>&bull;</td>
+          <td style="font-size: 12px; font-family: arial; padding: 7px 5px 5px;color: #2D50FD;" >
+                            <a href="https://groups.yahoo.com/neo/groups/freegleplayground/conversations/topics/87455;_ylc=X3oDMTM3MGtudWUyBF9TAzk3MzU5NzE0BGdycElkAzEzMTM4MDYzBGdycHNwSWQDMTcwNTA2NDIzNQRtc2dJZAM4NzQ1NQRzZWMDZnRyBHNsawN2dHBjBHN0aW1lAzE0NTg5NTM0MTkEdHBjSWQDODc0NTU-" style="text-decoration: none; color: #2D50FD;">Messages in this topic</a>
+                (1)
+                      </td>
+        </tr>
+      </tbody>
+    </table>
+
+
+<div id="megaphoneModule">
+            <hr style="height:2px ; border-width:0; color:#E3E3E3; background-color:#E3E3E3;">
+        <div>
+	     <div class="feature_intro">
+            <div style="background-color:white;padding:0px 10px;">
+                <div class="header" style="margin-right:10px;display:inline-block;width:400px;">
+                    <a rel="nofollow" style="text-decoration:none;" target="_blank" href="https://yho.com/13fl5l"><div style="font-size:15px;line-height:20px;color:blue;">Save time and get your email on the go with the Yahoo Mail App</div></a>
+                    <div class="snippet" style="margin-top:5px;">Get the beautifully designed, lighting fast, and easy-to-use, Yahoo Mail app today. Now you can access all your inboxes (Gmail, Outlook, AOL and more) in one place. Never delete an email again with 1000GB of free cloud storage.</div>
+                </div>
+                <div style="display:inline-block;vertical-align:top;margin-top:10px;">
+
+
+                    <a rel="nofollow" target="_blank" href="https://yho.com/13fl5l" name="try_btn_url" style="text-decoration:none;">
+                        <input type="button" class="try-btn" value="Try it now" style="font-size:14px;vertical-align:middle;height:30px;cursor:pointer;margin-bottom:10px;width:100px;background-color:rgb(250, 250, 250);" name="try_btn">
+                    </a>
+
+                </div>
+            </div>
+        </div>        </div>
+
+    <hr style="height:2px ; border-width:0; color:#E3E3E3; background-color:#E3E3E3;">
+</div>
+
+<!------- Start Nav Bar ------>
+<!-- |**|begin egp html banner|**| -->
+<!-- |**|end egp html banner|**| -->
+
+
+    <div id="ygrp-grfd" style="font-family: Verdana; font-size: 12px; padding: 15px 0;">
+
+<!-- |**|begin egp html banner|**| -->
+
+      ___________________________________________________<BR>
+Join BBINChat for off-topic posts not involving free exchange of tangible items:<BR>
+<BR>
+<a href="http://groups.yahoo.com/group/BBINCHAT/">http://groups.yahoo.com/group/BBINCHAT/</a><BR>
+<BR>
+Questions for the moderators?&nbsp; Please e-mail:<BR>
+freegleplayground-owner@yahoogroups.com
+<!-- |**|end egp html banner|**| -->
+
+    </div>
+
+
+
+
+<!-- |**|begin egp html banner|**| -->
+<div id="ygrp-vital" style="background-color: #f2f2f2; font-family: Verdana; font-size: 10px; margin-bottom: 10px; padding: 10px;">
+
+    <span id="vithd" style="font-weight: bold; color: #333; text-transform: uppercase; "><a href="https://groups.yahoo.com/neo/groups/freegleplayground/info;_ylc=X3oDMTJmOGJ0MzVuBF9TAzk3MzU5NzE0BGdycElkAzEzMTM4MDYzBGdycHNwSWQDMTcwNTA2NDIzNQRzZWMDdnRsBHNsawN2Z2hwBHN0aW1lAzE0NTg5NTM0MTk-" style="text-decoration: none;">Visit Your Group</a></span>
+
+     <ul style="list-style-type: none; margin: 0; padding: 0; display: inline;">
+            <li style="border-right: 1px solid #000; font-weight: 700; display: inline; padding: 0 5px; margin-left: 0;">
+      <span class="cat"><a href="https://groups.yahoo.com/neo/groups/freegleplayground/members/all;_ylc=X3oDMTJnamZ1bnFyBF9TAzk3MzU5NzE0BGdycElkAzEzMTM4MDYzBGdycHNwSWQDMTcwNTA2NDIzNQRzZWMDdnRsBHNsawN2bWJycwRzdGltZQMxNDU4OTUzNDE5" style="text-decoration: none;">New Members</a></span>
+      <span class="ct" style="color: #ff7900;">2</span>
+    </li>
+                                              </ul>
+  </div>
+
+
+<div id="ft" style="font-family: Arial; font-size: 11px; margin-top: 5px; padding: 0 2px 0 0; clear: both;">
+  <a href="https://groups.yahoo.com/neo;_ylc=X3oDMTJlZnBoOGNmBF9TAzk3MzU5NzE0BGdycElkAzEzMTM4MDYzBGdycHNwSWQDMTcwNTA2NDIzNQRzZWMDZnRyBHNsawNnZnAEc3RpbWUDMTQ1ODk1MzQxOQ--" style="float: left;"><img src="http://l.yimg.com/ru/static/images/yg/img/email/new_logo/logo-groups-137x15.png" height="15" width="137" alt="Yahoo! Groups" style="border: 0;"/></a>
+  <div style="color: #747575; float: right;"> &bull; <a href="https://info.yahoo.com/privacy/us/yahoo/groups/details.html" style="text-decoration: none;">Privacy</a> &bull; <a href="mailto:freegleplayground-unsubscribe@yahoogroups.com?subject=Unsubscribe" style="text-decoration: none;">Unsubscribe</a> &bull; <a href="https://info.yahoo.com/legal/us/yahoo/utos/terms/" style="text-decoration: none;">Terms of Use</a> </div>
+</div>
+<br>
+
+<!-- |**|end egp html banner|**| -->
+
+  </div> <!-- ygrp-msg -->
+
+
+  <!-- Sponsor -->
+  <!-- |**|begin egp html banner|**| -->
+  <div id="ygrp-sponsor" style="width:160px; float:right; clear:none; margin:0 0 25px 0; background: #fff;">
+
+<!-- Start Recommendations -->
+<div id="ygrp-reco">
+     </div>
+<!-- End Recommendations -->
+
+
+
+  </div>   <!-- |**|end egp html banner|**| -->
+
+  <div style="clear:both; color: #FFF; font-size:1px;">.</div>
+</div>
+
+  <img src="http://geo.yahoo.com/serv?s=97359714/grpId=13138063/grpspId=1705064235/msgId=87455/stime=1458953419" width="1" height="1"> <br>
+
+<img src="http://y.analytics.yahoo.com/fpc.pl?ywarid=515FB27823A7407E&a=10001310322279&js=no&resp=img&cf12=CP" width="1" height="1">
+
+<div style="color: #fff; height: 0;">__,_._,___</div>
+<!--~-|**|PrettyHtmlEnd|**|-~-->
+
+</body>
+
+<!--~-|**|PrettyHtmlStart|**|-~-->
+<head>
+  <style type="text/css">
+  <!--
+  #ygrp-mkp {
+  border: 1px solid #d8d8d8;
+  font-family: Arial;
+  margin: 10px 0;
+  padding: 0 10px;
+}
+
+#ygrp-mkp hr {
+  border: 1px solid #d8d8d8;
+}
+
+#ygrp-mkp #hd {
+  color: #628c2a;
+  font-size: 85%;
+  font-weight: 700;
+  line-height: 122%;
+  margin: 10px 0;
+}
+
+#ygrp-mkp #ads {
+  margin-bottom: 10px;
+}
+
+#ygrp-mkp .ad {
+  padding: 0 0;
+}
+
+#ygrp-mkp .ad p {
+  margin: 0;
+}
+
+#ygrp-mkp .ad a {
+  color: #0000ff;
+  text-decoration: none;
+}
+  #ygrp-sponsor #ygrp-lc {
+  font-family: Arial;
+}
+
+#ygrp-sponsor #ygrp-lc #hd {
+  margin: 10px 0px;
+  font-weight: 700;
+  font-size: 78%;
+  line-height: 122%;
+}
+
+#ygrp-sponsor #ygrp-lc .ad {
+  margin-bottom: 10px;
+  padding: 0 0;
+}
+
+  #actions {
+    font-family: Verdana;
+    font-size: 11px;
+    padding: 10px 0;
+  }
+
+  #activity {
+    background-color: #e0ecee;
+    float: left;
+    font-family: Verdana;
+    font-size: 10px;
+    padding: 10px;
+  }
+
+  #activity span {
+    font-weight: 700;
+  }
+
+  #activity span:first-child {
+    text-transform: uppercase;
+  }
+
+  #activity span a {
+    color: #5085b6;
+    text-decoration: none;
+  }
+
+  #activity span span {
+    color: #ff7900;
+  }
+
+  #activity span .underline {
+    text-decoration: underline;
+  }
+
+  .attach {
+    clear: both;
+    display: table;
+    font-family: Arial;
+    font-size: 12px;
+    padding: 10px 0;
+    width: 400px;
+  }
+
+  .attach div a {
+    text-decoration: none;
+  }
+
+  .attach img {
+    border: none;
+    padding-right: 5px;
+  }
+
+  .attach label {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .attach label a {
+    text-decoration: none;
+  }
+
+  blockquote {
+    margin: 0 0 0 4px;
+  }
+
+  .bold {
+    font-family: Arial;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .bold a {
+    text-decoration: none;
+  }
+
+  dd.last p a {
+    font-family: Verdana;
+    font-weight: 700;
+  }
+
+  dd.last p span {
+    margin-right: 10px;
+    font-family: Verdana;
+    font-weight: 700;
+  }
+
+  dd.last p span.yshortcuts {
+    margin-right: 0;
+  }
+
+  div.attach-table div div a {
+    text-decoration: none;
+  }
+
+  div.attach-table {
+    width: 400px;
+  }
+
+  div.file-title a, div.file-title a:active, div.file-title a:hover, div.file-title a:visited {
+    text-decoration: none;
+  }
+
+  div.photo-title a, div.photo-title a:active, div.photo-title a:hover, div.photo-title a:visited {
+    text-decoration: none;
+  }
+
+  div#ygrp-mlmsg #ygrp-msg p a span.yshortcuts {
+    font-family: Verdana;
+    font-size: 10px;
+    font-weight: normal;
+  }
+
+  .green {
+    color: #628c2a;
+  }
+
+  .MsoNormal {
+    margin: 0 0 0 0;
+  }
+
+  o {
+    font-size: 0;
+  }
+
+  #photos div {
+    float: left;
+    width: 72px;
+  }
+
+  #photos div div {
+    border: 1px solid #666666;
+    height: 62px;
+    overflow: hidden;
+    width: 62px;
+  }
+
+  #photos div label {
+    color: #666666;
+    font-size: 10px;
+    overflow: hidden;
+    text-align: center;
+    white-space: nowrap;
+    width: 64px;
+  }
+
+  #reco-category {
+    font-size: 77%;
+  }
+
+  #reco-desc {
+    font-size: 77%;
+  }
+
+  .replbq {
+    margin: 4px;
+  }
+
+  #ygrp-actbar div a:first-child {
+   /* border-right: 0px solid #000;*/
+    margin-right: 2px;
+    padding-right: 5px;
+  }
+
+  #ygrp-mlmsg {
+    font-size: 13px;
+    font-family: Arial, helvetica,clean, sans-serif;
+    *font-size: small;
+    *font: x-small;
+  }
+
+  #ygrp-mlmsg table {
+    font-size: inherit;
+    font: 100%;
+  }
+
+  #ygrp-mlmsg select, input, textarea {
+    font: 99% Arial, Helvetica, clean, sans-serif;
+  }
+
+  #ygrp-mlmsg pre, code {
+    font:115% monospace;
+    *font-size:100%;
+  }
+
+  #ygrp-mlmsg * {
+    line-height: 1.22em;
+  }
+
+  #ygrp-mlmsg #logo {
+    padding-bottom: 10px;
+  }
+
+
+  #ygrp-msg p a {
+    font-family: Verdana;
+  }
+
+  #ygrp-msg p#attach-count span {
+    color: #1E66AE;
+    font-weight: 700;
+  }
+
+  #ygrp-reco #reco-head {
+    color: #ff7900;
+    font-weight: 700;
+  }
+
+  #ygrp-reco {
+    margin-bottom: 20px;
+    padding: 0px;
+  }
+
+  #ygrp-sponsor #ov li a {
+    font-size: 130%;
+    text-decoration: none;
+  }
+
+  #ygrp-sponsor #ov li {
+    font-size: 77%;
+    list-style-type: square;
+    padding: 6px 0;
+  }
+
+  #ygrp-sponsor #ov ul {
+    margin: 0;
+    padding: 0 0 0 8px;
+  }
+
+  #ygrp-text {
+    font-family: Georgia;
+  }
+
+  #ygrp-text p {
+    margin: 0 0 1em 0;
+  }
+
+  #ygrp-text tt {
+    font-size: 120%;
+  }
+
+  #ygrp-vital ul li:last-child {
+    border-right: none !important;
+  }
+  -->
+  </style>
+</head>
+
+<!--~-|**|PrettyHtmlEnd|**|-~-->
+</html>
+<!-- end group email -->
+
+
+--b9mKLgbKFtmwuKa8QgegeBPZLVkfkxQL4ChOrGh--
+

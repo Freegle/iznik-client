@@ -183,7 +183,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Create a group with a message on it
         $msg = file_get_contents('msgs/spam');
-        $msg = str_ireplace('To: Recipient <recipient@example.net>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
+        $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         error_log("Created spam message $id");
@@ -665,7 +665,7 @@ class messageAPITest extends IznikAPITestCase
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         $msg = file_get_contents('msgs/spam');
-        $msg = str_ireplace('To: Recipient <recipient@example.net>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
+        $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
@@ -905,6 +905,9 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
         # Can create drafts when not logged in.
         $data = file_get_contents('images/chair.jpg');
         file_put_contents(IZNIK_BASE . "/http/uploads/chair.jpg", $data);
@@ -936,6 +939,7 @@ class messageAPITest extends IznikAPITestCase
             'messagetype' => 'Offer',
             'item' => 'a thing',
             'textbody' => 'Text body',
+            'groupid' => $group1,
             'attachments' => [ $attid ]
         ]);
         error_log(var_export($ret, TRUE));
@@ -1047,6 +1051,7 @@ class messageAPITest extends IznikAPITestCase
             'locationid' => $locid,
             'messagetype' => 'Offer',
             'item' => 'a thing',
+            'groupid' => $gid,
             'textbody' => 'Text body',
             'attachments' => [ $attid ]
         ]);
@@ -1057,11 +1062,33 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'JoinAndPost',
-            'groupid' => $gid,
             'email' => 'test@blackhole.io'
         ]);
 
         error_log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+
+        # And again, now that the user exists, but without a preferred group.  Set a fake from IP.
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'textbody' => 'Text body',
+            'attachments' => [ $attid ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+
+        # This will get sent; it'll be bounced by Yahoo as not a member, and the bounce will go into a black hole.
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'JoinAndPost',
+            'email' => 'test@blackhole.io'
+        ]);
+
         assertEquals(0, $ret['ret']);
 
         error_log(__METHOD__ . " end");

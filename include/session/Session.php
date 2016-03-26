@@ -40,13 +40,13 @@ function prepareSession($dbhr, $dbhm) {
             # We might not have a cookie, but we might have push credentials.  This happens when we are logged out
             # on the client but get a notification.  That is sufficient to log us in.
             $pushcreds = presdef('pushcreds', $_REQUEST, NULL);
-            error_log("No session, pushcreds $pushcreds " . var_exporT($_REQUEST, TRUE));
+            #error_log("No session, pushcreds $pushcreds " . var_exporT($_REQUEST, TRUE));
             if ($pushcreds) {
                 $sql = "SELECT * FROM users_push_notifications WHERE subscription = ?;";
                 $pushes = $dbhr->preQuery($sql, [$pushcreds]);
                 foreach ($pushes as $push) {
                     $s = new Session($dbhr, $dbhm);
-                    error_log("Log in as {$push['userid']}");
+                    #error_log("Log in as {$push['userid']}");
                     $s->create($push['userid']);
                 }
             }

@@ -12,19 +12,19 @@ Received: from [10.193.85.17] by tg101.bullet.mail.bf1.yahoo.com with NNFMP; 25 
 X-Yahoo-Newman-Property: groups-notify
 X-eGroups-Msg-Info: 1:6:0:0
 X-Sender: notify@yahoogroups.com
-X-Apparently-To: ehtest-owner@yahoogroups.com
+X-Apparently-To: freegleplayground-owner@yahoogroups.com
 Received: (qmail 24546 invoked by uid 7800); 25 Aug 2015 19:36:07 -0000
 Date: 25 Aug 2015 19:36:07 -0000
 Message-ID: <1440531367.199.24543.m1@yahoogroups.com>
 MIME-Version: 1.0
-From: Yahoo Groups Notification <ehtest-accept-ow3u5p5maxnf4tpmee4hjnr0wsla@yahoogroups.com>
-Reply-To: ehtest-accept-ow3u5p5maxnf4tpmee4hjnr0wsla@yahoogroups.com
-To: ehtest-owner@yahoogroups.com
-Subject: MODERATE -- test@test.com posted to ehtest
+From: Yahoo Groups Notification <freegleplayground-accept-ow3u5p5maxnf4tpmee4hjnr0wsla@yahoogroups.com>
+Reply-To: freegleplayground-accept-ow3u5p5maxnf4tpmee4hjnr0wsla@yahoogroups.com
+To: freegleplayground-owner@yahoogroups.com
+Subject: MODERATE -- test@test.com posted to freegleplayground
 Content-Type: multipart/mixed;
   boundary="-----001332284900914303980079918661"
-Sender: ehtest-owner@yahoogroups.com
-X-eGroups-Moderators: ehtest
+Sender: freegleplayground-owner@yahoogroups.com
+X-eGroups-Moderators: freegleplayground
 
 -------001332284900914303980079918661
 Content-Type: text/plain
@@ -33,7 +33,7 @@ Content-Transfer-Encoding: 7bit
 
 Hello,
 
-A message has been sent to the ehtest group from
+A message has been sent to the freegleplayground group from
 
   test@test.com
 
@@ -44,14 +44,14 @@ This message requires your approval for one of the following reasons:
 * Your group is set to moderate messages from all users
 
 To approve or reject this message using the web, please visit:
-http://groups.yahoo.com/group/ehtest/pending?view=1&msg=833
+http://groups.yahoo.com/group/freegleplayground/pending?view=1&msg=833
 
 To approve this message using email, reply to this message. You do not
 need to attach the original message, just reply and send.
 
 To reject this message using email, forward this message to
 
-ehtest-reject-ow3u5p5maxnf4tpmee4hjnr0wsla@yahoogroups.com
+freegleplayground-reject-ow3u5p5maxnf4tpmee4hjnr0wsla@yahoogroups.com
 
 NOTE: The pending message will expire after 14 days. If you do not
 take action within that time, the pending message will be automatically
@@ -72,7 +72,7 @@ Content-Type: message/rfc822
 
 Return-Path: <test@test.com>
 X-Sender: test@test.com
-X-Apparently-To: ehtest@yahoogroups.com
+X-Apparently-To: freegleplayground@yahoogroups.com
 X-Received: (qmail 24532 invoked by uid 102); 25 Aug 2015 19:36:06 -0000
 X-Received: from unknown (HELO mtaq5.grp.bf1.yahoo.com) (10.193.84.36)
   by m1.grp.bf1.yahoo.com with SMTP; 25 Aug 2015 19:36:06 -0000
@@ -107,7 +107,7 @@ Authentication-Results: mta1002.groups.mail.bf1.yahoo.com  from=ehibbert.org.uk;
 X-Received: from 127.0.0.1  (EHLO mail-wi0-f175.google.com) (209.85.212.175)
   by mta1002.groups.mail.bf1.yahoo.com with SMTPS; Tue, 25 Aug 2015 19:36:06 +0000
 X-Received: by wijn1 with SMTP id n1so3260933wij.0
-        for <ehtest@yahoogroups.com>; Tue, 25 Aug 2015 12:36:05 -0700 (PDT)
+        for <freegleplayground@yahoogroups.com>; Tue, 25 Aug 2015 12:36:05 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20130820;
         h=x-gm-message-state:from:to:subject:date:message-id:reply-to
@@ -125,10 +125,10 @@ X-Received: by 10.194.90.225 with SMTP id bz1mr51026355wjb.110.1440531365371;
 X-Original-Return-Path: <test@test.com>
 X-Received: from [192.168.1.70] (host31-53-222-71.range31-53.btcentralplus.com. [31.53.222.71])
         by smtp.gmail.com with ESMTPSA id r19sm4078475wib.7.2015.08.25.12.36.03
-        for <ehtest@yahoogroups.com>
+        for <freegleplayground@yahoogroups.com>
         (version=TLSv1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
         Tue, 25 Aug 2015 12:36:04 -0700 (PDT)
-To: "ehtest@yahoogroups.com" <ehtest@yahoogroups.com>
+To: "freegleplayground@yahoogroups.com" <freegleplayground@yahoogroups.com>
 Date: Tue, 25 Aug 2015 19:36:00 +0000
 Message-Id: <em01169273-046c-46be-b8f7-69ad036067d0@edward-x1>
 User-Agent: eM_Client/6.0.22344.0

@@ -169,7 +169,12 @@ class LoggedPDO {
             if (isset($_SESSION)) {
                 $logparams = var_export($params, TRUE);
                 $logparams = substr($logparams, 0, LoggedPDO::MAX_LOG_SIZE);
-                $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote($sql) . ", " . $this->quote($logparams) . "," . $this->quote($logret) . ");";
+                $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES (" .
+                    presdef('id', $_SESSION, 'NULL') .
+                    ", '$mysqltime', $duration, " .
+                    $this->quote(session_id()) . "," .
+                    $this->quote($sql . ", " . $this->quote($logparams)) . "," .
+                    $this->quote($logret) . ");";
                 $this->background($logsql);
             }
         }

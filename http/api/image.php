@@ -14,19 +14,26 @@ function image() {
             $data = $a->getData();
             $i = new Image($data);
 
-            $w = intval(presdef('w', $_REQUEST, $i->width()));
-            $h = intval(presdef('h', $_REQUEST, $i->height()));
-
-            if (($w > 0) || ($h > 0)) {
-                # Need to resize
-                $i->scale($w, $h);
-            }
-
             $ret = [
-                'ret' => 0,
-                'status' => 'Success',
-                'img' => $i->getData()
-            ];
+                'ret' => 1,
+                'status' => 'Failed to create image'
+                ];
+
+            if ($i->img) {
+                $w = intval(presdef('w', $_REQUEST, $i->width()));
+                $h = intval(presdef('h', $_REQUEST, $i->height()));
+
+                if (($w > 0) || ($h > 0)) {
+                    # Need to resize
+                    $i->scale($w, $h);
+                }
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'img' => $i->getData()
+                ];
+            }
 
             break;
         }

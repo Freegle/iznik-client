@@ -677,11 +677,20 @@ class Message
         return($id);
     }
 
+    private function removeAttachDir() {
+        if (count($this->attachments) == 0) {
+            # No attachments - tidy up temp dir.
+            rrmdir($this->attach_dir);
+            $this->attach_dir = NULL;
+        }
+    }
+    
     # Parse a raw SMTP message.
     public function parse($source, $envelopefrom, $envelopeto, $msg, $groupid = NULL)
     {
         $this->message = $msg;
         $this->groupid = $groupid;
+        $this->source = $source;
 
         $Parser = new PhpMimeMailParser\Parser();
         $this->parser = $Parser;
@@ -702,20 +711,58 @@ class Message
             }
 
             $atts = $this->getParsedAttachments();
-            if (count($atts) >= 1 && $atts[0]->contentType == 'message/rfc822') {
+            if (count($atts) >= 1 && $atts[0]->getContentType() == 'message/rfc822') {
                 $attachedmsg = $atts[0]->getContent();
+
+                # Remove the old attachments as we're overwriting them.
+                $this->removeAttachDir();
+
                 $Parser->setText($attachedmsg);
                 $this->attach_files = $Parser->saveAttachments($this->attach_dir);
                 $this->attachments = $Parser->getAttachments();
             }
         }
 
-        if (count($this->attachments) == 0) {
-            # No attachments - tidy up temp dir.
-            rrmdir($this->attach_dir);
+        $this->removeAttachDir();
+
+        # Get IP
+        $ip = $this->getHeader('x-freegle-ip');
+        $ip = $ip ? $ip : $this->getHeader('x-trash-nothing-user-ip');
+        $ip = $ip ? $ip : $this->getHeader('x-yahoo-post-ip');
+        $ip = $ip ? $ip : $this->getHeader('x-originating-ip');
+        $ip = preg_replace('/[\[\]]/', '', $ip);
+        $this->fromip = $ip;
+
+        # See if we can find a group this is intended for.  Can't trust the To header, as the client adds it,
+        # and we might also be CC'd or BCC'd.
+        $groupname = NULL;
+        $to = $this->getApparentlyTo();
+
+        if (count($to) == 0) {
+            # ...but if we can't find it, it'll do.
+            $to = $this->getTo();
         }
 
-        $this->source = $source;
+        foreach ($to as $t) {
+            if (preg_match('/(.*)@yahoogroups\.co.*/', $t['address'], $matches)) {
+                $groupname = $matches[1];
+            }
+        }
+
+        if ($groupname) {
+            if (!$this->groupid) {
+                # Check if it's a group we host.
+                $g = new Group($this->dbhr, $this->dbhm);
+                $this->groupid = $g->findByShortName($groupname);
+            }
+        }
+
+        if (($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED) && !$this->groupid) {
+            # This is a message from Yahoo, but not for a group we host.  We don't want it.
+            $this->removeAttachDir();
+            return (FALSE);
+        }
+        
         $this->envelopefrom = $envelopefrom;
         $this->envelopeto = $envelopeto;
         $this->yahoopendingid = NULL;
@@ -732,14 +779,6 @@ class Message
             $this->yahooapprovedid = $matches[1];
         }
 
-        # Get IP
-        $ip = $this->getHeader('x-freegle-ip');
-        $ip = $ip ? $ip : $this->getHeader('x-trash-nothing-user-ip');
-        $ip = $ip ? $ip : $this->getHeader('x-yahoo-post-ip');
-        $ip = $ip ? $ip : $this->getHeader('x-originating-ip');
-        $ip = preg_replace('/[\[\]]/', '', $ip);
-        $this->fromip = $ip;
-
         # Yahoo posts messages from the group address, but with a header showing the
         # original from address.
         $originalfrom = $Parser->getHeader('x-original-from');
@@ -755,7 +794,8 @@ class Message
 
         if (!$this->fromaddr) {
             # We have failed to parse out this message.
-            return(FALSE);
+            $this->removeAttachDir();
+            return (FALSE);
         }
 
         $this->date = gmdate("Y-m-d H:i:s", strtotime($Parser->getHeader('date')));
@@ -815,9 +855,10 @@ class Message
             #
             # We don't want Yahoo's megaphone images - they're just generic footer images.
             if ((stripos($src, 'http://') === 0 || stripos($src, 'https://') === 0) &&
-                (stripos($src, 'https://s.yimg.com/ru/static/images/yg/img/megaphone') === FALSE)) {
+                (stripos($src, 'https://s.yimg.com/ru/static/images/yg/img/megaphone') === FALSE)
+            ) {
                 error_log("Get inline image $src");
-                $ctx = stream_context_create(array('http'=>
+                $ctx = stream_context_create(array('http' =>
                     array(
                         'timeout' => 120
                     )
@@ -826,100 +867,80 @@ class Message
 
                 # Try to convert to an image.  If it's not an image, this will fail.
                 $img = new Image($data);
-                $newdata = $img->getData(100);
 
-                # Ignore small images - Yahoo adds small ones as (presumably) a tracking mechanism, and also their
-                # logo.
-                if ($newdata && $img->width() > 50 && $img->height() > 50) {
-                    $this->inlineimgs[] = $newdata;
-                }
-            }
-        }
+                if ($img->img) {
+                    $newdata = $img->getData(100);
 
-        # See if we can find a group this is intended for.  Can't trust the To header, as the client adds it,
-        # and we might also be CC'd or BCC'd.
-        $groupname = NULL;
-        $to = $this->getApparentlyTo();
-
-        if (count($to) == 0) {
-            # ...but if we can't find it, it'll do.
-            $to = $this->getTo();
-        }
-
-        foreach ($to as $t) {
-            if (preg_match('/(.*)@yahoogroups\.co.*/', $t['address'], $matches)) {
-                $groupname = $matches[1];
-            }
-        }
-
-        if ($groupname) {
-            if (!$this->groupid) {
-                # Check if it's a group we host.
-                $g = new Group($this->dbhr, $this->dbhm);
-                $this->groupid = $g->findByShortName($groupname);
-            }
-
-            if ($this->groupid) {
-                # If this is a reuse group, we need to determine the type.
-                $g = new Group($this->dbhr, $this->dbhm, $this->groupid);
-                if ($g->getPrivate('type') == Group::GROUP_FREEGLE ||
-                    $g->getPrivate('type') == Group::GROUP_REUSE
-                ) {
-                    $this->type = $this->determineType($this->subject);
-                } else {
-                    $this->type = Message::TYPE_OTHER;
-                }
-
-                if ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED) {
-                    # Make sure we have a user and a membership for the originator of this message; they were a member
-                    # at the time they sent this.  If they have since left we'll pick that up later via a sync.
-                    $u = new User($this->dbhr, $this->dbhm);
-                    $userid = $u->findByEmail($this->fromaddr);
-
-                    if (!$userid) {
-                        # We don't know them.  Add.
-                        #
-                        # We don't have a first and last name, so use what we have. If the friendly name is set to an
-                        # email address, take the first part.
-                        $name = $this->fromname;
-                        if (preg_match('/(.*)@/', $name, $matches)) {
-                            $name = $matches[1];
-                        }
-
-                        if ($userid = $u->create(NULL, NULL, $name, "Incoming message from {$this->fromaddr} on $groupname")) {
-                            # If any of these fail, then we'll pick it up later when we do a sync with the source group,
-                            # so no need for a transaction.
-                            $u = new User($this->dbhr, $this->dbhm, $userid);
-                            $emailid = $u->addEmail($this->fromaddr, TRUE);
-                            $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid);
-                        }
+                    # Ignore small images - Yahoo adds small ones as (presumably) a tracking mechanism, and also their
+                    # logo.
+                    if ($newdata && $img->width() > 50 && $img->height() > 50) {
+                        $this->inlineimgs[] = $newdata;
                     }
-
-                    # Now we have a user.  If there is a Yahoo uid in here - which there isn't always - add it to the
-                    # user entry.
-                    $gp = $Parser->getHeader('x-yahoo-group-post');
-                    if ($gp && preg_match('/u=(.*);/', $gp, $matches)) {
-                        // This is Yahoo's unique identifier for this user.
-                        $u = new User($this->dbhr, $this->dbhm, $userid);
-
-                        if ($u->getPrivate('yahooUserId') != $matches[1]) {
-                            # Check if there is a different user with this id already.
-                            $otherid = $u->findByYahooUserId($matches[1]);
-                            if ($otherid && $otherid !== $userid) {
-                                # Yes there is - merge.
-                                $u->merge($userid, $otherid, "Incoming Message - YahooUserId {$matches[1]} = $otherid, Email {$this->fromaddr} = $userid");
-                            } else {
-                                # No there's not - just update.
-                                $u->setPrivate('yahooUserId', $matches[1]);
-                            }
-                        }
-                    }
-
-                    $this->fromuser = $userid;
                 }
             }
         }
 
+        # If this is a reuse group, we need to determine the type.
+        $g = new Group($this->dbhr, $this->dbhm, $this->groupid);
+        if ($g->getPrivate('type') == Group::GROUP_FREEGLE ||
+            $g->getPrivate('type') == Group::GROUP_REUSE
+        ) {
+            $this->type = $this->determineType($this->subject);
+        } else {
+            $this->type = Message::TYPE_OTHER;
+        }
+
+        if ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED) {
+            # Make sure we have a user and a membership for the originator of this message; they were a member
+            # at the time they sent this.  If they have since left we'll pick that up later via a sync.
+            $u = new User($this->dbhr, $this->dbhm);
+            $userid = $u->findByEmail($this->fromaddr);
+
+            if (!$userid) {
+                # We don't know them.  Add.
+                #
+                # We don't have a first and last name, so use what we have. If the friendly name is set to an
+                # email address, take the first part.
+                $name = $this->fromname;
+                if (preg_match('/(.*)@/', $name, $matches)) {
+                    $name = $matches[1];
+                }
+
+                if ($userid = $u->create(NULL, NULL, $name, "Incoming message from {$this->fromaddr} on $groupname")) {
+                    # If any of these fail, then we'll pick it up later when we do a sync with the source group,
+                    # so no need for a transaction.
+                    $u = new User($this->dbhr, $this->dbhm, $userid);
+                    $emailid = $u->addEmail($this->fromaddr, TRUE);
+                    $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid);
+                }
+            }
+
+            # Now we have a user.  If there is a Yahoo uid in here - which there isn't always - add it to the
+            # user entry.
+            $gp = $Parser->getHeader('x-yahoo-group-post');
+            if ($gp && preg_match('/u=(.*);/', $gp, $matches)) {
+                // This is Yahoo's unique identifier for this user.
+                $u = new User($this->dbhr, $this->dbhm, $userid);
+
+                if ($u->getPrivate('yahooUserId') != $matches[1]) {
+                    # Check if there is a different user with this id already.
+                    $otherid = $u->findByYahooUserId($matches[1]);
+                    if ($otherid && $otherid !== $userid) {
+                        # Yes there is - merge.
+                        $u->merge($userid, $otherid, "Incoming Message - YahooUserId {$matches[1]} = $otherid, Email {$this->fromaddr} = $userid");
+                    } else {
+                        # No there's not - just update.
+                        $u->setPrivate('yahooUserId', $matches[1]);
+                    }
+                }
+            }
+
+            $this->fromuser = $userid;
+        }
+
+        # Attachments now safely stored in the DB
+        $this->removeAttachDir();
+        
         return(TRUE);
     }
 
@@ -932,6 +953,7 @@ class Message
         # So we remove all attachment data within the message.  We do this with a handrolled lame parser, as we
         # don't have a full MIME reassembler.
         $current = $this->message;
+        #error_log("Start prune len " . strlen($current));
 
         # Might have wrong LF format.
         $current = preg_replace('~\R~u', "\r\n", $current);
@@ -984,6 +1006,13 @@ class Message
             $p++;
         } while ($found);
 
+        #error_log("End prune len " . strlen($current));
+
+        if (strlen($current) == 0) {
+            # Something went horribly wrong.
+            $current = $this->message;
+        }
+
         return($current);
     }
 
@@ -999,7 +1028,7 @@ class Message
         #
         # But we do want to preserve any information we had about who approved a message, and also any Yahoo pending/
         # approved ids (to prevent the message being resync'd).
-        $sql = "SELECT approvedby, yahooapprovedid, yahoopendingid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid WHERE messageid = ? AND fromaddr = ?;";
+        $sql = "SELECT approvedby, yahooapprovedid, yahoopendingid, messageid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid WHERE messageid = ? AND fromaddr = ?;";
         $messages = $this->dbhr->preQuery($sql,  [
             $this->getMessageID(),
             $this->getFromaddr()
@@ -1027,8 +1056,8 @@ class Message
             }
         }
 
-        # Now we can zap the old copy.
-        $this->removeByMessageID($this->groupid);
+        # Now we can zap any old copies.
+        $this->removeOldCopies($this->groupid, $this->yahooapprovedid);
 
         # Reduce the size of the message source
         $this->message = $this->pruneMessage();
@@ -1102,6 +1131,8 @@ class Message
         #
         # If we crash or fail at this point, we would have mislaid an attachment for a message.  That's not great, but the
         # perf cost of a transaction for incoming messages is significant, and we can live with it.
+        $a = new Attachment($this->dbhr, $this->dbhm);
+
         foreach ($this->attachments as $att) {
             /** @var \PhpMimeMailParser\Attachment $att */
             $ct = $att->getContentType();
@@ -1114,28 +1145,26 @@ class Message
             # it chews up disk space.
             if (strlen($data) > 300000) {
                 $i = new Image($data);
-                $w = $i->width();
-                $w = min(1024, $w);
-                $i->scale($w, NULL);
-                $data = $i->getData();
-                $ct = 'image/jpeg';
+                if ($i->img) {
+                    $w = $i->width();
+                    $w = min(1024, $w);
+                    $i->scale($w, NULL);
+                    $data = $i->getData();
+                    $ct = 'image/jpeg';
+                }
             }
 
-            $sql = "INSERT INTO messages_attachments (msgid, contenttype, data) VALUES (?,?,?);";
-            $this->dbhm->preExec($sql, [
-                $this->id,
-                $ct,
-                $data
-            ]);
+            $a->create($this->id, $ct, $data);
         }
 
         foreach ($this->inlineimgs as $att) {
-            $sql = "INSERT INTO messages_attachments (msgid, contenttype, data) VALUES (?,?,?);";
-            $this->dbhm->preExec($sql, [
-                $this->id,
-                'image/jpeg',
-                $att
-            ]);
+            $a->create($this->id, 'image/jpeg', $att);
+
+            $g = new Group($this->dbhr, $this->dbhm, $this->groupid);
+            if ($g->getPrivate('type') == Group::GROUP_FREEGLE) {
+                # Identify incoming messages - this is just to find out how well our identification works.
+                $i = $a->identify();
+            }
         }
 
         # Also save into the history table, for spam checking.
@@ -1294,7 +1323,6 @@ class Message
             if ($group['yahooreject']) {
                 # We can trigger rejection by email - do so.
                 $this->mailer($group['yahooreject'], "My name is Iznik and I reject this message", "", NULL, '-f' . MODERATOR_EMAIL);
-                $handled = true;
             }
 
             if ($group['yahoopendingid']) {
@@ -1510,12 +1538,19 @@ class Message
         return($rc);
     }
 
-    public function removeByMessageID() {
+    public function removeOldCopies($groupid, $yahooapprovedid) {
         $sql = "SELECT * FROM messages WHERE messageid = ?;";
         $msgs = $this->dbhr->preQuery($sql, [ $this->getMessageID() ]);
         foreach ($msgs as $msg) {
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
-            $m->delete('Received later copy of message with same Message-ID', NULL, NULL, NULL, NULL, TRUE);
+            $m->delete('Received later copy of message with same Message-ID', $groupid, NULL, NULL, NULL, TRUE);
+        }
+
+        $sql = "SELECT * FROM messages_groups WHERE groupid = ? AND yahooapprovedid = ? AND yahooapprovedid IS NOT NULL AND deleted = 0;";
+        $msgs = $this->dbhr->preQuery($sql, [ $groupid, $yahooapprovedid ]);
+        foreach ($msgs as $msg) {
+            $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
+            $m->delete('Received later copy of message with same Yahoo Approved ID', $groupid, NULL, NULL, NULL, TRUE);
         }
     }
 
@@ -1856,9 +1891,7 @@ class Message
 
                     $count++;
 
-                    if ($count % 3 == 0) {
-                        $htmlbody .= '</tr><tr>';
-                    }
+                    $htmlbody .= ($count % 3 == 0) ? '</tr><tr>' : '';
                 }
 
                 $htmlbody .= "</tr></tbody></table>";

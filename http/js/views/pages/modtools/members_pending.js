@@ -222,7 +222,7 @@ Iznik.Views.ModTools.Member.Pending = Iznik.Views.ModTools.Member.extend({
                 var anyrare = false;
 
                 _.each(sortmsgs, function (stdmsg) {
-                    if (_.contains(['Leave Member', 'Reject Member'], stdmsg.action)) {
+                    if (_.contains(['Leave Member', 'Reject Member', 'Approve Member'], stdmsg.action)) {
                         stdmsg.groups = [group];
                         stdmsg.member = self.model;
                         var v = new Iznik.Views.ModTools.StdMessage.Button({

@@ -2,7 +2,7 @@
 
 class Image {
     private $data;
-    private $img;
+    public $img;
 
     function __construct($data) {
         $this->data = $data;

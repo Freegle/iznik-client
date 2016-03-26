@@ -56,13 +56,21 @@ class Attachment
     }
 
     public function create($msgid, $ct, $data) {
+        error_log("Create att for $msgid len " . strlen($data));
         $rc = $this->dbhm->preExec("INSERT INTO messages_attachments (`msgid`, `contenttype`, `data`) VALUES (?, ?, ?);", [
             $msgid,
             $ct,
             $data
         ]);
 
-        return($rc ? $this->dbhm->lastInsertId() : NULL);
+        $id = $rc ? $this->dbhm->lastInsertId() : NULL;
+
+        if ($id) {
+            $this->id = $id;
+            $this->contentType = $ct;
+        }
+
+        return($id);
     }
 
     public static function getById($dbhr, $dbhm, $id) {
@@ -90,7 +98,8 @@ class Attachment
 
     public function identify() {
         # Identify objects in an attachment using Google Vision API.
-        $base64 = base64_encode($this->getData());
+        $data = $this->getData();
+        $base64 = base64_encode($data);
 
         $r_json ='{
 			  	"requests": [
@@ -119,14 +128,35 @@ class Attachment
         $items = [];
 
         if ($status) {
+            $this->dbhm->preExec("UPDATE messages_attachments SET identification = ? WHERE id = ?;", [ $json_response, $this->id ]);
             $rsp = json_decode($json_response, TRUE);
-            $rsps = $rsp['responses'][0]['labelAnnotations'];
-            $i = new Item($this->dbhr, $this->dbhm);
+            #error_log("Identified {$this->id} by Google $json_response for $r_json");
 
-            foreach ($rsps as $rsp) {
-                $items = array_merge($items, $i->find($rsp['description']));
+            if (array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists('labelAnnotations', $rsp['responses'][0])) {
+                $rsps = $rsp['responses'][0]['labelAnnotations'];
+                $i = new Item($this->dbhr, $this->dbhm);
+
+                foreach ($rsps as $rsp) {
+                    $found = $i->find($rsp['description']);
+                    $wasfound = FALSE;
+                    foreach ($found as $item) {
+                        $this->dbhm->background("INSERT INTO messages_attachments_items (attid, itemid) VALUES ({$this->id}, {$item['id']});");
+                        $wasfound = TRUE;
+                    }
+
+                    if (!$wasfound) {
+                        # Record items which were suggested but not considered as items by us.  This allows us to find common items which we ought to
+                        # add.
+                        #
+                        # This is usually because they're too vague.
+                        $url = "https://" . IMAGE_DOMAIN . "/img_{$this->id}.jpg";
+                        $this->dbhm->background("INSERT INTO items_non (name, lastexample) VALUES (" . $this->dbhm->quote($rsp['description']) . ", " . $this->dbhm->quote($url) . ") ON DUPLICATE KEY UPDATE popularity = popularity + 1, lastexample = " . $this->dbhm->quote($url) . ";");
+                    }
+
+                    $items = array_merge($items, $found);
+                }
             }
-        }
+       }
 
         curl_close($curl);
 

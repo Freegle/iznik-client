@@ -243,6 +243,21 @@ class messageTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+    
+    public function testPrune() {
+        error_log(__METHOD__);
+
+        $msg = $this->unique(file_get_contents('msgs/prune'));
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertGreaterThan(0, strlen($m->getMessage()));
+
+        error_log(__METHOD__ . " end");
+    }
 
     // For manual testing
 //    public function testSpecial() {

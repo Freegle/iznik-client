@@ -166,7 +166,7 @@ class messagesTest extends IznikAPITestCase {
 
         # Create a group with a message on it
         $msg = file_get_contents('msgs/spam');
-        $msg = str_ireplace('To: Recipient <recipient@example.net>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
+        $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         error_log("Spam msgid $id");

@@ -44,7 +44,7 @@ class correlateTest extends IznikAPITestCase {
 
         # Create a group with a message on it
         $msg = file_get_contents('msgs/approve');
-        $msg = str_ireplace('ehtest', 'testgroup', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $msgid = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();

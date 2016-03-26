@@ -266,7 +266,7 @@ class MailRouterTest extends IznikTestCase {
         assertEquals('sender@example.net', $spam->getFromaddr());
         assertNull($spam->getFromIP());
         assertNull($spam->getFromhost());
-        assertEquals(0, count($spam->getGroups()));
+        assertEquals(1, count($spam->getGroups()));
         assertEquals($id, $spam->getID());
         assertEquals('GTUBE1.1010101@example.net', $spam->getMessageID());
         assertEquals($msg, $spam->getMessage());
@@ -276,7 +276,7 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull($spam->getTextbody());
         assertNull($spam->getHtmlbody());
         assertEquals($spam->getSubject(), $spam->getHeader('subject'));
-        assertEquals('recipient@example.net', $spam->getTo()[0]['address']);
+        assertEquals('freegleplayground@yahoogroups.com', $spam->getTo()[0]['address']);
         assertEquals('Sender', $spam->getFromname());
         assertEquals('SpamAssassin flagged this as possible spam; score 1000 (high is bad)', $spam->getSpamReason());
         $spam->delete();
@@ -518,7 +518,6 @@ class MailRouterTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        assertEquals('Yahoo-Email', $m->getSourceheader());
         $id = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
