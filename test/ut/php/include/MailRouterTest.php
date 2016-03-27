@@ -117,6 +117,18 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testHamNoGroup() {
+        error_log(__METHOD__);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace("freegleplayground@yahoogroups.com", "nogroup@yahoogroups.com", $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertNull($id);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testConfirmMod() {
         error_log(__METHOD__);
 
@@ -200,6 +212,7 @@ class MailRouterTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $msg = file_get_contents('msgs/spam');
+        $msg = str_replace("FreeglePlayground <freegleplayground@yahoogroups.com>", "Nowhere <nogroup@yahoogroups.com>", $msg);
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);

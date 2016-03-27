@@ -1069,7 +1069,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
 
         # And again, now that the user exists, but without a preferred group.  Set a fake from IP.
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $_SERVER['REMOTE_ADDR'] = '216.58.214.3';
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',

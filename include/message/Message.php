@@ -1161,10 +1161,10 @@ class Message
             $a->create($this->id, 'image/jpeg', $att);
 
             $g = new Group($this->dbhr, $this->dbhm, $this->groupid);
-            if ($g->getPrivate('type') == Group::GROUP_FREEGLE) {
+            #if ($g->getPrivate('type') == Group::GROUP_FREEGLE) {
                 # Identify incoming messages - this is just to find out how well our identification works.
-                $i = $a->identify();
-            }
+                #$i = $a->identify();
+            #}
         }
 
         # Also save into the history table, for spam checking.
