@@ -108,11 +108,14 @@ Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
                 if (matches) {
                     var yid = matches[1];
                     self.$('.js-yahooinfo').html("You're logged in to Yahoo as " + yid + ".");
+                    Iznik.Session.set('loggedintoyahooas', yid);
                 } else {
                     self.$('.js-yahooinfo').html("You aren't logged in to Yahoo.");
+                    Iznik.Session.unset('loggedintoyahooas');
                 }
             }, error: function() {
                 self.$('.js-yahooinfo').html("You don't have the browser plugin installed.");
+                Iznik.Session.unset('loggedintoyahooas');
             }
         });
 

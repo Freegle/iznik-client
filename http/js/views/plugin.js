@@ -687,81 +687,92 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 IznikPlugin.startSyncs();
                 IznikPlugin.checkWork();
 
-                var serverGroups = [];
-                var nameToId = [];
-                Iznik.Session.get('groups').each(function (group) {
-                    var role = group.get('role');
-                    if (role == 'Moderator' || role == 'Owner') {
-                        var lname = group.get('nameshort').toLowerCase();
-                        serverGroups.push(lname);
-                        nameToId[lname] = group.get('id');
-                    }
-                });
+                console.log("My id vs Yahoo id", Iznik.Session.get('me').yahooid, Iznik.Session.get('loggedintoyahooas'));
 
-                var serverMissing = _.difference(self.yahooGroups, serverGroups);
-                var yahooMissing = _.difference(serverGroups, self.yahooGroups);
-                //console.log("Yahoo groups", self.yahooGroups);
-                //console.log("Server groups", serverGroups);
-                //console.log("Mod on Yahoo but not server", serverMissing);
-                //console.log("Mod on server but but not Yahoo", yahooMissing);
-                //console.log("NameToId", nameToId);
-                //console.log("Session", Iznik.Session);
-
-                // If we're a mod on the server but not on Yahoo, then we need to demote ourselves.
-                _.each(yahooMissing, function(demote) {
-                    $.ajax({
-                        url: API + 'memberships',
-                        type: 'POST',
-                        headers: {
-                            'X-HTTP-Method-Override': 'PATCH'
-                        },
-                        data: {
-                            userid: Iznik.Session.get('me').id,
-                            groupid: nameToId[demote],
-                            role: 'Member'
-                        }
-                    })
-                });
-
-                if (!self.confirmedMod) {
-                    // If we're a mod on Yahoo but not on the server, and it's a group the server knows about,
-                    // then we need to prove to the server that we're a mod so that we can auto-add it to
-                    // our list of groups.  We do this by triggering an invitation, which is something only mods
-                    // can do.
+                if (Iznik.Session.get('me').yahooid == Iznik.Session.get('loggedintoyahooas')) {
+                    // Although we'll do syncs and work with any Yahoo ID we happen to be logged into Yahoo with, we
+                    // only want to auto-add if they're the same as the ID they're using on ModTools.
                     //
-                    // No point doing too many as Yahoo has a limit on invitations.
-                    self.confirmedMod = true;
-
-                    _.each(_.first(serverMissing, 50), function(group) {
-                        var g = new Iznik.Models.Group({ id: group});
-
-                        g.fetch().then(function() {
-                            // The group is hosted by the server; trigger a confirm.  First we need a confirm key.
-                            $.ajax({
-                                url: API + 'group',
-                                type: 'POST',
-                                data: {
-                                    id: g.get('id'),
-                                    action: 'ConfirmKey'
-                                },
-                                success: function(ret) {
-                                    if (ret.ret == 0) {
-                                        var email = 'modconfirm-' + g.get('id') + '-' +
-                                            Iznik.Session.get('me').id + '-' + ret.key + '@' + location.host;
-
-                                        self.collection.add(new Iznik.Models.Plugin.Work({
-                                            subview: new Iznik.Views.Plugin.Yahoo.ConfirmMod({
-                                                model: new IznikModel({
-                                                    nameshort: group,
-                                                    email: email
-                                                })
-                                            })
-                                        }));
-                                    }
-                                }
-                            })
-                        });
+                    // Normally that will be the case, and it's the simple case for which we want the auto-add to work.
+                    // But it's possible that people are loggingin to Yahoo and ModTools as someone else for some
+                    // reason (when helping someone else out) and we don't want to get a confusing set of memberships
+                    // in that case.
+                    var serverGroups = [];
+                    var nameToId = [];
+                    Iznik.Session.get('groups').each(function (group) {
+                        var role = group.get('role');
+                        if (role == 'Moderator' || role == 'Owner') {
+                            var lname = group.get('nameshort').toLowerCase();
+                            serverGroups.push(lname);
+                            nameToId[lname] = group.get('id');
+                        }
                     });
+
+                    var serverMissing = _.difference(self.yahooGroups, serverGroups);
+                    var yahooMissing = _.difference(serverGroups, self.yahooGroups);
+                    //console.log("Yahoo groups", self.yahooGroups);
+                    //console.log("Server groups", serverGroups);
+                    //console.log("Mod on Yahoo but not server", serverMissing);
+                    //console.log("Mod on server but but not Yahoo", yahooMissing);
+                    //console.log("NameToId", nameToId);
+                    //console.log("Session", Iznik.Session);
+
+                    // If we're a mod on the server but not on Yahoo, then we need to demote ourselves.
+                    _.each(yahooMissing, function(demote) {
+                        $.ajax({
+                            url: API + 'memberships',
+                            type: 'POST',
+                            headers: {
+                                'X-HTTP-Method-Override': 'PATCH'
+                            },
+                            data: {
+                                userid: Iznik.Session.get('me').id,
+                                groupid: nameToId[demote],
+                                role: 'Member'
+                            }
+                        })
+                    });
+
+                    if (!self.confirmedMod) {
+                        // If we're a mod on Yahoo but not on the server, and it's a group the server knows about,
+                        // then we need to prove to the server that we're a mod so that we can auto-add it to
+                        // our list of groups.  We do this by triggering an invitation, which is something only mods
+                        // can do.
+                        //
+                        // No point doing too many as Yahoo has a limit on invitations.
+                        self.confirmedMod = true;
+
+                        _.each(_.first(serverMissing, 50), function(group) {
+                            var g = new Iznik.Models.Group({ id: group});
+
+                            g.fetch().then(function() {
+                                // The group is hosted by the server; trigger a confirm.  First we need a confirm key.
+                                $.ajax({
+                                    url: API + 'group',
+                                    type: 'POST',
+                                    data: {
+                                        id: g.get('id'),
+                                        action: 'ConfirmKey'
+                                    },
+                                    success: function(ret) {
+                                        if (ret.ret == 0) {
+                                            var email = 'modconfirm-' + g.get('id') + '-' +
+                                                Iznik.Session.get('me').id + '-' + ret.key + '@' + location.host;
+
+                                            self.collection.add(new Iznik.Models.Plugin.Work({
+                                                subview: new Iznik.Views.Plugin.Yahoo.ConfirmMod({
+                                                    model: new IznikModel({
+                                                        nameshort: group,
+                                                        email: email
+                                                    })
+                                                })
+                                            }));
+                                        }
+                                    }
+                                })
+                            });
+                        });
+                    }
                 }
             }
         }
