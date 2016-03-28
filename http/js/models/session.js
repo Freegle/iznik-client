@@ -112,7 +112,10 @@ Iznik.Models.Session = IznikModel.extend({
         $.ajax({
             url: API + 'session',
             success: function(ret) {
-                if ((ret.ret == 0)) {
+                if (ret.ret == 111) {
+                    // Down for maintenance
+                    window.location = '/maintenance_on.html';
+                } else if ((ret.ret == 0)) {
                     // Save off the returned session information into local storage.
                     try {
                         localStorage.setItem('session', JSON.stringify(ret));
