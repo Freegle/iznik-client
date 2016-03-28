@@ -119,71 +119,69 @@ class MessageCollection
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
 
             $type = $m->getType();
-            if ($messagetype && $type != $messagetype) {
-                # Wrong message type
-                continue;
-            }
+            if (!$messagetype || $type == $messagetype) {
+                $role = $m->getRoleForMessage();
 
-            $role = $m->getRoleForMessage();
+                $thisgroups = $m->getGroups();
+                $cansee = ($role == User::ROLE_MODERATOR) || ($role == User::ROLE_OWNER);
 
-            $thisgroups = $m->getGroups();
-            $cansee = ($role == User::ROLE_MODERATOR) || ($role == User::ROLE_OWNER);
+                foreach ($thisgroups as $groupid) {
+                    if (!array_key_exists($groupid, $groups)) {
+                        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+                        $atts = $g->getPublic();
 
-            foreach ($thisgroups as $groupid) {
-                if (!array_key_exists($groupid, $groups)) {
-                    $g = new Group($this->dbhr, $this->dbhm, $groupid);
-                    $atts = $g->getPublic();
-
-                    # For Freegle groups, we can see the message even if not a member.  For other groups using ModTools,
-                    # that isn't true, and we don't even want to return the information that there was a match on
-                    # this group.
-                    if (($role == User::ROLE_MEMBER || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) ||
-                        ($atts['type'] == Group::GROUP_FREEGLE)) {
-                        $groups[$groupid] = $g->getPublic();
+                        # For Freegle groups, we can see the message even if not a member.  For other groups using ModTools,
+                        # that isn't true, and we don't even want to return the information that there was a match on
+                        # this group.
+                        if (($role == User::ROLE_MEMBER || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) ||
+                            ($atts['type'] == Group::GROUP_FREEGLE)
+                        ) {
+                            $groups[$groupid] = $g->getPublic();
+                        }
                     }
+
+                    $cansee = array_key_exists($groupid, $groups);
                 }
 
-                $cansee = array_key_exists($groupid, $groups);
-            }
-
-            if ($cansee) {
-                switch ($this->collection) {
-                    case MessageCollection::DRAFT:
-                        if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
-                            # Only visible to moderators or owners, or self (which returns a role of moderator).
-                            $n = $m->getPublic(TRUE, TRUE);
-                            unset($n['message']);
-                            $msgs[] = $n;
-                            $limit--;
-                        }
-                        break;
-                    case MessageCollection::APPROVED:
-                        $n = $m->getPublic(TRUE, TRUE);
-                        unset($n['message']);
-                        $n['matchedon'] = presdef('matchedon', $msg, NULL);
-                        $msgs[] = $n;
-                        $limit--;
-                        break;
-                    case MessageCollection::PENDING:
-                        if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
-                            # Only visible to moderators or owners
+                if ($cansee) {
+                    switch ($this->collection) {
+                        case MessageCollection::DRAFT:
+                            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+                                # Only visible to moderators or owners, or self (which returns a role of moderator).
+                                $n = $m->getPublic(TRUE, TRUE);
+                                unset($n['message']);
+                                $msgs[] = $n;
+                                $limit--;
+                            }
+                            break;
+                        case MessageCollection::APPROVED:
                             $n = $m->getPublic(TRUE, TRUE);
                             unset($n['message']);
                             $n['matchedon'] = presdef('matchedon', $msg, NULL);
                             $msgs[] = $n;
                             $limit--;
-                        }
-                        break;
-                    case MessageCollection::SPAM:
-                        if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
-                            # Only visible to moderators or owners
-                            $n = $m->getPublic(TRUE, TRUE);
-                            unset($n['message']);
-                            $n['matchedon'] = presdef('matchedon', $msg, NULL);
-                            $msgs[] = $n;
-                            $limit--;
-                        }
-                        break;
+                            break;
+                        case MessageCollection::PENDING:
+                            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+                                # Only visible to moderators or owners
+                                $n = $m->getPublic(TRUE, TRUE);
+                                unset($n['message']);
+                                $n['matchedon'] = presdef('matchedon', $msg, NULL);
+                                $msgs[] = $n;
+                                $limit--;
+                            }
+                            break;
+                        case MessageCollection::SPAM:
+                            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+                                # Only visible to moderators or owners
+                                $n = $m->getPublic(TRUE, TRUE);
+                                unset($n['message']);
+                                $n['matchedon'] = presdef('matchedon', $msg, NULL);
+                                $msgs[] = $n;
+                                $limit--;
+                            }
+                            break;
+                    }
                 }
             }
 

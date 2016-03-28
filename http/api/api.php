@@ -14,6 +14,12 @@ if (array_key_exists('HTTP_X_HTTP_METHOD_OVERRIDE', $_SERVER)) {
 
 require_once('../../include/misc/apiheaders.php');
 require_once('../../include/config.php');
+
+if (file_exists(IZNIK_BASE . '/http/maintenance_on.html')) {
+    echo json_encode(array('ret' => 111, 'status' => 'Down for maintenance'));
+    exit(0);
+}
+
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 require_once(IZNIK_BASE . '/include/session/Session.php');

@@ -395,6 +395,7 @@ class MailRouter
                 $ret = MailRouter::FAILURE;
 
                 $groups = $this->msg->getGroups();
+                $ret = MailRouter::DROPPED;
 
                 if (count($groups) > 0) {
                     if ($this->msg->getSource() == Message::YAHOO_PENDING) {
@@ -406,9 +407,6 @@ class MailRouter
                             $ret = MailRouter::APPROVED;
                         }
                     }
-                } else {
-                    # Message for a group we don't have.
-                    $ret = MailRouter::DROPPED;
                 }
             }
         }

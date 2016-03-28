@@ -832,6 +832,7 @@ class Message
         }
 
         $this->subject = $Parser->getHeader('subject');
+        error_log("Subject {$this->subject} has encoding " . mb_detect_encoding($this->subject));
         $this->messageid = $Parser->getHeader('message-id');
         $this->messageid = str_replace('<', '', $this->messageid);
         $this->messageid = str_replace('>', '', $this->messageid);
@@ -1066,6 +1067,31 @@ class Message
         $this->suggestedsubject = $this->suggestSubject($this->groupid, $this->subject);
 
         # Save into the messages table.
+        $sql = "INSERT INTO test (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        $rc = $this->dbhm->preExec($sql, [
+            $this->date,
+            $this->source,
+            $this->sourceheader,
+            $this->message,
+            $this->fromuser,
+            $this->envelopefrom,
+            $this->envelopeto,
+            $this->fromname,
+            $this->fromaddr,
+            $this->replyto,
+            $this->fromip,
+            $this->subject,
+            $this->suggestedsubject,
+            $this->messageid,
+            $this->tnpostid,
+            $this->textbody,
+            $this->htmlbody,
+            $this->type,
+            $this->lat,
+            $this->lng,
+            $this->locationid
+        ]);
+
         $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->date,

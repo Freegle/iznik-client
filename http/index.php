@@ -5,6 +5,12 @@ date_default_timezone_set('UTC');
 session_start();
 define( 'BASE_DIR', dirname(__FILE__) . '/..' );
 require_once(BASE_DIR . '/include/config.php');
+
+if (file_exists(IZNIK_BASE . '/http/maintenance_on.html')) {
+    header('Location: https://' . $_SERVER['HTTP_HOST'] . '/maintenance_on.html');
+    exit(0);
+}
+
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/session/Yahoo.php');

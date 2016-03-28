@@ -72,7 +72,7 @@ class LoggedPDO {
         $this->readonly = $readonly;
         $this->readconn = $readconn;
 
-        $this->_db = new PDO($dsn, $username, $password);
+        $this->_db = new PDO($dsn, $username, $password, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
         $this->dbwaittime += microtime(true) - $start;
 
         return $this;

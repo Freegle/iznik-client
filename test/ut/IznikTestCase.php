@@ -17,6 +17,15 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
 
     public static $unique = 1;
 
+    private function tidy() {
+        $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'emff7a66f1-e0ed-4792-b493-17a75d806a30@edward-x1' ]);
+        $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'em01169273-046c-46be-b8f7-69ad036067d0@edward-x1' ]);
+        $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'em47d9afc0-8c92-4fc8-b791-f63ff69360a2@edward-x1' ]);
+        $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'GTUBE1.1010101@example.net' ]);
+        $this->dbhm->preExec("DELETE FROM users_emails WHERE email LIKE '%test.com';");
+        $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = 1;");
+    }
+
     protected function setUp() {
         parent::setUp ();
 
@@ -24,12 +33,7 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'emff7a66f1-e0ed-4792-b493-17a75d806a30@edward-x1' ]);
-        $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'em01169273-046c-46be-b8f7-69ad036067d0@edward-x1' ]);
-        $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'em47d9afc0-8c92-4fc8-b791-f63ff69360a2@edward-x1' ]);
-        $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'GTUBE1.1010101@example.net' ]);
-        $this->dbhm->preExec("DELETE FROM users_emails WHERE email LIKE '%test.com';");
-        $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = 1;");
+        $this->tidy();
 
         set_time_limit(600);
     }

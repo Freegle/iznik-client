@@ -237,9 +237,9 @@ class messageTest extends IznikTestCase {
 =?windows-1255?B?yfog7MjgxuHA6cnwxOnt?=', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        assertEquals(MailRouter::PENDING, $rc);
 
         error_log(__METHOD__ . " end");
     }
