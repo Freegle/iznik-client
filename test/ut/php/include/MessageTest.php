@@ -260,23 +260,23 @@ class messageTest extends IznikTestCase {
     }
 
     // For manual testing
-//    public function testSpecial() {
-//        error_log(__METHOD__);
-//
-//        $msg = file_get_contents('msgs/special');
-//
-//        $m = new Message($this->dbhr, $this->dbhm);
-//        $rc = $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
-//        assertTrue($rc);
-//        $id = $m->save();
-//        $m = new Message($this->dbhr, $this->dbhm, $id);
-//        error_log("IP " . $m->getFromIP());
-//        $s = new Spam($this->dbhr, $this->dbhm);
-//        $s->check($m);
-//
-//
-//        error_log(__METHOD__ . " end");
-//    }
-//
+    public function testSpecial() {
+        error_log(__METHOD__);
+
+        $msg = file_get_contents('msgs/special');
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $rc = $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        assertTrue($rc);
+        $id = $m->save();
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        error_log("IP " . $m->getFromIP());
+        $s = new Spam($this->dbhr, $this->dbhm);
+        $s->check($m);
+
+
+        error_log(__METHOD__ . " end");
+    }
+
 }
 

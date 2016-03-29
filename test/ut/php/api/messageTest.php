@@ -28,6 +28,7 @@ class messageAPITest extends IznikAPITestCase
 
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
     }
 
     protected function tearDown()
@@ -1018,16 +1019,22 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
+        $email = 'test-' . rand() . '@blackhole.io';
+
         # This is similar to the actions on the client
         # - find a location close to a lat/lng
         # - upload a picture
         # - create a draft with a location
         # - find the closest group to that location
         # - submit it
+        $this->group = new Group($this->dbhr, $this->dbhm);
+        $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
+        $this->group->setPrivate('lat', 8.5);
+        $this->group->setPrivate('lng', 179.3);
+        $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+
         $l = new Location($this->dbhr, $this->dbhm);
-        $loc = $l->closestPostcode(55.958542, -3.212203);
-        assertNotNull($loc);
-        $locid = $loc['id'];
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
         $data = file_get_contents('images/chair.jpg');
         file_put_contents(IZNIK_BASE . "/http/uploads/chair.jpg", $data);
@@ -1058,15 +1065,41 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
 
-        # This will get sent; it'll be bounced by Yahoo as not a member, and the bounce will go into a black hole.
+        # This will get sent; will get queued, as we don't have a membership for the group
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'JoinAndPost',
-            'email' => 'test@blackhole.io'
+            'email' => $email
         ]);
 
-        error_log(var_export($ret, TRUE));
+        error_log("Message #$id should be queued " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
+        assertEquals('Queued for group membership', $ret['status']);
+        $applied = $ret['appliedemail'];
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail($email);
+
+        # This assumes the playground group is set to auto-approve and moderate new messages.
+        #
+        # Now when that approval gets notified to us, it should trigger submission of the
+        # messages from that user.
+        $count = 0;
+        $found = FALSE;
+
+        do {
+            error_log("...waiting for pending message from $applied #$uid, try $count");
+            sleep(1);
+            $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
+                [ $gid, MessageCollection::PENDING, $uid ]);
+            foreach ($msgs as $msg) {
+                error_log("Reached pending " . var_export($msg, TRUE));
+                $found = TRUE;
+            }
+            $count++;
+        } while ($count < 600 && !$found);
+
+        assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
 
         # And again, now that the user exists, but without a preferred group.  Set a fake from IP.
         $_SERVER['REMOTE_ADDR'] = '216.58.214.3';
@@ -1082,14 +1115,16 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
 
-        # This will get sent; it'll be bounced by Yahoo as not a member, and the bounce will go into a black hole.
+        # This will get queued, as we don't have a membership for the group
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'JoinAndPost',
-            'email' => 'test@blackhole.io'
+            'email' => $email
         ]);
 
+        error_log("Message #$id should be queued 2 " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
+        assertEquals('Queued for group membership', $ret['status']);
 
         error_log(__METHOD__ . " end");
     }

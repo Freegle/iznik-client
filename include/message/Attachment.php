@@ -56,7 +56,7 @@ class Attachment
     }
 
     public function create($msgid, $ct, $data) {
-        error_log("Create att for $msgid len " . strlen($data));
+        #error_log("Create att for $msgid len " . strlen($data));
         $rc = $this->dbhm->preExec("INSERT INTO messages_attachments (`msgid`, `contenttype`, `data`) VALUES (?, ?, ?);", [
             $msgid,
             $ct,

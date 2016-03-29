@@ -110,9 +110,12 @@ class userTest extends IznikTestCase {
         # Change to non-preferred.
         assertGreaterThan(0, $u->addEmail('test3@test.com', 0));
         $emails = $u->getEmails();
+        error_log("Non-preferred " . var_export($emails, TRUE));
         assertEquals(2, count($emails));
         assertEquals(0, $emails[0]['preferred']);
-        assertEquals('test3@test.com', $emails[0]['email']);
+        assertEquals(0, $emails[1]['preferred']);
+        assertEquals('test@test.com', $emails[0]['email']);
+        assertEquals('test3@test.com', $emails[1]['email']);
 
         # Change to preferred.
         assertGreaterThan(0, $u->addEmail('test3@test.com', 1));
@@ -684,6 +687,45 @@ class userTest extends IznikTestCase {
         assertEquals('test@user.trashnothing.com', User::canonMail('test-x1@user.trashnothing.com'));
         assertEquals('test-x1@user.trashnothing.com', User::canonMail('test-x1-x2@user.trashnothing.com'));
         assertEquals('app+test@proxymail.facebook.com', User::canonMail('app+test@proxymail.facebook.com'));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testInvent() {
+        error_log(__METHOD__);
+
+        # No emails - should invent something.
+        $u = new User($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $email = $u->inventEmail();
+        error_log("No emails, invented $email");
+        assertFalse(strpos($email, 'test'));
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
+        $email = $u->inventEmail();
+        error_log("Unusable email, invented $email");
+        assertFalse(strpos($email, 'test'));
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $u->setPrivate('yahooid', '-wibble');
+        $email = $u->inventEmail();
+        error_log("Yahoo ID, invented $email");
+        assertNotFalse(strpos($email, 'wibble'));
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $u->addEmail('wobble@wobble.com');
+        $email = $u->inventEmail();
+        error_log("Other email, invented $email");
+        assertNotFalse(strpos($email, 'wobble'));
+
+        # Call again now we have one.
+        $email2 = $u->inventEmail();
+        error_log("Other email again, invented $email2");
+        assertEquals($email, $email2);
 
         error_log(__METHOD__ . " end");
     }

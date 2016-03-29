@@ -14,6 +14,7 @@ class MessageCollection
     const PENDING = 'Pending';
     const SPAM = 'Spam';
     const DRAFT = 'Draft';
+    const QUEUED_YAHOO_USER = 'QueuedYahooUser'; # Awaiting a user on the Yahoo group before it can be sent
 
     /** @var  $dbhr LoggedPDO */
     public $dbhr;

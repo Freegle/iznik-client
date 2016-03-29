@@ -213,11 +213,11 @@ function message() {
                         # that reduces friction.  If there is abuse of this, then we will find other ways to block the
                         # abuse.
                         #
-                        # The message we have in hand should be nobody else'
+                        # The message we have in hand should be nobody else's
                         $ret = ['ret' => 3, 'status' => 'Not our message'];
                         $sql = "SELECT * FROM messages_drafts WHERE msgid = ? AND (session = ? OR (userid IS NOT NULL AND userid = ?));";
                         $drafts = $dbhr->preQuery($sql, [$id, session_id(), $myid]);
-                        error_log("$sql, $id, " . session_id() . ", $myid");
+                        #error_log("$sql, $id, " . session_id() . ", $myid");
 
                         foreach ($drafts as $draft) {
                             $m = new Message($dbhr, $dbhm, $draft['msgid']);
@@ -260,16 +260,19 @@ function message() {
                                     $rc = true;
 
                                     if (!$eidforgroup) {
-                                        # Not a member yet.
-                                        $rc = $u->addMembership($groupid, User::ROLE_MEMBER, $eid, MembershipCollection::APPROVED);
-                                    }
-
-                                    if ($rc) {
+                                        # Not a member yet.  We need to sign them up to the Yahoo group before we
+                                        # can send it.
+                                        $ret = [
+                                            'ret' => 0,
+                                            'status' => 'Queued for group membership',
+                                            'appliedemail' => $m->queueForMembership($u, $groupid)
+                                        ];
+                                    } else if ($rc) {
                                         # Now we have a user who is a member of the appropriate group.
                                         #
                                         # We're good to go.
                                         $ret = ['ret' => 7, 'status' => 'Failed to submit'];
-
+                                        
                                         if ($m->submit($u, $email, $groupid)) {
                                             # We sent it.
                                             $ret = ['ret' => 0, 'status' => 'Success'];

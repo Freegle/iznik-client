@@ -1,0 +1,39 @@
+From notify-return-forep-15484776=users.ilovefreegle.org@returns.groups.yahoo.com to forep-15484776@users.ilovefreegle.org Message
+From notify-return-forep-15484776=users.ilovefreegle.org@returns.groups.yahoo.com Mon Mar 28 17:26:16 2016
+Return-path: <notify-return-forep-15484776=users.ilovefreegle.org@returns.groups.yahoo.com>
+Envelope-to: forep-15484776@users.ilovefreegle.org
+Received: from ng12-vm0.bullet.mail.bf1.yahoo.com ([98.139.164.54])
+        by bulk1.ilovefreegle.org with esmtp (Exim 4.82)
+        (envelope-from <notify-return-forep-15484776=users.ilovefreegle.org@returns.groups.yahoo.com>)
+        id 1akavg-0006xG-B4
+        for forep-15484776@users.ilovefreegle.org; Mon, 28 Mar 2016 17:26:16 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoogroups.com; s=echoe; t=1459185970; bh=hu1Y2bLmrn2tp/vG2MHUs5mGzRuA/rFWlLM5xng3mwQ=; h=Date:From:To:Subject:From:Subject; b=Kvvi2u8hOHZ1AfEgQDUV1Y+DRV/b/ZkLLQHTOtqAE981hpIo/7N9SxqQH9Lrrl0SWuuu+2PUhKhcBHp01rEkL7LilLczRPw0rEIH2oCE0PZpZS2bLqrhwUfvX0y0xhYN/GIwaDRedJ6BF93zheEeZF+LDrcvU/1lLrH7ZfVAuds=
+Received: from [98.139.213.69] by ng12.bullet.mail.bf1.yahoo.com with NNFMP; 28 Mar 2016 17:26:10 -0000
+Received: from [10.193.84.170] by tg105.bullet.mail.bf1.yahoo.com with NNFMP; 28 Mar 2016 17:26:10 -0000
+X-Yahoo-Newman-Property: groups-custom
+Received: (qmail 39729 invoked by uid 7800); 28 Mar 2016 17:25:50 -0000
+Date: 28 Mar 2016 17:25:50 -0000
+Message-ID: <1459185950.28.39725.m14@yahoogroups.com>
+X-Yahoo-Newman-Property: groups-notify
+From: Yahoo Groups Notification <notify@yahoogroups.com>
+To: test@test.com
+Subject: Request to join testgroup
+MIME-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+
+Hello,
+
+You recently asked to join the testgroup group.
+Because you are already a member of this group, your request will
+not be processed.
+
+If you have questions about communicating with this group,
+please visit http://help.yahoo.com/l/us/yahoo/groups/original/members/forms/general.html
+
+Thank you!
+
+Yahoo Groups Customer Care
+
+Your use of Yahoo Groups is subject to https://info.yahoo.com/legal/us/yahoo/utos/terms/

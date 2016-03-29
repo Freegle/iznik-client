@@ -24,6 +24,9 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
         $this->dbhm->preExec("DELETE FROM messages WHERE messageid = ?;", [ 'GTUBE1.1010101@example.net' ]);
         $this->dbhm->preExec("DELETE FROM users_emails WHERE email LIKE '%test.com';");
         $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = 1;");
+        $this->dbhm->preExec("DELETE FROM users WHERE firstname = 'Test' AND lastname = 'User';");
+        $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE subscription = 'Test';");
+        unset($_SESSION['id']);
     }
 
     protected function setUp() {

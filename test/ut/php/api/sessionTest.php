@@ -151,6 +151,7 @@ class sessionTest extends IznikAPITestCase
 
         $ret = $this->call('session', 'GET', []);
         assertEquals(0, $ret['ret']);
+        error_log("Confirmed " . var_export($ret, TRUE));
         assertEquals('test2@test.com', $ret['me']['email']);
 
         $ret = $this->call('session', 'PATCH', [

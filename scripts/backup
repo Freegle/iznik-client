@@ -10,20 +10,26 @@ BACKUP="$XTRABACKUP $OPTIONS $BACKUPDIR"
 
 timestamp=$(date +%Y-%m-%d-%H-%M)
 
-# run a backup and stream the output directly to Google storage
-$BACKUP | /root/gsutil/gsutil cp - gs://freegle_backup/iznik-$timestamp.tar > /tmp/gsutil.out 2>&1
-
+pregp mysql
 if [ $? == 0 ]; then
-  if [ $? == 0 ]; then
-    cat /tmp/gsutil.out | mail -s "BACKUP SUCCESS: backed up to $BACKUPDIR/$MOST_RECENT" $EMAIL
-  else
-    echo "Couldn't apply the binary logs to the backup $BACKUPDIR/$MOST_RECENT" | mail -s "BACKUP ERRO: Mysql binary log didn't get applied to backup" $EMAIL
-  fi
-else
-   # problem with initial backup :(
-   echo "Couldn't do a mysql backup" | mail -s "BACKUP ERROR: Mysql backup failed" $EMAIL
-fi
+    # run a backup and stream the output directly to Google storage
+    $BACKUP | /root/gsutil/gsutil cp - gs://freegle_backup/iznik-$timestamp.tar > /tmp/gsutil.out 2>&1
 
-# ...and one to our archive server
-$BACKUP | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.tar"
+    if [ $? == 0 ]; then
+      grep "0 B" /tmp/gsutil.out
+      if [ $? == 0 ]; then
+        cat /tmp/gsutil.out | mail -s "BACKUP ERROR: MySQL backup was empty" $EMAIL
+      else
+        cat /tmp/gsutil.out | mail -s "BACKUP SUCCESS: MySQL backed up to $BACKUPDIR/$MOST_RECENT" $EMAIL
+      fi
+    else
+       # problem with initial backup :(
+       echo "Couldn't do a mysql backup" | mail -s "BACKUP ERROR: MySQL backup failed" $EMAIL
+    fi
+
+    # ...and one to our archive server
+    $BACKUP | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.tar"
+else
+    echo "MySQL not running"| mail -s "BACKUP ERROR: MySQL not running" $EMAIL
+fi
 

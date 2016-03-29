@@ -191,7 +191,12 @@ class MailRouter
             } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) !== FALSE && count($matches) == 4) {
                 # This is a request by Yahoo to confirm a subscription for one of our members.  We always do that.
                 if ($log) { error_log("Confirm subscription"); }
-                $this->mail($replyto, $to, "Yes please", "I confirm this");
+
+                for ($i = 0; $i < 10; $i++) {
+                    # Yahoo is sluggish - sending the confirm multiple times helps.
+                    $this->mail($replyto, $to, "Yes please", "I confirm this");
+                }
+
                 $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/(.*)-acceptsub(.*)@yahoogroups.co.*/', $replyto, $matches) !== FALSE && count($matches) == 3) {
                 # This is a notification that a member has applied to the group.
@@ -286,12 +291,13 @@ class MailRouter
                     }
                 }
             } else if (preg_match('/New (.*) member/', $this->msg->getSubject(), $matches)) {
-                if ($log) { error_log("New member joined"); }
                 $nameshort = $matches[1];
+                if ($log) { error_log("New member joined $nameshort"); }
                 $all = $this->msg->getMessage();
 
                 if (preg_match('/^(.*) joined your/m', $all, $matches)) {
                     $email = $matches[1];
+                    if ($log) { error_log("Email is $email"); }
                     $g = new Group($this->dbhr, $this->dbhm);
                     $gid = $g->findByShortName($nameshort);
 
@@ -301,10 +307,45 @@ class MailRouter
 
                         if ($uid) {
                             # We have the user and the group.  Mark the membership as no longer pending (if
+                            if ($log) { error_log("Found them $uid"); }
                             $u = new User($this->dbhr, $this->dbhm, $uid);
                             $u->markApproved($gid);
-                            $ret = MailRouter::TO_SYSTEM;
+
+                            # Dispatch any messages which are queued awaiting this group membership.
+                            $u->submitQueued($gid);
                         }
+
+                        $ret = MailRouter::TO_SYSTEM;
+                    }
+                }
+            } else if (preg_match('/Request to join (.*)/', $this->msg->getSubject(), $matches)) {
+                # We get this if we respond to the confirmation multiple times (which we do) and
+                # we haven't got the new member notification in the previous arm (which we might
+                # not).  It means that we are already a member, so we can treat it as a confirmation.
+                $nameshort = $matches[1];
+                if ($log) { error_log("Request to join $nameshort"); }
+                $all = $this->msg->getMessage();
+
+                if (preg_match('/Because you are already a member/m', $all, $matches)) {
+                    if ($log) { error_log("Already a member"); }
+                    $g = new Group($this->dbhr, $this->dbhm);
+                    $gid = $g->findByShortName($nameshort);
+
+                    if ($gid) {
+                        $u = new User($this->dbhr, $this->dbhm);
+                        $uid = $u->findByEmail($to);
+
+                        if ($uid) {
+                            # We have the user and the group.  Mark the membership as no longer pending.
+                            if ($log) { error_log("Found them $uid"); }
+                            $u = new User($this->dbhr, $this->dbhm, $uid);
+                            $u->markApproved($gid);
+
+                            # Dispatch any messages which are queued awaiting this group membership.
+                            $u->submitQueued($gid);
+                        }
+
+                        $ret = MailRouter::TO_SYSTEM;
                     }
                 }
             } else {
@@ -392,17 +433,23 @@ class MailRouter
 
             if (!$ret) {
                 # Not obviously spam.
-                $ret = MailRouter::FAILURE;
-
                 $groups = $this->msg->getGroups();
+
+                # If it has none of our groups, we drop it.
                 $ret = MailRouter::DROPPED;
+                if ($log) { error_log("Not obviously spam, groups " . var_export($groups, TRUE)); }
 
                 if (count($groups) > 0) {
+                    # We're expecting to do something with this.
+                    $ret = MailRouter::FAILURE;
+
                     if ($this->msg->getSource() == Message::YAHOO_PENDING) {
+                        if ($log) { error_log("Mark as pending"); }
                         if ($this->markPending()) {
                             $ret = MailRouter::PENDING;
                         }
                     } else if ($this->msg->getSource() == Message::YAHOO_APPROVED) {
+                        if ($log) { error_log("Mark as approved"); }
                         if ($this->markApproved()) {
                             $ret = MailRouter::APPROVED;
                         }

@@ -687,7 +687,7 @@ Iznik.Views.Plugin.Main = IznikView.extend({
                 IznikPlugin.startSyncs();
                 IznikPlugin.checkWork();
 
-                console.log("My id vs Yahoo id", Iznik.Session.get('me').yahooid, Iznik.Session.get('loggedintoyahooas'));
+                //console.log("My id vs Yahoo id", Iznik.Session.get('me').yahooid, Iznik.Session.get('loggedintoyahooas'));
 
                 if (Iznik.Session.get('me').yahooid == Iznik.Session.get('loggedintoyahooas')) {
                     // Although we'll do syncs and work with any Yahoo ID we happen to be logged into Yahoo with, we
@@ -1000,7 +1000,9 @@ Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.SubView.extend({
                                                         data: data,
                                                         context: self,
                                                         success: function (ret) {
-                                                            missing.deferred.resolve();
+                                                            if (ret.ret == 0) {
+                                                                missing.deferred.resolve();
+                                                            }
                                                         }
                                                     });
                                                 } else {

@@ -9,7 +9,9 @@ require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
+require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/mailtemplates/modtools/verifymail.php');
+require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
 class User extends Entity
 {
@@ -254,14 +256,14 @@ class User extends Entity
                         $primary,
                         $rc
                     ]);
+                }
 
-                    if ($primary) {
-                        # Make sure no other email is flagged as primary
-                        $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE userid = ? AND id != ?;", [
-                            $this->id,
-                            $rc
-                        ]);
-                    }
+                if ($primary) {
+                    # Make sure no other email is flagged as primary
+                    $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE userid = ? AND id != ?;", [
+                        $this->id,
+                        $rc
+                    ]);
                 }
             }
         }
@@ -1457,8 +1459,10 @@ class User extends Entity
         $members = $this->dbhr->preQuery($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
         foreach ($members as $member) {
             if (pres('yahooapprove', $member)) {
-                # We can trigger approval by email - do so.
-                $this->mailer($member['yahooapprove'], "My name is Iznik and I approvethis member", "", NULL, '-f' . MODERATOR_EMAIL);
+                # We can trigger approval by email - do so.  Yahoo is sluggish so we send multiple times.
+                for ($i = 0; $i < 10; $i++) {
+                    $this->mailer($member['yahooapprove'], "My name is Iznik and I approve this member", "", NULL, '-f' . MODERATOR_EMAIL);
+                }
             }
 
             if (pres('yahooUserId', $this->user)) {
@@ -1757,6 +1761,105 @@ class User extends Entity
         }
 
         return($rc);
+    }
+
+    public function inventEmail() {
+        # An invented email is one on our domain that doesn't give away too much detail, but isn't just a string of
+        # numbers (ideally).  We may already have one - either on USER_DOMAIN, or for legacy emails on
+        # direct.ilovefreegle.org or republisher.freegle.in.
+        $email = NULL;
+        $emails = $this->getEmails();
+        foreach ($emails as $thisemail) {
+            if (strpos($thisemail['email'], 'direct.ilovefreegle.org') !== FALSE ||
+                strpos($thisemail['email'], 'republisher.freegle.in') !== FALSE ||
+                strpos($thisemail['email'], USER_DOMAIN) !== FALSE) {
+                $email = $thisemail['email'];
+            }
+        }
+
+        if (!$email) {
+            # If they have a Yahoo ID, that'll do nicely - it's public info.
+            $yahooid = $this->getPrivate('yahooid');
+
+            if ($yahooid) {
+                $email = $yahooid . '-' . $this->id . '@' . USER_DOMAIN;
+            } else {
+                # Their own email might already be of that nature, which would be lovely.
+                $personal = [];
+                $email = $this->getEmailPreferred();
+
+                if ($email) {
+                    foreach (['firstname', 'lastname', 'fullname'] as $att) {
+                        $words = explode(' ', $this->user[$att]);
+                        foreach ($words as $word) {
+                            if (stripos($email, $word) !== FALSE) {
+                                # Unfortunately not - it has some personal info in it.
+                                $email = NULL;
+                            }
+                        }
+                    }
+                }
+
+                if ($email) {
+                    # We have an email which is fairly anonymous.  Use the LHS.
+                    $p = strpos($email, '@');
+                    $email = substr($email, 0, $p) . '-' . $this->id . '@' . USER_DOMAIN;
+                } else {
+                    # We can't make up something similar to their existing email address.
+                    $lengths  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
+                    $bigrams  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), true);
+                    $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
+                    $length = \Wordle\array_weighted_rand($lengths);
+                    $start  = \Wordle\array_weighted_rand($bigrams);
+                    $email = strtolower(\Wordle\fill_word($start, $length, $trigrams)) . '-' . $this->id . '@' . USER_DOMAIN;
+                }
+            }
+        }
+
+        return($email);
+    }
+
+    public function triggerYahooApplication($groupid) {
+        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $email = $this->inventEmail();
+        $this->addEmail($email, 0);
+        $headers = "From: $email>\r\n";
+
+        # Yahoo is not very reliable; if we subscribe multiple times it seems to be more likely to react.
+        for ($i = 0; $i < 10; $i++) {
+            mail($g->getPrivate('nameshort') . "-subscribe@yahoogroups.com", "Please let me join", "Pretty please", $headers, "-f$email");
+        }
+
+        return($email);
+    }
+
+    public function submitQueued($groupid) {
+        # Get the email address we use on the group
+        $eid = $this->getEmailForGroup($groupid);
+        $emails = $this->getEmails();
+        $email = NULL;
+        foreach ($emails as $thisemail) {
+            if ($thisemail['id'] == $eid) {
+                $email = $thisemail['email'];
+            }
+        }
+
+        if ($email) {
+            $sql = "SELECT msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id WHERE groupid = ? AND collection = ? AND messages_groups.deleted = 0 AND messages.fromuser = ?;";
+            $msgs = $this->dbhr->preQuery($sql, [
+                $groupid,
+                MessageCollection::QUEUED_YAHOO_USER,
+                $this->id
+            ]);
+
+            error_log("submitQueued for $groupid email $email");
+
+            foreach ($msgs as $msg) {
+                error_log("Submit {$msg['msgid']} from $email");
+                $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
+                $m->submit($this, $email, $groupid);
+            }
+        }
     }
 
     public function delete($groupid = NULL, $subject = NULL, $body = NULL) {

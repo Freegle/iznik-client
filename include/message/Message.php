@@ -290,7 +290,7 @@ class Message
         return($role);
     }
 
-    public function getPublic($messagehistory = TRUE, $related = TRUE) {
+    public function getPublic($messagehistory = TRUE, $related = TRUE, $seeall = FALSE) {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
         $ret = [];
@@ -334,7 +334,7 @@ class Message
                 $ret['postcode'] = $p->getPublic();
             }
 
-            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $this->fromuser == $myid)) {
+            if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $this->fromuser == $myid)) {
                 $ret['location'] = $l->getPublic();
                 $ret['lat'] = $this->lat;
                 $ret['lng'] = $this->lng;
@@ -1067,31 +1067,6 @@ class Message
         $this->suggestedsubject = $this->suggestSubject($this->groupid, $this->subject);
 
         # Save into the messages table.
-        $sql = "INSERT INTO test (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
-        $rc = $this->dbhm->preExec($sql, [
-            $this->date,
-            $this->source,
-            $this->sourceheader,
-            $this->message,
-            $this->fromuser,
-            $this->envelopefrom,
-            $this->envelopeto,
-            $this->fromname,
-            $this->fromaddr,
-            $this->replyto,
-            $this->fromip,
-            $this->subject,
-            $this->suggestedsubject,
-            $this->messageid,
-            $this->tnpostid,
-            $this->textbody,
-            $this->htmlbody,
-            $this->type,
-            $this->lat,
-            $this->lng,
-            $this->locationid
-        ]);
-
         $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
         $rc = $this->dbhm->preExec($sql, [
             $this->date,
@@ -1823,11 +1798,32 @@ class Message
     public function mailf($fromemail, $toemail, $hdrs, $body) {
         $rc = FALSE;
         $mailf = Mail::factory("mail", "-f " . $fromemail);
-        if ($mailf->send('log@ehibbert.org.uk,' . $toemail, $hdrs, $body) === TRUE) {
+        if ($mailf->send($toemail, $hdrs, $body) === TRUE) {
             $rc = TRUE;
         }
 
         return($rc);
+    }
+
+    public function queueForMembership(User $fromuser, $groupid) {
+        # We would like to submit this message, but we can't do so because we don't have a membership on the Yahoo
+        # group yet.  So fire off an application for one; when this gets processed, we will submit the
+        # message.
+        $ret = NULL;
+        $this->setPrivate('fromuser', $fromuser->getId());
+
+        $rc = $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, collection) VALUES (?,?,?);", [
+            $this->id,
+            $groupid,
+            MessageCollection::QUEUED_YAHOO_USER
+        ]);
+
+        if ($rc) {
+            # We've stored the message; send a subscription.
+            $ret = $fromuser->triggerYahooApplication($groupid);
+        }
+        
+        return($ret);
     }
 
     public function submit(User $fromuser, $fromemail, $groupid) {
@@ -1850,13 +1846,15 @@ class Message
         # - create a full MIME message
         # - send it
         # - remove it from the drafts table
-        $atts = $this->getPublic();
+        $atts = $this->getPublic(FALSE, FALSE, TRUE);
 
-        if (pres('area', $atts) && pres('postcode', $atts)) {
-            $subject = $this->type . ': ' . $this->subject . ' (' . $atts['area']['name'] . ' ' . $atts['postcode']['name'] . ')';
+        if (pres('location', $atts)) {
+            # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
+            $loc = (pres('area', $atts) && pres('postcode', $atts)) ? ($atts['area']['name'] . ' ' . $atts['postcode']['name']) : $atts['location']['name'];
+            $subject = $this->type . ': ' . $this->subject . " ($loc)";
             $this->setPrivate('subject', $subject);
 
-            $messageid = $this->id . '@' . $_SERVER['HTTP_HOST'];
+            $messageid = $this->id . '@' . USER_DOMAIN;
             $this->setPrivate('messageid', $messageid);
 
             $this->setPrivate('fromaddr', $fromemail);

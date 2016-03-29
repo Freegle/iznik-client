@@ -49,7 +49,7 @@ function spammers() {
                     $ret = ['ret' => 0, 'status' => 'Success', 'id' => $s->addSpammer($userid, $collection, $reason)];
                 } else {
                     # Not allowed
-                    $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                    $ret = ['ret' => 2, 'status' => 'Permission denied' ];
                 }
             }
             break;
