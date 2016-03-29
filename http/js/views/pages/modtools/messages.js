@@ -12,17 +12,31 @@ Iznik.Views.ModTools.Message = IznikView.extend({
     },
 
     editFailed: function() {
+        console.log("Message edit failed");
+        this.removeEditors();
         this.$('.js-savesubj .glyphicon').removeClass('glyphicon-refresh rotate').addClass('glyphicon-warning-sign error');
         this.restoreEditSubject();
     },
 
     editSucceeded: function() {
+        console.log("Message edit succeeded");
+        this.removeEditors();
         this.$('.js-savesubj .glyphicon').removeClass('glyphicon-refresh rotate').addClass('glyphicon-ok success');
         this.restoreEditSubject();
     },
 
+    removeEditors: function() {
+        for (var i = tinymce.editors.length - 1 ; i > -1 ; i--) {
+            var ed_id = tinymce.editors[i].id;
+            tinyMCE.execCommand("mceRemoveEditor", true, ed_id);
+        }
+        this.$('.js-tinymce').remove();
+    },
+
     saveSubject: function() {
         var self = this;
+
+        self.removeEditors();
         self.listenToOnce(self.model,'editfailed', self.editFailed);
         self.listenToOnce(self.model,'editsucceeded', self.editSucceeded);
 

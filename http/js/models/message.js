@@ -135,6 +135,7 @@ Iznik.Models.Message = IznikModel.extend({
                     $.ajax({
                         type: 'GET',
                         url: YAHOOAPI + 'groups/' + group.nameshort + "/pending/messages/1/parts?start=1&count=100&chrome=raw",
+                        async: false,
                         context: self,
                         success: function(ret) {
                             var found = false;
@@ -259,7 +260,7 @@ Iznik.Models.Message = IznikModel.extend({
                                         // Do this synchronously to increase the chance that the crumb will still be valid
                                         // when we use it.  If we have background work happening the crumb might be invalidated
                                         // under our feet.
-                                        $.ajaxq('plugin', {
+                                        $.ajax({
                                             type: "GET",
                                             url: "https://groups.yahoo.com/neo/groups/" + groupname + "/management/pendingmessages?" + Math.random(),
                                             success: getCrumb(self),
