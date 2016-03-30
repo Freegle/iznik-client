@@ -104,7 +104,9 @@ Iznik.Models.Session = IznikModel.extend({
                 self.loggedIn = true;
                 self.trigger('isLoggedIn', true);
             }
-        } catch (e) {}
+        } catch (e) {
+            console.log("testLoggedIn exception", e.message);
+        }
 
         // Now we may or may not have already triggered, but we still want to refresh our data from the server.  This
         // means we are loosely up to date.  It also means that if we have been logged out on the server side, we'll
@@ -137,17 +139,14 @@ Iznik.Models.Session = IznikModel.extend({
                                         console.log("SW has been activated");
                                         reg.pushManager.getSubscription().then(function(subscription) {
                                             if (!subscription) {
-                                                console.log("No existing sub");
                                                 var p = reg.pushManager.subscribe({
                                                     userVisibleOnly: true
                                                 });
                                                 pushManagerPromise = p;
-                                                console.log("promise", p);
                                                 p.then(self.gotSubscription, function(error) {
                                                     console.log("Subscribe error", error);
                                                 });
                                             } else {
-                                                console.log("Got existing sub", subscription);
                                                 self.gotSubscription(subscription);
                                             }
                                         });
