@@ -864,18 +864,21 @@ class Message
                         'timeout' => 120
                     )
                 ));
-                $data = file_get_contents($src, false, $ctx);
+                
+                $data = @file_get_contents($src, false, $ctx);
+                
+                if ($data) {
+                    # Try to convert to an image.  If it's not an image, this will fail.
+                    $img = new Image($data);
 
-                # Try to convert to an image.  If it's not an image, this will fail.
-                $img = new Image($data);
+                    if ($img->img) {
+                        $newdata = $img->getData(100);
 
-                if ($img->img) {
-                    $newdata = $img->getData(100);
-
-                    # Ignore small images - Yahoo adds small ones as (presumably) a tracking mechanism, and also their
-                    # logo.
-                    if ($newdata && $img->width() > 50 && $img->height() > 50) {
-                        $this->inlineimgs[] = $newdata;
+                        # Ignore small images - Yahoo adds small ones as (presumably) a tracking mechanism, and also their
+                        # logo.
+                        if ($newdata && $img->width() > 50 && $img->height() > 50) {
+                            $this->inlineimgs[] = $newdata;
+                        }
                     }
                 }
             }
@@ -895,7 +898,25 @@ class Message
             # Make sure we have a user and a membership for the originator of this message; they were a member
             # at the time they sent this.  If they have since left we'll pick that up later via a sync.
             $u = new User($this->dbhr, $this->dbhm);
-            $userid = $u->findByEmail($this->fromaddr);
+
+            # If there is a Yahoo uid in here - which there isn't always - we might be able to find them that way.
+            #
+            # This is important as well as checking the email address as users can send from the owner address (which
+            # we do not allow to be attached to a specific user, as it can be shared by many).
+            $userid = NULL;
+            $yahoouid = NULL;
+            $emailid = NULL;
+
+            $gp = $Parser->getHeader('x-yahoo-group-post');
+            if ($gp && preg_match('/u=(.*);/', $gp, $matches)) {
+                $yahoouid = $matches[1];
+                $userid = $u->findByYahooUserId($yahoouid);
+            }
+
+            if (!$userid) {
+                # Or we might have their email.
+                $userid = $u->findByEmail($this->fromaddr);
+            }
 
             if (!$userid) {
                 # We don't know them.  Add.
@@ -907,31 +928,25 @@ class Message
                     $name = $matches[1];
                 }
 
-                if ($userid = $u->create(NULL, NULL, $name, "Incoming message from {$this->fromaddr} on $groupname")) {
-                    # If any of these fail, then we'll pick it up later when we do a sync with the source group,
-                    # so no need for a transaction.
-                    $u = new User($this->dbhr, $this->dbhm, $userid);
-                    $emailid = $u->addEmail($this->fromaddr, TRUE);
-                    $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid);
-                }
+                $userid = $u->create(NULL, NULL, $name, "Incoming message #{$this->id} from {$this->fromaddr} on $groupname");
             }
 
-            # Now we have a user.  If there is a Yahoo uid in here - which there isn't always - add it to the
-            # user entry.
-            $gp = $Parser->getHeader('x-yahoo-group-post');
-            if ($gp && preg_match('/u=(.*);/', $gp, $matches)) {
-                // This is Yahoo's unique identifier for this user.
+            if ($userid) {
+                # We have a user.
                 $u = new User($this->dbhr, $this->dbhm, $userid);
 
-                if ($u->getPrivate('yahooUserId') != $matches[1]) {
-                    # Check if there is a different user with this id already.
-                    $otherid = $u->findByYahooUserId($matches[1]);
-                    if ($otherid && $otherid !== $userid) {
-                        # Yes there is - merge.
-                        $u->merge($userid, $otherid, "Incoming Message - YahooUserId {$matches[1]} = $otherid, Email {$this->fromaddr} = $userid");
-                    } else {
-                        # No there's not - just update.
-                        $u->setPrivate('yahooUserId', $matches[1]);
+                # We might not have this yahoo user id associated with this user.
+                if ($yahoouid) {
+                    $u->setPrivate('yahooUserId', $yahoouid);
+                }
+
+                # We might not have this email associated with this user.
+                $emailid = $u->addEmail($this->fromaddr, TRUE);
+
+                if ($emailid) {
+                    # And we might not have a membership of this group.
+                    if (!$u->isMember($this->groupid)) {
+                        $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid);
                     }
                 }
             }

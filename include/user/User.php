@@ -150,6 +150,11 @@ class User extends Entity
         return(count($emails) == 0 ? NULL : $emails[0]['email']);
     }
 
+    public function isMember($groupid) {
+        $membs = $this->dbhr->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ?;", [ $this->id, $groupid ]);
+        return(count($membs) > 0);
+    }
+
     public function getEmailForGroup($groupid) {
         $emails = $this->dbhr->preQuery("SELECT emailid FROM memberships WHERE userid = ? AND groupid = ?;", [
             $this->id,
@@ -384,7 +389,6 @@ class User extends Entity
         # Get the email before we remove the membership.
         $sql = "SELECT email FROM users_emails INNER JOIN memberships ON users_emails.id = memberships.emailid AND groupid = ? AND users_emails.userid = ?;";
         $emails = $this->dbhr->preQuery($sql, [ $groupid, $this->id ]);
-        #error_log("Remove membership {$this->id} from $groupid emails " . var_export($emails, TRUE));
 
         $rc = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = ? AND groupid = ?;",
             [

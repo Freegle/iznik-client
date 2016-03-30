@@ -209,7 +209,8 @@ class messageTest extends IznikTestCase {
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
-        # Now from a different email but the same YahooID, triggering a merge.
+        # Now from a different email but the same Yahoo UID.  This shouldn't trigger a merge as we should identify
+        # them by the UID.
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $msg = str_ireplace('test@test.com', 'test2@test.com', $msg);
@@ -224,7 +225,7 @@ class messageTest extends IznikTestCase {
         $fromuser = $m->getFromuser();
         $sql = "SELECT * FROM logs WHERE user = ? AND type = 'User' AND subtype = 'Merged';";
         $logs = $this->dbhr->preQuery($sql, [ $fromuser ]);
-        assertEquals(1, count($logs));
+        assertEquals(0, count($logs));
 
         error_log(__METHOD__ . " end");
     }
@@ -260,23 +261,23 @@ class messageTest extends IznikTestCase {
     }
 
     // For manual testing
-    public function testSpecial() {
-        error_log(__METHOD__);
-
-        $msg = file_get_contents('msgs/special');
-
-        $m = new Message($this->dbhr, $this->dbhm);
-        $rc = $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
-        assertTrue($rc);
-        $id = $m->save();
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        error_log("IP " . $m->getFromIP());
-        $s = new Spam($this->dbhr, $this->dbhm);
-        $s->check($m);
-
-
-        error_log(__METHOD__ . " end");
-    }
+//    public function testSpecial() {
+//        error_log(__METHOD__);
+//
+//        $msg = file_get_contents('msgs/special');
+//
+//        $m = new Message($this->dbhr, $this->dbhm);
+//        $rc = $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+//        assertTrue($rc);
+//        $id = $m->save();
+//        $m = new Message($this->dbhr, $this->dbhm, $id);
+//        error_log("IP " . $m->getFromIP());
+//        $s = new Spam($this->dbhr, $this->dbhm);
+//        $s->check($m);
+//
+//
+//        error_log(__METHOD__ . " end");
+//    }
 
 }
 

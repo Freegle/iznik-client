@@ -241,6 +241,7 @@ class sessionTest extends IznikAPITestCase
 
         $u = new User($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
+        error_log("Created user $id");
         assertNotNull($u->addEmail('test@test.com'));
         $u = new User($this->dbhm, $this->dbhm, $id);
 

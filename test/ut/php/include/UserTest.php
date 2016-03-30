@@ -289,9 +289,13 @@ class userTest extends IznikTestCase {
         assertEquals(User::ROLE_OWNER, $m->getRoleForMessage());
 
         # Ban ourselves; can't rejoin
+        error_log("Ban " . $u->getId() . " from $group2");
         $u->removeMembership($group2, TRUE);
         $membs = $u->getMemberships();
-        assertEquals(0, count($membs));
+        error_log("Memberships after ban " . var_export($membs, TRUE));
+
+        # Should have the membership of group1, implicitly added because we sent a message from that group.
+        assertEquals(1, count($membs));
         assertFalse($u->addMembership($group2));
 
         $g = new Group($this->dbhr, $this->dbhm, $group1);
