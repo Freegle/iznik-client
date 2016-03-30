@@ -45,6 +45,7 @@ var IznikRouter = Backbone.Router.extend({
         "user/give/whereami": "userGiveWhereAmI",
         "user/give/whatisit": "userGiveWhatIsIt",
         "user/give/whoami": "userGiveWhoAmI",
+        "user/give/whatnext": "userWhatNext",
         "post": "userHome", // legacy route
         "*path": "userHome"
     },
@@ -116,6 +117,11 @@ var IznikRouter = Backbone.Router.extend({
 
     userGiveWhoAmI: function() {
         var page = new Iznik.Views.User.Pages.Give.WhoAmI();
+        this.loadRoute({page: page});
+    },
+
+    userWhatNext: function() {
+        var page = new Iznik.Views.User.Pages.Give.WhatNext();
         this.loadRoute({page: page});
     },
 

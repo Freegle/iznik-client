@@ -70,8 +70,8 @@ class Item extends Entity
         return($results);
     }
 
-    public function find($query) {
-        $items = $this->dbhr->preQuery("SELECT * FROM items WHERE name = ? ORDER BY popularity DESC limit 1;", [ $query ]);
+    public function findFromPhoto($query) {
+        $items = $this->dbhr->preQuery("SELECT * FROM items WHERE name = ? AND suggestfromphoto = 1 ORDER BY popularity DESC limit 1;", [ $query ]);
         return($items);
     }
 

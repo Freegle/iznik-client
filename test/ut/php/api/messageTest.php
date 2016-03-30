@@ -1126,6 +1126,25 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals('Queued for group membership', $ret['status']);
 
+        $count = 0;
+        $found = FALSE;
+
+        do {
+            error_log("...waiting for approved message from $applied #$uid, try $count");
+            sleep(1);
+            $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
+                [ $gid, MessageCollection::APPROVED, $uid ]);
+            foreach ($msgs as $msg) {
+                error_log("Reached approved " . var_export($msg, TRUE));
+                $found = TRUE;
+                $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
+                $m->delete('UT');
+            }
+            $count++;
+        } while ($count < 600 && !$found);
+
+        assertTrue($found, "Yahoo slow?  Failed to reach approved messages");
+
         error_log(__METHOD__ . " end");
     }
 }

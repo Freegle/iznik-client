@@ -4,10 +4,17 @@ Iznik.Views.Page = IznikView.extend({
     modtools: false,
 
     events: {
+        'click .js-signin': 'signin'
     },
 
     home: function() {
         Router.navigate(this.modtools ? '/modtools' : '/', true);
+    },
+
+    signin: function() {
+        console.log("Sign in");
+        var sign = new Iznik.Views.SignInUp();
+        sign.render();
     },
 
     render: function(options) {
@@ -95,8 +102,9 @@ Iznik.Views.Page = IznikView.extend({
         // Let anyone who cares know.
         this.trigger('pageContentAdded');
 
-        // This doesn't work as an event so attach manually.
-        $('#bodyContent .js-home').click(this.home);
+        // This doesn't work as an event as it's outwith our element, so attach manually.
+        $('#bodyContent .js-home').click(_.bind(this.home, this));
+        $('#bodyContent .js-signin').click(_.bind(this.signin, this));
     }
 });
 

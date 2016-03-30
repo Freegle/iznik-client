@@ -137,7 +137,7 @@ class Attachment
                 $i = new Item($this->dbhr, $this->dbhm);
 
                 foreach ($rsps as $rsp) {
-                    $found = $i->find($rsp['description']);
+                    $found = $i->findFromPhoto($rsp['description']);
                     $wasfound = FALSE;
                     foreach ($found as $item) {
                         $this->dbhm->background("INSERT INTO messages_attachments_items (attid, itemid) VALUES ({$this->id}, {$item['id']});");

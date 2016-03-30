@@ -249,9 +249,11 @@ Iznik.Views.User.Pages.Give.Thumbnail = IznikView.extend({
 Iznik.Views.User.Pages.Give.WhoAmI = Iznik.Views.Page.extend({
     template: "user_give_whoami",
 
-    events: {
-        'change .js-email': 'changeEmail',
-        'click .js-next': 'doit'
+    events: function(){
+        return _.extend({}, Iznik.Views.Page.prototype.events,{
+            'change .js-email': 'changeEmail',
+            'click .js-next': 'doit'
+        });
     },
 
     doit: function() {
@@ -272,7 +274,7 @@ Iznik.Views.User.Pages.Give.WhoAmI = Iznik.Views.Page.extend({
                     id: id
                 }, success: function(ret) {
                     if (ret.ret == 0) {
-
+                        Router.navigate('/user/give/whatnext', true)
                     } else {
                         self.fail();
                     }
@@ -316,6 +318,29 @@ Iznik.Views.User.Pages.Give.WhoAmI = Iznik.Views.Page.extend({
                         self.changeEmail();
                     }
                 } catch (e) {}
+            }
+        });
+
+        Iznik.Session.testLoggedIn();
+    }
+});
+
+Iznik.Views.User.Pages.Give.WhatNext = Iznik.Views.Page.extend({
+    template: "user_give_whatnext",
+
+    events: function(){
+        return _.extend({}, Iznik.Views.Page.prototype.events,{
+        });
+    },
+    
+    render: function() {
+        var self = this;
+
+        Iznik.Views.Page.prototype.render.call(this);
+
+        this.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn){
+            if (loggedIn) {
+            } else {
             }
         });
 

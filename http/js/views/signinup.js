@@ -1,5 +1,4 @@
 Iznik.Views.SignInUp = Iznik.Views.Modal.extend({
-    // TODO remember me.  Server supports it.
     className: "signinup",
 
     template: "signinup_main",
