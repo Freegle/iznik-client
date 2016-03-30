@@ -40,7 +40,6 @@ self.addEventListener('activate', function(event) {
     console.log("SW Activated");
     self.clients.matchAll().then(function (clients) {
         for (var i = 0; i < clients.length; i++) {
-            console.log("post to client");
             clients[i].postMessage({
                 type: 'activated'
             });
