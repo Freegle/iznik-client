@@ -1558,8 +1558,11 @@ class Message
         $sql = "SELECT * FROM messages WHERE messageid = ?;";
         $msgs = $this->dbhr->preQuery($sql, [ $this->getMessageID() ]);
         foreach ($msgs as $msg) {
+            # Remove from all groups that it's on.  This will have the slightly unexpected effect of removing
+            # crossposts.
+            # TODO ...which isn't ideal.
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
-            $m->delete('Received later copy of message with same Message-ID', $groupid, NULL, NULL, NULL, TRUE);
+            $m->delete('Received later copy of message with same Message-ID', NULL, NULL, NULL, NULL, TRUE);
         }
 
         $sql = "SELECT * FROM messages_groups WHERE groupid = ? AND yahooapprovedid = ? AND yahooapprovedid IS NOT NULL AND deleted = 0;";
