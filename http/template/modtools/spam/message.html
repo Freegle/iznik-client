@@ -29,10 +29,10 @@
                             <li><a class="js-viewsource" href="#">View Source</a></li>
                         </ul>
                     </div>
-                    <% if (obj.lat) { %>
+                    <% if (obj.location) { %>
                     <div class="mapimage margleft pull-right">
-                        <a data-realurl="true" href="http://maps.google.com/?q={{lat}},{{lng}}" target="_blank">
-                            <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&center={{lat}},{{lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{lat}},{{lng}}&sensor=false&key=AIzaSyArVxoX781qdcbmQZi1PKHX-qa0bPbboH4&zoom={{mapzoom}}" style="cursor:pointer" />
+                        <a data-realurl="true" href="http://maps.google.com/?q={{location.lat}},{{location.lng}}" target="_blank">
+                            <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&center={{location.lat}},{{location.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{location.lat}},{{location.lng}}&sensor=false&key=AIzaSyArVxoX781qdcbmQZi1PKHX-qa0bPbboH4&zoom={{mapzoom}}" style="cursor:pointer" />
                         </a>
                     </div>
                     <% } %>
