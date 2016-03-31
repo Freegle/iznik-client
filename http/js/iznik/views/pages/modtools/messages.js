@@ -2,9 +2,10 @@ define([
     'jquery',
     'underscore',
     'backbone',
+    'moment',
     'iznik/base',
     'iznik/views/pages/pages'
-], function($, _, Backbone, Iznik) {
+], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Message = Iznik.View.extend({
         rarelyUsed: function () {
             this.$('.js-rarelyused').fadeOut('slow');
