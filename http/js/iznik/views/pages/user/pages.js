@@ -3,7 +3,8 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/views/pages/pages'
+    'iznik/views/pages/pages',
+    'typeahead'
 ], function($, _, Backbone, Iznik) {
         Iznik.Views.User.Pages.WhereAmI = Iznik.Views.Page.extend({
         events: function(){

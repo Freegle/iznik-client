@@ -86,7 +86,6 @@ define([
         loadRoute: function (routeOptions) {
             var self = this;
 
-            console.log("loadRoute", routeOptions);
             // Tidy any modal grey.
             $('.modal-backdrop').remove();
 
@@ -100,9 +99,7 @@ define([
 
             function loadPage() {
                 firstbeep = true;
-                console.log("Render page", routeOptions.page);
                 routeOptions.page.render();
-                self.trigger('loadedPage');
             }
 
             loadPage();
@@ -157,10 +154,8 @@ define([
 
         userGiveWhereAmI: function () {
             var self = this;
-            console.log("userGiveWhereAmI");
 
             require(["iznik/views/pages/user/give"], function() {
-                console.log("Got give");
                 var page = new Iznik.Views.User.Pages.Give.WhereAmI();
                 self.loadRoute({page: page});
             });

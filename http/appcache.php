@@ -133,7 +133,7 @@ js/lib/bootstrap-datepicker.en-GB.js
 js/lib/jquery.waypoints.js
 js/lib/jquery-show-first.js
 js/lib/jquery-visibility.js
-js/lib/typeahead.jquery.js
+js/lib/typeahead.js
 js/lib/jquery-file-upload/load-image.all.min.js
 js/lib/jquery-file-upload/canvas-to-blob.min.js
 js/lib/jquery-file-upload/jquery.iframe-transport.js

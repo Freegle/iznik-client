@@ -48,6 +48,7 @@ define([
     'bootstrap',
     'bootstrap-select',
     'bootstrap-switch',
+    'bootstrap-tagsinput',
     'jquery.dd',
     'jquery.dotdotdot',
     'jquery-show-first',

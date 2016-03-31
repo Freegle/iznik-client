@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/pages/pages',
+    'iznik/views/pages/user/pages',
     'fileupload'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Give.WhereAmI = Iznik.Views.User.Pages.WhereAmI.extend({
@@ -263,6 +264,7 @@ define([
         events: function () {
             return _.extend({}, Iznik.Views.Page.prototype.events, {
                 'change .js-email': 'changeEmail',
+                'keyup .js-email': 'changeEmail',
                 'click .js-next': 'doit'
             });
         },

@@ -3,7 +3,8 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/views/pages/pages'
+    'iznik/views/pages/pages',
+    'iznik/views/pages/user/pages'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Find.WhereAmI = Iznik.Views.User.Pages.WhereAmI.extend({
         template: "user_find_whereami"

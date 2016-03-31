@@ -5,6 +5,7 @@ requirejs.config({
         "bootstrap" : [ 'jquery' ],
         "bootstrap-select": [ "bootstrap" ],
         "bootstrap-switch": [ "bootstrap" ],
+        "bootstrap-tagsinput": [ "bootstrap" ],
         "wicket": [ "jquery" ],
         "wicket-gmap3": [ "wicket" ],
         "ga": {
@@ -19,7 +20,7 @@ requirejs.config({
         "jquery.geocomplete": [ "jquery" ],
         "jquery-show-first": [ "jquery" ],
         "fileupload": [ "jquery" ],
-        "jquery.ui.widget": [ "jquery", "fileupload" ],
+        "jquery.ui.widget": [ "jquery" ],
         "iznik/accordionpersist": [ "jquery" ],
         "iznik/selectpersist": [ "jquery" ]
     },
