@@ -235,10 +235,10 @@
             'keydown :input': 'processTab'
         },
         template: _.template([
-            '<label class="<%=Backform.controlLabelClassName%>"><%=label%></label>',
-            '<div class="<%=Backform.controlsClassName%>">',
-            '  <span class="<%=Backform.controlClassName%> uneditable-input">',
-            '    <%=value%>',
+            '<label class="{{Backform.controlLabelClassName}}">{{label}}</label>',
+            '<div class="{{Backform.controlsClassName}}">',
+            '  <span class="{{Backform.controlClassName}} uneditable-input">',
+            '    {{value}}',
             '  </span>',
             '</div>'
         ].join("\n")),

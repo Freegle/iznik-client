@@ -88,13 +88,11 @@ https://apis.google.com/_/scs/apps-static/_/js/k=oz.gapi.en_GB.ocSOssjDg14.O/m=p
 https://apis.google.com/_/scs/apps-static/_/js/k=oz.gapi.en_GB.ocSOssjDg14.O/m=client/rt=j/sv=1/d=1/ed=1/am=AQ/rs=AGLTcCNoJSipLXsH5J9A9YAfo9pJ-lbwEQ/cb=gapi.loaded_0
 https://plus.google.com/js/client:plusone.js
 https://ssl.google-analytics.com/ga.js
-/js/lib/binaryajax.js
 https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization
 https://ajax.googleapis.com/ajax/static/modules/gviz/1.0/core/tooltip.css
 https://www.google.com/jsapi?autoload={%27modules%27:[{%27name%27:%27visualization%27,%27version%27:%271%27,%27packages%27:[%27corechart%27,%20%27annotationchart%27]}]}
 https://www.google.com/uds/api/visualization/1.0/707b4cf11c6a02b0e004d31b539ac729/format+en,default+en,ui+en,table+en,controls+en,corechart+en,annotationchart+en.I.js
 https://cdn.tinymce.com/4/tinymce.min.js
-https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js
 https://apis.google.com/js/client:platform.js
 https://maps.googleapis.com/maps-api-v3/api/js/23/7/common.js
 https://maps.googleapis.com/maps-api-v3/api/js/23/7/util.js
@@ -119,8 +117,6 @@ js/lib/json2.js
 js/lib/flowtype.js
 js/lib/Sortable.js
 js/lib/pushstream.js
-js/lib/FormRepo.js
-js/lib/canvasResize.js
 js/lib/notify.js
 js/lib/timeago.js
 js/lib/validator.min.js
@@ -132,10 +128,8 @@ js/lib/placeholders.min.js
 js/lib/bootstrap-select.min.js
 js/lib/bootstrap-switch.min.js
 js/lib/bootstrap-datepicker.js
-js/lib/sly.min.js
 js/lib/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js
 js/lib/bootstrap-datepicker.en-GB.js
-js/lib/autosize.js
 js/lib/jquery.waypoints.js
 js/lib/jquery-show-first.js
 js/lib/jquery-visibility.js

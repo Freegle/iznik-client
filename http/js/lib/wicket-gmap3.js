@@ -726,4 +726,4 @@
         console.log('The passed object does not have any recognizable properties.');
 
     };
-}(Wkt || require('./wicket')));
+}(require('wicket')));

@@ -6,7 +6,6 @@ var pushsub = null;
 
 request.onsuccess = function() {
     db = this.result;
-    console.log("SW Opened DB", db);
 
     // Now get our push subscription, if present.
     // Get our subscription from indexDB
@@ -14,10 +13,8 @@ request.onsuccess = function() {
     var objectStore = transaction.objectStore('swdata');
     var request =  objectStore.get('pushsubscription');
     request.onsuccess = function(event) {
-        console.log("Request succeeded", request);
         if (request.result) {
             pushsub = request.result.value;
-            console.log("Got pushsub", pushsub);
         }
     }
 };
@@ -37,7 +34,6 @@ self.addEventListener('install', function(event) {
 });
 
 self.addEventListener('activate', function(event) {
-    console.log("SW Activated");
     self.clients.matchAll().then(function (clients) {
         for (var i = 0; i < clients.length; i++) {
             clients[i].postMessage({
@@ -49,8 +45,8 @@ self.addEventListener('activate', function(event) {
 
 self.addEventListener('message', function(event) {
     console.log("SW got message", event.data);
-
     console.log("Message type", event.data.type);
+    
     switch(event.data.type) {
         case 'subscription':
             // We have been passed our push notification subscription, which we may use to authenticate ourselves

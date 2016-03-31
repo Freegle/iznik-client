@@ -57,6 +57,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <link rel="stylesheet" href="/css/bootstrap-tagsinput.css">
     <link rel="stylesheet" href="/js/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css">
     <link rel="stylesheet" href="/css/dd.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="/css/converse.min.css">
 
     <!-- And then we do custom styling on top. -->
     <!--[if !IE]><!-->
@@ -97,24 +98,8 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <script src="/js/lib/respond.min.js"></script>
     <![endif]-->
 
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
     <meta name="HandheldFriendly" content="true">
-
-    <script>
-        var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', 'UA-10627716-9']);
-        _gaq.push(['_trackPageview']);
-        (function () {
-            var ga = document.createElement('script');
-            ga.type = 'text/javascript';
-            ga.async = true;
-            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-            var s = document.getElementsByTagName('script')[0];
-            s.parentNode.insertBefore(ga, s);
-        })();
-    </script>
 
     <script src="https://apis.google.com/js/client:platform.js" async defer></script>
     <script>

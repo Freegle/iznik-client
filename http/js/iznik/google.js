@@ -1,4 +1,4 @@
-Iznik.Views.GoogleLoad = IznikView.extend({
+Iznik.Views.GoogleLoad = Iznik.View.extend({
     authResult: undefined,
 
     disabled: false,

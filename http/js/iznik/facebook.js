@@ -1,7 +1,7 @@
 // TODO Make configurable
 var facebookAppId = 161792100826551;
 
-Iznik.Views.FBLoad = IznikView.extend({
+Iznik.Views.FBLoad = Iznik.View.extend({
     FBLoaded: false,
     FBLoading: false,
     FBDisabled: false,
@@ -97,7 +97,7 @@ Iznik.Views.FBLoad = IznikView.extend({
 
 FBLoad = new Iznik.Views.FBLoad();
 
-Iznik.Views.FBLogin = IznikView.extend({
+Iznik.Views.FBLogin = Iznik.View.extend({
     statusChangeCallback: function(response){
         var self = this;
 
@@ -148,7 +148,7 @@ Iznik.Views.FBLogin = IznikView.extend({
     }
 });
 
-Iznik.Views.FBShare = IznikView.extend({
+Iznik.Views.FBShare = Iznik.View.extend({
     initialize: function(options){
         this.options = options;
         this.render.call(this);
