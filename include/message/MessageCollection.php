@@ -67,8 +67,11 @@ class MessageCollection
             $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Date']));
             $dateq = $ctx == NULL ? ' 1=1 ' : (" (messages.date < $date OR messages.date = $date AND messages.id < " . $this->dbhr->quote($ctx['id']) . ") ");
 
-            # We only want to show spam messages upto 7 days old to avoid seeing too many, especially on first use.
-            $mysqltime = date ("Y-m-d", strtotime("Midnight 7 days ago"));
+            # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
+            # See also Group.
+            #
+            # This fits with Yahoo's policy on deleting pending activity.
+            $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
             $oldest = $this->collection == MessageCollection::SPAM ? " AND messages.date >= '$mysqltime' " : '';
 
             $ctx = [ 'Date' => NULL, 'id' ];
@@ -86,6 +89,7 @@ class MessageCollection
             }
 
             $sql = "SELECT msgid AS id, date FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC, messages.id DESC LIMIT $limit";
+            #error_log("Messages get $sql, {$this->collection}");
 
             $msglist = $this->dbhr->preQuery($sql, [
                 $this->collection

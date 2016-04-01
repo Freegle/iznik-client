@@ -163,7 +163,8 @@ function messages() {
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
-                        'routed' => $rc
+                        'routed' => $rc,
+                        'id' => $id
                     ];
                 }
             }

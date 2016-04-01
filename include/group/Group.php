@@ -130,8 +130,10 @@ class Group extends Entity
         $showmembers = !array_key_exists('showmembers', $mysettings) || $mysettings['showmembers'];
         $spam = $showmessages ? 'spam' : 'spamother';
 
-        # We only want to show spam messages upto 7 days old to avoid seeing too many, especially on first use.
-        $mysqltime = date ("Y-m-d", strtotime("Midnight 7 days ago"));
+        # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
+        #
+        # See also MessageCollection.
+        $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
 
         $ret = [
             'pending' => $showmessages ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL AND messages.deleted IS NULL;", [
