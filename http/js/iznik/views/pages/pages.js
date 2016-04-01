@@ -2,15 +2,12 @@ define([
     'jquery',
     'underscore',
     'backbone',
-    // 'converse',
     'iznik/base',
     'iznik/accordionpersist',
     'iznik/views/group/select',
     'iznik/views/infinite',
     'iznik/views/plugin'
-], function($, _, Backbone,
-            // converse,
-            Iznik) {
+], function($, _, Backbone, Iznik) {
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
     Iznik.Views.Page = Iznik.View.extend({
@@ -97,20 +94,45 @@ define([
                         loggedOutOnly.fadeOut('slow');
 
                         // Since we're logged in, we can start chat.
+                        //
+                        // converse is hard to start, for reasons I don't understand and which may be my fault, or
+                        // may relate to its use of the Almond loader rather than the Require one.  After experimenting
+                        // with various options, the one that works is to use the full build, and this require to
+                        // trigger the load, but to be aware that the load callback may not be passed the module, and
+                        // therefore do a timer loop until the global has been defined.
                         if (Iznik.Session.isAdminOrSupport()) {
-                            // console.log("Start converse", converse);
-                            // var loc = window.location.protocol + '//' + window.location.host;
-                            // converse.initialize({
-                            //     prebind: true,
-                            //     prebind_url: loc + '/prebind',
-                            //     bosh_service_url: loc + ':5280/http-bind',
-                            //     keepalive: true,
-                            //     allow_logout: false,
-                            //     allow_registration: false,
-                            //     show_controlbox_by_default: true,
-                            //     roster_groups: true
-                            // });
-                            // console.log("Started");
+                            console.log("Start converse");
+                            require(['converse'], function () {
+                                function reallyStart() {
+                                    console.log("Consider converse start", window.converse);
+                                    if (_.isUndefined(window.converse)) {
+                                        console.log("Not yet, retry");
+                                        setTimeout(reallyStart, 5000);
+                                    } else {
+                                        console.log("Gotcha");
+                                        var loc = window.location.protocol + '//' + window.location.host;
+                                        console.log("Starting", arguments);
+                                        console.log(window.converse);
+                                        console.log("Start in", loc, converse);
+                                        converse.initialize({
+                                            prebind: true,
+                                            prebind_url: loc + '/prebind',
+                                            bosh_service_url: loc + ':5280/http-bind',
+                                            jid: Iznik.Session.get('me').id + '@iznik',
+                                            keepalive: true,
+                                            allow_logout: false,
+                                            allow_registration: false,
+                                            allow_contact_requests: false,
+                                            auto_list_rooms: true,
+                                            show_controlbox_by_default: true,
+                                            roster_groups: true
+                                        });
+                                    }
+                                }
+
+                                setTimeout(reallyStart, 500);
+                            });
+                            console.log("Started");
                         }
                     } else {
                         loggedOutOnly.toggleClass('reallyHide');

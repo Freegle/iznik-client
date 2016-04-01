@@ -1,6 +1,7 @@
 <?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/user/User.php');
 
 # You'll notice some complex stuff in here to do with sessions.  By default in PHP you use session_start, but this is
 # quite expensive, so we only want to call it from within whoAmI() when we know we need it.  Again by default
