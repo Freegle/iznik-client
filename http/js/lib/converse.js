@@ -71,59 +71,59 @@
 //   });
 
 /*
- jed.js
- v0.5.0beta
+jed.js
+v0.5.0beta
 
- https://github.com/SlexAxton/Jed
- -----------
- A gettext compatible i18n library for modern JavaScript Applications
+https://github.com/SlexAxton/Jed
+-----------
+A gettext compatible i18n library for modern JavaScript Applications
 
- by Alex Sexton - AlexSexton [at] gmail - @SlexAxton
- WTFPL license for use
- Dojo CLA for contributions
+by Alex Sexton - AlexSexton [at] gmail - @SlexAxton
+WTFPL license for use
+Dojo CLA for contributions
 
- Jed offers the entire applicable GNU gettext spec'd set of
- functions, but also offers some nicer wrappers around them.
- The api for gettext was written for a language with no function
- overloading, so Jed allows a little more of that.
+Jed offers the entire applicable GNU gettext spec'd set of
+functions, but also offers some nicer wrappers around them.
+The api for gettext was written for a language with no function
+overloading, so Jed allows a little more of that.
 
- Many thanks to Joshua I. Miller - unrtst@cpan.org - who wrote
- gettext.js back in 2008. I was able to vet a lot of my ideas
- against his. I also made sure Jed passed against his tests
- in order to offer easy upgrades -- jsgettext.berlios.de
- */
+Many thanks to Joshua I. Miller - unrtst@cpan.org - who wrote
+gettext.js back in 2008. I was able to vet a lot of my ideas
+against his. I also made sure Jed passed against his tests
+in order to offer easy upgrades -- jsgettext.berlios.de
+*/
 
 // Underscore 1.3.0 was used to port and is licensed
 
 /**
- sprintf() for JavaScript 0.7-beta1
- http://www.diveintojavascript.com/projects/javascript-sprintf
+   sprintf() for JavaScript 0.7-beta1
+   http://www.diveintojavascript.com/projects/javascript-sprintf
 
- Copyright (c) Alexandru Marasteanu <alexaholic [at) gmail (dot] com>
- All rights reserved.
+   Copyright (c) Alexandru Marasteanu <alexaholic [at) gmail (dot] com>
+   All rights reserved.
 
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright
- notice, this list of conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright
- notice, this list of conditions and the following disclaimer in the
- documentation and/or other materials provided with the distribution.
- * Neither the name of sprintf() for JavaScript nor the
- names of its contributors may be used to endorse or promote products
- derived from this software without specific prior written permission.
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+       * Redistributions of source code must retain the above copyright
+         notice, this list of conditions and the following disclaimer.
+       * Redistributions in binary form must reproduce the above copyright
+         notice, this list of conditions and the following disclaimer in the
+         documentation and/or other materials provided with the distribution.
+       * Neither the name of sprintf() for JavaScript nor the
+         names of its contributors may be used to endorse or promote products
+         derived from this software without specific prior written permission.
 
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- DISCLAIMED. IN NO EVENT SHALL Alexandru Marasteanu BE LIABLE FOR ANY
- DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+   DISCLAIMED. IN NO EVENT SHALL Alexandru Marasteanu BE LIABLE FOR ANY
+   DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  */
 
 /*!
  * jQuery Browser Plugin 0.1.0
@@ -141,11 +141,11 @@
  */
 
 /*
- CryptoJS v3.1.2
- code.google.com/p/crypto-js
- (c) 2009-2013 by Jeff Mott. All rights reserved.
- code.google.com/p/crypto-js/wiki/License
- */
+CryptoJS v3.1.2
+code.google.com/p/crypto-js
+(c) 2009-2013 by Jeff Mott. All rights reserved.
+code.google.com/p/crypto-js/wiki/License
+*/
 
 /*!
  * EventEmitter v4.2.3 - git.io/ee
@@ -156,14 +156,14 @@
 
 /*!
 
- otr.js v0.2.12 - 2014-04-15
- (c) 2014 - Arlo Breault <arlolra@gmail.com>
- Freely distributed under the MPL v2.0 license.
+  otr.js v0.2.12 - 2014-04-15
+  (c) 2014 - Arlo Breault <arlolra@gmail.com>
+  Freely distributed under the MPL v2.0 license.
 
- This file is concatenated for the browser.
- Please see: https://github.com/arlolra/otr
+  This file is concatenated for the browser.
+  Please see: https://github.com/arlolra/otr
 
- */
+*/
 
 //! moment.js
 //! version : 2.10.6
@@ -190,24 +190,24 @@
  */
 
 /*
- This program is distributed under the terms of the MIT license.
- Please see the LICENSE file for details.
+    This program is distributed under the terms of the MIT license.
+    Please see the LICENSE file for details.
 
- Copyright 2006-2008, OGG, LLC
- */
-
-/*
- Copyright 2010, François de Metz <francois@2metz.fr>
- */
+    Copyright 2006-2008, OGG, LLC
+*/
 
 /*
- * Based on Ping Strophejs plugins (https://github.com/metajack/strophejs-plugins/tree/master/ping)
- * This plugin is distributed under the terms of the MIT licence.
- * Please see the LICENCE file for details.
- *
- * Copyright (c) Markus Kohlhase, 2010
- * Refactored by Pavel Lang, 2011
- */
+  Copyright 2010, François de Metz <francois@2metz.fr>
+*/
+
+/*
+* Based on Ping Strophejs plugins (https://github.com/metajack/strophejs-plugins/tree/master/ping)
+* This plugin is distributed under the terms of the MIT licence.
+* Please see the LICENCE file for details.
+*
+* Copyright (c) Markus Kohlhase, 2010
+* Refactored by Pavel Lang, 2011
+*/
 
 //     (c) 2010-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
 //     Backbone may be freely distributed under the MIT license.

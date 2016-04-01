@@ -1,6 +1,7 @@
 // We load everything using require.  We need some shims for scripts which aren't AMD-compatible.
 requirejs.config({
     baseUrl: "/js/lib",
+    urlArgs: "bust=" +  (new Date()).getTime(),
     shim : {
         "bootstrap" : [ 'jquery' ],
         "bootstrap-select": [ "bootstrap" ],

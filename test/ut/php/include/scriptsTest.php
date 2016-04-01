@@ -31,7 +31,7 @@ class scriptsTest extends IznikTestCase {
 
         # Don't minimise - should return lots of lines.
         $ret = scriptInclude(FALSE);
-        assertGreaterThan(5, count($ret[1]));
+        assertGreaterThan(2, count($ret[1]));
 
         # Now minimised.
         $ret = scriptInclude(function($str) { return(JSMin::minify($str)); });

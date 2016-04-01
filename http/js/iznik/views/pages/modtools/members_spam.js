@@ -214,32 +214,4 @@ define([
             return (this);
         }
     });
-
-    Iznik.Views.ModTools.EnterReason = Iznik.Views.Modal.extend({
-        template: 'modtools_members_spam_reason',
-
-        events: {
-            'click .js-cancel': 'close',
-            'click .js-confirm': 'confirm'
-        },
-
-        confirm: function () {
-            var self = this;
-            var reason = self.$('.js-reason').val();
-
-            if (reason.length < 3) {
-                self.$('.js-reason').focus();
-            } else {
-                self.trigger('reason', reason);
-                self.close();
-            }
-        },
-
-        render: function () {
-            var self = this;
-            this.open(this.template);
-
-            return (this);
-        }
-    });
 });

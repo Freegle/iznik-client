@@ -1,6 +1,7 @@
 define([
     'jquery',
-    'underscore'
+    'underscore',
+    'backform' // ...which needs to call _ before we mess with template format
 ], function($, _) {
     _.templateSettings = {
         interpolate: /\{\{(.+?)\}\}/g,

@@ -859,8 +859,24 @@ class User extends Entity
                 }
 
                 if (pres('msgid', $log)) {
-                    $g = new Message($this->dbhr, $this->dbhm, $log['msgid']);
-                    $log['message'] = $g->getPublic(FALSE);
+                    $m = new Message($this->dbhr, $this->dbhm, $log['msgid']);
+
+                    if ($m->getID()) {
+                        $log['message'] = $g->getPublic(FALSE);
+                    } else {
+                        # The message has been deleted.
+                        $log['message'] = [
+                            'id' => $log['msgid'],
+                            'deleted' => true
+                        ];
+
+                        # See if we can find out why.
+                        $sql = "SELECT * FROM logs WHERE msgid = ? AND type = 'Message' AND subtype = 'Deleted' ORDER BY id DESC LIMIT 1;";
+                        $deletelogs = $this->dbhr->preQuery($sql, [ $log['msgid'] ]);
+                        foreach ($deletelogs as $deletelog) {
+                            $log['message']['deletereason'] = $deletelog['text'];
+                        }
+                    }
 
                     # Prune large attributes.
                     unset($log['message']['textbody']);

@@ -41,8 +41,7 @@ class AttachmentTest extends IznikTestCase {
 
         $idents = $a->identify();
         error_log(var_export($idents, TRUE));
-        assertEquals('furniture', $idents[0]['name']);
-        assertEquals('chair', $idents[1]['name']);
+        assertEquals('chair', $idents[0]['name']);
 
         error_log(__METHOD__ . " end");
     }

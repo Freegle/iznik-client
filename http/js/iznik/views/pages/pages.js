@@ -8,7 +8,9 @@ define([
     'iznik/views/group/select',
     'iznik/views/infinite',
     'iznik/views/plugin'
-], function($, _, Backbone, Iznik) {
+], function($, _, Backbone,
+            // converse,
+            Iznik) {
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
     Iznik.Views.Page = Iznik.View.extend({
@@ -95,19 +97,21 @@ define([
                         loggedOutOnly.fadeOut('slow');
 
                         // Since we're logged in, we can start chat.
-                        // console.log("Start converse", converse);
-                        // var loc = window.location.protocol + '//' + window.location.host;
-                        // converse.initialize({
-                        //     prebind: true,
-                        //     prebind_url: loc + '/prebind',
-                        //     bosh_service_url: loc + ':5280/http-bind',
-                        //     keepalive: true,
-                        //     allow_logout: false,
-                        //     allow_registration: false,
-                        //     show_controlbox_by_default: true,
-                        //     roster_groups: true
-                        // });
-                        // console.log("Started");
+                        if (Iznik.Session.isAdminOrSupport()) {
+                            // console.log("Start converse", converse);
+                            // var loc = window.location.protocol + '//' + window.location.host;
+                            // converse.initialize({
+                            //     prebind: true,
+                            //     prebind_url: loc + '/prebind',
+                            //     bosh_service_url: loc + ':5280/http-bind',
+                            //     keepalive: true,
+                            //     allow_logout: false,
+                            //     allow_registration: false,
+                            //     show_controlbox_by_default: true,
+                            //     roster_groups: true
+                            // });
+                            // console.log("Started");
+                        }
                     } else {
                         loggedOutOnly.toggleClass('reallyHide');
                         loggedOutOnly.fadeIn('slow');

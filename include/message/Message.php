@@ -1870,6 +1870,7 @@ class Message
             # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
             $loc = (pres('area', $atts) && pres('postcode', $atts)) ? ($atts['area']['name'] . ' ' . $atts['postcode']['name']) : $atts['location']['name'];
             $subject = $this->type . ': ' . $this->subject . " ($loc)";
+            error_log("Construct #{$this->id} {$this->subject} into $subject");
             $this->setPrivate('subject', $subject);
 
             $messageid = $this->id . '@' . USER_DOMAIN;

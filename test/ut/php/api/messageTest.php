@@ -1064,6 +1064,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
+        error_log("Created draft $id");
 
         # This will get sent; will get queued, as we don't have a membership for the group
         $ret = $this->call('message', 'POST', [
@@ -1101,6 +1102,9 @@ class messageAPITest extends IznikAPITestCase
 
         assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
 
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->delete("UT delete");
+
         # And again, now that the user exists, but without a preferred group.  Set a fake from IP.
         $_SERVER['REMOTE_ADDR'] = '216.58.214.3';
 
@@ -1114,6 +1118,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
+        error_log("Created draft $id");
 
         # This will get queued, as we don't have a membership for the group
         $ret = $this->call('message', 'POST', [
@@ -1130,12 +1135,12 @@ class messageAPITest extends IznikAPITestCase
         $found = FALSE;
 
         do {
-            error_log("...waiting for approved message from $applied #$uid, try $count");
+            error_log("...waiting for pending message from $applied #$uid, try $count");
             sleep(1);
             $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
-                [ $gid, MessageCollection::APPROVED, $uid ]);
+                [ $gid, MessageCollection::PENDING, $uid ]);
             foreach ($msgs as $msg) {
-                error_log("Reached approved " . var_export($msg, TRUE));
+                error_log("Reached pending " . var_export($msg, TRUE));
                 $found = TRUE;
                 $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
                 $m->delete('UT');
@@ -1143,7 +1148,10 @@ class messageAPITest extends IznikAPITestCase
             $count++;
         } while ($count < 600 && !$found);
 
-        assertTrue($found, "Yahoo slow?  Failed to reach approved messages");
+        assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
+
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->delete("UT delete");
 
         error_log(__METHOD__ . " end");
     }
