@@ -27,7 +27,7 @@ define([
                             prebind: true,
                             prebind_url: loc + '/prebind',
                             bosh_service_url: loc + ':5280/http-bind',
-                            jid: me.id + '@iznik',
+                            jid: me.jid,
                             keepalive: true,
                             hide_muc_server: true,
                             allow_logout: false,

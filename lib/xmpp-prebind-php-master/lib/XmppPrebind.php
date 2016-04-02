@@ -148,7 +148,6 @@ class XmppPrebind {
 			throw new XmppPrebindConnectionException("No response from server.");
         }
 
-		error_log("Prebind rsp $response");
 		$body = self::getBodyFromXml($response);
         if ( empty( $body ) )
 			throw new XmppPrebindConnectionException("No body could be found in response from server.");

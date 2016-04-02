@@ -171,13 +171,25 @@ class JabberAuth
     function checkpass()
     {
         # We have been passed the ID of a user and the token of their session, supposedly.
-        $sql = "SELECT userid FROM sessions WHERE userid = ? AND token = ?;";
-        $sessions = $this->dbhr->preQuery($sql, [
-            $this->jabber_user,
-            $this->jabber_pass
-        ]);
+        #
+        # The username ought to have the id at the end.
+        $sessions = [];
+        $this->logg("Check pass for {$this->jabber_user}");
+        $p = strrpos($this->jabber_user, '.');
 
-        $this->logg("Found sessions " . count($sessions));
+        if ($p !== FALSE) {
+            $user = substr($this->jabber_user, $p + 1);
+            $this->logg("User id is $user");
+
+            $sql = "SELECT userid FROM sessions WHERE userid = ? AND token = ?;";
+            $sessions = $this->dbhr->preQuery($sql, [
+                $user,
+                $this->jabber_pass
+            ]);
+
+            $this->logg("Found sessions " . count($sessions));
+        }
+
         return (count($sessions) == 1);
     }
 

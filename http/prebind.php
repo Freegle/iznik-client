@@ -25,10 +25,17 @@ if ($me) {
     do {
         try {
             $resource = "Iznik-{$_SERVER['HTTP_HOST']}-" . time();
-            $xmppPrebind = new XmppPrebind('localhost', 'http://localhost:5281/http-bind/', $resource, false, false);
-            $xmppPrebind->connect($me->getId(), $me->getToken());
+
+            $jid = $me->getJid();
+            error_log("Prebind check for $jid");
+            $xmppPrebind = new XmppPrebind('iznik', 'http://localhost:5281/http-bind/', $resource, false, false);
+            $xmppPrebind->connect($me->getJid(FALSE), $me->getToken());
+            error_log("Connected");
             $xmppPrebind->auth();
+            error_log("Auth");
             $sessionInfo = $xmppPrebind->getSessionInfo(); // array containing sid, rid and jid
+            $sessionInfo['jid'] = $jid;
+            error_log("Got info " . var_export($sessionInfo, TRUE));
         } catch (Exception $e) {
             $try ++;
             sleep(1);

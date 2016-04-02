@@ -21,7 +21,7 @@ class Entity
     {
         return $this->id;
     }
-    
+
     function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts, $cache = TRUE)
     {
         $this->dbhr = $dbhr;
