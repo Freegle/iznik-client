@@ -17,12 +17,24 @@ $sessionInfo = [
 $me = whoAmI($dbhr, $dbhm);
 
 if ($me) {
-    $xmppPrebind = new XmppPrebind('localhost', 'http://localhost:5281/http-bind/', 'Iznik', false, false);
-    error_log("Token is " . $me->getToken());
-    $xmppPrebind->connect($me->getId(), $me->getToken());
-    $xmppPrebind->auth();
-    $sessionInfo = $xmppPrebind->getSessionInfo(); // array containing sid, rid and jid
-    
+    # We want to create a resource ID which varies, to allow logins from multiple devices/browsers for the same
+    # user.
+    $try = 0;
+    $sessionInfo = NULL;
+
+    do {
+        try {
+            $resource = "Iznik-{$_SERVER['HTTP_HOST']}-" . time();
+            $xmppPrebind = new XmppPrebind('localhost', 'http://localhost:5281/http-bind/', $resource, false, false);
+            $xmppPrebind->connect($me->getId(), $me->getToken());
+            $xmppPrebind->auth();
+            $sessionInfo = $xmppPrebind->getSessionInfo(); // array containing sid, rid and jid
+        } catch (Exception $e) {
+            $try ++;
+            sleep(1);
+        }
+    } while ($sessionInfo == NULL && $try < 5);
+
 //    //
 //    $jid = $me->getId() . '@iznik';
 //    $sid = session_id();

@@ -91,6 +91,16 @@ class Group extends Entity
         }
     }
 
+    public function getMods() {
+        $sql = "SELECT users.id FROM users INNER JOIN memberships ON users.id = memberships.userid AND memberships.groupid = ? AND role IN ('Owner', 'Moderator');";
+        $mods = $this->dbhr->preQuery($sql, [ $this->id ]);
+        $ret = [];
+        foreach ($mods as $mod) {
+            $ret[] = $mod['id'];
+        }
+        return($ret);
+    }
+
     public function getModsEmail() {
         return($this->group['nameshort'] . "-owner@yahoogroups.com");
     }

@@ -21,7 +21,6 @@ define([
                         setTimeout(reallyStart, 5000);
                     } else {
                         console.log("Gotcha", require);
-                        require = oldRequire;
                         var loc = window.location.protocol + '//' + window.location.host;
                         var me = Iznik.Session.get('me');
                         converse.initialize({
@@ -29,18 +28,22 @@ define([
                             prebind_url: loc + '/prebind',
                             bosh_service_url: loc + ':5280/http-bind',
                             jid: me.id + '@iznik',
-                            fullname: me.displayname,
                             keepalive: true,
                             hide_muc_server: true,
                             allow_logout: false,
                             allow_registration: false,
                             allow_contact_requests: false,
+                            allow_contact_removal: false,
                             auto_list_rooms: true,
                             show_controlbox_by_default: isMobile() ? false : true,
                             roster_groups: true,
                             ping_interval: 25,
                             debug: false
                         });
+                        _.defer(function() {
+                            console.log("Restore require");
+                            require = oldRequire;
+                        }, 60000);
                     }
                 }
 

@@ -876,7 +876,7 @@ define([
             if (!this.hasOwnProperty('messages')) {
                 this.messages = [];
             }
-    
+
             $.ajax({
                 type: "GET",
                 url: self.url(),
@@ -898,7 +898,7 @@ define([
         processChunk: function(ret) {
             var self = this;
             var now = moment();
-    
+
             if (ret.ygData) {
                 var total = ret.ygData[this.numField];
                 this.offset += total;
@@ -932,7 +932,7 @@ define([
                     if (message.hasOwnProperty('messageId')) {
                         thisone.yahooapprovedid = message['messageId'];
                     }
-    
+
                     this.messages.push(thisone);
                 }
     
@@ -984,7 +984,7 @@ define([
                                     _.each(ret.missingonserver, function(missing, index, list) {
                                         missing.deferred = new $.Deferred();
                                         self.promises.push(missing.deferred.promise());
-    
+
                                         $.ajaxq('plugin', {
                                             type: "GET",
                                             url: self.sourceurl(missing[self.idField]),
@@ -992,7 +992,7 @@ define([
                                             success: function(ret) {
                                                 if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
                                                     var source = decodeEntities(ret.ygData.rawEmail);
-    
+
                                                     if (source.indexOf('X-eGroups-Edited-By:') == -1) {
                                                         var data = {
                                                             groupid: self.model.get('id'),
@@ -1015,11 +1015,14 @@ define([
                                                                 if (ret.ret == 0) {
                                                                     missing.deferred.resolve();
                                                                 }
+                                                            }, error: function() {
+                                                                console.log("Message post failed");
                                                             }
                                                         });
                                                     } else {
                                                         // This is an edited message, which is all messed up and difficult
                                                         // to sync.  Ignore it.
+                                                        console.log("Can't sync edited message", ret);
                                                         missing.deferred.resolve();
                                                     }
                                                 } else {
@@ -1030,6 +1033,7 @@ define([
                                             }, error: function(req, status, error) {
                                                 // Couldn't fetch.  Not much we can do - Yahoo has some messages
                                                 // which are not accessible.
+                                                console.log("Couldn't fetch message", status);
                                                 missing.deferred.resolve();
                                             }
                                         });
