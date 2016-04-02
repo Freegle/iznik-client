@@ -24,8 +24,8 @@ define([
             if (rooms.length == 0) {
                 _.delay(self.selectRooms, 200, self);
             } else {
-                // rooms.html('Chats');
-                // $('#conversejs a[href="#users"]').closest('li').hide();
+                rooms.html('Chats');
+                $('#conversejs a[href="#users"]').closest('li').hide();
                 rooms.trigger('click');
             }
         },
