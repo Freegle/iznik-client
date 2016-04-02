@@ -17,9 +17,10 @@
             "strophe-polyfill"
         ], function () {
             // EH change - not really sure why this is necessary or works, but I'll settle for the latter.
-            var s = factory.apply(this, arguments);
-            window.Strophe = s.Strophe;
-            return s;
+            var o = factory.apply(this, arguments);
+            window.Strophe = o.Strophe;
+            window.$iq = o.$iq;
+            return o;
         });
     } else {
         // Browser globals

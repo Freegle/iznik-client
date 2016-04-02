@@ -53,6 +53,7 @@ define([
                     debug: false
                 });
             });
+            
 
             this.tweakTitles(this);
             this.selectRooms(this);
