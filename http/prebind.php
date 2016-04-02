@@ -24,7 +24,7 @@ if ($me) {
 
     do {
         try {
-            $resource = "Iznik-{$_SERVER['HTTP_HOST']}-" . time();
+            $resource = "Iznik-{$_SERVER['HTTP_HOST']}-" . session_id();
 
             $jid = $me->getJid();
             error_log("Prebind check for $jid");

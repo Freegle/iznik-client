@@ -47,7 +47,8 @@ requirejs.config({
         'strophe-core':         { exports: 'Strophe' },
         'backbone.overview':    { deps: ['underscore'] },
         'utils':                { deps: ['jed'] },
-        'otr':                  { deps: ['eventemitter'] }
+        'otr':                  { deps: ['eventemitter'] },
+        'converse':             { deps: ['strophe'] }
     },
 
     paths: {
