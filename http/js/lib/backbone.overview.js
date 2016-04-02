@@ -6,7 +6,7 @@
  */
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
-        define(["../underscore", "backbone"], factory);
+        define(["underscore", "backbone"], factory);
     } else {
         // RequireJS isn't being used.
         // Assume underscore and backbone are loaded in <script> tags

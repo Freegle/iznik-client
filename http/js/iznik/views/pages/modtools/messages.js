@@ -381,7 +381,6 @@ define([
 
                     // Decide who the mail will look as though it comes from.
                     var name = Iznik.Session.get('me').displayname;
-                    console.log("Config is", config);
                     if (config && config.fromname == 'Groupname Moderator') {
                         name = self.model.get('groups')[0].nameshort + " Moderator";
                     }

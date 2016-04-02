@@ -21,7 +21,7 @@
                     <div class="small js-grouplist">
                     </div>
                     <div class="text-muted small">
-                        #{{id}} via {{sourceheader}}<% if (obj.fromip) { %> from IP {{fromip}}<% if (obj.fromcountry) { %> in {{fromcountry}}<% } } else { %> IP unavailable<% } %>.<% if (obj.location && obj.location.name) { %> Mapped to {{location.name}}.<% } %>
+                        #{{id}} via {{sourceheader}}<% if (obj.fromip) { %> from IP {{fromip}}<% if (obj.fromcountry) { %> in {{fromcountry}}<% } } else { %> IP unavailable<% } %>.<% if (location && location.name) { %> Mapped to {{location.name}}.<% } %>
                     </div>
                     <div class="small js-duplist" />
                     <div class="small js-crosspostlist" />

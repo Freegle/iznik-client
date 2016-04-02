@@ -7,7 +7,6 @@
 
 /* jshint undef: true, unused: true:, noarg: true, latedef: true */
 /*global define, document, window, setTimeout, clearTimeout, console, ActiveXObject, DOMParser */
-
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
         define('strophe-core', [
@@ -17,10 +16,14 @@
             'strophe-utils',
             "strophe-polyfill"
         ], function () {
-            return factory.apply(this, arguments);
+            // EH change - not really sure why this is necessary or works, but I'll settle for the latter.
+            var s = factory.apply(this, arguments);
+            window.Strophe = s.Strophe;
+            return s;
         });
     } else {
         // Browser globals
+        console.log("Globals");
         var o = factory(root.SHA1, root.Base64, root.MD5, root.stropheUtils);
         window.Strophe =        o.Strophe;
         window.$build =         o.$build;

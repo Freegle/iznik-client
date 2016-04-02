@@ -1,0 +1,53 @@
+*~
+*.mo
+*.kpf
+*.swp
+.*.cfg
+.hg/
+.bzr/
+.svn/
+.project
+.pydevproject
+analytics.js
+
+# Ruby/Sass/Bundler
+.bundle
+.sass-cache
+ruby
+bourbon
+
+Backbone.Overview
+tags
+stamp-npm
+stamp-bower
+stamp-bundler
+
+# Sphinx
+docs/html
+docs/doctrees
+
+# Bower
+components
+
+# Node.js
+node_modules
+
+# Virtualenv/Buildout
+lib
+include
+bin
+develop-eggs
+
+# OSX
+.DS_Store
+
+# Builds
+builds/converse-no-locales-no-otr.js
+builds/converse-no-locales-no-otr.min.js
+builds/converse-no-otr.js
+builds/converse-no-otr.min.js
+builds/converse.js
+builds/converse.nojquery.js
+builds/converse.nojquery.min.js
+
+css/converse.css.map

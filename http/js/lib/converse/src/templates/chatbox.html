@@ -1,0 +1,31 @@
+<div class="flyout box-flyout">
+    <div class="dragresize dragresize-top"></div>
+    <div class="dragresize dragresize-topleft"></div>
+    <div class="dragresize dragresize-left"></div>
+    <div class="chat-head chat-head-chatbox">
+        <a class="chatbox-btn close-chatbox-button icon-close" title="{{info_close}}"></a>
+        <a class="chatbox-btn toggle-chatbox-button icon-minus" title="{{info_minimize}}"></a>
+        <div class="chat-title">
+            {[ if (url) { ]}
+                <a href="{{url}}" target="_blank" class="user">
+            {[ } ]}
+                    {{ fullname }}
+            {[ if (url) { ]}
+                </a>
+            {[ } ]}
+        </div>
+        <p class="user-custom-message"><p/>
+    </div>
+    <div class="chat-body">
+        <div class="chat-content"></div>
+        <form class="sendXMPPMessage" action="" method="post">
+            {[ if (show_toolbar) { ]}
+                <ul class="chat-toolbar no-text-select"></ul>
+            {[ } ]}
+        <textarea
+            type="text"
+            class="chat-textarea"
+            placeholder="{{label_personal_message}}"/>
+        </form>
+    </div>
+</div>
