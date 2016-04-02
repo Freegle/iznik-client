@@ -170,9 +170,14 @@ define([
     
             if (this.outstandingSyncs == 0) {
                 // Start pending syncs first because if they're wrong, that's normally more annoying.
+                //
+                // If we only have a few groups, sync them all, as Yahoo has issues with the counts being wrong
+                // sometimes.
+                var numgroups = Iznik.Session.get('groups').length;
+
                 Iznik.Session.get('groups').each(function (group) {
                     // We know from our Yahoo scan whether there is any work to do.
-                    if (worthIt(self.yahooGroupsWithPendingMessages, group, 'pending') &&
+                    if (numgroups.length < 5 || worthIt(self.yahooGroupsWithPendingMessages, group, 'pending') &&
                         doSync(group, 'showmessages')) {
                         //console.log("Sync pending messages for", group.get('nameshort'));
                         self.collection.add(new Iznik.Models.Plugin.Work({
@@ -184,7 +189,7 @@ define([
                         }));
                     }
     
-                    if (worthIt(self.yahooGroupsWithPendingMembers, group, 'pendingmembers') &&
+                    if (numgroups.length < 5 || worthIt(self.yahooGroupsWithPendingMembers, group, 'pendingmembers') &&
                         doSync(group, 'showmembers')) {
                         self.collection.add(new Iznik.Models.Plugin.Work({
                             id: group.get('nameshort') + '.SyncMembers.Pending',
@@ -664,7 +669,7 @@ define([
     
         processYahooGroupChunk: function(ret) {
             var self = this;
-    
+
             if (ret.hasOwnProperty('ygData')) {
                 if (ret.ygData.hasOwnProperty('allMyGroups') && ret.ygData.allMyGroups.length > 0) {
                     _.each(ret.ygData.allMyGroups, function(group) {
