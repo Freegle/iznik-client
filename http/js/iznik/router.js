@@ -513,8 +513,8 @@ define([
 
     // We can flag anchors as not to be handled via Backbone using data-realurl
     $(document).on('click', 'a:not([data-realurl]):not([data-toggle])', function (evt) {
-        // Don't trigger for anchors within selectpicker.
-        if ($(this).parents('.selectpicker').length == 0) {
+        // Don't trigger for anchors within selectpicker or converse, which use #.
+        if ($(this).parents('.selectpicker').length == 0 && $(this).parents('#conversejs').length == 0) {
             evt.preventDefault();
             evt.stopPropagation();
             var href = $(this).attr('href');

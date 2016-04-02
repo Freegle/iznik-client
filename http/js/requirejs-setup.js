@@ -54,7 +54,7 @@ requirejs.config({
 
         // Converse
         "converse": "/js/lib/converse/converse",
-        "converse-dependencies": "/js/lib/converse/templates",
+        "converse-templates": "/js/lib/converse/templates",
         "utils": "/js/lib/converse/utils",
         "action":                   "/js/lib/converse/templates/action",
         "add_contact_dropdown":     "/js/lib/converse/templates/add_contact_dropdown",

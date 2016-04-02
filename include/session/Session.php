@@ -119,6 +119,17 @@ class Session {
         return($ret);
     }
 
+    public function getToken($uid) {
+        $sql = "SELECT token FROM sessions WHERE userid = ?;";
+        $sessions = $this->dbhr->preQuery($sql, [ $uid ]);
+        $ret = NULL;
+        foreach ($sessions as $session) {
+            $ret = $session['token'];
+        }
+
+        return($ret);
+    }
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm) {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;

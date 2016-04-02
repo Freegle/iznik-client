@@ -67,11 +67,11 @@ function memberships() {
                         # We always show spammers, because we want mods to act on them asap.
                         $mygroups = $me->getMemberships(TRUE);
                         foreach ($mygroups as $group) {
-                            $proceed = TRUE;
                             $settings = $me->getGroupSettings($group['id']);
                             if (!array_key_exists('showmembers', $settings) ||
                                 $settings['showmembers'] ||
                                 $collection == MembershipCollection::SPAM) {
+                                $proceed = TRUE;
                                 $groupids[] = $group['id'];
                             }
                         }

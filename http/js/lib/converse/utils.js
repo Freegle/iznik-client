@@ -43,7 +43,7 @@
                     for (i=0; i<list.length; i++) {
                         var prot = list[i].indexOf('http://') === 0 || list[i].indexOf('https://') === 0 ? '' : 'http://';
                         var escaped_url = encodeURI(decodeURI(list[i])).replace(/[!'()]/g, escape).replace(/\*/g, "%2A");
-                        x = x.replace(list[i], "<a target='_blank' href='" + prot + escaped_url + "'>"+ list[i] + "</a>" );
+                        x = x.replace(list[i], '<a target="_blank" rel="noopener" href="' + prot + escaped_url + '">'+ list[i] + '</a>' );
                     }
                 }
                 $(obj).html(x);
@@ -123,6 +123,23 @@
              * See actionInfoMessages in src/converse-muc.js
              */
             return str;
+        },
+
+        isHeadlineMessage: function (message) {
+            var $message = $(message),
+                from_jid = $message.attr('from');
+            if ($message.attr('type') === 'headline' ||
+                // Some servers (I'm looking at you Prosody) don't set the message
+                // type to "headline" when sending server messages. For now we
+                // check if an @ signal is included, and if not, we assume it's
+                // a headline message.
+                (   $message.attr('type') !== 'error' &&
+                    typeof from_jid !== 'undefined' &&
+                    from_jid.indexOf('@') === -1
+                )) {
+                return true;
+            }
+            return false;
         },
 
         refreshWebkit: function () {

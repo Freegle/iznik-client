@@ -80,6 +80,11 @@ class User extends Entity
         return(FALSE);
     }
 
+    public function getToken() {
+        $s = new Session($this->dbhr, $this->dbhm);
+        return($s->getToken($this->id));
+    }
+
     public function getName() {
         # We may or may not have the knowledge about how the name is split out, depending
         # on the sign-in mechanism.

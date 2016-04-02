@@ -50,9 +50,12 @@ class JabberAuth
 
     function JabberAuth()
     {
+        global $dbhr, $dbhm;
         $this->logh = fopen($this->logfile, "a");
         $this->logg("Starting Iznik Jabber Auth...");
         $this->openstd();
+        $this->dbhr = $dbhr;
+        $this->dbhm = $dbhm;
     }
 
     function stop()
@@ -167,12 +170,20 @@ class JabberAuth
 
     function checkpass()
     {
-        return true;
+        # We have been passed the ID of a user and the token of their session, supposedly.
+        $sql = "SELECT userid FROM sessions WHERE userid = ? AND token = ?;";
+        $sessions = $this->dbhr->preQuery($sql, [
+            $this->jabber_user,
+            $this->jabber_pass
+        ]);
+
+        $this->logg("Found sessions " . count($sessions));
+        return (count($sessions) == 1);
     }
 
     function checkuser()
     {
-        return true;
+        return false;
     }
 
     function splitcomm() // simply split command and arugments into an array.

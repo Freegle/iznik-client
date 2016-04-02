@@ -221,6 +221,7 @@ class Group extends Entity
         }
 
         $sql = "SELECT DISTINCT memberships.* FROM memberships LEFT JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
+        #error_log("Members $sql");
         $members = $this->dbhr->preQuery($sql);
 
         $ctx = [ 'Added' => NULL ];
