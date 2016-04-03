@@ -1022,7 +1022,7 @@ define([
                                                     } else {
                                                         // This is an edited message, which is all messed up and difficult
                                                         // to sync.  Ignore it.
-                                                        console.log("Can't sync edited message", self.model.get('nameshort'), ret);
+                                                        // console.log("Can't sync edited message", self.model.get('nameshort'), ret);
                                                         missing.deferred.resolve();
                                                     }
                                                 } else {

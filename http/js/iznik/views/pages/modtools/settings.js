@@ -256,6 +256,12 @@ define([
     
                     self.groupFields = [
                         {
+                            name: 'showchat',
+                            label: 'Show chat window for mods?',
+                            control: 'radio',
+                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                        },
+                        {
                             name: 'autoapprove.members',
                             label: 'Auto-approve pending members?',
                             control: 'radio',

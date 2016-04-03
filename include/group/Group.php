@@ -22,6 +22,7 @@ class Group extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts);
 
         $this->defaultSettings = [
+            'showchat' => 1,
             'autoapprove' => [
                 'members' => 0,
                 'messages' => 0

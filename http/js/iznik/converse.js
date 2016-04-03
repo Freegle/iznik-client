@@ -74,13 +74,21 @@ define([
                                 // Now join all our chat rooms.
                                 var groups = Iznik.Session.get('groups');
                                 var myname = Iznik.Session.get('me').displayname;
+                                var opened = [];
+
                                 groups.each(function (group) {
-                                    if ((group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
-                                        var settings = group.get('mysettings');
-                                        var chaton = !settings.hasOwnProperty('showmessages') || settings['showmessages'];
+                                    if (((group.get('role') == 'Owner' || group.get('role') == 'Moderator')) &&
+                                        opened.length <= 10) {
+                                        var mysettings = group.get('mysettings');
+                                        var settings = group.get('settings');
+
+                                        // We show the chat if it's on for this group and we are looking at messages,
+                                        // which is a proxy for us caring about the group.
+                                        var chaton = (!settings.hasOwnProperty('showchat') || settings['showchat']) &&
+                                            (!mysettings.hasOwnProperty('showmessages') || mysettings['showmessages']);
                                         if (chaton) {
                                             var jid = group.get('jid');
-                                            console.log("Open group", jid);
+                                            console.log("Open chat group", jid, opened.length);
                                             var args = {
                                                 'id': jid,
                                                 'jid': jid,
@@ -90,10 +98,35 @@ define([
                                                 'box_id' : b64_sha1(jid)
                                             };
                                             chatroom = converse.chatboxviews.showChat(args);
-                                            chatroom.minimize();
+                                            opened.push(chatroom);
                                         }
                                     }
                                 });
+
+                                var systemrole = Iznik.Session.get('me').systemrole;
+                                if (systemrole == 'Moderator' || systemrole == 'Support' || systemrole == 'Admin') {
+                                    var modgroup = Iznik.Session.getGroup(161664);
+                                    if (modgroup) {
+                                        var jid = modgroup.get('jid');
+                                        console.log("Open mod group", jid);
+                                        var args = {
+                                            'id': jid,
+                                            'jid': jid,
+                                            'name': "ModTools Chat",
+                                            'nick': myname,
+                                            'chatroom': true,
+                                            'box_id' : b64_sha1(jid)
+                                        };
+                                        chatroom = converse.chatboxviews.showChat(args);
+                                        opened.push(chatroom);
+                                    }
+                                }
+
+                                _.each(opened, function(one) {
+                                    _.defer(function() {
+                                        one.minimize();
+                                    }, 200);
+                                })
                             });
                         }
                     }

@@ -95,10 +95,8 @@ define([
                         loggedOutOnly.fadeOut('slow');
 
                         // Since we're logged in, we can start chat.
-                        if (Iznik.Session.isAdminOrSupport()) {
-                            var v = new Iznik.Views.Converse();
-                            v.render();
-                        }
+                        var v = new Iznik.Views.Converse();
+                        v.render();
                     } else {
                         loggedOutOnly.toggleClass('reallyHide');
                         loggedOutOnly.fadeIn('slow');

@@ -9,13 +9,15 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 $opts = getopt('g:');
 
 function myExec($str) {
-    echo "$str\n";
+
+
+
     exec($str);
 }
 
 $gid = count($opts) > 0 ? $opts['g'] : NULL;
 
-$sql = "SELECT id FROM groups " . ($gid ? " WHERE id = $gid" : " WHERE nameshort LIKE 'Ribble%' OR nameshort LIKE 'Playgr%' OR nameshort LIKE 'Edinburgh%'") . " ORDER BY nameshort ASC;";
+$sql = "SELECT id FROM groups " . ($gid ? " WHERE id = $gid" : "") . " ORDER BY nameshort ASC;";
 $groups = $dbhr->query($sql);
 
 foreach ($groups as $group) {
@@ -45,7 +47,7 @@ foreach ($groups as $group) {
                 }
             }
 
-            echo($u->getName() . " " . var_export($mysettings, TRUE) . "\n");
+            #echo($u->getName() . " " . var_export($mysettings, TRUE) . "\n");
             if (!$system && (!array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'])) {
                 # We add them as a chat member if they are showing messages, which is a proxy for them caring
                 # about the group.

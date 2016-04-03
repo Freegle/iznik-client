@@ -1035,6 +1035,7 @@ class Message
     public function save() {
         # Despite what the RFCs might say, it's possible that a message can appear on Yahoo without a Message-ID.  We
         # require unique message ids, so this causes us a problem.  Invent one.
+        error_log("Save messageid {$this->messageid}");
         $this->messageid = $this->messageid ? $this->messageid : (microtime(). '@' . USER_DOMAIN);
 
         # A message we are saving as approved may previously have been in the system, for example as pending.  When it
