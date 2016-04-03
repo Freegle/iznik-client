@@ -1024,10 +1024,9 @@ class Message
 
         #error_log("End prune len " . strlen($current));
 
-        if (strlen($current) == 0) {
-            # Something went horribly wrong.
-            $current = $this->message;
-        }
+        # Something went horribly wrong?
+        # TODO Test.
+        $current = (strlen($current) == 0) ? $this->message : $current;
 
         return($current);
     }

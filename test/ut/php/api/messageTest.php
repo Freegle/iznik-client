@@ -1153,6 +1153,51 @@ class messageAPITest extends IznikAPITestCase
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->delete("UT delete");
 
+        # And once again, now that the user exists and will be a member of the group.
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'groupid' => $gid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'textbody' => 'Text body',
+            'attachments' => [ $attid ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        error_log("Created draft $id");
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'JoinAndPost',
+            'email' => $email
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals('Success', $ret['status']);
+
+        $count = 0;
+        $found = FALSE;
+
+        do {
+            error_log("...waiting for pending message from $applied #$uid, try $count");
+            sleep(1);
+            $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ?;",
+                [ $gid, MessageCollection::PENDING, $uid ]);
+            foreach ($msgs as $msg) {
+                error_log("Reached pending " . var_export($msg, TRUE));
+                $found = TRUE;
+                $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
+                $m->delete('UT');
+            }
+            $count++;
+        } while ($count < 600 && !$found);
+
+        assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
+
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->delete("UT delete");
+
         error_log(__METHOD__ . " end");
     }
 }

@@ -16,8 +16,10 @@ require_once('../../include/misc/apiheaders.php');
 require_once('../../include/config.php');
 
 if (file_exists(IZNIK_BASE . '/http/maintenance_on.html')) {
+    // @codeCoverageIgnoreStart - hard to test exit
     echo json_encode(array('ret' => 111, 'status' => 'Down for maintenance'));
     exit(0);
+    // @codeCoverageIgnoreEnd
 }
 
 require_once(IZNIK_BASE . '/include/db.php');

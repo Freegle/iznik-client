@@ -76,6 +76,8 @@ class groupTest extends IznikTestCase {
         $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
         $this->user->addMembership($g->getId(), User::ROLE_MODERATOR);
+        $mods = $g->getMods();
+        assertTrue(in_array($this->uid, $mods));
         $this->user->setMembershipAtt($g->getId(), 'configid', $cid);
         $rc = $g->setMembers([
             [

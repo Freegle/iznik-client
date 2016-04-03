@@ -35,7 +35,7 @@ class scriptsTest extends IznikTestCase {
 
         # Now minimised.
         $ret = scriptInclude(function($str) { return(JSMin::minify($str)); });
-        assertEquals(2, count($ret[1]));
+        assertEquals(1, count($ret[1]));
 
         # Remove cache file
         unlink($ret[0]);
