@@ -291,7 +291,7 @@ define([
         pendingMembers: function (search) {
             var self = this;
 
-            require(["iznik/views/pages/modtools/members_pending"], function() {
+            require(["iznik/views/pages/modtools/members_pending", "iznik/views/pages/modtools/messages_pending"], function() {
                 self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                     var page = new Iznik.Views.ModTools.Pages.PendingMembers({
                         search: search
