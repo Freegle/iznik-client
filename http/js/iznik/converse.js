@@ -14,6 +14,10 @@ define([
                     $(this).html(matches[1]);
                 }
             })
+            
+            // The title when it's minimised isn't great.
+            $('#conversejs .toggle-controlbox .conn-feedback').html('Chats');
+            $('#online-count').hide();
 
             _.delay(self.tweakTitles, 1000, self);
         },
