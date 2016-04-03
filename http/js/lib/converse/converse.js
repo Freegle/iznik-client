@@ -802,9 +802,10 @@
                 this.windowState = ev.type;
             }.bind(this));
 
-            $(window).on("resize", _.debounce(function (ev) {
-                this.chatboxviews.trimChats();
-            }.bind(this), 200));
+            // EH remove as breaks mobile when keyboard opens.
+            // $(window).on("resize", _.debounce(function (ev) {
+            //     this.chatboxviews.trimChats();
+            // }.bind(this), 200));
         };
 
         this.ping = function (jid, success, error, timeout) {
