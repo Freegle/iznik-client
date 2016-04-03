@@ -3,12 +3,6 @@ define([
     'underscore',
     'backform' // ...which needs to call _ before we mess with template format
 ], function($, _) {
-    _.templateSettings = {
-        interpolate: /\{\{(.+?)\}\}/g,
-        evaluate: /<%(.+?)%>/g,
-        escape: /\{\{-(.+?)\}\}/g
-    };
-
     window.template = function (id) {
         try {
             //console.log("Expand",id);
@@ -40,7 +34,11 @@ define([
                 });
             }
 
-            return getClosure(id, _.template(html));
+            return getClosure(id, _.template(html, {
+                interpolate: /\{\{(.+?)\}\}/g,
+                evaluate: /<%(.+?)%>/g,
+                escape: /\{\{-(.+?)\}\}/g
+            }));
         } catch (e) {
             console.error("Template " + id + " failed with " + e.message);
             return null;

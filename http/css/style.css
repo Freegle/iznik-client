@@ -911,7 +911,9 @@ a button {
 #conversejs .set-xmpp-status,
 #conversejs .add-chatroom,
 #conversejs .toggle-clear,
+#conversejs .close-chatbox-button,
 #available-chatrooms > dt,
+#controlbox,
 #conversejs .occupants-heading {
     display: none !important;
 }

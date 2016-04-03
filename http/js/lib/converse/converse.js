@@ -802,7 +802,7 @@
                 this.windowState = ev.type;
             }.bind(this));
 
-            // EH remove as breaks mobile when keyboard opens.
+            //
             // $(window).on("resize", _.debounce(function (ev) {
             //     this.chatboxviews.trimChats();
             // }.bind(this), 200));

@@ -187,6 +187,9 @@ class Group extends Entity
         $counts = $this->dbhr->preQuery($sql);
         $atts['nummods'] = $counts[0]['count'];
 
+        # Chat group
+        $atts['jid'] = strtolower($atts['nameshort'] . '_mods@conference.iznik');
+
         foreach (['trial', 'licensed', 'licenseduntil'] as $datefield) {
             $atts[$datefield] = $atts[$datefield] ? ISODate($atts[$datefield]) : NULL;
         }

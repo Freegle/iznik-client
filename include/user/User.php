@@ -89,7 +89,7 @@ class User extends Entity
         # Unique id for chat.
         #
         # Add a friendly name part to the id to make it more, well, friendly.
-        $jid = str_replace(' ', '', $this->getName()) . '.' . $this->id . ($domain ? "@iznik"  : '');
+        $jid = strtolower(str_replace(' ', '', $this->getName()) . '.' . $this->id . ($domain ? "@iznik"  : ''));
         return($jid);
     }
 
@@ -929,7 +929,6 @@ class User extends Entity
         }
 
         $atts['displayname'] = $this->getName();
-        $atts['jid'] = $this->getJid();
 
         if ($me && $this->id == $me->getId()) {
             # Add in private attributes for our own entry.

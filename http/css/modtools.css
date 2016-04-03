@@ -524,6 +524,14 @@ body, #bodyContent {
     height: 50px !important;
 }
 
+/* Converse overrides */
+#controlbox .controlbox-head {
+    background-color: #396aa3 !important;
+}
+#conversejs .chat-head-chatroom {
+    background-color: #009ED9 !important;;
+}
+
 /*==================================================
 =            Bootstrap 3 Media Queries             =
 ==================================================*/
