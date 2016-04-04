@@ -67,8 +67,15 @@ class MailRouter
         # We have a groupid override because it's possible that we are syncing a message
         # from a group which has changed name and the To field might therefore not match
         # a current group name.
+        $ret = NULL;
         $rc = $this->msg->parse($source, $from, $to, $msg, $groupid);
-        return($rc ? $this->msg->save() : NULL);
+        
+        if ($rc) {
+            list($id, $already) = $this->msg->save();
+            $ret = $id;
+        }
+        
+        return($ret);
     }
 
     # Public for UT
@@ -87,6 +94,7 @@ class MailRouter
     # Public for UT
     public function markApproved() {
         # Set this message to be in the Approved collection.
+        # TODO Handle message on multiple groups
         $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Approved' WHERE msgid = ?;", [
             $this->msg->getID()
         ]);

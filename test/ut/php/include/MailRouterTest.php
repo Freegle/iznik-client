@@ -22,15 +22,6 @@ class MailRouterTest extends IznikTestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        # Tidy up any old test messages.
-        $this->dbhm->preExec("DELETE FROM messages WHERE fromaddr = ? OR fromip = ?;", ['from@test.com', '1.2.3.4']);
-        $this->dbhm->preExec("DELETE FROM messages_history WHERE fromaddr = ? OR fromip = ?;", ['from@test.com', '1.2.3.4']);
-        $this->dbhm->preExec("DELETE FROM messages_history WHERE prunedsubject LIKE ?;", ['Test spam mail']);
-        $this->dbhm->preExec("DELETE FROM messages_history WHERE fromaddr IN (?,?,?) OR fromip = ?;", ['test@test.com', 'GTUBE1.1010101@example.net', 'to@test,com', '1.2.3.4']);
-        $this->dbhm->preExec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';", []);
-        $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';", []);
-        $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.email LIKE '%test.com';");
-
         # Whitelist this IP
         $this->dbhm->preExec("INSERT IGNORE INTO spam_whitelist_ips (ip, comment) VALUES ('1.2.3.4', 'UT whitelist');", []);
 
@@ -266,7 +257,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents('msgs/spam');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list($id, $already) = $m->save();
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals(Message::YAHOO_APPROVED, $m->getSource());
@@ -303,7 +294,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents('msgs/spamcam');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list($id, $already) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route(NULL);
@@ -323,7 +314,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents('msgs/spam');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list($id, $already) = $m->save();
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals(Message::YAHOO_APPROVED, $m->getSource());
@@ -342,7 +333,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('Precedence: junk', 'X-Freegle-IP: 1.2.3.4', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list($id, $already) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
@@ -357,7 +348,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list($id, $already) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
@@ -403,7 +394,7 @@ class MailRouterTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list($id, $already) = $m->save();
         error_log("Created $id");
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
@@ -432,7 +423,7 @@ class MailRouterTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list($id, $already) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
@@ -452,15 +443,11 @@ class MailRouterTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id2 = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        error_log("New id $id2");
-        $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
 
-        # The pending message should now have been deleted
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertNotNull($m->getPrivate('deleted'));
+        # We should recognise the approved version as the same message.
+        assertEquals($id, $id2);
 
-        # But the approvedby should be preserved
+        # The approvedby should be preserved
         $m = new Message($this->dbhr, $this->dbhm, $id2);
         $groups = $m->getPublic()['groups'];
         error_log("Groups " . var_export($groups, TRUE));
@@ -473,7 +460,8 @@ class MailRouterTest extends IznikTestCase {
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
         assertEquals('20065945', $m->getTnpostid());
         assertEquals('TN-email', $m->getSourceheader());
-        $id = $m->save();
+        list($id, $already) = $m->save();
+        error_log("Saved $id");
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
@@ -483,9 +471,8 @@ class MailRouterTest extends IznikTestCase {
 
         $msg = file_get_contents('msgs/tn');
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $id2 = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertEquals($id, $id2);
 
         error_log(__METHOD__ . " end");
     }
@@ -497,7 +484,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents('msgs/tn');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list($id, $already) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $mock = $this->getMockBuilder('spamc')
@@ -531,7 +518,7 @@ class MailRouterTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list($id, $already) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
@@ -738,7 +725,7 @@ class MailRouterTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($m->getGroupId());
-        $id = $m->save();
+        list($id, $already) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $r->routeAll();
@@ -776,7 +763,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents('msgs/attachment_large');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list($id, $already) = $m->save();
         assertNotNull($id);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);

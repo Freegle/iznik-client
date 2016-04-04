@@ -904,19 +904,6 @@ a button {
     z-index: 1050 !important;
 }
 
-/* Hide some things in converse which we don't want to expose. */
-#conversejs .chatbox-btn.configure-chatroom-button,
-#conversejs .room-invite,
-#conversejs .room-info,
-#conversejs .set-xmpp-status,
-#conversejs .add-chatroom,
-#conversejs .toggle-clear,
-#available-chatrooms > dt,
-#controlbox,
-#conversejs .occupants-heading {
-    display: none !important;
-}
-
 /*Form Wizard - for form stage progress indicator*/
 .bs-wizard {margin-top: 40px;}
 .bs-wizard {border-bottom: solid 1px #e0e0e0; padding: 0 0 10px 0;}
@@ -941,7 +928,55 @@ a button {
 .bs-wizard > .bs-wizard-step.disabled a.bs-wizard-dot{ pointer-events: none; }
 /*END Form Wizard*/
 
-/* Override some bootstrap styles */
+.scrolltop {
+    float:right;
+    width: 90px;
+}
+
+.scrolltop > div {
+    position: fixed;
+    top: 90px;
+    z-index: 1000;
+}
+
+.favicon {
+    width: 16px;
+    height: 16px;
+}
+
+/* Chat */
+.chat-title {
+    color: white;
+    background-color: #396aa3;
+    padding: 5px;
+}
+.chat-wrapper {
+    position:relative;
+}
+.chat-window {
+    background: white;
+    position:absolute;
+    bottom:0;
+    right:0;
+    box-shadow: 1px 3px 5px 3px rgba(0, 0, 0, 0.4);
+    margin-left: 5px;
+    margin-right: 5px;
+    border: 1px solid grey;
+    min-height: 300px;
+    min-width: 300px;
+}
+
+.chat-input-wrapper {
+    position: relative;
+}
+
+.chat-input {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+
+/* End chat */
 
 /*==================================================
 =            Bootstrap 3 Media Queries             =
@@ -990,20 +1025,4 @@ a button {
 
 /* Large Devices, Wide Screens */
 @media only screen and (min-width : 1200px) {
-}
-
-.scrolltop {
-    float:right;
-    width: 90px;
-}
-
-.scrolltop > div {
-    position: fixed;
-    top: 90px;
-    z-index: 1000;
-}
-
-.favicon {
-    width: 16px;
-    height: 16px;
 }

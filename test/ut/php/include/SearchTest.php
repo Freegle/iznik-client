@@ -53,7 +53,7 @@ class searchTest extends IznikTestCase
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setSearch($this->s);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $id1 = $m->save();
+        list($id1, $already) = $m->save();
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $m1->setSearch($this->s);
         error_log("Created message id $id1");
@@ -145,7 +145,7 @@ class searchTest extends IznikTestCase
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setSearch($this->s);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $id1 = $m->save();
+        list($id1, $already) = $m->save();
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $m1->setSearch($this->s);
         error_log("Created message id $id1");
@@ -155,7 +155,7 @@ class searchTest extends IznikTestCase
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setSearch($this->s);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $id2 = $m->save();
+        list($id2, $already) = $m->save();
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
         $m2->setSearch($this->s);
         error_log("Created message id $id2");

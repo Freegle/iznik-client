@@ -1,0 +1,6 @@
+<div class="row-fluid botpad">
+    <div class="chat-message <% if (obj.from) { %>pull-right<% } else { %>pull-left<% } %>"><% if (obj.from) { %>{{from}}<% } else { %>Me<% } %>: {{message}}</div>
+    <br />
+    <abbr class="chat-when  <% if (obj.from) { %>pull-right<% } else { %>pull-left<% } %> text-muted small timeago" title="{{timestamp}}" />
+    <div class="clearfix"/>
+</div>

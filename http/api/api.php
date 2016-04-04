@@ -32,6 +32,7 @@ require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/message/Item.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
+require_once(IZNIK_BASE . '/include/chat/Rooms.php');
 require_once(IZNIK_BASE . '/include/misc/Supporters.php');
 require_once(IZNIK_BASE . '/include/mail/MailRouter.php');
 require_once(IZNIK_BASE . '/include/misc/plugin.php');
@@ -182,6 +183,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'user':
                     $ret = user();
+                    break;
+                case 'chatrooms':
+                    $ret = rooms();
                     break;
                 case 'echo':
                     $ret = array_merge($_REQUEST, $_SERVER);

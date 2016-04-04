@@ -92,7 +92,7 @@ class messageTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $id1 = $m->save();
+        list($id1, $already) = $m->save();
 
         # TAKEN after OFFER - should match
         $msg = str_replace('OFFER: Test item', 'TAKEN: Test item', $msg);
@@ -155,7 +155,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
-        $mid = $m->save();
+        list($mid, $already) = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $atts = $m->getPublic();
         error_log("Public " . var_export($atts, true));
@@ -269,7 +269,7 @@ class messageTest extends IznikTestCase {
 //        $m = new Message($this->dbhr, $this->dbhm);
 //        $rc = $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
 //        assertTrue($rc);
-//        $id = $m->save();
+//        list($id, $already) = $m->save();
 //        $m = new Message($this->dbhr, $this->dbhm, $id);
 //        error_log("IP " . $m->getFromIP());
 //        $s = new Spam($this->dbhr, $this->dbhm);

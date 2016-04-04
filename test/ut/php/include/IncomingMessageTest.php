@@ -59,7 +59,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         assertEquals('FDv2', $m->getSourceheader());
 
         # Save it
-        $id = $m->save();
+        list($id, $already) = $m->save();
         assertNotNull($id);
 
         # Read it back
@@ -103,7 +103,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         assertEquals('image/png', $atts[1]->getContentType());
 
         # Save it
-        $id = $m->save();
+        list($id, $already) = $m->save();
         assertNotNull($id);
 
         # Check the saved attachments
@@ -134,7 +134,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         assertEquals(2, count($imgs));
 
         # Save it and check they show up as attachments
-        $id = $m->save();
+        list($id, $already) = $m->save();
         $atts = Attachment::getById($this->dbhr, $this->dbhm, $id);
         assertEquals(2, count($atts));
 
@@ -150,7 +150,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         assertEquals(0, count($imgs));
 
         # Save it and check they don't show up as attachments
-        $id = $m->save();
+        list($id, $already) = $m->save();
         $atts = Attachment::getById($this->dbhr, $this->dbhm, $id);
         assertEquals(0, count($atts));
 
@@ -188,7 +188,7 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         assertEquals('20065945', $m->getTnpostid());
 
         # Save it
-        $id = $m->save();
+        list($id, $already) = $m->save();
         assertNotNull($id);
 
         $m->delete();

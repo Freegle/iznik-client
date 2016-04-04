@@ -1,38 +1,5 @@
 // This sets up the basic structure we need before we can do anything.
 //
-// TODO Some of these plugins may not be used.
-//     "js/lib/jquery-ui.js",
-//     "js/lib/FileSaver.min.js",
-//     "js/lib/combodate.js",
-//     "js/lib/jquery-dateFormat.min.js",
-//     "js/lib/jquery.scrollTo.js",
-//     "js/lib/jquery.ui.touch-punch.js",
-//     "js/lib/json2.js",
-//     "js/lib/flowtype.js",
-//     "js/lib/Sortable.js",
-//     "js/lib/notify.js",
-//     "js/lib/validator.min.js",
-//     "js/lib/richMarker.js",
-//     "js/lib/markerclusterer.min.js",
-//     "js/lib/placeholders.min.js",
-//     "js/lib/bootstrap-datepicker.js",
-//     "js/lib/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js",
-//     "js/lib/bootstrap-datepicker.en-GB.js",
-//     "js/lib/jquery-show-first.js",
-//     "js/lib/jquery-visibility.js",
-//     "js/lib/typeahead.jquery.js",
-//     "js/lib/jquery-file-upload/load-image.all.min.js",
-//     "js/lib/jquery-file-upload/canvas-to-blob.min.js",
-//     "js/lib/jquery-file-upload/jquery.iframe-transport.js",
-//     "js/lib/jquery-file-upload/jquery.fileupload.js",
-//     "js/lib/jquery-file-upload/jquery.fileupload-process.js",
-//     "js/lib/jquery-file-upload/jquery.fileupload-image.js",
-//     "js/lib/bootstrap-tagsinput.js",
-//     "js/lib/wicket-gmap3.js",
-//     "js/iznik/zombies.js",
-//     "js/iznik/facebook.js",
-//     "js/iznik/google.js",
-//
 // If you add a standard jQuery plugin in here which is not AMD-compatible, then it also needs to go in
 // requirejs-setup as a shim.
 define([
@@ -61,7 +28,8 @@ define([
             ModTools: {},
             Yahoo: {},
             Plugin: {},
-            Message: {}
+            Message: {},
+            Chat: {}
         },
         Views: {
             ModTools: {
@@ -89,6 +57,7 @@ define([
                 Message: {}
             },
             Group: {},
+            Chat: {},
             Help: {}
         },
         Collections: {

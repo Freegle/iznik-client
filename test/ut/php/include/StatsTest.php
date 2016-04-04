@@ -89,10 +89,8 @@ class statsTest extends IznikTestCase {
         assertEquals(1, $stats['ApprovedMessageCount']);
         assertEquals(1, $stats['ApprovedMemberCount']);
 
-        # The breakdowns will include the duplicate, but since we're only interested in comparing the values, that's
-        # acceptable.
-        assertEquals([ 'FDv2' => 2 ], $stats['PostMethodBreakdown']);
-        assertEquals([ 'Other' => 2 ], $stats['MessageBreakdown']);
+        assertEquals([ 'FDv2' => 1 ], $stats['PostMethodBreakdown']);
+        assertEquals([ 'Other' => 1 ], $stats['MessageBreakdown']);
         assertEquals([ 'DIGEST' => 1 ], $stats['YahooDeliveryBreakdown']);
         assertEquals([ 'MODERATED' => 1 ], $stats['YahooPostingBreakdown']);
 

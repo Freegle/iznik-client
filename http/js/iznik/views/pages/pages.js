@@ -7,7 +7,8 @@ define([
     'iznik/views/group/select',
     'iznik/views/infinite',
     'iznik/views/plugin',
-    'iznik/converse'
+    'iznik/converse',
+    'iznik/views/chat/window'
 ], function($, _, Backbone, Iznik) {
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
@@ -30,7 +31,7 @@ define([
         render: function (options) {
             var self = this;
 
-            try {
+            // try {
                 if (currentPage) {
                     // We have previous rendered a page.  Kill that off, so that it is not listening for events and
                     // messing about with the DOM.
@@ -95,8 +96,35 @@ define([
                         loggedOutOnly.fadeOut('slow');
 
                         // Since we're logged in, we can start chat.
-                        var v = new Iznik.Views.Converse();
-                        v.render();
+                        if (Iznik.Session.isAdminOrSupport()) {
+                        //     var v = new Iznik.Views.Converse();
+                        //     v.render();
+                        // } else {
+                            var test = new Iznik.Models.Chat({
+                                id: 1,
+                                title: 'Test Chat'
+                            })
+                            var msg1 = new Iznik.Models.Chat.Message({
+                                timestamp: "2016-04-04T13:14:51Z",
+                                message: 'Ho',
+                                chatid: 1
+                            });
+                            var msg2 = new Iznik.Models.Chat.Message({
+                                from: 'Obediah',
+                                timestamp: "2016-04-04T13:24:51Z",
+                                message: 'Hey',
+                                chatid: 1
+                            });
+                            var coll = new Iznik.Collections.Chat([ msg1, msg2]);
+                            console.log("create window");
+                            var v = new Iznik.Views.Chat.Window({
+                                collection: coll,
+                                model: test
+                            });
+                            console.log("created window");
+                            v.render();
+                            console.log("rendered");
+                        }
                     } else {
                         loggedOutOnly.toggleClass('reallyHide');
                         loggedOutOnly.fadeIn('slow');
@@ -125,9 +153,9 @@ define([
                 if (this.signin) {
                     $('#bodyContent .js-signin').click(_.bind(this.signin, this));
                 }
-            } catch (e) {
-                console.error("Page render failed", e.message);
-            }
+            // } catch (e) {
+            //     console.error("Page render failed", e.message);
+            // }
         }
     });
 

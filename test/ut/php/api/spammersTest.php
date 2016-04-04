@@ -70,7 +70,7 @@ class spammersAPITest extends IznikAPITestCase {
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list($id, $already) = $m->save();
         error_log("Created message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);

@@ -1032,128 +1032,7 @@ class Message
         return($current);
     }
 
-    # Save a parsed message to the DB
-    public function save() {
-        # Despite what the RFCs might say, it's possible that a message can appear on Yahoo without a Message-ID.  We
-        # require unique message ids, so this causes us a problem.  Invent one.
-        $this->messageid = $this->messageid ? $this->messageid : (microtime(). '@' . USER_DOMAIN);
-
-        # We now manipulate the message id a bit.  This is because although in future we will support the same message
-        # appearing on multiple groups, and therefore have a unique key on message id, we've not yet tested this.  IT
-        # will probably require client changes, and there are issues about what to do when a message is sent to two
-        # groups and edited differently on both.  Meanwhile we need to be able to handle messages which are sent to
-        # multiple groups, which would otherwise overwrite each other.
-        $this->messageid = $this->groupid ? ($this->messageid . "-" . $this->groupid) : $this->messageid;
-
-        # A message we are saving as approved may previously have been in the system, for example as pending.  When it
-        # comes back to us, it might not be the same, so we should remove any old one first.
-        #
-        # This can happen if a message is handled on another system, e.g. moderated directly on Yahoo.
-        #
-        # We don't need a transaction for this - transactions aren't great for scalability and worst case we
-        # leave a spurious message around which a mod will handle.
-        #
-        # But we do want to preserve any information we had about who approved a message, and also any Yahoo pending/
-        # approved ids (to prevent the message being resync'd).
-        $sql = "SELECT approvedby, yahooapprovedid, yahoopendingid, messageid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid WHERE messageid = ? AND fromaddr = ?;";
-        $messages = $this->dbhr->preQuery($sql,  [
-            $this->getMessageID(),
-            $this->getFromaddr()
-        ]);
-
-        $approvedby = NULL;
-
-        foreach ($messages as $message) {
-            $approvedby = $message['approvedby'];
-            
-            $this->yahoopendingid = $this->yahoopendingid ? $this->yahoopendingid : $message['yahoopendingid'];
-            $this->yahooapprovedid = $this->yahooapprovedid ? $this->yahooapprovedid : $message['yahooapprovedid'];
-        }
-
-        if (!$approvedby) {
-            # See if we have a record of approval from Yahoo.
-            $approval = $this->getHeader('x-egroups-approved-by');
-
-            if ($approval && preg_match('/(.*) via/', $approval, $matches)) {
-                # We've got an approval.  See if we can find the mod.
-                $by = $matches[1];
-                $u = new User($this->dbhr, $this->dbhm);
-                $idid = $u->findByEmail($by);
-                $approvedby =  $idid ? $idid : $u->findByEmail($by);
-            }
-        }
-
-        # Now we can zap any old copies.
-        $this->removeOldCopies($this->groupid, $this->yahooapprovedid);
-
-        # Reduce the size of the message source
-        $this->message = $this->pruneMessage();
-
-        # Trigger mapping and get subject suggestion.
-        $this->suggestedsubject = $this->suggestSubject($this->groupid, $this->subject);
-
-        # Save into the messages table.
-        $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
-        $rc = $this->dbhm->preExec($sql, [
-            $this->date,
-            $this->source,
-            $this->sourceheader,
-            $this->message,
-            $this->fromuser,
-            $this->envelopefrom,
-            $this->envelopeto,
-            $this->fromname,
-            $this->fromaddr,
-            $this->replyto,
-            $this->fromip,
-            $this->subject,
-            $this->suggestedsubject,
-            $this->messageid,
-            $this->tnpostid,
-            $this->textbody,
-            $this->htmlbody,
-            $this->type,
-            $this->lat,
-            $this->lng,
-            $this->locationid
-        ]);
-
-        $id = NULL;
-
-        if ($rc) {
-            $id = $this->dbhm->lastInsertId();
-
-            $this->id = $id;
-
-            $l = new Log($this->dbhr, $this->dbhm);
-            $l->log([
-                'type' => Log::TYPE_MESSAGE,
-                'subtype' => Log::SUBTYPE_RECEIVED,
-                'msgid' => $id,
-                'user' => $this->fromuser,
-                'text' => $this->messageid,
-                'groupid' => $this->groupid
-            ]);
-
-            # Now that we have a ID, record which messages are related to this one.
-            $this->recordRelated();
-        }
-
-        if ($this->groupid) {
-            # Save the group we're on.  If we crash or fail at this point we leave the message stranded, which is ok
-            # given the perf cost of a transaction.
-            $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby) VALUES (?,?,?,?,?,?,?,?);", [
-                $this->id,
-                $this->groupid,
-                $this->yahoopendingid,
-                $this->yahooapprovedid,
-                $this->yahooreject,
-                $this->yahooapprove,
-                MessageCollection::INCOMING,
-                $approvedby
-            ]);
-        }
-
+    private function saveAttachments($msgid) {
         # Save the attachments.
         #
         # If we crash or fail at this point, we would have mislaid an attachment for a message.  That's not great, but the
@@ -1181,40 +1060,140 @@ class Message
                 }
             }
 
-            $a->create($this->id, $ct, $data);
+            $a->create($msgid, $ct, $data);
         }
 
         foreach ($this->inlineimgs as $att) {
-            $a->create($this->id, 'image/jpeg', $att);
+            $a->create($msgid, 'image/jpeg', $att);
+        }
+    }
 
-            $g = new Group($this->dbhr, $this->dbhm, $this->groupid);
-            #if ($g->getPrivate('type') == Group::GROUP_FREEGLE) {
-                # Identify incoming messages - this is just to find out how well our identification works.
-                #$i = $a->identify();
-            #}
+    # Save a parsed message to the DB
+    public function save() {
+        # Despite what the RFCs might say, it's possible that a message can appear on Yahoo without a Message-ID.  We
+        # require unique message ids, so this causes us a problem.  Invent one.
+        $this->messageid = $this->messageid ? $this->messageid : (microtime(). '@' . USER_DOMAIN);
+
+        # We now manipulate the message id a bit.  This is because although in future we will support the same message
+        # appearing on multiple groups, and therefore have a unique key on message id, we've not yet tested this.  IT
+        # will probably require client changes, and there are issues about what to do when a message is sent to two
+        # groups and edited differently on both.  Meanwhile we need to be able to handle messages which are sent to
+        # multiple groups, which would otherwise overwrite each other.
+        $this->messageid = $this->groupid ? ($this->messageid . "-" . $this->groupid) : $this->messageid;
+
+        # See if we have a record of approval from Yahoo.
+        $approvedby = NULL;
+        $approval = $this->getHeader('x-egroups-approved-by');
+
+        if ($approval && preg_match('/(.*) via/', $approval, $matches)) {
+            # We've got an approval.  See if we can find the mod.
+            $by = $matches[1];
+            $u = new User($this->dbhr, $this->dbhm);
+            $idid = $u->findByEmail($by);
+            $approvedby =  $idid ? $idid : $u->findByEmail($by);
         }
 
-        # Also save into the history table, for spam checking.
-        $sql = "INSERT INTO messages_history (groupid, source, fromuser, envelopefrom, envelopeto, fromname, fromaddr, fromip, subject, prunedsubject, messageid, msgid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?);";
-        $this->dbhm->preExec($sql, [
-            $this->groupid,
-            $this->source,
-            $this->fromuser,
-            $this->envelopefrom,
-            $this->envelopeto,
-            $this->fromname,
-            $this->fromaddr,
-            $this->fromip,
-            $this->subject,
-            $this->getPrunedSubject(),
-            $this->messageid,
-            $this->id
-        ]);
+        # Reduce the size of the message source
+        $this->message = $this->pruneMessage();
+
+        # A message we are saving as approved may previously have been in the system, for example as pending.  When it
+        # comes back to us, it might not be the same.  This can happen if a message is handled on another system,
+        # e.g. moderated directly on Yahoo.  So, we look for this messageid (modified to be per-group as above), and
+        # if we find it, then we update the message data.  Then we can return that old copy as our message rather
+        # than save another.
+        $already = FALSE;
+        $this->id = NULL;
+        $oldid = $this->updateEarlierCopies($approvedby);
+
+        if ($oldid) {
+            # Existing message.
+            $this->id = $oldid;
+            $already = TRUE;
+        } else {
+            # New message.  Trigger mapping and get subject suggestion.
+            $this->suggestedsubject = $this->suggestSubject($this->groupid, $this->subject);
+
+            # Save into the messages table.
+            $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, htmlbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            $rc = $this->dbhm->preExec($sql, [
+                $this->date,
+                $this->source,
+                $this->sourceheader,
+                $this->message,
+                $this->fromuser,
+                $this->envelopefrom,
+                $this->envelopeto,
+                $this->fromname,
+                $this->fromaddr,
+                $this->replyto,
+                $this->fromip,
+                $this->subject,
+                $this->suggestedsubject,
+                $this->messageid,
+                $this->tnpostid,
+                $this->textbody,
+                $this->htmlbody,
+                $this->type,
+                $this->lat,
+                $this->lng,
+                $this->locationid
+            ]);
+
+            if ($rc) {
+                $this->id = $this->dbhm->lastInsertId();
+                $this->saveAttachments($this->id);
+
+                $l = new Log($this->dbhr, $this->dbhm);
+                $l->log([
+                    'type' => Log::TYPE_MESSAGE,
+                    'subtype' => Log::SUBTYPE_RECEIVED,
+                    'msgid' => $this->id,
+                    'user' => $this->fromuser,
+                    'text' => $this->messageid,
+                    'groupid' => $this->groupid
+                ]);
+
+                # Now that we have a ID, record which messages are related to this one.
+                $this->recordRelated();
+            }
+
+            if ($this->groupid) {
+                # Save the group we're on.  If we crash or fail at this point we leave the message stranded, which is ok
+                # given the perf cost of a transaction.
+                $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby) VALUES (?,?,?,?,?,?,?,?);", [
+                    $this->id,
+                    $this->groupid,
+                    $this->yahoopendingid,
+                    $this->yahooapprovedid,
+                    $this->yahooreject,
+                    $this->yahooapprove,
+                    MessageCollection::INCOMING,
+                    $approvedby
+                ]);
+            }
+
+            # Also save into the history table, for spam checking.
+            $sql = "INSERT INTO messages_history (groupid, source, fromuser, envelopefrom, envelopeto, fromname, fromaddr, fromip, subject, prunedsubject, messageid, msgid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?);";
+            $this->dbhm->preExec($sql, [
+                $this->groupid,
+                $this->source,
+                $this->fromuser,
+                $this->envelopefrom,
+                $this->envelopeto,
+                $this->fromname,
+                $this->fromaddr,
+                $this->fromip,
+                $this->subject,
+                $this->getPrunedSubject(),
+                $this->messageid,
+                $this->id
+            ]);
+        }
 
         # Add into the search index.
         $this->s->add($this->id, $this->subject, strtotime($this->date), $this->groupid);
 
-        return($id);
+        return([ $this->id, $already ]);
     }
 
     function recordFailure($reason) {
@@ -1565,23 +1544,120 @@ class Message
         return($rc);
     }
 
-    public function removeOldCopies($groupid, $yahooapprovedid) {
+    public function updateEarlierCopies($approvedby) {
+        # We don't need a transaction for this - transactions aren't great for scalability and worst case we
+        # leave a spurious message around which a mod will handle.
+        $ret = NULL;
         $sql = "SELECT * FROM messages WHERE messageid = ?;";
         $msgs = $this->dbhr->preQuery($sql, [ $this->getMessageID() ]);
         foreach ($msgs as $msg) {
-            # Remove from all groups that it's on.  This will have the slightly unexpected effect of removing
-            # crossposts.
-            # TODO ...which isn't ideal.
+            error_log("In #{$this->id} found {$msg['id']} with " . $this->getMessageID());
+            $ret = $msg['id'];
+            $changed = '';
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
-            $m->delete('Received later copy of message with same Message-ID', NULL, NULL, NULL, NULL, TRUE);
+            
+            # We want the old message to be on whatever group this message was sent to.
+            $oldgroups = $m->getGroups();
+            error_log("Compare groups $this->groupid vs " . var_export($oldgroups, TRUE));
+            if (!in_array($this->groupid, $oldgroups)) {
+                $collection = NULL;
+                if ($this->getSource() == Message::YAHOO_PENDING) {
+                    $collection = MessageCollection::PENDING;
+                } else if ($this->getSource() == Message::YAHOO_APPROVED) {
+                    $collection = MessageCollection::APPROVED;
+                }
+                error_log("Not on group, add to $collection");
+
+                if ($collection) {
+                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby) VALUES (?,?,?,?,?,?,?,?);", [
+                        $this->id,
+                        $this->groupid,
+                        $this->yahoopendingid,
+                        $this->yahooapprovedid,
+                        $this->yahooreject,
+                        $this->yahooapprove,
+                        $collection,
+                        $approvedby
+                    ]);
+                }
+            } else {
+                # Already on the group; pick up any new and better info.
+                error_log("Already on group, pick ");
+                $gatts = $this->dbhr->preQuery("SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ?;", [
+                    $msg['id'],
+                    $this->groupid
+                ]);
+                foreach ($gatts as $gatt) {
+                    foreach (['yahooapprovedid', 'yahoopendingid'] as $newatt) {
+                        error_log("Compare old {$gatt[$newatt]} vs new {$this->$newatt}");
+                        if (!$gatt[$newatt] || ($this->$newatt && $gatt[$newatt] != $this->$newatt)) {
+                            error_log("Update mesages_groups for $newatt");
+                            $this->dbhm->preExec("UPDATE messages_groups SET $newatt = ? WHERE msgid = ? AND groupid = ?;", [
+                                $this->$newatt,
+                                $msg['id'],
+                                $this->groupid
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            # Other atts which we want the latest version of.
+            foreach (['subject', 'message', 'textbody', 'htmlbody'] as $att) {
+                $oldval = $m->getPrivate($att);
+                $newval = $this->getPrivate($att);
+
+                if (!$oldval || ($newval && $oldval != $newval)) {
+                    $changed .= ' $att';
+                    error_log("Update messages for $att, value len " . strlen($oldval) . " vs " . strlen($newval));
+                    $m->setPrivate($att, $newval);
+                }
+            }
+
+            # We might need a new suggested subject, and mapping.
+            $m->suggestedsubject = $m->suggestSubject($this->groupid, $this->subject);
+
+            # Our new message may have a different set of attachments from the old one, or none.  Take the new lot.
+            #
+            # If we crash halfway through we might lose attachments.  Acceptable given the rarity.
+            $rc = $this->dbhm->preExec("DELETE FROM messages_attachments WHERE msgid = ?;", [ $msg['id'] ]);
+            $this->saveAttachments($msg['id']);
+
+            $changed = ($rc != count($this->attachments)) ? ' attachments' : $changed;
+
+            # We might have new approvedby info.
+            $rc = $this->dbhm->preExec("UPDATE messages_groups SET approvedby = ? WHERE msgid = ? AND groupid = ? AND approvedby IS NULL;",
+                [
+                    $approvedby,
+                    $msg['id'],
+                    $this->groupid
+                ]);
+
+            $changed = $rc ? ' approvedby' : $changed;
+
+            # This message might have moved from pending to approved.
+            if ($m->getSource() == Message::YAHOO_PENDING && $this->getSource() == Message::YAHOO_APPROVED) {
+                $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Approved' WHERE msgid = ? AND groupid = ?;", [
+                    $msg['id'],
+                    $this->groupid
+                ]);
+                $changed = TRUE;
+            }
+
+            if ($changed != '') {
+                $me = whoAmI($this->dbhr, $this->dbhm);
+
+                $this->log->log([
+                    'type' => Log::TYPE_MESSAGE,
+                    'subtype' => Log::SUBTYPE_EDIT,
+                    'msgid' => $msg['id'],
+                    'byuser' => $me ? $me->getId() : NULL,
+                    'text' => "Updated from new incoming message ($changed)"
+                ]);
+            }
         }
 
-        $sql = "SELECT * FROM messages_groups WHERE groupid = ? AND yahooapprovedid = ? AND yahooapprovedid IS NOT NULL AND deleted = 0;";
-        $msgs = $this->dbhr->preQuery($sql, [ $groupid, $yahooapprovedid ]);
-        foreach ($msgs as $msg) {
-            $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
-            $m->delete('Received later copy of message with same Yahoo Approved ID', $groupid, NULL, NULL, NULL, TRUE);
-        }
+        return($ret);
     }
 
     /**

@@ -266,7 +266,7 @@ class userTest extends IznikTestCase {
         $work = $p->get($group1);
         assertEquals(1, count($work));
         assertEquals($group1, $work[0]['groupid']);
-        assertEquals('{"type":"RemoveApprovedMember","id":"1","email":"test@test.com"}', $work[0]['data']);
+        assertEquals('{"type":"RemoveApprovedMember","email":"test@test.com"}', $work[0]['data']);
         $pid = $work[0]['id'];
         $p->delete($pid);
 
@@ -278,7 +278,7 @@ class userTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
-        $mid = $m->save();
+        list($mid, $already) = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
 
         $u->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
