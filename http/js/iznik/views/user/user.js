@@ -132,17 +132,18 @@ define([
             });
 
             self.listenToOnce(v, 'confirmed', function() {
-                var mod = new Iznik.Models.Membership({
-                    userid: this.model.get('id'),
-                    groupid: this.model.get('groupid')
-                });
-
-                mod.fetch().then(function () {
-                    mod.destroy({
-                        success: function (model, response) {
+                $.ajax({
+                    url: API + 'memberships',
+                    type: 'DELETE',
+                    data: {
+                        userid: self.model.get('id'),
+                        groupid: self.model.get('groupid')
+                    }, success: function(ret) {
+                        if (ret.ret == 0) {
+                            self.$el.fadeOut('slow');
                             self.model.trigger('removed');
                         }
-                    });
+                    }
                 });
             });
 
@@ -162,12 +163,13 @@ define([
                     url: API + 'memberships',
                     type: 'DELETE',
                     data: {
-                        userid: this.model.get('id'),
-                        groupid: this.model.get('groupid'),
+                        userid: self.model.get('id'),
+                        groupid: self.model.get('groupid'),
                         ban: true
                     }, success: function(ret) {
                         if (ret.ret == 0) {
                             self.$el.fadeOut('slow');
+                            self.model.trigger('removed');
                         }
                     }
                 });

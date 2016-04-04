@@ -1930,48 +1930,18 @@ define([
     
         start: function() {
             var self = this;
-    
-            var data = [{
-                userId: this.model.get('id')
-            }];
-    
-            new majax({
-                type: "DELETE",
-                url: YAHOOAPIv2 + "groups/" + this.model.get('group').nameshort + "/members?gapi_crumb=" + self.crumb + "&members=" + encodeURIComponent(JSON.stringify(data)),
-                data: data,
-                success: function (ret) {
-                    console.log("Delete ret", ret);
-                    console.log("Type", typeof ret);
-                    console.log("data?", ret.hasOwnProperty('ygData'));
-                    console.log("passed?", ret.hasOwnProperty('ygData') &&
-                        ret.ygData.hasOwnProperty('numPassed'));
-                    if (ret.hasOwnProperty('ygData') &&
-                        ret.ygData.hasOwnProperty('numPassed')) {
-                        // If the delete worked, numPassed == 1.
-                        if (ret.ygData.numPassed == 1) {
-                            self.succeed();
-                        } else {
-                            // If we get a status of NOT SUBSCRIBED then the member is no longer on the group - which
-                            // means this remove is complete.
-                            if (ret.ygData.hasOwnProperty('members') &&
-                                ret.ygData.members.length == 1 &&
-                                ret.ygData.members[0].hasOwnProperty('status') &&
-                                ret.ygData.members[0].status == 'NOT_SUBSCRIBED') {
-                                self.succeed();
-                            } else {
-                                self.fail();
-                            }
-                        }
-                    } else {
-                        console.log("DELETE failed", ret);
-                        self.fail();
-                    }
-                }, error: function(a,b,c) {
-                    console.log("DELETE error", a, b, c);
-                    self.fail();
-                }
+
+            var mod = new Iznik.Models.Yahoo.User({
+                group: self.model.get('group').nameshort,
+                email: self.model.get('email')
             });
-    
+
+            mod.fetch().then(function() {
+                self.listenToOnce(mod, 'removesucceeded', self.succeed);
+                self.listenToOnce(mod, 'removefailed', self.fail);
+                mod.remove(self.crumb);
+            });
+            
             this.startBusy();
         }
     });
@@ -2031,37 +2001,18 @@ define([
     
         start: function() {
             var self = this;
-    
-            var members = [
-                {
-                    userId: this.model.get('id'),
-                    subscriptionStatus: 'BANNED'
-                }
-            ];
-    
-            new majax({
-                type: "PUT",
-                url: YAHOOAPI + "groups/" + this.model.get('group').nameshort + "/members?gapi_crumb=" + self.crumb,
-                data: {
-                    members: JSON.stringify(members)
-                },
-                success: function (ret) {
-                    console.log("Ban returned", ret);
-                    if (ret.hasOwnProperty('ygData')) {
-                        // Banning can fail with no decent error code, which just leaves the work sitting there.
-                        // So if we had an operation which seemed to get some kind of result, assume we have done the
-                        // best we can.
-                        self.succeed();
-                    } else {
-                        self.fail();
-                    }
-                },
-                error: function (request, status, error) {
-                    console.log("Ban error", status, error);
-                    self.fail();
-                }
+
+            var mod = new Iznik.Models.Yahoo.User({
+                group: self.model.get('group').nameshort,
+                email: self.model.get('email')
             });
-    
+
+            mod.fetch().then(function() {
+                self.listenToOnce(mod, 'bansucceeded', self.succeed);
+                self.listenToOnce(mod, 'banfailed', self.fail);
+                mod.ban(self.crumb);
+            });
+            
             this.startBusy();
         }
     });

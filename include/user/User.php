@@ -410,25 +410,22 @@ class User extends Entity
             ]);
 
         if ($rc) {
-            if ($this->user['yahooUserId']) {
-                # This is a user on Yahoo.  We must try to remove them from the group on there too, via the plugin.
-                $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
+            $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
 
-                if ($ban) {
-                    $type = $this->isPending($groupid) ? 'BanPendingMember' : 'BanApprovedMember';
-                } else {
-                    $type = $this->isPending($groupid) ? 'RemovePendingMember' : 'RemoveApprovedMember';
-                }
+            if ($ban) {
+                $type = $this->isPending($groupid) ? 'BanPendingMember' : 'BanApprovedMember';
+            } else {
+                $type = $this->isPending($groupid) ? 'RemovePendingMember' : 'RemoveApprovedMember';
+            }
 
-                # It would be odd for them to be on Yahoo with no email but handle it anyway.
-                if ($email) {
-                    $p = new Plugin($this->dbhr, $this->dbhm);
-                    $p->add($groupid, [
-                        'type' => $type,
-                        'id' => $this->user['yahooUserId'],
-                        'email' => $email
-                    ]);
-                }
+            # It would be odd for them to be on Yahoo with no email but handle it anyway.
+            error_log("Remove $type email $email on $groupid");
+            if ($email) {
+                $p = new Plugin($this->dbhr, $this->dbhm);
+                $p->add($groupid, [
+                    'type' => $type,
+                    'email' => $email
+                ]);
             }
 
             if ($ban) {
