@@ -6,10 +6,10 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/misc/Stats.php');
 
-$groups = $dbhr->preQuery("SELECT * FROM groups;");
+$groups = $dbhr->preQuery("SELECT * FROM groups ORDER BY nameshort ASC;");
 foreach ($groups as $group) {
-    error_log($group['nameshort']);
-    for ($i = 0; $i < 31; $i++) {
+    error_log("...{$group['nameshort']}");
+    for ($i = 0; $i < 83; $i++) {
         $date = date('Y-m-d', $i == 0 ? time() : strtotime("$i days ago"));
         $s = new Stats($dbhr, $dbhm, $group['id']);
         $s->generate($date);

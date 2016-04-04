@@ -57,7 +57,7 @@ class Stats
     {
         # Counts are a specific day
         $this->setCount($date, Stats::APPROVED_MESSAGE_COUNT,
-            $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_groups WHERE groupid = ? AND DATE(arrival) = ? AND collection = ?;",
+            $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messageid)) AS count FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE groupid = ? AND DATE(messages.arrival) = ? AND collection = ?;",
                 [
                     $this->groupid,
                     $date,

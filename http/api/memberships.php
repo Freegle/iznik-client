@@ -44,7 +44,7 @@ function memberships() {
 
     if ($collection) {
         switch ($_REQUEST['type']) {
-            case 'members': {
+            case 'GET': {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
                 if ($me) {

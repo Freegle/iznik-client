@@ -70,6 +70,15 @@ class statsTest extends IznikTestCase {
         assertEquals($gid, $m->getGroups()[0]);
         error_log("Created message $id on $gid");
 
+        # Now send the same message again; this should replace the first, but shouldn't appear in the counts as a
+        # separate message.
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals($gid, $m->getGroups()[0]);
+        error_log("Created message $id on $gid");
+
         # Now generate stats for today
         $s = new Stats($this->dbhr, $this->dbhm, $gid);
         $date = date ("Y-m-d", strtotime("today"));
@@ -79,8 +88,11 @@ class statsTest extends IznikTestCase {
         $stats = $s->get($date);
         assertEquals(1, $stats['ApprovedMessageCount']);
         assertEquals(1, $stats['ApprovedMemberCount']);
-        assertEquals([ 'FDv2' => 1 ], $stats['PostMethodBreakdown']);
-        assertEquals([ 'Other' => 1 ], $stats['MessageBreakdown']);
+
+        # The breakdowns will include the duplicate, but since we're only interested in comparing the values, that's
+        # acceptable.
+        assertEquals([ 'FDv2' => 2 ], $stats['PostMethodBreakdown']);
+        assertEquals([ 'Other' => 2 ], $stats['MessageBreakdown']);
         assertEquals([ 'DIGEST' => 1 ], $stats['YahooDeliveryBreakdown']);
         assertEquals([ 'MODERATED' => 1 ], $stats['YahooPostingBreakdown']);
 
