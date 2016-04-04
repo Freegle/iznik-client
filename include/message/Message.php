@@ -846,6 +846,7 @@ class Message
         @$doc->loadHTML($this->htmlbody);
         $imgs = $doc->getElementsByTagName('img');
 
+        /* @var DOMNodeList $imgs */
         foreach ($imgs as $img) {
             $src = $img->getAttribute('src');
 
@@ -1035,8 +1036,14 @@ class Message
     public function save() {
         # Despite what the RFCs might say, it's possible that a message can appear on Yahoo without a Message-ID.  We
         # require unique message ids, so this causes us a problem.  Invent one.
-        error_log("Save messageid {$this->messageid}");
         $this->messageid = $this->messageid ? $this->messageid : (microtime(). '@' . USER_DOMAIN);
+
+        # We now manipulate the message id a bit.  This is because although in future we will support the same message
+        # appearing on multiple groups, and therefore have a unique key on message id, we've not yet tested this.  IT
+        # will probably require client changes, and there are issues about what to do when a message is sent to two
+        # groups and edited differently on both.  Meanwhile we need to be able to handle messages which are sent to
+        # multiple groups, which would otherwise overwrite each other.
+        $this->messageid = $this->groupid ? ($this->messageid . "-" . $this->groupid) : $this->messageid;
 
         # A message we are saving as approved may previously have been in the system, for example as pending.  When it
         # comes back to us, it might not be the same, so we should remove any old one first.

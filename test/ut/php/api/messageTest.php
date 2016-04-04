@@ -1200,4 +1200,33 @@ class messageAPITest extends IznikAPITestCase
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testCrosspost() {
+        error_log(__METHOD__);
+
+        # At the moment a crosspost results in two separate messages - see comment in Message::save().
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id1 = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        $msg = str_ireplace('testgroup1', 'testgroup2', $msg);
+        $id2 = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        $m1 = new Message($this->dbhr, $this->dbhm, $id1);
+        $m2 = new Message($this->dbhr, $this->dbhm, $id2);
+        assertNotEquals($m1->getMessageID(), $m2->getMessageID());
+        $m1->delete("UT delete");
+        $m2->delete("UT delete");
+
+        error_log(__METHOD__ . " end");
+    }
 }

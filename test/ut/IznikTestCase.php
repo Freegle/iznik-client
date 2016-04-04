@@ -26,7 +26,9 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
         $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = 1;");
         $this->dbhm->preExec("DELETE FROM users WHERE firstname = 'Test' AND lastname = 'User';");
         $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE subscription = 'Test';");
-        unset($_SESSION['id']);
+        if (defined('_SESSION')) {
+            unset($_SESSION['id']);
+        }
     }
 
     protected function setUp() {

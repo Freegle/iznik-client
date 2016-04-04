@@ -281,7 +281,7 @@ class MailRouterTest extends IznikTestCase {
         assertNull($spam->getFromhost());
         assertEquals(1, count($spam->getGroups()));
         assertEquals($id, $spam->getID());
-        assertEquals('GTUBE1.1010101@example.net', $spam->getMessageID());
+        assertEquals(0, strpos($spam->getMessageID(), 'GTUBE1.1010101@example.net'));
         assertEquals($msg, $spam->getMessage());
         assertEquals(Message::YAHOO_APPROVED, $spam->getSource());
         assertEquals('from@test.com', $spam->getEnvelopefrom());

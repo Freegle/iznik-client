@@ -40,18 +40,18 @@ class scriptsTest extends IznikTestCase {
         # Remove cache file
         unlink($ret[0]);
         $ret = scriptInclude(function($str) { return(JSMin::minify($str)); });
-        assertEquals(2, count($ret[1]));
+        assertEquals(1, count($ret[1]));
 
         # Touch a file and do it again - should reminimise to a different file.
-        touch(IZNIK_BASE . "/http/js/iznik/router.js");
+        touch(IZNIK_BASE . "/http/js/lib/require.js");
         $ret2 = scriptInclude(function($str) { return(JSMin::minify($str)); });
         assertNotEquals($ret, $ret2);
 
         # Return an exception from the minification.  Should still work.
         error_log("Now exception");
-        touch(IZNIK_BASE . "/http/js/iznik/router.js");
+        touch(IZNIK_BASE . "/http/js/lib/require.js");
         $ret = scriptInclude(function($str) { throw new Exception(); });
-        assertEquals(2, count($ret[1]));
+        assertEquals(1, count($ret[1]));
 
         error_log(__METHOD__ . " end");
     }
