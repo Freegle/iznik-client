@@ -33,6 +33,7 @@ require_once(IZNIK_BASE . '/include/message/Item.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/chat/Rooms.php');
+require_once(IZNIK_BASE . '/include/chat/Messages.php');
 require_once(IZNIK_BASE . '/include/misc/Supporters.php');
 require_once(IZNIK_BASE . '/include/mail/MailRouter.php');
 require_once(IZNIK_BASE . '/include/misc/plugin.php');
@@ -61,6 +62,8 @@ require_once(IZNIK_BASE . '/http/api/group.php');
 require_once(IZNIK_BASE . '/http/api/groups.php');
 require_once(IZNIK_BASE . '/http/api/plugin.php');
 require_once(IZNIK_BASE . '/http/api/user.php');
+require_once(IZNIK_BASE . '/http/api/chatrooms.php');
+require_once(IZNIK_BASE . '/http/api/chatmessages.php');
 require_once(IZNIK_BASE . '/http/api/locations.php');
 require_once(IZNIK_BASE . '/http/api/image.php');
 require_once(IZNIK_BASE . '/http/api/upload.php');
@@ -185,7 +188,10 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     $ret = user();
                     break;
                 case 'chatrooms':
-                    $ret = rooms();
+                    $ret = chatrooms();
+                    break;
+                case 'chatmessages':
+                    $ret = chatmessages();
                     break;
                 case 'echo':
                     $ret = array_merge($_REQUEST, $_SERVER);

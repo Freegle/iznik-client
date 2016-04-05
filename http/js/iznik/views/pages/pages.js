@@ -100,30 +100,42 @@ define([
                         //     var v = new Iznik.Views.Converse();
                         //     v.render();
                         // } else {
-                            var test = new Iznik.Models.Chat({
-                                id: 1,
-                                title: 'Test Chat'
+                        //     var test = new Iznik.Models.Chat({
+                        //         id: 1,
+                        //         title: 'Test Chat'
+                        //     })
+                        //     var msg1 = new Iznik.Models.Chat.Message({
+                        //         timestamp: "2016-04-04T13:14:51Z",
+                        //         message: 'Ho',
+                        //         chatid: 1
+                        //     });
+                        //     var msg2 = new Iznik.Models.Chat.Message({
+                        //         from: 'Obediah',
+                        //         timestamp: "2016-04-04T13:24:51Z",
+                        //         message: 'Hey',
+                        //         chatid: 1
+                        //     });
+                        //     var coll = new Iznik.Collections.Chat([ msg1, msg2]);
+                            var coll = new Iznik.Collections.Chat.Rooms();
+                            coll.fetch().then(function() {
+                                console.log("Fetched chats", coll);
+                                coll.each(function(chat) {
+                                    console.log("Fetch messages for", chat.get('id'));
+                                    var msgs = new Iznik.Collections.Chat.Messages({
+                                        roomid: chat.get('id')
+                                    });
+                                    msgs.fetch().then(function() {
+                                        console.log("create window for", chat, msgs);
+                                        var v = new Iznik.Views.Chat.Window({
+                                            collection: msgs,
+                                            model: chat
+                                        });
+                                        console.log("created window");
+                                        v.render();
+                                        console.log("rendered");
+                                    });
+                                })
                             })
-                            var msg1 = new Iznik.Models.Chat.Message({
-                                timestamp: "2016-04-04T13:14:51Z",
-                                message: 'Ho',
-                                chatid: 1
-                            });
-                            var msg2 = new Iznik.Models.Chat.Message({
-                                from: 'Obediah',
-                                timestamp: "2016-04-04T13:24:51Z",
-                                message: 'Hey',
-                                chatid: 1
-                            });
-                            var coll = new Iznik.Collections.Chat([ msg1, msg2]);
-                            console.log("create window");
-                            var v = new Iznik.Views.Chat.Window({
-                                collection: coll,
-                                model: test
-                            });
-                            console.log("created window");
-                            v.render();
-                            console.log("rendered");
                         }
                     } else {
                         loggedOutOnly.toggleClass('reallyHide');

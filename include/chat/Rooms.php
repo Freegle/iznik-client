@@ -2,12 +2,14 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
+require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/chat/Messages.php');
 
 class ChatRoom extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'name', 'groupid', 'modonly');
-    var $settableatts = array();
+    var $publicatts = array('id', 'name', 'groupid', 'modonly', 'description');
+    var $settableatts = array('name');
 
     /** @var  $log Log */
     private $log;
@@ -26,9 +28,13 @@ class ChatRoom extends Entity
         $this->dbhm = $dbhm;
     }
 
-    public function create($title, $gid) {
+    public function create($name, $gid = NULL, $modonly = FALSE) {
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (title, groupid) VALUES (?,?)", [$title, $gid]);
+            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (name, groupid, modonly) VALUES (?,?,?)", [
+                $name,
+                $gid,
+                $modonly
+            ]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
             $id = NULL;
@@ -36,18 +42,7 @@ class ChatRoom extends Entity
         }
 
         if ($rc && $id) {
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'chat_rooms', 'room', $this->publicatts);
-            $me = whoAmI($this->dbhr, $this->dbhm);
-            $createdby = $me ? $me->getId() : NULL;
-            $this->log->log([
-                'type' => Log::TYPE_CONFIG,
-                'subtype' => Log::SUBTYPE_CREATED,
-                'byuser' => $createdby,
-                'groupid' => $gid,
-                'roomid' => $id,
-                'text' => "room: $title"
-            ]);
-
+            $this->fetch($this->dbhr, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
             return($id);
         } else {
             return(NULL);
@@ -61,46 +56,59 @@ class ChatRoom extends Entity
                 $this->setPrivate($att, $settings[$att]);
             }
         }
-
-        $this->log->log([
-            'type' => Log::TYPE_room,
-            'subtype' => Log::SUBTYPE_EDIT,
-            'roomid' => $this->id,
-            'configid' => $this->room['configid'],
-            'byuser' => $me ? $me->getId() : NULL,
-            'text' => $this->getEditLog($settings)
-        ]);
     }
 
-    public function getPublic($roombody = TRUE) {
+    public function getPublic() {
         $ret = $this->getAtts($this->publicatts);
-
-        if (!$roombody) {
-            # We want to save space.
-            unset($ret['body']);
-        }
         return($ret);
     }
 
-    public function canModify() {
-        $c = new ModConfig($this->dbhr, $this->dbhm, $this->room['configid']);
-        return($c->canModify());
+    public function listForUser($userid) {
+        $ret = [];
+        $u = new User($this->dbhr, $this->dbhm, $userid);
+        $mod = $u->isModerator();
+
+        $sql = "SELECT id, modonly FROM chat_rooms WHERE groupid IS NULL OR groupid IN (SELECT groupid FROM memberships WHERE userid = ?);";
+        $rooms = $this->dbhr->preQuery($sql, [ $userid ]);
+        foreach ($rooms as $room) {
+            if (!$room['modonly'] || $mod) {
+                $ret[] = $room['id'];
+            }
+        }
+
+        return(count($ret) == 0 ? NULL : $ret);
+    }
+
+    public function canSee($userid) {
+        $rooms = $this->listForUser($userid);
+        return($rooms ? in_array($this->id, $rooms) : FALSE);
+    }
+
+    public function getMessages($limit = 100) {
+        $sql = "SELECT id, userid FROM chat_messages WHERE chatid = ? ORDER BY date DESC LIMIT $limit;";
+        $msgs = $this->dbhr->preQuery($sql, [ $this->id ]);
+        $msgs = array_reverse($msgs);
+        $users = [];
+
+        $ret = [];
+        foreach ($msgs as $msg) {
+            $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
+            $atts = $m->getPublic();
+            $atts['date'] = ISODate($atts['date']);
+
+            if (!array_key_exists($msg['userid'], $users)) {
+                $u = new User($this->dbhr, $this->dbhm, $msg['userid']);
+                $users[$msg['userid']] = $u->getPublic(NULL, FALSE);
+            }
+
+            $ret[] = $atts;
+        }
+
+        return([$ret, $users]);
     }
 
     public function delete() {
         $rc = $this->dbhm->preExec("DELETE FROM chat_rooms WHERE id = ?;", [$this->id]);
-        if ($rc) {
-            $me = whoAmI($this->dbhr, $this->dbhm);
-            $this->log->log([
-                'type' => Log::TYPE_room,
-                'subtype' => Log::SUBTYPE_DELETED,
-                'byuser' => $me ? $me->getId() : NULL,
-                'configid' => $this->room['configid'],
-                'roomid' => $this->id,
-                'text' => "room; " . $this->room['title'],
-            ]);
-        }
-
         return($rc);
     }
 }

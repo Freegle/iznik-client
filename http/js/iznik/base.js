@@ -64,6 +64,7 @@ define([
             Messages: {},
             Members: {},
             ModTools: {},
+            Chat: {},
             Yahoo: {}
         }
     };
