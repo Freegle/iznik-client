@@ -14,6 +14,7 @@ function message() {
     $body = presdef('body', $_REQUEST, NULL);
     $stdmsgid = presdef('stdmsgid', $_REQUEST, NULL);
     $messagehistory = array_key_exists('messagehistory', $_REQUEST) ? filter_var($_REQUEST['messagehistory'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $localonly = array_key_exists('localonly', $_REQUEST) ? filter_var($_REQUEST['localonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -152,7 +153,7 @@ function message() {
                     if ($role != User::ROLE_OWNER && $role != User::ROLE_MODERATOR) {
                         $ret = ['ret' => 2, 'status' => 'Permission denied'];
                     } else {
-                        $m->delete($reason);
+                        $m->delete($reason, NULL, NULL, NULL, NULL, $localonly);
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success'

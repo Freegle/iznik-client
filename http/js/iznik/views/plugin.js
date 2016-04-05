@@ -959,6 +959,9 @@ define([
                                     // We might be deleting all such messages (for Pending, where we do a sync of all
                                     // of them) or only ones which are later than the earlier message we passed and where
                                     // we therefore know they must have been deleted from Yahoo (Approved).
+                                    //
+                                    // Do a localonly delete so that we don't generate any plugin work.  This means that
+                                    // if Yahoo is lying to us, we won't trigger a reject.
                                     self.promises = [];
                                     _.each(ret.missingonclient, function(missing, index, list) {
                                         if (self.deleteAllMissing || missing[self.dateField] > self.earliest) {
@@ -973,6 +976,7 @@ define([
                                                     id: missing.id,
                                                     groupid: self.model.get('id'),
                                                     collection: missing.collection,
+                                                    localonly: true,
                                                     reason: 'Not present on Yahoo'
                                                 }
                                             }));
