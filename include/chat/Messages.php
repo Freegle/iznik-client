@@ -3,6 +3,7 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/chat/Rooms.php');
 
 class ChatMessage extends Entity
 {
@@ -35,6 +36,9 @@ class ChatMessage extends Entity
                 $message
             ]);
             $id = $this->dbhm->lastInsertId();
+
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+            $r->pokeMembers();
         } catch (Exception $e) {
             $id = NULL;
             $rc = 0;

@@ -83,6 +83,20 @@ class ChatRoom extends Entity
         $rooms = $this->listForUser($userid);
         return($rooms ? in_array($this->id, $rooms) : FALSE);
     }
+    
+    public function pokeMembers() {
+        # Poke members of a chat room.
+        $modq = $this->chatroom['modonly'] ? " AND role IN ('Owner', 'Moderator') " : "";
+        $sql = "SELECT userid FROM memberships WHERE groupid = ? $modq;";
+        $members = $this->dbhr->preQuery($sql, [ $this->chatroom['groupid'] ]);
+        $data = [
+            'roomid' => $this->id
+        ];
+
+        foreach ($members as $member) {
+            Notifications::poke($member['userid'], $data);
+        }
+    }
 
     public function getMessages($limit = 100) {
         $sql = "SELECT id, userid FROM chat_messages WHERE chatid = ? ORDER BY date DESC LIMIT $limit;";
@@ -91,10 +105,20 @@ class ChatRoom extends Entity
         $users = [];
 
         $ret = [];
+        $lastuser = NULL;
+        $consecutive = 0;
+        $lastmsg = NULL;
+
         foreach ($msgs as $msg) {
             $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
             $atts = $m->getPublic();
             $atts['date'] = ISODate($atts['date']);
+
+            $atts['sameaslast'] = ($lastuser === $msg['userid']);
+
+            if (count($ret) > 0) {
+                $ret[count($ret) - 1]['sameasnext'] = ($lastuser === $msg['userid']);
+            }
 
             if (!array_key_exists($msg['userid'], $users)) {
                 $u = new User($this->dbhr, $this->dbhm, $msg['userid']);
@@ -102,6 +126,7 @@ class ChatRoom extends Entity
             }
 
             $ret[] = $atts;
+            $lastuser = $msg['userid'];
         }
 
         return([$ret, $users]);

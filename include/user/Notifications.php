@@ -112,4 +112,51 @@ class Notifications
 
         return($count);
     }
+
+    static public function poke($userid, $data) {
+        # This kicks a user who is online at the moment with an outstanding long poll.
+        #
+        # TODO Handle multiple application servers
+        filterResult($data);
+
+        # We want to POST to notify.  We can speed this up using a persistent socket.
+        $service_uri = "/publish/$userid";
+
+        $topdata = array(
+            'text' => $data,
+            'channel' => $userid,
+            'id' => 1
+        );
+
+        $vars = json_encode($topdata);
+
+        # compose HTTP request header
+        $header = "Host: " . CHAT_HOST . "\r\n";
+        $header .= "User-Agent: Iznik Notify\r\n";
+        $header .= "Content-Type: application/json\r\n";
+        $header .= "Content-Length: " . strlen($vars) . "\r\n";
+        $header .= "Connection: close\r\n\r\n";
+
+        try {
+            $fp = fsockopen('ssl://' . CHAT_HOST, 443, $errno, $errstr);
+
+            if (!$fp) {
+                error_log("Failed to get socket, $errstr ($errno)");
+            } else {
+                if (!fputs($fp, "POST $service_uri  HTTP/1.1\r\n")) {
+                    # This can happen if the socket is broken.  Just close it ready for next time.
+                    fclose($fp);
+                    error_log("Failed to post");
+                } else {
+                    fputs($fp, $header . $vars);
+
+                    $server_response = fread($fp, 256);
+                    error_log("Rsp on $service_uri $server_response");
+                    # No need to bother waiting for the response.
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Failed to notify");
+        }
+    }
 }

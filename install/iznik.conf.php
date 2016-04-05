@@ -17,18 +17,33 @@ define('GOOGLE_VISION_KEY', 'zzz');
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');
 
-switch($_SERVER['HTTP_HOST']) {
+$host = $_SERVER && array_key_exists('HTTP_HOST', $_SERVER) ? $_SERVER['HTTP_HOST'] : 'iznik.modtools.org';
+
+switch($host) {
     case 'iznik.modtools.org':
+        define('SITE_NAME', 'Iznik');
+        define('SITE_DESC', 'Making moderating easier');
+        define('MANIFEST', FALSE);
+        define('MANIFEST_STARTURL', 'modtools');
+        define('FAVICON_HOME', 'modtools');
+        define('CHAT_HOST', 'iznik.modtools.org');
+        break;
     case 'dev.modtools.org':
     case 'modtools.org':
         define('SITE_NAME', 'Iznik');
         define('SITE_DESC', 'Making moderating easier');
         define('MANIFEST', TRUE);
+        define('MANIFEST_STARTURL', 'modtools');
+        define('FAVICON_HOME', 'modtools');
+        define('CHAT_HOST', 'modtools.org');
         break;
     case 'iznik.ilovefreegle.org':
         define('SITE_NAME', 'Freegle');
         define('SITE_DESC', 'Online dating for stuff');
         define('MANIFEST', FALSE);
+        define('MANIFEST_STARTURL', '');
+        define('FAVICON_HOME', 'user');
+        define('CHAT_HOST', 'chat.ilovefreegle.org');
         break;
 }
 

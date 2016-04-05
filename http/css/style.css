@@ -968,10 +968,11 @@ a button {
     border: 1px solid grey;
     min-height: 300px;
     min-width: 300px;
+    z-index: 10;
 }
 
 .chat-messages {
-    height: 190px;
+    height: 200px;
 }
 
 .chat-input-wrapper {

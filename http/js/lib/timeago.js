@@ -40,7 +40,7 @@
 		settings: {
 			refreshMillis: 60000,
 			allowPast    : true,
-			allowFuture  : true,
+			allowFuture  : false,
 			localeTitle  : false,
 			cutoff       : 0,
 			strings      : {

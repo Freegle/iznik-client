@@ -40,7 +40,6 @@ include_once(BASE_DIR . '/include/misc/pageheader.php');
 <div id="bodyEnvelope">
     <div id="bodyContent" class="nopad">
     </div>
-    <div id="chatWrapper"></div>
 </div>
 </body>
 </html>
