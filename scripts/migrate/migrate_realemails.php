@@ -24,7 +24,7 @@ function handle($dbhr, $dbhm, $u, $realmail, $user) {
         # But it doesn't.  Add it as the primary, and make sure the groups email is secondary.
         error_log("Add $realmail} to {$user['id']} {$user['email']}");
         $u = new User($dbhr, $dbhm, $user['id']);
-        $u->addEmail($realmail, 1);
+        $u->addEmail($realmail, 0, FALSE);
         $u->removeEmail($user['email']);
         $rc = $u->addEmail($user['email'], 0);
 
