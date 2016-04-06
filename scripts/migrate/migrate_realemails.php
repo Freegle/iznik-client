@@ -21,12 +21,10 @@ function handle($dbhr, $dbhm, $u, $realmail, $user) {
     $id = $u->findByEmail($realmail);
 
     if (!$id || $id == $user['id']) {
-        # But it doesn't.  Add it as the primary, and make sure the groups email is secondary.
+        # But it doesn't.
         error_log("Add $realmail} to {$user['id']} {$user['email']}");
         $u = new User($dbhr, $dbhm, $user['id']);
         $u->addEmail($realmail, 0, FALSE);
-        $u->removeEmail($user['email']);
-        $rc = $u->addEmail($user['email'], 0);
 
         if ($rc) {
             $u->setPrivate('gotrealemail', 1);
