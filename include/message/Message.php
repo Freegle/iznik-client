@@ -1155,21 +1155,21 @@ class Message
 
                 # Now that we have a ID, record which messages are related to this one.
                 $this->recordRelated();
-            }
 
-            if ($this->groupid) {
-                # Save the group we're on.  If we crash or fail at this point we leave the message stranded, which is ok
-                # given the perf cost of a transaction.
-                $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby) VALUES (?,?,?,?,?,?,?,?);", [
-                    $this->id,
-                    $this->groupid,
-                    $this->yahoopendingid,
-                    $this->yahooapprovedid,
-                    $this->yahooreject,
-                    $this->yahooapprove,
-                    MessageCollection::INCOMING,
-                    $approvedby
-                ]);
+                if ($this->groupid) {
+                    # Save the group we're on.  If we crash or fail at this point we leave the message stranded, which is ok
+                    # given the perf cost of a transaction.
+                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby) VALUES (?,?,?,?,?,?,?,?);", [
+                        $this->id,
+                        $this->groupid,
+                        $this->yahoopendingid,
+                        $this->yahooapprovedid,
+                        $this->yahooreject,
+                        $this->yahooapprove,
+                        MessageCollection::INCOMING,
+                        $approvedby
+                    ]);
+                }
             }
 
             # Also save into the history table, for spam checking.

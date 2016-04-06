@@ -918,22 +918,24 @@ define([
                     maxage = age > maxage ? age : maxage;
                     var percent = Math.round((maxage / self.ageLimit) * 100);
                     self.$('.progress-bar:first').css('width',  percent + '%').attr('aria-valuenow', percent);
-    
-                    var thisone = {
-                        email: message['email'],
-                        subject: message['subject'],
-                        date: d.format()
-                    };
-    
-                    if (message.hasOwnProperty('msgId')) {
-                        thisone.yahoopendingid = message['msgId'];
-                    }
-    
-                    if (message.hasOwnProperty('messageId')) {
-                        thisone.yahooapprovedid = message['messageId'];
-                    }
 
-                    this.messages.push(thisone);
+                    if (age < self.ageLimit) {
+                        var thisone = {
+                            email: message['email'],
+                            subject: message['subject'],
+                            date: d.format()
+                        };
+
+                        if (message.hasOwnProperty('msgId')) {
+                            thisone.yahoopendingid = message['msgId'];
+                        }
+
+                        if (message.hasOwnProperty('messageId')) {
+                            thisone.yahooapprovedid = message['messageId'];
+                        }
+
+                        this.messages.push(thisone);
+                    }
                 }
     
                 if (total == 0 || total < this.chunkSize || maxage >= self.ageLimit) {
