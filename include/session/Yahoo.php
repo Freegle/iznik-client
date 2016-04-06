@@ -89,7 +89,7 @@ class Yahoo
                     if ($id) {
                         # Make sure that we have the Yahoo email recorded as one of the emails for this user.
                         $u = new User($this->dbhr, $this->dbhm, $id);
-                        $u->addEmail($attrs['contact/email']);
+                        $u->addEmail($attrs['contact/email'], 0, FALSE);
 
                         # Now Set up a login entry.
                         $rc = $this->dbhm->preExec(

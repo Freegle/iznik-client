@@ -942,7 +942,7 @@ class Message
                 }
 
                 # We might not have this email associated with this user.
-                $emailid = $u->addEmail($this->fromaddr, TRUE);
+                $emailid = $u->addEmail($this->fromaddr, 0, FALSE);
 
                 if ($emailid) {
                     # And we might not have a membership of this group.
@@ -1170,24 +1170,24 @@ class Message
                         $approvedby
                     ]);
                 }
-            }
 
-            # Also save into the history table, for spam checking.
-            $sql = "INSERT INTO messages_history (groupid, source, fromuser, envelopefrom, envelopeto, fromname, fromaddr, fromip, subject, prunedsubject, messageid, msgid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?);";
-            $this->dbhm->preExec($sql, [
-                $this->groupid,
-                $this->source,
-                $this->fromuser,
-                $this->envelopefrom,
-                $this->envelopeto,
-                $this->fromname,
-                $this->fromaddr,
-                $this->fromip,
-                $this->subject,
-                $this->getPrunedSubject(),
-                $this->messageid,
-                $this->id
-            ]);
+                # Also save into the history table, for spam checking.
+                $sql = "INSERT INTO messages_history (groupid, source, fromuser, envelopefrom, envelopeto, fromname, fromaddr, fromip, subject, prunedsubject, messageid, msgid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?);";
+                $this->dbhm->preExec($sql, [
+                    $this->groupid,
+                    $this->source,
+                    $this->fromuser,
+                    $this->envelopefrom,
+                    $this->envelopeto,
+                    $this->fromname,
+                    $this->fromaddr,
+                    $this->fromip,
+                    $this->subject,
+                    $this->getPrunedSubject(),
+                    $this->messageid,
+                    $this->id
+                ]);
+            }
         }
 
         # Add into the search index.
