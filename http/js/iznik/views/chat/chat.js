@@ -1,4 +1,3 @@
-console.log("Load chat window");
 define([
     'jquery',
     'underscore',
@@ -9,6 +8,8 @@ define([
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.Chat.Holder = Iznik.View.extend({
         template: 'chat_holder',
+
+        id: "chatHolder",
 
         wait: function() {
             // We have a long poll open to the server, which when it completes may prompt us to do some work on a
@@ -49,8 +50,21 @@ define([
             }
         },
 
+        removeView: function(chat) {
+            console.log("Remove chat", this, chat.model.get('id'));
+            this.$el.hide();
+            delete this.chatViews[chat.model.get('id')];
+        },
+        
         organise: function() {
-            console.log("Reorganise chats");
+            var maxHeight = 0;
+            this.$('.chat-window').each(function() {
+                maxHeight = maxHeight > $(this).height() ? maxHeight : $(this).height();
+            });
+
+            this.$('.chat-window').each(function() {
+                $(this).css('margin-top', (maxHeight - $(this).outerHeight()) + 'px');
+            });
         },
 
         render: function() {
@@ -61,15 +75,19 @@ define([
             self.chatViews = [];
             self.chats = new Iznik.Collections.Chat.Rooms();
             self.chats.fetch().then(function() {
-                self.chats.each(function(chat) {
-                    var v = new Iznik.Views.Chat.Window({
-                        model: chat
-                    });
-                    self.chatViews[chat.get('id')] = v;
-                    self.listenTo(v, 'minimised closed', self.organise);
-                    v.render();
-                })
+                self.collectionView = new Backbone.CollectionView({
+                    el: self.$('.js-chats'),
+                    modelView: Iznik.Views.Chat.Window,
+                    collection: self.chats,
+                    modelViewOptions: {
+                        'organise': _.bind(self.organise, self)
+                    }
+                });
+
+                self.collectionView.render();
             })
+
+            this.organise();
 
             self.wait();
         }
@@ -78,10 +96,12 @@ define([
     Iznik.Views.Chat.Window = Iznik.View.extend({
         template: 'chat_window',
 
+        tagName: 'li',
+
         className: 'chat-window col-xs-4 col-md-3 col-lg-2 nopad',
 
         events: {
-            'click .js-close': 'close',
+            'click .js-close': 'remove',
             'click .js-minimise': 'minimise',
             'keyup .js-message': 'keyUp'
         },
@@ -111,8 +131,8 @@ define([
             return('chat-' + self.model.get('id') + '-');
         },
 
-        close: function() {
-            this.trigger('closed');
+        remove: function() {
+            this.trigger('removed', this);
             this.$el.remove();
         },
 
@@ -134,8 +154,12 @@ define([
             }, 100);
         },
 
-        dragEnd: function(event, el, opt) {
+        drag: function(event, el, opt) {
             var self = this;
+
+            // We will need to remargin any other chats.
+            self.trigger('resized');
+            self.options.organise();
 
             // Save the new height to local storage so that we can restore it next time.
             try {
@@ -168,10 +192,6 @@ define([
 
                 self.$el.attr('id', 'chat-' + self.model.get('id'));
 
-                // We position chat windows from the right, leftwards.
-                var myind = self.model.collection.indexOf(self.model);
-                self.$el.css('right', myind * 305);
-
                 self.collectionView = new Backbone.CollectionView({
                     el: self.$('.js-messages'),
                     modelView: Iznik.Views.Chat.Message,
@@ -192,8 +212,11 @@ define([
                     handleSelect: '.js-grip',
                     resizeWidthFrom: 'left',
                     resizeHeightFrom: 'top',
-                    onDragEnd: _.bind(self.dragEnd, self)
+                    onDrag: _.bind(self.drag, self)
                 });
+
+                self.trigger('rendered');
+                _.defer(self.options.organise);
             });
         }
     });

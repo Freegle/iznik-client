@@ -27,7 +27,7 @@ function chatmessages() {
                             'status' => 'Success',
                             'chatmessage' => $m->getPublic()
                         ];
-                        $u = new User($ret['chatmessage']['userid']);
+                        $u = new User($dbhr, $dbhm, $ret['chatmessage']['userid']);
                         $ret['chatmessage']['user'] = $u->getPublic(NULL, FALSE);
                     } else {
                         list($msgs, $users) = $r->getMessages();
