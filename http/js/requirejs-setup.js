@@ -26,6 +26,7 @@ requirejs.config({
         "jquery.ui.widget": [ "jquery" ],
         "iznik/accordionpersist": [ "jquery" ],
         "iznik/selectpersist": [ "jquery" ],
+        "jquery-resizable": [ "jquery" ],
 
         // Converse
         'crypto.aes':           { deps: ['crypto.cipher-core'] },
@@ -57,6 +58,7 @@ requirejs.config({
         "waypoints": "/js/lib/jquery.waypoints",
         "fileupload": "/js/lib/jquery-file-upload/jquery.fileupload",
         "jquery.ui.widget": "/js/lib/jquery-file-upload/vendor/jquery.ui.widget",
+        "jquery-ui": "/js/lib/jquery-ui/jquery-ui.min",
         "underscore": "/js/lib/underscore",
         "../underscore": "/js/lib/underscore",
 

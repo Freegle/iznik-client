@@ -4,13 +4,13 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/models/chat/chat'
+    'iznik/models/chat/chat',
+    'jquery-resizable'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.Chat.Holder = Iznik.View.extend({
         template: 'chat_holder',
 
         wait: function() {
-            console.log("Start long poll");
             // We have a long poll open to the server, which when it completes may prompt us to do some work on a
             // chat.  That way we get zippy messaging.
             //
@@ -49,8 +49,11 @@ define([
             }
         },
 
+        organise: function() {
+            console.log("Reorganise chats");
+        },
+
         render: function() {
-            console.log("Render chat wrapper");
             var self = this;
             self.$el.html(window.template(self.template)());
             $("#bodyEnvelope").append(self.$el);
@@ -63,6 +66,7 @@ define([
                         model: chat
                     });
                     self.chatViews[chat.get('id')] = v;
+                    self.listenTo(v, 'minimised closed', self.organise);
                     v.render();
                 })
             })
@@ -71,13 +75,14 @@ define([
         }
     });
 
-                Iznik.Views.Chat.Window = Iznik.View.extend({
+    Iznik.Views.Chat.Window = Iznik.View.extend({
         template: 'chat_window',
 
         className: 'chat-window col-xs-4 col-md-3 col-lg-2 nopad',
 
         events: {
             'click .js-close': 'close',
+            'click .js-minimise': 'minimise',
             'keyup .js-message': 'keyUp'
         },
 
@@ -102,8 +107,22 @@ define([
             }
         },
 
+        lsID: function() {
+            return('chat-' + self.model.get('id') + '-');
+        },
+
         close: function() {
+            this.trigger('closed');
             this.$el.remove();
+        },
+
+        minimise: function() {
+            this.$el.hide();
+            this.minimised = true;
+            this.trigger('minimised');
+            try {
+                localStorage.setItem(this.lsID() + '-minimised', true);
+            } catch (e) {}
         },
 
         scrollBottom: function() {
@@ -115,37 +134,67 @@ define([
             }, 100);
         },
 
+        dragEnd: function(event, el, opt) {
+            var self = this;
+
+            // Save the new height to local storage so that we can restore it next time.
+            try {
+                localStorage.setItem(this.lsID() + '-height', self.$el.height());
+                localStorage.setItem(this.lsID() + '-width', self.$el.width());
+            } catch (e) {}
+        },
+
         render: function () {
             var self = this;
-            self.$el.html(window.template(self.template)(self.model.toJSON2()));
-            $("#chatWrapper").append(self.$el);
-
-            self.$el.attr('id', 'chat-' + self.model.get('id'));
-
-            // We position chat windows from the right, leftwards.
-            var myind = self.model.collection.indexOf(self.model);
-            self.$el.css('right', myind * 305);
 
             self.messages = new Iznik.Collections.Chat.Messages({
                 roomid: self.model.get('id')
             });
 
-            self.collectionView = new Backbone.CollectionView({
-                el: self.$('.js-messages'),
-                modelView: Iznik.Views.Chat.Message,
-                collection: self.messages
-            });
+            self.messages.fetch().then(function() {
+                self.$el.html(window.template(self.template)(self.model.toJSON2()));
+                $("#chatWrapper").append(self.$el);
 
-            self.messages.on('add', function() {
+                try {
+                    // Restore any saved height
+                    var height = localStorage.getItem('chat-' + self.model.get('id') + '-height');
+                    var width = localStorage.getItem('chat-' + self.model.get('id') + '-width');
+
+                    if (height && width) {
+                        self.$el.height(height);
+                        self.$el.width(width);
+                    }
+                } catch (e) {}
+
+                self.$el.attr('id', 'chat-' + self.model.get('id'));
+
+                // We position chat windows from the right, leftwards.
+                var myind = self.model.collection.indexOf(self.model);
+                self.$el.css('right', myind * 305);
+
+                self.collectionView = new Backbone.CollectionView({
+                    el: self.$('.js-messages'),
+                    modelView: Iznik.Views.Chat.Message,
+                    collection: self.messages
+                });
+
+                self.messages.on('add', function() {
+                    self.scrollBottom();
+                    self.$('.chat-when').hide();
+                    self.$('.chat-when:last').show();
+                });
+
+                self.collectionView.render();
+
                 self.scrollBottom();
-                self.$('.chat-when').hide();
-                self.$('.chat-when:last').show();
-            })
 
-            self.collectionView.render();
-            self.messages.fetch();
-
-            self.scrollBottom();
+                self.$el.resizable({
+                    handleSelect: '.js-grip',
+                    resizeWidthFrom: 'left',
+                    resizeHeightFrom: 'top',
+                    onDragEnd: _.bind(self.dragEnd, self)
+                });
+            });
         }
     });
 

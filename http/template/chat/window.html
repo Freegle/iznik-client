@@ -1,6 +1,9 @@
 <div class="chat-name">
-    {{name}}
-    <div class="glyphicon glyphicon-remove pull-right js-close" />
+    <img src="/images/wingrip.png" class="pull-left js-grip">&nbsp;{{name}}
+    <div class="pull-right">
+        <div class="glyphicon glyphicon-minus js-minimise" title="Minimise" />
+        <div class="glyphicon glyphicon-remove js-close" title="Close" />
+     </div>
 </div>
 <div class="chat-content">
     <% if (obj.description) { %>
