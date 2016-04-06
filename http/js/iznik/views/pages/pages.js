@@ -7,7 +7,6 @@ define([
     'iznik/views/group/select',
     'iznik/views/infinite',
     'iznik/views/plugin',
-    'iznik/converse',
     'iznik/views/chat/chat'
 ], function($, _, Backbone, Iznik) {
     // We have a view for everything that is common across all pages, e.g. sidebars.

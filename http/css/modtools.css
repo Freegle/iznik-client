@@ -524,25 +524,6 @@ body, #bodyContent {
     height: 50px !important;
 }
 
-/* Converse overrides */
-#conversejs .chatbox-btn.configure-chatroom-button,
-#conversejs .room-invite,
-#conversejs .room-info,
-#conversejs .set-xmpp-status,
-#conversejs .add-chatroom,
-#conversejs .toggle-clear,
-#available-chatrooms > dt,
-#controlbox,
-#conversejs .occupants-heading {
-    display: none !important;
-}
-
-#controlbox .controlbox-head {
-    background-color: #396aa3 !important;
-}
-#conversejs .chat-head-chatroom {
-    background-color: #009ED9 !important;;
-}
 
 /*==================================================
 =            Bootstrap 3 Media Queries             =

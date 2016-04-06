@@ -900,11 +900,6 @@ a button {
     font-family: Roboto;
 }
 
-/* Chat needs to cover navbar */
-#conversejs {
-    z-index: 1050 !important;
-}
-
 /*Form Wizard - for form stage progress indicator*/
 .bs-wizard {margin-top: 40px;}
 .bs-wizard {border-bottom: solid 1px #e0e0e0; padding: 0 0 10px 0;}

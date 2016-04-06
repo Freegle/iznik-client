@@ -57,7 +57,6 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <link rel="stylesheet" href="/css/bootstrap-tagsinput.css">
     <link rel="stylesheet" href="/js/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css">
     <link rel="stylesheet" href="/css/dd.css">
-    <link rel="stylesheet" type="text/css" media="screen" href="/css/converse.min.css">
 
     <!-- And then we do custom styling on top. -->
     <!--[if !IE]><!-->
