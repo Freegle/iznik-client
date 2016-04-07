@@ -161,10 +161,10 @@ define([
                 var message = this.$('.js-message').val();
                 if (message.length > 0) {
                     self.listenToOnce(this.model, 'sent', function() {
-                        self.messages.fetch().then(function() {
-                            self.$('.js-message').val('');
-                            self.$('.js-message').prop('disabled', false);
-                        })
+                        self.$('.js-message').val('');
+                        self.$('.js-message').prop('disabled', false);
+                        self.$('.js-message').focus();
+                        self.messages.fetch();
                     });
                     this.model.send(message);
                 }
