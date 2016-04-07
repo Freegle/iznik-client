@@ -83,8 +83,6 @@ define([
                 });
             }
 
-            console.log("Minimised", minimised);
-
             if (minimised == 0) {
                 $('#chatMinimised').hide();
             } else {
@@ -141,8 +139,8 @@ define([
         className: 'chat-window col-xs-4 col-md-3 col-lg-2 nopad',
 
         events: {
-            'click .js-close': 'remove',
-            'click .js-minimise': 'minimise',
+            'click .js-close, touchstart .js-close': 'remove',
+            'click .js-minimise, touchstart .js-minimise': 'minimise',
             'keyup .js-message': 'keyUp'
         },
 
@@ -194,7 +192,7 @@ define([
             this.options.organise();
 
             try {
-                localStorage.setItem(this.lsID() + '-minimised', false);
+                localStorage.removeItem(this.lsID() + '-minimised');
             } catch (e) {}
         },
 
@@ -246,7 +244,8 @@ define([
                     }
 
                     // On mobile we start them all minimised as there's not much room.
-                    if (localStorage.getItem(self.lsID() + '-minimised') == "true" || mobile) {
+                    console.log("Minimise?", localStorage.getItem(self.lsID() + '-minimised'), mobile);
+                    if (localStorage.getItem(self.lsID() + '-minimised')|| mobile) {
                         self.minimise();
                     }
                 } catch (e) {}
@@ -270,7 +269,7 @@ define([
                 self.scrollBottom();
 
                 self.$el.resizable({
-                    handleSelect: '.js-grip',
+                    handleSelector: '.js-grip',
                     resizeWidthFrom: 'left',
                     resizeHeightFrom: 'top',
                     onDrag: _.bind(self.drag, self)

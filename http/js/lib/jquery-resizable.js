@@ -64,6 +64,7 @@ Licensed under MIT License
 
             function startDragging(e) {
                 startPos = getMousePos(e);
+
                 startPos.width = parseInt($el.width(), 10);
                 startPos.height = parseInt($el.height(), 10);
 
