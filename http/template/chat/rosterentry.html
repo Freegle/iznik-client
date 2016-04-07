@@ -1,3 +1,9 @@
 <div class="ellipsis">
-    {{user.displayname}}
+    <% if (status == 'Online') { %>
+    <div class="led-green inline pull-left" />
+    <% } %>
+    <% if (status == 'Away') { %>
+    <div class="led-yellow inline pull-left" />
+    <% } %>
+    <div>{{user.displayname}}</div>
 </div>

@@ -1044,6 +1044,45 @@ a button {
     color:  #1D6607;
 }
 
+body { padding: 100px; background-color: #222; }
+
+.led-red {
+    margin: 2px auto;
+    width: 7px;
+    height: 7px;
+    background-color: #940;
+    border-radius: 50%;
+    margin-top: 6px;
+    margin-right: 4px;}
+
+.led-yellow {
+    margin: 2px auto;
+    width: 7px;
+    height: 7px;
+    background-color: #A90;
+    border-radius: 50%;
+    margin-top: 6px;
+    margin-right: 4px;}
+
+.led-green {
+    margin: 2px auto;
+    width: 7px;
+    height: 7px;
+    background-color: #690;
+    border-radius: 50%;
+    margin-top: 6px;
+    margin-right: 4px;
+}
+
+.led-blue {
+    margin: 2px auto;
+    width: 7px;
+    height: 7px;
+    background-color: #4AB;
+    border-radius: 50%;
+    margin-top: 6px;
+    margin-right: 4px;}
+
 /* End chat */
 
 /*==================================================

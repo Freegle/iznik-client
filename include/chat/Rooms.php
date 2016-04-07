@@ -104,12 +104,13 @@ class ChatRoom extends Entity
     }
 
     public function getRoster() {
-        $mysqltime = date("Y-m-d H:i:s", strtotime("60 seconds ago"));
-        $sql = "SELECT * FROM chat_roster WHERE `chatid` = ? AND `date` >= ?;";
+        $mysqltime = date("Y-m-d H:i:s", strtotime("600 seconds ago"));
+        $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster WHERE `chatid` = ? AND `date` >= ?;";
         $roster = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
 
         foreach ($roster as &$rost) {
             $u = new User($this->dbhr, $this->dbhm, $rost['userid']);
+            $rost['status'] = $rost['secondsago'] < 60 ? 'Online' : 'Away';
             $ctx = NULL;
             $rost['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
         }
