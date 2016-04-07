@@ -18,7 +18,6 @@ define([
     'bootstrap-tagsinput',
     'jquery.dd',
     'jquery.dotdotdot',
-    'jquery-show-first',
     'iznik/underscore',
     'iznik/utility',
     'iznik/majax'

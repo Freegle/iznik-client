@@ -201,6 +201,12 @@ define([
             this.trigger('minimised');
         },
 
+        setHeight: function() {
+            var newHeight = this.$el.height() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter input').outerHeight();
+            console.log("Height", newHeight, this.$el.height() ,this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
+            this.$('.js-leftpanel, .js-roster').height(newHeight);
+        },
+
         restore: function() {
             var self = this;
             self.minimised = false;
@@ -208,7 +214,10 @@ define([
             // We fetch the messages when restoring - no need before then.
             self.messages.fetch().then(function() {
                 self.options.organise();
+                self.setHeight();
                 self.$el.css('visibility', 'visible');
+                self.$el.show();
+                self.scrollBottom();
 
                 try {
                     localStorage.removeItem(self.lsID() + '-minimised');
@@ -233,6 +242,7 @@ define([
 
             // We will need to remargin any other chats.
             self.trigger('resized');
+            self.setHeight();
             self.options.organise();
 
             // Save the new height to local storage so that we can restore it next time.
@@ -312,6 +322,7 @@ define([
             } catch (e) {}
 
             self.$el.attr('id', 'chat-' + self.model.get('id'));
+            self.$el.addClass('chat-' + self.model.get('name'));
 
             self.collectionView = new Backbone.CollectionView({
                 el: self.$('.js-messages'),

@@ -4,7 +4,8 @@ define([
     'backbone',
     'moment',
     'iznik/base',
-    'iznik/views/modal'
+    'iznik/views/modal',
+    'jquery-show-first'
 ], function($, _, Backbone, moment, Iznik) {
         Iznik.Views.ModTools.User = Iznik.View.extend({
         template: 'modtools_user_user',

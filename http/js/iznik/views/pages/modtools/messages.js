@@ -4,7 +4,8 @@ define([
     'backbone',
     'moment',
     'iznik/base',
-    'iznik/views/pages/pages'
+    'iznik/views/pages/pages',
+    'jquery-show-first'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Message = Iznik.View.extend({
         rarelyUsed: function () {
