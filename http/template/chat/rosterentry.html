@@ -5,5 +5,8 @@
     <% if (status == 'Away') { %>
     <div class="led-yellow inline pull-left" />
     <% } %>
+    <% if (status == 'Offline') { %>
+    <div class="led-red inline pull-left" />
+    <% } %>
     <div>{{user.displayname}}</div>
 </div>

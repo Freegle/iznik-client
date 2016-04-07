@@ -134,7 +134,7 @@ define([
                 });
 
                 self.collectionView.render();
-                
+
                 self.updateCounts();
                 self.organise();
             });
@@ -379,13 +379,13 @@ define([
                 // Restore any saved height
                 var height = localStorage.getItem('chat-' + self.model.get('id') + '-height');
                 var width = localStorage.getItem('chat-' + self.model.get('id') + '-width');
-                var lpwidth = localStorage.getItem('chat-' + self.model.get('id') + '-lp');
-                lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
-
                 if (height && width) {
                     self.$el.height(height);
                     self.$el.width(width);
                 }
+
+                var lpwidth = localStorage.getItem('chat-' + self.model.get('id') + '-lp');
+                lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
 
                 if (lpwidth) {
                     self.$('.js-leftpanel').width(lpwidth);
