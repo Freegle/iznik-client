@@ -28,7 +28,10 @@ function chatrooms() {
                     if ($rooms) {
                         foreach ($rooms as $room) {
                             $r = new ChatRoom($dbhr, $dbhm, $room);
-                            $ret['chatrooms'][] = $r->getPublic();
+                            $atts = $r->getPublic();
+                            $atts['unseen'] = $r->unseenForUser($myid);
+                            $atts['lastmsgseen'] = $r->lastSeenForUser($myid);
+                            $ret['chatrooms'][] = $atts;
                         }
                     }
                 }
@@ -38,13 +41,18 @@ function chatrooms() {
 
         case 'POST': {
             # Update our presence and get the current roseter.
-            $me = whoAmI($dbhr, $dbhm);
             $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
             if ($me && $id) {
                 $ret = ['ret' => 0, 'status' => 'Success'];
-                $r->updateRoster($myid);
-                $ret['roster'] = $r->getRoster();
+                $lastmsgseen = presdef('lastmsgseen', $_REQUEST, NULL);
+
+                if ($lastmsgseen) {
+                    $r->updateRoster($myid, $lastmsgseen);
+                    $ret['roster'] = $r->getRoster();
+                }
+
+                $ret['unseen'] = $r->unseenForUser($myid);
             }
         }
     }

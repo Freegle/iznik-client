@@ -980,6 +980,7 @@ a button {
 
 #chatMinimised li {
     border: 1px solid lightblue;
+    padding: 2px;
 }
 
 .chat-window {
@@ -1043,6 +1044,11 @@ a button {
 
 .chat-other{
     color:  #1D6607;
+}
+
+.badge-unread {
+    background-color: #D41301;
+    color: white
 }
 
 body { padding: 100px; background-color: #222; }

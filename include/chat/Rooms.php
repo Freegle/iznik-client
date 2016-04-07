@@ -63,6 +63,22 @@ class ChatRoom extends Entity
         return($ret);
     }
 
+    public function lastSeenForUser($userid) {
+        # Find if we have any unseen messages.
+        $sql = "SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?;";
+        $counts = $this->dbhr->preQuery($sql, [ $this->id, $userid ]);
+        #return(round(rand(1, 10)));
+        return($counts[0]['lastmsgseen']);
+    }
+
+    public function unseenForUser($userid) {
+        # Find if we have any unseen messages.
+        $sql = "SELECT COUNT(*) AS count FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?), 0) AND chatid = ?;";
+        $counts = $this->dbhr->preQuery($sql, [ $this->id, $userid, $this->id  ]);
+        #return(round(rand(1, 10)));
+        return($counts[0]['count']);
+    }
+
     public function listForUser($userid) {
         $ret = [];
         $u = new User($this->dbhr, $this->dbhm, $userid);
@@ -94,12 +110,13 @@ class ChatRoom extends Entity
         return($rooms ? in_array($this->id, $rooms) : FALSE);
     }
 
-    public function updateRoster($userid) {
+    public function updateRoster($userid, $lastmsgseen) {
         # We have a unique key, and an update on current timestamp.
-        $this->dbhm->preExec("REPLACE INTO chat_roster (chatid, userid) VALUES (?,?);",
+        $this->dbhm->preExec("REPLACE INTO chat_roster (chatid, userid, lastmsgseen) VALUES (?,?,?);",
             [
                 $this->id,
-                $userid
+                $userid,
+                $lastmsgseen
             ]);
     }
 

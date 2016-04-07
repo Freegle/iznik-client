@@ -99,6 +99,20 @@ define([
             }
         },
 
+        updateCounts: function() {
+            var self = this;
+            var unseen = 0;
+            self.chats.each(function(chat) {
+                unseen += chat.get('unseen');
+            });
+
+            if (unseen > 0) {
+                self.$('.js-count').html(unseen).show();
+            } else {
+                self.$('.js-count').html(unseen).hide();
+            }
+        },
+
         render: function() {
             var self = this;
 
@@ -107,6 +121,8 @@ define([
 
             self.chats = new Iznik.Collections.Chat.Rooms();
             self.chats.fetch().then(function() {
+                self.updateCounts();
+
                 self.collectionView = new Backbone.CollectionView({
                     el: self.$('.js-chats'),
                     modelView: Iznik.Views.Chat.Window,
@@ -118,7 +134,12 @@ define([
 
                 self.collectionView.render();
                 self.organise();
-            })
+            });
+
+            self.chats.each(function(chat) {
+                // If the unread message count changes, we want to update it.
+                self.listenTo(chat, 'change:unseen', self.updateCount);
+            });
 
             self.wait();
         }
@@ -134,8 +155,31 @@ define([
         },
 
         click: function() {
-            console.log("Rstore", this.options.chat);
             this.options.chat.restore();
+        },
+
+        updateCount: function() {
+            var self = this;
+            var unseen = self.model.get('unseen');
+
+            if (unseen > 0) {
+                self.$('.js-count').html(unseen).show();
+            } else {
+                self.$('.js-count').html(unseen).hide();
+            }
+
+            self.trigger('countupdated', unseen);
+        },
+
+        render: function() {
+            var self = this;
+            self.$el.html(window.template(self.template)(self.model.toJSON2()));
+            self.updateCount();
+
+            // If the unread message count changes, we want to update it.
+            self.listenTo(self.model, 'change:unseen', self.updateCount);
+
+            return(self);
         }
     });
 
@@ -149,6 +193,7 @@ define([
         events: {
             'click .js-close, touchstart .js-close': 'remove',
             'click .js-minimise, touchstart .js-minimise': 'minimise',
+            'focus .js-message': 'messageFocus',
             'keyup .js-message': 'keyUp'
         },
 
@@ -185,12 +230,17 @@ define([
             this.$el.remove();
         },
 
+        messageFocus: function() {
+            this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
+            this.model.set('unseen', 0);
+            this.updateCount();
+        },
+
         minimise: function() {
-            console.log("Minimise", this.$el);
             var self = this;
             _.defer(function() {
                 self.$el.hide();
-            })
+            });
             this.minimised = true;
             this.options.organise();
 
@@ -201,7 +251,7 @@ define([
             this.trigger('minimised');
         },
 
-        setHeight: function() {
+        adjust: function() {
             var newHeight = this.$el.height() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter input').outerHeight();
             console.log("Height", newHeight, this.$el.height() ,this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
             this.$('.js-leftpanel, .js-roster').height(newHeight);
@@ -214,7 +264,7 @@ define([
             // We fetch the messages when restoring - no need before then.
             self.messages.fetch().then(function() {
                 self.options.organise();
-                self.setHeight();
+                self.adjust();
                 self.$el.css('visibility', 'visible');
                 self.$el.show();
                 self.scrollBottom();
@@ -242,7 +292,7 @@ define([
 
             // We will need to remargin any other chats.
             self.trigger('resized');
-            self.setHeight();
+            self.adjust();
             self.options.organise();
 
             // Save the new height to local storage so that we can restore it next time.
@@ -269,6 +319,9 @@ define([
                 $.ajax({
                     url: API + 'chat/rooms/' + self.model.get('id'),
                     type: 'POST',
+                    data: {
+                        lastmsgseen: self.model.get('lastmsgseen')
+                    },
                     success: function(ret) {
                         self.$('.js-roster').empty();
                         _.each(ret.roster, function(rost) {
@@ -278,11 +331,26 @@ define([
                             });
                             self.$('.js-roster').append(v.render().el);
                         });
+
+                        self.model.set('unseen', ret.unseen);
                     }, complete: function() {
                         _.delay(_.bind(self.roster, self), 30000);
                     }
                 });
             }
+        },
+
+        updateCount: function() {
+            var self = this;
+            var unseen = self.model.get('unseen');
+
+            if (unseen > 0) {
+                self.$('.js-count').html(unseen).show();
+            } else {
+                self.$('.js-count').html(unseen).hide();
+            }
+
+            self.trigger('countupdated', unseen);
         },
 
         render: function () {
@@ -295,6 +363,12 @@ define([
             });
 
             self.$el.html(window.template(self.template)(self.model.toJSON2()));
+
+            self.updateCount();
+
+            // If the unread message count changes, we want to update it.
+            self.listenTo(self.model, 'change:unseen', self.updateCount);
+
             var mobile = isMobile();
             var minimise = true;
 
@@ -303,6 +377,7 @@ define([
                 var height = localStorage.getItem('chat-' + self.model.get('id') + '-height');
                 var width = localStorage.getItem('chat-' + self.model.get('id') + '-width');
                 var lpwidth = localStorage.getItem('chat-' + self.model.get('id') + '-lp');
+                lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
 
                 if (height && width) {
                     self.$el.height(height);
@@ -327,7 +402,8 @@ define([
             self.collectionView = new Backbone.CollectionView({
                 el: self.$('.js-messages'),
                 modelView: Iznik.Views.Chat.Message,
-                collection: self.messages
+                collection: self.messages,
+                chatView: self
             });
 
             self.messages.on('add', function() {
@@ -340,7 +416,6 @@ define([
 
             self.scrollBottom();
 
-            console.log("Chat", self.model.get('name'), minimise);
             minimise ? self.minimise() : self.restore();
 
             self.$el.resizable({
@@ -367,6 +442,7 @@ define([
         template: 'chat_message',
 
         render: function() {
+            // this.model.set('lastmsgseen', this.options.chatView.lastmsgseen);
             this.$el.html(window.template(this.template)(this.model.toJSON2()));
             this.$('.timeago').timeago();
             this.$el.fadeIn('slow');
