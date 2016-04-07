@@ -208,6 +208,7 @@ define([
             // We fetch the messages when restoring - no need before then.
             self.messages.fetch().then(function() {
                 self.options.organise();
+                self.$el.css('visibility', 'visible');
 
                 try {
                     localStorage.removeItem(self.lsID() + '-minimised');
@@ -277,6 +278,8 @@ define([
         render: function () {
             var self = this;
 
+            self.$el.css('visibility', 'hidden');
+
             self.messages = new Iznik.Collections.Chat.Messages({
                 roomid: self.model.get('id')
             });
@@ -333,7 +336,7 @@ define([
                 handleSelector: '.js-grip',
                 resizeWidthFrom: 'left',
                 resizeHeightFrom: 'top',
-                onDrag: _.bind(self.drag, self)
+                onDragEnd: _.bind(self.drag, self)
             });
 
             self.$(".js-leftpanel").resizable({

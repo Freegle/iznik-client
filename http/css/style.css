@@ -1003,6 +1003,7 @@ a button {
     flex-direction: row;
     border: 1px solid silver;
     overflow: hidden;
+    height: 100%;
 }
 
 .chat-messages-panel {
@@ -1010,6 +1011,7 @@ a button {
     padding: 0px;
     width: 250px;
     height: 200px;
+    height: 100%;
 }
 
 .splitter {
@@ -1030,17 +1032,14 @@ a button {
 }
 
 .chat-messages {
-    height: 200px;
-}
-
-.chat-input-wrapper {
-    position: relative;
+    height: 75%;
 }
 
 .chat-input {
     position: absolute;
     bottom: 0;
     left: 0;
+    height: 10%;
 }
 
 .chat-mine {
