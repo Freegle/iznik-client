@@ -589,7 +589,7 @@ class Group extends Entity
 
     public function getSetting($key, $def) {
         $settings = json_decode($this->group['settings'], true);
-        return(presdef($key, $settings, $def));
+        return(array_key_exists($key, $settings) ? $settings[$key] : $def);
     }
 
     private function getKey($message) {

@@ -695,19 +695,28 @@ class User extends Entity
         $sets = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
 
         # Defaults match memberships ones in Group.php.
-        $settings = [
+        $defaults = [
             'showmessages' => 1,
             'showmembers' => 1,
+            'showchat' => 1,
             'pushnotify' => 1
         ];
 
         foreach ($sets as $set) {
+            $settings = [];
+
             if ($set['settings']) {
                 $settings = json_decode($set['settings'], TRUE);
 
                 if ($set['role'] == User::ROLE_OWNER || $set['role'] == User::ROLE_MODERATOR) {
                     $c = new ModConfig($this->dbhr, $this->dbhm);
                     $settings['configid'] = $c->getForGroup($this->id, $groupid);
+                }
+            }
+
+            foreach ($defaults as $key => $val) {
+                if (!array_key_exists($key, $settings)) {
+                    $settings[$key] = $val;
                 }
             }
         }

@@ -99,6 +99,10 @@ define([
 
             function loadPage() {
                 firstbeep = true;
+
+                // Hide the page loader, which might still be there.
+                $('#pageloader').remove();
+
                 routeOptions.page.render();
             }
 

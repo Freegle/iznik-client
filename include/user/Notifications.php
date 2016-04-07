@@ -149,10 +149,8 @@ class Notifications
                     error_log("Failed to post");
                 } else {
                     fputs($fp, $header . $vars);
-
                     $server_response = fread($fp, 256);
-                    error_log("Rsp on $service_uri $server_response");
-                    # No need to bother waiting for the response.
+                    #error_log("Rsp on $service_uri $server_response");
                 }
             }
         } catch (Exception $e) {

@@ -10,9 +10,6 @@ require([
 ], function($, _, Backbone) {
     Backbone.emulateJSON = true;
     
-    // Hide the page loader
-    $('#pageloader').remove();
-
     // We have a busy indicator.
     $(document).ajaxStop(function () {
         $('#spinner').hide();

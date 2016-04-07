@@ -46,7 +46,7 @@ class chatRoomsAPITest extends IznikAPITestCase
     {
     }
 
-    public function testGet()
+    public function testBasic()
     {
         error_log(__METHOD__);
         
@@ -84,6 +84,14 @@ class chatRoomsAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($rid, $ret['chatroom']['id']);
+
+        # Roster
+        $ret = $this->call('chatrooms', 'POST', [
+            'id' => $rid
+        ]);
+        error_log(var_export($ret, TRUE));
+        assertEquals($this->uid, $ret['roster'][0]['userid']);
+        assertEquals('Test User', $ret['roster'][0]['user']['fullname']);
 
         error_log(__METHOD__ . " end");
     }

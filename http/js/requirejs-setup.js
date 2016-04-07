@@ -21,7 +21,7 @@ requirejs.config({
         "jquery.dd": [ "jquery" ],
         "jquery.dotdotdot": [ "jquery" ],
         "jquery.geocomplete": [ "jquery" ],
-        "jquery-show-first": [ "jquery" ],
+        "jquery-show-first": [ "iznik/utility", "jquery" ],
         "fileupload": [ "jquery" ],
         "jquery.ui.widget": [ "jquery" ],
         "jquery.ui.touch-punch": [ "jquery" ],

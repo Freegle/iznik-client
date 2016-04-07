@@ -30,6 +30,10 @@
     color: #777 !important;
 }
 
+.msgsubj input {
+    z-index:0 !important;
+}
+
 /*Start custom navbar*/
 
 .navbar-custom {

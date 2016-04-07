@@ -979,7 +979,6 @@ a button {
 }
 
 #chatMinimised li {
-    padding: 15px !important;
     border: 1px solid lightblue;
 }
 
@@ -992,6 +991,42 @@ a button {
     height: 300px;
     width: 300px;
     z-index: 10;
+    bottom: 0;
+}
+
+.chat-window li {
+    z-index: 10;
+}
+
+.chat-content {
+    display: flex;
+    flex-direction: row;
+    border: 1px solid silver;
+    overflow: hidden;
+}
+
+.chat-messages-panel {
+    flex: 0 0 auto;  /* only manually resize */
+    padding: 0px;
+    width: 250px;
+    height: 200px;
+}
+
+.splitter {
+    flex: 0 0 auto;
+    width: 18px;
+    background: url(/images/vsizegrip.png) center center no-repeat;
+    background-size: 5px 30px;
+    min-height: 200px;
+    cursor: col-resize;
+}
+
+.chat-roster-panel {
+    flex: 1 1 auto; /* resizable */
+    padding: 0px;
+    width: 100%;
+    height: 200px;
+    width: 50px;
 }
 
 .chat-messages {

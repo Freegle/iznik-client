@@ -21,7 +21,7 @@ function chatrooms() {
 
                 if ($me) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
-
+                    
                     $rooms = $r->listForUser($myid);
                     $ret['chatrooms'] = [];
 
@@ -34,6 +34,18 @@ function chatrooms() {
                 }
             }
             break;
+        }
+
+        case 'POST': {
+            # Update our presence and get the current roseter.
+            $me = whoAmI($dbhr, $dbhm);
+            $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
+
+            if ($me && $id) {
+                $ret = ['ret' => 0, 'status' => 'Success'];
+                $r->updateRoster($myid);
+                $ret['roster'] = $r->getRoster();
+            }
         }
     }
 

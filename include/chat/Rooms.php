@@ -66,13 +66,23 @@ class ChatRoom extends Entity
     public function listForUser($userid) {
         $ret = [];
         $u = new User($this->dbhr, $this->dbhm, $userid);
-        $mod = $u->isModerator();
 
-        $sql = "SELECT id, modonly FROM chat_rooms WHERE groupid IS NULL OR groupid IN (SELECT groupid FROM memberships WHERE userid = ?);";
+        $sql = "SELECT id, modonly, groupid FROM chat_rooms WHERE groupid IS NULL OR groupid IN (SELECT groupid FROM memberships WHERE userid = ?);";
         $rooms = $this->dbhr->preQuery($sql, [ $userid ]);
         foreach ($rooms as $room) {
-            if (!$room['modonly'] || $mod) {
-                $ret[] = $room['id'];
+            #error_log("Consider {$room['id']} group {$room['groupid']} modonly {$room['modonly']} " . $u->isModOrOwner($room['groupid']));
+            if (!$room['modonly'] || $u->isModOrOwner($room['groupid'])) {
+                $show = TRUE;
+
+                if ($room['groupid']) {
+                    # See if the group allows chat.
+                    $g = new Group($this->dbhr, $this->dbhm, $room['groupid']);
+                    $show = $g->getSetting('showchat', TRUE);
+                }
+
+                if ($show) {
+                    $ret[] = $room['id'];
+                }
             }
         }
 
@@ -83,19 +93,47 @@ class ChatRoom extends Entity
         $rooms = $this->listForUser($userid);
         return($rooms ? in_array($this->id, $rooms) : FALSE);
     }
+
+    public function updateRoster($userid) {
+        # We have a unique key, and an update on current timestamp.
+        $this->dbhm->preExec("REPLACE INTO chat_roster (chatid, userid) VALUES (?,?);",
+            [
+                $this->id,
+                $userid
+            ]);
+    }
+
+    public function getRoster() {
+        $mysqltime = date("Y-m-d H:i:s", strtotime("60 seconds ago"));
+        $sql = "SELECT * FROM chat_roster WHERE `chatid` = ? AND `date` >= ?;";
+        $roster = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
+
+        foreach ($roster as &$rost) {
+            $u = new User($this->dbhr, $this->dbhm, $rost['userid']);
+            $ctx = NULL;
+            $rost['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
+        }
+
+        return($roster);
+    }
     
     public function pokeMembers() {
         # Poke members of a chat room.
-        $modq = $this->chatroom['modonly'] ? " AND role IN ('Owner', 'Moderator') " : "";
-        $sql = "SELECT userid FROM memberships WHERE groupid = ? $modq;";
-        $members = $this->dbhr->preQuery($sql, [ $this->chatroom['groupid'] ]);
         $data = [
             'roomid' => $this->id
         ];
 
-        foreach ($members as $member) {
-            Notifications::poke($member['userid'], $data);
+        $mysqltime = date("Y-m-d H:i:s", strtotime("60 seconds ago"));
+        $sql = "SELECT * FROM chat_roster WHERE `chatid` = ? AND `date` >= ?;";
+        $roster = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
+        $count = 0;
+
+        foreach ($roster as $rost) {
+            Notifications::poke($rost['userid'], $data);
+            $count++;
         }
+
+        error_log("Poked $count on {$this->id}");
     }
 
     public function getMessages($limit = 100) {

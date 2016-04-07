@@ -1,15 +1,21 @@
-    <div class="chat-name">
-        <img src="/images/wingrip.png" class="pull-left js-grip">&nbsp;{{name}}
-        <div class="pull-right">
-            <div class="glyphicon glyphicon-minus js-minimise" title="Minimise" />
-            <div class="glyphicon glyphicon-remove js-close" title="Close" />
-         </div>
-    </div>
-    <div class="chat-content">
-        <% if (obj.description) { %>
-        <div class="padleft text-muted">{{description}}</div>
-        <hr class="nomargin" />
-        <% } %>
+<div class="chat-name">
+    <img src="/images/wingrip.png" class="pull-left js-grip">&nbsp;{{name}}
+    <div class="pull-right">
+        <div class="glyphicon glyphicon-minus js-minimise" title="Minimise" />
+        <div class="glyphicon glyphicon-remove js-close" title="Close" />
+     </div>
+</div>
+<% if (obj.description) { %>
+<div class="padleft text-muted">{{description}}</div>
+<hr class="nomargin" />
+<% } %>
+<div class="chat-content">
+    <div class="chat-messages-panel js-leftpanel">
         <div class="overscrolly list-unstyled chat-messages js-messages padmd" />
-        <input type="text" class="padtop chat-input form-control js-message" placeholder="Type here..." />
+        <input type="text" maxlength="1024" class="padtop chat-input form-control js-message" placeholder="Type here..." />
     </div>
+    <div class="splitter" />
+
+    <div class="chat-roster-panel js-roster">
+    </div>
+</div>
