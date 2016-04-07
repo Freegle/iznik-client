@@ -1051,7 +1051,9 @@ a button {
     color: white
 }
 
-body { padding: 100px; background-color: #222; }
+body {
+    background-color: #222;
+}
 
 .led-red {
     margin: 2px auto;

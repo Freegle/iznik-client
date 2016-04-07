@@ -103,7 +103,10 @@ define([
             var self = this;
             var unseen = 0;
             self.chats.each(function(chat) {
-                unseen += chat.get('unseen');
+                var chatView = self.collectionView.viewManager.findByModel(chat);
+                if (chatView.minimised) {
+                    unseen += chat.get('unseen');
+                }
             });
 
             if (unseen > 0) {
@@ -121,8 +124,6 @@ define([
 
             self.chats = new Iznik.Collections.Chat.Rooms();
             self.chats.fetch().then(function() {
-                self.updateCounts();
-
                 self.collectionView = new Backbone.CollectionView({
                     el: self.$('.js-chats'),
                     modelView: Iznik.Views.Chat.Window,
@@ -133,6 +134,8 @@ define([
                 });
 
                 self.collectionView.render();
+                
+                self.updateCounts();
                 self.organise();
             });
 
