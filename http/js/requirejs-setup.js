@@ -24,6 +24,7 @@ requirejs.config({
         "jquery-show-first": [ "jquery" ],
         "fileupload": [ "jquery" ],
         "jquery.ui.widget": [ "jquery" ],
+        "jquery.ui.touch-punch": [ "jquery" ],
         "iznik/accordionpersist": [ "jquery" ],
         "iznik/selectpersist": [ "jquery" ],
         "jquery-resizable": [ "jquery" ],

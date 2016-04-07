@@ -35,7 +35,7 @@ define([
                             if (data.hasOwnProperty('roomid')) {
                                 // Activity on this room.  Refetch the mesages within it.
                                 console.log("Refetch chat", data.roomid, self);
-                                var chat = self.chatViews[data.roomid];
+                                var chat = self.chats.get(data.roomid);
                                 console.log("Got chat", chat);
                                 chat.messages.fetch().then(function() {
                                     self.wait();
@@ -55,24 +55,50 @@ define([
             this.$el.hide();
             delete this.chatViews[chat.model.get('id')];
         },
-        
+
         organise: function() {
+            var self = this;
             var maxHeight = 0;
-            this.$('.chat-window').each(function() {
+            self.$('.chat-window').each(function() {
                 maxHeight = maxHeight > $(this).height() ? maxHeight : $(this).height();
             });
 
-            this.$('.chat-window').each(function() {
+            self.$('.chat-window').each(function() {
                 $(this).css('margin-top', (maxHeight - $(this).outerHeight()) + 'px');
             });
+
+            var minimised = 0;
+            $('#chatMinimised ul').empty();
+
+            if (self.collectionView) {
+                self.collectionView.viewManager.each(function(chat) {
+                    if (chat.minimised) {
+                        minimised++;
+                        var v = new Iznik.Views.Chat.Minimised({
+                            model: chat.model,
+                            chat: chat
+                        });
+                        $('#chatMinimised ul').append(v.render().el);
+                    }
+                });
+            }
+
+            console.log("Minimised", minimised);
+
+            if (minimised == 0) {
+                $('#chatMinimised').hide();
+            } else {
+                $('#chatMinimised .js-title').html("Chats (" + minimised + ")");
+                $('#chatMinimised').show();
+            }
         },
 
         render: function() {
             var self = this;
+
             self.$el.html(window.template(self.template)());
             $("#bodyEnvelope").append(self.$el);
 
-            self.chatViews = [];
             self.chats = new Iznik.Collections.Chat.Rooms();
             self.chats.fetch().then(function() {
                 self.collectionView = new Backbone.CollectionView({
@@ -85,11 +111,25 @@ define([
                 });
 
                 self.collectionView.render();
+                self.organise();
             })
 
-            this.organise();
-
             self.wait();
+        }
+    });
+
+    Iznik.Views.Chat.Minimised = Iznik.View.extend({
+        template: 'chat_minimised',
+
+        tagName: 'li',
+
+        events: {
+            'click': 'click'
+        },
+
+        click: function() {
+            console.log("Rstore", this.options.chat);
+            this.options.chat.restore();
         }
     });
 
@@ -128,7 +168,7 @@ define([
         },
 
         lsID: function() {
-            return('chat-' + self.model.get('id') + '-');
+            return('chat-' + this.model.get('id'));
         },
 
         remove: function() {
@@ -140,8 +180,21 @@ define([
             this.$el.hide();
             this.minimised = true;
             this.trigger('minimised');
+            this.options.organise();
+
             try {
                 localStorage.setItem(this.lsID() + '-minimised', true);
+            } catch (e) { window.alert(e.message)};
+        },
+
+        restore: function() {
+            this.$el.show();
+            this.minimised = false;
+            this.trigger('restored');
+            this.options.organise();
+
+            try {
+                localStorage.setItem(this.lsID() + '-minimised', false);
             } catch (e) {}
         },
 
@@ -171,13 +224,16 @@ define([
         render: function () {
             var self = this;
 
+            // Hide until we've finished rendering and deciding which are minimised.
+            self.$el.css('visibility', 'hidden');
+
             self.messages = new Iznik.Collections.Chat.Messages({
                 roomid: self.model.get('id')
             });
 
             self.messages.fetch().then(function() {
                 self.$el.html(window.template(self.template)(self.model.toJSON2()));
-                $("#chatWrapper").append(self.$el);
+                var mobile = isMobile();
 
                 try {
                     // Restore any saved height
@@ -187,6 +243,11 @@ define([
                     if (height && width) {
                         self.$el.height(height);
                         self.$el.width(width);
+                    }
+
+                    // On mobile we start them all minimised as there's not much room.
+                    if (localStorage.getItem(self.lsID() + '-minimised') == "true" || mobile) {
+                        self.minimise();
                     }
                 } catch (e) {}
 
@@ -216,7 +277,10 @@ define([
                 });
 
                 self.trigger('rendered');
-                _.defer(self.options.organise);
+                _.defer(function() {
+                    self.options.organise();
+                    self.$el.css('visibility', 'visible');
+                });
             });
         }
     });

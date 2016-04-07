@@ -447,7 +447,6 @@ a button {
 #bodyEnvelope {
     min-height: 100% !important;
     height: auto !important;
-    position: relative;
 }
 
 /* Falling stuff */
@@ -951,10 +950,37 @@ a button {
     padding: 5px;
 }
 
+.chat-minimised-name {
+    color: white;
+    background-color: #488FD7;
+    padding: 5px;
+}
+
 #chatHolder {
     position:fixed;
     bottom:0;
     right:0;
+}
+
+#chatMinimised {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 1100;
+    color: white;
+    background-color: #396aa3;
+    padding: 5px;
+}
+
+#chatMinimised ul, #chatMinimised li {
+    color: white;
+    background-color: #4895DD;
+    z-index: 1100;
+}
+
+#chatMinimised li {
+    padding: 15px !important;
+    border: 1px solid lightblue;
 }
 
 .chat-window {
