@@ -37,6 +37,14 @@ class ChatMessage extends Entity
             ]);
             $id = $this->dbhm->lastInsertId();
 
+            # We have ourselves seen this message.
+            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ?;",
+                [
+                    $id,
+                    $chatid,
+                    $userid
+                ]);
+
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
             $r->pokeMembers();
         } catch (Exception $e) {

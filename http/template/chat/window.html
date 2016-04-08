@@ -4,7 +4,9 @@
         <span class="js-count badge badge-unread" style="display: none;"></span>
         {{name}}
         <div class="pull-right">
-            <div class="glyphicon glyphicon-minus js-minimise" title="Minimise" />
+            <div class="js-minimise padleft padright" title="Minimise" >
+                <div class="glyphicon glyphicon-minus"/>
+            </div>
             <!--div class="glyphicon glyphicon-remove js-close" title="Close" /-->
          </div>
     </div>
@@ -25,5 +27,5 @@
     </div>
 </div>
 <div class="row-fluid js-chatfooter">
-    <input type="text" maxlength="1024" class="nopad chat-input form-control js-message" placeholder="Type here..." />
+    <input type="text" maxlength="1024" class="chat-input form-control js-message" placeholder="Type here..." />
 </div>

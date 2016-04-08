@@ -702,9 +702,9 @@ class User extends Entity
             'pushnotify' => 1
         ];
 
-        foreach ($sets as $set) {
-            $settings = [];
+        $settings = $defaults;
 
+        foreach ($sets as $set) {
             if ($set['settings']) {
                 $settings = json_decode($set['settings'], TRUE);
 

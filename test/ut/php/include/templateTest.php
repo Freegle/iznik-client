@@ -28,7 +28,7 @@ class templateTest extends IznikTestCase {
 
         $ret = addTemplate(IZNIK_BASE . '/http/template/', IZNIK_BASE . '/http/template/');
         error_log("Templates " . var_export($ret, TRUE));
-        assertTrue(strpos($ret[11], 'layout_layout') !== FALSE);
+        assertTrue(in_array('layout_layout', $ret));
 
         error_log(__METHOD__ . " end");
     }

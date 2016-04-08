@@ -19,12 +19,12 @@ define([
         };
     }
 
-    window.isMobile = function() {
+    window.isNarrow = function() {
         return window.innerWidth < 749;
     };
 
     window.isShort = function() {
-        return window.innerHeight < 500;
+        return window.innerHeight < 900;
     };
 
     window.canonSubj = function(subj) {
@@ -64,7 +64,7 @@ define([
         }
     };
 
-    window.isMobile = function() {
+    window.isNarrow = function() {
         return window.innerWidth < 749;
     };
 

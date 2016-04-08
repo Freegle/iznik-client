@@ -212,7 +212,8 @@ define([
                         self.$('.js-message').val('');
                         self.$('.js-message').prop('disabled', false);
                         self.$('.js-message').focus();
-                        self.messages.fetch();
+                        self.messageFocus();
+                        self.messages.fetch().then();
                     });
                     this.model.send(message);
                 }
@@ -255,9 +256,45 @@ define([
         },
 
         adjust: function() {
-            var newHeight = this.$el.height() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter input').outerHeight();
-            console.log("Height", newHeight, this.$el.height() ,this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
+            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter input').outerHeight();
+            //console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
             this.$('.js-leftpanel, .js-roster').height(newHeight);
+        },
+
+        setSize: function() {
+            var self = this;
+
+            try {
+                // Restore any saved height
+                //
+                // On mobile we maximise the chat window, as the whole resizing thing is too fiddly.
+                var height = localStorage.getItem('chat-' + self.model.get('id') + '-height');
+                var width = localStorage.getItem('chat-' + self.model.get('id') + '-width');
+                console.log("Narrow?", isNarrow(), $(window).innerWidth());
+                if (isNarrow()) {
+                    // Just maximise it.
+                    width = $(window).innerWidth() - $('#chatMinimised').outerWidth() - 5;
+                }
+
+                console.log("Short?", isShort(), $(window).innerHeight(), $('.navbar').outerHeight(), $('#chatMinimised').outerHeight());
+                if (isShort()) {
+                    // Maximise it, except for the navbar and a bit of padding.
+                    height = $(window).innerHeight() - $('.navbar').outerHeight() - 5;
+                }
+
+                if (height && width) {
+                    console.log("Set", height, width);
+                    self.$el.height(height);
+                    self.$el.width(width);
+                }
+
+                var lpwidth = localStorage.getItem('chat-' + self.model.get('id') + '-lp');
+                lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
+
+                if (lpwidth) {
+                    self.$('.js-leftpanel').width(lpwidth);
+                }
+            } catch (e) {}
         },
 
         restore: function() {
@@ -266,10 +303,11 @@ define([
 
             // We fetch the messages when restoring - no need before then.
             self.messages.fetch().then(function() {
+                self.setSize();
                 self.options.organise();
-                self.adjust();
                 self.$el.css('visibility', 'visible');
                 self.$el.show();
+                self.adjust();
                 self.scrollBottom();
 
                 try {
@@ -359,11 +397,10 @@ define([
         render: function () {
             var self = this;
 
-            self.$el.css('visibility', 'hidden');
+            self.$el.attr('id', 'chat-' + self.model.get('id'));
+            self.$el.addClass('chat-' + self.model.get('name'));
 
-            self.messages = new Iznik.Collections.Chat.Messages({
-                roomid: self.model.get('id')
-            });
+            self.$el.css('visibility', 'hidden');
 
             self.$el.html(window.template(self.template)(self.model.toJSON2()));
 
@@ -372,35 +409,27 @@ define([
             // If the unread message count changes, we want to update it.
             self.listenTo(self.model, 'change:unseen', self.updateCount);
 
-            var mobile = isMobile();
+            // If the window size changes, we will need to adapt.
+            $(window).resize(function() {
+                self.setSize();
+                self.adjust();
+            });
+
+            var narrow = isNarrow();
             var minimise = true;
 
             try {
-                // Restore any saved height
-                var height = localStorage.getItem('chat-' + self.model.get('id') + '-height');
-                var width = localStorage.getItem('chat-' + self.model.get('id') + '-width');
-                if (height && width) {
-                    self.$el.height(height);
-                    self.$el.width(width);
-                }
-
-                var lpwidth = localStorage.getItem('chat-' + self.model.get('id') + '-lp');
-                lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
-
-                if (lpwidth) {
-                    self.$('.js-leftpanel').width(lpwidth);
-                }
-
                 // On mobile we start them all minimised as there's not much room.
-                if (localStorage.getItem(self.lsID() + '-minimised') || mobile) {
+                if (localStorage.getItem(self.lsID() + '-minimised') || narrow) {
                     minimise = true;
                 } else {
                     minimise = false;
                 }
             } catch (e) {}
 
-            self.$el.attr('id', 'chat-' + self.model.get('id'));
-            self.$el.addClass('chat-' + self.model.get('name'));
+            self.messages = new Iznik.Collections.Chat.Messages({
+                roomid: self.model.get('id')
+            });
 
             self.collectionView = new Backbone.CollectionView({
                 el: self.$('.js-messages'),
@@ -416,8 +445,6 @@ define([
             });
 
             self.collectionView.render();
-
-            self.scrollBottom();
 
             minimise ? self.minimise() : self.restore();
 

@@ -68,7 +68,7 @@ class ChatRoom extends Entity
         $sql = "SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?;";
         $counts = $this->dbhr->preQuery($sql, [ $this->id, $userid ]);
         #return(round(rand(1, 10)));
-        return($counts[0]['lastmsgseen']);
+        return(count($counts) > 0 ? $counts[0]['lastmsgseen'] : NULL);
     }
 
     public function unseenForUser($userid) {
