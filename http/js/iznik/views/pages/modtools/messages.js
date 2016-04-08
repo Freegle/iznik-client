@@ -36,9 +36,16 @@ define([
         },
 
         removeEditors: function () {
+            function removeTinyMCEInstance(editor) {
+                var oldLength = tinymce.editors.length;
+                tinymce.remove(editor);
+                if (oldLength == tinymce.editors.length) {
+                    tinymce.editors.remove(editor)
+                }
+            }
+
             for (var i = tinymce.editors.length - 1; i > -1; i--) {
-                var ed_id = tinymce.editors[i].id;
-                tinyMCE.execCommand("mceRemoveEditor", true, ed_id);
+                removeTinyMCEInstance(tinymce.editors[i]);
             }
             this.$('.js-tinymce').remove();
         },
