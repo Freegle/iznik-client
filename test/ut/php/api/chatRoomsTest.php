@@ -87,7 +87,8 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         # Roster
         $ret = $this->call('chatrooms', 'POST', [
-            'id' => $rid
+            'id' => $rid,
+            'lastmsgseen' => 1
         ]);
         error_log(var_export($ret, TRUE));
         assertEquals($this->uid, $ret['roster'][0]['userid']);

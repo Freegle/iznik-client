@@ -34,9 +34,6 @@ if (1==0) {
             } else {
                 $u = new User($dbhr, $dbhm, $eid);
                 $u->setPrivate('fullname', $user['facebookname']);
-
-                # Make sure it's primary
-                $u->addEmail($user['email'], 1);
             }
 
             $count++;

@@ -73,8 +73,8 @@ class ChatRoom extends Entity
 
     public function unseenForUser($userid) {
         # Find if we have any unseen messages.
-        $sql = "SELECT COUNT(*) AS count FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?), 0) AND chatid = ?;";
-        $counts = $this->dbhr->preQuery($sql, [ $this->id, $userid, $this->id  ]);
+        $sql = "SELECT COUNT(*) AS count FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?), 0) AND chatid = ? AND userid != ?;";
+        $counts = $this->dbhr->preQuery($sql, [ $this->id, $userid, $this->id, $userid  ]);
         #return(round(rand(1, 10)));
         return($counts[0]['count']);
     }

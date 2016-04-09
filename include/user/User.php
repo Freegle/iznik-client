@@ -158,7 +158,7 @@ class User extends Entity
     }
 
     public function getEmailPreferred() {
-        $emails = $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? AND preferred = 1;",
+        $emails = $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? AND preferred = 1;",  
             [$this->id]);
         return(count($emails) == 0 ? NULL : $emails[0]['email']);
     }

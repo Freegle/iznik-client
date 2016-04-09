@@ -208,7 +208,8 @@ define([
                 self.$('.js-message').prop('disabled', true);
                 var message = this.$('.js-message').val();
                 if (message.length > 0) {
-                    self.listenToOnce(this.model, 'sent', function() {
+                    self.listenToOnce(this.model, 'sent', function(id) {
+                        self.model.set('lastmsgseen', id);
                         self.$('.js-message').val('');
                         self.$('.js-message').prop('disabled', false);
                         self.$('.js-message').focus();

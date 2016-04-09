@@ -49,9 +49,9 @@ function chatrooms() {
 
                 if ($lastmsgseen) {
                     $r->updateRoster($myid, $lastmsgseen);
-                    $ret['roster'] = $r->getRoster();
                 }
 
+                $ret['roster'] = $r->getRoster();
                 $ret['unseen'] = $r->unseenForUser($myid);
             }
         }

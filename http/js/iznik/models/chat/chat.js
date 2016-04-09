@@ -16,7 +16,7 @@ define([
                 roomid: this.get('id')
             });
             msg.save().then(function() {
-                self.trigger('sent');
+                self.trigger('sent', msg.get('id'));
             });
         },
 
