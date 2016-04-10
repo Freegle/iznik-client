@@ -103,8 +103,8 @@ if (1==1) {
                     }
 
                     $u = new User($dbhr, $dbhm, $id);
-                    $emailid = $u->addEmail($user['useremail'], 1);
-                    $emailid = $u->addEmail($user['groupsemail'], 0);
+                    $emailid = $u->addEmail($user['useremail'], 0, FALSE);
+                    $emailid = $u->addEmail($user['groupsemail'], 0, FALSE);
                     $membs = $u->getMemberships();
 
                     $already = FALSE;
