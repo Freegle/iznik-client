@@ -258,7 +258,7 @@ define([
                                 }
 
                                 countel.html(ret.work[count.fi]);
-                                console.log("Sound", ret.work[count.fi], currcount, self.playBeep);
+                                // console.log("Sound", ret.work[count.fi], currcount, self.playBeep);
 
                                 if (ret.work[count.fi] > currcount || currcount == 0) {
                                     // Only trigger this when the counts increase.  This will pick up new messages

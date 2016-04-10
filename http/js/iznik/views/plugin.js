@@ -247,7 +247,8 @@ define([
             // Delay doesn't set the right context by default.
             _.delay(_.bind(this.listYahooGroups, this), 600000);
         },
-    
+
+        // TODO This whole callback approach is old code and should use promises or something.
         getCrumb: function(groupname, crumblocation, success, fail) {
             // There's a bit of faffing to get a crumb from Yahoo to perform our actions.
             var self = this;
@@ -2014,9 +2015,14 @@ define([
             });
 
             mod.fetch().then(function() {
-                self.listenToOnce(mod, 'bansucceeded', self.succeed);
-                self.listenToOnce(mod, 'banfailed', self.fail);
-                mod.ban(self.crumb);
+                // Unfortunately the fetch of the model will have trashed our crumb.
+                console.log("Refetch crumb", self.crumb);
+                window.IznikPlugin.getCrumb(self.model.get('group').nameshort, self.crumbLocation, function() {
+                    console.log("Fetched new crumb", self.crumb);
+                    self.listenToOnce(mod, 'bansucceeded', self.succeed);
+                    self.listenToOnce(mod, 'banfailed', self.fail);
+                    mod.ban(self.crumb);
+                }, self.fail)();
             });
             
             this.startBusy();

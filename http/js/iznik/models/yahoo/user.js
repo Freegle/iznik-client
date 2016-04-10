@@ -73,7 +73,6 @@ define([
 
         ban: function(crumb) {
             var self = this;
-            console.log("Ban member", self.get('userId'), crumb);
 
             var members = [
                 {
@@ -92,8 +91,9 @@ define([
                     console.log("Ban returned", ret);
                     if (ret.hasOwnProperty('ygData') &&
                         ret.ygData.hasOwnProperty('numPassed')) {
-                        // If the ban worked, numPassed == 1.
-                        if (ret.ygData.numPassed == 1) {
+                        // If the ban worked, numPassed == 1.  If the user is no longer on the group that works for us
+                        // too.
+                        if (ret.ygData.numPassed == 1 || ret.ygData.members[0].status == 'INVALID_ADDRESS') {
                             self.trigger('bansucceeded');
                         } else {
                             self.trigger('banfailed');

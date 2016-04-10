@@ -271,13 +271,13 @@ define([
                 // On mobile we maximise the chat window, as the whole resizing thing is too fiddly.
                 var height = localStorage.getItem('chat-' + self.model.get('id') + '-height');
                 var width = localStorage.getItem('chat-' + self.model.get('id') + '-width');
-                console.log("Narrow?", isNarrow(), $(window).innerWidth());
+                // console.log("Narrow?", isNarrow(), $(window).innerWidth());
                 if (isNarrow()) {
                     // Just maximise it.
                     width = $(window).innerWidth() - $('#chatMinimised').outerWidth() - 5;
                 }
 
-                console.log("Short?", isShort(), $(window).innerHeight(), $('.navbar').outerHeight(), $('#chatMinimised').outerHeight());
+                // console.log("Short?", isShort(), $(window).innerHeight(), $('.navbar').outerHeight(), $('#chatMinimised').outerHeight());
                 if (isShort()) {
                     // Maximise it, except for the navbar and a bit of padding.
                     height = $(window).innerHeight() - $('.navbar').outerHeight() - 5;
@@ -421,7 +421,11 @@ define([
 
             try {
                 // On mobile we start them all minimised as there's not much room.
-                if (localStorage.getItem(self.lsID() + '-minimised') || narrow) {
+                //
+                // Default to minimised, which is what we get if the key is missing and returns null.
+                var lsval = localStorage.getItem(self.lsID() + '-minimised');
+
+                if (lsval == null || lsval || narrow) {
                     minimise = true;
                 } else {
                     minimise = false;
