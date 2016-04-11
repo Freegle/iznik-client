@@ -23,7 +23,9 @@ define([
         },
 
         signin: function () {
-            var sign = new Iznik.Views.SignInUp();
+            var sign = new Iznik.Views.SignInUp({
+                modtools: this.modtools
+            });
             sign.render();
         },
 

@@ -313,7 +313,7 @@ define([
             })
         },
 
-        forceLogin: function () {
+        forceLogin: function (options) {
             var self = this;
 
             self.listenToOnce(self, 'isLoggedIn', function (loggedin) {
@@ -323,7 +323,7 @@ define([
                     Iznik.Session.trigger('loggedIn');
                 } else {
                     // We're not logged in - make it happen.
-                    var sign = new Iznik.Views.SignInUp();
+                    var sign = new Iznik.Views.SignInUp(options);
                     sign.render();
                 }
             });

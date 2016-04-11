@@ -1025,6 +1025,7 @@ a button {
     flex: 1 1 auto; /* resizable */
     padding: 0px;
     width: 50px;
+    overflow-y: scroll;
 }
 
 .chat-messages {

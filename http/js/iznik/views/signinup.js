@@ -8,8 +8,6 @@ define([
     Iznik.Views.SignInUp = Iznik.Views.Modal.extend({
         className: "signinup",
 
-        template: "signinup_main",
-
         events: function () {
             return _.extend({}, _.result(Iznik.Views.Modal, 'events'), {
                 'click .js-loginNative': 'showNative',
@@ -44,7 +42,7 @@ define([
             self.$('.js-signinerror').hide();
 
             try {
-                localStorage.setItem('nativeemail', self.$('.js-signinform .js-email').val());
+                localStorage.setItem('myemail', self.$('.js-signinform .js-email').val());
             } catch (e) {
             }
 
@@ -137,6 +135,14 @@ define([
         showNative: function () {
             this.$('.js-buttons').hide();
             this.$('.js-native').show();
+
+            try {
+                var email = localStorage.getItem('myemail');
+                if (email) {
+                    self.$('.js-email').val(email);
+                }
+            } catch (e) {
+            }
         },
 
         lostPassword: function () {
@@ -164,6 +170,7 @@ define([
 
         render: function () {
             var self = this;
+            this.template = this.options.modtools ? "signinup_modtools" : "signinup_user";
             this.open(this.template, null);
             this.$('.js-native').hide();
 

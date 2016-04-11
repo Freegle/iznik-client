@@ -48,7 +48,7 @@ class User extends Entity
         $this->notif = new Notifications($this->dbhr, $this->dbhm);
     }
 
-    private function hashPassword($pw) {
+    public function hashPassword($pw) {
         return sha1($pw . PASSWORD_SALT);
     }
 
