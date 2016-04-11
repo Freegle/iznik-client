@@ -1051,6 +1051,10 @@ a button {
     color: white
 }
 
+.chat-message-unseen {
+    font-weight: bold;
+}
+
 body {
     background-color: #222;
 }

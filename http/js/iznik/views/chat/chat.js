@@ -66,16 +66,10 @@ define([
 
         organise: function() {
             var self = this;
-            var maxHeight = 0;
-            self.$('.chat-window').each(function() {
-                maxHeight = maxHeight > $(this).height() ? maxHeight : $(this).height();
-            });
-
-            self.$('.chat-window').each(function() {
-                $(this).css('margin-top', (maxHeight - $(this).outerHeight()) + 'px');
-            });
-
             var minimised = 0;
+            var totalWidth = 0;
+            var totalMax = 0;
+
             $('#chatMinimised ul').empty();
 
             if (self.collectionView) {
@@ -87,9 +81,37 @@ define([
                             chat: chat
                         });
                         $('#chatMinimised ul').append(v.render().el);
+                    } else {
+                        totalWidth += chat.$el.outerWidth();
+                        totalMax++;
                     }
                 });
+
+                console.log("Compare widths", totalWidth, totalMax, window.innerWidth);
+                var max = window.innerWidth - $('#chatMinimised').outerWidth() - 5;
+                if (totalWidth > max) {
+                    // The chat windows we have open are too wide.  Make them narrower.
+                    console.log("Chats too wide", max, totalWidth);
+                    var width = Math.round(max / totalMax - 0.5) - 10;
+                    console.log("New width", width);
+
+                    self.collectionView.viewManager.each(function(chat) {
+                        if (!chat.minimised) {
+                            chat.$el.width(width);
+                        }
+                    });
+                }
             }
+
+            var maxHeight = 0;
+
+            self.$('.chat-window').each(function() {
+                maxHeight = maxHeight > $(this).height() ? maxHeight : $(this).height();
+            });
+
+            self.$('.chat-window').each(function() {
+                $(this).css('margin-top', (maxHeight - $(this).outerHeight()) + 'px');
+            });
 
             if (minimised == 0) {
                 $('#chatMinimised').hide();
@@ -236,8 +258,13 @@ define([
         },
 
         messageFocus: function() {
+            var self = this;
+
             this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
             this.model.set('unseen', 0);
+            _.delay(function() {
+                self.$('.chat-message-unseen').removeClass('chat-message-unseen');
+            }, 5000);
             this.updateCount();
         },
 
@@ -250,7 +277,7 @@ define([
             this.options.organise();
 
             try {
-                localStorage.setItem(this.lsID() + '-minimised', true);
+                localStorage.setItem(this.lsID() + '-minimised', 1);
             } catch (e) { window.alert(e.message)};
 
             this.trigger('minimised');
@@ -284,8 +311,9 @@ define([
                 }
 
                 if (height && width) {
-                    self.$el.height(height);
-                    self.$el.width(width);
+                    // Make sure it's not stupidly small
+                    self.$el.height(Math.max(height, 50));
+                    self.$el.width(Math.max(width, 50));
                 }
 
                 var lpwidth = localStorage.getItem('chat-' + self.model.get('id') + '-lp');
@@ -311,7 +339,7 @@ define([
                 self.scrollBottom();
 
                 try {
-                    localStorage.removeItem(self.lsID() + '-minimised');
+                    localStorage.setItem(self.lsID() + '-minimised', 0);
                 } catch (e) {
                 }
 
@@ -423,10 +451,14 @@ define([
                 //
                 // Default to minimised, which is what we get if the key is missing and returns null.
                 var lsval = localStorage.getItem(self.lsID() + '-minimised');
+                lsval = lsval === null ? lsval : parseInt(lsval);
+                console.log("Consider min", lsval, lsval === null, narrow);
 
-                if (lsval == null || lsval || narrow) {
+                if (lsval === null || lsval || narrow) {
+                    console.log("Minimise");
                     minimise = true;
                 } else {
+                    console.log("Restore");
                     minimise = false;
                 }
             } catch (e) {}
@@ -439,7 +471,11 @@ define([
                 el: self.$('.js-messages'),
                 modelView: Iznik.Views.Chat.Message,
                 collection: self.messages,
-                chatView: self
+                chatView: self,
+                modelViewOptions: {
+                    chatView: self,
+                    chatModel: self.model
+                }
             });
 
             self.messages.on('add', function() {
@@ -476,10 +512,12 @@ define([
         template: 'chat_message',
 
         render: function() {
-            // this.model.set('lastmsgseen', this.options.chatView.lastmsgseen);
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-            this.$('.timeago').timeago();
-            this.$el.fadeIn('slow');
+            if (this.model.get('id')) {
+                this.model.set('lastmsgseen', this.options.chatModel.get('lastmsgseen'));
+                this.$el.html(window.template(this.template)(this.model.toJSON2()));
+                this.$('.timeago').timeago();
+                this.$el.fadeIn('slow');
+            }
         }
     });
 
