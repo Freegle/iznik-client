@@ -1032,7 +1032,7 @@ a button {
 
 .chat-message {
     border: 1px solid lightgrey;
-    border-radius: 2px;
+    border-radius: 10px;
     padding-top: 2px;
     padding-bottom: 2px;
     padding-left: 10px;

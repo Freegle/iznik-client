@@ -141,7 +141,7 @@ define([
                 }
             });
 
-            console.log("Update counts in holder", unseen);
+            // console.log("Update counts in holder", unseen);
 
             if (unseen > 0) {
                 self.$('.js-totalcount').html(unseen).show();
@@ -456,7 +456,7 @@ define([
         updateCount: function() {
             var self = this;
             var unseen = self.model.get('unseen');
-            console.log("Update count", unseen);
+            // console.log("Update count", unseen);
 
             if (unseen > 0) {
                 self.$('.js-count').html(unseen).show();
@@ -522,8 +522,6 @@ define([
 
             self.messages.on('add', function() {
                 self.scrollBottom();
-                self.$('.chat-when').hide();
-                self.$('.chat-when:last').show();
             });
 
             self.collectionView.render();
@@ -558,6 +556,7 @@ define([
                 this.model.set('lastmsgseen', this.options.chatModel.get('lastmsgseen'));
                 this.$el.html(window.template(this.template)(this.model.toJSON2()));
                 this.$('.timeago').timeago();
+                this.$('.timeago').show();
                 this.$el.fadeIn('slow');
             }
         }
