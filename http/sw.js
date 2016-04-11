@@ -83,6 +83,14 @@ self.addEventListener('push', function(event) {
         }
     }
 
+    function closeAll() {
+        registration.getNotifications({tag: 'work'}).then(function (notifications) {
+            for (var i = 0; i < notifications.length; i++) {
+                notifications[i].close();
+            }
+        });
+    }
+
     event.waitUntil(
         fetch(url, {
             credentials: 'include'
@@ -117,22 +125,12 @@ self.addEventListener('push', function(event) {
                             }
 
                             // Clear any we have shown so far.
-                            registration.getNotifications({tag: 'work'}).then(function (notifications) {
-                                for (var i = 0; i < notifications.length; i++) {
-                                    notifications[i].close();
-                                }
-                            });
+                            closeAll();
 
                             if (workstr == '') {
                                 // We have to show a popup, otherwise we'll get the "updated in the background" message.  But
                                 // we can start a timer to clear the notifications later.
-                                setTimeout(function () {
-                                    registration.getNotifications({tag: 'work'}).then(function (notifications) {
-                                        for (var i = 0; i < notifications.length; i++) {
-                                            notifications[i].close();
-                                        }
-                                    });
-                                }, 1000);
+                                setTimeout(closeAll, 1000);
                             }
 
                             workstr = workstr == '' ? "No tasks outstanding" : workstr;
@@ -153,6 +151,9 @@ self.addEventListener('push', function(event) {
                         'url': url
                     }
                 });
+            }).catch(function(err) {
+                workstr = "Network error " + err
+                setTimeout(closeAll, 1000);
             });
         })
     );

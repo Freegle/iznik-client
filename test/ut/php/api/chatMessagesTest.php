@@ -106,7 +106,12 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(1, $this->user->addMembership($this->groupid));
         assertTrue($this->user->login('testpw'));
 
-        # Now we're talking.
+        # Now we're talking.  Make sure we're on the roster.
+        $ret = $this->call('chatrooms', 'POST', [
+            'id' => $this->cid,
+            'lastmsgseen' => 1
+        ]);
+
         $ret = $this->call('chatmessages', 'POST', [ 'roomid' => $this->cid, 'message' => 'Test' ]);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);

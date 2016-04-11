@@ -113,6 +113,15 @@ class Notifications
         return($count);
     }
 
+    static public function fsockopen($host, $port, &$errno, &$errstr) {
+        $fp = fsockopen('ssl://' . CHAT_HOST, 443, $errno, $errstr);
+        return($fp);
+    }
+
+    static public function fputs($fp, $str) {
+        return(fputs($fp, $str));
+    }
+
     static public function poke($userid, $data) {
         # This kicks a user who is online at the moment with an outstanding long poll.
         #
@@ -138,12 +147,12 @@ class Notifications
         $header .= "Connection: close\r\n\r\n";
 
         try {
-            $fp = fsockopen('ssl://' . CHAT_HOST, 443, $errno, $errstr);
+            $fp = Notifications::fsockopen('ssl://' . CHAT_HOST, 443, $errno, $errstr);
 
             if (!$fp) {
                 error_log("Failed to get socket, $errstr ($errno)");
             } else {
-                if (!fputs($fp, "POST $service_uri  HTTP/1.1\r\n")) {
+                if (!Notifications::fputs($fp, "POST $service_uri  HTTP/1.1\r\n")) {
                     # This can happen if the socket is broken.  Just close it ready for next time.
                     fclose($fp);
                     error_log("Failed to post");

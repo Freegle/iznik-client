@@ -284,7 +284,6 @@ define([
                 }
 
                 if (height && width) {
-                    console.log("Set", height, width);
                     self.$el.height(height);
                     self.$el.width(width);
                 }

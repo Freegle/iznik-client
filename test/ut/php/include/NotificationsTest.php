@@ -53,5 +53,30 @@ class notificationsTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testErrors() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        error_log("Created $id");
+
+        $mock = $this->getMockBuilder('Notifications')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('fsockopen'))
+            ->getMock();
+        $mock->method('fsockopen')->willThrowException(new Exception());
+        $mock::poke($id, [ 'ut' => 1 ]);
+
+        $mock = $this->getMockBuilder('Notifications')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('fputs'))
+            ->getMock();
+        $mock->method('fsockopen')->willThrowException(new Exception());
+        $mock::poke($id, [ 'ut' => 1 ]);
+
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
