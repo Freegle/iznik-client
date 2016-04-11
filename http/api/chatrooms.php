@@ -46,13 +46,11 @@ function chatrooms() {
             if ($me && $id) {
                 $ret = ['ret' => 0, 'status' => 'Success'];
                 $lastmsgseen = presdef('lastmsgseen', $_REQUEST, NULL);
-
-                if ($lastmsgseen) {
-                    $r->updateRoster($myid, $lastmsgseen);
-                }
+                $r->updateRoster($myid, $lastmsgseen);
 
                 $ret['roster'] = $r->getRoster();
                 $ret['unseen'] = $r->unseenForUser($myid);
+                $ret['nolog'] = TRUE;
             }
         }
     }
