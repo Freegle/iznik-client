@@ -26,6 +26,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 require_once(IZNIK_BASE . '/include/session/Session.php');
 require_once(IZNIK_BASE . '/include/session/Yahoo.php');
+require_once(IZNIK_BASE . '/include/session/Facebook.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/dashboard/Dashboard.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');

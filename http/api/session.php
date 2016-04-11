@@ -1,5 +1,6 @@
 <?php
 require_once(IZNIK_BASE . '/mailtemplates/modtools/verifymail.php');
+
 function session() {
     global $dbhr, $dbhm;
 
@@ -60,7 +61,6 @@ function session() {
             $fblogin = array_key_exists('fblogin', $_REQUEST) ? filter_var($_REQUEST['fblogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $googlelogin = array_key_exists('googlelogin', $_REQUEST) ? filter_var($_REQUEST['googlelogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $yahoologin = array_key_exists('yahoologin', $_REQUEST) ? filter_var($_REQUEST['yahoologin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-            $fbauthtoken = array_key_exists('fbauthtoken', $_REQUEST) ? $_REQUEST['fbauthtoken'] : NULL;
             $googleauthcode = array_key_exists('googleauthcode', $_REQUEST) ? $_REQUEST['googleauthcode'] : NULL;
             $mobile = array_key_exists('mobile', $_REQUEST) ? filter_var($_REQUEST['mobile'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $email = array_key_exists('email', $_REQUEST) ? $_REQUEST['email'] : NULL;
@@ -88,8 +88,10 @@ function session() {
 
             if ($fblogin) {
                 # We've been asked to log in via Facebook.
-                //        $f = new Facebook($dbhr, $dbhm);
-                //        list ($id, $ret, $success, $newuser) = $f->login($fbauthtoken);
+                $f = new Facebook($dbhr, $dbhm);
+                list ($session, $ret) = $f->login();
+                /** @var Session $session */
+                $id = $session ? $session->getId() : NULL;
             } else if ($yahoologin) {
                 # Yahoo.
                 $y = Yahoo::getInstance($dbhr, $dbhm);

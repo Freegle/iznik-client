@@ -14,6 +14,10 @@ define('GOOGLE_PROJECT', 'zzz');
 define('GOOGLE_PUSH_KEY', 'zzzz');
 define('GOOGLE_VISION_KEY', 'zzz');
 
+# We support Facebook login, but you have to create your own app
+define('FBAPP_ID', 'zzz');
+define('FBAPP_SECRET', 'zzz');
+
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');
 

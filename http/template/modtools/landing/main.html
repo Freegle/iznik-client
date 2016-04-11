@@ -1,4 +1,4 @@
-<p>Hello, <% if (me.firstname) { %>{{me.firstname}}<% } else { %>{{me.fullname}}<% } %>.  You're logged in to ModTools as {{me.yahooid}}.  <span class="js-yahooinfo" /><p>
+<p>Hello, <% if (me.firstname) { %>{{me.firstname}}<% } else { %>{{me.fullname}}<% } %>.  <span class="js-yahooinfo" /><p>
 <% if (me.systemrole == 'User') { %>
 </p><div class="alert alert-info" role="alert">It looks like we've not yet worked out which groups you moderate on.  Make sure you've got the plugin installed, and refresh in a couple of minutes.</div>
 <% } else if (me.systemrole == 'Moderator') { %>

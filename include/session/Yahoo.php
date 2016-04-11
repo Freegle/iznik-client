@@ -8,6 +8,8 @@ require_once(IZNIK_BASE . '/include/misc/Log.php');
 
 class Yahoo
 {
+    /** @var LoggedPDO $dbhr */
+    /** @var LoggedPDO $dbhm */
     private $dbhr;
     private $dbhm;
 
@@ -71,7 +73,7 @@ class Yahoo
                     # This is a duplicate user.  Merge them.
                     $u = new User($this->dbhr, $this->dbhm);
                     $u->merge($eid, $yid, "Yahoo Login - YahooId $yahooid = $yid, Email {$attrs['contact/email']} = $eid");
-                    error_log("Yahoo login found duplicate user, merge $yid into $eid");
+                    #error_log("Yahoo login found duplicate user, merge $yid into $eid");
                 }
 
                 $id = $eid ? $eid : $yid;

@@ -87,7 +87,7 @@ define([
                     }
                 });
 
-                console.log("Compare widths", totalWidth, totalMax, window.innerWidth);
+                // console.log("Compare widths", totalWidth, totalMax, window.innerWidth);
                 var max = window.innerWidth - $('#chatMinimised').outerWidth() - 5;
                 if (totalWidth > max) {
                     // The chat windows we have open are too wide.  Make them narrower.
@@ -264,7 +264,7 @@ define([
             this.model.set('unseen', 0);
             _.delay(function() {
                 self.$('.chat-message-unseen').removeClass('chat-message-unseen');
-            }, 5000);
+            }, 5000)
             this.updateCount();
         },
 

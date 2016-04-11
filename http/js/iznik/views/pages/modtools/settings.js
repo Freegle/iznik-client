@@ -798,6 +798,7 @@ define([
                         name: 'email',
                         label: 'Email',
                         type: 'email',
+                        placeholder: 'Please enter an email address',
                         control: 'input'
                     },
                     {

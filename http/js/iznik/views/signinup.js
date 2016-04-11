@@ -3,7 +3,8 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/views/modal'
+    'iznik/views/modal',
+    'iznik/facebook'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.SignInUp = Iznik.Views.Modal.extend({
         className: "signinup",
@@ -106,16 +107,20 @@ define([
         },
 
         fblogin: function () {
-            var login = new Iznik.Views.FBLogin();
-            this.listenToOnce(login, 'fbloginsucceeded', function () {
-                // We're logged in on the client -
-                Iznik.Session.facebookLogin();
+            var self = this;
 
-                Iznik.Session.listenToOnce(Iznik.Session, 'facebookLoggedIn', function () {
-                    window.location.reload();
-                });
+            // Now, load the FB API.
+            FB.login(function(response) {
+                console.log("FBLogin returned", response);
+                if (response.authResponse) {
+                    // We're logged in on the client -
+                    Iznik.Session.facebookLogin();
+
+                    Iznik.Session.listenToOnce(Iznik.Session, 'facebookLoggedIn', function () {
+                        window.location.reload();
+                    });
+                }
             });
-            login.render();
         },
 
         yahoologin: function () {
@@ -174,16 +179,6 @@ define([
             this.open(this.template, null);
             this.$('.js-native').hide();
 
-            self.listenToOnce(FBLoad, 'fbloaded', function () {
-                // We have a custom signin button which needs googleising.
-                GoogleLoad.signInButton('gConnect');
-
-                if (FBLoad.isDisabled()) {
-                    self.$('.js-loginFB').addClass('signindisabled');
-                }
-            });
-            FBLoad.render();
-
             try {
                 var email = localStorage.getItem('nativeemail');
                 if (email) {
@@ -191,6 +186,16 @@ define([
                 }
             } catch (e) {
             }
+
+            // We have to load the FB API now because otherwise when we click on the login button, we can't load
+            // it synchronously, and therefore the login popup would get blocked by the browser.
+            var FBLoad = new Iznik.Views.FBLoad();
+            self.listenToOnce(FBLoad, 'fbloaded', function () {
+                if (!FBLoad.isDisabled()) {
+                    self.$('.js-loginFB').removeClass('signindisabled');
+                }
+            });
+            FBLoad.render();
 
             return (this);
         }

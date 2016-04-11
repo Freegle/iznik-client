@@ -112,7 +112,8 @@ define([
                 success: function (ret) {
                     var re =/data-userid="(.*?)"/g;
                     var matches = re.exec(ret);
-                    if (matches) {
+                    
+                    if (matches && matches.length > 0 && matches[0].length > 0) {
                         var yid = matches[1];
                         self.$('.js-yahooinfo').html("You're logged in to Yahoo as " + yid + ".");
                         Iznik.Session.set('loggedintoyahooas', yid);
