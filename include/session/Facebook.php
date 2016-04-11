@@ -115,9 +115,9 @@ class Facebook
                                     $u->addEmail($fbemail, 0, FALSE);
                                 }
 
-                                # Now Set up a login entry.
+                                # Now Set up a login entry.  Use IGNORE as there is a timing window here.
                                 $rc = $this->dbhm->preExec(
-                                    "INSERT INTO users_logins (userid, type, uid) VALUES (?,'Facebook',?);",
+                                    "INSERT IGNORE INTO users_logins (userid, type, uid) VALUES (?,'Facebook',?);",
                                     [
                                         $id,
                                         $fid
@@ -126,9 +126,24 @@ class Facebook
 
                                 $id = $rc ? $id : NULL;
                             }
+                        } else {
+                            # We know them - but we might not have all the details.
+                            if (!$eid) {
+                                $u->addEmail($fbemail, 0, FALSE);
+                            }
+
+                            if (!$fid) {
+                                $rc = $this->dbhm->preExec(
+                                    "INSERT IGNORE INTO users_logins (userid, type, uid) VALUES (?,'Facebook',?);",
+                                    [
+                                        $id,
+                                        $fbuid
+                                    ]
+                                );
+                            }
                         }
 
-                        # Save off the access token, which we might need.
+                        # Save off the access token, which we might need, and update the access time.
                         $this->dbhm->preExec("UPDATE users_logins SET lastaccess = NOW(), credentials = ? WHERE userid = ? AND type = 'Facebook';",
                             [
                                 (string)$accessToken,

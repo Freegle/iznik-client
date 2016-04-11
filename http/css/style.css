@@ -1000,6 +1000,7 @@ a button {
     flex-direction: row;
     border: 1px solid silver;
     overflow: hidden;
+    background-color: #edeef1;
 }
 
 .chat-messages-panel {
@@ -1022,10 +1023,20 @@ a button {
     padding: 0px;
     width: 50px;
     overflow-y: scroll;
+    background-color: white;
 }
 
 .chat-messages {
     height: 100%;
+}
+
+.chat-message {
+    border: 1px solid lightgrey;
+    border-radius: 2px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .chat-input {
@@ -1035,12 +1046,14 @@ a button {
     padding-left: 5px;
 }
 
-.chat-mine {
-    color:  #396aa3;
+.chat-mine .chat-message {
+    background-color: #ECF4FF;
+    color:  black;
 }
 
-.chat-other{
-    color:  #1D6607;
+.chat-other .chat-message {
+    background-color: white;
+    color:  black;
 }
 
 .badge-unread {

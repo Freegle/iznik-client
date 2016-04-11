@@ -128,6 +128,8 @@ class ChatRoom extends Entity
                 $lastmsgseen
             ]);
 
+        error_log("UPDATE chat_roster SET lastmsgseen = $lastmsgseen WHERE chatid = {$this->id} AND userid = $userid AND (lastmsgseen IS NULL OR lastmsgseen < $lastmsgseen);");
+
         $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE chatid = ? AND userid = ?;",
             [
                 $status,
