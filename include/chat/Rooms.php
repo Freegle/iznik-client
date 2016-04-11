@@ -118,17 +118,19 @@ class ChatRoom extends Entity
                 $userid
             ]);
 
-        # Update the last message seen - taking care not to go backwards, which can happen if we have multiple
-        # windows open.
-        $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
-            [
-                $lastmsgseen,
-                $this->id,
-                $userid,
-                $lastmsgseen
-            ]);
+        if ($lastmsgseen) {
+            # Update the last message seen - taking care not to go backwards, which can happen if we have multiple
+            # windows open.
+            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
+                [
+                    $lastmsgseen,
+                    $this->id,
+                    $userid,
+                    $lastmsgseen
+                ]);
 
-        error_log("UPDATE chat_roster SET lastmsgseen = $lastmsgseen WHERE chatid = {$this->id} AND userid = $userid AND (lastmsgseen IS NULL OR lastmsgseen < $lastmsgseen);");
+            #error_log("UPDATE chat_roster SET lastmsgseen = $lastmsgseen WHERE chatid = {$this->id} AND userid = $userid AND (lastmsgseen IS NULL OR lastmsgseen < $lastmsgseen);");
+        }
 
         $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE chatid = ? AND userid = ?;",
             [

@@ -86,6 +86,21 @@ class sessionTest extends IznikAPITestCase
         error_log(__METHOD__ . " end");
     }
 
+    public function testFacebook()
+    {
+        error_log(__METHOD__);
+
+        # With no token should fail.
+        $ret = $this->call('session', 'POST', [
+            'fblogin' => 1
+        ]);
+        assertEquals(2, $ret['ret']);
+        
+        # Rest of testing done in include test.
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testNative()
     {
         error_log(__METHOD__);

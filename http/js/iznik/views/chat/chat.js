@@ -231,7 +231,8 @@ define([
             'click .js-close, touchstart .js-close': 'remove',
             'click .js-minimise, touchstart .js-minimise': 'minimise',
             'focus .js-message': 'messageFocus',
-            'keyup .js-message': 'keyUp'
+            'keyup .js-message': 'keyUp',
+            'change .js-status': 'status'
         },
 
         removed: false,
@@ -279,7 +280,7 @@ define([
             this.model.set('unseen', 0);
 
             // Tell the server now, in case they navigate away before the next roster timer.
-            self.updateRoster('Online');
+            self.updateRoster(self.statusWithOverride('Online'));
 
             // New messages are in bold - keep them so for a few seconds, to make it easy to see new stuff,
             // then revert.
@@ -363,7 +364,7 @@ define([
             self.$el.show();
             self.adjust();
 
-            self.updateRoster('Online');
+            self.updateRoster(self.statusWithOverride('Online'));
 
             try {
                 localStorage.setItem(self.lsID() + '-minimised', 0);
@@ -411,6 +412,16 @@ define([
             } catch (e) {}
         },
 
+        status: function() {
+            // We can override appearing online to show something else.
+            var status = this.$('.js-status').val();
+            try {
+                localStorage.setItem('mystatus', status);
+            } catch (e) {}
+
+            this.updateRoster(status);
+        },
+
         updateRoster: function(status) {
             var self = this;
             $.ajax({
@@ -423,6 +434,18 @@ define([
             });
         },
 
+        statusWithOverride: function(status) {
+            if (status == 'Online') {
+                // We are online, but may have overridden this to appear something else.
+                try {
+                    var savestatus = localStorage.getItem('mystatus');
+                    status = savestatus ? savestatus : status;
+                } catch (e) {}
+            }
+
+            return(status);
+        },
+
         roster: function() {
             // We update our presence and get the roster for the chat regularly.
             var self = this;
@@ -433,7 +456,7 @@ define([
                     type: 'POST',
                     data: {
                         lastmsgseen: self.model.get('lastmsgseen'),
-                        status: self.minimised ? 'Away' : 'Online'
+                        status: self.statusWithOverride(self.minimised ? 'Away' : 'Online')
                     },
                     success: function(ret) {
                         self.$('.js-roster').empty();
@@ -476,6 +499,14 @@ define([
             self.$el.css('visibility', 'hidden');
 
             self.$el.html(window.template(self.template)(self.model.toJSON2()));
+
+            try {
+                var status = localStorage.getItem('mystatus');
+
+                if (status) {
+                    self.$('.js-status').val(status);
+                }
+            } catch (e) {}
 
             self.updateCount();
 

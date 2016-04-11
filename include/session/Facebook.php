@@ -25,6 +25,15 @@ class Facebook
         return ($this);
     }
 
+    public function getFB() {
+        $fb = new Facebook\Facebook([
+            'app_id' => FBAPP_ID,
+            'app_secret' => FBAPP_SECRET
+        ]);
+
+        return($fb);
+    }
+    
     function login()
     {
         $uid = NULL;
@@ -32,10 +41,7 @@ class Facebook
         $status = 'Login failed';
         $s = NULL;
 
-        $fb = new Facebook\Facebook([
-            'app_id' => FBAPP_ID,
-            'app_secret' => FBAPP_SECRET
-        ]);
+        $fb = $this->getFB();
 
         $helper = $fb->getJavaScriptHelper();
 
@@ -54,7 +60,7 @@ class Facebook
                 $tokenMetadata->validateAppId(FBAPP_ID);
                 $tokenMetadata->validateExpiration();
 
-                if (! $accessToken->isLongLived()) {
+                if (!$accessToken->isLongLived()) {
                     // Exchanges a short-lived access token for a long-lived one
                     try {
                         $accessToken = $oAuth2Client->getLongLivedAccessToken($accessToken);
