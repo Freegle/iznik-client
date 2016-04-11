@@ -995,10 +995,6 @@ a button {
     bottom: 0;
 }
 
-.chat-window li {
-    z-index: 10;
-}
-
 .chat-content {
     display: flex;
     flex-direction: row;

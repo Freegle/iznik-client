@@ -69,6 +69,8 @@ define([
             var minimised = 0;
             var totalWidth = 0;
             var totalMax = 0;
+            var maxHeight = 0;
+            var minHeight = 1000;
 
             $('#chatMinimised ul').empty();
 
@@ -82,8 +84,15 @@ define([
                         });
                         $('#chatMinimised ul').append(v.render().el);
                     } else {
+                        // We use this to see if we need to shrink.
                         totalWidth += chat.$el.outerWidth();
                         totalMax++;
+
+                        // Make sure it's not stupidly tall or short.
+                        var height = chat.$el.height();
+                        height = Math.max(height, 100);
+                        height = Math.min(height, $(window).innerHeight() - $('.navbar').outerHeight() - 5);
+                        chat.$el.height(height);
                     }
                 });
 
@@ -122,19 +131,21 @@ define([
         },
 
         updateCounts: function() {
+            console.log("Update counts in holder");
             var self = this;
             var unseen = 0;
             self.chats.each(function(chat) {
                 var chatView = self.collectionView.viewManager.findByModel(chat);
                 if (chatView.minimised) {
                     unseen += chat.get('unseen');
+                    console.log("Minimised unseen", chat);
                 }
             });
 
             if (unseen > 0) {
-                self.$('.js-count').html(unseen).show();
+                self.$('.js-totalcount').html(unseen).show();
             } else {
-                self.$('.js-count').html(unseen).hide();
+                self.$('.js-totalcount').html(unseen).hide();
             }
         },
 
@@ -163,7 +174,7 @@ define([
 
             self.chats.each(function(chat) {
                 // If the unread message count changes, we want to update it.
-                self.listenTo(chat, 'change:unseen', self.updateCount);
+                self.listenTo(chat, 'change:unseen', self.updateCounts);
             });
 
             self.wait();
@@ -311,9 +322,8 @@ define([
                 }
 
                 if (height && width) {
-                    // Make sure it's not stupidly small
-                    self.$el.height(Math.max(height, 50));
-                    self.$el.width(Math.max(width, 50));
+                    self.$el.height(height);
+                    self.$el.width(width);
                 }
 
                 var lpwidth = localStorage.getItem('chat-' + self.model.get('id') + '-lp');
@@ -412,6 +422,7 @@ define([
         updateCount: function() {
             var self = this;
             var unseen = self.model.get('unseen');
+            console.log("Update count", unseen);
 
             if (unseen > 0) {
                 self.$('.js-count').html(unseen).show();
