@@ -73,7 +73,7 @@ class Facebook
                         # Note that we may not get an email, and nowadays the id we are given is a per-app id not
                         # something that can be used to identify the user.
                         error_log("Try for me");
-                        $response = $fb->get('/me?fields=id,name', $accessToken);
+                        $response = $fb->get('/me?fields=id,name,first_name,last_name,email', $accessToken);
                         $fbme = $response->getGraphUser()->asArray();
                         error_log("Got me " . var_export($fbme, TRUE));
 

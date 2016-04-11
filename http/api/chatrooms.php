@@ -46,7 +46,8 @@ function chatrooms() {
             if ($me && $id) {
                 $ret = ['ret' => 0, 'status' => 'Success'];
                 $lastmsgseen = presdef('lastmsgseen', $_REQUEST, NULL);
-                $r->updateRoster($myid, $lastmsgseen);
+                $status = presdef('status', $_REQUEST, 'Online');
+                $r->updateRoster($myid, $lastmsgseen, $status);
 
                 $ret['roster'] = $r->getRoster();
                 $ret['unseen'] = $r->unseenForUser($myid);

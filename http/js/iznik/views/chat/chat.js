@@ -131,16 +131,17 @@ define([
         },
 
         updateCounts: function() {
-            console.log("Update counts in holder");
             var self = this;
             var unseen = 0;
             self.chats.each(function(chat) {
                 var chatView = self.collectionView.viewManager.findByModel(chat);
                 if (chatView.minimised) {
                     unseen += chat.get('unseen');
-                    console.log("Minimised unseen", chat);
+                    // console.log("Minimised unseen", chat);
                 }
             });
+
+            console.log("Update counts in holder", unseen);
 
             if (unseen > 0) {
                 self.$('.js-totalcount').html(unseen).show();
@@ -157,6 +158,11 @@ define([
 
             self.chats = new Iznik.Collections.Chat.Rooms();
             self.chats.fetch().then(function() {
+                self.chats.each(function(chat) {
+                    // If the unread message count changes, we want to update it.
+                    self.listenTo(chat, 'change:unseen', self.updateCounts);
+                });
+
                 self.collectionView = new Backbone.CollectionView({
                     el: self.$('.js-chats'),
                     modelView: Iznik.Views.Chat.Window,
@@ -170,11 +176,6 @@ define([
 
                 self.updateCounts();
                 self.organise();
-            });
-
-            self.chats.each(function(chat) {
-                // If the unread message count changes, we want to update it.
-                self.listenTo(chat, 'change:unseen', self.updateCounts);
             });
 
             self.wait();
@@ -243,6 +244,8 @@ define([
                 if (message.length > 0) {
                     self.listenToOnce(this.model, 'sent', function(id) {
                         self.model.set('lastmsgseen', id);
+                        self.model.set('unseen', 0);
+
                         self.$('.js-message').val('');
                         self.$('.js-message').prop('disabled', false);
                         self.$('.js-message').focus();
@@ -271,8 +274,15 @@ define([
         messageFocus: function() {
             var self = this;
 
+            // We've seen all the messages.
             this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
             this.model.set('unseen', 0);
+
+            // Tell the server now, in case they navigate away before the next roster timer.
+            self.updateRoster('Online');
+
+            // New messages are in bold - keep them so for a few seconds, to make it easy to see new stuff,
+            // then revert.
             _.delay(function() {
                 self.$('.chat-message-unseen').removeClass('chat-message-unseen');
             }, 5000)
@@ -287,6 +297,8 @@ define([
             this.minimised = true;
             this.options.organise();
 
+            self.updateRoster('Away');
+
             try {
                 localStorage.setItem(this.lsID() + '-minimised', 1);
             } catch (e) { window.alert(e.message)};
@@ -295,9 +307,14 @@ define([
         },
 
         adjust: function() {
+            var self = this;
             var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter input').outerHeight();
             //console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
             this.$('.js-leftpanel, .js-roster').height(newHeight);
+
+            var lpwidth = self.$('.js-leftpanel').width();
+            lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
+            self.$('.js-leftpanel').width(lpwidth);
         },
 
         setSize: function() {
@@ -339,20 +356,23 @@ define([
             var self = this;
             self.minimised = false;
 
+            // Restore the window first, so it feels zippier.
+            self.setSize();
+            self.options.organise();
+            self.$el.css('visibility', 'visible');
+            self.$el.show();
+            self.adjust();
+
+            self.updateRoster('Online');
+
+            try {
+                localStorage.setItem(self.lsID() + '-minimised', 0);
+            } catch (e) {
+            }
+
             // We fetch the messages when restoring - no need before then.
             self.messages.fetch().then(function() {
-                self.setSize();
-                self.options.organise();
-                self.$el.css('visibility', 'visible');
-                self.$el.show();
-                self.adjust();
                 self.scrollBottom();
-
-                try {
-                    localStorage.setItem(self.lsID() + '-minimised', 0);
-                } catch (e) {
-                }
-
                 self.trigger('restored');
             });
         },
@@ -373,6 +393,7 @@ define([
             self.trigger('resized');
             self.adjust();
             self.options.organise();
+            self.scrollBottom();
 
             // Save the new height to local storage so that we can restore it next time.
             try {
@@ -390,6 +411,18 @@ define([
             } catch (e) {}
         },
 
+        updateRoster: function(status) {
+            var self = this;
+            $.ajax({
+                url: API + 'chat/rooms/' + self.model.get('id'),
+                type: 'POST',
+                data: {
+                    lastmsgseen: self.model.get('lastmsgseen'),
+                    status: status
+                },
+            });
+        },
+
         roster: function() {
             // We update our presence and get the roster for the chat regularly.
             var self = this;
@@ -399,7 +432,8 @@ define([
                     url: API + 'chat/rooms/' + self.model.get('id'),
                     type: 'POST',
                     data: {
-                        lastmsgseen: self.model.get('lastmsgseen')
+                        lastmsgseen: self.model.get('lastmsgseen'),
+                        status: self.minimised ? 'Away' : 'Online'
                     },
                     success: function(ret) {
                         self.$('.js-roster').empty();
@@ -463,13 +497,10 @@ define([
                 // Default to minimised, which is what we get if the key is missing and returns null.
                 var lsval = localStorage.getItem(self.lsID() + '-minimised');
                 lsval = lsval === null ? lsval : parseInt(lsval);
-                console.log("Consider min", lsval, lsval === null, narrow);
 
                 if (lsval === null || lsval || narrow) {
-                    console.log("Minimise");
                     minimise = true;
                 } else {
-                    console.log("Restore");
                     minimise = false;
                 }
             } catch (e) {}

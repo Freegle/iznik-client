@@ -110,13 +110,29 @@ class ChatRoom extends Entity
         return($rooms ? in_array($this->id, $rooms) : FALSE);
     }
 
-    public function updateRoster($userid, $lastmsgseen) {
+    public function updateRoster($userid, $lastmsgseen, $status) {
         # We have a unique key, and an update on current timestamp.
-        $this->dbhm->preExec("REPLACE INTO chat_roster (chatid, userid, lastmsgseen) VALUES (?,?,?);",
+        $this->dbhm->preExec("REPLACE INTO chat_roster (chatid, userid) VALUES (?,?);",
             [
+                $this->id,
+                $userid
+            ]);
+
+        # Update the last message seen - taking care not to go backwards, which can happen if we have multiple
+        # windows open.
+        $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
+            [
+                $lastmsgseen,
                 $this->id,
                 $userid,
                 $lastmsgseen
+            ]);
+
+        $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE chatid = ? AND userid = ?;",
+            [
+                $status,
+                $this->id,
+                $userid
             ]);
     }
 
@@ -127,7 +143,16 @@ class ChatRoom extends Entity
 
         foreach ($roster as &$rost) {
             $u = new User($this->dbhr, $this->dbhm, $rost['userid']);
-            $rost['status'] = $rost['secondsago'] < 60 ? 'Online' : ($rost['secondsago'] < 600 ? 'Away' : 'Offline');
+            switch ($rost['status']) {
+                case  'Online':
+                    # We last heard that they were online; but if we've not heard from them recently then fade them out.
+                    $rost['status'] = $rost['secondsago'] < 60 ? 'Online' : ($rost['secondsago'] < 600 ? 'Away' : 'Offline');
+                    break;
+                case 'Away':
+                    # Similarly, if we last heard they were away, fade them to offline if we've not heard.
+                    $rost['status'] = $rost['secondsago'] < 600 ? 'Away' : 'Offline';
+                    break;
+            }
             $ctx = NULL;
             $rost['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
         }
