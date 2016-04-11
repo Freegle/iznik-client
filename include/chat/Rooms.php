@@ -122,7 +122,7 @@ class ChatRoom extends Entity
 
     public function getRoster() {
         $mysqltime = date("Y-m-d H:i:s", strtotime("3600 seconds ago"));
-        $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster WHERE `chatid` = ? AND `date` >= ? ORDER BY `date` DESC;";
+        $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster INNER JOIN users ON users.id = chat_roster.userid WHERE `chatid` = ? AND `date` >= ? ORDER BY COALESCE(users.fullname, users.firstname, users.lastname);";
         $roster = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
 
         foreach ($roster as &$rost) {
