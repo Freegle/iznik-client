@@ -410,6 +410,8 @@ define([
             try {
                 localStorage.setItem(this.lsID() + '-lp', self.$('.js-leftpanel').width());
             } catch (e) {}
+
+            self.adjust();
         },
 
         status: function() {
