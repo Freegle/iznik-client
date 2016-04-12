@@ -309,7 +309,7 @@ define([
         adjust: function() {
             var self = this;
             var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter input').outerHeight();
-            //console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
+            console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
             this.$('.js-leftpanel, .js-roster').height(newHeight);
 
             var lpwidth = self.$('.js-leftpanel').width();
@@ -360,10 +360,10 @@ define([
             // Restore the window first, so it feels zippier.
             self.setSize();
             self.options.organise();
-            self.adjust();
             _.defer(function() {
                 self.$el.css('visibility', 'visible');
                 self.$el.show();
+                self.adjust();
             });
 
             self.updateRoster(self.statusWithOverride('Online'));
