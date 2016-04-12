@@ -314,6 +314,7 @@ define([
 
             var lpwidth = self.$('.js-leftpanel').width();
             lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
+            lpwidth = Math.max(self.$el.width() - 250, lpwidth);
             self.$('.js-leftpanel').width(lpwidth);
         },
 
@@ -362,6 +363,7 @@ define([
             self.adjust();
             _.defer(function() {
                 self.$el.css('visibility', 'visible');
+                self.$el.show();
             });
 
             self.updateRoster(self.statusWithOverride('Online'));
@@ -412,6 +414,7 @@ define([
             } catch (e) {}
 
             self.adjust();
+            self.scrollBottom();
         },
 
         status: function() {

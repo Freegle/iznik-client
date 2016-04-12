@@ -31,7 +31,7 @@ requirejs.config({
     },
 
     paths: {
-        "bootstrap" :  "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min",
+        "bootstrap" :  "//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min",
         "ga": "//www.google-analytics.com/analytics",
         "waypoints": "/js/lib/jquery.waypoints",
         "fileupload": "/js/lib/jquery-file-upload/jquery.fileupload",
