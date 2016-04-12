@@ -6,35 +6,20 @@
                         class="sr-only">Close</span></button>
                 <h4 class="modal-title js-modal-title text-center">Please Sign In</h4>
             </div>
-            <div class="row">
-                <div class="modal-body js-modal-body fullholder">
-                    <div class="container js-buttons fullholder">
-                        <p class="text-center">To use ModTools, you need to sign in with your Yahoo ID.</p>
-
-                        <div class="fullholder text-center js-buttonholder">
-                            <!--<div>-->
-                            <!--<img class="signindisabled clickme js-loginFB signinbutton" src="/images/signinbuttons/facebook.png"/>-->
-                            <!--</div>-->
-                            <!--<div id="gConnect">-->
-                            <!--<img class="signindisabled clickme js-loginGoogle signinbutton" src="/images/signinbuttons/google.png"/>-->
-                            <!--</div>-->
-                            <div>
-                                <img class="clickme js-loginYahoo signinbutton" src="/images/signinbuttons/yahoo.png"/>
-                            </div>
-                            <!--<div>-->
-                            <!--<img class="signindisabled clickme js-loginNative signinbutton" src="/images/signinbuttons/native.png"/>-->
-                            <!--</div>-->
+            <div class="modal-body js-modal-body fullholder">
+                <div class="row vdivide hidden-xs">
+                    <div class="col-sm-6 text-center">
+                        <div>
+                            <img class="signindisabled clickme js-loginFB signinbutton" src="/images/signinbuttons/facebook.png"/>
+                        </div>
+                        <div id="gConnect">
+                            <img class="signindisabled clickme js-loginGoogle signinbutton" src="/images/signinbuttons/google.png"/>
+                        </div>
+                        <div>
+                            <img class="clickme js-loginYahoo signinbutton" src="/images/signinbuttons/yahoo.png"/>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="row tbspace js-native" style="display:none;">
-                <div class="col-md-6">
-                    <h3 class="text-center">Sign In</h3>
-
-                    <p class="text-center gray">(if you've already signed up with us)</p>
-
-                    <div class="js-signinform">
+                    <div class="col-sm-6 text-center">
                         <div class="form-group">
                             <input type="email" name="email" class="form-control js-email" placeholder="Your email address">
                         </div>
@@ -42,38 +27,43 @@
                             <input type="password" name="password" class="form-control js-password" maxlength="40"
                                    placeholder="Password">
                         </div>
-                        <button class="btn btn-success botspace fullholder js-signin">Sign In</button>
-                        <button class="btn fullholder js-forgot">I forgot my password</button>
-                    </div>
-                    <div class="alert alert-danger js-signinerror" style="display:none;">
-                        <strong>Error!</strong>
-                        <span class="js-errmsg"></span>
+                        <button class="btn btn-lg btn-block btn-success botspace js-signin">Sign In</button>
+                        <a class="topspace" class="js-forgot">I forgot my password</a>
+                        <p class="topspace">New freegler?  <a href="#" class="js-signup">Register</a></p>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <h3 class="text-center">Sign Up</h3>
-
-                    <p class="text-center gray">(if you're new to us)</p>
-
-                    <div class="js-signupform">
+                <div class="row text-center hidden-sm hidden-md hidden-lg">
+                    <div class="col-sm-5 nopad">
+                        <div>
+                            <img class="signindisabled clickme js-loginFB signinbutton" src="/images/signinbuttons/facebook.png"/>
+                        </div>
+                        <div id="gConnect">
+                            <img class="signindisabled clickme js-loginGoogle signinbutton" src="/images/signinbuttons/google.png"/>
+                        </div>
+                        <div>
+                            <img class="clickme js-loginYahoo signinbutton" src="/images/signinbuttons/yahoo.png"/>
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="strike">
+                            <span>Or</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-5 nopad">
                         <div class="form-group">
-                            <input type="text" class="form-control js-firstname" maxlength="40"
-                                   placeholder="First Name">
+                            <input type="email" name="email" class="form-control js-email" placeholder="Your email address">
                         </div>
                         <div class="form-group">
-                            <input type="text" class="form-control js-lastname" maxlength="40" placeholder="Last Name">
-                        </div>
-                        <div class="form-group">
-                            <input type="email" class="form-control js-email" maxlength="40"
-                                   placeholder="Email Address">
-                        </div>
-                        <div class="form-group">
-                            <input type="password" class="form-control js-password" maxlength="40"
+                            <input type="password" name="password" class="form-control js-password" maxlength="40"
                                    placeholder="Password">
                         </div>
-                        <button class="btn btn-info botspace fullholder js-signup">Sign Up</button>
+                        <button class="btn btn-lg btn-block btn-success botspace js-signin">Sign In</button>
+                        <a class="topspace" class="js-forgot">I forgot my password</a>
+                        <p class="topspace">New freegler?  <a href="#" class="js-signup">Register</a></p>
                     </div>
-                    <div class="alert alert-danger js-signuperror" style="display:none;">
+                </div>
+                <div class="row tbspace js-native" style="display:none;">
+                    <div class="alert alert-danger js-signinerror" style="display:none;">
                         <strong>Error!</strong>
                         <span class="js-errmsg"></span>
                     </div>
@@ -81,6 +71,4 @@
             </div>
         </div>
     </div>
-    <!-- /.modal-content -->
-</div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+</div>

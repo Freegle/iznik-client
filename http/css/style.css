@@ -1139,6 +1139,18 @@ a button {
     left: 100%;
     margin-left: 15px;
 }
+
+.row.vdivide [class*='col-']:not(:last-child):after {
+    background: red;
+    width: 1px;
+    content: "";
+    display:block;
+    position: absolute;
+    top:0;
+    bottom: 0;
+    right: 0;
+    min-height: 70px;
+}
 ​
 /*==================================================
 =            Bootstrap 3 Media Queries             =
