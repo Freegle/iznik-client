@@ -87,7 +87,7 @@ define([
                         // Make sure it's not stupidly tall or short.
                         var height = chat.$el.height();
                         height = Math.max(height, 100);
-                        height = Math.min(height, $(window).innerHeight() - $('.navbar').outerHeight() - 5);
+                        height = Math.min(height, $(window).innerHeight());
                         chat.$el.height(height);
                     }
                 });
@@ -335,8 +335,8 @@ define([
 
                 // console.log("Short?", isShort(), $(window).innerHeight(), $('.navbar').outerHeight(), $('#chatMinimised').outerHeight());
                 if (isShort()) {
-                    // Maximise it, except for the navbar and a bit of padding.
-                    height = $(window).innerHeight() - $('.navbar').outerHeight() - 5;
+                    // Maximise it.
+                    height = $(window).innerHeight();
                 }
 
                 if (height && width) {
