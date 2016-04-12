@@ -33,7 +33,7 @@ class Facebook
 
         return($fb);
     }
-    
+
     function login()
     {
         $uid = NULL;
@@ -78,10 +78,8 @@ class Facebook
                         #
                         # Note that we may not get an email, and nowadays the id we are given is a per-app id not
                         # something that can be used to identify the user.
-                        error_log("Try for me");
                         $response = $fb->get('/me?fields=id,name,first_name,last_name,email', $accessToken);
                         $fbme = $response->getGraphUser()->asArray();
-                        error_log("Got me " . var_export($fbme, TRUE));
 
                         $fbemail = presdef('email', $fbme, NULL);
                         $fbuid = presdef('id', $fbme, NULL);
@@ -93,7 +91,7 @@ class Facebook
                         $u = new User($this->dbhr, $this->dbhm);
                         $eid = $fbemail ? $u->findByEmail($fbemail) : NULL;
                         $fid = $fbuid ? $u->findByLogin('Facebook', $fbuid) : NULL;
-                        error_log("Email $eid  from $fbemail Facebook $fid, f $firstname, l $lastname, full $fullname");
+                        #error_log("Email $eid  from $fbemail Facebook $fid, f $firstname, l $lastname, full $fullname");
 
                         if ($eid && $fid && $eid != $fid) {
                             # This is a duplicate user.  Merge them.
@@ -102,7 +100,7 @@ class Facebook
                         }
 
                         $id = $eid ? $eid : $fid;
-                        error_log("Login id $id from $eid and $fid");
+                        #error_log("Login id $id from $eid and $fid");
 
                         if (!$id) {
                             # We don't know them.  Create a user.
@@ -126,7 +124,7 @@ class Facebook
                                     "INSERT IGNORE INTO users_logins (userid, type, uid) VALUES (?,'Facebook',?);",
                                     [
                                         $id,
-                                        $fid
+                                        $fbuid
                                     ]
                                 );
 
@@ -134,6 +132,8 @@ class Facebook
                             }
                         } else {
                             # We know them - but we might not have all the details.
+                            $u = new User($this->dbhr, $this->dbhm, $id);
+                            
                             if (!$eid) {
                                 $u->addEmail($fbemail, 0, FALSE);
                             }
@@ -155,8 +155,6 @@ class Facebook
                                 (string)$accessToken,
                                 $id
                             ]);
-
-                        $u = new User($this->dbhr, $this->dbhm, $id);
 
                         # We might have syncd the membership without a good name.
                         $u->setPrivate('firstname', $firstname);
@@ -186,7 +184,8 @@ class Facebook
                 }
             }
        } catch (Exception $e) {
-            error_log("Didn't manage to get a Facebook session: " . $e->getMessage());
+            $ret = 2;
+            $status = "Didn't manage to get a Facebook session: " . $e->getMessage();
         }
 
         return ([$s, [ 'ret' => $ret, 'status' => $status]]);
