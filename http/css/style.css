@@ -169,6 +169,10 @@ body {
     z-index: 20;
 }
 
+.modal-large {
+    width: 80% !important;
+}
+
 .msgbody {
     max-height: 100px;
     word-wrap: break-word;
@@ -721,7 +725,8 @@ a button {
 }
 
 .signinbutton {
-    width: 280px;
+    max-width: 280px;
+    width: 100%;
     display: inline-block;
 }
 
@@ -1063,10 +1068,6 @@ a button {
     font-weight: bold;
 }
 
-body {
-    background-color: #222;
-}
-
 .led-red {
     margin: 2px auto;
     width: 7px;
@@ -1106,6 +1107,39 @@ body {
 
 /* End chat */
 
+.strike {
+    display: block;
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    font-style: italic;
+}
+
+.strike > span {
+    position: relative;
+    display: inline-block;
+}
+
+.strike > span:before,
+.strike > span:after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 9999px;
+    height: 1px;
+    background: red;
+}
+
+.strike > span:before {
+    right: 100%;
+    margin-right: 15px;
+}
+
+.strike > span:after {
+    left: 100%;
+    margin-left: 15px;
+}
+​
 /*==================================================
 =            Bootstrap 3 Media Queries             =
 ==================================================*/

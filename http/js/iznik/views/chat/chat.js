@@ -28,7 +28,6 @@ define([
                 $.ajax({
                     url: window.location.protocol + '//' + window.location.hostname + '/subscribe/' + myid,
                     success: function(ret) {
-                        console.log("Poll returned", ret);
                         var waiting = false;
                         if (ret.hasOwnProperty('text')) {
                             var data = ret.text;
@@ -37,9 +36,7 @@ define([
                                 // Activity on this room.  Refetch the mesages within it.
                                 // console.log("Refetch chat", data.roomid, self);
                                 var chat = self.chats.get(data.roomid);
-                                console.log("Got chat", chat);
                                 var chatView = self.collectionView.viewManager.findByModel(chat);
-                                console.log("Got chatView", chatView);
                                 waiting = true;
                                 chatView.messages.fetch().then(function() {
                                     self.wait();
@@ -59,7 +56,6 @@ define([
         },
 
         removeView: function(chat) {
-            console.log("Remove chat", this, chat.model.get('id'));
             this.$el.hide();
             delete this.chatViews[chat.model.get('id')];
         },
@@ -153,6 +149,7 @@ define([
         render: function() {
             var self = this;
 
+            self.$el.css('visibility', 'hidden');
             self.$el.html(window.template(self.template)());
             $("#bodyEnvelope").append(self.$el);
 
@@ -176,6 +173,8 @@ define([
 
                 self.updateCounts();
                 self.organise();
+
+                self.$el.css('visibility', 'visible');
             });
 
             self.wait();
@@ -360,9 +359,10 @@ define([
             // Restore the window first, so it feels zippier.
             self.setSize();
             self.options.organise();
-            self.$el.css('visibility', 'visible');
-            self.$el.show();
             self.adjust();
+            _.defer(function() {
+                self.$el.css('visibility', 'visible');
+            });
 
             self.updateRoster(self.statusWithOverride('Online'));
 
@@ -559,8 +559,6 @@ define([
 
             self.collectionView.render();
 
-            minimise ? self.minimise() : self.restore();
-
             self.$el.resizable({
                 handleSelector: '.js-grip',
                 resizeWidthFrom: 'left',
@@ -573,7 +571,9 @@ define([
                 resizeHeight: false,
                 onDragEnd: _.bind(self.panelSize, self)
             });
-            
+
+            minimise ? self.minimise() : self.restore();
+
             self.trigger('rendered');
 
             // Get the roster to see who's there.
