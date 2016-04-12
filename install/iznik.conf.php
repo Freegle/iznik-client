@@ -12,7 +12,12 @@ define('TNKEY', 'zzzzz');
 # We can use push notifications
 define('GOOGLE_PROJECT', 'zzz');
 define('GOOGLE_PUSH_KEY', 'zzzz');
+
+# Other Google keys
 define('GOOGLE_VISION_KEY', 'zzz');
+define('GOOGLE_CLIENT_ID', 'zzz');
+define('GOOGLE_CLIENT_SECRET', 'zzz');
+define('GOOGLE_APP_NAME', 'zzz');
 
 # We support Facebook login, but you have to create your own app
 define('FBAPP_ID', 'zzz');

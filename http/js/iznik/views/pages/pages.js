@@ -147,6 +147,17 @@ define([
         },
 
         logout: function () {
+            try {
+                // We might be signed in to Google.  Make sure we're not.
+                gapi.auth.signOut();
+                console.log("Google signed out");
+                var GoogleLoad = new Iznik.Views.GoogleLoad();
+                GoogleLoad.disconnectUser();
+                console.log("Google access token revoked");
+            } catch (e) {
+                console.log("Google signout failed", e);
+            };
+
             $.ajax({
                 url: API + 'session',
                 type: 'POST',
@@ -196,6 +207,11 @@ define([
             if (Iznik.Session.isAdmin()) {
                 this.$('.js-adminonly').removeClass('hidden');
             }
+
+            // We need to create a hidden signin button because otherwise the Google logout method doesn't
+            // work properly.  See http://stackoverflow.com/questions/19353034/how-to-sign-out-using-when-using-google-sign-in/19356354#19356354
+            var GoogleLoad = new Iznik.Views.GoogleLoad();
+            GoogleLoad.buttonShim('googleshim');
 
             return this;
         }

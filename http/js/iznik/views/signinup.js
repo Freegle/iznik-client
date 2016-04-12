@@ -4,7 +4,8 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/modal',
-    'iznik/facebook'
+    'iznik/facebook',
+    'iznik/google'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.SignInUp = Iznik.Views.Modal.extend({
         className: "signinup",
@@ -122,7 +123,7 @@ define([
                 }
             });
         },
-
+        
         yahoologin: function () {
             this.listenToOnce(Iznik.Session, 'yahoologincomplete', function (ret) {
                 if (ret.hasOwnProperty('redirect')) {
@@ -196,6 +197,12 @@ define([
                 }
             });
             FBLoad.render();
+
+            // Load the Google API
+            var GoogleLoad = new Iznik.Views.GoogleLoad();
+
+            // We have a custom signin button which needs googleising.
+            GoogleLoad.signInButton('gConnect');
 
             return (this);
         }

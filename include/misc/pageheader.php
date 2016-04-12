@@ -29,6 +29,10 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta property="description" content="<?php echo SITE_DESC; ?>"/>
 
+    <!-- Google signin -->
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="<?php echo GOOGLE_CLIENT_ID; ?>">
+
     <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/jekkhomlnoblcnangfcdohhaipmmaddc">
     <link rel="shortcut icon" href="/images/favicon/<?php echo FAVICON_HOME; ?>/favicon/<?php echo FAVICON_HOME; ?>.ico" type="image/x-icon" />
     <link rel="apple-touch-icon" sizes="57x57" href="/images/favicon/<?php echo FAVICON_HOME; ?>/apple-touch-icon-57x57.png">

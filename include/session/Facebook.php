@@ -139,7 +139,7 @@ class Facebook
                             }
 
                             if (!$fid) {
-                                $rc = $this->dbhm->preExec(
+                                $this->dbhm->preExec(
                                     "INSERT IGNORE INTO users_logins (userid, type, uid) VALUES (?,'Facebook',?);",
                                     [
                                         $id,

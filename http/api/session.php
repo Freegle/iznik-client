@@ -84,29 +84,26 @@ function session() {
                         $id = $possid;
                     }
                 }
-            }
-
-            if ($fblogin) {
+            } else if ($fblogin) {
                 # We've been asked to log in via Facebook.
                 $f = new Facebook($dbhr, $dbhm);
                 list ($session, $ret) = $f->login();
                 /** @var Session $session */
-                $id = $session ? $session->getId() : NULL;
+                $id = $session ? $session->getUserId() : NULL;
             } else if ($yahoologin) {
                 # Yahoo.
                 $y = Yahoo::getInstance($dbhr, $dbhm);
                 list ($session, $ret) = $y->login($returnto);
                 /** @var Session $session */
-                $id = $session ? $session->getId() : NULL;
+                $id = $session ? $session->getUserId() : NULL;
+            } else if ($googlelogin) {
+                # Google
+                $g = new Google($dbhr, $dbhm, $mobile);
+                list ($session, $ret) = $g->login($googleauthcode);
+                /** @var Session $session */
+                $id = $session ? $session->getUserId() : NULL;
+                error_log("Logged in in API as $id");
             }
-            //    else if ($googlelogin) {
-            # Google
-            //        $g = new Google($dbhr, $dbhm, $mobile);
-            //        list ($id, $ret, $success, $newuser) = $g->login($googleauthcode);
-            //    } else {
-            //        list ($id, $success) = $user->login_check($email, $password, $key, $rememberme);
-            //        $_SESSION['sesstype'] = 'Freegle';
-            //    }
 
             if ($id) {
                 # Return some more useful info.
