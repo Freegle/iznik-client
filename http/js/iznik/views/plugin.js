@@ -723,12 +723,12 @@ define([
     
                         var serverMissing = _.difference(self.yahooGroups, serverGroups);
                         var yahooMissing = _.difference(serverGroups, self.yahooGroups);
-                        console.log("Yahoo groups", self.yahooGroups);
-                        console.log("Server groups", serverGroups);
-                        console.log("Mod on Yahoo but not server", serverMissing);
-                        console.log("Mod on server but but not Yahoo", yahooMissing);
-                        console.log("NameToId", nameToId);
-                        console.log("Session", Iznik.Session);
+                        // console.log("Yahoo groups", self.yahooGroups);
+                        // console.log("Server groups", serverGroups);
+                        // console.log("Mod on Yahoo but not server", serverMissing);
+                        // console.log("Mod on server but but not Yahoo", yahooMissing);
+                        // console.log("NameToId", nameToId);
+                        // console.log("Session", Iznik.Session);
     
                         // If we're a mod on the server but not on Yahoo, then we need to demote ourselves.
                         _.each(yahooMissing, function(demote) {

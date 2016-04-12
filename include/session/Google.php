@@ -41,8 +41,12 @@ class Google
         return ($this);
     }
 
-    public function getGoogle() {
+    public function getClient() {
         return($this->client);
+    }
+
+    public function getPlus() {
+        return($this->plus);
     }
 
     function login($code)
@@ -53,10 +57,12 @@ class Google
         $s = NULL;
 
         try {
-            $this->client->authenticate($code);
-            $this->access_token = $this->client->getAccessToken();
+            $client = $this->getClient();
+            $plus = $this->getPlus();
+            $client->authenticate($code);
+            $this->access_token = $client->getAccessToken();
             $this->tokens_decoded = json_decode($this->access_token);
-            $me = $this->plus->people->get("me");
+            $me = $plus->people->get("me");
 
             /** @var Google_Service_Plus_Person $emails */
             $emails = $me->getEmails();
@@ -77,13 +83,13 @@ class Google
             # See if we know this user already.  We might have an entry for them by email, or by Facebook ID.
             $u = new User($this->dbhr, $this->dbhm);
             $eid = $googlemail ? $u->findByEmail($googlemail) : NULL;
-            $gid = $googleuid ? $u->findByLogin('Facebook', $googleuid) : NULL;
+            $gid = $googleuid ? $u->findByLogin('Google', $googleuid) : NULL;
             #error_log("Email $eid  from $googlemail Google $gid, f $firstname, l $lastname, full $fullname");
 
             if ($eid && $gid && $eid != $gid) {
                 # This is a duplicate user.  Merge them.
                 $u = new User($this->dbhr, $this->dbhm);
-                $u->merge($eid, $gid, "Facebook Login - FacebookID $gid, Email $googlemail = $eid");
+                $u->merge($eid, $gid, "Google Login - GoogleID $gid, Email $googlemail = $eid");
             }
 
             $id = $eid ? $eid : $gid;
@@ -96,7 +102,7 @@ class Google
                 # one would fail.  Bigger fish to fry.
                 #
                 # We don't have the firstname/lastname split, only a single name.  Way two go.
-                $id = $u->create($firstname, $lastname, $fullname, "Facebook login from $gid");
+                $id = $u->create($firstname, $lastname, $fullname, "Google login from $gid");
 
                 if ($id) {
                     # Make sure that we have the Yahoo email recorded as one of the emails for this user.
@@ -108,7 +114,7 @@ class Google
 
                     # Now Set up a login entry.  Use IGNORE as there is a timing window here.
                     $rc = $this->dbhm->preExec(
-                        "INSERT IGNORE INTO users_logins (userid, type, uid) VALUES (?,'Facebook',?);",
+                        "INSERT IGNORE INTO users_logins (userid, type, uid) VALUES (?,'Google',?);",
                         [
                             $id,
                             $googleuid
@@ -126,7 +132,6 @@ class Google
                 }
 
                 if (!$gid) {
-                    error_log("Save $googleuid");
                     $this->dbhm->preExec(
                         "INSERT IGNORE INTO users_logins (userid, type, uid) VALUES (?,'Google',?);",
                         [
