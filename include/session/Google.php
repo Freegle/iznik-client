@@ -69,7 +69,7 @@ class Google
             }
 
             $googleuid = presdef('id', $me, NULL);
-            error_log("Google id " . var_export($googleuid, TRUE));
+            #error_log("Google id " . var_export($googleuid, TRUE));
             $firstname = NULL;
             $lastname = NULL;
             $fullname = $me['displayName'];
@@ -78,7 +78,7 @@ class Google
             $u = new User($this->dbhr, $this->dbhm);
             $eid = $googlemail ? $u->findByEmail($googlemail) : NULL;
             $gid = $googleuid ? $u->findByLogin('Facebook', $googleuid) : NULL;
-            error_log("Email $eid  from $googlemail Google $gid, f $firstname, l $lastname, full $fullname");
+            #error_log("Email $eid  from $googlemail Google $gid, f $firstname, l $lastname, full $fullname");
 
             if ($eid && $gid && $eid != $gid) {
                 # This is a duplicate user.  Merge them.
@@ -87,7 +87,7 @@ class Google
             }
 
             $id = $eid ? $eid : $gid;
-            error_log("Login id $id from $eid and $gid");
+            #error_log("Login id $id from $eid and $gid");
 
             if (!$id) {
                 # We don't know them.  Create a user.

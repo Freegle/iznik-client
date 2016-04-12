@@ -102,7 +102,6 @@ function session() {
                 list ($session, $ret) = $g->login($googleauthcode);
                 /** @var Session $session */
                 $id = $session ? $session->getUserId() : NULL;
-                error_log("Logged in in API as $id");
             }
 
             if ($id) {
