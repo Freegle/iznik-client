@@ -1,4 +1,7 @@
-/* This contains styles which are predominently differences in colours */
+/* This contains styles which are predominantly differences in colours */
+.bodyback {
+    background-image: url('/images/wallpaper.png');
+}
 
 .mapresult {
     border:2px solid green;

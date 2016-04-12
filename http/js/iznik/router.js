@@ -118,6 +118,8 @@ define([
                 } else {
                     self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                         var page = new Iznik.Views.User.Pages.Landing();
+                        page.template = loggedIn ? "user_home_main" : "user_landing_main";
+                        console.log("Rendered landing", page.template);
                         self.loadRoute({page: page});
                     });
 
