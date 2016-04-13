@@ -828,10 +828,6 @@ a button {
     padding-bottom: 5px;
 }
 
-.pageContent, .rightSidebar {
-    top: 61px;
-}
-
 #page-content-wrapper {
     min-height: 90vh;
 }
@@ -1044,6 +1040,7 @@ a button {
 
 .chat-messages {
     height: 100%;
+    word-wrap: break-word;
 }
 
 .chat-message {

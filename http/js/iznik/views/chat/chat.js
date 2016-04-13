@@ -135,7 +135,7 @@ define([
 
                 var max = window.innerWidth;
 
-                console.log("Consider width", totalOuter, max);
+                // console.log("Consider width", totalOuter, max);
 
                 if (totalOuter > max) {
                     // The chat windows we have open are too wide.  Make them narrower.
@@ -298,6 +298,7 @@ define([
                     self.listenToOnce(this.model, 'sent', function(id) {
                         self.model.set('lastmsgseen', id);
                         self.model.set('unseen', 0);
+                        self.options.updateCounts();
 
                         self.$('.js-message').val('');
                         self.$('.js-message').prop('disabled', false);
@@ -322,6 +323,10 @@ define([
             this.trigger('removed', this);
             this.removed = true;
             this.$el.remove();
+        },
+
+        focus: function() {
+            this.$('.js-message').click();
         },
 
         messageFocus: function() {
@@ -431,10 +436,12 @@ define([
             }
 
             // We fetch the messages when restoring - no need before then.
-            console.log("Fetch messages");
             self.messages.fetch().then(function() {
-                console.log("Fetched");
                 self.scrollBottom();
+
+                // We've just opened this chat - so we have had a decent chance to see any unread messages.
+                self.messageFocus();
+
                 self.trigger('restored');
             });
         },
@@ -662,8 +669,18 @@ define([
     Iznik.Views.Chat.Message = Iznik.View.extend({
         template: 'chat_message',
 
+        wbr: function(str, num) {
+            var re = RegExp("([^\\s]{" + num + "})(\\w)", "g");
+            return str.replace(re, function(all,text,char){
+                return text + "<wbr>" + char;
+            });
+        },
+
         render: function() {
             if (this.model.get('id')) {
+                // Insert some wbrs to allow us to word break long words (e.g. URLs).
+                this.model.set('message', this.wbr(this.model.get('message'), 20));
+
                 this.model.set('lastmsgseen', this.options.chatModel.get('lastmsgseen'));
                 this.$el.html(window.template(this.template)(this.model.toJSON2()));
                 this.$('.timeago').timeago();
