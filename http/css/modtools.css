@@ -167,6 +167,10 @@
     height: 61px !important;
 }
 
+.notifchat {
+    top: -14px;
+}
+
 .pageContent.landing {
     background: white;
     -moz-box-shadow: 0 0px 100px #45941a;

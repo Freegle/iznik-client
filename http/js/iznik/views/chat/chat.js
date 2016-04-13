@@ -60,70 +60,122 @@ define([
             delete this.chatViews[chat.model.get('id')];
         },
 
-        organise: function() {
+        getCSS: function(el) {
+
+        },
+
+        organise: function(changeminimised) {
+            // This organises our chat windows so that:
+            // - they're at the bottom, padded at the top to ensure that
+            // - they're not wider or taller than the space we have.
+            //
+            // The code is a bit complex
+            // - partly because the algorithm is a bit complicated
+            // - partly because for performance reasons we need to avoid using methods like width(), which are
+            //   expensive, and use the CSS properties instead - which aren't, but which are returned with a
+            //   px we need to trim.
+            //
+            // This approach speeds up this function by at least a factor of ten.
             var self = this;
+            var start = (new Date()).getMilliseconds();
             var minimised = 0;
+            var totalOuter = 0;
             var totalWidth = 0;
             var totalMax = 0;
             var maxHeight = 0;
             var minHeight = 1000;
 
-            $('#chatMinimised ul').empty();
+            var windowInnerHeight = $(window).innerHeight();
+            var navbarOuterHeight = $('.navbar').outerHeight();
+
+            if (changeminimised) {
+                $('#js-notifchat ul').empty();
+            }
 
             if (self.collectionView) {
                 self.collectionView.viewManager.each(function(chat) {
                     if (chat.minimised) {
+                        // Not much to do - either just count, or create if we're asked to.
                         minimised++;
-                        var v = new Iznik.Views.Chat.Minimised({
-                            model: chat.model,
-                            chat: chat
-                        });
-                        $('#chatMinimised ul').append(v.render().el);
+
+                        if (changeminimised) {
+                            var v = new Iznik.Views.Chat.Minimised({
+                                model: chat.model,
+                                chat: chat
+                            });
+                            $('#js-notifchat ul').append(v.render().el);
+                        }
                     } else {
-                        // We use this to see if we need to shrink.
-                        totalWidth += chat.$el.outerWidth();
+                        // We can get the properties we're interested in with a single call, which is quicker.  This also
+                        // allows us to remove the px crud.
+                        var cssorig = chat.$el.css(['height', 'width', 'margin-left', 'margin-right', 'margin-top']);
+                        var css = [];
+
+                        // Remove the px and make sure they're ints.
+                        _.each(cssorig, function(val, prop) {
+                            css[prop] = parseInt(val.replace('px', ''));
+                        });
+
+                        // We use this later to see if we need to shrink.
+                        totalOuter += css.width + css['margin-left'] + css['margin-right'];
+                        totalWidth += css.width;
                         totalMax++;
 
                         // Make sure it's not stupidly tall or short.
-                        var height = chat.$el.height();
+                        console.log("Consider height", css.height, windowInnerHeight, navbarOuterHeight, windowInnerHeight - navbarOuterHeight - 5);
+                        height = Math.min(css.height, windowInnerHeight - navbarOuterHeight - 5);
                         height = Math.max(height, 100);
-                        height = Math.min(height, $(window).innerHeight());
-                        chat.$el.height(height);
+                        maxHeight = Math.max(height, maxHeight);
+                        console.log("Height", height, css.height, windowInnerHeight, navbarOuterHeight);
+
+                        if (css.height != height) {
+                            css.height = height;
+                            chat.$el.css('height', height.toString() + 'px');
+                        }
                     }
                 });
 
-                // console.log("Compare widths", totalWidth, totalMax, window.innerWidth);
-                var max = window.innerWidth - $('#chatMinimised').outerWidth() - 5;
-                if (totalWidth > max) {
+                // console.log("Checked height", (new Date()).getMilliseconds() - start);
+
+                var max = window.innerWidth;
+
+                if (totalOuter > max) {
                     // The chat windows we have open are too wide.  Make them narrower.
-                    console.log("Chats too wide", max, totalWidth);
-                    var width = Math.round(max / totalMax - 0.5) - 10;
+                    var reduceby = Math.round((totalOuter - max) / totalMax + 0.5);
+                    console.log("Chats too wide", max, totalOuter, totalWidth, reduceby);
+                    var width = (Math.round(totalWidth / totalMax + 0.5) - reduceby);
                     console.log("New width", width);
 
                     self.collectionView.viewManager.each(function(chat) {
                         if (!chat.minimised) {
-                            chat.$el.width(width);
+                            if (chat.$el.css('width') != width) {
+                                console.log("Set new width ", chat.$el.css('width'), width);
+                                chat.$el.css('width', width.toString() + 'px');
+                            }
                         }
                     });
                 }
+
+                // console.log("Checked width", (new Date()).getMilliseconds() - start);
+                // console.log("Got max height", (new Date()).getMilliseconds() - start);
+
+                // Now consider changing the margins on the top to ensure the chat window is at the bottom of the
+                // screen.
+                self.collectionView.viewManager.each(function(chat) {
+                    if (!chat.minimised) {
+                        var height = parseInt(chat.$el.css('height').replace('px', ''));
+                        var newmargin = (maxHeight - height).toString() + 'px';
+                        // console.log("Checked margin", (new Date()).getMilliseconds() - start);
+                        // console.log("Consider new margin", maxHeight, height, chat.$el.css('height'), chat.$el.css('margin-top'), newmargin);
+
+                        if (chat.$el.css('margin-top') != newmargin) {
+                            chat.$el.css('margin-top', newmargin);
+                        }
+                    }
+                });
             }
 
-            var maxHeight = 0;
-
-            self.$('.chat-window').each(function() {
-                maxHeight = maxHeight > $(this).height() ? maxHeight : $(this).height();
-            });
-
-            self.$('.chat-window').each(function() {
-                $(this).css('margin-top', (maxHeight - $(this).outerHeight()) + 'px');
-            });
-
-            if (minimised == 0) {
-                $('#chatMinimised').hide();
-            } else {
-                $('#chatMinimised .js-title').html("Chats (" + minimised + ")");
-                $('#chatMinimised').show();
-            }
+            // console.log("Organised", (new Date()).getMilliseconds() - start);
         },
 
         updateCounts: function() {
@@ -131,18 +183,15 @@ define([
             var unseen = 0;
             self.chats.each(function(chat) {
                 var chatView = self.collectionView.viewManager.findByModel(chat);
-                if (chatView.minimised) {
+                if (chatView && chatView.minimised) {
                     unseen += chat.get('unseen');
-                    // console.log("Minimised unseen", chat);
                 }
             });
 
-            // console.log("Update counts in holder", unseen);
-
             if (unseen > 0) {
-                self.$('.js-totalcount').html(unseen).show();
+                $('#js-notifchat .js-totalcount').html(unseen).show();
             } else {
-                self.$('.js-totalcount').html(unseen).hide();
+                $('#js-notifchat .js-totalcount').html(unseen).hide();
             }
         },
 
@@ -165,14 +214,12 @@ define([
                     modelView: Iznik.Views.Chat.Window,
                     collection: self.chats,
                     modelViewOptions: {
-                        'organise': _.bind(self.organise, self)
+                        'organise': _.bind(self.organise, self),
+                        'updateCounts':  _.bind(self.updateCounts, self)
                     }
                 });
 
                 self.collectionView.render();
-
-                self.updateCounts();
-                self.organise();
 
                 self.$el.css('visibility', 'visible');
             });
@@ -224,7 +271,7 @@ define([
 
         tagName: 'li',
 
-        className: 'chat-window nopad col-xs-4 col-md-3 col-lg-2',
+        className: 'chat-window nopad nomarginleft nomarginbot nomarginright col-xs-4 col-md-3 col-lg-2',
 
         events: {
             'click .js-close, touchstart .js-close': 'remove',
@@ -295,7 +342,8 @@ define([
                 self.$el.hide();
             });
             this.minimised = true;
-            this.options.organise();
+            this.options.organise(true);
+            this.options.updateCounts();
 
             self.updateRoster('Away');
 
@@ -309,7 +357,7 @@ define([
         adjust: function() {
             var self = this;
             var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter input').outerHeight();
-            console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
+            // console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
             this.$('.js-leftpanel, .js-roster').height(newHeight);
 
             var lpwidth = self.$('.js-leftpanel').width();
@@ -330,16 +378,17 @@ define([
                 // console.log("Narrow?", isNarrow(), $(window).innerWidth());
                 if (isNarrow()) {
                     // Just maximise it.
-                    width = $(window).innerWidth() - $('#chatMinimised').outerWidth() - 5;
+                    width = $(window).innerWidth();
                 }
 
-                // console.log("Short?", isShort(), $(window).innerHeight(), $('.navbar').outerHeight(), $('#chatMinimised').outerHeight());
+                // console.log("Short?", isShort(), $(window).innerHeight(), $('.navbar').outerHeight(), $('#js-notifchat').outerHeight());
                 if (isShort()) {
                     // Maximise it.
                     height = $(window).innerHeight();
                 }
 
                 if (height && width) {
+                    console.log("Set size", width, height);
                     self.$el.height(height);
                     self.$el.width(width);
                 }
@@ -359,7 +408,9 @@ define([
 
             // Restore the window first, so it feels zippier.
             self.setSize();
-            self.options.organise();
+            self.options.organise(true);
+            this.options.updateCounts();
+
             _.defer(function() {
                 self.$el.css('visibility', 'visible');
                 self.$el.show();
@@ -389,13 +440,12 @@ define([
             }, 100);
         },
 
-        drag: function(event, el, opt) {
+        dragend: function(event, el, opt) {
             var self = this;
 
-            // We will need to remargin any other chats.
+            this.options.organise(false);
             self.trigger('resized');
             self.adjust();
-            self.options.organise();
             self.scrollBottom();
 
             // Save the new height to local storage so that we can restore it next time.
@@ -403,6 +453,20 @@ define([
                 localStorage.setItem(this.lsID() + '-height', self.$el.height());
                 localStorage.setItem(this.lsID() + '-width', self.$el.width());
             } catch (e) {}
+        },
+
+        drag: function(event, el, opt) {
+            var now = (new Date()).getMilliseconds();
+
+            // We don't want to allow the resize 
+
+            if (now - this.lastdrag > 20) {
+                // We will need to remargin any other chats.  Don't do this too often as it makes dragging laggy.
+                this.options.organise(false);
+            }
+
+            this.lastdrag = (new Date()).getMilliseconds();
+
         },
 
         panelSize: function(event, el, opt) {
@@ -522,6 +586,8 @@ define([
             $(window).resize(function() {
                 self.setSize();
                 self.adjust();
+                self.options.organise(false);
+                self.scrollBottom();
             });
 
             var narrow = isNarrow();
@@ -563,10 +629,11 @@ define([
             self.collectionView.render();
 
             self.$el.resizable({
-                handleSelector: '.js-grip',
+                handleSelector: '#chat-' + self.model.get('id') + ' .js-grip',
                 resizeWidthFrom: 'left',
                 resizeHeightFrom: 'top',
-                onDragEnd: _.bind(self.drag, self)
+                onDrag: _.bind(self.drag, self),
+                onDragEnd: _.bind(self.dragend, self)
             });
 
             self.$(".js-leftpanel").resizable({

@@ -969,26 +969,31 @@ a button {
     position:fixed;
     bottom:0;
     right:0;
-    z-index: 1100;
+    z-index: 10;
 }
 
-#chatMinimised {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    color: white;
-    background-color: #396aa3;
-    padding: 5px;
+#js-notifchat {
 }
 
-#chatMinimised ul, #chatMinimised li {
+#js-notifchat ul, #js-notifchat li {
     color: white;
     background-color: #4895DD;
 }
 
-#chatMinimised li {
+#js-notifchat li {
     border: 1px solid lightblue;
     padding: 2px;
+}
+
+#notifchatbutt .badge {
+    position: relative;
+    top: -15px;
+    left: -35px;
+}
+
+#notifchatdropdown {
+    position: absolute;
+    right: 0px;
 }
 
 .chat-window {
@@ -1071,6 +1076,15 @@ a button {
 
 .chat-message-unseen {
     font-weight: bold;
+}
+
+.notifchat {
+    top: 7px;
+}
+
+.notifglobe {
+    padding-right: 50px;
+    top: 7px;
 }
 
 .led-red {

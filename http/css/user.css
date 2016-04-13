@@ -486,12 +486,3 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 .tt-menu .tt-suggestion p {
     margin: 0;
 }
-
-.notifchat {
-    top: 7px;
-}
-
-.notifglobe {
-    padding-right: 50px;
-    top: 7px;
-}

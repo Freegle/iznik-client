@@ -1,7 +1,7 @@
 <div class="navbar navbar-fixed-top navbar-custom">
-    <div class="container fullholder padbotnone">
+    <div class="container completefull nopad nomargin">
         <div class="navbar-header">
-            <ul class="nav navbar-nav js-navbar fdnavbar nomargin">
+            <ul class="nav navbar-nav js-navbar fdnavbar nomargin completefull">
                 <li class="notop js-home clickme padleft pull-left">
                     <img src="/images/modtools_logo.png" class="padmd img-responsive img-rounded inline"/>
                     <img style="display: none; opacity: 0.5" id="spinner" src="/images/ajax-loader.gif" />
@@ -11,10 +11,24 @@
                         in
                     </button>
                     <div class="reallyHide menu js-menu js-loggedinonly pull-right" style="display:none">
-                        <button class="btn-default navbar-toggle collapse in" data-toggle="collapse"
-                                id="menu-toggle">
-                            <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true">&nbsp;Menu</span>
-                        </button>
+                        <ul class="list-inline">
+                            <li>
+                                <div class="clickme ">
+                                    <div class="dropdown" id="js-notifchat">
+                                        <div id="notifchatbutt" class="notifchat dropdown-toggle glyphicon glyphicon-larger glyphicon-comment white" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <span class="js-totalcount badge badge-unread" style="display: none;" />
+                                        </div>
+                                        <ul id="notifchatdropdown" class="nopadtop dropdown-menu" role="menu" aria-labelledby="notifchatbutt"/>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <button class="btn-default navbar-toggle collapse in" data-toggle="collapse"
+                                        id="menu-toggle">
+                                    <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true">&nbsp;Menu</span>
+                                </button>
+                            </li>
+                        </ul>
                     </div>
                 </li>
             </ul>
