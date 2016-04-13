@@ -70,10 +70,11 @@ define([
             if (html) {
                 // Yahoo is quite picky about the HTML that we pass back, and can fail edits.  Passing it through TinyMCE
                 // to sanitise it works for this.
+                $('#js-tinymce').remove();
                 self.$el.append('<textarea class="hidden js-tinymce" id="js-tinymce" />');
-                self.$('.js-tinymce').val(html);
+                self.$('#js-tinymce').val(html);
                 tinyMCE.init({
-                    selector: '.js-tinymce'
+                    selector: '#js-tinymce'
                 });
 
                 var html = tinyMCE.get('js-tinymce').getContent({format: 'raw'});
