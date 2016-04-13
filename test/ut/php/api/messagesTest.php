@@ -140,6 +140,46 @@ class messagesTest extends IznikAPITestCase {
         assertEquals($a->getID(), $msgs[0]['id']);
         assertTrue(array_key_exists('source', $msgs[0]));
 
+        # Get messages for this specific user
+        $ret = $this->call('messages', 'GET', [
+            'fromuser' => $a->getFromuser()
+        ]);
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($a->getID(), $msgs[0]['id']);
+
+        # Get messages for another user
+        $ret = $this->call('messages', 'GET', [
+            'fromuser' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(0, count($msgs));
+
+        # Filter by type
+        $ret = $this->call('messages', 'GET', [
+            'types' => [ Message::TYPE_OTHER ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+
+        $ret = $this->call('messages', 'GET', [
+            'types' => [ Message::TYPE_OFFER ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(0, count($msgs));
+
+        # A bad type.  This will be the same as if we didn't supply any; the key thing is the SQL injection defence.
+        $ret = $this->call('messages', 'GET', [
+            'types' => [ 'wibble' ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+
         # Sleep for background logging
         $this->waitBackground();
 

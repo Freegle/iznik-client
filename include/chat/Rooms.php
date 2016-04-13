@@ -83,7 +83,7 @@ class ChatRoom extends Entity
     public function listForUser($userid, $modtools = NULL) {
         $ret = [];
         $u = new User($this->dbhr, $this->dbhm, $userid);
-        $modtoolsq = ($modtools === NULL) ? '' : "AND modtools = $modtools";
+        $modtoolsq = ($modtools === NULL) ? '' : ("AND modtools = " . ($modtools ? 1 : 0));
 
         $sql = "SELECT id, modonly, modtools, groupid FROM chat_rooms WHERE groupid IS NULL OR groupid IN (SELECT groupid FROM memberships WHERE userid = ?) $modtoolsq;";
         $rooms = $this->dbhr->preQuery($sql, [ $userid ]);

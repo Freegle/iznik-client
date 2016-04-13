@@ -31,7 +31,10 @@
             </div>
             <div class="panel-body">
                 <p class="text-center text-muted">Stuff you're giving away.</p>
-                <ul class="list-inline js-offers" />
+                <div class="js-nooffers alert alert-info" style="display: none">
+                    <a href="/user/give/whereami">Nothing at the moment.  Why not OFFER something?</a>
+                </div>
+                <ul class="list-unstyled js-offers" />
             </div>
         </div>
     </div>
@@ -44,6 +47,7 @@
             </div>
             <div class="panel-body">
                 <p class="text-center text-muted">Stuff you're trying to find.</p>
+                <ul class="list-unstyled js-wanteds" />
             </div>
         </div>
     </div>

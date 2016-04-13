@@ -48,8 +48,7 @@ class MessageCollection
         }
     }
 
-    function get(&$ctx, $limit, $groupids, $userids = NULL) {
-        $groups = [];
+    function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL) {
         $msgids = [];
 
         if ($this->collection == MessageCollection::DRAFT) {
@@ -64,6 +63,7 @@ class MessageCollection
                 $msgids[] = ['id' => $msg['msgid']];
             }
         } else {
+            $typeq = $types ? (" AND `type` IN (" . implode(',', $types) . ") ") : '';
             $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Date']));
             $dateq = $ctx == NULL ? ' 1=1 ' : (" (messages.date < $date OR messages.date = $date AND messages.id < " . $this->dbhr->quote($ctx['id']) . ") ");
 
@@ -83,12 +83,12 @@ class MessageCollection
             # If we have a set of users, then it is more efficient to get the relevant messages first (because there
             # are few and it's well-indexed).
             if ($userids) {
-                $seltab = "(SELECT id, date, fromuser, deleted FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
+                $seltab = "(SELECT id, date, fromuser, deleted, `type` FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
             } else {
                 $seltab = "messages";
             }
 
-            $sql = "SELECT msgid AS id, date FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC, messages.id DESC LIMIT $limit";
+            $sql = "SELECT msgid AS id, date FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC, messages.id DESC LIMIT $limit";
             #error_log("Messages get $sql, {$this->collection}");
 
             $msglist = $this->dbhr->preQuery($sql, [

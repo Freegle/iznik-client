@@ -10,6 +10,8 @@ function messages() {
     $limit = intval(presdef('limit', $_REQUEST, 5));
     $source = presdef('source', $_REQUEST, NULL);
     $from = presdef('from', $_REQUEST, NULL);
+    $fromuser = presdef('fromuser', $_REQUEST, NULL);
+    $types = presdef('types', $_REQUEST, NULL);
     $message = presdef('message', $_REQUEST, NULL);
     $yahoopendingid = presdef('yahoopendingid', $_REQUEST, NULL);
     $yahooapprovedid = presdef('yahooapprovedid', $_REQUEST, NULL);
@@ -22,6 +24,7 @@ function messages() {
     switch ($_REQUEST['type']) {
         case 'GET': {
             $groups = [];
+            $userids = [];
 
             if ($collection != MessageCollection::DRAFT) {
                 if ($groupid) {
@@ -41,6 +44,11 @@ function messages() {
 
                     # Ensure that if we aren't in any groups, we don't treat this as a systemwide search.
                     $groups[] = 0;
+
+                    if ($fromuser) {
+                        # We're looking for messages from a specific user
+                        $userids[] = $fromuser;
+                    }
                 }
             }
 
@@ -55,7 +63,7 @@ function messages() {
             switch ($subaction) {
                 case NULL:
                     # Just a normal fetch.
-                    list($groups, $msgs) = $c->get($ctx, $limit, $groups);
+                    list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types));
                     break;
                 case 'search':
                 case 'searchmess':

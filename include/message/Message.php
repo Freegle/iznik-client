@@ -23,6 +23,41 @@ class Message
     const TYPE_ADMIN = 'Admin';
     const TYPE_OTHER = 'Other';
 
+    static public function checkType($type) {
+        switch($type) {
+            case Message::TYPE_OFFER:
+            case Message::TYPE_TAKEN:
+            case Message::TYPE_WANTED:
+            case Message::TYPE_RECEIVED:
+            case Message::TYPE_ADMIN:
+            case Message::TYPE_OTHER:
+                $ret = $type;
+                break;
+            default:
+                $ret = NULL;
+        }
+        
+        return($ret);
+    }
+    
+    static public function checkTypes($types) {
+        $ret = NULL;
+
+        if ($types) {
+            $ret = [];
+
+            foreach ($types as $type) {
+                $thistype = Message::checkType($type);
+
+                if ($thistype) {
+                    $ret[] = "'$thistype'";
+                }
+            }
+        }
+
+        return($ret);
+    }
+
     /**
      * @return null
      */

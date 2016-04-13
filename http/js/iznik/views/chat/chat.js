@@ -49,7 +49,7 @@ define([
                         }
                     }, error: function() {
                         // Probably a network glitch.  Retry later.
-                        _.delay(self.wait, 5000);
+                        _.delay(_.bind(self.wait, self), 5000);
                     }
                 });
             }
