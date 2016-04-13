@@ -118,6 +118,13 @@
     border-top-color: #ffffff;
     border-bottom-color: #ffffff;
 }
+
+.msgsubj {
+    font-size: 24px;
+    font-weight: bold;
+    color: #000080 !important
+}
+
 @media (max-width: 767) {
     .navbar-custom .navbar-nav .open .dropdown-menu > li > a {
         color: #ffffff;

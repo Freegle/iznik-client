@@ -100,12 +100,41 @@ define([
             return(this);
         }
     });
-    
-    Iznik.Views.User.Home.Offer = Iznik.View.extend({
+
+    Iznik.Views.User.Home.Message = Iznik.View.extend({
+        render: function() {
+            var self = this;
+
+            Iznik.View.prototype.render.call(self);
+            var groups = self.model.get('groups');
+            console.log("Groups", groups);
+
+            _.each(groups, function(group) {
+                var v = new Iznik.Views.User.Home.Group({
+                    model: new Iznik.Model(group)
+                });
+                self.$('.js-groups').append(v.render().el);
+            });
+
+            return(this);
+        }
+    });
+
+    Iznik.Views.User.Home.Offer = Iznik.Views.User.Home.Message.extend({
         template: "user_home_offer"
     });
 
-    Iznik.Views.User.Home.Wanted = Iznik.View.extend({
+    Iznik.Views.User.Home.Wanted = Iznik.Views.User.Home.Message.extend({
         template: "user_home_wanted"
     });
+
+    Iznik.Views.User.Home.Group = Iznik.View.extend({
+        template: "user_home_group",
+
+        render: function() {
+            Iznik.View.prototype.render.call(this);
+            this.$('.timeago').timeago();
+            return(this);
+        }
+    })
 });
