@@ -112,20 +112,26 @@ define([
         userHome: function () {
             var self = this;
 
-            require(["iznik/views/pages/user/landing"], function() {
-                if (document.URL.indexOf('modtools') !== -1) {
-                    Router.navigate('/modtools', true);
-                } else {
-                    self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
-                        var page = new Iznik.Views.User.Pages.Landing();
-                        page.template = loggedIn ? "user_home_main" : "user_landing_main";
-                        console.log("Rendered landing", page.template);
-                        self.loadRoute({page: page});
-                    });
+            if (document.URL.indexOf('modtools') !== -1) {
+                Router.navigate('/modtools', true);
+            } else {
+                self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                    if (loggedIn) {
+                        $('body').addClass('bodyback');
+                        require(["iznik/views/pages/user/home"], function() {
+                            var page = new Iznik.Views.User.Pages.Home();
+                            self.loadRoute({page: page});
+                        });
+                    } else {
+                        require(["iznik/views/pages/user/landing"], function() {
+                            var page = new Iznik.Views.User.Pages.Landing();
+                            self.loadRoute({page: page});
+                        });
+                    }
+                });
 
-                    Iznik.Session.testLoggedIn();
-                }
-            });
+                Iznik.Session.testLoggedIn();
+            }
         },
 
         userFindWhereAmI: function () {

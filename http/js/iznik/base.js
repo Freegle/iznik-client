@@ -53,6 +53,7 @@ define([
                     Find: {},
                     Give: {}
                 },
+                Home: {},
                 Message: {}
             },
             Group: {},
