@@ -33,7 +33,7 @@ body {
 }
 
 .navbar-fixed-top {
-    height: 75px;
+    height: 61px;
     top: 0px;
 }
 /* Sticky footer styles
@@ -826,6 +826,10 @@ a button {
 
 .stdmsgs li {
     padding-bottom: 5px;
+}
+
+.pageContent, .rightSidebar {
+    top: 61px;
 }
 
 #page-content-wrapper {

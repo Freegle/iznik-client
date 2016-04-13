@@ -159,14 +159,6 @@
     box-shadow: 0 0 10px #45941a;
 }
 
-.pageContent, .rightSidebar {
-    top: 61px;
-}
-
-.navbar {
-    height: 61px !important;
-}
-
 .notifchat {
     top: -14px;
 }

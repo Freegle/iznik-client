@@ -7,6 +7,7 @@ function chatrooms() {
 
     $id = intval(presdef('id', $_REQUEST, NULL));
     $r = new ChatRoom($dbhr, $dbhm, $id);
+    $modtools = array_key_exists('modtools', $_REQUEST) ? filter_var($_REQUEST['modtools'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -22,7 +23,7 @@ function chatrooms() {
                 if ($me) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
                     
-                    $rooms = $r->listForUser($myid);
+                    $rooms = $r->listForUser($myid, $modtools);
                     $ret['chatrooms'] = [];
 
                     if ($rooms) {

@@ -10,10 +10,12 @@
                     <div class="reallyHide menu js-menu js-loggedinonly pull-right" style="display:none">
                         <ul class="list-inline">
                             <li>
-                                <div class="dropdown">
-                                    <div id="js-notifchat" class="clickme notifchat dropdown-toggle glyphicon glyphicon-larger glyphicon-comment" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <span class="js-totalcount badge badge-unread" style="display: none;" />&nbsp;<span class="js-title" />
-                                        <ul class="nopadtop dropdown-menu" role="menu" aria-labelledby="js-chatnotif" />
+                                <div class="clickme ">
+                                    <div class="dropdown" id="js-notifchat">
+                                        <div id="notifchatbutt" class="notifchat dropdown-toggle glyphicon glyphicon-larger glyphicon-comment white" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <span class="js-totalcount badge badge-unread" style="display: none;" />
+                                        </div>
+                                        <ul id="notifchatdropdown" class="nopadtop dropdown-menu" role="menu" aria-labelledby="notifchatbutt"/>
                                     </div>
                                 </div>
                             </li>

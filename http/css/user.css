@@ -286,6 +286,15 @@ h1,h2,h3,h4 {
     line-height: normal;
 }
 
+#notifchatdropdown {
+    color: white;
+    background-color: #4895DD;
+}
+
+.chat-name {
+    background-color: #4895DD;
+}
+
 /*
  * typehead.js-bootstrap3.less
  * @version 0.2.3

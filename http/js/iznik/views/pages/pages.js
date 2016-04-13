@@ -97,7 +97,9 @@ define([
                         loggedOutOnly.fadeOut('slow');
 
                         // Since we're logged in, we can start chat.
-                        var v = new Iznik.Views.Chat.Holder();
+                        var v = new Iznik.Views.Chat.Holder({
+                            modtools: self.modtools
+                        });
                         v.render();
                     } else {
                         loggedOutOnly.toggleClass('reallyHide');

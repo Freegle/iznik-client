@@ -60,10 +60,6 @@ define([
             delete this.chatViews[chat.model.get('id')];
         },
 
-        getCSS: function(el) {
-
-        },
-
         organise: function(changeminimised) {
             // This organises our chat windows so that:
             // - they're at the bottom, padded at the top to ensure that
@@ -205,26 +201,34 @@ define([
             $("#bodyEnvelope").append(self.$el);
 
             self.chats = new Iznik.Collections.Chat.Rooms();
-            self.chats.fetch().then(function() {
-                self.chats.each(function(chat) {
-                    // If the unread message count changes, we want to update it.
-                    self.listenTo(chat, 'change:unseen', self.updateCounts);
-                });
+            self.chats.fetch({
+                data: {
+                    modtools: self.options.modtools
+                }
+            }).then(function() {
+                if (self.chats.length > 0) {
+                    self.chats.each(function(chat) {
+                        // If the unread message count changes, we want to update it.
+                        self.listenTo(chat, 'change:unseen', self.updateCounts);
+                    });
 
-                self.collectionView = new Backbone.CollectionView({
-                    el: self.$('.js-chats'),
-                    modelView: Iznik.Views.Chat.Window,
-                    collection: self.chats,
-                    modelViewOptions: {
-                        'organise': _.bind(self.organise, self),
-                        'updateCounts':  _.bind(self.updateCounts, self)
-                    }
-                });
+                    self.collectionView = new Backbone.CollectionView({
+                        el: self.$('.js-chats'),
+                        modelView: Iznik.Views.Chat.Window,
+                        collection: self.chats,
+                        modelViewOptions: {
+                            'organise': _.bind(self.organise, self),
+                            'updateCounts':  _.bind(self.updateCounts, self)
+                        }
+                    });
 
-                self.collectionView.render();
+                    self.collectionView.render();
 
-                self.organise(true);
-                self.$el.css('visibility', 'visible');
+                    self.organise(true);
+                    self.$el.css('visibility', 'visible');
+                } else {
+                    $('#js-notifchat').css('visibility', 'hidden');
+                }
             });
             self.wait();
         }
@@ -427,7 +431,9 @@ define([
             }
 
             // We fetch the messages when restoring - no need before then.
+            console.log("Fetch messages");
             self.messages.fetch().then(function() {
+                console.log("Fetched");
                 self.scrollBottom();
                 self.trigger('restored');
             });

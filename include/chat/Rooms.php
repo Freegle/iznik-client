@@ -28,12 +28,13 @@ class ChatRoom extends Entity
         $this->dbhm = $dbhm;
     }
 
-    public function create($name, $gid = NULL, $modonly = FALSE) {
+    public function create($name, $gid = NULL, $modonly = FALSE, $modtools = FALSE) {
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (name, groupid, modonly) VALUES (?,?,?)", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (name, groupid, modonly, modtools) VALUES (?,?,?,?)", [
                 $name,
                 $gid,
-                $modonly
+                $modonly,
+                $modtools
             ]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
@@ -79,11 +80,12 @@ class ChatRoom extends Entity
         return($counts[0]['count']);
     }
 
-    public function listForUser($userid) {
+    public function listForUser($userid, $modtools = NULL) {
         $ret = [];
         $u = new User($this->dbhr, $this->dbhm, $userid);
+        $modtoolsq = ($modtools === NULL) ? '' : "AND modtools = $modtools";
 
-        $sql = "SELECT id, modonly, groupid FROM chat_rooms WHERE groupid IS NULL OR groupid IN (SELECT groupid FROM memberships WHERE userid = ?);";
+        $sql = "SELECT id, modonly, modtools, groupid FROM chat_rooms WHERE groupid IS NULL OR groupid IN (SELECT groupid FROM memberships WHERE userid = ?) $modtoolsq;";
         $rooms = $this->dbhr->preQuery($sql, [ $userid ]);
         foreach ($rooms as $room) {
             #error_log("Consider {$room['id']} group {$room['groupid']} modonly {$room['modonly']} " . $u->isModOrOwner($room['groupid']));
