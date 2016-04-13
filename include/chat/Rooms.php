@@ -9,7 +9,7 @@ class ChatRoom extends Entity
 {
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'name', 'groupid', 'modonly', 'description');
-    var $settableatts = array('name');
+    var $settableatts = array('name', 'description');
 
     /** @var  $log Log */
     private $log;

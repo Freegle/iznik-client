@@ -881,7 +881,7 @@ class User extends Entity
                     $m = new Message($this->dbhr, $this->dbhm, $log['msgid']);
 
                     if ($m->getID()) {
-                        $log['message'] = $g->getPublic(FALSE);
+                        $log['message'] = $m->getPublic(FALSE);
                     } else {
                         # The message has been deleted.
                         $log['message'] = [

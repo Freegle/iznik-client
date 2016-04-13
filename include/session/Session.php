@@ -100,14 +100,6 @@ class Session {
     private $dbhm;
     private $id;
 
-    /**
-     * @return mixed
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
     public function getUserId() {
         $sql = "SELECT userid FROM sessions WHERE id = ?;";
         $sessions = $this->dbhr->preQuery($sql, [ $this->id ]);

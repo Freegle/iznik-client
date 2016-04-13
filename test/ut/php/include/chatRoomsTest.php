@@ -38,7 +38,8 @@ class chatRoomsTest extends IznikTestCase {
         $id = $r->create('test', NULL);
         assertNotNull($id);
 
-        $r->setAttributes([['name' => 'test']]);
+        $r->setAttributes(['name' => 'test']);
+        assertEquals('test', $r->getPublic()['name']);
         
         assertEquals(1, $r->delete());
 

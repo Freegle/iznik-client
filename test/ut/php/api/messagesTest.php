@@ -150,10 +150,30 @@ class messagesTest extends IznikAPITestCase {
         ]);
         error_log("Logs".  var_export($ret, true));
         $log = $this->findLog('Message', 'Received', $ret['user']['logs']);
+        error_log("Got log " . var_export($log, TRUE));
         assertEquals($group1, $log['group']['id']);
         assertEquals($a->getFromuser(), $log['user']['id']);
+        assertEquals($a->getID(), $log['message']['id']);
 
+        $id = $a->getID();
+        error_log("Delete it");
         $a->delete();
+
+        # Actually delete the message to force a codepath.
+        error_log("Delete msg $id");
+        $rc = $this->dbhm->preExec("DELETE FROM messages WHERE id = ?;", [ $id ]);
+        assertEquals(1, $rc);
+        $this->waitBackground();
+
+        # The delete should show in the log.
+        $ret = $this->call('user', 'GET', [
+            'id' => $a->getFromuser(),
+            'logs' => TRUE
+        ]);
+        $log = $this->findLog('Message', 'Received', $ret['user']['logs']);
+        assertEquals($group1, $log['group']['id']);
+        assertEquals($a->getFromuser(), $log['user']['id']);
+        assertEquals(1, $log['message']['deleted']);
 
         error_log(__METHOD__ . " end");
     }

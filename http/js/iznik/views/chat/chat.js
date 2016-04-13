@@ -122,11 +122,11 @@ define([
                         totalMax++;
 
                         // Make sure it's not stupidly tall or short.
-                        console.log("Consider height", css.height, windowInnerHeight, navbarOuterHeight, windowInnerHeight - navbarOuterHeight - 5);
+                        // console.log("Consider height", css.height, windowInnerHeight, navbarOuterHeight, windowInnerHeight - navbarOuterHeight - 5);
                         height = Math.min(css.height, windowInnerHeight - navbarOuterHeight - 5);
                         height = Math.max(height, 100);
                         maxHeight = Math.max(height, maxHeight);
-                        console.log("Height", height, css.height, windowInnerHeight, navbarOuterHeight);
+                        // console.log("Height", height, css.height, windowInnerHeight, navbarOuterHeight);
 
                         if (css.height != height) {
                             css.height = height;
@@ -138,6 +138,8 @@ define([
                 // console.log("Checked height", (new Date()).getMilliseconds() - start);
 
                 var max = window.innerWidth;
+
+                console.log("Consider width", totalOuter, max);
 
                 if (totalOuter > max) {
                     // The chat windows we have open are too wide.  Make them narrower.
@@ -221,9 +223,9 @@ define([
 
                 self.collectionView.render();
 
+                self.organise(true);
                 self.$el.css('visibility', 'visible');
             });
-
             self.wait();
         }
     });

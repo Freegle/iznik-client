@@ -93,6 +93,17 @@ class chatRoomsAPITest extends IznikAPITestCase
         error_log(var_export($ret, TRUE));
         assertEquals($this->uid, $ret['roster'][0]['userid']);
         assertEquals('Test User', $ret['roster'][0]['user']['fullname']);
+        assertEquals('Online', $ret['roster'][0]['status']);
+
+        $ret = $this->call('chatrooms', 'POST', [
+            'id' => $rid,
+            'lastmsgseen' => 1,
+            'status' => 'Away'
+        ]);
+        error_log(var_export($ret, TRUE));
+        assertEquals($this->uid, $ret['roster'][0]['userid']);
+        assertEquals('Test User', $ret['roster'][0]['user']['fullname']);
+        assertEquals('Away', $ret['roster'][0]['status']);
 
         error_log(__METHOD__ . " end");
     }

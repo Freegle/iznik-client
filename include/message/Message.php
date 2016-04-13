@@ -1472,6 +1472,8 @@ class Message
                     $groupid ? $groupid : 1
                 ]);
 
+            $logged = FALSE;
+
             foreach ($groups as $group) {
                 $groupid = $group['groupid'];
 
