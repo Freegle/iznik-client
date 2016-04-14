@@ -36,6 +36,11 @@ body {
     height: 61px;
     top: 0px;
 }
+
+.pageContent, .rightSidebar {
+    top: 61px;
+}
+
 /* Sticky footer styles
 -------------------------------------------------- */
 

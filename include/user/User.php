@@ -1875,6 +1875,7 @@ class User extends Entity
 
     public function submitQueued($groupid) {
         # Get the email address we use on the group
+        $submitted = 0;
         $eid = $this->getEmailForGroup($groupid);
         $emails = $this->getEmails();
         $email = NULL;
@@ -1884,6 +1885,8 @@ class User extends Entity
             }
         }
 
+        error_log("Got email $email for {$this->id} on $groupid, eid $eid");
+
         if ($email) {
             $sql = "SELECT msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id WHERE groupid = ? AND collection = ? AND messages_groups.deleted = 0 AND messages.fromuser = ?;";
             $msgs = $this->dbhr->preQuery($sql, [
@@ -1892,14 +1895,14 @@ class User extends Entity
                 $this->id
             ]);
 
-            error_log("submitQueued for $groupid email $email");
-
             foreach ($msgs as $msg) {
-                error_log("Submit {$msg['msgid']} from $email");
                 $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
                 $m->submit($this, $email, $groupid);
+                $submitted++;
             }
         }
+
+        return($submitted);
     }
 
     public function delete($groupid = NULL, $subject = NULL, $body = NULL) {

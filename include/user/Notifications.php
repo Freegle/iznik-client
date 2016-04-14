@@ -159,7 +159,7 @@ class Notifications
                 } else {
                     fputs($fp, $header . $vars);
                     $server_response = fread($fp, 256);
-                    #error_log("Rsp on $service_uri $server_response");
+                    error_log("Rsp on $service_uri $server_response");
                 }
             }
         } catch (Exception $e) {

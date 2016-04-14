@@ -52,15 +52,16 @@ class Image {
     }
 
     public function getData($quality = 75) {
+        $data = NULL;
+
         if ($this->img) {
             # Get data back as JPEG.  Use default quality.
             ob_start();
             imagejpeg($this->img, null, $quality);
             $data = ob_get_contents();
             ob_end_clean();
-            return ($data);
         }
 
-        return(NULL);
+        return($data);
     }
 }

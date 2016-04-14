@@ -25,8 +25,10 @@ define([
                 // Not logged in, try later;
                 _.delay(self.wait, 5000);
             } else {
+                var chathost = $('meta[name=iznikchat]').attr("content");
+
                 $.ajax({
-                    url: window.location.protocol + '//' + window.location.hostname + '/subscribe/' + myid,
+                    url: window.location.protocol + '//' + chathost + '/subscribe/' + myid,
                     success: function(ret) {
                         var waiting = false;
                         if (ret.hasOwnProperty('text')) {
@@ -508,6 +510,7 @@ define([
 
         updateRoster: function(status) {
             var self = this;
+
             $.ajax({
                 url: API + 'chat/rooms/' + self.model.get('id'),
                 type: 'POST',
@@ -535,28 +538,33 @@ define([
             var self = this;
 
             if (!self.removed) {
-                $.ajax({
-                    url: API + 'chat/rooms/' + self.model.get('id'),
-                    type: 'POST',
-                    data: {
-                        lastmsgseen: self.model.get('lastmsgseen'),
-                        status: self.statusWithOverride(self.minimised ? 'Away' : 'Online')
-                    },
-                    success: function(ret) {
-                        self.$('.js-roster').empty();
-                        _.each(ret.roster, function(rost) {
-                            var mod = new Iznik.Model(rost);
-                            var v = new Iznik.Views.Chat.RosterEntry({
-                                model: mod
+                if (self.minimised) {
+                    // We're minimised, so no need to actually hit the server to update. 
+                    _.delay(_.bind(self.roster, self), 30000);
+                } else {
+                    $.ajax({
+                        url: API + 'chat/rooms/' + self.model.get('id'),
+                        type: 'POST',
+                        data: {
+                            lastmsgseen: self.model.get('lastmsgseen'),
+                            status: self.statusWithOverride(self.minimised ? 'Away' : 'Online')
+                        },
+                        success: function(ret) {
+                            self.$('.js-roster').empty();
+                            _.each(ret.roster, function(rost) {
+                                var mod = new Iznik.Model(rost);
+                                var v = new Iznik.Views.Chat.RosterEntry({
+                                    model: mod
+                                });
+                                self.$('.js-roster').append(v.render().el);
                             });
-                            self.$('.js-roster').append(v.render().el);
-                        });
 
-                        self.model.set('unseen', ret.unseen);
-                    }, complete: function() {
-                        _.delay(_.bind(self.roster, self), 30000);
-                    }
-                });
+                            self.model.set('unseen', ret.unseen);
+                        }, complete: function() {
+                            _.delay(_.bind(self.roster, self), 30000);
+                        }
+                    });
+                }
             }
         },
 

@@ -29,7 +29,7 @@ class locationTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 8.3 AND swlat <= 8.7;");
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 179.1 AND swlat <= 179.3;");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13';");
+        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13%';");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE '??%';");
         for ($swlat = 8.3; $swlat <= 8.6; $swlat += 0.1) {
             for ($swlng = 179.1; $swlng <= 179.3; $swlng += 0.1) {
@@ -94,7 +94,7 @@ class locationTest extends IznikTestCase {
         error_log("Postcode id $pcid");
         assertNotNull($pcid);
 
-        $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.21 8.54, 179.21 8.53))');
+        $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.21 8.54, 179.21 8.53))', 0);
         error_log("Area id $areaid");
         assertNotNull($areaid);
 
@@ -103,6 +103,13 @@ class locationTest extends IznikTestCase {
         $l = new Location($this->dbhr, $this->dbhm, $id);
         $atts = $l->getPublic();
         assertEquals($areaid, $atts['areaid']);
+
+        $id2 = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)', 0);
+        error_log("Full postcode id $id");
+        $l = new Location($this->dbhr, $this->dbhm, $id2);
+        $atts = $l->getPublic();
+        assertEquals($id, $atts['areaid']);
+        assertEquals($pcid, $atts['postcodeid']);
 
         error_log(__METHOD__ . " end");
     }

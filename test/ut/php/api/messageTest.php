@@ -1201,6 +1201,94 @@ class messageAPITest extends IznikAPITestCase
         error_log(__METHOD__ . " end");
     }
 
+
+    public function testSubmit2()
+    {
+        error_log(__METHOD__);
+
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        # This is similar to the actions on the client
+        # - find a location close to a lat/lng
+        # - upload a picture
+        # - create a draft with a location
+        # - find the closest group to that location
+        # - submit it
+        $this->group = new Group($this->dbhr, $this->dbhm);
+        $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
+        $this->group->setPrivate('lat', 8.5);
+        $this->group->setPrivate('lng', 179.3);
+        $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        $data = file_get_contents('images/chair.jpg');
+        file_put_contents(IZNIK_BASE . "/http/uploads/chair.jpg", $data);
+
+        $ret = $this->call('image', 'PUT', [
+            'filename' => 'chair.jpg',
+            'identify' => TRUE
+        ]);
+
+        error_log("Create attachment " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $attid = $ret['id'];
+
+        # Find a location
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $gid,
+            'textbody' => 'Text body',
+            'attachments' => [ $attid ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        error_log("Created draft $id");
+
+        # This will get sent; will get queued, as we don't have a membership for the group
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'JoinAndPost',
+            'email' => $email
+        ]);
+
+        error_log("Message #$id should be queued " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals('Queued for group membership', $ret['status']);
+        $applied = $ret['appliedemail'];
+
+        # Now to get coverage, invoke the submission arm in here, rather than on the separate mail server.  This
+        # assumes we run tests faster than Yahoo responds.
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail($email);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        error_log("User id $uid");
+//        $eid = $u->addEmail($applied);
+//        error_log("Added email $eid");
+        $emails = $u->getEmails();
+        error_log("Email " . var_export($emails, TRUE));
+        $gemail = NULL;
+        foreach ($emails as $anemail) {
+            if ($anemail['email'] != $email) {
+                $gemail = $anemail['id'];
+            }
+        }
+        $u->addMembership($gid, User::ROLE_MEMBER, $gemail);
+
+        $rc = $u->submitQueued($gid);
+        assertEquals(1, $rc);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testCrosspost() {
         error_log(__METHOD__);
 

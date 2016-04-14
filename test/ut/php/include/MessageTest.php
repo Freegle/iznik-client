@@ -193,7 +193,6 @@ class messageTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-
     public function testMerge() {
         error_log(__METHOD__);
 

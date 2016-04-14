@@ -56,6 +56,14 @@ class chatMessagesTest extends IznikTestCase {
         assertEquals('Test', $atts['message']);
         assertEquals($this->uid, $atts['userid']);
 
+        $mid2 = $m->create($id, $this->uid, 'Test2');
+        assertNotNull($mid2);
+        list($msgs, $users) = $r->getMessages();
+        assertEquals(2, count($msgs));
+        error_log("Msgs " . var_export($msgs, TRUE));
+        assertTrue($msgs[0]['sameasnext']);
+        assertTrue($msgs[1]['sameaslast']);
+
         assertEquals(1, $m->delete());
         assertEquals(1, $r->delete());
 

@@ -72,6 +72,9 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <link rel="stylesheet" type="text/css" href="/css/ie-only.css">
     <![endif]-->
 
+    <!-- Host used for chat -->
+    <meta name="iznikchat" content="<?php echo CHAT_HOST; ?>">
+
     <!-- And then some custom styles for our different apps -->
     <?php
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
