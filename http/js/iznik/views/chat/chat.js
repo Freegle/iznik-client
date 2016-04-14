@@ -604,6 +604,7 @@ define([
 
             if (unseen > 0) {
                 self.$('.js-count').html(unseen).show();
+                self.messages.fetch();
             } else {
                 self.$('.js-count').html(unseen).hide();
             }

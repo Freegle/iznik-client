@@ -3,7 +3,6 @@ var metas = document.getElementsByTagName('meta');
 var bust = (new Date()).getTime();
 
 for (var i=0; i<metas.length; i++) {
-    console.log("Check", metas[i].getAttribute("name"));
     if (metas[i].getAttribute("name") == "iznikcache") {
         bust = metas[i].getAttribute("content");
     }
