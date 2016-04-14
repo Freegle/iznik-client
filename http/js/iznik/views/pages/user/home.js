@@ -107,7 +107,6 @@ define([
 
             Iznik.View.prototype.render.call(self);
             var groups = self.model.get('groups');
-            console.log("Groups", groups);
 
             _.each(groups, function(group) {
                 var v = new Iznik.Views.User.Home.Group({
@@ -115,18 +114,6 @@ define([
                 });
                 self.$('.js-groups').append(v.render().el);
             });
-
-            return(this);
-        }
-    });
-
-    Iznik.Views.User.Home.Offer = Iznik.Views.User.Home.Message.extend({
-        template: "user_home_offer",
-
-        render: function() {
-            var self = this;
-            
-            Iznik.View.prototype.render.call(this);
 
             _.each(self.model.get('attachments'), function (att) {
                 var v = new Iznik.Views.User.Home.Photo({
@@ -140,8 +127,16 @@ define([
         }
     });
 
+    Iznik.Views.User.Home.Offer = Iznik.Views.User.Home.Message.extend({
+        template: "user_home_offer",
+
+        className: "panel panel-default"
+    });
+
     Iznik.Views.User.Home.Wanted = Iznik.Views.User.Home.Message.extend({
-        template: "user_home_wanted"
+        template: "user_home_wanted",
+
+        className: "panel panel-default"
     });
 
     Iznik.Views.User.Home.Group = Iznik.View.extend({

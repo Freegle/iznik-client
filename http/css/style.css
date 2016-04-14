@@ -444,6 +444,10 @@ a button {
     text-decoration: none;
 }
 
+a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active {
+    text-decoration: none;
+}
+
 .borderless tbody tr td, .borderless tbody tr th, .borderless thead tr th {
     border: none;
 }

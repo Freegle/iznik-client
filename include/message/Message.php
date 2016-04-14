@@ -451,7 +451,7 @@ class Message
             # the same photo is (for example) included in the mail both as an inline attachment and as a link
             # in the text.
             $hash = $att->getHash();
-            if ($hash && !pres($hash, $atthash)) {
+            if (!$hash || !pres($hash, $atthash)) {
                 /** @var $att Attachment */
                 $ret['attachments'][] = $att->getPublic();
                 $atthash[$hash] = TRUE;
