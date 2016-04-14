@@ -32,7 +32,7 @@ define([
         render: function (options) {
             var self = this;
 
-            // try {
+            try {
                 if (currentPage) {
                     // We have previous rendered a page.  Kill that off, so that it is not listening for events and
                     // messing about with the DOM.
@@ -40,6 +40,9 @@ define([
                 }
 
                 currentPage = self;
+
+                // Record whether we are showing a user or ModTools page.
+                Iznik.Session.set('modtools', self.modtools);
 
                 options = typeof options == 'undefined' ? {} : options;
 
@@ -129,9 +132,9 @@ define([
                 if (this.signin) {
                     $('#bodyContent .js-signin').click(_.bind(this.signin, this));
                 }
-            // } catch (e) {
-            //     console.error("Page render failed", e.message);
-            // }
+            } catch (e) {
+                console.error("Page render failed", e.message);
+            }
         }
     });
 

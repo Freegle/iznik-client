@@ -1,8 +1,21 @@
 // We load everything using require.  We need some shims for scripts which aren't AMD-compatible.
+var metas = document.getElementsByTagName('meta');
+var bust = (new Date()).getTime();
+
+for (var i=0; i<metas.length; i++) {
+    console.log("Check", metas[i].getAttribute("name"));
+    if (metas[i].getAttribute("name") == "iznikcache") {
+        bust = metas[i].getAttribute("content");
+    }
+}
+
+console.log("Cache bust", bust, metas);
+
 requirejs.config({
     baseUrl: "/js/lib",
 
-    urlArgs: "bust=" +  (new Date()).getTime(),
+    // The server has returned info telling us when code was changed, which we can use to bust our cache.
+    urlArgs: "bust=" + bust,
 
     shim : {
         "bootstrap" : [ 'jquery' ],

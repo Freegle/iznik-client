@@ -291,6 +291,8 @@ define([
 
         removed: false,
 
+        rosterUpdatedAt: 0,
+
         keyUp: function(e) {
             var self = this;
             if (e.which === 13) {
@@ -331,6 +333,10 @@ define([
             this.$('.js-message').click();
         },
 
+        noop: function() {
+
+        },
+
         messageFocus: function() {
             var self = this;
 
@@ -339,7 +345,7 @@ define([
             this.model.set('unseen', 0);
 
             // Tell the server now, in case they navigate away before the next roster timer.
-            self.updateRoster(self.statusWithOverride('Online'));
+            self.updateRoster(self.statusWithOverride('Online'), self.noop);
 
             // New messages are in bold - keep them so for a few seconds, to make it easy to see new stuff,
             // then revert.
@@ -358,7 +364,7 @@ define([
             this.options.organise(true);
             this.options.updateCounts();
 
-            self.updateRoster('Away');
+            self.updateRoster('Away', self.noop);
 
             try {
                 localStorage.setItem(this.lsID() + '-minimised', 1);
@@ -430,7 +436,7 @@ define([
                 self.adjust();
             });
 
-            self.updateRoster(self.statusWithOverride('Online'));
+            self.updateRoster(self.statusWithOverride('Online'), self.noop);
 
             try {
                 localStorage.setItem(self.lsID() + '-minimised', 0);
@@ -505,20 +511,43 @@ define([
                 localStorage.setItem('mystatus', status);
             } catch (e) {}
 
-            this.updateRoster(status);
+            this.updateRoster(status, this.noop);
         },
 
-        updateRoster: function(status) {
+        updateRoster: function(status, callback) {
             var self = this;
 
-            $.ajax({
-                url: API + 'chat/rooms/' + self.model.get('id'),
-                type: 'POST',
-                data: {
-                    lastmsgseen: self.model.get('lastmsgseen'),
-                    status: status
-                },
-            });
+            // We make sure we don't update the server too often unless the status changes, whatever the user
+            // is doing with this chat.  This helps reduce server load for large numbers of clients.
+            var now = (new Date()).getTime();
+            // console.log("Consider roster update", status, self.rosterUpdatedStatus, now, self.rosterUpdatedAt, now - self.rosterUpdatedAt);
+
+            if (status != self.rosterUpdatedStatus || now - self.rosterUpdatedAt > 25000) {
+                // console.log("Issue roster update");
+                $.ajax({
+                    url: API + 'chat/rooms/' + self.model.get('id'),
+                    type: 'POST',
+                    data: {
+                        lastmsgseen: self.model.get('lastmsgseen'),
+                        status: status
+                    }, success: function(ret) {
+                        if (ret.ret === 0) {
+                            self.rosterUpdatedAt = (new Date()).getTime();
+                            self.rosterUpdatedStatus = status;
+                            self.lastRoster = ret.roster;
+                        }
+
+                        callback(ret);
+                    }
+                });
+            } else {
+                // console.log("Suppress update", self.lastRoster);
+                callback({
+                    ret: 0,
+                    status: 'Update suppressed',
+                    roster: self.lastRoster
+                });
+            }
         },
 
         statusWithOverride: function(status) {
@@ -533,6 +562,26 @@ define([
             return(status);
         },
 
+        rosterUpdated: function(ret) {
+            var self = this;
+            // console.log("Roster updated", ret, this);
+
+            if (ret.ret === 0) {
+                self.$('.js-roster').empty();
+                _.each(ret.roster, function(rost) {
+                    var mod = new Iznik.Model(rost);
+                    var v = new Iznik.Views.Chat.RosterEntry({
+                        model: mod
+                    });
+                    self.$('.js-roster').append(v.render().el);
+                });
+
+                self.model.set('unseen', ret.unseen);
+            }
+
+            _.delay(_.bind(self.roster, self), 30000);
+        },
+
         roster: function() {
             // We update our presence and get the roster for the chat regularly.
             var self = this;
@@ -542,28 +591,8 @@ define([
                     // We're minimised, so no need to actually hit the server to update. 
                     _.delay(_.bind(self.roster, self), 30000);
                 } else {
-                    $.ajax({
-                        url: API + 'chat/rooms/' + self.model.get('id'),
-                        type: 'POST',
-                        data: {
-                            lastmsgseen: self.model.get('lastmsgseen'),
-                            status: self.statusWithOverride(self.minimised ? 'Away' : 'Online')
-                        },
-                        success: function(ret) {
-                            self.$('.js-roster').empty();
-                            _.each(ret.roster, function(rost) {
-                                var mod = new Iznik.Model(rost);
-                                var v = new Iznik.Views.Chat.RosterEntry({
-                                    model: mod
-                                });
-                                self.$('.js-roster').append(v.render().el);
-                            });
-
-                            self.model.set('unseen', ret.unseen);
-                        }, complete: function() {
-                            _.delay(_.bind(self.roster, self), 30000);
-                        }
-                    });
+                    self.updateRoster(self.statusWithOverride(self.minimised ? 'Away' : 'Online'),
+                        _.bind(self.rosterUpdated, self));
                 }
             }
         },

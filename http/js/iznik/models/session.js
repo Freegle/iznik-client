@@ -179,113 +179,115 @@ define([
                             self.trigger('isLoggedIn', true);
                         }
 
-                        var admin = Iznik.Session.isAdmin();
-                        var support = Iznik.Session.isAdminOrSupport();
+                        if (Iznik.Session.get('modtools')) {
+                            var admin = Iznik.Session.isAdmin();
+                            var support = Iznik.Session.isAdminOrSupport();
 
-                        // Update our various counts.
-                        var counts = [
-                            {
-                                fi: 'pending',
-                                el: '.js-pendingcount',
-                                ev: 'pendingcountschanged',
-                                window: true,
-                                sound: true
-                            },
-                            {
-                                fi: 'spam',
-                                el: '.js-spamcount',
-                                ev: 'spamcountschanged',
-                                window: true,
-                                sound: true
-                            },
-                            {
-                                fi: 'pendingother',
-                                el: '.js-pendingcountother',
-                                ev: 'pendingcountsotherchanged',
-                                window: false,
-                                sound: false
-                            },
-                            {
-                                fi: 'spammembers',
-                                el: '.js-spammemberscount',
-                                ev: 'spammembercountschanged',
-                                window: false,
-                                sound: false
-                            },
-                            {
-                                fi: 'pendingmembers',
-                                el: '.js-pendingmemberscount',
-                                ev: 'pendingmemberscountschanged',
-                                window: true,
-                                sound: true
-                            },
-                            {
-                                fi: 'pendingmembersother',
-                                el: '.js-pendingmemberscountother',
-                                ev: 'pendingmemberscountsotherchanged',
-                                window: false,
-                                sound: false
-                            },
-                            {
-                                fi: 'spammerpendingadd',
-                                el: '.js-spammerpendingaddcount',
-                                ev: 'spammerpendingaddcountschanged',
-                                window: support,
-                                sound: false
-                            },
-                            {
-                                fi: 'spammerpendingremove',
-                                el: '.js-spammerpendingremovecount',
-                                ev: 'spammerpendingremovecountschanged',
-                                window: admin,
-                                sound: false
-                            }
-                        ];
+                            // Update our various counts.
+                            var counts = [
+                                {
+                                    fi: 'pending',
+                                    el: '.js-pendingcount',
+                                    ev: 'pendingcountschanged',
+                                    window: true,
+                                    sound: true
+                                },
+                                {
+                                    fi: 'spam',
+                                    el: '.js-spamcount',
+                                    ev: 'spamcountschanged',
+                                    window: true,
+                                    sound: true
+                                },
+                                {
+                                    fi: 'pendingother',
+                                    el: '.js-pendingcountother',
+                                    ev: 'pendingcountsotherchanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'spammembers',
+                                    el: '.js-spammemberscount',
+                                    ev: 'spammembercountschanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'pendingmembers',
+                                    el: '.js-pendingmemberscount',
+                                    ev: 'pendingmemberscountschanged',
+                                    window: true,
+                                    sound: true
+                                },
+                                {
+                                    fi: 'pendingmembersother',
+                                    el: '.js-pendingmemberscountother',
+                                    ev: 'pendingmemberscountsotherchanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'spammerpendingadd',
+                                    el: '.js-spammerpendingaddcount',
+                                    ev: 'spammerpendingaddcountschanged',
+                                    window: support,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'spammerpendingremove',
+                                    el: '.js-spammerpendingremovecount',
+                                    ev: 'spammerpendingremovecountschanged',
+                                    window: admin,
+                                    sound: false
+                                }
+                            ];
 
-                        var total = 0;
-                        var countschanged = false;
+                            var total = 0;
+                            var countschanged = false;
 
-                        _.each(counts, function (count) {
-                            var countel = $(count.el);
-                            var currcount = countel.html();
-                            if (ret.work[count.fi] != currcount) {
-                                countschanged = true;
-                            }
-
-                            if (ret.work[count.fi]) {
-                                if (count.window) {
-                                    total += ret.work[count.fi];
+                            _.each(counts, function (count) {
+                                var countel = $(count.el);
+                                var currcount = countel.html();
+                                if (ret.work[count.fi] != currcount) {
+                                    countschanged = true;
                                 }
 
-                                countel.html(ret.work[count.fi]);
-                                // console.log("Sound", ret.work[count.fi], currcount, self.playBeep);
+                                if (ret.work[count.fi]) {
+                                    if (count.window) {
+                                        total += ret.work[count.fi];
+                                    }
 
-                                if (ret.work[count.fi] > currcount || currcount == 0) {
-                                    // Only trigger this when the counts increase.  This will pick up new messages
-                                    // without screen flicker due to re-rendering when we're processing messages and
-                                    // deleting them.  There's a minor timing window where a message could arrive as
-                                    // one is deleted, leaving the counts the same, but this will resolve itself when
-                                    // our current count drops to zero, or worst case when we refresh.
-                                    Iznik.Session.trigger(count.ev);
+                                    countel.html(ret.work[count.fi]);
+                                    // console.log("Sound", ret.work[count.fi], currcount, self.playBeep);
 
-                                    if (ret.work[count.fi] > 0 && count.sound) {
-                                        var settings = Iznik.Session.get('me').settings;
+                                    if (ret.work[count.fi] > currcount || currcount == 0) {
+                                        // Only trigger this when the counts increase.  This will pick up new messages
+                                        // without screen flicker due to re-rendering when we're processing messages and
+                                        // deleting them.  There's a minor timing window where a message could arrive as
+                                        // one is deleted, leaving the counts the same, but this will resolve itself when
+                                        // our current count drops to zero, or worst case when we refresh.
+                                        Iznik.Session.trigger(count.ev);
 
-                                        if (presdef('playbeep', settings, 1) && self.playBeep) {
-                                            var sound = new Audio("/sounds/alert.wav");
-                                            sound.play();
+                                        if (ret.work[count.fi] > 0 && count.sound) {
+                                            var settings = Iznik.Session.get('me').settings;
+
+                                            if (presdef('playbeep', settings, 1) && self.playBeep) {
+                                                var sound = new Audio("/sounds/alert.wav");
+                                                sound.play();
+                                            }
                                         }
                                     }
+                                } else {
+                                    $(count.el).empty();
                                 }
-                            } else {
-                                $(count.el).empty();
+                            })
+
+                            document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
+
+                            if (countschanged) {
+                                Iznik.Session.trigger('countschanged');
                             }
-                        })
-
-                        document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
-
-                        if (countschanged) {
-                            Iznik.Session.trigger('countschanged');
                         }
                     } else {
                         // We're not logged in - clear our local storage.

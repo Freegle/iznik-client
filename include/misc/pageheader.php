@@ -72,8 +72,29 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <link rel="stylesheet" type="text/css" href="/css/ie-only.css">
     <![endif]-->
 
-    <!-- Host used for chat -->
+    <!-- Iznik info -->
     <meta name="iznikchat" content="<?php echo CHAT_HOST; ?>">
+    <?php
+
+    # We use require on the client, and we want to avoid caching code after it has changed.  Find out when the
+    # last change was.
+    #
+    # TODO We could speed page load by changing this.  It takes about 0.1s, which is significant.
+    $buststart = microtime(true);
+    $directory =new RecursiveDirectoryIterator(IZNIK_BASE);
+    $flattened = new RecursiveIteratorIterator($directory);
+    $files = new RegexIterator($flattened, '/.*\.((php)|(html)|(js)|(css))/i');
+
+    $max = 0;
+
+    foreach ($files as $filename=>$cur) {
+        $time = $cur->getMTime();
+        $max = max($max, $time);
+    }
+
+    echo "<meta name=\"iznikcache\" content=\"$max\" >\n";
+    echo '<meta name="iznikcachecalc" content="' . (microtime(true) - $buststart) . '" >';
+    ?>
 
     <!-- And then some custom styles for our different apps -->
     <?php

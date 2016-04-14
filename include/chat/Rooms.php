@@ -114,10 +114,11 @@ class ChatRoom extends Entity
 
     public function updateRoster($userid, $lastmsgseen, $status) {
         # We have a unique key, and an update on current timestamp.
-        $this->dbhm->preExec("REPLACE INTO chat_roster (chatid, userid) VALUES (?,?);",
+        $this->dbhm->preExec("REPLACE INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?);",
             [
                 $this->id,
-                $userid
+                $userid,
+                presdef('REMOTE_ADDR', $_SERVER, NULL)
             ]);
 
         if ($lastmsgseen) {
