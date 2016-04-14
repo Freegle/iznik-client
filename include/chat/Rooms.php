@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/chat/Messages.php');
 class ChatRoom extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'name', 'groupid', 'modonly', 'description');
+    var $publicatts = array('id', 'name', 'groupid', 'modonly', 'description', 'user1', 'user2');
     var $settableatts = array('name', 'description');
 
     /** @var  $log Log */
@@ -28,7 +28,7 @@ class ChatRoom extends Entity
         $this->dbhm = $dbhm;
     }
 
-    public function create($name, $gid = NULL, $modonly = FALSE, $modtools = FALSE) {
+    public function createGroupChat($name, $gid = NULL, $modonly = FALSE, $modtools = FALSE) {
         try {
             $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (name, groupid, modonly, modtools) VALUES (?,?,?,?)", [
                 $name,
@@ -50,6 +50,56 @@ class ChatRoom extends Entity
         }
     }
 
+    public function createConversation($user1, $user2) {
+        $id = NULL;
+
+        # We use a transaction to close timing windows.
+        $this->dbhm->beginTransaction();
+
+        # Find any existing chat.  Who is user1 and who is user2 doesn't really matter - it's a two way chat.
+        $sql = "SELECT id FROM chat_rooms WHERE (user1 = ? AND user2 = ?) OR (user2 = ? AND user1 = ?) FOR UPDATE;";
+        $chats = $this->dbhr->preQuery($sql, [
+            $user1,
+            $user2,
+            $user1,
+            $user2
+        ]);
+        
+        $rollback = TRUE;
+
+        if (count($chats) > 0) {
+            # We have an existing chat.  That'll do nicely.
+            $id = $chats[0]['id'];
+        } else {
+            # We don't.  Create one.
+            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (user1, user2) VALUES (?,?)", [
+                $user1,
+                $user2
+            ]);
+            
+            if ($rc) {
+                # We created one.  We'll commit below.
+                $id = $this->dbhm->lastInsertId();
+                $rollback = FALSE;
+            }
+        }
+        
+        if ($rollback) {
+            # We might have worked above or failed; $id is set accordingly.
+            $this->dbhm->rollBack();
+        } else {
+            # We want to commit, and return an id if that worked.
+            $rc = $this->dbhm->commit();
+            $id = $rc ? $id : NULL;
+        }
+
+        if ($id) {
+            $this->fetch($this->dbhr, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
+        }
+
+        return($id);
+    }
+
     public function setAttributes($settings) {
         $me = whoAmI($this->dbhr, $this->dbhm);
         foreach ($this->settableatts as $att) {
@@ -61,6 +111,29 @@ class ChatRoom extends Entity
 
     public function getPublic() {
         $ret = $this->getAtts($this->publicatts);
+
+        if (pres('groupid', $ret)) {
+            $g = new Group($this->dbhr, $this->dbhm, $ret['groupid']);
+            unset($ret['groupid']);
+            $ret['group'] = $g->getPublic();
+        }
+        
+        if (pres('user1', $ret)) {
+            # This is a conversation between two people.   
+            $u = new User($this->dbhr, $this->dbhm, $ret['user1']);
+            unset($ret['user1']);
+            $ctx = NULL;
+            $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
+        }
+        
+        if (pres('user2', $ret)) {
+            # This is a conversation between two people.   
+            $u = new User($this->dbhr, $this->dbhm, $ret['user2']);
+            unset($ret['user2']);
+            $ctx = NULL;
+            $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
+        }
+        
         return($ret);
     }
 
@@ -85,8 +158,8 @@ class ChatRoom extends Entity
         $u = new User($this->dbhr, $this->dbhm, $userid);
         $modtoolsq = ($modtools === NULL) ? '' : ("AND modtools = " . ($modtools ? 1 : 0));
 
-        $sql = "SELECT id, modonly, modtools, groupid FROM chat_rooms WHERE groupid IS NULL OR groupid IN (SELECT groupid FROM memberships WHERE userid = ?) $modtoolsq;";
-        $rooms = $this->dbhr->preQuery($sql, [ $userid ]);
+        $sql = "SELECT * FROM chat_rooms WHERE (groupid IN (SELECT groupid FROM memberships WHERE userid = ?) $modtoolsq) OR user1 = ? OR user2 = ?;";
+        $rooms = $this->dbhr->preQuery($sql, [ $userid, $userid, $userid ]);
         foreach ($rooms as $room) {
             #error_log("Consider {$room['id']} group {$room['groupid']} modonly {$room['modonly']} " . $u->isModOrOwner($room['groupid']));
             if (!$room['modonly'] || $u->isModOrOwner($room['groupid'])) {
@@ -109,6 +182,7 @@ class ChatRoom extends Entity
 
     public function canSee($userid) {
         $rooms = $this->listForUser($userid);
+        error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
         return($rooms ? in_array($this->id, $rooms) : FALSE);
     }
 

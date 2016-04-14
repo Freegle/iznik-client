@@ -29,6 +29,8 @@ define([
         },
 
         doSearch: function () {
+            this.$('h1').slideUp();
+
             var term = this.$('.js-search').val();
 
             if (term != '') {
@@ -63,6 +65,7 @@ define([
             Iznik.Views.Page.prototype.render.call(this);
 
             if (this.options.search) {
+                this.$('h1').hide();
                 this.$('.js-search').val(this.options.search);
 
                 self.collection = new Iznik.Collections.Messages.Search(null, {

@@ -86,7 +86,9 @@ define([
                     self.$('.js-none').fadeIn('slow');
                     $('.js-scrolltop').addClass('hidden');
 
+                    console.log("Consider waypoint remove", self.lastWaypoint);
                     if (self.lastWaypoint) {
+                        console.log("Remove waypoint");
                         self.lastWaypoint.destroy();
                     }
                 }

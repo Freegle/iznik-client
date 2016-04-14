@@ -40,11 +40,11 @@ class chatMessagesTest extends IznikTestCase {
     public function __construct() {
     }
 
-    public function testBasic() {
+    public function testGroup() {
         error_log(__METHOD__);
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $id = $r->create('test', $this->groupid);
+        $id = $r->createGroupChat('test', $this->groupid);
         assertNotNull($id);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);

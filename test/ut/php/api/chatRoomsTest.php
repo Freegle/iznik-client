@@ -56,7 +56,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertFalse(pres('chatrooms', $ret));
         
         $c = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $c->create('test', $this->groupid);
+        $rid = $c->createGroupChat('test', $this->groupid);
 
         # Just because it exists, doesn't mean we should be able to see it.
         $ret = $this->call('chatrooms', 'GET', []);
