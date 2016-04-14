@@ -1,18 +1,29 @@
 <div class="panel panel-default">
     <div class="panel-body">
-        <div class="msgsubj panel-title">{{subject}}</div>
-        <div class="js-groups" />
-        <button class="btn btn-success inline js-markas">
-            <div class="glyphicon glyphicon-ok"></div>
-            It's been TAKEN
-        </button>
-        <button class="btn btn-info js-repost">
-            <div class="glyphicon glyphicon-repeat"></div>
-            Post Again
-        </button>
-        <button class="btn js-withdraw">
-            <div class="glyphicon glyphicon-trash"></div>
-            Withdraw
-        </button>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="msgsubj panel-title">{{subject}}</div>
+                <div class="js-groups" />
+            </div>
+            <div class="col-md-4">
+                <ul class="list-inline list-unstyled js-attlist" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <button class="btn btn-success inline js-markas">
+                    <div class="glyphicon glyphicon-ok"></div>
+                    It's been TAKEN
+                </button>
+                <button class="btn btn-info js-repost">
+                    <div class="glyphicon glyphicon-repeat"></div>
+                    Post Again
+                </button>
+                <button class="btn js-withdraw">
+                    <div class="glyphicon glyphicon-trash"></div>
+                    Withdraw
+                </button>
+            </div>
+        </div>
     </div>
 </div>

@@ -121,7 +121,23 @@ define([
     });
 
     Iznik.Views.User.Home.Offer = Iznik.Views.User.Home.Message.extend({
-        template: "user_home_offer"
+        template: "user_home_offer",
+
+        render: function() {
+            var self = this;
+            
+            Iznik.View.prototype.render.call(this);
+
+            _.each(self.model.get('attachments'), function (att) {
+                var v = new Iznik.Views.User.Home.Photo({
+                    model: new Iznik.Model(att)
+                });
+
+                self.$('.js-attlist').append(v.render().el);
+            });
+
+            return(this);
+        }
     });
 
     Iznik.Views.User.Home.Wanted = Iznik.Views.User.Home.Message.extend({
@@ -136,5 +152,11 @@ define([
             this.$('.timeago').timeago();
             return(this);
         }
-    })
+    });
+
+    Iznik.Views.User.Home.Photo = Iznik.View.extend({
+        tagName: 'li',
+
+        template: 'user_home_photo'
+    });
 });
