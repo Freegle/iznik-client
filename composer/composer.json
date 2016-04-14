@@ -17,6 +17,7 @@
     "html2text/html2text": "^3.0",
     "minishlink/web-push": "^0.2.2",
     "facebook/php-sdk-v4": "^5.1",
-    "google/apiclient": "^1.1"
+    "google/apiclient": "^1.1",
+    "jenssegers/imagehash": "^0.4.0"
   }
 }

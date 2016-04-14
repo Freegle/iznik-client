@@ -45,5 +45,25 @@ class AttachmentTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testHash() {
+        error_log(__METHOD__);
+
+        $data = file_get_contents('images/chair.jpg');
+        $a = new Attachment($this->dbhr, $this->dbhm);
+        $attid1 = $a->create(NULL, 'image/jpeg', $data);
+        assertNotNull($attid1);
+
+        $data = file_get_contents('images/chair.jpg');
+        $a = new Attachment($this->dbhr, $this->dbhm);
+        $attid2 = $a->create(NULL, 'image/jpeg', $data);
+        assertNotNull($attid1);
+
+        $a1 = new Attachment($this->dbhr, $this->dbhm, $attid1);
+        $a2 = new Attachment($this->dbhr, $this->dbhm, $attid2);
+        assertEquals($a1->getHash(), $a2->getHash());
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

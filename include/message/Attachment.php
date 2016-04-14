@@ -4,6 +4,8 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/message/Item.php');
 
+use Jenssegers\ImageHash\ImageHash;
+
 # This is a base class
 class Attachment
 {
@@ -11,7 +13,15 @@ class Attachment
     private $dbhr;
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
-    private $id, $contentType;
+    private $id, $contentType, $hash;
+
+    /**
+     * @return mixed
+     */
+    public function getHash()
+    {
+        return $this->hash;
+    }
 
     /**
      * @return mixed
@@ -29,7 +39,8 @@ class Attachment
 
     public function getPublic() {
         $ret = array(
-            'id' => $this->id
+            'id' => $this->id,
+            'hash' => $this->hash
         );
 
         if (stripos($this->contentType, 'image') !== FALSE) {
@@ -47,20 +58,28 @@ class Attachment
         $this->id = $id;
 
         if ($id) {
-            $sql = "SELECT contenttype FROM messages_attachments WHERE id = ?;";
+            $sql = "SELECT contenttype, hash FROM messages_attachments WHERE id = ?;";
             $atts = $this->dbhr->preQuery($sql, [$id]);
             foreach ($atts as $att) {
                 $this->contentType = $att['contenttype'];
+                $this->hash = $att['hash'];
             }
         }
     }
 
     public function create($msgid, $ct, $data) {
         #error_log("Create att for $msgid len " . strlen($data));
-        $rc = $this->dbhm->preExec("INSERT INTO messages_attachments (`msgid`, `contenttype`, `data`) VALUES (?, ?, ?);", [
+
+        # We generate a perceptual hash.  This allows us to spot duplicate or similar images later.
+        $hasher = new ImageHash;
+        $img = imagecreatefromstring($data);
+        $hash = $img ? $hasher->hash($img) : NULL;
+
+        $rc = $this->dbhm->preExec("INSERT INTO messages_attachments (`msgid`, `contenttype`, `data`, `hash`) VALUES (?, ?, ?, ?);", [
             $msgid,
             $ct,
-            $data
+            $data,
+            $hash
         ]);
 
         $id = $rc ? $this->dbhm->lastInsertId() : NULL;

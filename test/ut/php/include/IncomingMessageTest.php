@@ -122,6 +122,25 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         error_log(__METHOD__ . " end");
     }
 
+    public function testAttachmentDup() {
+        error_log(__METHOD__);
+
+        $msg = file_get_contents('msgs/attachmentdup');
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+
+        list($id, $already) = $m->save();
+        assertNotNull($id);
+
+        # Check the returned attachments
+        $atts = $m->getPublic();
+        assertEquals(2, count($atts['attachments']));
+
+        $m->delete();
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testEmbedded() {
         error_log(__METHOD__);
 

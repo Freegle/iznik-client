@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "ea79b6c02c8633348bab77c2a4c7ba01",
-    "content-hash": "05cce1a5f51fbcdeedbb9760a99352e6",
+    "hash": "0aeb785377294f2a9bdad5b38ae3c24f",
+    "content-hash": "8b9d1655401f52e4a86fce0451ba937b",
     "packages": [
         {
             "name": "doctrine/instantiator",
@@ -242,6 +242,59 @@
             ],
             "description": "Converts HTML to formatted plain text",
             "time": "2015-10-11 23:34:23"
+        },
+        {
+            "name": "jenssegers/imagehash",
+            "version": "v0.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jenssegers/imagehash.git",
+                "reference": "20d1ee5dfa051887341c7bb30a37d9de4af472e8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jenssegers/imagehash/zipball/20d1ee5dfa051887341c7bb30a37d9de4af472e8",
+                "reference": "20d1ee5dfa051887341c7bb30a37d9de4af472e8",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.0|^5.0",
+                "satooshi/php-coveralls": "^0.6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Jenssegers\\ImageHash\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Kenneth Rapp"
+                },
+                {
+                    "name": "Jens Segers",
+                    "homepage": "https://jenssegers.com"
+                }
+            ],
+            "description": "Perceptual image hashing for PHP",
+            "homepage": "https://github.com/jenssegers/imagehash",
+            "keywords": [
+                "ahash",
+                "dhash",
+                "hash",
+                "image hash",
+                "imagehash",
+                "perceptual",
+                "phash"
+            ],
+            "time": "2016-02-20 21:52:55"
         },
         {
             "name": "kriswallsmith/buzz",

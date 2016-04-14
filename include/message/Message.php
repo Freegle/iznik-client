@@ -444,10 +444,18 @@ class Message
         # Add any attachments - visible to non-members.
         $ret['attachments'] = [];
         $atts = $this->getAttachments();
+        $atthash = [];
 
         foreach ($atts as $att) {
-            /** @var $att Attachment */
-            $ret['attachments'][] = $att->getPublic();
+            # We suppress return of duplicate attachments by using the image hash.  This helps in the case where
+            # the same photo is (for example) included in the mail both as an inline attachment and as a link
+            # in the text.
+            $hash = $att->getHash();
+            if ($hash && !pres($hash, $atthash)) {
+                /** @var $att Attachment */
+                $ret['attachments'][] = $att->getPublic();
+                $atthash[$hash] = TRUE;
+            }
         }
 
         return($ret);
