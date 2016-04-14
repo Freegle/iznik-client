@@ -31,7 +31,7 @@ define([
                     url: window.location.protocol + '//' + chathost + '/subscribe/' + myid,
                     success: function(ret) {
                         var waiting = false;
-                        if (ret.hasOwnProperty('text')) {
+                        if (ret && ret.hasOwnProperty('text')) {
                             var data = ret.text;
 
                             if (data.hasOwnProperty('roomid')) {
@@ -604,7 +604,10 @@ define([
 
             if (unseen > 0) {
                 self.$('.js-count').html(unseen).show();
-                self.messages.fetch();
+
+                if (self.messages) {
+                    self.messages.fetch();
+                }
             } else {
                 self.$('.js-count').html(unseen).hide();
             }

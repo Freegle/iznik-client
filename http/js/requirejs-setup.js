@@ -8,8 +8,6 @@ for (var i=0; i<metas.length; i++) {
     }
 }
 
-console.log("Cache bust", bust, metas);
-
 requirejs.config({
     baseUrl: "/js/lib",
 

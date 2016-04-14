@@ -857,7 +857,7 @@ define([
     Iznik.Views.Plugin.Yahoo.SyncMessages = Iznik.Views.Plugin.SubView.extend({
         offset: 1,
     
-        chunkSize: 100,
+        chunkSize: 10,
     
         ageLimit: 31,
     
@@ -938,7 +938,9 @@ define([
                         this.messages.push(thisone);
                     }
                 }
-    
+
+                // console.log("Finished?", self.url(), total, this.chunkSize, maxage, self.ageLimit);
+
                 if (total == 0 || total < this.chunkSize || maxage >= self.ageLimit) {
                     // Finished.  Now check with the server whether we have any messages which it doesn't.
                     $.ajaxq('plugin', {
