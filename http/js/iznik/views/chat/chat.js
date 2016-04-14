@@ -710,17 +710,10 @@ define([
     Iznik.Views.Chat.Message = Iznik.View.extend({
         template: 'chat_message',
 
-        wbr: function(str, num) {
-            var re = RegExp("([^\\s]{" + num + "})(\\w)", "g");
-            return str.replace(re, function(all,text,char){
-                return text + "<wbr>" + char;
-            });
-        },
-
         render: function() {
             if (this.model.get('id')) {
                 // Insert some wbrs to allow us to word break long words (e.g. URLs).
-                this.model.set('message', this.wbr(this.model.get('message'), 20));
+                this.model.set('message', wbr(this.model.get('message'), 20));
 
                 this.model.set('lastmsgseen', this.options.chatModel.get('lastmsgseen'));
                 this.$el.html(window.template(this.template)(this.model.toJSON2()));

@@ -4,7 +4,8 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/pages/pages',
-    'iznik/views/pages/user/pages'
+    'iznik/views/pages/user/pages',
+    'iznik/views/user/message'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Find.WhereAmI = Iznik.Views.User.Pages.WhereAmI.extend({
         template: "user_find_whereami"
@@ -71,7 +72,7 @@ define([
 
                 self.collectionView = new Backbone.CollectionView({
                     el: self.$('.js-list'),
-                    modelView: Iznik.Views.User.Message.SearchResult,
+                    modelView: Iznik.Views.User.SearchResult,
                     modelViewOptions: {
                         collection: self.collection,
                         page: self
@@ -123,23 +124,7 @@ define([
         }
     });
 
-    Iznik.Views.User.Message.SearchResult = Iznik.View.extend({
-        template: 'user_find_result',
-
-        render: function () {
-            var self = this;
-
-            self.$el.html(window.template(self.template)(self.model.toJSON2()));
-
-            _.each(self.model.get('attachments'), function (att) {
-                var v = new Iznik.Views.ModTools.Message.Photo({
-                    model: new Iznik.Model(att)
-                });
-
-                self.$('.js-attlist').append(v.render().el);
-            });
-
-            self.$('.timeago').timeago();
-        }
-    })
+    Iznik.Views.User.SearchResult = Iznik.Views.User.Message.extend({
+        template: 'user_find_result'
+    });
 });

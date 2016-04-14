@@ -16,6 +16,7 @@ body {
 
 .sidebar-nav-fixed {
     width:15%;
+    overflow-y: hidden;
 }
 
 /* navbar */
@@ -395,6 +396,10 @@ body {
 
 .nomarginbot {
     margin-bottom: 0px !important;
+}
+
+.marginbotsm {
+    margin-bottom: 5px !important;
 }
 
 .noborder {

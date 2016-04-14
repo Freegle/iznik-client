@@ -1,15 +1,40 @@
-<div class="panel panel-default">
-    <div class="panel-body">
-        <h4>
+<div class="panel-heading">
+    <a class=nodecor" data-toggle="collapse" href="#offer-{{id}}">
+        <button class="btn btn-white pull-right">
+            <span class="js-caretup caret"></span>
+                <span class="dropup">
+                    <span class="js-caretdown caret" style="display: none"></span>
+                </span>
+        </button>
+        <div class="msgsubj panel-title">
             {{subject}}
-            <span class="text-muted">
-                <small>
-                    <abbr class="timeago" title="{{date}}"></abbr>
-                </small>
-            </span>
-        </h4>
-        <div class="row">
-            <ul class="list-unstyled js-attlist"></ul>
+        </div>
+    </a>
+    <div id="offer-{{id}}" class="panel-collapse collapse">
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-9">
+                    <p class="lead">{{textbody}}</p>
+                    <span class="text-muted">
+                        Posted by {{fromuser.displayname}}.
+                    </span>
+                    <div class="js-groups" />
+                </div>
+                <div class="col-md-3 nopadright">
+                    <ul class="list-inline list-unstyled js-attlist" />
+                </div>
+            </div>
+            <div class="row">
+                <hr />
+                <div class="col-xs-9 nopadright">
+                    <textarea rows="3" class="form-control completefull js-replytext" placeholder="Interested?  Please explain why you'd like it and when you can collect.  Always be polite and helpful."></textarea>
+                </div>
+                <div class="col-xs-3">
+                    <button class="btn btn-success js-reply topspace">
+                        <div class="glyphicon glyphicon-envelope" />&nbsp;Send
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>

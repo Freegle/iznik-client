@@ -3,7 +3,8 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/views/pages/pages'
+    'iznik/views/pages/pages',
+    'iznik/views/user/message'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
         template: "user_home_main",
@@ -101,57 +102,11 @@ define([
         }
     });
 
-    Iznik.Views.User.Home.Message = Iznik.View.extend({
-        render: function() {
-            var self = this;
-
-            Iznik.View.prototype.render.call(self);
-            var groups = self.model.get('groups');
-
-            _.each(groups, function(group) {
-                var v = new Iznik.Views.User.Home.Group({
-                    model: new Iznik.Model(group)
-                });
-                self.$('.js-groups').append(v.render().el);
-            });
-
-            _.each(self.model.get('attachments'), function (att) {
-                var v = new Iznik.Views.User.Home.Photo({
-                    model: new Iznik.Model(att)
-                });
-
-                self.$('.js-attlist').append(v.render().el);
-            });
-
-            return(this);
-        }
+    Iznik.Views.User.Home.Offer = Iznik.Views.User.Message.extend({
+        template: "user_home_offer"
     });
 
-    Iznik.Views.User.Home.Offer = Iznik.Views.User.Home.Message.extend({
-        template: "user_home_offer",
-
-        className: "panel panel-default"
-    });
-
-    Iznik.Views.User.Home.Wanted = Iznik.Views.User.Home.Message.extend({
-        template: "user_home_wanted",
-
-        className: "panel panel-default"
-    });
-
-    Iznik.Views.User.Home.Group = Iznik.View.extend({
-        template: "user_home_group",
-
-        render: function() {
-            Iznik.View.prototype.render.call(this);
-            this.$('.timeago').timeago();
-            return(this);
-        }
-    });
-
-    Iznik.Views.User.Home.Photo = Iznik.View.extend({
-        tagName: 'li',
-
-        template: 'user_home_photo'
+    Iznik.Views.User.Home.Wanted = Iznik.Views.User.Message.extend({
+        template: "user_home_wanted"
     });
 });

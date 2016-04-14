@@ -1,10 +1,13 @@
 <div class="panel-heading">
     <a class=nodecor" data-toggle="collapse" href="#offer-{{id}}">
+        <button class="btn btn-white pull-right">
+            <span class="js-caretup caret"></span>
+                <span class="dropup">
+                    <span class="js-caretdown caret" style="display: none"></span>
+                </span>
+        </button>
         <div class="msgsubj panel-title">
             {{subject}}
-            <button class="btn btn-white pull-right">
-                <span class="caret"></span>
-            </button>
         </div>
     </a>
     <div id="offer-{{id}}" class="panel-collapse collapse">

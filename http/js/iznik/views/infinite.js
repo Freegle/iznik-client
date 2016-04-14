@@ -85,6 +85,10 @@ define([
                 if (self.collectionView.collection.length == 0) {
                     self.$('.js-none').fadeIn('slow');
                     $('.js-scrolltop').addClass('hidden');
+
+                    if (self.lastWaypoint) {
+                        self.lastWaypoint.destroy();
+                    }
                 }
             });
 

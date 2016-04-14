@@ -290,13 +290,31 @@ define([
                             }
                         }
                     } else {
-                        // We're not logged in - clear our local storage and reload.  This will look slightly odd -
-                        // but means that the mainline case of still being logged in is handled more quickly.
                         try {
-                            localStorage.removeItem('session');
+                            var sess = localStorage.getItem('session');
+
+                            if (sess) {
+                                // We thought we were logged in but we're not.  Clear our local storage and reload.
+                                // This will look slightly odd but means that the mainline case of still being logged
+                                // in is handled more quickly.
+                                try {
+                                    localStorage.removeItem('session');
+                                } catch (e) {
+                                }
+                                window.location.reload();
+                            } else {
+                                // We're not logged in.
+                                self.loggedIn = false;
+
+                                if (self.testing) {
+                                    self.testing = false;
+                                    self.trigger('isLoggedIn', false);
+                                }
+                            }
                         } catch (e) {
                         }
-                        window.location.reload();
+
+                        // We're not logged in
                     }
                 },
                 error: function () {
