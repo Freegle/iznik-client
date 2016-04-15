@@ -1008,6 +1008,9 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 #notifchatdropdown {
     position: absolute;
     right: 0px;
+    padding: 0px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .chat-window {

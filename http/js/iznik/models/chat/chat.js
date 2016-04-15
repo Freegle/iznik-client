@@ -36,6 +36,10 @@ define([
 
         model: Iznik.Models.Chat.Room,
 
+        comparator: function(item) {
+            return item.get('name').toLowerCase(); }
+        ,
+
         parse: function(ret) {
             return(ret.chatrooms);
         }

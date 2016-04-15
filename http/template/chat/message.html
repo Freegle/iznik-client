@@ -1,10 +1,14 @@
 <div class="row-fluid fullholder nopad">
         <div class="<%if (!obj.sameasnext) { %>botspace <% } %><% if (obj.user) { %>pull-left chat-other<% } else { %>pull-right chat-mine<% } %> fullholder nopad">
-            <% if (!obj.user) { %><div class="col-xs-1" /><% } %>
-            <div class="col-sm-2 padsmall ellipsis" title="<% if (obj.user) { %>{{user.displayname}}<% } %>">
-                    <% if (obj.user) { %>{{user.displayname}}<% } %>
-            </div>
-            <div class="col-xs-12 col-sm-10 col-md-9 nopad">
+            <% if (obj.group) { %>
+                <% if (!obj.user) { %><div class="col-xs-1" /><% } %>
+                <div class="col-sm-2 padsmall ellipsis" title="<% if (obj.user) { %>{{user.displayname}}<% } %>">
+                        <% if (obj.user) { %>{{user.displayname}}<% } %>
+                </div>
+                <div class="col-xs-12 col-sm-10 col-md-9 nopad">
+                 <% } else { %>
+                    <div class="col-xs-12 nopad">
+                 <% } %>
                 <div class="chat-message <% if (obj.user && id > lastmsgseen) { %> chat-message-unseen <% } %><% if (obj.user) { %>pull-left<% } else { %>pull-right<% } %>">
                     {{message}}
                 </div>
@@ -14,14 +18,14 @@
         <br />
 </div>
 <div class="row-fluid fullholder nopad">
-    <% if (obj.user) { %>
+    <% if (obj.group && obj.user) { %>
         <div class="col-xs-2 nopad" />
         <div class="col-xs-10 nopad">
     <% } else { %>
         <div class="col-xs-12 nopad">
     <% } %>
             <% if (!obj.sameasnext) { %>
-            <abbr class="chat-when  <% if (obj.user) { %>pull-left<% } else { %>pull-right<% } %> text-muted small timeago" title="{{date}}" />
+            <abbr class="chat-when botspace  <% if (obj.user) { %>pull-left<% } else { %>pull-right<% } %> text-muted small timeago" title="{{date}}" />
             <% } %>
         </div>
 </div>

@@ -38,14 +38,19 @@ define([
                                 var data = ret.text;
 
                                 if (data.hasOwnProperty('roomid')) {
-                                    // Activity on this room.  Refetch the mesages within it.
-                                    // console.log("Refetch chat", data.roomid, self);
+                                    // Activity on this room.  If the chat is active, then we refetch the mesages
+                                    // within it so that they are displayed.  If it's not, then we don't want
+                                    // to keep fetching messages - the notification count will get updated by
+                                    // the roster poll.
                                     var chat = self.chats.get(data.roomid);
-                                    var chatView = self.collectionView.viewManager.findByModel(chat);
-                                    waiting = true;
-                                    chatView.messages.fetch().then(function () {
-                                        self.wait();
-                                    });
+                                    var chatView = self.activeChats.viewManager.findByModel(chat);
+
+                                    if (!chatView.minimised) {
+                                        waiting = true;
+                                        chatView.messages.fetch().then(function () {
+                                            self.wait();
+                                        });
+                                    }
                                 }
                             }
 
@@ -96,7 +101,7 @@ define([
             delete this.chatViews[chat.model.get('id')];
         },
 
-        organise: function(changeminimised) {
+        organise: function() {
             // This organises our chat windows so that:
             // - they're at the bottom, padded at the top to ensure that
             // - they're not wider or taller than the space we have.
@@ -120,23 +125,11 @@ define([
             var windowInnerHeight = $(window).innerHeight();
             var navbarOuterHeight = $('.navbar').outerHeight();
 
-            if (changeminimised) {
-                $('#js-notifchat ul').empty();
-            }
-
-            if (self.collectionView) {
-                self.collectionView.viewManager.each(function(chat) {
+            if (self.activeChats) {
+                self.activeChats.viewManager.each(function(chat) {
                     if (chat.minimised) {
                         // Not much to do - either just count, or create if we're asked to.
                         minimised++;
-
-                        if (changeminimised) {
-                            var v = new Iznik.Views.Chat.Minimised({
-                                model: chat.model,
-                                chat: chat
-                            });
-                            $('#js-notifchat ul').append(v.render().el);
-                        }
                     } else {
                         // We can get the properties we're interested in with a single call, which is quicker.  This also
                         // allows us to remove the px crud.
@@ -180,7 +173,7 @@ define([
                     var width = (Math.round(totalWidth / totalMax + 0.5) - reduceby);
                     console.log("New width", width);
 
-                    self.collectionView.viewManager.each(function(chat) {
+                    self.activeChats.viewManager.each(function(chat) {
                         if (!chat.minimised) {
                             if (chat.$el.css('width') != width) {
                                 console.log("Set new width ", chat.$el.css('width'), width);
@@ -195,7 +188,7 @@ define([
 
                 // Now consider changing the margins on the top to ensure the chat window is at the bottom of the
                 // screen.
-                self.collectionView.viewManager.each(function(chat) {
+                self.activeChats.viewManager.each(function(chat) {
                     if (!chat.minimised) {
                         var height = parseInt(chat.$el.css('height').replace('px', ''));
                         var newmargin = (maxHeight - height).toString() + 'px';
@@ -219,10 +212,8 @@ define([
             var self = this;
             var unseen = 0;
             self.chats.each(function(chat) {
-                var chatView = self.collectionView.viewManager.findByModel(chat);
-                if (chatView && chatView.minimised) {
-                    unseen += chat.get('unseen');
-                }
+                var chatView = self.activeChats.viewManager.findByModel(chat);
+                unseen += chat.get('unseen');
             });
 
             if (unseen > 0) {
@@ -233,13 +224,10 @@ define([
         },
 
         openchat: function(chatid) {
-            console.log("Chat created in holder", chatid);
             var self = this;
             self.chats.fetch().then(function() {
                 var chatmodel = self.chats.get(chatid);
-                console.log("Chat model", chatmodel);
-                var chatView = self.collectionView.viewManager.findByModel(chatmodel);
-                console.log("Chat view", chatView);
+                var chatView = self.activeChats.viewManager.findByModel(chatmodel);
                 chatView.restore();
             });
         },
@@ -269,9 +257,9 @@ define([
                         // The chat we create can trigger opening of new chats.
                         self.listenTo(self.chats, 'openchat', self.openchat);
 
-                        self.collectionView = new Backbone.CollectionView({
+                        self.activeChats = new Backbone.CollectionView({
                             el: self.$('.js-chats'),
-                            modelView: Iznik.Views.Chat.Window,
+                            modelView: Iznik.Views.Chat.Active,
                             collection: self.chats,
                             modelViewOptions: {
                                 organise: _.bind(self.organise, self),
@@ -281,9 +269,27 @@ define([
                             }
                         });
 
-                        self.collectionView.render();
+                        self.activeChats.render();
 
-                        self.organise(true);
+                        // Defer as container not yet in DOM.
+                        _.defer(function() {
+                            // The minimised chats can request that the chat be restored.
+                            self.minimisedChats = new Backbone.CollectionView({
+                                el: $('#notifchatdropdown'),
+                                modelView: Iznik.Views.Chat.Minimised,
+                                collection: self.chats,
+                                modelViewOptions: {
+                                    organise: _.bind(self.organise, self),
+                                    updateCounts: _.bind(self.updateCounts, self),
+                                    chats: self.chats,
+                                    modtools: self.options.modtools
+                                }
+                            });
+
+                            self.minimisedChats.render();
+                        })
+
+                        self.organise();
                         self.$el.css('visibility', 'visible');
                     } else {
                         $('#js-notifchat').css('visibility', 'hidden');
@@ -307,7 +313,8 @@ define([
         },
 
         click: function() {
-            this.options.chat.restore();
+            // The maximised chat view is listening on this.
+            this.model.trigger('restore', this.model.get('id'));
         },
 
         updateCount: function() {
@@ -335,7 +342,7 @@ define([
         }
     });
 
-    Iznik.Views.Chat.Window = Iznik.View.extend({
+    Iznik.Views.Chat.Active = Iznik.View.extend({
         template: 'chat_window',
 
         tagName: 'li',
@@ -422,7 +429,7 @@ define([
                 self.$el.hide();
             });
             this.minimised = true;
-            this.options.organise(true);
+            this.options.organise();
             this.options.updateCounts();
 
             self.updateRoster('Away', self.noop);
@@ -436,14 +443,21 @@ define([
 
         adjust: function() {
             var self = this;
+
             var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter input').outerHeight();
             // console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
             this.$('.js-leftpanel, .js-roster').height(newHeight);
 
-            var lpwidth = self.$('.js-leftpanel').width();
-            lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
-            lpwidth = Math.max(self.$el.width() - 250, lpwidth);
-            self.$('.js-leftpanel').width(lpwidth);
+            if (self.model.get('group')) {
+                // Group chats have a roster.
+                var lpwidth = self.$('.js-leftpanel').width();
+                lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
+                lpwidth = Math.max(self.$el.width() - 250, lpwidth);
+                self.$('.js-leftpanel').width(lpwidth);
+            } else {
+                // Conversations don't.
+                self.$('.js-leftpanel').width('100%');
+            }
         },
 
         setSize: function() {
@@ -488,7 +502,7 @@ define([
 
             // Restore the window first, so it feels zippier.
             self.setSize();
-            self.options.organise(true);
+            self.options.organise();
             this.options.updateCounts();
 
             _.defer(function() {
@@ -527,7 +541,7 @@ define([
         dragend: function(event, el, opt) {
             var self = this;
 
-            this.options.organise(false);
+            this.options.organise();
             self.trigger('resized');
             self.adjust();
             self.scrollBottom();
@@ -546,7 +560,7 @@ define([
 
             if (now - this.lastdrag > 20) {
                 // We will need to remargin any other chats.  Don't do this too often as it makes dragging laggy.
-                this.options.organise(false);
+                this.options.organise();
             }
 
             this.lastdrag = (new Date()).getMilliseconds();
@@ -658,13 +672,8 @@ define([
             var self = this;
 
             if (!self.removed) {
-                if (self.minimised) {
-                    // We're minimised, so no need to actually hit the server to update. 
-                    _.delay(_.bind(self.roster, self), 30000);
-                } else {
-                    self.updateRoster(self.statusWithOverride(self.minimised ? 'Away' : 'Online'),
-                        _.bind(self.rosterUpdated, self));
-                }
+                self.updateRoster(self.statusWithOverride(self.minimised ? 'Away' : 'Online'),
+                    _.bind(self.rosterUpdated, self));
             }
         },
 
@@ -713,7 +722,7 @@ define([
             $(window).resize(function() {
                 self.setSize();
                 self.adjust();
-                self.options.organise(false);
+                self.options.organise();
                 self.scrollBottom();
             });
 
@@ -738,7 +747,7 @@ define([
                 roomid: self.model.get('id')
             });
 
-            self.collectionView = new Backbone.CollectionView({
+            self.messageViews = new Backbone.CollectionView({
                 el: self.$('.js-messages'),
                 modelView: Iznik.Views.Chat.Message,
                 collection: self.messages,
@@ -753,7 +762,7 @@ define([
                 self.scrollBottom();
             });
 
-            self.collectionView.render();
+            self.messageViews.render();
 
             self.$el.resizable({
                 handleSelector: '#chat-' + self.model.get('id') + ' .js-grip',
@@ -771,6 +780,9 @@ define([
 
             minimise ? self.minimise() : self.restore();
 
+            // The minimised chat can signal to us that we should restore.
+            self.listenTo(self.model, 'restore', self.restore);
+
             self.trigger('rendered');
 
             // Get the roster to see who's there.
@@ -785,6 +797,7 @@ define([
             if (this.model.get('id')) {
                 // Insert some wbrs to allow us to word break long words (e.g. URLs).
                 this.model.set('message', wbr(this.model.get('message'), 20));
+                this.model.set('group', this.options.chatModel.get('group'));
 
                 this.model.set('lastmsgseen', this.options.chatModel.get('lastmsgseen'));
                 this.$el.html(window.template(this.template)(this.model.toJSON2()));
