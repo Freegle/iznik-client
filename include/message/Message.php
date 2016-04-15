@@ -119,7 +119,7 @@ class Message
         $me = whoAmI($this->dbhr, $this->dbhm);
         $text = ($subject ? "New subject $subject " : '');
         $text .= "Text body changed to len " . strlen($textbody);
-        $text .= "HTML body changed to len " . strlen($htmlbody);
+        $text .= " HTML body changed to len " . strlen($htmlbody);
 
         # Make sure we have a value, otherwise we might return a missing body.
         $textbody = strlen($textbody) == 0 ? ' ' : $textbody;

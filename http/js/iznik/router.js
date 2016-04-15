@@ -38,9 +38,7 @@ define([
             // We want the ability to abort all outstanding requests, for example when we switch to a new route.
             self.xhrPool = [];
             self.abortAll = function() {
-                console.log("Abortall");
                 _.each(self.xhrPool, function(jqXHR) {
-                    console.log("Abort", jqXHR);
                     try {
                         jqXHR.abort();
                     } catch (e) {}

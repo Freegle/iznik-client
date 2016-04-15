@@ -4,7 +4,7 @@
         {{name}}
         <span class="js-count badge badge-unread" style="display: none;"></span>
         &nbsp;
-        <div class="js-privacy">
+        <div class="js-privacy inline">
             <% if (obj.group) { %>
             <div class="glyphicon <% if (obj.modonly) { %>glyphicon-lock<% } else { %>glyphicon-globe<% } %>" title="This chat is <% if (obj.modonly) { %>restricted<% } else { %>public<% } %> to <% if (obj.modonly) { %>moderators<% } else { %>members<% } %> of {{group.namedisplay}}." />
             <% } else { %>
@@ -17,7 +17,7 @@
                 <div class="glyphicon glyphicon-minus"/>
             </div>
             <!--div class="glyphicon glyphicon-remove js-close" title="Close" /-->
-         </div>
+        </div>
     </div>
     <% if (obj.description) { %>
     <div class="padleft text-muted">{{description}}</div>

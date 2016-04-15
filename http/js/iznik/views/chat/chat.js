@@ -150,9 +150,11 @@ define([
                         totalWidth += css.width;
                         totalMax++;
 
-                        // Make sure it's not stupidly tall or short.
+                        // Make sure it's not stupidly tall or short.  We let the navbar show unless we're really short,
+                        // which happens when on-screen keyboards open up.
                         // console.log("Consider height", css.height, windowInnerHeight, navbarOuterHeight, windowInnerHeight - navbarOuterHeight - 5);
-                        height = Math.min(css.height, windowInnerHeight - navbarOuterHeight - 5);
+                        height = Math.min(css.height, windowInnerHeight - (isVeryShort() ? 0 : navbarOuterHeight) - 5);
+                        // console.log("Consider shortness", height, css.height, windowInnerHeight, isVeryShort() ? 0 : navbarOuterHeight, navbarOuterHeight);
                         height = Math.max(height, 100);
                         maxHeight = Math.max(height, maxHeight);
                         // console.log("Height", height, css.height, windowInnerHeight, navbarOuterHeight);
@@ -173,9 +175,9 @@ define([
                 if (totalOuter > max) {
                     // The chat windows we have open are too wide.  Make them narrower.
                     var reduceby = Math.round((totalOuter - max) / totalMax + 0.5);
-                    console.log("Chats too wide", max, totalOuter, totalWidth, reduceby);
+                    // console.log("Chats too wide", max, totalOuter, totalWidth, reduceby);
                     var width = (Math.round(totalWidth / totalMax + 0.5) - reduceby);
-                    console.log("New width", width);
+                    // console.log("New width", width);
 
                     Iznik.activeChats.viewManager.each(function(chat) {
                         if (!chat.minimised) {
@@ -479,7 +481,7 @@ define([
                 }
 
                 if (height && width) {
-                    console.log("Set size", width, height);
+                    // console.log("Set size", width, height);
                     self.$el.height(height);
                     self.$el.width(width);
                 }

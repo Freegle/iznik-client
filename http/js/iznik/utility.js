@@ -27,6 +27,11 @@ define([
         return window.innerHeight < 900;
     };
 
+    window.isVeryShort = function() {
+        console.log("Very short?", window.innerHeight);
+        return window.innerHeight <= 300;
+    };
+
     window.canonSubj = function(subj) {
         subj = subj.toLocaleLowerCase();
 
