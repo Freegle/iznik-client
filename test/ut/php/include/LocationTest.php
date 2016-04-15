@@ -71,6 +71,7 @@ class locationTest extends IznikTestCase {
         $l = new Location($this->dbhr, $this->dbhm);
         $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
         assertNotNull($id);
+        assertEquals($id, $l->findByName('Tuvalu High Street'));
         $l = new Location($this->dbhr, $this->dbhm, $id);
         $atts = $l->getPublic();
         error_log("Created loc " . var_export($atts, true));

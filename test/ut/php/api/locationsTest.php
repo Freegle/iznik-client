@@ -39,6 +39,7 @@ class locationsAPITest extends IznikAPITestCase
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 179.1 AND swlat <= 179.3;");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE '??%';");
+        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13%';");
         for ($swlat = 8.3; $swlat <= 8.6; $swlat += 0.1) {
             for ($swlng = 179.1; $swlng <= 179.3; $swlng += 0.1) {
                 $nelat = $swlat + 0.1;
@@ -132,6 +133,46 @@ class locationsAPITest extends IznikAPITestCase
         assertEquals('OFFER: Test (Tuvalu High Street)', $m->getSubject());
         $atts = $m->getPublic(FALSE, FALSE);
         assertEquals('OFFER: Test (Tuvalu Hugh Street)', $atts['suggestedsubject']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testAreaAndPostcode() {
+        error_log(__METHOD__);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+
+        $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.21 8.54, 179.21 8.53))', 0);
+        $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
+        $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)', 0);
+        $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)', 0);
+
+        $locs = $l->withinBox(8.4, 179, 8.6, 180);
+        error_log("Locs in box " . var_export($locs, TRUE));
+
+        error_log("Postcode $pcid full $fullpcid Area $areaid Location $locid");
+
+        # Create a group there
+        $this->group->setPrivate('lat', 8.5);
+        $this->group->setPrivate('lng', 179.3);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_ireplace('Basic test', 'OFFER: Test (TV13 1HH)', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        # Suggest a subject to trigger mapping.
+        $sugg = $m->suggestSubject($this->groupid, $m->getSubject());
+        $atts = $m->getPublic();
+        error_log(var_export($atts, TRUE));
+        assertEquals($areaid, $atts['area']['id']);
+        assertEquals($pcid, $atts['postcode']['id']);
 
         error_log(__METHOD__ . " end");
     }

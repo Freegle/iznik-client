@@ -417,6 +417,7 @@ class MailRouterTest extends IznikTestCase {
 
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        error_log("First copy on $gid");
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);

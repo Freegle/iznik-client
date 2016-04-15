@@ -1019,6 +1019,9 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
+        # Set a fake IP for coverage reasons; choose the BBC.  No license fee required.
+        $_SERVER['REMOTE_ADDR'] = '212.58.244.22';
+
         $email = 'test-' . rand() . '@blackhole.io';
 
         # This is similar to the actions on the client

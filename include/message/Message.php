@@ -875,7 +875,6 @@ class Message
         }
 
         $this->subject = $Parser->getHeader('subject');
-        error_log("Subject {$this->subject} has encoding " . mb_detect_encoding($this->subject));
         $this->messageid = $Parser->getHeader('message-id');
         $this->messageid = str_replace('<', '', $this->messageid);
         $this->messageid = str_replace('>', '', $this->messageid);
@@ -1596,26 +1595,31 @@ class Message
         $sql = "SELECT * FROM messages WHERE messageid = ?;";
         $msgs = $this->dbhr->preQuery($sql, [ $this->getMessageID() ]);
         foreach ($msgs as $msg) {
-            error_log("In #{$this->id} found {$msg['id']} with " . $this->getMessageID());
+            #error_log("In #{$this->id} found {$msg['id']} with " . $this->getMessageID());
             $ret = $msg['id'];
             $changed = '';
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
             
             # We want the old message to be on whatever group this message was sent to.
             $oldgroups = $m->getGroups();
-            error_log("Compare groups $this->groupid vs " . var_export($oldgroups, TRUE));
+            #error_log("Compare groups $this->groupid vs " . var_export($oldgroups, TRUE));
             if (!in_array($this->groupid, $oldgroups)) {
+                // This code is here for future handling of the same message on multiple groups, but since we
+                // currently make the message id per-group, we can't reach it.  Keep it for later use but don't
+                // worry that we can't cover it.
+                // @codeCoverageIgnoreStart
+                /* @cov $collection */
                 $collection = NULL;
                 if ($this->getSource() == Message::YAHOO_PENDING) {
                     $collection = MessageCollection::PENDING;
                 } else if ($this->getSource() == Message::YAHOO_APPROVED) {
                     $collection = MessageCollection::APPROVED;
                 }
-                error_log("Not on group, add to $collection");
+                #error_log("Not on group, add to $collection");
 
                 if ($collection) {
                     $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby) VALUES (?,?,?,?,?,?,?,?);", [
-                        $this->id,
+                        $msg['id'],
                         $this->groupid,
                         $this->yahoopendingid,
                         $this->yahooapprovedid,
@@ -1626,8 +1630,9 @@ class Message
                     ]);
                 }
             } else {
+                // @codeCoverageIgnoreEnd
                 # Already on the group; pick up any new and better info.
-                error_log("Already on group, pick ");
+                #error_log("Already on group, pick ");
                 $gatts = $this->dbhr->preQuery("SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ?;", [
                     $msg['id'],
                     $this->groupid

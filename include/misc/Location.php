@@ -447,7 +447,6 @@ class Location extends Entity
 
     public function findByName($query)
     {
-        # We want to select full postcodes (with a space in them)
         $sql = "SELECT * FROM locations WHERE name = ? LIMIT 1;";
         $locs = $this->dbhr->preQuery($sql, [$query]);
         return (count($locs) == 1 ? $locs[0]['id'] : NULL);
@@ -512,7 +511,7 @@ class Location extends Entity
                         $thisone['polygon'] = $geom;
 
                         # Save it for next time.
-                        $rc = $this->dbhm->preExec("UPDATE locations SET ourgeometry = GeomFromText(?) WHERE id = ?;", [
+                        $this->dbhm->preExec("UPDATE locations SET ourgeometry = GeomFromText(?) WHERE id = ?;", [
                             $geom,
                             $area['areaid']
                         ]);
