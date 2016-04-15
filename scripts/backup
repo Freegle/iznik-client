@@ -13,7 +13,7 @@ timestamp=$(date +%Y-%m-%d-%H-%M)
 pregp mysql
 if [ $? == 0 ]; then
     # run a backup and stream the output directly to Google storage
-    $BACKUP | /root/gsutil/gsutil cp - gs://freegle_backup/iznik-$timestamp.tar > /tmp/gsutil.out 2>&1
+    $BACKUP | gzip - | /root/gsutil/gsutil cp - gs://freegle_backup/iznik-$timestamp.tar.gz > /tmp/gsutil.out 2>&1
 
     if [ $? == 0 ]; then
       grep "0 B" /tmp/gsutil.out
@@ -28,7 +28,7 @@ if [ $? == 0 ]; then
     fi
 
     # ...and one to our archive server
-    $BACKUP | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.tar"
+    $BACKUP | gzip - | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.tar.gz"
 else
     echo "MySQL not running"| mail -s "BACKUP ERROR: MySQL not running" $EMAIL
 fi
