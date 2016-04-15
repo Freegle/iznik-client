@@ -216,10 +216,18 @@ define([
                 unseen += chat.get('unseen');
             });
 
+            // We'll adjust the count in the window title.
+            var title = document.title;
+            var match = /\(.*\) (.*)/.exec(title);
+            console.log("Title", title, match);
+            title = match ? match[1] : title;
+
             if (unseen > 0) {
                 $('#js-notifchat .js-totalcount').html(unseen).show();
+                document.title = '(' + unseen + ') ' + title;
             } else {
                 $('#js-notifchat .js-totalcount').html(unseen).hide();
+                document.title = title;
             }
         },
 
