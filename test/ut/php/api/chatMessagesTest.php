@@ -8,6 +8,7 @@ require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/chat/Rooms.php';
 require_once IZNIK_BASE . '/include/chat/Messages.php';
+require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 
 /**
  * @backupGlobals disabled
@@ -142,7 +143,14 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         assertTrue($this->user->login('testpw'));
 
-        # Create a chat to the second user.
+        # Create a chat to the second user with a referenced message
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
         $ret = $this->call('chatrooms', 'PUT', [
             'userid' => $this->uid2
         ]);
@@ -157,7 +165,12 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(1, count($ret['chatrooms']));
         assertEquals($this->cid, $ret['chatrooms'][0]['id']);
 
-        $ret = $this->call('chatmessages', 'POST', [ 'roomid' => $this->cid, 'message' => 'Test' ]);
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $this->cid,
+            'message' => 'Test',
+            'refmsgid' => $refmsgid
+        ]);
+        error_log("Create message " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $mid1 = $ret['id'];
@@ -184,8 +197,10 @@ class chatMessagesAPITest extends IznikAPITestCase
             'roomid' => $this->cid,
             'id' => $mid1
         ]);
+        error_log("Get message" . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals($mid1, $ret['chatmessage']['id']);
+        assertEquals($refmsgid, $ret['chatmessage']['refmsg']['id']);
 
         # Should be able to post
         $ret = $this->call('chatmessages', 'POST', [ 'roomid' => $this->cid, 'message' => 'Test' ]);

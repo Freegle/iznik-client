@@ -100,7 +100,7 @@ define([
             var self = this;
 
             this.save().done(function () {
-                Router.navigate('/user/give/whoami', true);
+                Router.navigate('/give/whoami', true);
             }).fail(function () {
                 self.$('.js-saveerror').fadeIn('slow');
             });
@@ -288,7 +288,7 @@ define([
                         id: id
                     }, success: function (ret) {
                         if (ret.ret == 0) {
-                            Router.navigate('/user/give/whatnext', true)
+                            Router.navigate('/give/whatnext', true)
                         } else {
                             self.fail();
                         }

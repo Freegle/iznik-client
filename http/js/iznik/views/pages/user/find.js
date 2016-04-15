@@ -34,9 +34,9 @@ define([
             var term = this.$('.js-search').val();
 
             if (term != '') {
-                Router.navigate('/user/find/search/' + encodeURIComponent(term), true);
+                Router.navigate('/find/search/' + encodeURIComponent(term), true);
             } else {
-                Router.navigate('/user/find/search', true);
+                Router.navigate('/find/search', true);
             }
         },
 
@@ -128,6 +128,66 @@ define([
     });
 
     Iznik.Views.User.SearchResult = Iznik.Views.User.Message.extend({
-        template: 'user_find_result'
+        template: 'user_find_result',
+
+        events: {
+            'click .js-send': 'send'
+        },
+
+        initialize: function(){
+            _.extend(this.events, Iznik.Views.User.Message.prototype.events);
+        },
+        
+        send: function() {
+            var self = this;
+
+            // We start a conversation with the sender.
+            $.ajax({
+                type: 'PUT',
+                url: API + 'chat/rooms',
+                data: {
+                    userid: self.model.get('fromuser').id
+                }, success: function(ret) {
+                    if (ret.ret == 0) {
+                        var chatid = ret.id;
+                        var msg = self.$('.js-replytext').val();
+
+                        $.ajax({
+                            type: 'POST',
+                            url: API + 'chat/rooms/' + chatid + '/messages',
+                            data: {
+                                message: msg,
+                                refmsgid: self.model.get('id')
+                            }, complete: function() {
+                                // Ensure the chat is opened, which shows the user what will happen next.
+                                Iznik.Session.chats.fetch().then(function() {
+                                    self.$('.js-replybox').slideUp();
+                                    var chatmodel = Iznik.Session.chats.get(chatid);
+                                    var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
+                                    chatView.restore();
+                                });
+                            }
+                        });
+                    }
+                }
+            })
+        },
+        
+        render: function() {
+            var related = this.model.get('related');
+
+            var taken = _.where(related, {
+                type: 'Taken'
+            });
+
+            if (taken.length == 0) {
+                // Only show a search result for an offer which has not been taken.
+                Iznik.Views.User.Message.prototype.render.call(this);
+            } else {
+                this.$el.hide();
+            }
+            
+            return(this);
+        }
     });
 });
