@@ -113,6 +113,10 @@ define([
                 return self;
             },
 
+            inDOM: function() {
+                return(this.$el.closest('body').length > 0);
+            },
+
             destroyIt: function () {
                 this.undelegateEvents();
                 this.$el.removeData().unbind();

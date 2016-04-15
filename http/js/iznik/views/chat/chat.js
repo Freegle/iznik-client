@@ -18,42 +18,76 @@ define([
             // TODO use a separate domain name to get round client-side limits on the max number of HTTP connections
             // to a single host.  We use a single connection rather than a per chat one for the same reason.
             var self = this;
-            var me = Iznik.Session.get('me');
-            var myid = me ? me.id : null;
 
-            if (!myid) {
-                // Not logged in, try later;
-                _.delay(self.wait, 5000);
-            } else {
-                var chathost = $('meta[name=iznikchat]').attr("content");
+            if (self.inDOM()) {
+                // This view is still in the DOM.  If not, then we need to die.
+                var me = Iznik.Session.get('me');
+                var myid = me ? me.id : null;
 
-                $.ajax({
-                    url: window.location.protocol + '//' + chathost + '/subscribe/' + myid,
-                    success: function(ret) {
-                        var waiting = false;
-                        if (ret && ret.hasOwnProperty('text')) {
-                            var data = ret.text;
+                if (!myid) {
+                    // Not logged in, try later;
+                    _.delay(self.wait, 5000);
+                } else {
+                    var chathost = $('meta[name=iznikchat]').attr("content");
 
-                            if (data.hasOwnProperty('roomid')) {
-                                // Activity on this room.  Refetch the mesages within it.
-                                // console.log("Refetch chat", data.roomid, self);
-                                var chat = self.chats.get(data.roomid);
-                                var chatView = self.collectionView.viewManager.findByModel(chat);
-                                waiting = true;
-                                chatView.messages.fetch().then(function() {
-                                    self.wait();
-                                });
+                    $.ajax({
+                        url: window.location.protocol + '//' + chathost + '/subscribe/' + myid,
+                        success: function (ret) {
+                            var waiting = false;
+                            if (ret && ret.hasOwnProperty('text')) {
+                                var data = ret.text;
+
+                                if (data.hasOwnProperty('roomid')) {
+                                    // Activity on this room.  Refetch the mesages within it.
+                                    // console.log("Refetch chat", data.roomid, self);
+                                    var chat = self.chats.get(data.roomid);
+                                    var chatView = self.collectionView.viewManager.findByModel(chat);
+                                    waiting = true;
+                                    chatView.messages.fetch().then(function () {
+                                        self.wait();
+                                    });
+                                }
+                            }
+
+                            if (!waiting) {
+                                self.wait();
+                            }
+                        }, error: function () {
+                            // This can validly happen when we switch pages, because we abort outstanding requests
+                            // and hence our long poll.  So before restarting, check that this view is still in the
+                            // DOM.
+                            console.log("Error timer", this);
+                            if (this.inDOM()) {
+                                // Probably a network glitch.  Retry later.
+                                console.log("Still in DOM");
+                                this.wait();
+                            } else {
+                                this.destroyIt();
                             }
                         }
-
-                        if (!waiting) {
-                            self.wait();
-                        }
-                    }, error: function() {
-                        // Probably a network glitch.  Retry later.
-                        _.delay(_.bind(self.wait, self), 5000);
-                    }
+                    });
+                }
+            } else {
+                self.destroyIt();
+            }
+        },
+        
+        fallbackInterval: 300000,
+        
+        fallback: function() {
+            // Although we should be notified of new chat messages via the wait() function, this isn't guaranteed.  So
+            // we have a fallback poll to pick up any lost messages.
+            var self = this;
+            
+            if (self.inDOM()) {
+                self.chats.each(function(chat) {
+                    chat.fetch();
                 });
+                
+                _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+            } else {
+                console.log("Fallback not in DOM");
+                self.destroyIt();
             }
         },
 
@@ -213,46 +247,53 @@ define([
         render: function() {
             var self = this;
 
-            self.$el.css('visibility', 'hidden');
-            self.$el.html(window.template(self.template)());
-            $("#bodyEnvelope").append(self.$el);
+            // We might already be rendered, as we're outside the body content that gets zapped when we move from
+            // page to page.
+            if ($('#chatHolder').length == 0) {
+                self.$el.css('visibility', 'hidden');
+                self.$el.html(window.template(self.template)());
+                $("#bodyEnvelope").append(self.$el);
 
-            self.chats = new Iznik.Collections.Chat.Rooms();
-            self.chats.fetch({
-                data: {
-                    modtools: self.options.modtools
-                }
-            }).then(function() {
-                if (self.chats.length > 0) {
-                    self.chats.each(function(chat) {
-                        // If the unread message count changes, we want to update it.
-                        self.listenTo(chat, 'change:unseen', self.updateCounts);
-                    });
+                self.chats = new Iznik.Collections.Chat.Rooms();
+                self.chats.fetch({
+                    data: {
+                        modtools: self.options.modtools
+                    }
+                }).then(function () {
+                    if (self.chats.length > 0) {
+                        self.chats.each(function (chat) {
+                            // If the unread message count changes, we want to update it.
+                            self.listenTo(chat, 'change:unseen', self.updateCounts);
+                        });
 
-                    // The chat we create can trigger opening of new chats.
-                    self.listenTo(self.chats, 'openchat', self.openchat);
+                        // The chat we create can trigger opening of new chats.
+                        self.listenTo(self.chats, 'openchat', self.openchat);
 
-                    self.collectionView = new Backbone.CollectionView({
-                        el: self.$('.js-chats'),
-                        modelView: Iznik.Views.Chat.Window,
-                        collection: self.chats,
-                        modelViewOptions: {
-                            organise: _.bind(self.organise, self),
-                            updateCounts:  _.bind(self.updateCounts, self),
-                            chats: self.chats,
-                            modtools: self.options.modtools
-                        }
-                    });
+                        self.collectionView = new Backbone.CollectionView({
+                            el: self.$('.js-chats'),
+                            modelView: Iznik.Views.Chat.Window,
+                            collection: self.chats,
+                            modelViewOptions: {
+                                organise: _.bind(self.organise, self),
+                                updateCounts: _.bind(self.updateCounts, self),
+                                chats: self.chats,
+                                modtools: self.options.modtools
+                            }
+                        });
 
-                    self.collectionView.render();
+                        self.collectionView.render();
 
-                    self.organise(true);
-                    self.$el.css('visibility', 'visible');
-                } else {
-                    $('#js-notifchat').css('visibility', 'hidden');
-                }
-            });
-            self.wait();
+                        self.organise(true);
+                        self.$el.css('visibility', 'visible');
+                    } else {
+                        $('#js-notifchat').css('visibility', 'hidden');
+                    }
+                });
+
+                // Now ensure we are told about new messages.
+                self.wait();
+                _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+            }
         }
     });
 

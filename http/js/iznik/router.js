@@ -35,6 +35,31 @@ define([
         initialize: function () {
             var self = this;
 
+            // We want the ability to abort all outstanding requests, for example when we switch to a new route.
+            self.xhrPool = [];
+            self.abortAll = function() {
+                console.log("Abortall");
+                _.each(self.xhrPool, function(jqXHR) {
+                    console.log("Abort", jqXHR);
+                    try {
+                        jqXHR.abort();
+                    } catch (e) {}
+                });
+                self.xhrPool = [];
+            };
+
+            $.ajaxSetup({
+                beforeSend: function(jqXHR) {
+                    self.xhrPool.push(jqXHR);
+                },
+                complete: function(jqXHR) {
+                    var index = self.xhrPool.indexOf(jqXHR);
+                    if (index > -1) {
+                        self.xhrPool.splice(index, 1);
+                    }
+                }
+            });
+
             this.bind('route', this.pageView);
         },
 
@@ -85,6 +110,10 @@ define([
 
         loadRoute: function (routeOptions) {
             var self = this;
+
+            // We're no longer interested in any outstanding requests, and we also want to avoid them clogging up
+            // our per-host limit.
+            self.abortAll();
 
             // Tidy any modal grey.
             $('.modal-backdrop').remove();
