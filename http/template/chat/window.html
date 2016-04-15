@@ -27,6 +27,7 @@
         <div class="chat-messages-panel js-leftpanel">
             <div class="overscrolly list-unstyled chat-messages js-messages nopad" />
         </div>
+        <% if (obj.group) { %>
         <div class="splitter" />
 
         <div class="chat-roster-panel">
@@ -38,6 +39,7 @@
             <div class="clearfix" />
             <div class="js-roster" />
         </div>
+        <% } %>
     </div>
 </div>
 <div class="row-fluid js-chatfooter">

@@ -58,7 +58,7 @@ class ChatRoom extends Entity
 
         # Find any existing chat.  Who is user1 and who is user2 doesn't really matter - it's a two way chat.
         $sql = "SELECT id FROM chat_rooms WHERE (user1 = ? AND user2 = ?) OR (user2 = ? AND user1 = ?) FOR UPDATE;";
-        $chats = $this->dbhr->preQuery($sql, [
+        $chats = $this->dbhm->preQuery($sql, [
             $user1,
             $user2,
             $user1,
@@ -133,6 +133,16 @@ class ChatRoom extends Entity
             $ctx = NULL;
             $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
         }
+
+        if (!pres('name', $ret)) {
+            # If this is not a named chat then we invent the name; we use the name of the user who isn't us, because
+            # that's who we're chatting to.
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me->getId();
+
+            $ret['name'] = ($ret['user1']['id'] != $myid) ? $ret['user1']['displayname'] :
+                $ret['user2']['displayname'];
+        }
         
         return($ret);
     }
@@ -182,7 +192,7 @@ class ChatRoom extends Entity
 
     public function canSee($userid) {
         $rooms = $this->listForUser($userid);
-        error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
+        #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
         return($rooms ? in_array($this->id, $rooms) : FALSE);
     }
 
@@ -268,7 +278,6 @@ class ChatRoom extends Entity
 
         $ret = [];
         $lastuser = NULL;
-        $consecutive = 0;
         $lastmsg = NULL;
 
         foreach ($msgs as $msg) {

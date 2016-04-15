@@ -139,7 +139,6 @@ class Notifications
 
         $vars = json_encode($topdata);
 
-        # compose HTTP request header
         $header = "Host: " . CHAT_HOST . "\r\n";
         $header .= "User-Agent: Iznik Notify\r\n";
         $header .= "Content-Type: application/json\r\n";

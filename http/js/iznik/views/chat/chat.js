@@ -174,6 +174,9 @@ define([
                     }
                 });
             }
+            
+            // The drop-down menu needs to be scrollable, and so we put a max-height on it.
+            $('#notifchatdropdown').css('max-height', windowInnerHeight - navbarOuterHeight);
 
             // console.log("Organised", (new Date()).getMilliseconds() - start);
         },
@@ -195,6 +198,18 @@ define([
             }
         },
 
+        openchat: function(chatid) {
+            console.log("Chat created in holder", chatid);
+            var self = this;
+            self.chats.fetch().then(function() {
+                var chatmodel = self.chats.get(chatid);
+                console.log("Chat model", chatmodel);
+                var chatView = self.collectionView.viewManager.findByModel(chatmodel);
+                console.log("Chat view", chatView);
+                chatView.restore();
+            });
+        },
+
         render: function() {
             var self = this;
 
@@ -214,13 +229,18 @@ define([
                         self.listenTo(chat, 'change:unseen', self.updateCounts);
                     });
 
+                    // The chat we create can trigger opening of new chats.
+                    self.listenTo(self.chats, 'openchat', self.openchat);
+
                     self.collectionView = new Backbone.CollectionView({
                         el: self.$('.js-chats'),
                         modelView: Iznik.Views.Chat.Window,
                         collection: self.chats,
                         modelViewOptions: {
-                            'organise': _.bind(self.organise, self),
-                            'updateCounts':  _.bind(self.updateCounts, self)
+                            organise: _.bind(self.organise, self),
+                            updateCounts:  _.bind(self.updateCounts, self),
+                            chats: self.chats,
+                            modtools: self.options.modtools
                         }
                     });
 
@@ -562,17 +582,27 @@ define([
             return(status);
         },
 
+        openChat: function(chatid) {
+            // A roster entry has opend a chat.  Ripple this up to the holder.
+            //
+            // TODO this is an ugly way of signalling up the view stack.
+            console.log("Chat created in window", chatid);
+            this.options.chats.trigger('openchat', chatid);
+        },
+
         rosterUpdated: function(ret) {
             var self = this;
-            // console.log("Roster updated", ret, this);
 
             if (ret.ret === 0) {
                 self.$('.js-roster').empty();
                 _.each(ret.roster, function(rost) {
                     var mod = new Iznik.Model(rost);
                     var v = new Iznik.Views.Chat.RosterEntry({
-                        model: mod
+                        model: mod,
+                        chats: self.options.chats,
+                        modtools: self.options.modtools
                     });
+                    self.listenTo(v, 'openchat', self.openChat);
                     self.$('.js-roster').append(v.render().el);
                 });
 
@@ -730,6 +760,30 @@ define([
 
     Iznik.Views.Chat.RosterEntry = Iznik.View.extend({
         template: 'chat_rosterentry',
+
+        events: {
+            'click .js-click': 'dm'
+        },
+
+        dm: function() {
+            var self = this;
+
+            if (self.model.get('id') != Iznik.Session.get('me').id) {
+                // We want to open a direct message conversation with this user.
+                $.ajax({
+                    type: 'PUT',
+                    url: API + 'chat/rooms',
+                    data: {
+                        userid: self.model.get('userid')
+                    }, success: function(ret) {
+                        if (ret.ret == 0) {
+                            console.log("Created", ret);
+                            self.trigger('openchat', ret.id);
+                        }
+                    }
+                })
+            }
+        }
     });
 });
 

@@ -1,4 +1,3 @@
-console.log("Load show-first", $, jQuery);
 /** The MIT License (MIT)
 
 Copyright (c) 2014 Solar Mosaic, Inc.

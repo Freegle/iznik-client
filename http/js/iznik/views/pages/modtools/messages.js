@@ -7,7 +7,6 @@ define([
     'iznik/views/pages/pages',
     'jquery-show-first'
 ], function($, _, Backbone, moment, Iznik) {
-    console.log("Load messages", $);
     Iznik.Views.ModTools.Message = Iznik.View.extend({
         rarelyUsed: function () {
             this.$('.js-rarelyused').fadeOut('slow');
