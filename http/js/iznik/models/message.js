@@ -39,7 +39,7 @@ define([
             })
         },
 
-        approve: function() {
+        approve: function(subject, body, stdmsgid) {
             var self = this;
             // We approve the message on all groups.  Future enhancement?
             _.each(self.get('groups'), function(group, index, list) {
@@ -49,7 +49,10 @@ define([
                     data: {
                         id: self.get('id'),
                         groupid: group.id,
-                        action: 'Approve'
+                        action: 'Approve',
+                        subject: subject,
+                        stdmsgid: stdmsgid,
+                        body: body
                     }, success: function(ret) {
                         self.trigger('approved');
                     }
