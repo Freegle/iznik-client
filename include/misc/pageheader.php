@@ -2,7 +2,7 @@
 require_once(IZNIK_BASE . '/include/misc/scripts.php');
 require_once(IZNIK_BASE . '/include/misc/template.php');
 ?><!DOCTYPE HTML>
-<html <?php if (MANIFEST) { ?>manifest="/manifest.appcache"<?php } ?>>
+<html>
 <head>
     <meta name="msapplication-tap-highlight" content="no"/>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>

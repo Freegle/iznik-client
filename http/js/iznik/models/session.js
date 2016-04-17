@@ -87,8 +87,7 @@ define([
             var self = this;
 
             // The mainline case is that we have our session cached in local storage, which allows us to get on
-            // with things rapidly - in conjunction with use of the appcache it means that we don't need any server
-            // interactions before we can start rendering the page.
+            // with things rapidly.
             self.testing = true;
             try {
                 var sess = localStorage.getItem('session');
