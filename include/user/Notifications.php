@@ -113,16 +113,16 @@ class Notifications
         return($count);
     }
 
-    static public function fsockopen($host, $port, &$errno, &$errstr) {
+    public function fsockopen($host, $port, &$errno, &$errstr) {
         $fp = fsockopen('ssl://' . CHAT_HOST, 443, $errno, $errstr);
         return($fp);
     }
 
-    static public function fputs($fp, $str) {
+    public function fputs($fp, $str) {
         return(fputs($fp, $str));
     }
 
-    static public function poke($userid, $data) {
+    public function poke($userid, $data) {
         # This kicks a user who is online at the moment with an outstanding long poll.
         #
         # TODO Handle multiple application servers
@@ -146,19 +146,19 @@ class Notifications
         $header .= "Connection: close\r\n\r\n";
 
         try {
-            $fp = Notifications::fsockopen('ssl://' . CHAT_HOST, 443, $errno, $errstr);
+            $fp = $this->fsockopen('ssl://' . CHAT_HOST, 443, $errno, $errstr);
 
             if (!$fp) {
                 error_log("Failed to get socket, $errstr ($errno)");
             } else {
-                if (!Notifications::fputs($fp, "POST $service_uri  HTTP/1.1\r\n")) {
+                if (!$this->fputs($fp, "POST $service_uri  HTTP/1.1\r\n")) {
                     # This can happen if the socket is broken.  Just close it ready for next time.
                     fclose($fp);
                     error_log("Failed to post");
                 } else {
                     fputs($fp, $header . $vars);
                     $server_response = fread($fp, 256);
-                    error_log("Rsp on $service_uri $server_response");
+                    #error_log("Rsp on $service_uri $server_response");
                 }
             }
         } catch (Exception $e) {

@@ -48,19 +48,26 @@ require([
         });
     }
     
-    // $.ajax = function (options) {
-    //     var args;
-    //     console.log("AJAX", arguments);
-    //
-    //     if (typeof options === 'string') {
-    //         arguments[1].url = options;
-    //         args = sliceArgs(arguments[1]);
-    //         extendIt(args, options);
-    //     } else {
-    //         args = sliceArgs(arguments);
-    //         extendIt(args, options);
-    //     }
-    //
-    //     return _ajax.apply($, args);
-    // };
+    $.ajax = function (options) {
+        var url = options.url;
+
+        if (url && url.indexOf('groups.yahoo.com') == -1) {
+            // We wrap the AJAX call in our own, with our own error handler.
+            var args;
+            if (typeof options === 'string') {
+                arguments[1].url = options;
+                args = sliceArgs(arguments[1]);
+            } else {
+                args = sliceArgs(arguments);
+            }
+
+            extendIt(args, options);
+
+            return _ajax.apply($, args);
+        } else {
+            // Yahoo can validly return errors as part of its API, and we handle retrying via the plugin work, so
+            // don't mess with it.
+            return(_ajax.apply($, arguments));
+        }
+    };
 });

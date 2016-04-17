@@ -55,7 +55,7 @@ class dbTest extends IznikTestCase {
             0 => '',
             1 => null,
             2 => null
-        ], $sth->errorInfo());
+        ], $this->dbhm->getErrorInfo($sth));
 
         error_log(__METHOD__ . " end");
     }

@@ -262,8 +262,10 @@ class ChatRoom extends Entity
         $roster = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
         $count = 0;
 
+        $n = new Notifications($this->dbhr, $this->dbhm);
+
         foreach ($roster as $rost) {
-            Notifications::poke($rost['userid'], $data);
+            $n->poke($rost['userid'], $data);
             $count++;
         }
 

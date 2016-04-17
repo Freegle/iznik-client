@@ -66,16 +66,29 @@ class notificationsTest extends IznikTestCase {
             ->setMethods(array('fsockopen'))
             ->getMock();
         $mock->method('fsockopen')->willThrowException(new Exception());
-        $mock::poke($id, [ 'ut' => 1 ]);
+        $mock->poke($id, [ 'ut' => 1 ]);
 
         $mock = $this->getMockBuilder('Notifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('fputs'))
             ->getMock();
         $mock->method('fsockopen')->willThrowException(new Exception());
-        $mock::poke($id, [ 'ut' => 1 ]);
+        $mock->poke($id, [ 'ut' => 1 ]);
 
+        $mock = $this->getMockBuilder('Notifications')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('fsockopen'))
+            ->getMock();
+        $mock->method('fsockopen')->willReturn(NULL);
+        $mock->poke($id, [ 'ut' => 1 ]);
 
+        $mock = $this->getMockBuilder('Notifications')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('puts'))
+            ->getMock();
+        $mock->method('fsockopen')->willReturn(NULL);
+        $mock->poke($id, [ 'ut' => 1 ]);
+        
         error_log(__METHOD__ . " end");
     }
 }
