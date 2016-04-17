@@ -2,7 +2,8 @@ define([
     'jquery',
     'underscore',
     'backbone',
-    'iznik/base'
+    'iznik/base',
+    'dexie'
 ], function($, _, Backbone, Iznik) {
 
     Iznik.Models.Chat.Room = Iznik.Model.extend({

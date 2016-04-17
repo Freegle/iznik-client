@@ -10,6 +10,8 @@ define([
     // We have a collection for the work items, some of which come from the server, and some of which are generated
     // on the client.  We use a collectionview to render these.  The model contains information about which specific
     // view we want.
+
+    var cantban = false;
     
     Iznik.Models.Plugin.Work = Iznik.Model.extend({
         initialize: function() {
@@ -548,12 +550,14 @@ define([
                                 }
     
                                 case 'BanApprovedMember': {
-                                    self.collection.add(new Iznik.Models.Plugin.Work({
-                                        id: work.id,
-                                        subview: new Iznik.Views.Plugin.Yahoo.BanApprovedMember({
-                                            model: new Iznik.Model(work)
-                                        })
-                                    }));
+                                    if (!cantban) {
+                                        self.collection.add(new Iznik.Models.Plugin.Work({
+                                            id: work.id,
+                                            subview: new Iznik.Views.Plugin.Yahoo.BanApprovedMember({
+                                                model: new Iznik.Model(work)
+                                            })
+                                        }));
+                                    }
                                     break;
                                 }
                             }
@@ -2012,6 +2016,10 @@ define([
         start: function() {
             var self = this;
 
+            if (cantban) {
+                self.drop();
+            }
+
             var mod = new Iznik.Models.Yahoo.User({
                 group: self.model.get('group').nameshort,
                 email: self.model.get('email')
@@ -2024,6 +2032,10 @@ define([
                     console.log("Fetched new crumb", self.crumb);
                     self.listenToOnce(mod, 'bansucceeded', self.succeed);
                     self.listenToOnce(mod, 'banfailed', self.fail);
+                    self.listenToOnce(mod, 'banprohibited', function() {
+                        cantban = true;
+                        self.drop();
+                    });
                     mod.ban(self.crumb);
                 }, self.fail)();
             });

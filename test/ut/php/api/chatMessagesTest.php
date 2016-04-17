@@ -6,8 +6,8 @@ if (!defined('UT_DIR')) {
 require_once UT_DIR . '/IznikAPITestCase.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
-require_once IZNIK_BASE . '/include/chat/Rooms.php';
-require_once IZNIK_BASE . '/include/chat/Messages.php';
+require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
+require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 
 /**

@@ -1,6 +1,6 @@
 <div class="row-fluid js-chatheader">
     <div class="chat-name">
-        <img src="/images/wingrip.png" class="pull-left js-grip">&nbsp;
+        <img src="/images/wingrip.png" class="clickme pull-left js-grip">&nbsp;
         {{name}}
         <span class="js-count badge badge-unread" style="display: none;"></span>
         &nbsp;
@@ -13,10 +13,12 @@
         </div>
 
         <div class="pull-right">
-            <div class="js-minimise padleft padright" title="Minimise" >
+            <div class="js-minimise inline padleft padright" title="Minimise this chat. It'll still show in your chat list" >
                 <div class="glyphicon glyphicon-minus"/>
             </div>
-            <!--div class="glyphicon glyphicon-remove js-close" title="Close" /-->
+            <% if (!obj.group) { %>
+            <div class="inline glyphicon glyphicon-remove js-remove" title="Remove this chat.  It won't show in your chat list." />
+            <% } %>
         </div>
     </div>
     <% if (obj.description) { %>

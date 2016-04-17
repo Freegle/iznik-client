@@ -101,6 +101,10 @@ define([
                         // too.
                         if (ret.ygData.numPassed == 1 || ret.ygData.members[0].status == 'INVALID_ADDRESS') {
                             self.trigger('bansucceeded');
+                        } else if (ret.ygData.numPassed == 1 || ret.ygData.members[0].status == 'FAILED') {
+                            // Probably we don't have Ban rights.
+                            console.log("Prohibited?");
+                            self.trigger('banprohibited');
                         } else {
                             self.trigger('banfailed');
                         }

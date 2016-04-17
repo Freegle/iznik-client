@@ -179,7 +179,7 @@ define([
                     Iznik.activeChats.viewManager.each(function(chat) {
                         if (!chat.minimised) {
                             if (chat.$el.css('width') != width) {
-                                console.log("Set new width ", chat.$el.css('width'), width);
+                                // console.log("Set new width ", chat.$el.css('width'), width);
                                 chat.$el.css('width', width.toString() + 'px');
                             }
                         }
@@ -346,7 +346,7 @@ define([
         className: 'chat-window nopad nomarginleft nomarginbot nomarginright col-xs-4 col-md-3 col-lg-2',
 
         events: {
-            'click .js-close, touchstart .js-close': 'remove',
+            'click .js-remove, touchstart .js-remove': 'removeIt',
             'click .js-minimise, touchstart .js-minimise': 'minimise',
             'focus .js-message': 'messageFocus',
             'keyup .js-message': 'keyUp',
@@ -387,10 +387,23 @@ define([
             return('chat-' + this.model.get('id'));
         },
 
-        remove: function() {
-            this.trigger('removed', this);
+        refetchChats: function() {
+            // Refetching the chats will remove any minimised ones we've closed, and also remove this one.
+            console.log("Refetch", this);
+            Iznik.Session.chats.fetch({
+                data: {
+                    modtools: this.options.modtools
+                },
+                remove: false
+            })
+        },
+
+        removeIt: function() {
+            // This will close the chat, which means it won't show in our list until we recreate it.  The messages
+            // will be preserved.
+            console.log("Remove", this);
             this.removed = true;
-            this.$el.remove();
+            this.updateRoster('Closed', _.bind(this.refetchChats, this));
         },
 
         focus: function() {
@@ -405,7 +418,9 @@ define([
             var self = this;
 
             // We've seen all the messages.
-            this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
+            if (this.messages.length > 0) {
+                this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
+            }
             this.model.set('unseen', 0);
 
             // Tell the server now, in case they navigate away before the next roster timer.

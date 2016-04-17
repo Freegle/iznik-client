@@ -4,7 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
-require_once(IZNIK_BASE . '/include/chat/Rooms.php');
+require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 
 class ChatMessage extends Entity
 {

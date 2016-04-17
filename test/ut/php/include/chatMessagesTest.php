@@ -5,8 +5,8 @@ if (!defined('UT_DIR')) {
 }
 require_once UT_DIR . '/IznikTestCase.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
-require_once IZNIK_BASE . '/include/chat/Rooms.php';
-require_once IZNIK_BASE . '/include/chat/Messages.php';
+require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
+require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
 
 /**
  * @backupGlobals disabled

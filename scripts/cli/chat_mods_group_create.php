@@ -5,7 +5,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/chat/Rooms.php');
+require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 
 $opts = getopt('g:');
 $gid = count($opts) > 0 ? $opts['g'] : NULL;

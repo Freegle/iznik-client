@@ -3,13 +3,18 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/include/chat/Messages.php');
+require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 
 class ChatRoom extends Entity
 {
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'name', 'groupid', 'modonly', 'description', 'user1', 'user2');
     var $settableatts = array('name', 'description');
+
+    const STATUS_ONLINE = 'Online';
+    const STATUS_OFFLINE = 'Offline';
+    const STATUS_AWAY = 'Away';
+    const STATUS_CLOSED = 'Closed';
 
     /** @var  $log Log */
     private $log;
@@ -95,6 +100,13 @@ class ChatRoom extends Entity
 
         if ($id) {
             $this->fetch($this->dbhr, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
+
+            # Now the conversation exists, set our own presence in it to Online.  This will have the effect of
+            # overwriting any previous Closed status, which would stop it appearing in our list of chats.  So if you
+            # close a conversation, and then later reopen it by finding a relevant link, then it comes back.
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me->getId();
+            $this->updateRoster($myid, NULL, ChatRoom::STATUS_ONLINE);
         }
 
         return($id);
@@ -168,8 +180,11 @@ class ChatRoom extends Entity
         $u = new User($this->dbhr, $this->dbhm, $userid);
         $modtoolsq = ($modtools === NULL) ? '' : ("AND modtools = " . ($modtools ? 1 : 0));
 
-        $sql = "SELECT * FROM chat_rooms WHERE (groupid IN (SELECT groupid FROM memberships WHERE userid = ?) $modtoolsq) OR user1 = ? OR user2 = ?;";
-        $rooms = $this->dbhr->preQuery($sql, [ $userid, $userid, $userid ]);
+        # The chats we can see are:
+        # - either for a group (possibly a modonly one)
+        # - a conversation between two users that we have not closed
+        $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = ? AND chat_rooms.id = chat_roster.chatid WHERE ((groupid IN (SELECT groupid FROM memberships WHERE userid = ?) $modtoolsq) OR user1 = ? OR user2 = ?) AND (status IS NULL OR status != ?);";
+        $rooms = $this->dbhr->preQuery($sql, [ $userid, $userid, $userid, $userid, ChatRoom::STATUS_CLOSED ]);
         foreach ($rooms as $room) {
             #error_log("Consider {$room['id']} group {$room['groupid']} modonly {$room['modonly']} " . $u->isModOrOwner($room['groupid']));
             if (!$room['modonly'] || $u->isModOrOwner($room['groupid'])) {
@@ -198,12 +213,15 @@ class ChatRoom extends Entity
 
     public function updateRoster($userid, $lastmsgseen, $status) {
         # We have a unique key, and an update on current timestamp.
+        #
+        # Don't want to log these - lots of them.
         $this->dbhm->preExec("REPLACE INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?);",
             [
                 $this->id,
                 $userid,
                 presdef('REMOTE_ADDR', $_SERVER, NULL)
-            ]);
+            ],
+            FALSE);
 
         if ($lastmsgseen) {
             # Update the last message seen - taking care not to go backwards, which can happen if we have multiple
@@ -214,7 +232,8 @@ class ChatRoom extends Entity
                     $this->id,
                     $userid,
                     $lastmsgseen
-                ]);
+                ],
+                FALSE);
 
             #error_log("UPDATE chat_roster SET lastmsgseen = $lastmsgseen WHERE chatid = {$this->id} AND userid = $userid AND (lastmsgseen IS NULL OR lastmsgseen < $lastmsgseen);");
         }
@@ -224,7 +243,8 @@ class ChatRoom extends Entity
                 $status,
                 $this->id,
                 $userid
-            ]);
+            ],
+            FALSE);
     }
 
     public function getRoster() {
@@ -235,13 +255,13 @@ class ChatRoom extends Entity
         foreach ($roster as &$rost) {
             $u = new User($this->dbhr, $this->dbhm, $rost['userid']);
             switch ($rost['status']) {
-                case  'Online':
+                case ChatRoom::STATUS_ONLINE:
                     # We last heard that they were online; but if we've not heard from them recently then fade them out.
-                    $rost['status'] = $rost['secondsago'] < 60 ? 'Online' : ($rost['secondsago'] < 600 ? 'Away' : 'Offline');
+                    $rost['status'] = $rost['secondsago'] < 60 ? ChatRoom::STATUS_ONLINE : ($rost['secondsago'] < 600 ? ChatRoom::STATUS_AWAY : ChatRoom::STATUS_OFFLINE);
                     break;
-                case 'Away':
+                case ChatRoom::STATUS_AWAY:
                     # Similarly, if we last heard they were away, fade them to offline if we've not heard.
-                    $rost['status'] = $rost['secondsago'] < 600 ? 'Away' : 'Offline';
+                    $rost['status'] = $rost['secondsago'] < 600 ? ChatRoom::STATUS_AWAY: ChatRoom::STATUS_OFFLINE;
                     break;
             }
             $ctx = NULL;
