@@ -50,6 +50,13 @@ class dbTest extends IznikTestCase {
         assertEquals('id', $tables[0]['Field']);
         assertGreaterThan(0, $this->dbhm->getWaitTime());
 
+        $sth = $this->dbhm->parentPrepare('SHOW COLUMNS FROM test;');
+        assertEquals([
+            0 => '',
+            1 => null,
+            2 => null
+        ], $sth->errorInfo());
+
         error_log(__METHOD__ . " end");
     }
 

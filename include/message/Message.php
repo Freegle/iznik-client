@@ -14,6 +14,8 @@ require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once('Mail.php');
 require_once('Mail/mime.php');
 
+use GeoIp2\Database\Reader;
+
 class Message
 {
     const TYPE_OFFER = 'Offer';
@@ -2029,10 +2031,12 @@ class Message
                 $this->setPrivate('fromip', $ip);
 
                 try {
-                    $record = $this->reader->country($ip);
+                    $reader = new Reader('/usr/local/share/GeoIP/GeoLite2-Country.mmdb');
+                    $record = $reader->country($ip);
                     $this->setPrivate('fromcountry', $record->country->isoCode);
                 } catch (Exception $e) {
                     # Failed to look it up.
+                    error_log("Failed to look up $ip " . $e->getMessage());
                 }
             }
 

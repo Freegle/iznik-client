@@ -1108,8 +1108,9 @@ class messageAPITest extends IznikAPITestCase
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->delete("UT delete");
 
-        # And again, now that the user exists, but without a preferred group.  Set a fake from IP.
-        $_SERVER['REMOTE_ADDR'] = '216.58.214.3';
+        # And again, now that the user exists, but without a preferred group.  Set an invalid from IP which will
+        # fail to resolve.
+        $_SERVER['REMOTE_ADDR'] = '1.1.1.1';
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
