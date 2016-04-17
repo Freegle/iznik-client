@@ -97,11 +97,6 @@ define([
             }
         },
 
-        removeView: function(chat) {
-            this.$el.hide();
-            delete this.chatViews[chat.model.get('id')];
-        },
-
         organise: function() {
             // This organises our chat windows so that:
             // - they're at the bottom, padded at the top to ensure that
@@ -387,23 +382,21 @@ define([
             return('chat-' + this.model.get('id'));
         },
 
-        refetchChats: function() {
-            // Refetching the chats will remove any minimised ones we've closed, and also remove this one.
-            console.log("Refetch", this);
-            Iznik.Session.chats.fetch({
-                data: {
-                    modtools: this.options.modtools
-                },
-                remove: false
-            })
+        zapViews: function() {
+            // Zap views
+            var minview = Iznik.minimisedChats.viewManager.findByModel(this.model);
+            Iznik.minimisedChats.viewManager.remove(minview);
+            Iznik.activeChats.viewManager.remove(this);
+
+            minview.destroyIt();
+            this.destroyIt();
         },
 
         removeIt: function() {
             // This will close the chat, which means it won't show in our list until we recreate it.  The messages
             // will be preserved.
-            console.log("Remove", this);
             this.removed = true;
-            this.updateRoster('Closed', _.bind(this.refetchChats, this));
+            this.updateRoster('Closed', _.bind(this.zapViews, this));
         },
 
         focus: function() {
