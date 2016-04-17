@@ -298,7 +298,8 @@ define([
         send: function () {
             this.model.approve(
                 this.options.stdmsg.get('subjpref') ? this.$('.js-subject').val() : null,
-                this.options.stdmsg.get('subjpref') ? this.$('.js-text').val() : null
+                this.options.stdmsg.get('subjpref') ? this.$('.js-text').val() : null,
+                this.options.stdmsg ? this.options.stdmsg.get('id') : null
             );
         },
 
