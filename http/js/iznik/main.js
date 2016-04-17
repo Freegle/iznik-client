@@ -29,7 +29,7 @@ require([
 
     function delay(errors) {
         // Exponential backoff upto a limit.
-        return(Math.max(Math.pow(2, errors) * 1000, 30000));
+        return(Math.min(Math.pow(2, errors) * 1000, 30000));
     }
 
     function retryIt(jqXHR) {
@@ -48,18 +48,19 @@ require([
         });
     }
     
-    $.ajax = function (options) {
-        var args;
-
-        if (typeof options === 'string') {
-            arguments[1].url = options;
-            args = sliceArgs(arguments[1]);
-            extendIt(args, options);
-        } else {
-            args = sliceArgs(arguments);
-            extendIt(args, options);
-        }
-
-        return _ajax.apply($, args);
-    };
+    // $.ajax = function (options) {
+    //     var args;
+    //     console.log("AJAX", arguments);
+    //
+    //     if (typeof options === 'string') {
+    //         arguments[1].url = options;
+    //         args = sliceArgs(arguments[1]);
+    //         extendIt(args, options);
+    //     } else {
+    //         args = sliceArgs(arguments);
+    //         extendIt(args, options);
+    //     }
+    //
+    //     return _ajax.apply($, args);
+    // };
 });

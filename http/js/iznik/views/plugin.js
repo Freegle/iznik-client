@@ -1946,6 +1946,7 @@ define([
             });
 
             mod.fetch().then(function() {
+                console.log("Fetched mod", mod);
                 self.listenToOnce(mod, 'removesucceeded', self.succeed);
                 self.listenToOnce(mod, 'removefailed', self.fail);
                 mod.remove(self.crumb);

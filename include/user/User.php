@@ -419,7 +419,6 @@ class User extends Entity
             }
 
             # It would be odd for them to be on Yahoo with no email but handle it anyway.
-            error_log("Remove $type email $email on $groupid");
             if ($email) {
                 $p = new Plugin($this->dbhr, $this->dbhm);
                 $p->add($groupid, [
