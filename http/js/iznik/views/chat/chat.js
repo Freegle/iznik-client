@@ -15,10 +15,8 @@ define([
             // This can validly happen when we switch pages, because we abort outstanding requests
             // and hence our long poll.  So before restarting, check that this view is still in the
             // DOM.
-            console.log("Error timer", this);
             if (this.inDOM()) {
                 // Probably a network glitch.  Retry later.
-                console.log("Still in DOM");
                 this.wait();
             } else {
                 this.destroyIt();
@@ -95,7 +93,6 @@ define([
                 
                 _.delay(_.bind(self.fallback, self), self.fallbackInterval);
             } else {
-                console.log("Fallback not in DOM");
                 self.destroyIt();
             }
         },
