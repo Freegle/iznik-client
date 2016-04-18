@@ -168,11 +168,25 @@ class User extends Entity
         return(count($membs) > 0);
     }
 
-    public function getEmailForGroup($groupid) {
-        $emails = $this->dbhr->preQuery("SELECT emailid FROM memberships WHERE userid = ? AND groupid = ?;", [
-            $this->id,
-            $groupid
-        ]);
+    public function getEmailForGroup($groupid, $oursonly = FALSE) {
+        if ($oursonly) {
+            # We are looking for a group email which we host.
+            $emailq = "";
+            foreach (explode(',', OURDOMAINS) as $domain) {
+                $emailq .= $emailq == "" ? " email LIKE '%$domain'" : " OR email LIKE '%$domain'";
+            }
+            $sql = "SELECT emailid FROM memberships INNER JOIN users_emails ON memberships.emailid = users_emails.id WHERE memberships.userid = ? AND groupid = ? AND ($emailq);";
+            error_log($sql . ", {$this->id}, $groupid");
+            $emails = $this->dbhr->preQuery($sql, [
+                $this->id,
+                $groupid
+            ]);
+        } else {
+            $emails = $this->dbhr->preQuery("SELECT emailid FROM memberships WHERE userid = ? AND groupid = ?;", [
+                $this->id,
+                $groupid
+            ]);
+        }
 
         foreach ($emails as $email) {
             return($email['emailid']);
@@ -192,6 +206,21 @@ class User extends Entity
         }
 
         return(NULL);
+    }
+
+    public function getEmailById($id) {
+        # Email is a unique key but conceivably we could be called with an email for another user.
+        $emails = $this->dbhr->preQuery("SELECT email FROM users_emails WHERE id = ?;", [
+            User::canonMail($id)
+        ]);
+
+        $ret = NULL;
+
+        foreach ($emails as $email) {
+            $ret = $email['email'];
+        }
+
+        return($ret);
     }
 
     public function findByEmail($email) {
@@ -1809,10 +1838,10 @@ class User extends Entity
         $email = NULL;
         $emails = $this->getEmails();
         foreach ($emails as $thisemail) {
-            if (strpos($thisemail['email'], 'direct.ilovefreegle.org') !== FALSE ||
-                strpos($thisemail['email'], 'republisher.freegle.in') !== FALSE ||
-                strpos($thisemail['email'], USER_DOMAIN) !== FALSE) {
-                $email = $thisemail['email'];
+            foreach (explode(',', OURDOMAINS) as $domain) {
+                if (strpos($thisemail['email'], $domain) !== FALSE) {
+                    $email = $thisemail['email'];
+                }
             }
         }
 

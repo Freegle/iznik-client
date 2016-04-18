@@ -1073,7 +1073,8 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'JoinAndPost',
-            'email' => $email
+            'email' => $email,
+            'ignoregroupoverride' => true
         ]);
 
         error_log("Message #$id should be queued " . var_export($ret, TRUE));
@@ -1128,7 +1129,8 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'JoinAndPost',
-            'email' => $email
+            'email' => $email,
+            'ignoregroupoverride' => true
         ]);
 
         error_log("Message #$id should be queued 2 " . var_export($ret, TRUE));
@@ -1174,7 +1176,8 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'JoinAndPost',
-            'email' => $email
+            'email' => $email,
+            'ignoregroupoverride' => true
         ]);
 
         assertEquals(0, $ret['ret']);
@@ -1261,7 +1264,8 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'JoinAndPost',
-            'email' => $email
+            'email' => $email,
+            'ignoregroupoverride' => true
         ]);
 
         error_log("Message #$id should be queued " . var_export($ret, TRUE));

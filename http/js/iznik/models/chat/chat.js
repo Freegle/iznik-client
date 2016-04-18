@@ -7,7 +7,7 @@ define([
 ], function($, _, Backbone, Iznik) {
 
     Iznik.Models.Chat.Room = Iznik.Model.extend({
-        urlRoot: API + '/chat/rooms',
+        urlRoot: API + 'chat/rooms',
 
         send: function(message) {
             var self = this;

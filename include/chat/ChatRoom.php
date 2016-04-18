@@ -105,8 +105,11 @@ class ChatRoom extends Entity
             # overwriting any previous Closed status, which would stop it appearing in our list of chats.  So if you
             # close a conversation, and then later reopen it by finding a relevant link, then it comes back.
             $me = whoAmI($this->dbhr, $this->dbhm);
-            $myid = $me->getId();
-            $this->updateRoster($myid, NULL, ChatRoom::STATUS_ONLINE);
+            
+            if ($me) {
+                $myid = $me->getId();
+                $this->updateRoster($myid, NULL, ChatRoom::STATUS_ONLINE);
+            }
         }
 
         return($id);

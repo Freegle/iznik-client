@@ -348,7 +348,7 @@ class ModConfig extends Entity
                 $ret = NULL;
         }
 
-        error_log("Get BCC for {$this->modconfig['name']} $action = $ret");
+        #error_log("Get BCC for {$this->modconfig['name']} $action = $ret");
         return($ret);
     }
 

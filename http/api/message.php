@@ -233,6 +233,14 @@ function message() {
                                 $nears = [ $draft['groupid'] ];
                             }
 
+                            // @codeCoverageIgnoreStart
+                            if (USER_GROUP_OVERRIDE && !pres('ignoregroupoverride', $_REQUEST)) {
+                                # We're in testing mode
+                                $g = new Group($dbhr, $dbhm);
+                                $nears = [ $g->findByShortName(USER_GROUP_OVERRIDE)];
+                            }
+                            // @codeCoverageIgnoreEnd
+
                             if (count($nears) > 0) {
                                 $groupid = $nears[0];
 
@@ -255,8 +263,8 @@ function message() {
 
                                 if ($u->getId() && $eid) {
                                     # Now we have a user and an email.  We need to make sure they're a member of the
-                                    # group in question.
-                                    $eidforgroup = $u->getEmailForGroup($groupid);
+                                    # group in question, with an email address we host (so that replies come back here).
+                                    $eidforgroup = $u->getEmailForGroup($groupid, TRUE);
                                     $ret = ['ret' => 6, 'status' => 'Failed to join group'];
                                     $rc = true;
 
@@ -271,10 +279,11 @@ function message() {
                                     } else if ($rc) {
                                         # Now we have a user who is a member of the appropriate group.
                                         #
-                                        # We're good to go.
+                                        # We're good to go.  Make sure we submit with the email that is a group member
+                                        # rather than the one they supplied.
                                         $ret = ['ret' => 7, 'status' => 'Failed to submit'];
                                         
-                                        if ($m->submit($u, $email, $groupid)) {
+                                        if ($m->submit($u, $u->getEmailById($eidforgroup), $groupid)) {
                                             # We sent it.
                                             $ret = ['ret' => 0, 'status' => 'Success'];
                                         }

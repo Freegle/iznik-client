@@ -80,6 +80,7 @@ define([
 
             // Show and update the reply details.
             if ( self.$('.js-replies').length > 0) {
+                self.$('.js-noreplies').hide();
                 self.listenTo(self.model, 'change:replies', self.updateReplies);
                 self.updateReplies();
 
@@ -93,6 +94,8 @@ define([
                 });
 
                 self.repliesView.render();
+            } else {
+                self.$('.js-noreplies').show();
             }
 
             // If the number of unread messages relating to this message changes, we want to flag it in the count.  So

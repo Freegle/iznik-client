@@ -19,6 +19,9 @@ date_default_timezone_set('UTC');
 # Per-machine config or overrides
 require_once('/etc/iznik.conf');
 
+# There are some historical domains.
+define('OURDOMAINS', USER_DOMAIN . ",direct.ilovefreegle.org,republisher.freegle.in");
+
 if (!defined('MINIFY')) {
     define('MINIFY', FALSE);
 }

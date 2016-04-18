@@ -57,9 +57,7 @@ define([
                 var loc = localStorage.getItem('mylocation');
                 locationid = loc ? JSON.parse(loc).id : null;
                 groupid = localStorage.getItem('myhomegroup');
-            } catch (e) {
-            }
-            ;
+            } catch (e) {};
 
             var d = jQuery.Deferred();
             var attids = [];
@@ -324,12 +322,7 @@ define([
                 if (loggedIn) {
                     // We know our email address from the session
                     self.$('.js-email').val(Iznik.Session.get('me').email);
-
-                    // Save it in case it's changed.
-                    try {
-                        localStorage.setItem('myemail', Iznik.Session.get('me').email);
-                    } catch (e) {}
-
+                    self.changeEmail();
                 } else {
                     // We're not logged in - but we might have remembered one.
                     try {

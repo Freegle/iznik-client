@@ -26,6 +26,9 @@ define('FBAPP_SECRET', 'zzz');
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');
 
+# You can force all user activity onto a test group
+define('USER_GROUP_OVERRIDE', 'FreeglePlayground');
+
 $host = $_SERVER && array_key_exists('HTTP_HOST', $_SERVER) ? $_SERVER['HTTP_HOST'] : 'iznik.modtools.org';
 
 switch($host) {

@@ -74,6 +74,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
 
     <!-- Iznik info -->
     <meta name="iznikchat" content="<?php echo CHAT_HOST; ?>">
+    <meta name="iznikusergroupoverride" content="<?php echo USER_GROUP_OVERRIDE; ?>">
     <?php
 
     # We use require on the client, and we want to avoid caching code after it has changed.  Find out when the

@@ -17,10 +17,14 @@
                 <div class="glyphicon glyphicon-comment" />
                 <div class="js-unreadcount inline" />
             </span>
+            <span class="js-noreplies badge faded" title="No replies yet.">
+                <div class="glyphicon glyphicon-user" />
+                0
+            </span>
         </div>
     </a>
     <div id="offer-{{id}}" class="panel-collapse collapse">
-        <div class="panel-body">
+        <div class="panel-body nopad">
             <div class="row">
                 <div class="col-md-10">
                     <div class="js-groups" />
@@ -40,6 +44,10 @@
                 <button class="btn btn-success inline js-markas">
                     <div class="glyphicon glyphicon-ok"></div>
                     It's been TAKEN
+                </button>
+                <button class="btn js-edit">
+                    <div class="glyphicon glyphicon-pencil"></div>
+                    Edit
                 </button>
                 <button class="btn js-repost">
                     <div class="glyphicon glyphicon-repeat"></div>
