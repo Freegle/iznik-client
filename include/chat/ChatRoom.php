@@ -146,12 +146,14 @@ class ChatRoom extends Entity
             $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
         }
 
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me->getId();
+
+        $ret['unseen'] = $this->unseenForUser($myid);
+
         if (!pres('name', $ret)) {
             # If this is not a named chat then we invent the name; we use the name of the user who isn't us, because
             # that's who we're chatting to.
-            $me = whoAmI($this->dbhr, $this->dbhm);
-            $myid = $me->getId();
-
             $ret['name'] = ($ret['user1']['id'] != $myid) ? $ret['user1']['displayname'] :
                 $ret['user2']['displayname'];
         }

@@ -37,9 +37,7 @@ define([
         updateUnread: function() {
             var self = this;
             var unread = 0;
-            console.log("updateUnread");
             Iznik.Session.chats.each(function(chat) {
-                console.log("Consider chat", chat);
                 var refmsgids = chat.get('refmsgids');
                 _.each(refmsgids, function(refmsgid) {
                     if (refmsgid == self.model.get('id')) {
@@ -100,11 +98,9 @@ define([
             // If the number of unread messages relating to this message changes, we want to flag it in the count.  So
             // look for chats which refer to this message.  Note that chats can refer to multiple.
             Iznik.Session.chats.each(function(chat) {
-                console.log("Consider chat", chat);
                 var refmsgids = chat.get('refmsgids');
                 _.each(refmsgids, function(refmsgid) {
                     if (refmsgid == self.model.get('id')) {
-                        console.log("Ours");
                         self.listenTo(chat, 'change:unseen', self.updateUnread);
                     }
                 })

@@ -15,6 +15,7 @@ define([
             // This can validly happen when we switch pages, because we abort outstanding requests
             // and hence our long poll.  So before restarting, check that this view is still in the
             // DOM.
+            console.log("Wait error", this);
             if (this.inDOM()) {
                 // Probably a network glitch.  Retry later.
                 this.wait();
@@ -56,13 +57,19 @@ define([
                                     // the roster poll.
                                     var chat = Iznik.Session.chats.get(data.roomid);
 
-                                    console.log("Notification", self, chat, data);
+                                    // console.log("Notification", self, chat, data);
                                     var chatView = Iznik.activeChats.viewManager.findByModel(chat);
 
                                     if (!chatView.minimised) {
                                         waiting = true;
                                         chatView.messages.fetch().then(function () {
+                                            // Wait for the next one.  Slight timing window here but the fallback
+                                            // protects us from losing messages forever.
                                             self.wait();
+
+                                            // Also fetch the chat, because the number of unread messages in it will
+                                            // update counts in various places.
+                                            chat.fetch();
                                         });
                                     }
                                 }
