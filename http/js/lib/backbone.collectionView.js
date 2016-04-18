@@ -469,8 +469,10 @@
             if( this.selectable ) this._saveSelection();
 
             this.viewManager.remove( modelView ); // Remove the view from the viewManager
-            if( this._isRenderedAsList() ) modelView.$el.parent().remove(); // Remove the li wrapper from the DOM
+            console.log("Removed", modelView, this._isRenderedAsList());
+            // if( this._isRenderedAsList() ) modelView.$el.parent().remove(); // Remove the li wrapper from the DOM
             modelView.remove(); // Remove the view from the DOM
+            console.log("Removed from DOM");
 
             if( this.selectable ) this._restoreSelection();
 
@@ -498,9 +500,11 @@
 
             this.listenTo( this.collection, "remove", function( model ) {
                 var modelView;
+                console.log("Removed from collection", model);
 
                 if( this._hasBeenRendered ) {
                     modelView = this.viewManager.findByModelCid( model.cid );
+                    console.log("Remove view", modelView);
                     this._removeModelView( modelView );
                 }
 

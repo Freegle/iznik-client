@@ -316,7 +316,7 @@ class LoggedPDO {
     public function beginTransaction() {
         $this->inTransaction = TRUE;
         $this->transactionStart = microtime(true);
-        $ret = $this->_db->beginTransaction ();
+        $ret = $this->_db->beginTransaction();
         $duration = microtime(true) - $this->transactionStart;
         $this->dbwaittime += $duration;
 

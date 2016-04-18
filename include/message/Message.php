@@ -397,6 +397,24 @@ class Message
             }
         }
 
+        if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $this->fromuser == $myid)) {
+            # Add count of replies.
+            $sql = "SELECT DISTINCT userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? ORDER BY lastdate DESC LIMIT 1;";
+            $replies = $this->dbhr->preQuery($sql, [ $this->id ]);
+            $ret['replies'] = [];
+            foreach ($replies as $reply) {
+                $ctx = NULL;
+                if ($reply['userid']) {
+                    $u = new User($this->dbhr, $this->dbhm, $reply['userid']);
+                    $ret['replies'][] = [
+                        'user' => $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE),
+                        'chatid' => $reply['chatid'],
+                        'lastdate' => ISODate($reply['lastdate'])
+                    ];
+                }
+            }
+        }
+
         # Add derived attributes.
         $ret['arrival'] = ISODate($ret['arrival']);
         $ret['date'] = ISODate($ret['date']);

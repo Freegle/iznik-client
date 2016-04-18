@@ -34,6 +34,7 @@ switch($host) {
         define('SITE_DESC', 'Making moderating easier');
         define('FAVICON_HOME', 'modtools');
         define('CHAT_HOST', 'iznik.modtools.org');
+        define('MANIFEST_STARTURL', 'modtools');
         break;
     case 'dev.modtools.org':
     case 'modtools.org':
@@ -41,12 +42,14 @@ switch($host) {
         define('SITE_DESC', 'Making moderating easier');
         define('FAVICON_HOME', 'modtools');
         define('CHAT_HOST', 'modtools.org');
+        define('MANIFEST_STARTURL', 'modtools');
         break;
     case 'iznik.ilovefreegle.org':
         define('SITE_NAME', 'Freegle');
         define('SITE_DESC', 'Online dating for stuff');
         define('FAVICON_HOME', 'user');
         define('CHAT_HOST', 'chat.ilovefreegle.org');
+        define('MANIFEST_STARTURL', '');
         break;
 }
 

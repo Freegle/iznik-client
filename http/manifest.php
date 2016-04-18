@@ -28,6 +28,7 @@ header('Content-type: application/json');
             "type": "image/png"
         }
     ],
+    "background_color": "#d6e9c6",
     "start_url": "/<?php echo MANIFEST_STARTURL; ?>",
     "display": "standalone",
     "orientation": "portrait"

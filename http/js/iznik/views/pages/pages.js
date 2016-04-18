@@ -3,14 +3,16 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'iznik/views/chat/chat',
     'iznik/accordionpersist',
     'iznik/views/group/select',
     'iznik/views/infinite',
     'iznik/views/plugin',
-    'iznik/views/chat/chat'
-], function($, _, Backbone, Iznik) {
+], function($, _, Backbone, Iznik, ChatHolder) {
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
+    console.log("ChatHolder", ChatHolder);
+
     Iznik.Views.Page = Iznik.View.extend({
         modtools: false,
 
@@ -32,7 +34,7 @@ define([
         render: function (options) {
             var self = this;
 
-            try {
+            // try {
                 if (currentPage) {
                     // We have previous rendered a page.  Kill that off, so that it is not listening for events and
                     // messing about with the DOM.
@@ -100,10 +102,9 @@ define([
                         loggedOutOnly.fadeOut('slow');
 
                         // Since we're logged in, we can start chat.
-                        var v = new Iznik.Views.Chat.Holder({
+                        ChatHolder({
                             modtools: self.modtools
-                        });
-                        v.render();
+                        }).render();
                     } else {
                         loggedOutOnly.toggleClass('reallyHide');
                         loggedOutOnly.fadeIn('slow');
@@ -132,9 +133,9 @@ define([
                 if (this.signin) {
                     $('#bodyContent .js-signin').click(_.bind(this.signin, this));
                 }
-            } catch (e) {
-                console.error("Page render failed", e.message);
-            }
+            // } catch (e) {
+            //     console.error("Page render failed", e.message);
+            // }
         }
     });
 

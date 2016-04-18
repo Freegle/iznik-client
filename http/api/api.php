@@ -282,4 +282,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             unset($_SESSION['POSTLASTTIME']);
         }
     } while ($apicallretries < API_RETRIES);
+
+    # Any outstanding transaction is a bug; force a rollback to avoid locks lasting beyond this call.
+    if ($dbhm->inTransaction()) {
+        $dbhm->rollBack();
+    }
 }

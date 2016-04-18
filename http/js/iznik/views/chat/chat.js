@@ -228,6 +228,35 @@ define([
             }
         },
 
+        openChat: function(userid) {
+            if (userid != Iznik.Session.get('me').id) {
+                // We want to open a direct message conversation with this user.
+                $.ajax({
+                    type: 'PUT',
+                    url: API + 'chat/rooms',
+                    data: {
+                        userid: userid
+                    }, success: function(ret) {
+                        if (ret.ret == 0) {
+                            Iznik.Session.chats.fetch({
+                                remove: false
+                            }).then(function() {
+                                // Defer to give the CollectionView time to respond.
+                                _.defer(function() {
+                                    console.log("Look for chat", ret.id, Iznik.Session.chats);
+                                    var chatmodel = Iznik.Session.chats.get(ret.id);
+                                    console.log("Found model", chatmodel);
+                                    var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
+                                    console.log("Found view", chatView);
+                                    chatView.restore();
+                                })
+                            });
+                        }
+                    }
+                })
+            }
+        },
+
         render: function() {
             var self = this;
 
@@ -384,18 +413,23 @@ define([
 
         zapViews: function() {
             // Zap views
-            var minview = Iznik.minimisedChats.viewManager.findByModel(this.model);
-            Iznik.minimisedChats.viewManager.remove(minview);
-            Iznik.activeChats.viewManager.remove(this);
-
-            minview.destroyIt();
-            this.destroyIt();
+            // var minview = Iznik.minimisedChats.viewManager.findByModel(this.model);
+            // Iznik.minimisedChats.viewManager.remove(minview);
+            // Iznik.activeChats.viewManager.remove(this);
+            //
+            // minview.destroyIt();
+            // this.destroyIt();
+            console.log("Remove model", this.model.get('id'));
+            Iznik.Session.chats.remove({
+                id: this.model.get('id')
+            });
         },
 
         removeIt: function() {
             // This will close the chat, which means it won't show in our list until we recreate it.  The messages
             // will be preserved.
             this.removed = true;
+            this.$el.hide();
             this.updateRoster('Closed', _.bind(this.zapViews, this));
         },
 
@@ -671,11 +705,13 @@ define([
         },
 
         roster: function() {
-            // We update our presence and get the roster for the chat regularly.
+            // We update our presence and get the roster for the chat regularly if the chat is open.  If it's
+            // minimised, we don't - the server will time us out as away.  We'll still; pick up any new messages on
+            // minimised chats via the long poll, and the fallback.
             var self = this;
 
-            if (!self.removed) {
-                self.updateRoster(self.statusWithOverride(self.minimised ? 'Away' : 'Online'),
+            if (!self.removed && !self.minimised) {
+                self.updateRoster(self.statusWithOverride('Online'),
                     _.bind(self.rosterUpdated, self));
             }
         },
@@ -847,5 +883,16 @@ define([
             }
         }
     });
+
+    // This is a singleton view.
+    var instance;
+
+    return function(options) {
+        if (!instance) {
+            instance = new Iznik.Views.Chat.Holder(options);
+        }
+
+        return instance;
+    }
 });
 
