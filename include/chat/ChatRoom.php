@@ -155,6 +155,12 @@ class ChatRoom extends Entity
             $ret['name'] = ($ret['user1']['id'] != $myid) ? $ret['user1']['displayname'] :
                 $ret['user2']['displayname'];
         }
+
+        $refmsgs = $this->dbhr->preQuery("SELECT DISTINCT refmsgid FROM chat_messages WHERE chatid = ?;", [ $this->id ]);
+        $ret['refmsgids'] = [];
+        foreach ($refmsgs as $refmsg) {
+            $ret['refmsgids'][] = $refmsg['refmsgid'];
+        }
         
         return($ret);
     }

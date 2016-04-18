@@ -1088,8 +1088,8 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 }
 
 .badge-unread {
-    background-color: #D41301;
-    color: white
+    background-color: #D41301 !important;
+    color: white !important;
 }
 
 .chat-message-unseen {

@@ -6,7 +6,11 @@
         </div>
         <div class="col-xs-3">
             <div class="btn btn-primary pull-right">
+                <% if (unseen == 0) { %>
                 <div class="glyphicon glyphicon-comment" />&nbsp;View
+                <% } else { %>
+                <span class="badge badge-unread">{{unseen}}</span>&nbsp;View
+                <% } %>
             </div>
         </div>
     </div>

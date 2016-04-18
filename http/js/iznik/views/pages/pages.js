@@ -11,7 +11,6 @@ define([
 ], function($, _, Backbone, Iznik, ChatHolder) {
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
-    console.log("ChatHolder", ChatHolder);
 
     Iznik.Views.Page = Iznik.View.extend({
         modtools: false,
