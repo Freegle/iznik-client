@@ -136,7 +136,7 @@ class MailRouterTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $r->received(Message::YAHOO_SYSTEM, NULL, "wibble-$gid-88-hmnXWqaGKir0fNTXgveSuj7ULOn44SEm@iznik.modtools.org", $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::DROPPED, $rc);
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
 
         # Try with an invalid key
         error_log("Invalid key");
@@ -928,6 +928,24 @@ class MailRouterTest extends IznikTestCase {
         $ctx = NULL;
         $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $gid ]);
         assertEquals(0, count($membs));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testInvite() {
+        error_log(__METHOD__);
+
+        # Suppress emails
+        $r = $this->getMockBuilder('MailRouter')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('mailer'))
+            ->getMock();
+        $r->method('mailer')->willReturn(false);
+
+        $msg = file_get_contents('msgs/invite');
+        $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'test@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
 
         error_log(__METHOD__ . " end");
     }

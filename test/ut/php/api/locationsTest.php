@@ -31,7 +31,7 @@ class locationsAPITest extends IznikAPITestCase
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.email IN ('test@test.com', 'test2@test.com');");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
-        $dbhm->preExec("DELETE FROM users WHERE yahooUserId = 1;");
+        $dbhm->preExec("DELETE FROM users WHERE yahooUserId = '1';");
         $dbhm->preExec("DELETE FROM messages_history WHERE fromaddr = 'test@test.com';");
 
         # We test around Tuvalu.  If you're setting up Tuvalu Freegle you may need to change that.

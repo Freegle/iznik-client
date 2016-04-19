@@ -509,11 +509,23 @@ define([
     });
 
     Iznik.Views.ModTools.Member.Of = Iznik.View.extend({
-        template: 'modtools_member_of'
+        template: 'modtools_member_of',
+
+        render: function() {
+            this.$el.html(window.template(this.template)(this.model.toJSON2()));
+            this.$('.timeago').timeago();
+            return(this);
+        }
     });
 
     Iznik.Views.ModTools.Member.Applied = Iznik.View.extend({
-        template: 'modtools_member_applied'
+        template: 'modtools_member_applied',
+
+        render: function() {
+            this.$el.html(window.template(this.template)(this.model.toJSON2()));
+            this.$('.timeago').timeago();
+            return(this);
+        }
     });
 
     Iznik.Views.ModTools.User.Comment = Iznik.View.extend({

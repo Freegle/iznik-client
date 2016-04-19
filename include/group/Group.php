@@ -199,7 +199,7 @@ class Group extends Entity
     }
 
     public function exportYahoo($groupid) {
-        $members = $this->dbhr->preQuery("SELECT members FROM memberships_yahoo WHERE groupid = ?;", [ $groupid ]);
+        $members = $this->dbhr->preQuery("SELECT members FROM memberships_yahoo_dump WHERE groupid = ?;", [ $groupid ]);
         foreach ($members as $member) {
             return(json_decode($member['members'], TRUE));
         }
@@ -217,8 +217,8 @@ class Group extends Entity
         $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") . " OR users.yahooid LIKE " . $this->dbhr->quote("%$search%") . ") ");
         $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : $searchq;
         $groupq = $groupids ? " memberships.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
-        $ypsq = $yps ? (" AND memberships.yahooPostingStatus = " . $this->dbhr->quote($yps)) : '';
-        $ydtq = $ydt ? (" AND memberships.yahooDeliveryType = " . $this->dbhr->quote($ydt)) : '';
+        $ypsq = $yps ? (" AND memberships_yahoo.yahooPostingStatus = " . $this->dbhr->quote($yps)) : '';
+        $ydtq = $ydt ? (" AND memberships_yahoo.yahooDeliveryType = " . $this->dbhr->quote($ydt)) : '';
 
         # Collection filter.  If we're searching on a specific id then don't put it in.
         $collectionq = '';
@@ -230,11 +230,11 @@ class Group extends Entity
                 # came from Pending or Approved.
                 $collectionq = ' AND suspectcount > 0 ';
             } else if ($collection) {
-                $collectionq = ' AND collection = ' . $this->dbhr->quote($collection) . ' ';
+                $collectionq = ' AND memberships.collection = ' . $this->dbhr->quote($collection) . ' ';
             }
         }
 
-        $sql = "SELECT DISTINCT memberships.* FROM memberships LEFT JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
+        $sql = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, memberships_yahoo.yahooAlias, memberships_yahoo.yahooPostingStatus, memberships_yahoo.yahooDeliveryType, memberships_yahoo.yahooapprove, memberships_yahoo.yahooreject, memberships_yahoo.joincomment FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid LEFT JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
         #error_log("Members $sql");
         $members = $this->dbhr->preQuery($sql);
 
@@ -259,7 +259,7 @@ class Group extends Entity
 
             # We want to return both the email used on this group and any others we have.
             $emails = $u->getEmails();
-            $emailid = $u->getEmailForGroup($member['groupid']);
+            $emailid = $u->getEmailForYahooGroup($member['groupid']);
             $email = NULL;
             $others = [];
             foreach ($emails as $anemail) {
@@ -427,8 +427,8 @@ class Group extends Entity
             # We only want the members upto the point where the sync started, otherwise we might remove a member who has
             # just joined.
             $mysqltime = date("Y-m-d H:i:s", strtotime($synctime));
-            $this->dbhm->preExec("DROP TEMPORARY TABLE IF EXISTS syncdelete; CREATE TEMPORARY TABLE syncdelete (id INT UNSIGNED, PRIMARY KEY idkey(id));");
-            $this->dbhm->preExec("INSERT INTO syncdelete (SELECT DISTINCT userid FROM memberships WHERE groupid = ? AND collection = '$collection' AND added < '$mysqltime');", [
+            $this->dbhm->preExec("DROP TEMPORARY TABLE IF EXISTS syncdelete; CREATE TEMPORARY TABLE syncdelete (emailid INT UNSIGNED, PRIMARY KEY idkey(emailid));");
+            $this->dbhm->preExec("INSERT INTO syncdelete (SELECT DISTINCT memberships_yahoo.emailid FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid WHERE groupid = ? AND memberships_yahoo.collection = '$collection' AND memberships_yahoo.added < '$mysqltime');", [
                 $this->id
             ]);
 
@@ -453,7 +453,7 @@ class Group extends Entity
                     $joincomment = pres('joincomment', $member) ? $this->dbhm->quote($member['joincomment']) : 'NULL';
 
                     # Get any existing membership.
-                    $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ?;";
+                    $sql = "SELECT memberships_yahoo.* FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid WHERE userid = ? AND groupid = ?;";
                     $membs = $this->dbhm->preQuery($sql, [$member['uid'], $this->id]);
                     $new = count($membs) == 0;
 
@@ -463,8 +463,8 @@ class Group extends Entity
                         if (count($membs) == 0) {
                             # Make sure the membership is present.  We don't want to REPLACE as that might lose settings.
                             # We also don't want to just do INSERT IGNORE as that doesn't perform well in clusters.
-                            $sql = "INSERT IGNORE INTO memberships (userid, groupid, emailid, collection) VALUES ({$member['uid']}, {$this->id}, {$member['emailid']}, '$collection');";
-                            $bulksql .= $sql;
+                            $bulksql .= "INSERT IGNORE INTO memberships (userid, groupid, collection) VALUES ({$member['uid']}, {$this->id}, '$collection');";
+                            $bulksql .= "INSERT IGNORE INTO memberships_yahoo (membershipid, emailid, collection) VALUES ((SELECT id FROM memberships WHERE userid = {$member['uid']} AND groupid = {$this->id}), {$member['emailid']}, '$collection');";
                             $membs = [
                                 [
                                     'role' => User::ROLE_MEMBER
@@ -476,8 +476,7 @@ class Group extends Entity
                             $hists = $this->dbhr->preQuery($sql, [$member['uid'], $this->id]);
 
                             if (count($hists) == 0) {
-                                $sql = "INSERT INTO memberships_history (userid, groupid, collection, added) VALUES ({$member['uid']},{$this->id},'$collection',$added);";
-                                $bulksql .= $sql;
+                                $bulksql .= "INSERT INTO memberships_history (userid, groupid, collection, added) VALUES ({$member['uid']},{$this->id},'$collection',$added);";
                             }
                         }
 
@@ -496,9 +495,12 @@ class Group extends Entity
                         # This will have the effect of moving members between collections if required.
                         if ($new ||
                             $membs[0]['role'] != $role || $membs[0]['collection'] != $collection || $membs[0]['yahooPostingStatus'] != $yps || $membs[0]['yahooDeliveryType'] != $ydt || $membs[0]['joincomment'] != $joincomment || $membs[0]['emailid'] != $member['emailid'] || $membs[0]['added'] != $added) {
-                            $sql = "UPDATE memberships SET role = '$role', collection = '$collection', yahooPostingStatus = " . $this->dbhm->quote($yps) .
-                                ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", joincomment = $joincomment, emailid = {$member['emailid']}, added = $added WHERE userid = " .
+                            $bulksql .=  "UPDATE memberships SET role = '$role', collection = '$collection', added = $added WHERE userid = " .
                                 "{$member['uid']} AND groupid = {$this->id};";
+                            $sql = "UPDATE memberships_yahoo SET role = '$role', collection = '$collection', yahooPostingStatus = " . $this->dbhm->quote($yps) .
+                                ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", joincomment = $joincomment, emailid = {$member['emailid']}, added = $added WHERE membershipid = (SELECT id FROM memberships WHERE userid = " .
+                                "{$member['uid']} AND groupid = {$this->id});";
+                            #error_log($sql);
                             $bulksql .= $sql;
                         }
 
@@ -509,7 +511,7 @@ class Group extends Entity
                         }
 
                         # Record that this member still exists by deleting their id from the temp table
-                        $bulksql .= "DELETE FROM syncdelete WHERE id = {$member['uid']};";
+                        $bulksql .= "DELETE FROM syncdelete WHERE emailid = {$member['emailid']};";
 
                         if ($count > 0 && $count % 1000 == 0) {
                             # Do a chunk of work.  If this doesn't work correctly we'll end up with fewer members
@@ -526,6 +528,7 @@ class Group extends Entity
 
             if ($bulksql != '') {
                 # Do remaining SQL.  If this fails then we'll fail the count check below.
+                #error_log("Bulksql $bulksql");
                 $this->dbhm->exec($bulksql);
             }
 
@@ -534,7 +537,7 @@ class Group extends Entity
             # Delete any residual members.
             #
             # We need to log these deletes so that we can see why memberships disappear.
-            $todeletes = $this->dbhm->preQuery("SELECT id FROM syncdelete;", [$this->id]);
+            $todeletes = $this->dbhm->preQuery("SELECT userid FROM syncdelete INNER JOIN memberships_yahoo ON syncdelete.emailid = memberships_yahoo.emailid INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid;", [$this->id]);
             $meid = $me ? $me->getId() : NULL;
             foreach ($todeletes as $todelete) {
                 # Long
@@ -543,14 +546,14 @@ class Group extends Entity
                 $this->log->log([
                     'type' => Log::TYPE_GROUP,
                     'subtype' => Log::SUBTYPE_LEFT,
-                    'user' => $todelete['id'],
+                    'user' => $todelete['userid'],
                     'byuser' => $meid,
                     'groupid' => $this->id,
                     'text' => "Sync of whole $collection membership list"
                 ]);
             }
 
-            $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = ? AND collection = '$collection' AND userid IN (SELECT id FROM syncdelete);", [$this->id]);
+            $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = ? AND memberships.collection = '$collection' AND id IN (SELECT membershipid FROM memberships_yahoo WHERE emailid IN (SELECT emailid FROM syncdelete));", [$this->id]);
             $this->dbhm->preExec("DROP TEMPORARY TABLE syncdelete;");
 
             error_log("Tidied members {$this->group['nameshort']}");
@@ -558,7 +561,7 @@ class Group extends Entity
             if ($collection == MessageCollection::APPROVED) {
                 # Record the sync.
                 $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [$this->id]);
-                $this->dbhm->preExec("REPLACE INTO memberships_yahoo (groupid, members) VALUES (?,?);", [$this->id, json_encode($members)]);
+                $this->dbhm->preExec("REPLACE INTO memberships_yahoo_dump (groupid, members) VALUES (?,?);", [$this->id, json_encode($members)]);
             }
         } catch (Exception $e) {
             $ret = [ 'ret' => 2, 'status' => "Sync failed with " . $e->getMessage() ];

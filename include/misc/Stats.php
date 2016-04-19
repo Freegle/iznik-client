@@ -118,10 +118,9 @@ class Stats
         $this->setBreakdown($date, Stats::MESSAGE_BREAKDOWN, json_encode($srcs));
 
         # Settings breakdowns don't have a date restriction
-        $sql = "SELECT yahooDeliveryType, COUNT(*) AS count FROM memberships  WHERE memberships.userid IN (SELECT memberships.userid FROM memberships INNER JOIN users_emails ON memberships.emailid = users_emails.id WHERE email NOT LIKE 'FBUser%' AND email NOT LIKE '%trashnothing%' AND groupid = ?) AND groupid = ? GROUP BY yahooDeliveryType;";
+        $sql = "SELECT memberships_yahoo.yahooDeliveryType, COUNT(*) AS count FROM memberships_yahoo INNER JOIN users_emails ON memberships_yahoo.emailid = users_emails.id INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE email NOT LIKE 'FBUser%' AND email NOT LIKE '%trashnothing%' AND groupid = ? GROUP BY memberships_yahoo.yahooDeliveryType;";
         $sources = $this->dbhr->preQuery($sql,
             [
-                $this->groupid,
                 $this->groupid
             ]);
 
@@ -132,7 +131,7 @@ class Stats
 
         $this->setBreakdown($date, Stats::YAHOO_DELIVERY_BREAKDOWN, json_encode($srcs));
 
-        $sql = "SELECT yahooPostingStatus, COUNT(*) AS count FROM memberships INNER JOIN users_emails ON memberships.userid = users_emails.userid AND email NOT LIKE 'FBUser%' AND email NOT LIKE '%trashnothing%' WHERE groupid = ? GROUP BY yahooPostingStatus;";
+        $sql = "SELECT memberships_yahoo.yahooPostingStatus, COUNT(*) AS count FROM memberships_yahoo INNER JOIN users_emails ON memberships_yahoo.emailid = users_emails.id INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE email NOT LIKE 'FBUser%' AND email NOT LIKE '%trashnothing%' AND groupid = ? GROUP BY memberships_yahoo.yahooPostingStatus;";
         $sources = $this->dbhr->preQuery($sql,
             [
                 $this->groupid

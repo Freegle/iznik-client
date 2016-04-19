@@ -1291,7 +1291,7 @@ class messageAPITest extends IznikAPITestCase
         }
         $u->addMembership($gid, User::ROLE_MEMBER, $gemail);
 
-        $rc = $u->submitQueued($gid);
+        $rc = $u->submitYahooQueued($gid);
         assertEquals(1, $rc);
 
         error_log(__METHOD__ . " end");
