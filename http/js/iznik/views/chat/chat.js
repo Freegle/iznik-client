@@ -426,7 +426,7 @@ define([
             //
             // minview.destroyIt();
             // this.destroyIt();
-            console.log("Remove model", this.model.get('id'));
+            // console.log("Remove model", this.model.get('id'));
             Iznik.Session.chats.remove({
                 id: this.model.get('id')
             });

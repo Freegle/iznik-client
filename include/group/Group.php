@@ -199,7 +199,7 @@ class Group extends Entity
     }
 
     public function exportYahoo($groupid) {
-        $members = $this->dbhr->preQuery("SELECT members FROM memberships_yahoo WHERE groupid = ?;", [ $groupid ]);
+        $members = $this->dbhr->preQuery("SELECT members FROM memberships_yahoo_dump WHERE groupid = ?;", [ $groupid ]);
         foreach ($members as $member) {
             return(json_decode($member['members'], TRUE));
         }
@@ -462,7 +462,8 @@ class Group extends Entity
                     if ($member['emailid']) {
                         if (count($membs) == 0) {
                             # Make sure the membership is present.  We don't want to REPLACE as that might lose settings.
-                            # We also don't want to just do INSERT IGNORE as that doesn't perform well in clusters.
+                            # We also don't want to just do INSERT IGNORE without checking first, as that doesn't
+                            # perform well in clusters.
                             $sql = "INSERT IGNORE INTO memberships (userid, groupid, emailid, collection) VALUES ({$member['uid']}, {$this->id}, {$member['emailid']}, '$collection');";
                             $bulksql .= $sql;
                             $membs = [
@@ -558,7 +559,7 @@ class Group extends Entity
             if ($collection == MessageCollection::APPROVED) {
                 # Record the sync.
                 $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [$this->id]);
-                $this->dbhm->preExec("REPLACE INTO memberships_yahoo (groupid, members) VALUES (?,?);", [$this->id, json_encode($members)]);
+                $this->dbhm->preExec("REPLACE INTO memberships_yahoo_dump (groupid, members) VALUES (?,?);", [$this->id, json_encode($members)]);
             }
         } catch (Exception $e) {
             $ret = [ 'ret' => 2, 'status' => "Sync failed with " . $e->getMessage() ];

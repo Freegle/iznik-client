@@ -921,7 +921,7 @@ class Message
             if ((stripos($src, 'http://') === 0 || stripos($src, 'https://') === 0) &&
                 (stripos($src, 'https://s.yimg.com/ru/static/images/yg/img/megaphone') === FALSE)
             ) {
-                error_log("Get inline image $src");
+                #error_log("Get inline image $src");
                 $ctx = stream_context_create(array('http' =>
                     array(
                         'timeout' => 120
@@ -1134,7 +1134,7 @@ class Message
     public function save() {
         # Despite what the RFCs might say, it's possible that a message can appear on Yahoo without a Message-ID.  We
         # require unique message ids, so this causes us a problem.  Invent one.
-        $this->messageid = $this->messageid ? $this->messageid : (microtime(). '@' . USER_DOMAIN);
+        $this->messageid = $this->messageid ? $this->messageid : (microtime(TRUE). '@' . USER_DOMAIN);
 
         # We now manipulate the message id a bit.  This is because although in future we will support the same message
         # appearing on multiple groups, and therefore have a unique key on message id, we've not yet tested this.  IT
@@ -1612,8 +1612,21 @@ class Message
         # We don't need a transaction for this - transactions aren't great for scalability and worst case we
         # leave a spurious message around which a mod will handle.
         $ret = NULL;
-        $sql = "SELECT * FROM messages WHERE messageid = ?;";
+        $sql = "SELECT * FROM messages WHERE messageid = ? ";
+        if ($this->groupid) {
+            # We might have a message already present which doesn't match on Message-ID (because Yahoo doesn't
+            # always put it in) but matches on the approved/pending id.
+            if ($this->yahooapprovedid) {
+                $sql .= " OR id = (SELECT msgid FROM messages_groups WHERE groupid = {$this->groupid} AND yahooapprovedid = {$this->yahooapprovedid}) ";
+            }
+            if ($this->yahoopendingid) {
+                $sql .= " OR id = (SELECT msgid FROM messages_groups WHERE groupid = {$this->groupid} AND yahooapprovedid = {$this->yahoopendingid}) ";
+            }
+        }
+
         $msgs = $this->dbhr->preQuery($sql, [ $this->getMessageID() ]);
+        #error_log($sql . $this->getMessageID());
+
         foreach ($msgs as $msg) {
             #error_log("In #{$this->id} found {$msg['id']} with " . $this->getMessageID());
             $ret = $msg['id'];
@@ -1661,7 +1674,7 @@ class Message
                     foreach (['yahooapprovedid', 'yahoopendingid'] as $newatt) {
                         #error_log("Compare old {$gatt[$newatt]} vs new {$this->$newatt}");
                         if (!$gatt[$newatt] || ($this->$newatt && $gatt[$newatt] != $this->$newatt)) {
-                            error_log("Update mesages_groups for $newatt");
+                            #error_log("Update mesages_groups for $newatt");
                             $this->dbhm->preExec("UPDATE messages_groups SET $newatt = ? WHERE msgid = ? AND groupid = ?;", [
                                 $this->$newatt,
                                 $msg['id'],
@@ -1679,7 +1692,7 @@ class Message
 
                 if (!$oldval || ($newval && $oldval != $newval)) {
                     $changed .= ' $att';
-                    error_log("Update messages for $att, value len " . strlen($oldval) . " vs " . strlen($newval));
+                    #error_log("Update messages for $att, value len " . strlen($oldval) . " vs " . strlen($newval));
                     $m->setPrivate($att, $newval);
                 }
             }

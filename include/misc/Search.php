@@ -254,7 +254,7 @@ class Search
                 # Check for starts matches with two characters
                 $startq = pres('StartsWith', $context) ? " AND {$this->sortatt} > {$context['StartsWith']} " : "";
                 $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsStartsWith($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
-                error_log($sql . "{$this->sortatt} {$this->idatt}");
+                #error_log($sql . "{$this->sortatt} {$this->idatt}");
                 $batch = $this->dbhr->preQuery($sql, [
                     $this->sortatt,
                     $this->idatt

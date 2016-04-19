@@ -51,7 +51,10 @@ require([
     $.ajax = function (options) {
         var url = options.url;
 
-        if (url && url.indexOf('groups.yahoo.com') == -1) {
+        // There are some cases we don't want to subject to automatic retrying:
+        // - Yahoo can validly return errors as part of its API, and we handle retrying via the plugin work.
+        // - Where the context is set to a different object, we'd need to figure out how to implement the retry.
+        if (!options.hasOwnProperty('context') && url && url.indexOf('groups.yahoo.com') == -1) {
             // We wrap the AJAX call in our own, with our own error handler.
             var args;
             if (typeof options === 'string') {
@@ -65,8 +68,6 @@ require([
 
             return _ajax.apply($, args);
         } else {
-            // Yahoo can validly return errors as part of its API, and we handle retrying via the plugin work, so
-            // don't mess with it.
             return(_ajax.apply($, arguments));
         }
     };

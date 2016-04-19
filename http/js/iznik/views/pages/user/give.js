@@ -17,12 +17,21 @@ define([
         events: function () {
             return _.extend({}, Iznik.Views.Page.prototype.events, {
                 'click .js-next': 'next',
-                'change .js-items': 'checkNext'
+                'change .js-items': 'checkNext',
+                'change .bootstrap-tagsinput .tt-input': 'checkNext'
             });
         },
 
+        getItem: function() {
+            // We might have some tags input, and also some freeform text.  We are interested in having both, so just
+            // grab the underlying
+            return(this.$('.tt-input').val());
+        },
+
         checkNext: function () {
-            if (this.$('.js-items').length > 0) {
+            var item = this.getItem();
+            console.log("Checknext", item);
+            if (item.length > 0) {
                 this.$('.js-next').fadeIn('slow');
             } else {
                 this.$('.js-next').fadeOut('slow');
@@ -45,11 +54,12 @@ define([
 
         save: function () {
             // Save the current message as a draft.
-            var items = this.$('.js-items').tagsinput('items');
-            if (items.length == 0) {
+            var item = this.getItem();
+            if (item.length == 0) {
                 self.$('.tt-input').focus();
                 self.$('.bootstrap-tagsinput').addClass('error-border');
             }
+
 
             var locationid = null;
             var groupid = null;
@@ -72,7 +82,7 @@ define([
                     collection: 'Draft',
                     locationid: locationid,
                     messagetype: 'Offer',
-                    item: items.join(' '),
+                    item: item,
                     textbody: self.$('.js-description').val(),
                     attachments: attids,
                     groupid: groupid

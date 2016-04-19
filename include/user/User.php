@@ -1562,7 +1562,7 @@ class User extends Entity
         $this->maybeMail($groupid, $subject, $body, 'Approve Member');
     }
 
-    public function markApproved($groupid) {
+    public function markApproved($groupid, $emailid) {
         # Move a member from pending to approved in response to a Yahoo notification mail.
         #
         # Perhaps we can get a notification mail for a member not in Pending, but this is less of an issue as we
@@ -1588,6 +1588,9 @@ class User extends Entity
                 $this->id,
                 $groupid
             ]);
+
+            # We know that we are no longer waiting to join Yahoo, if we ever were.
+            $this->dbhm->preExec("DELETE FROM yahoo_joining WHERE emailid = ? AND groupid = ?;", [ $emailid, $groupid]);
         }
     }
 
@@ -1890,43 +1893,58 @@ class User extends Entity
     public function triggerYahooApplication($groupid) {
         $g = new Group($this->dbhr, $this->dbhm, $groupid);
         $email = $this->inventEmail();
-        $this->addEmail($email, 0);
-        $headers = "From: $email>\r\n";
+        $emailid = $this->addEmail($email, 0);
 
-        # Yahoo is not very reliable; if we subscribe multiple times it seems to be more likely to react.
-        for ($i = 0; $i < 10; $i++) {
-            mail($g->getPrivate('nameshort') . "-subscribe@yahoogroups.com", "Please let me join", "Pretty please", $headers, "-f$email");
+        if ($emailid) {
+            $headers = "From: $email>\r\n";
+
+            # Unfortuntely, Yahoo is not very reliable; if we subscribe multiple times it seems to be more likely to react.
+            # We also add this into a table to allow us to retry the application periodically until it deigns to respond.
+            $this->dbhm->preExec("INSERT INTO yahoo_joining (groupid, emailid) VALUES (?, ?);", [ $groupid, $emailid]);
+            for ($i = 0; $i < 10; $i++) {
+                mail($g->getPrivate('nameshort') . "-subscribe@yahoogroups.com", "Please let me join", "Pretty please", $headers, "-f$email");
+            }
+
+            # And for good measure, we set up a piece of plugin work to trigger an invitation.
+            $p = new Plugin($this->dbhr, $this->dbhm);
+            $p->add($groupid, [
+                'type' => 'Invite',
+                'email' => $email
+            ]);
         }
 
         return($email);
     }
 
-    public function submitQueued($groupid) {
-        # Get the email address we use on the group
+    public function submitYahooQueued($groupid) {
+        # Get the email address we use on the Yahoo group.  We need it to be an email address we host before we can submit.
         $submitted = 0;
-        $eid = $this->getEmailForGroup($groupid);
-        $emails = $this->getEmails();
-        $email = NULL;
-        foreach ($emails as $thisemail) {
-            if ($thisemail['id'] == $eid) {
-                $email = $thisemail['email'];
+        $eid = $this->getEmailForGroup($groupid, TRUE);
+
+        if ($eid) {
+            $emails = $this->getEmails();
+            $email = NULL;
+            foreach ($emails as $thisemail) {
+                if ($thisemail['id'] == $eid) {
+                    $email = $thisemail['email'];
+                }
             }
-        }
 
-        error_log("Got email $email for {$this->id} on $groupid, eid $eid");
+            error_log("Got email $email for {$this->id} on $groupid, eid $eid");
 
-        if ($email) {
-            $sql = "SELECT msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id WHERE groupid = ? AND collection = ? AND messages_groups.deleted = 0 AND messages.fromuser = ?;";
-            $msgs = $this->dbhr->preQuery($sql, [
-                $groupid,
-                MessageCollection::QUEUED_YAHOO_USER,
-                $this->id
-            ]);
+            if ($email) {
+                $sql = "SELECT msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id WHERE groupid = ? AND collection = ? AND messages_groups.deleted = 0 AND messages.fromuser = ?;";
+                $msgs = $this->dbhr->preQuery($sql, [
+                    $groupid,
+                    MessageCollection::QUEUED_YAHOO_USER,
+                    $this->id
+                ]);
 
-            foreach ($msgs as $msg) {
-                $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
-                $m->submit($this, $email, $groupid);
-                $submitted++;
+                foreach ($msgs as $msg) {
+                    $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
+                    $m->submit($this, $email, $groupid);
+                    $submitted++;
+                }
             }
         }
 

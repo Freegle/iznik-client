@@ -326,7 +326,7 @@ define([
                     // We need a crumb to do the work.
                     self.getCrumb(groupname, v.crumbLocation, function(crumb) {
                         v.crumb = crumb;
-                        //console.log("Start", v, first, crumb);
+                        // console.log("Start", crumb);
                         v.start.call(v);
                     }, function() {
                         self.collection.at(0).retry();
@@ -558,6 +558,18 @@ define([
                                             })
                                         }));
                                     }
+                                    break;
+                                }
+
+                                case 'Invite': {
+                                    var mod = new Iznik.Model(work);
+                                    mod.set('nameshort', work.group.nameshort);
+                                    self.collection.add(new Iznik.Models.Plugin.Work({
+                                        id: work.id,
+                                        subview: new Iznik.Views.Plugin.Yahoo.Invite({
+                                            model: mod
+                                        })
+                                    }));
                                     break;
                                 }
                             }
@@ -828,7 +840,7 @@ define([
     
         succeed: function() {
             var self = this;
-    
+
             function finished() {
                 //console.log("Finished work item", this);
                 window.IznikPlugin.collection.shift();
@@ -1870,9 +1882,11 @@ define([
     });
     
     Iznik.Views.Plugin.Yahoo.Invite = Iznik.Views.Plugin.SubView.extend({
-        crumbLocation: "/members/all",
+        crumbLocation: "/invitations/members",
         template: 'plugin_invite',
-    
+
+        server: true,
+
         start: function() {
             var self = this;
             this.startBusy();
@@ -1883,12 +1897,18 @@ define([
                     "/members?actionType=MAILINGLIST_INVITE&gapi_crumb=" + self.crumb,
                 data: 'members=[{"email":"' + self.model.get('email') + '"}]',
                 success: function (ret) {
-    
-                    if (ret.hasOwnProperty('ygData') &&
-                        ret.ygData.hasOwnProperty('numSuccessfulInvites')) {
-                        // If the invite worked, numSuccessfulInvites == 1.
-                        if (ret.ygData.numSuccessfulInvites == 1) {
-                            self.succeed();
+                    if (ret.hasOwnProperty('ygData')) {
+                        // console.log("Got ygData", ret.ygData.hasOwnProperty('failedInvites'), ret.ygData.failedInvites.hasOwnProperty('ALREADY_MEMBER'));
+                        if (ret.ygData.hasOwnProperty('numSuccessfulInvites')) {
+                            if (ret.ygData.numSuccessfulInvites == 1) {
+                                // If the invite worked, numSuccessfulInvites == 1
+                                self.succeed();
+                            } else if (ret.ygData.hasOwnProperty('failedInvites') && ret.ygData.failedInvites.hasOwnProperty('ALREADY_MEMBER')) {
+                                // We're already a member - no need to keep inviting.
+                                self.succeed();
+                            } else {
+                                self.fail();
+                            }
                         } else {
                             self.fail();
                         }
@@ -1904,7 +1924,9 @@ define([
     
     Iznik.Views.Plugin.Yahoo.ConfirmMod = Iznik.Views.Plugin.Yahoo.Invite.extend({
         template: 'plugin_confirmmod',
-    
+
+        server: false,
+
         start: function() {
             // For this we drop if we fail - because we might not have those mod permissions on Yahoo.
             var self = this;
@@ -1959,7 +1981,7 @@ define([
             this.startBusy();
         }
     });
-    
+
     Iznik.Views.Plugin.Yahoo.BanPendingMember = Iznik.Views.Plugin.SubView.extend({
         template: 'plugin_member_pending_ban',
     

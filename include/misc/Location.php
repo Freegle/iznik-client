@@ -192,6 +192,9 @@ class Location extends Entity
     }
 
     public function search($term, $groupid, $limit = 10) {
+        # Remove any weird characters.
+        $term = preg_replace("/[^[:alnum:][:space:]]/u", '', $term);
+        
         # We have a large table of locations.  We want to search within the ones which are close to this group, so
         # we look in the same or adjacent grid squares.
         $termt = trim($term);

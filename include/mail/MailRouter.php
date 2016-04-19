@@ -7,6 +7,8 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
+require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
+require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/lib/spamc.php');
 
 # This class routes an incoming message
@@ -206,6 +208,16 @@ class MailRouter
                 }
 
                 $ret = MailRouter::TO_SYSTEM;
+            } else if ($replyto && preg_match('/confirm-invite-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) !== FALSE && count($matches) == 4) {
+                # This is an invitation by Yahoo to join a group, triggered by us in triggerYahooApplication.
+                if ($log) { error_log("Confirm invitation"); }
+
+                for ($i = 0; $i < 10; $i++) {
+                    # Yahoo is sluggish - sending the confirm multiple times helps.
+                    $this->mail($replyto, $to, "Yes please", "I confirm this");
+                }
+
+                $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/(.*)-acceptsub(.*)@yahoogroups.co.*/', $replyto, $matches) !== FALSE && count($matches) == 3) {
                 # This is a notification that a member has applied to the group.
                 #
@@ -271,8 +283,12 @@ class MailRouter
 
                         $notify = FALSE;
 
-                        # Now add them as a pending member.
-                        if ($u->addMembership($gid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING)) {
+                        # Now add them as a pending member.  They might be an existing member with one address who
+                        # are applying to be a member as another, in which case we don't want to demote them.
+                        $role = $u->getRole($gid, FALSE);
+                        $role = $u->roleMax($role, User::ROLE_MEMBER);
+
+                        if ($u->addMembership($gid, $role, $emailid, MembershipCollection::PENDING)) {
                             $u->setMembershipAtt($gid, 'yahooapprove', $approve);
                             $u->setMembershipAtt($gid, 'yahooreject', $reject);
                             $u->setMembershipAtt($gid, 'joincomment', $comment);
@@ -312,15 +328,16 @@ class MailRouter
                     if ($gid) {
                         $u = new User($this->dbhr, $this->dbhm);
                         $uid = $u->findByEmail($email);
+                        $emailid = $u->getIdForEmail($email);
 
                         if ($uid) {
                             # We have the user and the group.  Mark the membership as no longer pending (if
                             if ($log) { error_log("Found them $uid"); }
                             $u = new User($this->dbhr, $this->dbhm, $uid);
-                            $u->markApproved($gid);
+                            $u->markApproved($gid, $emailid);
 
                             # Dispatch any messages which are queued awaiting this group membership.
-                            $u->submitQueued($gid);
+                            $u->submitYahooQueued($gid);
                         }
 
                         $ret = MailRouter::TO_SYSTEM;
@@ -342,15 +359,16 @@ class MailRouter
                     if ($gid) {
                         $u = new User($this->dbhr, $this->dbhm);
                         $uid = $u->findByEmail($to);
+                        $emailid = $u->getIdForEmail($to);
 
                         if ($uid) {
                             # We have the user and the group.  Mark the membership as no longer pending.
                             if ($log) { error_log("Found them $uid"); }
                             $u = new User($this->dbhr, $this->dbhm, $uid);
-                            $u->markApproved($gid);
+                            $u->markApproved($gid, $to);
 
                             # Dispatch any messages which are queued awaiting this group membership.
-                            $u->submitQueued($gid);
+                            $u->submitYahooQueued($gid);
                         }
 
                         $ret = MailRouter::TO_SYSTEM;
@@ -442,7 +460,7 @@ class MailRouter
             if (!$ret) {
                 # Not obviously spam.
                 $groups = $this->msg->getGroups();
-                error_log("Groups " . var_export($groups, TRUE));
+                #error_log("Groups " . var_export($groups, TRUE));
                 if ($log) { error_log("Not obviously spam, groups " . var_export($groups, TRUE)); }
 
                 if (count($groups) > 0) {
