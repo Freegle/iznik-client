@@ -38,6 +38,7 @@ class ChatMessage extends Entity
                 $system,
                 $refmsgid
             ]);
+
             $id = $this->dbhm->lastInsertId();
 
             # We have ourselves seen this message.

@@ -1,5 +1,5 @@
 /*!
- * Backbone.CollectionView, v1.0.5
+ * Backbone.CollectionView, v1.1.2
  * Copyright (c)2013 Rotunda Software, LLC.
  * Distributed under MIT license
  * http://github.com/rotundasoftware/backbone-collection-view
@@ -22,7 +22,7 @@
 
     var kDefaultReferenceBy = "model";
 
-    var kOptionsRequiringRerendering = [ "collection", "modelView", "modelViewOptions", "itemTemplate", "selectableModelsFilter", "visibleModelsFilter", "itemTemplateFunction", "detachedRendering" ];
+    var kOptionsRequiringRerendering = [ "collection", "modelView", "modelViewOptions", "itemTemplate", "itemTemplateFunction", "detachedRendering" ];
 
     var kStylesForEmptyListCaption = {
         "background" : "transparent",
@@ -102,8 +102,9 @@
         },
 
         onOptionsChanged : function( changedOptions, originalOptions ) {
-            var rerender = false;
             var _this = this;
+            var rerender = false;
+
             _.each( _.keys( changedOptions ), function( changedOptionKey ) {
                 var newVal = changedOptions[ changedOptionKey ];
                 var oldVal = originalOptions[ changedOptionKey ];
@@ -126,22 +127,17 @@
                         changedOptions.sortable ? _this._setupSortable() : _this.$el.sortable( "destroy" );
                         break;
                     case "selectableModelsFilter" :
-                        if( newVal && _.isFunction( newVal ) )
-                            _this._validateSelection();
+                        _this.reapplyFilter( 'selectableModels' );
                         break;
                     case "sortableOptions" :
                         _this.$el.sortable( "destroy" );
                         _this._setupSortable();
                         break;
                     case "sortableModelsFilter" :
-                        _this.$el.sortable( "destroy" );
-
-                        _this.viewManager.each( function( thisModelView ) {
-                            var elWithNotSortableClass = _this._isRenderedAsList() ? thisModelView.$el.closest( 'li' ) : thisModelView;
-                            elWithNotSortableClass.toggleClass( 'not-sortable', ! _this.sortableModelsFilter.call( _this, thisModelView.model ) );
-                        } );
-
-                        _this._setupSortable();
+                        _this.reapplyFilter( 'sortableModels' );
+                        break;
+                    case "visibleModelsFilter" :
+                        _this.reapplyFilter( 'visibleModels' );
                         break;
                     case "itemTemplate" :
                         _this._updateItemTemplate();
@@ -159,9 +155,10 @@
                         break;
                 }
                 if( _.contains( kOptionsRequiringRerendering, changedOptionKey ) ) rerender = true;
-            });
+            } );
+
             if( this._hasBeenRendered && rerender ) {
-                this.render(); // Rerender the view if the rerender flag has been set.
+                this.render();
             }
         },
 
@@ -216,6 +213,9 @@
                         items.push( _this.viewManager.findByModel( _this.collection.get( item ) ) );
                     } );
                     break;
+                default :
+                    throw new Error( "Invalid referenceBy option: " + referenceBy );
+                    break;
             }
 
             return items;
@@ -262,6 +262,9 @@
                             newSelectedCids.push( thisItemEl.attr( "data-model-cid" ) );
                         curLineNumber++;
                     } );
+                    break;
+                default :
+                    throw new Error( "Invalid referenceBy option: " + referenceBy );
                     break;
             }
 
@@ -420,6 +423,8 @@
                 }
             }
 
+            this.viewManager.add( modelView );
+
             // we have to render the modelView after it has been put in context, as opposed to in the
             // initialize function of the modelView, because some rendering might be dependent on
             // the modelView's context in the DOM tree. For example, if the modelView stretch()'s itself,
@@ -443,8 +448,6 @@
             thisModelViewWrapped.toggleClass( "not-visible", hideThisModelView );
 
             if( ! hideThisModelView && this.emptyListCaption ) this._removeEmptyListCaption();
-
-            this.viewManager.add( modelView );
         },
 
         updateDependentControls : function() {
@@ -464,15 +467,62 @@
             Backbone.View.prototype.remove.apply( this, arguments );
         },
 
+        reapplyFilter : function( whichFilter ) {
+            var _this = this;
+
+            if( ! _.contains( [ "selectableModels", "sortableModels", "visibleModels" ], whichFilter ) ) {
+                throw new Error( "Invalid filter identifier supplied to reapplyFilter: " + whichFilter );
+            }
+
+            switch( whichFilter ) {
+                case "visibleModels":
+                    _this.viewManager.each( function( thisModelView ) {
+                        var notVisible = _this.visibleModelsFilter && ! _this.visibleModelsFilter.call( _this, thisModelView.model );
+
+                        thisModelView.$el.toggleClass( "not-visible", notVisible );
+                        if( _this._modelViewHasWrapperLI( thisModelView ) ) {
+                            thisModelView.$el.closest( "li" ).toggleClass( "not-visible", notVisible ).toggle( ! notVisible );
+                        } else thisModelView.$el.toggle( ! notVisible );
+                    } );
+
+                    this._showEmptyListCaptionIfAppropriate();
+                    break;
+                case "sortableModels":
+                    _this.$el.sortable( "destroy" );
+
+                    _this.viewManager.each( function( thisModelView ) {
+                        var notSortable = _this.sortableModelsFilter && ! _this.sortableModelsFilter.call( _this, thisModelView.model );
+
+                        thisModelView.$el.toggleClass( "not-sortable", notSortable );
+                        if( _this._modelViewHasWrapperLI( thisModelView ) ) {
+                            thisModelView.$el.closest( "li" ).toggleClass( "not-sortable", notSortable );
+                        }
+                    } );
+
+                    _this._setupSortable();
+                    break;
+                case "selectableModels":
+                    _this.viewManager.each( function( thisModelView ) {
+                        var notSelectable = _this.selectableModelsFilter && ! _this.selectableModelsFilter.call( _this, thisModelView.model );
+
+                        thisModelView.$el.toggleClass( "not-selectable", notSelectable );
+                        if( _this._modelViewHasWrapperLI( thisModelView ) ) {
+                            thisModelView.$el.closest( "li" ).toggleClass( "not-selectable", notSelectable );
+                        }
+                    } );
+
+                    _this._validateSelection();
+                    break;
+            }
+        },
+
         // A method to remove the view relating to model.
         _removeModelView : function( modelView ) {
             if( this.selectable ) this._saveSelection();
 
             this.viewManager.remove( modelView ); // Remove the view from the viewManager
-            console.log("Removed", modelView, this._isRenderedAsList());
-            // if( this._isRenderedAsList() ) modelView.$el.parent().remove(); // Remove the li wrapper from the DOM
-            modelView.remove(); // Remove the view from the DOM
-            console.log("Removed from DOM");
+            if( this._modelViewHasWrapperLI( modelView ) ) modelView.$el.parent().remove(); // Remove the li wrapper from the DOM
+            modelView.remove(); // Remove the view from the DOM and stop listening to events
 
             if( this.selectable ) this._restoreSelection();
 
@@ -500,11 +550,9 @@
 
             this.listenTo( this.collection, "remove", function( model ) {
                 var modelView;
-                console.log("Removed from collection", model);
 
                 if( this._hasBeenRendered ) {
                     modelView = this.viewManager.findByModelCid( model.cid );
-                    console.log("Remove view", modelView);
                     this._removeModelView( modelView );
                 }
 
@@ -725,31 +773,37 @@
 
             // we use items client ids as opposed to real ids, since we may not have a representation
             // of these models on the server
-            var wrappedModelView;
+            var modelViewWrapperEl;
 
             if( this._isRenderedAsTable() ) {
                 // if we are rendering the collection in a table, the template $el is a tr so we just need to set the data-model-cid
-                wrappedModelView = modelView.$el.attr( "data-model-cid", modelView.model.cid );
+                modelViewWrapperEl = modelView.$el;
+                modelView.$el.attr( "data-model-cid", modelView.model.cid );
             }
             else if( this._isRenderedAsList() ) {
                 // if we are rendering the collection in a list, we need wrap each item in an <li></li> (if its not already an <li>)
                 // and set the data-model-cid
-                if( modelView.$el.prop( "tagName" ).toLowerCase() === "li" ) {
-                    wrappedModelView = modelView.$el.attr( "data-model-cid", modelView.model.cid );
+                if( modelView.$el.is( "li" ) ) {
+                    modelViewWrapperEl = modelView.$el;
+                    modelView.$el.attr( "data-model-cid", modelView.model.cid );
                 } else {
-                    wrappedModelView = modelView.$el.wrapAll( "<li data-model-cid='" + modelView.model.cid + "'></li>" ).parent();
+                    modelViewWrapperEl = modelView.$el.wrapAll( "<li data-model-cid='" + modelView.model.cid + "'></li>" ).parent();
                 }
             }
 
             if( _.isFunction( this.sortableModelsFilter ) )
-                if( ! this.sortableModelsFilter.call( _this, modelView.model ) )
-                    wrappedModelView.addClass( "not-sortable" );
+                if( ! this.sortableModelsFilter.call( _this, modelView.model ) ) {
+                    modelViewWrapperEl.addClass( "not-sortable" );
+                    modelView.$el.addClass( "not-selectable" );
+                }
 
             if( _.isFunction( this.selectableModelsFilter ) )
-                if( ! this.selectableModelsFilter.call( _this, modelView.model ) )
-                    wrappedModelView.addClass( "not-selectable" );
+                if( ! this.selectableModelsFilter.call( _this, modelView.model ) ) {
+                    modelViewWrapperEl.addClass( "not-selectable" );
+                    modelView.$el.addClass( "not-selectable" );
+                }
 
-            return wrappedModelView;
+            return modelViewWrapperEl;
         },
 
         _convertStringsToInts : function( theArray ) {
@@ -772,6 +826,10 @@
 
         _isRenderedAsList : function() {
             return ! this._isRenderedAsTable();
+        },
+
+        _modelViewHasWrapperLI : function( modelView ) {
+            return this._isRenderedAsList() && ! modelView.$el.is( "li" );
         },
 
         // Returns the wrapper HTML element for each visible modelView.
@@ -978,7 +1036,7 @@
         },
 
         _listBackground_onClick : function( theEvent ) {
-            if( ! this.selectable ) return;
+            if( ! this.selectable || ! this.clickToSelect ) return;
             if( ! $( theEvent.target ).is( ".collection-view" ) ) return;
 
             this.setSelectedModels( [] );

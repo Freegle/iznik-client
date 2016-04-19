@@ -126,5 +126,8 @@ define([
         });
     })(Backbone.View);
 
+    // Save as global as it's useful for debugging.
+    window.Iznik = Iznik;
+    
     return(Iznik);
 });

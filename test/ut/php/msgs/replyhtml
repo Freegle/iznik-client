@@ -1,0 +1,91 @@
+Return-Path: <test3@test.com>
+X-Sender: test3@test.com
+X-Apparently-To: test@test.com
+X-Received: (qmail 30001 invoked by uid 102); 22 Aug 2015 10:46:02 -0000
+X-Received: from unknown (HELO mtaq6.grp.bf1.yahoo.com) (10.193.84.37)
+  by m3.grp.bf1.yahoo.com with SMTP; 22 Aug 2015 10:46:02 -0000
+X-Received: (qmail 24559 invoked from network); 22 Aug 2015 10:46:02 -0000
+X-Received: from unknown (HELO mta1003.groups.mail.bf1.yahoo.com) (1.2.3.4)
+  by mtaq6.grp.bf1.yahoo.com with SMTP; 22 Aug 2015 10:46:02 -0000
+X-Original-Return-Path: <test3@test.com>
+X-Received-SPF: none (domain of test.com does not designate permitted sender hosts)
+X-YMailISG: 5K_gjQ4WLDtwz6ISxoConTaw60khucFOK5pRynylKR98bVRu
+ qSIiPeGVpz8kmBrq0pfCQO_FRqflQfp94vZPREFG0ShIvnbAiIb_mo1vtQbu
+ hTy5EZ8sjgBNVp9whc0Q2L6gZ02Ms49D_2.rPlNpoq5DVi6MoeX9a_S2Cr7a
+ sQ2Y..6V6x0NHJFgeXgFAUdqgeOHVBqLtRq2gOxrdfxzOm1vQgptSYHj5LIX
+ RXqUtVsS4sM9QxfMd5W3Zb97HY2_ztW3NyGPEHB6gxZM_2dQV1znx5H.PSCF
+ .hciSK9wbygnLjT1K.4X1SdH1U8gLii8JFCYs50Bd1TISNiIfZKzsXh63YQC
+ ZpW9FfBU031cHo7XilKZ5VF6zUQq3imkQQHPBjhLQZTDb2drgF0GePq_T8oo
+ we7Oryoh6WMYQtGk4ri8wsCbHtNcdyceRCCJUpv_wAWa1CU3B4jzk75CUH.g
+ D6ACZsYj8P.7WQ6ww3rZvjS78IdrvtkIQOQAooyPKcTVf892TfcvdOipgG07
+ guHh3J.WxYMqJh2cq_LDyi2AtVhIhJrvT1yp.qqAdXKDiV_EVk9JEe5_BL3C
+ Vct0wJNHyCjUIGxPeFyp73FZHfFZzhbMNMp4qpYwlTiUJfP1vKK3iR3VOntG
+ P5GxOa1rQASRWrnEy2Q9D7VXV4Lt1kOAvmhyEky1okY7f7yJARS0xh.n0gGK
+ C.o7_kD4KZqiZh8xcx7wCm1z34w14Tt2StaSPLEw.irZ87jcSYQklm_9oj0a
+ FBeXKvIPFbfcsThKtbUrAq9RDyWjqN8FxRqMwhfi9QfQVlv9Bqnw.M2D4U_u
+ _Eb5nqIRMxIRj5LHxBD7TXxDHeGey_aUbE6CPYC1hBI4AX.MCu4iOhq33LTo
+ hx8_EShk78Tq.e36j8Oxkuut_goJ2Vn9WV7DJgqhAvYkqp_2IrUlxIalro9L
+ JMGGaZRNW32k9FnAT.dccCzgTpvgdDSPQdZHJoFVrZfEu8EDrE10jaQSTLHQ
+ UthNMnkSRRdgv_GShdAOF8eLEmMYNl9ClO5GHdcnRYF286RusOAm_hq.mM0c
+ q5_Tlv4d5Ewz8jWX9aQceSw8orz70N4qB8djbu1rgghdS8ZrGjsuIxyX9pF_
+ 6TaIyWdhk8X6RhZYmhOaC16m_zDka9MJc0m3MZFQX0IC8PEkor.LBZ9UP1lS
+ D5Q41PrL9tS_lqXTFV_2wv0QUo7ml2RQJkp8FcTLbP.kPY5WZxlGpXjXuEAe
+ h8gnMJf4
+Authentication-Results: mta1003.groups.mail.bf1.yahoo.com  from=test.com; domainkeys=neutral (no sig);  from=test.com; dkim=neutral (no sig)
+X-Received: from 127.0.0.1  (EHLO mail-wi0-f175.google.com) (209.85.212.175)
+  by mta1003.groups.mail.bf1.yahoo.com with SMTPS; Sat, 22 Aug 2015 10:46:00 +0000
+X-Received: by widdq5 with SMTP id dq5so10528742wid.1
+        for <test@test.com>; Sat, 22 Aug 2015 03:45:59 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20130820;
+        h=x-gm-message-state:from:to:subject:date:message-id:reply-to
+         :user-agent:mime-version:content-type;
+        bh=86gsVsmvRQBe+3miW1cNTDEDUIUyxjGn36lnDEayB9s=;
+        b=ImfUsQvxbpFi6n8uJLXN+UhcdkSvcNWh4xRKXwQbA1CnKvJufPZj19BJToA/scbOvI
+         KcGTvp3nNUOpHjAPg5FjUEaM7osb0YTXT2NFpbY4CY9cttje7y12XJ4JtpNXg/OsWrxP
+         Z208LyZZEiVbgJZau7onyYO7p9+7+GD/gx+JxpVdEyOMsq+jTeUps+WOt9Q90jnj2Th2
+         TiFX6KlaYTdPAT8cU/d38b+ZrzevLOoqEvwV9PdirgcvlM0v/Rpp+JGU634rQl/MJwya
+         32VdsOCWfufKnvwuYnZY72OD35h3fpR05AavqBlSpzNXkHi48EZkDrNt+eJCsD7RD3BN
+         Nl1g==
+X-Gm-Message-State: ALoCoQmlJhY8T+5EPSkX9unIRTJ5e3Xprl0JxaoXhNi/Z7VG493DMZ7cXBr4r4qLiE04vT3+4NgI
+X-Received: by 10.180.189.17 with SMTP id ge17mr13646280wic.90.1440240359435;
+        Sat, 22 Aug 2015 03:45:59 -0700 (PDT)
+X-Original-Return-Path: <test3@test.com>
+X-Received: from [192.168.1.70] (host31-52-181-130.range31-52.btcentralplus.com. [31.52.181.130])
+        by smtp.gmail.com with ESMTPSA id r8sm6829573wiz.2.2015.08.22.03.45.57
+        for <test@test.com>
+        (version=TLSv1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Sat, 22 Aug 2015 03:45:58 -0700 (PDT)
+To: "Test User" <test@test.com>
+Date: Sat, 22 Aug 2015 10:45:58 +0000
+Message-Id: <emff7a66f1-e0ed-4792-b493-17a75d806a30@edward-x1>
+User-Agent: eM_Client/6.0.22344.0
+Mime-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="------=_MB3F4E24FD-EFD6-48C1-97A3-F6120856B490"
+From: "Some other replying person" <test3@test.com>
+Subject: Re: Basic test
+
+--------=_MB3F4E24FD-EFD6-48C1-97A3-F6120856B490
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<HTML><HEAD>
+<STYLE id=3DeMClientCss>
+blockquote.cite { margin-left: 5px; margin-right: 0px; padding-left: 10px;=
+ padding-right:0px; border-left: 1px solid #cccccc }
+blockquote.cite2 {margin-left: 5px; margin-right: 0px; padding-left: 10px;=
+ padding-right:0px; border-left: 1px solid #cccccc; margin-top: 3px; paddin=
+g-top: 0px; }
+.plain pre, .plain tt { font-family: monospace; font-size: 100%; font-weigh=
+t: normal; font-style: normal;}
+a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
+.plain pre, .plain tt {font-family: Tahoma;font-size: 12pt;}</STYLE>
+</HEAD>
+<BODY>
+<DIV><FONT color=3D#ea161e>This is a rich text reply.</FONT></DIV>
+<DIV><FONT color=3D#ea161e></FONT>&nbsp;</DIV>
+<DIV><FONT color=3D#ea161e>Hopefully you'll receive it and it'll get parsed=
+ ok.</FONT></DIV></BODY></HTML>
+--------=_MB3F4E24FD-EFD6-48C1-97A3-F6120856B490--
+

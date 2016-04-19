@@ -282,8 +282,10 @@ function message() {
                                         # We're good to go.  Make sure we submit with the email that is a group member
                                         # rather than the one they supplied.
                                         $ret = ['ret' => 7, 'status' => 'Failed to submit'];
-                                        
-                                        if ($m->submit($u, $u->getEmailById($eidforgroup), $groupid)) {
+
+                                        $fromemail = $u->getEmailById($eidforgroup);
+
+                                        if ($m->submit($u, $fromemail, $groupid)) {
                                             # We sent it.
                                             $ret = ['ret' => 0, 'status' => 'Success'];
                                         }

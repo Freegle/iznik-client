@@ -442,9 +442,7 @@ class MailRouter
             if (!$ret) {
                 # Not obviously spam.
                 $groups = $this->msg->getGroups();
-
-                # If it has none of our groups, we drop it.
-                $ret = MailRouter::DROPPED;
+                error_log("Groups " . var_export($groups, TRUE));
                 if ($log) { error_log("Not obviously spam, groups " . var_export($groups, TRUE)); }
 
                 if (count($groups) > 0) {
@@ -460,6 +458,52 @@ class MailRouter
                         if ($log) { error_log("Mark as approved"); }
                         if ($this->markApproved()) {
                             $ret = MailRouter::APPROVED;
+                        }
+                    }
+                } else {
+                    # It's not to one of our groups - but it could be a reply to one of our users.
+                    #error_log("Look for reply");
+                    $u = new User($this->dbhr, $this->dbhm);
+                    $to = $this->msg->getEnvelopeto();
+                    $uid = $u->findByEmail($to);
+                    $ret = MailRouter::DROPPED;
+
+                    if ($uid) {
+                        # This is to one of our users.  We try to pair it as best we can with one of the posts.
+                        $original = $this->msg->findFromReply($uid);
+                        #error_log("Paired with $original");
+
+                        if ($original) {
+                            # We've found (probably) the original message to which this is a reply.
+                            $ret = MailRouter::TO_USER;
+
+                            # Try to get the text we care about by stripping out quoted text.  This can't be
+                            # perfect - quoting varies and it's a well-known hard problem.
+                            $htmlbody = $this->msg->getHtmlbody();
+                            $textbody = $this->msg->getTextbody();
+
+                            if ($htmlbody && !$textbody) {
+                                $html = new \Html2Text\Html2Text($htmlbody);
+                                $textbody = $html->getText();
+                                #error_log("Converted HTML text $textbody");
+                            }
+
+                            $textbody = trim(preg_replace('#(^\w.+:\n)?(^>.*(\n|$))+#mi', "", $textbody));
+
+                            #error_log("Pruned text to $textbody");
+
+                            # Get/create the chat room between the two users.
+                            #error_log("Create chat between " . $this->msg->getFromuser() . " and " . $uid);
+                            $r = new ChatRoom($this->dbhr, $this->dbhm);
+                            $rid = $r->createConversation($this->msg->getFromuser(), $uid);
+                            #error_log("Got chat id $rid");
+
+                            if ($rid) {
+                                # And now add our text into the chat room as a message.  This will notify them.
+                                $m = new ChatMessage($this->dbhr, $this->dbhm);
+                                $mid = $m->create($rid, $this->msg->getFromuser(), $textbody, FALSE, $this->msg->getID());
+                                #error_log("Created chat message $mid");
+                            }
                         }
                     }
                 }

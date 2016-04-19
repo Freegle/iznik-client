@@ -7,6 +7,8 @@ require_once UT_DIR . '/IznikTestCase.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 require_once IZNIK_BASE . '/include/message/Message.php';
 require_once IZNIK_BASE . '/include/misc/plugin.php';
+require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
+require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
 
 /**
  * @backupGlobals disabled
@@ -961,6 +963,98 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
+        error_log(__METHOD__ . " end");
+    }
+    
+    public function testReply() {
+        error_log(__METHOD__);
+
+        # Create the sending user
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        error_log("Created user $uid");
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        assertGreaterThan(0, $u->addEmail('test@test.com'));
+
+        # Send a message.
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertNotNull($id);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Send a purported reply.  This should result in the user being created.
+        $msg = $this->unique(file_get_contents('msgs/replytext'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
+        assertNotNull($id);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertNotNull($m->getFromuser());
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        $uid2 = $u->findByEmail('test2@test.com');
+
+        # Now get the chat room that this should have been placed into.
+        assertNotNull($uid2);
+        assertNotEquals($uid, $uid2);
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $c->createConversation($uid, $uid2);
+        assertNotNull($rid);
+        list($msgs, $users) = $c->getMessages();
+
+        error_log("Chat messages " . var_export($msgs, TRUE));
+        assertEquals(1, count($msgs));
+        assertEquals("I'd like to have these, then I can return them to Greece where they rightfully belong.", $msgs[0]['message']);
+        assertEquals($id, $msgs[0]['refmsg']['id']);
+
+        error_log("Chat users " . var_export($users, TRUE));
+        assertEquals(1, count($users));
+        foreach ($users as $user) {
+            assertEquals('Some replying person', $user['displayname']);
+        }
+
+        # The reply should be visible in the message.
+        $atts = $m->getPublic(FALSE, FALSE, TRUE);
+        assertEquals(1, count($atts['replies']));
+
+        # Now send another reply, but in HTML with no text body.
+        error_log("Now HTML");
+        $msg = $this->unique(file_get_contents('msgs/replyhtml'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test3@test.com', 'test@test.com', $msg);
+        assertNotNull($id);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertNotNull($m->getFromuser());
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        $uid2 = $u->findByEmail('test3@test.com');
+
+        # Now get the chat room that this should have been placed into.
+        assertNotNull($uid2);
+        assertNotEquals($uid, $uid2);
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $c->createConversation($uid, $uid2);
+        assertNotNull($rid);
+        list($msgs, $users) = $c->getMessages();
+
+        error_log("Chat messages " . var_export($msgs, TRUE));
+        assertEquals(1, count($msgs));
+        $lines = explode("\n", $msgs[0]['message']);
+        error_log(var_export($lines, TRUE));
+        assertEquals('This is a rich text reply. ', $lines[0]);
+        assertEquals('  ', $lines[1]);
+        assertEquals('Hopefully you\'ll receive it and it\'ll get parsed ok.', $lines[2]);
+        assertEquals($id, $msgs[0]['refmsg']['id']);
+
+        error_log("Chat users " . var_export($users, TRUE));
+        assertEquals(1, count($users));
+        foreach ($users as $user) {
+            assertEquals('Some other replying person', $user['displayname']);
+        }
+        
         error_log(__METHOD__ . " end");
     }
 }

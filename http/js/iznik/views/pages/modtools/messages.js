@@ -246,63 +246,66 @@ define([
 
         addOtherInfo: function () {
             var self = this;
-            var fromemail = self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr');
 
-            // Add any other emails
-            self.$('.js-otheremails').empty();
-            var fromuser = self.model.get('fromuser');
+            require(['jquery-show-first'], function() {
+                var fromemail = self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr');
 
-            if (fromuser) {
-                _.each(fromuser.emails, function (email) {
-                    if (email.email != fromemail) {
-                        var mod = new Iznik.Model(email);
-                        var v = new Iznik.Views.ModTools.Message.OtherEmail({
-                            model: mod
-                        });
-                        self.$('.js-otheremails').append(v.render().el);
-                    }
-                });
+                // Add any other emails
+                self.$('.js-otheremails').empty();
+                var fromuser = self.model.get('fromuser');
 
-                // Add any other group memberships we need to display.
-                self.$('.js-memberof').empty();
-                var groupids = [self.model.get('groupid')];
-                _.each(fromuser.memberof, function (group) {
-                    if (groupids.indexOf(group.id) == -1) {
-                        var mod = new Iznik.Model(group);
-                        var v = new Iznik.Views.ModTools.Member.Of({
-                            model: mod
-                        });
-                        self.$('.js-memberof').append(v.render().el);
-                        groupids.push(group.id);
-                    }
-                });
+                if (fromuser) {
+                    _.each(fromuser.emails, function (email) {
+                        if (email.email != fromemail) {
+                            var mod = new Iznik.Model(email);
+                            var v = new Iznik.Views.ModTools.Message.OtherEmail({
+                                model: mod
+                            });
+                            self.$('.js-otheremails').append(v.render().el);
+                        }
+                    });
 
-                self.$('.js-applied').empty();
-                _.each(fromuser.applied, function (group) {
-                    if (groupids.indexOf(group.id) == -1) {
-                        // Don't both displaying applications to groups we've just listed as them being a member of.
-                        var mod = new Iznik.Model(group);
-                        var v = new Iznik.Views.ModTools.Member.Applied({
-                            model: mod
-                        });
-                        self.$('.js-applied').append(v.render().el);
-                    }
-                });
+                    // Add any other group memberships we need to display.
+                    self.$('.js-memberof').empty();
+                    var groupids = [self.model.get('groupid')];
+                    _.each(fromuser.memberof, function (group) {
+                        if (groupids.indexOf(group.id) == -1) {
+                            var mod = new Iznik.Model(group);
+                            var v = new Iznik.Views.ModTools.Member.Of({
+                                model: mod
+                            });
+                            self.$('.js-memberof').append(v.render().el);
+                            groupids.push(group.id);
+                        }
+                    });
 
-                // Don't show too many
-                self.$('.js-memberof').showFirst({
-                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
-                    count: 5
-                });
-                self.$('.js-applied').showFirst({
-                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
-                    count: 5
-                });
-                self.$('.js-otheremails').showFirst({
-                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
-                    count: 5
-                });
-            }
+                    self.$('.js-applied').empty();
+                    _.each(fromuser.applied, function (group) {
+                        if (groupids.indexOf(group.id) == -1) {
+                            // Don't both displaying applications to groups we've just listed as them being a member of.
+                            var mod = new Iznik.Model(group);
+                            var v = new Iznik.Views.ModTools.Member.Applied({
+                                model: mod
+                            });
+                            self.$('.js-applied').append(v.render().el);
+                        }
+                    });
+
+                    // Don't show too many
+                    self.$('.js-memberof').showFirst({
+                        controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                        count: 5
+                    });
+                    self.$('.js-applied').showFirst({
+                        controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                        count: 5
+                    });
+                    self.$('.js-otheremails').showFirst({
+                        controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                        count: 5
+                    });
+                }
+            });
         },
 
         wordify: function (str) {
@@ -428,6 +431,7 @@ define([
             } else {
                 // No standard message; just quote and open
                 var subj = self.model.get('subject');
+                subj = _.isUndefined(subj) ? '' : subj;
                 subj = 'Re: ' + self.substitutionStrings(subj, self.model.attributes, null, self.model.get('groups')[0]);
                 self.$('.js-subject').val(subj);
 
@@ -444,9 +448,6 @@ define([
 
                     // Expand substitution strings in body
                     msg = self.substitutionStrings(msg, self.model.attributes, null, self.model.get('groups')[0]);
-                } else {
-                    // Just expand substitutions in the stdmsg.
-                    msg = self.substitutionStrings(stdmsg.body, self.model.attributes, null, self.model.get('groups')[0]);
                 }
 
                 // Put it in

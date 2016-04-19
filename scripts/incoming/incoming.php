@@ -42,6 +42,10 @@ if (preg_match('/MODERATE -- (.*) posted to (.*)/', $msg, $matches)) {
     error_log("From Yahoo System");
     $id = $r->received(Message::YAHOO_SYSTEM, $envfrom, $envto, $msg);
     $rc = $r->route();
+} else {
+    error_log("Email");
+    $id = $r->received(Message::EMAIL, $envfrom, $envto, $msg);
+    $rc = $r->route();
 }
 
 fwrite($logh, "Route returned $rc");

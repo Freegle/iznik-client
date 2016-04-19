@@ -957,9 +957,8 @@ class Message
             $this->type = Message::TYPE_OTHER;
         }
 
-        if ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED) {
-            # Make sure we have a user and a membership for the originator of this message; they were a member
-            # at the time they sent this.  If they have since left we'll pick that up later via a sync.
+        if ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED  || $source == Message::EMAIL) {
+            # Make sure we have a user.
             $u = new User($this->dbhr, $this->dbhm);
 
             # If there is a Yahoo uid in here - which there isn't always - we might be able to find them that way.
@@ -1006,8 +1005,9 @@ class Message
                 # We might not have this email associated with this user.
                 $emailid = $u->addEmail($this->fromaddr, 0, FALSE);
 
-                if ($emailid) {
-                    # And we might not have a membership of this group.
+                if ($emailid && ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED)) {
+                    # Make sure we have a membership for the originator of this message; they were a member
+                    # at the time they sent this.  If they have since left we'll pick that up later via a sync.
                     if (!$u->isMember($this->groupid)) {
                         $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid);
                     }
@@ -1736,6 +1736,20 @@ class Message
     public function getFromuser()
     {
         return $this->fromuser;
+    }
+
+    public function findFromReply($userid) {
+        # Unfortunately, it's fairly common for people replying by email to compose completely new
+        # emails with subjects of their choice, or reply from Yahoo Groups which doesn't add
+        # In-Reply-To headers.  So we just have to do the best we can using the email subject.  The Damerau–Levenshtein
+        # distance does this for us - if we get a subject which is just "Re: " and the original, then that will come
+        # top.
+        #
+        # We only expect to be matching replies for reuse/Freegle groups, and it's not worth matching against any
+        # old messages.
+        $sql = "SELECT messages.id, subject, messages.date, DAMLEVLIM(subject, ?, 50) AS dist FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND fromuser = ? INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type IN ('Freegle', 'Reuse') AND DATEDIFF(NOW(), messages.arrival) < 90 ORDER BY dist ASC LIMIT 1;";
+        $messages = $this->dbhr->preQuery($sql, [ $this->subject, $userid ]);
+        return(count($messages) > 0 ? $messages[0]['id'] : NULL);
     }
 
     public function recordRelated() {

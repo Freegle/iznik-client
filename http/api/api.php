@@ -241,7 +241,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             }
 
             if (BROWSERTRACKING && (presdef('type', $_REQUEST, NULL) != 'GET') &&
-                (gettype($ret) == 'Array' && !array_key_exists('nolog', $ret))) {
+                (gettype($ret) == 'array' && !array_key_exists('nolog', $ret))) {
                 # Save off the API call and result, except for the (very frequent) event tracking calls.  Don't
                 # save GET calls as they don't change the DB and there are a lot of them.
                 #
