@@ -1659,7 +1659,7 @@ class Message
                 ]);
                 foreach ($gatts as $gatt) {
                     foreach (['yahooapprovedid', 'yahoopendingid'] as $newatt) {
-                        error_log("Compare old {$gatt[$newatt]} vs new {$this->$newatt}");
+                        #error_log("Compare old {$gatt[$newatt]} vs new {$this->$newatt}");
                         if (!$gatt[$newatt] || ($this->$newatt && $gatt[$newatt] != $this->$newatt)) {
                             error_log("Update mesages_groups for $newatt");
                             $this->dbhm->preExec("UPDATE messages_groups SET $newatt = ? WHERE msgid = ? AND groupid = ?;", [

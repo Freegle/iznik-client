@@ -2,7 +2,8 @@ define([
     'jquery',
     'underscore',
     'backbone',
-    'iznik/base'
+    'iznik/base',
+    'iznik/views/chat/chat'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Message = Iznik.View.extend({
         className: "panel panel-info marginbotsm",
@@ -155,12 +156,15 @@ define([
                 id: self.model.get('chatid')
             });
 
-            // If the number of unseen messages in this chat changes, update this view so that the count is
-            // displayed here.
-            self.listenToOnce(chat, 'change:unseen', self.render);
-            self.model.set('unseen', chat.get('unseen'));
-            Iznik.View.prototype.render.call(self);
-            self.$('.timeago').timeago();
+            // We might not find this chat if the user has closed it.
+            if (!_.isUndefined(chat)) {
+                // If the number of unseen messages in this chat changes, update this view so that the count is
+                // displayed here.
+                self.listenToOnce(chat, 'change:unseen', self.render);
+                self.model.set('unseen', chat.get('unseen'));
+                Iznik.View.prototype.render.call(self);
+                self.$('.timeago').timeago();
+            }
 
             return(this);
         }

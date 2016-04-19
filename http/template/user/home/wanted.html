@@ -13,10 +13,12 @@
             </span>
             <% } %>
             &nbsp;
-            <span class="badge badge-unread js-unreadcountholder" title="The number of unread replies about this item.">
-                <div class="glyphicon glyphicon-comment" />
-                <div class="js-unreadcount inline" />
-            </span>
+            <div class="js-unreadcountholder">
+                <span class="badge badge-unread" title="The number of unread replies about this item.">
+                    <div class="glyphicon glyphicon-comment" />
+                    <div class="js-unreadcount inline" />
+                </span>
+            </div>
             <span class="js-noreplies badge faded" title="No replies yet.">
                 <div class="glyphicon glyphicon-user" />
                 0
@@ -25,7 +27,7 @@
     </a>
     <div id="wanted-{{id}}" class="panel-collapse collapse">
         <div class="panel-body nopad">
-            <div class="row">
+            <div class="row topspace">
                 <div class="col-md-10">
                     <div class="js-groups" />
                 </div>
