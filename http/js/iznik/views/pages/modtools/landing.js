@@ -115,6 +115,8 @@ define([
                     
                     if (matches && matches.length > 0 && matches[0].length > 0) {
                         var yid = matches[1];
+                        var p = yid.indexOf('@');
+                        yid = p == -1 ? yid : yid.substring(0, p);
                         self.$('.js-yahooinfo').html("You're logged in to Yahoo as " + yid + ".");
                         Iznik.Session.set('loggedintoyahooas', yid);
                     } else {
