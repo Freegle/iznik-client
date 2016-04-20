@@ -332,6 +332,7 @@ class Group extends Entity
             # save off the uid, and work out the role.
             $u = new User($this->dbhm, $this->dbhm);
             $roles = [];
+            $count = 0;
 
             error_log("Scan members {$this->group['nameshort']}");
             foreach ($members as &$memb) {
@@ -367,11 +368,7 @@ class Group extends Entity
                         # We don't - create them.
                         preg_match('/(.*)@/', $memb['email'], $matches);
                         $name = presdef('name', $memb, $matches[1]);
-                        $uid = $u->create(NULL, NULL, $name, "During SetMembers for {$this->group['nameshort']}");
-
-                        if (pres('yahooUserId', $memb)) {
-                            $u->setPrivate('yahooUserId', $memb['yahooUserId']);
-                        }
+                        $uid = $u->create(NULL, NULL, $name, "During SetMembers for {$this->group['nameshort']}", presdef('yahooUserId', $memb, NULL), presdef('yahooid', $memb, NULL));
                     } else {
                         $u = new User($this->dbhr, $this->dbhm, $uid);
                     }
@@ -413,6 +410,12 @@ class Group extends Entity
                     $role = pres($uid, $roles) ? $u->roleMax($roles[$uid], $thisrole) : $thisrole;
 
                     $roles[$uid] = $role;
+                }
+
+                $count++;
+
+                if ($count % 1000 == 0) {
+                    error_log("...$count");
                 }
             }
 

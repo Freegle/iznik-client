@@ -301,7 +301,6 @@ define([
 
                         // Defer as container not yet in DOM.
                         _.defer(function() {
-                            // The minimised chats can request that the chat be restored.
                             Iznik.minimisedChats = new Backbone.CollectionView({
                                 el: $('#notifchatdropdown'),
                                 modelView: Iznik.Views.Chat.Minimised,

@@ -111,12 +111,12 @@ class User extends Entity
         $this->dbhm = $dbhm;
     }
 
-    public function create($firstname, $lastname, $fullname, $reason = '') {
+    public function create($firstname, $lastname, $fullname, $reason = '', $yahooUserId = NULL, $yahooid = NULL) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO users (firstname, lastname, fullname) VALUES (?, ?, ?)",
-                [$firstname, $lastname, $fullname]);
+            $rc = $this->dbhm->preExec("INSERT INTO users (firstname, lastname, fullname, yahooUserId, yahooid) VALUES (?, ?, ?, ?, ?)",
+                [$firstname, $lastname, $fullname, $yahooUserId, $yahooid]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
             $id = NULL;
@@ -415,20 +415,6 @@ class User extends Entity
         # Check whether this user now counts as a possible spammer.
         $s = new Spam($this->dbhr, $this->dbhm);
         $s->checkUser($this->id);
-
-        return($rc);
-    }
-
-    public function addYahooMembership($membershipid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
-
-        #error_log("Add membership {$this->id} to $groupid with $emailid");
-        $rc = $this->dbhm->preExec("REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?,?);", [
-            $membershipid,
-            $role,
-            $emailid,
-            $collection
-        ]);
 
         return($rc);
     }
