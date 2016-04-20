@@ -56,6 +56,16 @@ class apiTest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testLeaveTrans() {
+        error_log(__METHOD__);
+
+        # Should fail a couple of times and then work.
+        $ret = $this->call('DBleaveTrans', 'POST', []);
+        assertEquals(1000, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testOptions() {
         error_log(__METHOD__);
 
