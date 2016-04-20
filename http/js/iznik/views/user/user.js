@@ -473,7 +473,8 @@ define([
                 if (groupids.indexOf(group.id) == -1) {
                     var mod = new Iznik.Model(group);
                     var v = new Iznik.Views.ModTools.Member.Of({
-                        model: mod
+                        model: mod,
+                        user: self.model
                     });
                     self.$('.js-memberof').append(v.render().el);
                     groupids.push(group.id);
@@ -512,6 +513,15 @@ define([
         template: 'modtools_member_of',
 
         render: function() {
+            var emails = this.options.user.get('emails');
+            var email = _.findWhere(emails, {
+                id: this.model.get('emailid')
+            });
+
+            if (email) {
+                this.model.set('email', email.email);
+            }
+
             this.$el.html(window.template(this.template)(this.model.toJSON2()));
             this.$('.timeago').timeago();
             return(this);

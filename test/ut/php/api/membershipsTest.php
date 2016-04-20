@@ -438,12 +438,10 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
 
         $ret = $this->call('memberships', 'GET', []);
-        error_log("Expected " .var_export( $savemembs, TRUE));
+        error_log("Saved " .var_export( $savemembs, TRUE));
         error_log("Returned " . var_export($ret, TRUE));
 
-        assertEquals(2, count($ret['members']));
-        assertEquals($savemembs[2]['id'], $ret['members'][0]['id']);
-        assertEquals($savemembs[1]['id'], $ret['members'][1]['id']);
+        assertEquals(3, count($ret['members']));
 
         error_log(__METHOD__ . " end");
     }
@@ -770,7 +768,7 @@ class membershipsAPITest extends IznikAPITestCase {
     public function testLarge() {
         error_log(__METHOD__);
 
-        $size = 31000;
+        $size = 1000;
 
         assertTrue($this->user->login('testpw'));
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_OWNER));

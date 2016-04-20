@@ -155,7 +155,8 @@ define([
             _.each(self.model.get('memberof'), function (group) {
                 var mod = new Iznik.Model(group);
                 var v = new Iznik.Views.ModTools.Member.Of({
-                    model: mod
+                    model: mod,
+                    user: self.model
                 });
                 self.$('.js-memberof').append(v.render().el);
             });

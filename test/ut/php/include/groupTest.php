@@ -132,7 +132,9 @@ class groupTest extends IznikTestCase {
         # Create owner
         $u = new User($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        $u->addMembership($gid, User::ROLE_OWNER);
+        $eid = $u->addEmail('test@test.com');
+        error_log("Create owner $id with email $eid");
+        $u->addMembership($gid, User::ROLE_OWNER, $eid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
@@ -167,6 +169,7 @@ class groupTest extends IznikTestCase {
         assertEquals(0, $rc['ret']);
 
         $membs = $g->getMembers();
+        error_log("Got " . count($membs) . " now");
         error_log(var_export($membs, TRUE));
         assertEquals('-testid1', $membs[0]['yahooid']);
         assertEquals('test2@test.com', $membs[0]['otheremails'][0]['email']);
