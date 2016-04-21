@@ -14,20 +14,19 @@ define([
 
         carettoggle: function() {
             if (this.$('.js-caretdown').css('display') != 'none') {
-                this.$('.js-replycount').fadeOut('slow');
-                this.$('.js-unreadcountholder').fadeOut('slow');
+                this.$('.js-replycount').addClass('reallyHide');
+                this.$('.js-unreadcountholder').addClass('reallyHide');
                 this.$('.js-caretdown').hide();
                 this.$('.js-caretup').show();
             } else {
-                this.$('.js-replycount').fadeIn('slow');
-                this.$('.js-unreadcountholder').fadeIn('slow');
+                this.$('.js-replycount').removeClass('reallyHide');
+                this.$('.js-unreadcountholder').removeClass('reallyHide');
                 this.$('.js-caretdown').show();
                 this.$('.js-caretup').hide();
             }
         },
 
         updateReplies: function() {
-            this.replies = new Iznik.Collection(this.model.get('replies'));
             if (this.replies.length == 0) {
                 this.$('.js-noreplies').fadeIn('slow');
             } else {
@@ -42,7 +41,20 @@ define([
                 var refmsgids = chat.get('refmsgids');
                 _.each(refmsgids, function(refmsgid) {
                     if (refmsgid == self.model.get('id')) {
-                        unread += chat.get('unseen');
+                        var thisun = chat.get('unseen');
+                        console.log("Got chat unseen", thisun);
+                        unread += thisun;
+
+                        if (thisun > 0) {
+                            // This chat might indicate a new replier we've not got listed.
+                            // TODO Could make this perform better than doing a full fetch.
+                            self.model.fetch().then(function() {
+                                console.log("Fetched");
+                                console.log("add new replies", self.model.get('replies'));
+                                self.replies.add(self.model.get('replies'));
+                                self.updateReplies();
+                            });
+                        }
                     }
                 });
             });
@@ -52,6 +64,26 @@ define([
                 this.$('.js-unreadcountholder').show();
             } else {
                 this.$('.js-unreadcountholder').hide();
+            }
+        },
+
+        watchChatRooms: function() {
+            var self = this;
+
+            if (this.inDOM()) {
+                // If the number of unread messages relating to this message changes, we want to flag it in the count.  So
+                // look for chats which refer to this message.  Note that chats can refer to multiple.
+                console.log("watchChatRooms");
+                Iznik.Session.chats.fetch().then(function() {
+                    console.log("Fetched chats");
+                    Iznik.Session.chats.each(function (chat) {
+                        self.listenTo(chat, 'change:unseen', self.updateUnread);
+                    });
+
+                    self.updateUnread();
+
+                    self.listenToOnce(Iznik.Session.chats, 'newroom', self.watchChatRooms);
+                });
             }
         },
 
@@ -82,6 +114,7 @@ define([
             // Show and update the reply details.
             if ( self.$('.js-replies').length > 0) {
                 self.$('.js-noreplies').hide();
+                self.replies = new Iznik.Collection(self.model.get('replies'));
                 self.listenTo(self.model, 'change:replies', self.updateReplies);
                 self.updateReplies();
 
@@ -99,17 +132,11 @@ define([
                 self.$('.js-noreplies').show();
             }
 
-            // If the number of unread messages relating to this message changes, we want to flag it in the count.  So
-            // look for chats which refer to this message.  Note that chats can refer to multiple.
-            Iznik.Session.chats.each(function(chat) {
-                var refmsgids = chat.get('refmsgids');
-                _.each(refmsgids, function(refmsgid) {
-                    if (refmsgid == self.model.get('id')) {
-                        self.listenTo(chat, 'change:unseen', self.updateUnread);
-                    }
-                })
-            });
             self.updateUnread();
+
+            // We want to keep an eye on chat messages, because those which are in conversations referring to our
+            // message should affect the counts we display.
+            self.watchChatRooms();
 
             self.$('.timeago').timeago();
 

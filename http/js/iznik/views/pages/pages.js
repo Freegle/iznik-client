@@ -99,8 +99,8 @@ define([
 
                     if (loggedIn) {
                         loggedInOnly.toggleClass('reallyHide');
-                        loggedInOnly.fadeIn('slow');
-                        loggedOutOnly.fadeOut('slow');
+                        // loggedInOnly.fadeIn('slow');
+                        // loggedOutOnly.fadeOut('slow');
 
                         // Since we're logged in, we can start chat.
                         ChatHolder({
@@ -108,8 +108,8 @@ define([
                         }).render();
                     } else {
                         loggedOutOnly.toggleClass('reallyHide');
-                        loggedOutOnly.fadeIn('slow');
-                        loggedInOnly.fadeOut('slow');
+                        // loggedOutOnly.fadeIn('slow');
+                        // loggedInOnly.fadeOut('slow');
                     }
                 });
 

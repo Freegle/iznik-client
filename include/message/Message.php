@@ -407,6 +407,7 @@ class Message
                 if ($reply['userid']) {
                     $u = new User($this->dbhr, $this->dbhm, $reply['userid']);
                     $ret['replies'][] = [
+                        'id' => $reply['chatid'],
                         'user' => $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE),
                         'chatid' => $reply['chatid'],
                         'lastdate' => ISODate($reply['lastdate'])

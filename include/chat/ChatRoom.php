@@ -101,14 +101,31 @@ class ChatRoom extends Entity
         if ($id) {
             $this->fetch($this->dbhr, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
 
-            # Now the conversation exists, set our own presence in it to Online.  This will have the effect of
+            # Now the conversation exists, set presence.
+            #
+            # Start off with the two members offline.
+            $this->updateRoster($user1, NULL, ChatRoom::STATUS_OFFLINE);
+            $this->updateRoster($user2, NULL, ChatRoom::STATUS_OFFLINE);
+
+            # If we're logged in as one of the members, set our own presence in it to Online.  This will have the effect of
             # overwriting any previous Closed status, which would stop it appearing in our list of chats.  So if you
             # close a conversation, and then later reopen it by finding a relevant link, then it comes back.
             $me = whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : NULL;
 
-            if ($myid) {
+            if ($myid == $user1 || $myid == $user2) {
                 $this->updateRoster($myid, NULL, ChatRoom::STATUS_ONLINE);
+            }
+
+            # Poke the (other) member(s) to let them know to pick up the new chat
+            $n = new Notifications($this->dbhr, $this->dbhm);
+
+            foreach ([$user1, $user2] as $user) {
+                if ($myid != $user) {
+                    $n->poke($user, [
+                        'newroom' => $id
+                    ]);
+                }
             }
         }
 
@@ -300,8 +317,6 @@ class ChatRoom extends Entity
             $n->poke($rost['userid'], $data);
             $count++;
         }
-
-        error_log("Poked $count on {$this->id}");
     }
 
     public function getMessages($limit = 100) {

@@ -50,27 +50,53 @@ define([
                             if (ret && ret.hasOwnProperty('text')) {
                                 var data = ret.text;
 
-                                if (data.hasOwnProperty('roomid')) {
+                                if (data.hasOwnProperty('newroom')) {
+                                    // We have been notified that we are now in a new chat.  Pick it up.
+                                    Iznik.Session.chats.fetch({
+                                        modtools: self.options.modtools
+                                    }).then(function() {
+                                        // Now that we have the chat, update our status in it.
+                                        console.log("Fetched chats");
+                                        var chat = Iznik.Session.chats.get(data.newroom);
+
+                                        // If the unread message count changes in the new chat, we want to update.
+                                        self.listenTo(chat, 'change:unseen', self.updateCounts);
+                                        self.updateCounts();
+
+                                        console.log("found chat", chat);
+
+                                        if (chat) {
+                                            var chatView = Iznik.activeChats.viewManager.findByModel(chat);
+                                            console.log("found chat view", chatView);
+                                            chatView.updateRoster(chatView.statusWithOverride('Online'), chatView.noop);
+                                        }
+
+                                        Iznik.Session.chats.trigger('newroom', data.newroom);
+                                    });
+                                } else if (data.hasOwnProperty('roomid')) {
                                     // Activity on this room.  If the chat is active, then we refetch the mesages
                                     // within it so that they are displayed.  If it's not, then we don't want
                                     // to keep fetching messages - the notification count will get updated by
                                     // the roster poll.
                                     var chat = Iznik.Session.chats.get(data.roomid);
 
-                                    // console.log("Notification", self, chat, data);
-                                    var chatView = Iznik.activeChats.viewManager.findByModel(chat);
+                                    // It's possible that we haven't yet fetched the model for this chat.
+                                    if (chat) {
+                                        // console.log("Notification", self, chat, data);
+                                        var chatView = Iznik.activeChats.viewManager.findByModel(chat);
 
-                                    if (!chatView.minimised) {
-                                        waiting = true;
-                                        chatView.messages.fetch().then(function () {
-                                            // Wait for the next one.  Slight timing window here but the fallback
-                                            // protects us from losing messages forever.
-                                            self.wait();
+                                        if (!chatView.minimised) {
+                                            waiting = true;
+                                            chatView.messages.fetch().then(function () {
+                                                // Wait for the next one.  Slight timing window here but the fallback
+                                                // protects us from losing messages forever.
+                                                self.wait();
 
-                                            // Also fetch the chat, because the number of unread messages in it will
-                                            // update counts in various places.
-                                            chat.fetch();
-                                        });
+                                                // Also fetch the chat, because the number of unread messages in it will
+                                                // update counts in various places.
+                                                chat.fetch();
+                                            });
+                                        }
                                     }
                                 }
                             }
@@ -233,6 +259,8 @@ define([
                 $('#js-notifchat .js-totalcount').html(unseen).hide();
                 document.title = title;
             }
+
+            this.showMin();
         },
 
         openChat: function(userid) {
@@ -264,6 +292,18 @@ define([
             }
         },
 
+        showMin: function() {
+            // No point showing the chat icon if we've nothing to show - will just encourage people to click
+            // on something which won't do anything.
+            if (Iznik.Session.chats.length > 0) {
+                $('#js-notifchat').show();
+            } else {
+                $('#js-notifchat').hide();
+            }
+
+            $('#js-notifications').hide();
+        },
+
         render: function() {
             var self = this;
 
@@ -280,15 +320,29 @@ define([
                         modtools: self.options.modtools
                     }
                 }).then(function () {
-                    if (Iznik.Session.chats.length > 0) {
-                        Iznik.Session.chats.each(function (chat) {
-                            // If the unread message count changes, we want to update it.
-                            self.listenTo(chat, 'change:unseen', self.updateCounts);
-                        });
+                    Iznik.Session.chats.each(function (chat) {
+                        // If the unread message count changes, we want to update it.
+                        self.listenTo(chat, 'change:unseen', self.updateCounts);
+                    });
 
-                        Iznik.activeChats = new Backbone.CollectionView({
-                            el: self.$('.js-chats'),
-                            modelView: Iznik.Views.Chat.Active,
+                    Iznik.activeChats = new Backbone.CollectionView({
+                        el: self.$('.js-chats'),
+                        modelView: Iznik.Views.Chat.Active,
+                        collection: Iznik.Session.chats,
+                        modelViewOptions: {
+                            organise: _.bind(self.organise, self),
+                            updateCounts: _.bind(self.updateCounts, self),
+                            modtools: self.options.modtools
+                        }
+                    });
+
+                    Iznik.activeChats.render();
+
+                    // Defer as container not yet in DOM.
+                    _.defer(function() {
+                        Iznik.minimisedChats = new Backbone.CollectionView({
+                            el: $('#notifchatdropdown'),
+                            modelView: Iznik.Views.Chat.Minimised,
                             collection: Iznik.Session.chats,
                             modelViewOptions: {
                                 organise: _.bind(self.organise, self),
@@ -297,29 +351,11 @@ define([
                             }
                         });
 
-                        Iznik.activeChats.render();
+                        Iznik.minimisedChats.render();
+                    })
 
-                        // Defer as container not yet in DOM.
-                        _.defer(function() {
-                            Iznik.minimisedChats = new Backbone.CollectionView({
-                                el: $('#notifchatdropdown'),
-                                modelView: Iznik.Views.Chat.Minimised,
-                                collection: Iznik.Session.chats,
-                                modelViewOptions: {
-                                    organise: _.bind(self.organise, self),
-                                    updateCounts: _.bind(self.updateCounts, self),
-                                    modtools: self.options.modtools
-                                }
-                            });
-
-                            Iznik.minimisedChats.render();
-                        })
-
-                        self.organise();
-                        self.$el.css('visibility', 'visible');
-                    } else {
-                        $('#js-notifchat').css('visibility', 'hidden');
-                    }
+                    self.organise();
+                    self.showMin();
                 });
 
                 // Now ensure we are told about new messages.
@@ -639,10 +675,10 @@ define([
             // We make sure we don't update the server too often unless the status changes, whatever the user
             // is doing with this chat.  This helps reduce server load for large numbers of clients.
             var now = (new Date()).getTime();
-            // console.log("Consider roster update", status, self.rosterUpdatedStatus, now, self.rosterUpdatedAt, now - self.rosterUpdatedAt);
+            console.log("Consider roster update", status, self.rosterUpdatedStatus, now, self.rosterUpdatedAt, now - self.rosterUpdatedAt);
 
             if (status != self.rosterUpdatedStatus || now - self.rosterUpdatedAt > 25000) {
-                // console.log("Issue roster update");
+                console.log("Issue roster update");
                 $.ajax({
                     url: API + 'chat/rooms/' + self.model.get('id'),
                     type: 'POST',
@@ -660,7 +696,7 @@ define([
                     }
                 });
             } else {
-                // console.log("Suppress update", self.lastRoster);
+                console.log("Suppress update", self.lastRoster);
                 callback({
                     ret: 0,
                     status: 'Update suppressed',

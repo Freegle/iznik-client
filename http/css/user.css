@@ -53,12 +53,8 @@
 .navbar-custom .navbar-text {
     color: #ffffff;
 }
-.navbar-custom .navbar-nav > li:last-child > a {
-    border-right: 1px solid #387815;
-}
 .navbar-custom .navbar-nav > li > a {
     color: #ffffff;
-    border-left: 1px solid #387815;
 }
 .navbar-custom .navbar-nav > li > a:hover,
 .navbar-custom .navbar-nav > li > a:focus {
@@ -148,6 +144,22 @@
 
 .dropdown-menu {
     background-color: white !important;
+}
+
+.navbar-collapse.in {
+    background-color: darkgreen !important;
+}
+
+@media (min-width: 768px) {
+    .navbar-dropdown-text {
+        display: none;
+    }
+}
+
+@media (max-width: 767px) {
+    .navbar-dropdown-text {
+        display: inline
+    }
 }
 
 .navbar-custom .navbar-link {

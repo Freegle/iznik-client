@@ -75,8 +75,6 @@ define([
             });
 
             self.listenTo(self.messages, 'remove', function(msg) {
-                console.log("Removed", msg);
-
                 if (this.model.get('type') == 'Offer') {
                     self.offers.remove(msg);
                 } else if (this.model.get('type') == 'Wanted') {
@@ -88,7 +86,8 @@ define([
             self.messages.fetch({
                 data: {
                     fromuser: Iznik.Session.get('me').id,
-                    types: ['Offer', 'Wanted']
+                    types: ['Offer', 'Wanted'],
+                    limit: 100
                 }
             }).then(function() {
                 if (self.offers.length == 0) {
