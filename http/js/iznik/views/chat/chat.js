@@ -45,6 +45,7 @@ define([
 
                     $.ajax({
                         url: window.location.protocol + '//' + chathost + '/subscribe/' + myid,
+                        global: false, // don't trigger ajaxStart
                         success: function (ret) {
                             var waiting = false;
                             if (ret && ret.hasOwnProperty('text')) {
