@@ -1295,9 +1295,10 @@ class Message
         return($rt);
     }
 
-    public function getGroups() {
+    public function getGroups($includedeleted = FALSE) {
         $ret = [];
-        $sql = "SELECT groupid FROM messages_groups WHERE msgid = ? AND deleted = 0;";
+        $delq = $includedeleted ? "" : " AND deleted = 0";
+        $sql = "SELECT groupid FROM messages_groups WHERE msgid = ? $delq;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
         foreach ($groups as $group) {
             $ret[] = $group['groupid'];
@@ -1635,7 +1636,10 @@ class Message
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
             
             # We want the old message to be on whatever group this message was sent to.
-            $oldgroups = $m->getGroups();
+            #
+            # We want to see the message on the group even if it's been deleted, otherwise we'll go ahead and try
+            # to re-add it and get an exception.
+            $oldgroups = $m->getGroups(TRUE);
             #error_log("Compare groups $this->groupid vs " . var_export($oldgroups, TRUE));
             if (!in_array($this->groupid, $oldgroups)) {
                 // This code is here for future handling of the same message on multiple groups, but since we
