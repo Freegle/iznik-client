@@ -12,18 +12,28 @@ define([
             'click .js-caret': 'carettoggle'
         },
 
-        carettoggle: function() {
-            if (this.$('.js-caretdown').css('display') != 'none') {
+        expanded: false,
+
+        caretshow: function() {
+            console.log("Expanded?", this.expanded);
+            if (!this.expanded) {
                 this.$('.js-replycount').addClass('reallyHide');
                 this.$('.js-unreadcountholder').addClass('reallyHide');
+                this.$('.js-promised').addClass('reallyHide');
                 this.$('.js-caretdown').hide();
                 this.$('.js-caretup').show();
             } else {
                 this.$('.js-replycount').removeClass('reallyHide');
                 this.$('.js-unreadcountholder').removeClass('reallyHide');
+                this.$('.js-promised').removeClass('reallyHide');
                 this.$('.js-caretdown').show();
                 this.$('.js-caretup').hide();
             }
+        },
+
+        carettoggle: function() {
+            this.expanded = !this.expanded;
+            this.caretshow();
         },
 
         updateReplies: function() {
@@ -94,6 +104,13 @@ define([
             this.model.set('textbody', wbr(this.model.get('textbody'), 20));
 
             Iznik.View.prototype.render.call(self);
+
+            if (this.expanded) {
+                this.$('.panel-collapse').collapse('show');
+            } else {
+                this.$('.panel-collapse').collapse('hide');
+            }
+
             var groups = self.model.get('groups');
 
             _.each(groups, function(group) {
@@ -122,7 +139,8 @@ define([
                     el: self.$('.js-replies'),
                     modelView: Iznik.Views.User.Message.Reply,
                     modelViewOptions: {
-                        collection: self.replies
+                        collection: self.replies,
+                        message: self.model
                     },
                     collection: self.replies
                 });
@@ -137,6 +155,9 @@ define([
             // We want to keep an eye on chat messages, because those which are in conversations referring to our
             // message should affect the counts we display.
             self.watchChatRooms();
+
+            // If the number of promises changes, then we want to update what we display.
+            self.listenTo(self.model, 'change:promisecount', self.render);
 
             self.$('.timeago').timeago();
 
@@ -166,7 +187,9 @@ define([
         template: 'user_message_reply',
         
         events: {
-            'click': 'dm'
+            'click .js-chat': 'dm',
+            'click .js-promise': 'promise',
+            'click .js-renege': 'renege'
         },
         
         dm: function() {
@@ -176,8 +199,63 @@ define([
             })
         },
 
+        promise: function() {
+            var self = this;
+
+            var v = new Iznik.Views.Confirm({
+                model: self.model
+            });
+            v.template = 'user_message_promise';
+
+            self.listenToOnce(v, 'confirmed', function() {
+                $.ajax({
+                    url: API + 'message/' + self.options.message.get('id'),
+                    type: 'POST',
+                    data: {
+                        action: 'Promise',
+                        userid: self.model.get('user').id
+                    }, success: function() {
+                        self.options.message.fetch().then(function() {
+                            console.log("Fetched", self.options.message);
+                            self.render.call(self, self.options);
+                        });
+                    }
+                })
+            });
+
+            v.render();
+        },
+
+        renege: function() {
+            var self = this;
+
+            var v = new Iznik.Views.Confirm({
+                model: self.model
+            });
+            v.template = 'user_message_renege';
+
+            self.listenToOnce(v, 'confirmed', function() {
+                $.ajax({
+                    url: API + 'message/' + self.options.message.get('id'),
+                    type: 'POST',
+                    data: {
+                        action: 'Renege',
+                        userid: self.model.get('user').id
+                    }, success: function() {
+                        self.options.message.fetch().then(function() {
+                            self.render.call(self, self.options);
+                        });
+                    }
+                })
+            });
+
+            v.render();
+        },
+
         render: function() {
             var self = this;
+
+            console.log("Render message", this);
 
             var chat = Iznik.Session.chats.get({
                 id: self.model.get('chatid')
@@ -189,6 +267,7 @@ define([
                 // displayed here.
                 self.listenToOnce(chat, 'change:unseen', self.render);
                 self.model.set('unseen', chat.get('unseen'));
+                self.model.set('message', self.options.message.toJSON2());
                 Iznik.View.prototype.render.call(self);
                 self.$('.timeago').timeago();
             }

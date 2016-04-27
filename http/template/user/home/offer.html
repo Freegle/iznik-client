@@ -17,6 +17,9 @@
                     <div class="js-unreadcount inline" />
                 </span>
             </div>
+            <% if (obj.promises && promises.length > 0) { %>
+                <span class="glyphicons glyphicons-handshake" title="You've promised this item to someone" />
+            <% } %>
         </div>
     </a>
     <div id="offer-{{id}}" class="panel-collapse collapse">

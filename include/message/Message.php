@@ -415,10 +415,21 @@ class Message
                 }
             }
 
+            $ret['promisecount'] = 0;
+
             if ($this->type == Message::TYPE_OFFER) {
                 # Add any promises, i.e. one or more people we've said can have this.
                 $sql = "SELECT * FROM messages_promises WHERE msgid = ? ORDER BY id DESC;";
                 $ret['promises'] = $this->dbhr->preQuery($sql, [ $this->id ]);
+                $ret['promisecount'] = count($ret['promises']);
+
+                foreach ($ret['replies'] as &$reply) {
+                    foreach ($ret['promises'] as $promise) {
+                        if ($promise['userid'] == $reply['user']['id']) {
+                            $reply['promised'] = TRUE;
+                        }
+                    }
+                }
             }
         }
 
@@ -1689,7 +1700,7 @@ class Message
             }
 
             # Other atts which we want the latest version of.
-            foreach (['subject', 'message', 'textbody', 'htmlbody'] as $att) {
+            foreach (['date', 'subject', 'message', 'textbody', 'htmlbody'] as $att) {
                 $oldval = $m->getPrivate($att);
                 $newval = $this->getPrivate($att);
 
@@ -1701,6 +1712,7 @@ class Message
             }
 
             # We might need a new suggested subject, and mapping.
+            $m->setPrivate('suggestedsubject', NULL);
             $m->suggestedsubject = $m->suggestSubject($this->groupid, $this->subject);
 
             # Our new message may have a different set of attachments from the old one, or none.  Take the new lot.

@@ -5,18 +5,26 @@
             <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" ></abbr>
         </div>
         <div class="col-xs-2">
-            <div class="btn btn-primary btn-sm" title="Chat to this person">
-                <% if (unseen == 0) { %>
-                <div class="glyphicons glyphicons-conversation glyphicon-larger" />
-                <% } else { %>
-                <span class="badge badge-unread">{{unseen}}</span>
+            <div class="btn btn-primary btn-sm js-chat" title="Chat to this person">
+                <div class="glyphicons glyphicons-conversation glyphicon-larger">
+                <% if (unseen != 0) { %>
+                    <span class="badge badge-unread">{{unseen}}</span>
                 <% } %>
+                </div>
             </div>
         </div>
         <div class="col-xs-2">
-            <div class="btn btn-success btn-sm" title="Promise it to this person">
-                <div class="glyphicons glyphicons-handshake glyphicon-larger" />
-            </div>
+            <% if (message.type == 'Offer') { %>
+            <% if (obj.promised) { %>
+                <div class="btn btn-warning btn-sm js-renege" title="Remove promise">
+                    <div class="glyphicons glyphicons-remove-circle glyphicon-larger" />
+                </div>
+                <% } else { %>
+                <div class="btn btn-success btn-sm js-promise" title="Promise it to this person">
+                    <div class="glyphicons glyphicons-handshake glyphicon-larger" />
+                </div>
+                <% } %>
+            <% } %>
         </div>
     </div>
 </div>

@@ -16,6 +16,10 @@ define([
                 noSupporters: true
             });
 
+            var v = new Iznik.Views.Help.Box();
+            v.template = 'user_home_offerhelp';
+            this.$('.js-offerhelp').html(v.render().el);
+
             // It's quicker to get all our messages in a single call.  So we have two CollectionViews, one for offers,
             // one for wanteds.
             self.offers = new Iznik.Collection();

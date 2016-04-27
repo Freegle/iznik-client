@@ -135,7 +135,7 @@ define([
         },
 
         initialize: function(){
-            _.extend(this.events, Iznik.Views.User.Message.prototype.events);
+            this.events = _.extend(this.events, Iznik.Views.User.Message.prototype.events);
         },
         
         send: function() {
