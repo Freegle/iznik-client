@@ -1626,6 +1626,8 @@ class User extends Entity
         # will not have work which we are pestering mods to do.  We'll pick them up on the next sync or when they post.
         #
         # No need for a transaction - if things go wrong, the member will remain in pending, which is recoverable.
+        #
+        # Yahoo membership and our membership will become separate in future, so we have separate logging and tables.
         $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
         $members = $this->dbhr->preQuery($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
 
@@ -1648,6 +1650,13 @@ class User extends Entity
             ]);
 
             # The Yahoo membership should exist as we'll have created it when we triggered the application.
+            $this->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_YAHOO_JOINED,
+                'user' => $this->getId(),
+                'groupid' => $groupid
+            ]);
+
             $sql = "UPDATE memberships_yahoo SET collection = ? WHERE membershipid = (SELECT id FROM memberships WHERE userid = ? AND groupid = ?);";
             $rc = $this->dbhm->preExec($sql, [
                 MembershipCollection::APPROVED,
@@ -1968,6 +1977,13 @@ class User extends Entity
         for ($i = 0; $i < 10; $i++) {
             mail($g->getPrivate('nameshort') . "-subscribe@yahoogroups.com", "Please let me join", "Pretty please", $headers, "-f$email");
         }
+
+        $this->log->log([
+            'type' => Log::TYPE_USER,
+            'subtype' => Log::SUBTYPE_YAHOO_APPLIED,
+            'user' => $this->id,
+            'text' => $email
+        ]);
 
         return($email);
     }

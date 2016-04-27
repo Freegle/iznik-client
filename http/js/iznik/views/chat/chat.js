@@ -675,10 +675,10 @@ define([
             // We make sure we don't update the server too often unless the status changes, whatever the user
             // is doing with this chat.  This helps reduce server load for large numbers of clients.
             var now = (new Date()).getTime();
-            console.log("Consider roster update", status, self.rosterUpdatedStatus, now, self.rosterUpdatedAt, now - self.rosterUpdatedAt);
+            // console.log("Consider roster update", status, self.rosterUpdatedStatus, now, self.rosterUpdatedAt, now - self.rosterUpdatedAt);
 
             if (status != self.rosterUpdatedStatus || now - self.rosterUpdatedAt > 25000) {
-                console.log("Issue roster update");
+                // console.log("Issue roster update");
                 $.ajax({
                     url: API + 'chat/rooms/' + self.model.get('id'),
                     type: 'POST',
@@ -696,7 +696,7 @@ define([
                     }
                 });
             } else {
-                console.log("Suppress update", self.lastRoster);
+                // console.log("Suppress update", self.lastRoster);
                 callback({
                     ret: 0,
                     status: 'Update suppressed',

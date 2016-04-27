@@ -205,6 +205,15 @@ class MailRouter
                     $this->mail($replyto, $to, "Yes please", "I confirm this");
                 }
 
+                $u = new User($this->dbhr, $this->dbhm);
+                $uid = $u->findByEmail($to);
+                $this->log([
+                    'type' => Log::TYPE_USER,
+                    'subtype' => Log::SUBTYPE_YAHOO_CONFIRMED,
+                    'user' => $uid,
+                    'text' => $to
+                ]);
+
                 $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/confirm-invite-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) !== FALSE && count($matches) == 4) {
                 # This is an invitation by Yahoo to join a group, triggered by us in triggerYahooApplication.
@@ -214,6 +223,15 @@ class MailRouter
                     # Yahoo is sluggish - sending the confirm multiple times helps.
                     $this->mail($replyto, $to, "Yes please", "I confirm this");
                 }
+
+                $u = new User($this->dbhr, $this->dbhm);
+                $uid = $u->findByEmail($to);
+                $this->log([
+                    'type' => Log::TYPE_USER,
+                    'subtype' => Log::SUBTYPE_YAHOO_CONFIRMED,
+                    'user' => $uid,
+                    'text' => $to
+                ]);
 
                 $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/(.*)-acceptsub(.*)@yahoogroups.co.*/', $replyto, $matches) !== FALSE && count($matches) == 3) {
@@ -327,6 +345,7 @@ class MailRouter
                             # We have the user and the group.  Mark the membership as no longer pending (if
                             if ($log) { error_log("Found them $uid"); }
                             $u = new User($this->dbhr, $this->dbhm, $uid);
+
                             $u->markYahooApproved($gid);
 
                             # Dispatch any messages which are queued awaiting this group membership.

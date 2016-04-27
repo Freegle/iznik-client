@@ -119,6 +119,7 @@ define([
                         yid = p == -1 ? yid : yid.substring(0, p);
                         self.$('.js-yahooinfo').html("You're logged in to Yahoo as " + yid + ".");
                         Iznik.Session.set('loggedintoyahooas', yid);
+                        
                     } else {
                         self.$('.js-yahooinfo').html("You aren't logged in to Yahoo.");
                         Iznik.Session.unset('loggedintoyahooas');

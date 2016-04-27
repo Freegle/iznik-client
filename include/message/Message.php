@@ -1148,14 +1148,6 @@ class Message
         $approvedby = NULL;
         $approval = $this->getHeader('x-egroups-approved-by');
 
-        if ($approval && preg_match('/(.*) via/', $approval, $matches)) {
-            # We've got an approval.  See if we can find the mod.
-            $by = $matches[1];
-            $u = new User($this->dbhr, $this->dbhm);
-            $idid = $u->findByEmail($by);
-            $approvedby =  $idid ? $idid : $u->findByEmail($by);
-        }
-
         # Reduce the size of the message source
         $this->message = $this->pruneMessage();
 

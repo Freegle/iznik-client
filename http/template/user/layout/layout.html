@@ -1,7 +1,7 @@
 <nav class="navbar navbar-custom navbar-fixed-top">
     <div class="completefull container-fluid">
         <div class="nopad completefull navbar-header">
-            <button class="reallyHide btn btn-info js-signin js-loggedoutonly margtop" style="display:none">Sign in</button>
+            <button class="reallyHide btn btn-info js-signin js-loggedoutonly margtop pull-right">Sign in</button>
             <button id="dropdownmenu" class="js-menu reallyHide js-loggedinonly navbar-toggle collapsed btn btn-default" type="button" data-toggle="collapse" data-target="#navbar-collapse" aria-haspopup="true" role="button" aria-expanded="false">
                 <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true" />
             </button>
@@ -9,7 +9,7 @@
                 <img src="/images/user_logo.png" class="padmd img-responsive img-morerounded inline" />
             </a>
             <div class="collapse navbar-collapse" id="navbar-collapse">
-                <ul class="nav navbar-nav navbar-left">
+                <ul class="nav navbar-nav navbar-left reallyHide js-loggedinonly">
                     <li>
                         <a href="/mygroups">
                             <div class="glyphicons glyphicons-group glyphicon-larger vcenter" title="Your Freegle Groups" />
@@ -23,7 +23,7 @@
                         </a>
                     </li>
                 </ul>
-                <ul class="nav navbar-nav navbar-right">
+                <ul class="nav navbar-nav navbar-right reallyHide js-loggedinonly">
                     <li>
                         <a href="#" id="js-notifchat" class="" title="Messages from other Freeglers">
                             <div id="notifchatbutt" class="dropdown-toggle glyphicons glyphicon-larger glyphicons-conversation vcenter" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

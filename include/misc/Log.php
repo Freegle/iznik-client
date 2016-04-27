@@ -46,6 +46,9 @@ class Log
     const SUBTYPE_SPLIT = 'Split';
     const SUBTYPE_LICENSED = 'License';
     const SUBTYPE_LICENSE_PURCHASE = 'LicensePurchase';
+    const SUBTYPE_YAHOO_APPLIED = 'YahooApplied';
+    const SUBTYPE_YAHOO_CONFIRMED = 'YahooConfirmed';
+    const SUBTYPE_YAHOO_JOINED = 'YahooJoined';
 
     function __construct($dbhr, $dbhm)
     {

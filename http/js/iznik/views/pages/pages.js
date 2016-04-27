@@ -59,7 +59,7 @@ define([
                 var chats = $('#notifchatdropdown').children().detach();
                 $('#bodyContent').html(this.modtools ?
                     window.template('modtools_layout_layout') :
-                    window.template('layout_layout'));
+                    window.template('user_layout_layout'));
                 $('.js-pageContent').html(this.$el);
                 $('#notifchatdropdown').html(chats);
 
