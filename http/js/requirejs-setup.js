@@ -48,6 +48,7 @@ requirejs.config({
         "jquery.ui.widget": "/js/lib/jquery-file-upload/vendor/jquery.ui.widget",
         "jquery-ui": "/js/lib/jquery-ui/jquery-ui.min",
         "underscore": "/js/lib/underscore",
+        "jquery-show-first": "/js/lib/jquery-show-first",
 
         "iznik": "/js/iznik"
     },
