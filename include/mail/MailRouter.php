@@ -471,7 +471,7 @@ class MailRouter
             if (!$ret) {
                 # Not obviously spam.
                 $groups = $this->msg->getGroups();
-                error_log("Groups " . var_export($groups, TRUE));
+                #error_log("Groups " . var_export($groups, TRUE));
                 if ($log) { error_log("Not obviously spam, groups " . var_export($groups, TRUE)); }
 
                 if (count($groups) > 0) {

@@ -414,6 +414,12 @@ class Message
                     ];
                 }
             }
+
+            if ($this->type == Message::TYPE_OFFER) {
+                # Add any promises, i.e. one or more people we've said can have this.
+                $sql = "SELECT * FROM messages_promises WHERE msgid = ? ORDER BY id DESC;";
+                $ret['promises'] = $this->dbhr->preQuery($sql, [ $this->id ]);
+            }
         }
 
         # Add derived attributes.
@@ -2153,5 +2159,23 @@ class Message
         }
 
         return($rc);
+    }
+
+    public function promise($userid) {
+        # Promise this item to a user.
+        $sql = "REPLACE INTO messages_promises (msgid, userid) VALUES (?, ?);";
+        $this->dbhm->preExec($sql, [
+            $this->id,
+            $userid
+        ]);
+    }
+
+    public function renege($userid) {
+        # Unromise this item to a user.
+        $sql = "DELETE FROM messages_promises WHERE msgid = ? AND userid = ?;";
+        $this->dbhm->preExec($sql, [
+            $this->id,
+            $userid
+        ]);
     }
 }

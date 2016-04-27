@@ -1,16 +1,21 @@
 <div class="row-fluid panel">
     <div class="panel-body">
-        <div class="col-xs-9">
+        <div class="nopad col-xs-8">
             {{user.displayname}}<br />
             <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" ></abbr>
         </div>
-        <div class="col-xs-3">
-            <div class="btn btn-primary pull-right">
+        <div class="col-xs-2">
+            <div class="btn btn-primary btn-sm" title="Chat to this person">
                 <% if (unseen == 0) { %>
-                <div class="glyphicon glyphicon-comment" />&nbsp;View
+                <div class="glyphicons glyphicons-conversation glyphicon-larger" />
                 <% } else { %>
-                <span class="badge badge-unread">{{unseen}}</span>&nbsp;View
+                <span class="badge badge-unread">{{unseen}}</span>
                 <% } %>
+            </div>
+        </div>
+        <div class="col-xs-2">
+            <div class="btn btn-success btn-sm" title="Promise it to this person">
+                <div class="glyphicons glyphicons-handshake glyphicon-larger" />
             </div>
         </div>
     </div>

@@ -15,6 +15,7 @@ function message() {
     $stdmsgid = presdef('stdmsgid', $_REQUEST, NULL);
     $messagehistory = array_key_exists('messagehistory', $_REQUEST) ? filter_var($_REQUEST['messagehistory'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $localonly = array_key_exists('localonly', $_REQUEST) ? filter_var($_REQUEST['localonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $userid = intval(presdef('userid', $_REQUEST, NULL));
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -168,6 +169,7 @@ function message() {
             $m = new Message($dbhr, $dbhm, $id);
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             $role = $m ? $m->getRoleForMessage() : User::ROLE_NONMEMBER;
+            #error_log("Role for $id is $role");
 
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
@@ -295,6 +297,20 @@ function message() {
                             }
                         }
 
+                        break;
+                }
+            }
+
+            # Other actions which we can do on our own messages.
+            if ($myid == $m->getFromuser()) {
+                switch ($action) {
+                    case 'Promise':
+                        $m->promise($userid);
+                        $ret = ['ret' => 0, 'status' => 'Success'];
+                        break;
+                    case 'Renege':
+                        $m->renege($userid);
+                        $ret = ['ret' => 0, 'status' => 'Success'];
                         break;
                 }
             }

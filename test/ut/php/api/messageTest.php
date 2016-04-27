@@ -1325,4 +1325,104 @@ class messageAPITest extends IznikAPITestCase
 
         error_log(__METHOD__ . " end");
     }
+    
+    public function testPromise() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid1 = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@test.com');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $uid3 = $u->create(NULL, NULL, 'Test User');
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_ireplace('Basic test', 'OFFER: A thing (A place)', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Shouldn't be able to promise logged out
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'userid' => $uid1,
+            'action' => 'Promise'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Promise it to the other user.
+        $u = new User($this->dbhr, $this->dbhm, $uid1);
+        assertTrue($u->login('testpw'));
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'userid' => $uid2,
+            'action' => 'Promise'
+        ]);
+        assertEquals(0, $ret['ret']);
+        
+        # Promise should show
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        error_log("Got message " . var_export($ret, TRUE));
+        assertEquals(1, count($ret['message']['promises']));
+        assertEquals($uid2, $ret['message']['promises'][0]['userid']);
+
+        # Can promise to multiple users
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'userid' => $uid3,
+            'action' => 'Promise'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(2, count($ret['message']['promises']));
+        assertEquals($uid3, $ret['message']['promises'][0]['userid']);
+        
+        # Renege on one of them.
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'userid' => $uid2,
+            'action' => 'Renege'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['message']['promises']));
+        assertEquals($uid3, $ret['message']['promises'][0]['userid']);
+        
+        # Check we can't promise on someone else's message.
+        $u = new User($this->dbhr, $this->dbhm, $uid3);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'userid' => $uid3,
+            'action' => 'Promise'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'userid' => $uid3,
+            'action' => 'Renege'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
