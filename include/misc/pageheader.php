@@ -55,6 +55,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/css/glyphicons.css">
     <link rel="stylesheet" href="/css/bootstrap-select.min.css">
     <link rel="stylesheet" href="/css/bootstrap-switch.min.css">
     <link rel="stylesheet" href="/css/datepicker3.css">
@@ -62,8 +63,6 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <link rel="stylesheet" href="/js/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css">
     <link rel="stylesheet" href="/css/dd.css">
 
-    <!-- And then we do custom styling on top. -->
-    <!--[if !IE]><!-->
     <link rel="stylesheet" type="text/css" href="/css/style.css">
     <![endif]-->
     <!--[if gte IE 9]>

@@ -209,6 +209,11 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 case 'DBexceptionFail':
                     # For UT
                     throw new DBException();
+                case 'DBleaveTrans':
+                    # For UT
+                    $dbhm->beginTransaction();
+
+                    break;
             }
 
             # If we get here, everything worked.

@@ -123,6 +123,7 @@ class Notifications
     }
 
     public function poke($userid, $data) {
+        error_log("Poke $userid " . var_export($data, TRUE));
         # This kicks a user who is online at the moment with an outstanding long poll.
         #
         # TODO Handle multiple application servers

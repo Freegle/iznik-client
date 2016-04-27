@@ -55,11 +55,13 @@ define([
                     rightbar = rightaccordion.children().detach();
                 }
 
-                // Set the base page layout
+                // Set the base page layout.  Save and restore the minimised chats which would otherwise get zapped.
+                var chats = $('#notifchatdropdown').children().detach();
                 $('#bodyContent').html(this.modtools ?
                     window.template('modtools_layout_layout') :
                     window.template('layout_layout'));
                 $('.js-pageContent').html(this.$el);
+                $('#notifchatdropdown').html(chats);
 
                 if (this.modtools) {
                     // ModTools menu and sidebar.
@@ -97,8 +99,8 @@ define([
 
                     if (loggedIn) {
                         loggedInOnly.toggleClass('reallyHide');
-                        loggedInOnly.fadeIn('slow');
-                        loggedOutOnly.fadeOut('slow');
+                        // loggedInOnly.fadeIn('slow');
+                        // loggedOutOnly.fadeOut('slow');
 
                         // Since we're logged in, we can start chat.
                         ChatHolder({
@@ -106,8 +108,8 @@ define([
                         }).render();
                     } else {
                         loggedOutOnly.toggleClass('reallyHide');
-                        loggedOutOnly.fadeIn('slow');
-                        loggedInOnly.fadeOut('slow');
+                        // loggedOutOnly.fadeIn('slow');
+                        // loggedInOnly.fadeOut('slow');
                     }
                 });
 

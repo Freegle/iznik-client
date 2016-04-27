@@ -271,8 +271,15 @@ define([
                     _.each(fromuser.memberof, function (group) {
                         if (groupids.indexOf(group.id) == -1) {
                             var mod = new Iznik.Model(group);
+                            var emails = fromuser.get('emails');
+                            var email = _.where({
+                                id: group.emailid
+                            });
+                            console.log("Got email", email, emails);
+
                             var v = new Iznik.Views.ModTools.Member.Of({
-                                model: mod
+                                model: mod,
+                                user: fromuser
                             });
                             self.$('.js-memberof').append(v.render().el);
                             groupids.push(group.id);

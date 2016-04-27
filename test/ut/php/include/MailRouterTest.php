@@ -136,7 +136,7 @@ class MailRouterTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $r->received(Message::YAHOO_SYSTEM, NULL, "wibble-$gid-88-hmnXWqaGKir0fNTXgveSuj7ULOn44SEm@iznik.modtools.org", $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::DROPPED, $rc);
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
 
         # Try with an invalid key
         error_log("Invalid key");

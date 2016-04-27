@@ -217,8 +217,8 @@ class Group extends Entity
         $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") . " OR users.yahooid LIKE " . $this->dbhr->quote("%$search%") . ") ");
         $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : $searchq;
         $groupq = $groupids ? " memberships.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
-        $ypsq = $yps ? (" AND memberships.yahooPostingStatus = " . $this->dbhr->quote($yps)) : '';
-        $ydtq = $ydt ? (" AND memberships.yahooDeliveryType = " . $this->dbhr->quote($ydt)) : '';
+        $ypsq = $yps ? (" AND memberships_yahoo.yahooPostingStatus = " . $this->dbhr->quote($yps)) : '';
+        $ydtq = $ydt ? (" AND memberships_yahoo.yahooDeliveryType = " . $this->dbhr->quote($ydt)) : '';
 
         # Collection filter.  If we're searching on a specific id then don't put it in.
         $collectionq = '';
@@ -230,11 +230,11 @@ class Group extends Entity
                 # came from Pending or Approved.
                 $collectionq = ' AND suspectcount > 0 ';
             } else if ($collection) {
-                $collectionq = ' AND collection = ' . $this->dbhr->quote($collection) . ' ';
+                $collectionq = ' AND memberships.collection = ' . $this->dbhr->quote($collection) . ' ';
             }
         }
 
-        $sql = "SELECT DISTINCT memberships.* FROM memberships LEFT JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
+        $sql = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, memberships_yahoo.yahooAlias, memberships_yahoo.yahooPostingStatus, memberships_yahoo.yahooDeliveryType, memberships_yahoo.yahooapprove, memberships_yahoo.yahooreject, memberships_yahoo.joincomment FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid LEFT JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
         #error_log("Members $sql");
         $members = $this->dbhr->preQuery($sql);
 
@@ -259,17 +259,16 @@ class Group extends Entity
 
             # We want to return both the email used on this group and any others we have.
             $emails = $u->getEmails();
-            $emailid = $u->getEmailForGroup($member['groupid']);
             $email = NULL;
             $others = [];
             foreach ($emails as $anemail) {
-                if ($anemail['id'] == $emailid) {
+                if ($anemail['id'] == $member['emailid']) {
                     $email = $anemail['email'];
                 }
 
                 $others[] = $anemail;
             }
-
+            
             $thisone['joined'] = ISODate($member['added']);
 
             # Defaults match ones in User.php
@@ -298,6 +297,19 @@ class Group extends Entity
         }
 
         return($ret);
+    }
+    
+    private function getYahooRole($memb) {
+        $yahoorole = User::ROLE_MEMBER;
+        if (pres('yahooModeratorStatus', $memb)) {
+            if ($memb['yahooModeratorStatus'] == 'MODERATOR') {
+                $yahoorole = User::ROLE_MODERATOR;
+            } else if ($memb['yahooModeratorStatus'] == 'OWNER') {
+                $yahoorole = User::ROLE_OWNER;
+            }
+        }
+        
+        return($yahoorole);
     }
 
     public function setMembers($members, $collection, $synctime = NULL) {
@@ -331,7 +343,11 @@ class Group extends Entity
             # First make sure we have users set up for all the new members.  The input might have duplicate members;
             # save off the uid, and work out the role.
             $u = new User($this->dbhm, $this->dbhm);
-            $roles = [];
+            $overallroles = [];
+            $count = 0;
+
+            #$news = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND groupid = {$this->id};");
+            #error_log("Yahoo membs before scan" . var_export($news, TRUE));
 
             error_log("Scan members {$this->group['nameshort']}");
             foreach ($members as &$memb) {
@@ -353,10 +369,12 @@ class Group extends Entity
                     # Now merge any different ones.
                     if ($emailid && $yuid && $emailid != $yuid) {
                         $mergerc = $u->merge($emailid, $yuid, $reason);
+                        #error_log($reason);
                     }
 
                     if ($emailid && $yiduid && $emailid != $yiduid && $yiduid != $yuid) {
                         $mergerc = $u->merge($emailid, $yiduid, $reason);
+                        #error_log($reason);
                     }
 
                     # Pick a non-null one.
@@ -367,11 +385,8 @@ class Group extends Entity
                         # We don't - create them.
                         preg_match('/(.*)@/', $memb['email'], $matches);
                         $name = presdef('name', $memb, $matches[1]);
-                        $uid = $u->create(NULL, NULL, $name, "During SetMembers for {$this->group['nameshort']}");
-
-                        if (pres('yahooUserId', $memb)) {
-                            $u->setPrivate('yahooUserId', $memb['yahooUserId']);
-                        }
+                        $uid = $u->create(NULL, NULL, $name, "During SetMembers for {$this->group['nameshort']}", presdef('yahooUserId', $memb, NULL), presdef('yahooid', $memb, NULL));
+                        #error_log("Create $uid will have email " . presdef('email', $memb, '') . " yahooid " . presdef('yahooid', $memb, ''));
                     } else {
                         $u = new User($this->dbhr, $this->dbhm, $uid);
                     }
@@ -401,20 +416,20 @@ class Group extends Entity
 
                     # Get the role.  We might have the same underlying user who is a member using multiple email addresses
                     # so we need to take the max role that they have.
-                    $thisrole = User::ROLE_MEMBER;
-                    if (pres('yahooModeratorStatus', $memb)) {
-                        if ($memb['yahooModeratorStatus'] == 'MODERATOR') {
-                            $thisrole = User::ROLE_MODERATOR;
-                        } else if ($memb['yahooModeratorStatus'] == 'OWNER') {
-                            $thisrole = User::ROLE_OWNER;
-                        }
-                    }
+                    $yahoorole = $this->getYahooRole($memb);
+                    $overallrole = pres($uid, $overallroles) ? $u->roleMax($overallroles[$uid], $yahoorole) : $yahoorole;
+                    $overallroles[$uid] = $overallrole;
+                }
 
-                    $role = pres($uid, $roles) ? $u->roleMax($roles[$uid], $thisrole) : $thisrole;
+                $count++;
 
-                    $roles[$uid] = $role;
+                if ($count % 1000 == 0) {
+                    error_log("...$count");
                 }
             }
+
+            #$news = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND groupid = {$this->id};");
+            #error_log("Yahoo membs after scan" . var_export($news, TRUE));
 
             error_log("Scanned members {$this->group['nameshort']}");
 
@@ -427,8 +442,8 @@ class Group extends Entity
             # We only want the members upto the point where the sync started, otherwise we might remove a member who has
             # just joined.
             $mysqltime = date("Y-m-d H:i:s", strtotime($synctime));
-            $this->dbhm->preExec("DROP TEMPORARY TABLE IF EXISTS syncdelete; CREATE TEMPORARY TABLE syncdelete (id INT UNSIGNED, PRIMARY KEY idkey(id));");
-            $this->dbhm->preExec("INSERT INTO syncdelete (SELECT DISTINCT userid FROM memberships WHERE groupid = ? AND collection = '$collection' AND added < '$mysqltime');", [
+            $this->dbhm->preExec("DROP TEMPORARY TABLE IF EXISTS syncdelete; CREATE TEMPORARY TABLE syncdelete (emailid INT UNSIGNED, PRIMARY KEY idkey(emailid));");
+            $this->dbhm->preExec("INSERT INTO syncdelete (SELECT DISTINCT memberships_yahoo.emailid FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid WHERE groupid = ? AND memberships_yahoo.collection = '$collection' AND memberships_yahoo.added < '$mysqltime');", [
                 $this->id
             ]);
 
@@ -442,9 +457,11 @@ class Group extends Entity
                 set_time_limit(60);
 
                 $member = $members[$count];
+                #error_log("Update member " . var_export($member, TRUE));
+
                 if (pres('uid', $member)) {
                     $tried++;
-                    $role = $roles[$member['uid']];
+                    $overallrole = $overallroles[$member['uid']];
 
                     # Use a single SQL statement rather than the usual methods for performance reasons.  And then
                     # batch them up into groups because that performs better in a cluster.
@@ -452,23 +469,32 @@ class Group extends Entity
                     $ydt = presdef('yahooDeliveryType', $member, NULL);
                     $joincomment = pres('joincomment', $member) ? $this->dbhm->quote($member['joincomment']) : 'NULL';
 
-                    # Get any existing membership.
-                    $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ?;";
-                    $membs = $this->dbhm->preQuery($sql, [$member['uid'], $this->id]);
-                    $new = count($membs) == 0;
+                    # Get any existing Yahoo membership for this user with this email.
+                    $sql = "SELECT memberships_yahoo.* FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid WHERE userid = ? AND groupid = ? AND emailid = ?;";
+                    $yahoomembs = $this->dbhm->preQuery($sql, [
+                        $member['uid'], 
+                        $this->id, 
+                        $member['emailid']
+                    ]);
+                    
+                    $new = count($yahoomembs) == 0;
 
                     $added = pres('date', $member) ? ("'" . date("Y-m-d H:i:s", strtotime($member['date'])) . "'") : 'NULL';
 
                     if ($member['emailid']) {
-                        if (count($membs) == 0) {
-                            # Make sure the membership is present.  We don't want to REPLACE as that might lose settings.
-                            # We also don't want to just do INSERT IGNORE without checking first, as that doesn't
+                        if ($new) {
+                            # Make sure the top-level and the Yahoo memberships are both present.
+                            # We don't want to REPLACE as that might lose settings.
+                            # We also don't want to just do INSERT IGNORE without having checked first as that doesn't
                             # perform well in clusters.
-                            $sql = "INSERT IGNORE INTO memberships (userid, groupid, emailid, collection) VALUES ({$member['uid']}, {$this->id}, {$member['emailid']}, '$collection');";
-                            $bulksql .= $sql;
-                            $membs = [
+                            $bulksql .= "INSERT IGNORE INTO memberships (userid, groupid, collection) VALUES ({$member['uid']}, {$this->id}, '$collection');";
+                            $bulksql .= "INSERT IGNORE INTO memberships_yahoo (membershipid, emailid, collection) VALUES ((SELECT id FROM memberships WHERE userid = {$member['uid']} AND groupid = {$this->id}), {$member['emailid']}, '$collection');";
+                            
+                            # Default the Yahoo membership to a user.
+                            $yahoomembs = [
                                 [
-                                    'role' => User::ROLE_MEMBER
+                                    'role' => User::ROLE_MEMBER,
+                                    'collection' => $collection
                                 ]
                             ];
 
@@ -477,40 +503,46 @@ class Group extends Entity
                             $hists = $this->dbhr->preQuery($sql, [$member['uid'], $this->id]);
 
                             if (count($hists) == 0) {
-                                $sql = "INSERT INTO memberships_history (userid, groupid, collection, added) VALUES ({$member['uid']},{$this->id},'$collection',$added);";
-                                $bulksql .= $sql;
+                                $bulksql .= "INSERT INTO memberships_history (userid, groupid, collection, added) VALUES ({$member['uid']},{$this->id},'$collection',$added);";
                             }
                         }
 
                         # If we are promoting a member, then we can only promote as high as we are.  This prevents
                         # moderators setting owner status.
-                        if ($role == User::ROLE_OWNER &&
+                        if ($overallrole == User::ROLE_OWNER &&
                             $myrole != User::ROLE_OWNER &&
-                            $membs[0]['role'] != User::ROLE_OWNER
+                            $yahoomembs[0]['role'] != User::ROLE_OWNER
                         ) {
-                            $role = User::ROLE_MODERATOR;
+                            $overallrole = User::ROLE_MODERATOR;
                         }
 
                         # Now update with any new settings.  Having this if test looks a bit clunky but it means that
                         # when resyncing a group where most members have not changed settings, we can avoid many UPDATEs.
                         #
                         # This will have the effect of moving members between collections if required.
+                        $yahoorole = $this->getYahooRole($memb);
+                        
                         if ($new ||
-                            $membs[0]['role'] != $role || $membs[0]['collection'] != $collection || $membs[0]['yahooPostingStatus'] != $yps || $membs[0]['yahooDeliveryType'] != $ydt || $membs[0]['joincomment'] != $joincomment || $membs[0]['emailid'] != $member['emailid'] || $membs[0]['added'] != $added) {
-                            $sql = "UPDATE memberships SET role = '$role', collection = '$collection', yahooPostingStatus = " . $this->dbhm->quote($yps) .
-                                ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", joincomment = $joincomment, emailid = {$member['emailid']}, added = $added WHERE userid = " .
+                            $yahoomembs[0]['role'] != $yahoorole || $yahoomembs[0]['collection'] != $collection || $yahoomembs[0]['yahooPostingStatus'] != $yps || $yahoomembs[0]['yahooDeliveryType'] != $ydt || $yahoomembs[0]['joincomment'] != $joincomment || $yahoomembs[0]['emailid'] != $member['emailid'] || $yahoomembs[0]['added'] != $added)
+                        {
+                            $bulksql .=  "UPDATE memberships SET role = '$overallrole', collection = '$collection', added = $added WHERE userid = " .
                                 "{$member['uid']} AND groupid = {$this->id};";
+                            $sql = "UPDATE memberships_yahoo SET role = '$yahoorole', collection = '$collection', yahooPostingStatus = " . $this->dbhm->quote($yps) .
+                                ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", joincomment = $joincomment, added = $added WHERE membershipid = (SELECT id FROM memberships WHERE userid = " .
+                                "{$member['uid']} AND groupid = {$this->id}) AND emailid = {$member['emailid']};";
                             $bulksql .= $sql;
                         }
 
                         # If this is a mod/owner, make sure the systemrole reflects that.
-                        if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+                        if ($overallrole == User::ROLE_MODERATOR || $overallrole == User::ROLE_OWNER) {
                             $sql = "UPDATE users SET systemrole = 'Moderator' WHERE id = {$member['uid']} AND systemrole = 'User';";
                             $bulksql .= $sql;
                         }
 
-                        # Record that this member still exists by deleting their id from the temp table
-                        $bulksql .= "DELETE FROM syncdelete WHERE id = {$member['uid']};";
+                        # Record that this membership still exists by deleting their id from the temp table
+                        $sql = "DELETE FROM syncdelete WHERE emailid = {$member['emailid']};";
+                        #error_log("Record email $sql");
+                        $bulksql .= $sql;
 
                         if ($count > 0 && $count % 1000 == 0) {
                             # Do a chunk of work.  If this doesn't work correctly we'll end up with fewer members
@@ -527,15 +559,32 @@ class Group extends Entity
 
             if ($bulksql != '') {
                 # Do remaining SQL.  If this fails then we'll fail the count check below.
+                #error_log("Bulksql $bulksql");
                 $this->dbhm->exec($bulksql);
             }
 
             error_log("Updated members {$this->group['nameshort']}");
 
-            # Delete any residual members.
-            #
-            # We need to log these deletes so that we can see why memberships disappear.
-            $todeletes = $this->dbhm->preQuery("SELECT id FROM syncdelete;", [$this->id]);
+            #$news = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND groupid = {$this->id};");
+            #error_log("Yahoo membs after update" . var_export($news, TRUE));
+
+
+            # Delete any residual Yahoo memberships.
+            #$rc = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE emailid IN (SELECT emailid FROM syncdelete) AND membershipid IN (SELECT id FROM memberships WHERE groupid = ?);", [$this->id]);
+            #$ym = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo WHERE emailid IN (SELECT emailid FROM syncdelete) AND membershipid IN (SELECT id FROM memberships WHERE groupid = {$this->id});"); error_log("Yahoo Membs to delete" . var_export($ym, TRUE));
+            $rc = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE emailid IN (SELECT emailid FROM syncdelete) AND membershipid IN (SELECT id FROM memberships WHERE groupid = ?);", [$this->id]);
+            #error_log("Deleted $rc Yahoo Memberships");
+
+            #$news = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND groupid = {$this->id};");
+            #error_log("Yahoo membs delete Yahoo " . var_export($news, TRUE));
+
+            # Now that we've deleted the Yahoo membership, see if this means that we no longer have any Yahoo
+            # memberships on this group (recall that we might have multiple Yahoo memberships with different email
+            # addresses for the same group).  If so, then we want to delete the overall membership, and also log
+            # the deletes so that we can see why memberships disappear.
+            $todeletes = $this->dbhm->preQuery("SELECT memberships.id, memberships.userid FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid WHERE membershipid IS NULL AND groupid = ?;", [$this->id]);
+            #error_log("Overall to delete " . var_export($todeletes, TRUE));
+            #error_log("Delete overall memberships " . count($todeletes));
             $meid = $me ? $me->getId() : NULL;
             foreach ($todeletes as $todelete) {
                 # Long
@@ -544,14 +593,16 @@ class Group extends Entity
                 $this->log->log([
                     'type' => Log::TYPE_GROUP,
                     'subtype' => Log::SUBTYPE_LEFT,
-                    'user' => $todelete['id'],
+                    'user' => $todelete['userid'],
                     'byuser' => $meid,
                     'groupid' => $this->id,
                     'text' => "Sync of whole $collection membership list"
                 ]);
+
+                $this->dbhm->preExec("DELETE FROM memberships WHERE id = ?;", [ $todelete['id'] ]);
             }
 
-            $this->dbhm->preExec("DELETE FROM memberships WHERE groupid = ? AND collection = '$collection' AND userid IN (SELECT id FROM syncdelete);", [$this->id]);
+            # Having logged them, delete them.
             $this->dbhm->preExec("DROP TEMPORARY TABLE syncdelete;");
 
             error_log("Tidied members {$this->group['nameshort']}");

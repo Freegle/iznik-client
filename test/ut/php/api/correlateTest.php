@@ -25,7 +25,7 @@ class correlateTest extends IznikAPITestCase {
 
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
-        $dbhm->preExec("DELETE FROM users WHERE yahooUserId = 1;");
+        $dbhm->preExec("DELETE FROM users WHERE yahooUserId = '1';");
         $dbhm->preExec("DELETE FROM messages_history WHERE fromaddr = 'test@ilovefreegle.org';");
     }
 

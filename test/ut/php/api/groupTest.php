@@ -30,7 +30,7 @@ class groupAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup2';");
-        $dbhm->preExec("DELETE FROM users WHERE yahooUserId = 1;");
+        $dbhm->preExec("DELETE FROM users WHERE yahooUserId = '1';");
 
         # Create a moderator and log in as them
         $g = new Group($this->dbhr, $this->dbhm);

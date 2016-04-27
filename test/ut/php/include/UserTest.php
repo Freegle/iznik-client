@@ -130,12 +130,12 @@ class userTest extends IznikTestCase {
         $emailid1 = $u->getIdForEmail('test@test.com')['id'];
         $emailid2 = $u->getIdForEmail('test2@test.com')['id'];
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid1);
-        assertEquals($emailid1, $u->getEmailForGroup($group1));
+        assertEquals($emailid1, $u->getEmailForYahooGroup($group1)[0]);
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid2);
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid2);
-        assertEquals($emailid2, $u->getEmailForGroup($group1));
+        assertEquals($emailid2, $u->getEmailForYahooGroup($group1)[0]);
         assertNull($u->getIdForEmail('wibble@test.com'))['id'];
-        assertNull($u->getEmailForGroup(-1));
+        assertNull($u->getEmailForYahooGroup(-1)[0]);
 
         error_log(__METHOD__ . " end");
     }

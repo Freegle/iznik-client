@@ -1,46 +1,61 @@
-<div class="navbar navbar-fixed-top navbar-custom">
-    <div class="container fullholder padbotnone nomargin completefull">
-        <div class="navbar-header nomargin completefull">
-            <ul class="nav navbar-nav js-navbar fdnavbar nomargin completefull">
-                <li class="notop js-home clickme padleft pull-left">
-                    <img src="/images/user_logo.png" class="padmd img-responsive img-morerounded inline" />
-                </li>
-                <li class="pull-right" role="presentation">
-                    <button class="reallyHide btn btn-info js-signin js-loggedoutonly margtop" style="display:none">Sign in</button>
-                    <div class="reallyHide menu js-menu js-loggedinonly pull-right" style="display:none">
-                        <ul class="list-inline">
-                            <li>
-                                <div class="clickme ">
-                                    <div class="dropdown" id="js-notifchat">
-                                        <div id="notifchatbutt" class="notifchat dropdown-toggle glyphicon glyphicon-larger glyphicon-comment white" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <span class="js-totalcount badge badge-unread" style="display: none;" />
-                                        </div>
-                                        <ul id="notifchatdropdown" class="dropdown-menu" role="menu" aria-labelledby="notifchatbutt"/>
-                                    </div>
-                                </div>
-                            </li>
-                            <li>
-                                <div id="js-notifications" class="notifglobe glyphicon glyphicon-larger glyphicon-globe" />
-                            </li>
-                            <li>
-                                <button id="dropdownmenu" class="btn btn-default" type="button" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">
-                                    <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true">&nbsp;Menu</span>
-                                    <span class="caret"></span>
-                                </button>
-                                <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownmenu">
-                                    <li role="presentation" class=""><a role="menuitem" href="/mygroups">My Groups</a></li>
-                                    <li role="presentation" class="js-settings"><a role="menuitem" href="/settings">Settings</a></li>
-                                    <li role="presentation"><a role="menuitem" href="/help">Help</a></li>
-                                    <li role="presentation" class="js-logout"><a role="menuitem" href="/logout">Logout</a></li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-            </ul>
+<nav class="navbar navbar-custom navbar-fixed-top">
+    <div class="completefull container-fluid">
+        <div class="nopad completefull navbar-header">
+            <button class="reallyHide btn btn-info js-signin js-loggedoutonly margtop" style="display:none">Sign in</button>
+            <button id="dropdownmenu" class="js-menu reallyHide js-loggedinonly navbar-toggle collapsed btn btn-default" type="button" data-toggle="collapse" data-target="#navbar-collapse" aria-haspopup="true" role="button" aria-expanded="false">
+                <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true" />
+            </button>
+            <a class="pull-left js-home clickme">
+                <img src="/images/user_logo.png" class="padmd img-responsive img-morerounded inline" />
+            </a>
+            <div class="collapse navbar-collapse" id="navbar-collapse">
+                <ul class="nav navbar-nav navbar-left">
+                    <li>
+                        <a href="/mygroups">
+                            <div class="glyphicons glyphicons-group glyphicon-larger vcenter" title="Your Freegle Groups" />
+                            <span>My Groups</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/settings">
+                            <div class="glyphicons glyphicons-cogwheels glyphicon-larger vcenter" title="Settings" />
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="#" id="js-notifchat" class="" title="Messages from other Freeglers">
+                            <div id="notifchatbutt" class="dropdown-toggle glyphicons glyphicon-larger glyphicons-conversation vcenter" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="js-totalcount badge badge-unread" style="display: none;" />
+                            </div>
+                            <span>Conversations</span>
+                            <ul id="notifchatdropdown" class="dropdown-menu" role="menu" aria-labelledby="notifchatbutt"/>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="js-notifications" class="" title="Notifications">
+                            <div class="glyphicons glyphicon-larger glyphicons-globe vcenter"/>
+                            <span class="navbar-dropdown-text">Notifications</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/help" class="" title="Help and Support">
+                            <div class="glyphicons glyphicons-question-sign glyphicon-larger vcenter" />
+                            <span>Help</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="js-logout" title="Logout">
+                            <div class="glyphicons glyphicons-log-out glyphicon-larger vcenter" />
+                            <span>Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
-</div>
+</nav>
 <div class="container completefull margtopbig nopad">
     <div class="row-fluid margtop">
         <div class="col-md-3 hidden-sm hidden-xs js-leftsidebar ">

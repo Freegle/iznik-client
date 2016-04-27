@@ -111,12 +111,12 @@ class User extends Entity
         $this->dbhm = $dbhm;
     }
 
-    public function create($firstname, $lastname, $fullname, $reason = '') {
+    public function create($firstname, $lastname, $fullname, $reason = '', $yahooUserId = NULL, $yahooid = NULL) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO users (firstname, lastname, fullname) VALUES (?, ?, ?)",
-                [$firstname, $lastname, $fullname]);
+            $rc = $this->dbhm->preExec("INSERT INTO users (firstname, lastname, fullname, yahooUserId, yahooid) VALUES (?, ?, ?, ?, ?)",
+                [$firstname, $lastname, $fullname, $yahooUserId, $yahooid]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
             $id = NULL;
@@ -168,31 +168,39 @@ class User extends Entity
         return(count($membs) > 0);
     }
 
-    public function getEmailForGroup($groupid, $oursonly = FALSE) {
+    public function getEmailForYahooGroup($groupid, $oursonly = FALSE) {
+        # Any of the emails will do.
+        $emails = $this->getEmailsForYahooGroup($groupid, $oursonly);
+        $eid = count($emails) > 0 ? $emails[0][0] : NULL;
+        $email = count($emails) > 0 ? $emails[0][1] : NULL;
+        return([$eid, $email]);
+    }
+
+    public function getEmailsForYahooGroup($groupid, $oursonly = FALSE) {
+        $emailq = "";
+
         if ($oursonly) {
             # We are looking for a group email which we host.
-            $emailq = "";
             foreach (explode(',', OURDOMAINS) as $domain) {
                 $emailq .= $emailq == "" ? " email LIKE '%$domain'" : " OR email LIKE '%$domain'";
             }
-            $sql = "SELECT emailid FROM memberships INNER JOIN users_emails ON memberships.emailid = users_emails.id WHERE memberships.userid = ? AND groupid = ? AND ($emailq);";
-            error_log($sql . ", {$this->id}, $groupid");
-            $emails = $this->dbhr->preQuery($sql, [
-                $this->id,
-                $groupid
-            ]);
-        } else {
-            $emails = $this->dbhr->preQuery("SELECT emailid FROM memberships WHERE userid = ? AND groupid = ?;", [
-                $this->id,
-                $groupid
-            ]);
+
+            $emailq = " AND ($emailq)";
         }
 
+        $sql = "SELECT memberships_yahoo.emailid, users_emails.email FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid INNER JOIN users_emails ON memberships_yahoo.emailid = users_emails.id WHERE memberships.userid = ? AND groupid = ? $emailq;";
+        #error_log($sql . ", {$this->id}, $groupid");
+        $emails = $this->dbhr->preQuery($sql, [
+            $this->id,
+            $groupid
+        ]);
+
+        $ret = [];
         foreach ($emails as $email) {
-            return($email['emailid']);
+            $ret[] = [ $email['emailid'], $email['email'] ];
         }
 
-        return(NULL);
+        return($ret);
     }
 
     public function getIdForEmail($email) {
@@ -282,9 +290,9 @@ class User extends Entity
             ]);
 
             if (count($emails) == 0) {
-                $sql = "INSERT IGNORE INTO users_emails (userid, email, preferred, canon) VALUES (?, ?, ?, ?)";
+                $sql = "INSERT IGNORE INTO users_emails (userid, email, preferred, canon, backwards) VALUES (?, ?, ?, ?, ?)";
                 $this->dbhm->preExec($sql,
-                    [$this->id, $email, $primary, $canon]);
+                    [$this->id, $email, $primary, $canon, strrev($canon)]);
                 $rc = $this->dbhm->lastInsertId();
 
                 if ($rc && $primary) {
@@ -363,13 +371,23 @@ class User extends Entity
         }
 
         #error_log("Add membership {$this->id} to $groupid with $emailid");
-        $rc = $this->dbhm->preExec("REPLACE INTO memberships (userid, groupid, role, emailid, collection) VALUES (?,?,?,?,?);", [
+        $rc = $this->dbhm->preExec("REPLACE INTO memberships (userid, groupid, role, collection) VALUES (?,?,?,?);", [
             $this->id,
             $groupid,
             $role,
-            $emailid,
             $collection
         ]);
+
+        if ($rc && $emailid) {
+            $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES ((SELECT id FROM memberships WHERE userid = ? AND groupid = ?),?,?,?);";
+            $rc = $this->dbhm->preExec($sql, [
+                $this->id,
+                $groupid,
+                $role,
+                $emailid,
+                $collection
+            ]);
+        }
 
         # Record the operation for abuse detection.
         $this->dbhm->preExec("INSERT INTO memberships_history (userid, groupid, collection) VALUES (?,?,?);", [
@@ -424,23 +442,27 @@ class User extends Entity
         return($rc);
     }
 
+    public function setYahooMembershipAtt($groupid, $emailid, $att, $val) {
+        $sql = "UPDATE memberships_yahoo SET $att = ? WHERE membershipid = (SELECT id FROM memberships WHERE userid = ? AND groupid = ?) AND emailid = ?;";
+        $rc = $this->dbhm->preExec($sql, [
+            $val,
+            $this->id,
+            $groupid,
+            $emailid
+        ]);
+
+        return($rc);
+    }
+
     public function removeMembership($groupid, $ban = FALSE, $spam = FALSE) {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $meid = $me ? $me->getId() : NULL;
 
-        # Get the email before we remove the membership.
-        $sql = "SELECT email FROM users_emails INNER JOIN memberships ON users_emails.id = memberships.emailid AND groupid = ? AND users_emails.userid = ?;";
+        # Trigger removal of any Yahoo memberships first.
+        $sql = "SELECT email FROM users_emails LEFT JOIN memberships_yahoo ON users_emails.id = memberships_yahoo.emailid INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND memberships.groupid = ? WHERE users_emails.userid = ?;";
         $emails = $this->dbhr->preQuery($sql, [ $groupid, $this->id ]);
 
-        $rc = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = ? AND groupid = ?;",
-            [
-                $this->id,
-                $groupid
-            ]);
-
-        if ($rc) {
-            $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
-
+        foreach ($emails as $email) {
             if ($ban) {
                 $type = $this->isPending($groupid) ? 'BanPendingMember' : 'BanApprovedMember';
             } else {
@@ -448,34 +470,40 @@ class User extends Entity
             }
 
             # It would be odd for them to be on Yahoo with no email but handle it anyway.
-            if ($email) {
+            if ($email['email']) {
                 $p = new Plugin($this->dbhr, $this->dbhm);
                 $p->add($groupid, [
                     'type' => $type,
-                    'email' => $email
+                    'email' => $email['email']
                 ]);
             }
+        }
 
-            if ($ban) {
-                $sql = "INSERT IGNORE INTO users_banned (userid, groupid, byuser) VALUES (?,?,?);";
-                $this->dbhm->preExec($sql, [
-                    $this->id,
-                    $groupid,
-                    $meid
-                ]);
-            }
-
-            $l = new Log($this->dbhr, $this->dbhm);
-            $l->log([
-                'type' => Log::TYPE_GROUP,
-                'subtype' => Log::SUBTYPE_LEFT,
-                'user' => $this->id,
-                'byuser' => $meid,
-                'groupid' => $groupid,
-                'text' => $spam ? "Autoremoved spammer" : ($ban ? "via ban" : NULL)
+        if ($ban) {
+            $sql = "INSERT IGNORE INTO users_banned (userid, groupid, byuser) VALUES (?,?,?);";
+            $this->dbhm->preExec($sql, [
+                $this->id,
+                $groupid,
+                $meid
             ]);
         }
 
+        $l = new Log($this->dbhr, $this->dbhm);
+        $l->log([
+            'type' => Log::TYPE_GROUP,
+            'subtype' => Log::SUBTYPE_LEFT,
+            'user' => $this->id,
+            'byuser' => $meid,
+            'groupid' => $groupid,
+            'text' => $spam ? "Autoremoved spammer" : ($ban ? "via ban" : NULL)
+        ]);
+
+        # Now remove the membership.
+        $rc = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = ? AND groupid = ?;",
+            [
+                $this->id,
+                $groupid
+            ]);
 
         return($rc);
     }
@@ -985,7 +1013,7 @@ class User extends Entity
 
             if (!$visible) {
                 # Check the groups.
-                $sql = "SELECT memberships.*, groups.nameshort, groups.namefull FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
+                $sql = "SELECT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
                 $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
                 foreach ($groups as $group) {
                     $role = $me ? $me->getRole($group['groupid']) : User::ROLE_NONMEMBER;
@@ -995,7 +1023,8 @@ class User extends Entity
                         'id' => $group['groupid'],
                         'namedisplay' => $name,
                         'added' => ISODate($group['added']),
-                        'collection' => $group['collection']
+                        'collection' => $group['collection'],
+                        'emailid' => $group['emailid']
                     ];
 
                     if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
@@ -1013,16 +1042,13 @@ class User extends Entity
 
         $box = NULL;
 
-        if ($memberof &&
-            !array_key_exists('memberof', $atts) &&
-            ($systemrole == User::ROLE_MODERATOR ||
-            $systemrole == User::SYSTEMROLE_ADMIN ||
-            $systemrole == User::SYSTEMROLE_SUPPORT)) {
+        if ($memberof && !array_key_exists('memberof', $atts) &&
+            ($systemrole == User::ROLE_MODERATOR || $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT)) {
             # We haven't provided the complete list; get the recent ones (which preserves some privacy for the user but
             # allows us to spot abuse) and any which are on our groups.
             $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
             $modids = array_merge([0], $me->getModeratorships());
-            $sql = "SELECT DISTINCT memberships.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
+            $sql = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
             $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
             $memberof = [];
 
@@ -1033,7 +1059,8 @@ class User extends Entity
                     'id' => $group['groupid'],
                     'namedisplay' => $name,
                     'added' => ISODate($group['added']),
-                    'collection' => $group['collection']
+                    'collection' => $group['collection'],
+                    'emailid' => $group['emailid']
                 ];
 
                 if ($group['lat'] && $group['lng']) {
@@ -1184,7 +1211,7 @@ class User extends Entity
                 #error_log("Started transaction");
                 $rollback = TRUE;
 
-                # Merge the memberships
+                # Merge the top-level memberships
                 $id2membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = $id2;");
                 foreach ($id2membs as $id2memb) {
                     # Jiggery-pokery with $rc for UT purposes.
@@ -1210,7 +1237,6 @@ class User extends Entity
                             $rc2 = $this->dbhm->preExec("UPDATE memberships SET role = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
                                 $role
                             ]);
-                            #error_log("Role update returned $rc2");
                         }
 
                         if ($rc2) {
@@ -1223,7 +1249,7 @@ class User extends Entity
                         }
 
                         # There are several attributes we want to take the non-NULL version.
-                        foreach (['configid', 'emailid', 'settings', 'heldby'] as $key) {
+                        foreach (['configid', 'settings', 'heldby'] as $key) {
                             if ($id2memb[$key]) {
                                 if ($rc2) {
                                     $rc2 = $this->dbhm->preExec("UPDATE memberships SET $key = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
@@ -1233,11 +1259,41 @@ class User extends Entity
                             }
                         }
 
+                        # Now move any id2 Yahoo memberships over to refer to id1 before we delete it.
+                        # This might result in duplicates so we use IGNORE.
+                        $id2membs = $this->dbhm->preQuery("SELECT id, groupid FROM memberships WHERE userid = $id2;");
+                        #error_log("Memberships for $id2 " . var_export($id2membs, true));
+                        foreach ($id2membs as $id2memb) {
+                            $rc2 = $rc;
+
+                            $id1membs = $this->dbhm->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ?;", [
+                                $id1,
+                                $id2memb['groupid']
+                            ]);
+
+                            #error_log("Memberships for $id1 on {$id2memb['groupid']} " . var_export($id1membs, true));
+
+                            foreach ($id1membs as $id1memb) {
+                                $rc2 = $this->dbhm->preExec("UPDATE IGNORE memberships_yahoo SET membershipid = ? WHERE membershipid = ?;", [
+                                    $id1memb['id'],
+                                    $id2memb['id']
+                                ]) ;
+                                #error_log("$rc2 from UPDATE IGNORE memberships_yahoo SET membershipid = {$id1memb['id']} WHERE membershipid = {$id2memb['id']};");
+                            }
+
+                            if ($rc2) {
+                                $rc2 = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE membershipid = ?;", [
+                                    $id2memb['id']
+                                ]);
+                                #error_log("$rc2 from delete {$id2memb['id']}");
+                            }
+
+                            $rc = $rc2 && $rc ? $rc2 : 0;
+                        }
+
                         if ($rc2) {
                             # Now we just need to delete the id2 one.
                             $rc2 = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = $id2 AND groupid = {$id2memb['groupid']};");
-
-                            #error_log("Membership DELETE returned $rc2");
                         }
                     }
 
@@ -1291,7 +1347,7 @@ class User extends Entity
 
                 # Merge attributes we want to keep if we have them in id2 but not id1.  Some will have unique
                 # keys, so update to delete them.
-                foreach (['fullname', 'firstname', 'lastname', 'yahooUserId', 'yahooid', 'yahooUserId'] as $att) {
+                foreach (['fullname', 'firstname', 'lastname', 'yahooUserId', 'yahooid'] as $att) {
                     $users = $this->dbhm->preQuery("SELECT $att FROM users WHERE id = $id2;");
                     foreach ($users as $user) {
                         $this->dbhm->preExec("UPDATE users SET $att = NULL WHERE id = $id2;");
@@ -1523,8 +1579,9 @@ class User extends Entity
             'text' => $subject
         ]);
 
-        $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
+        $sql = "SELECT memberships_yahoo.* FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE userid = ? AND groupid = ? AND memberships_yahoo.collection = ?;";
         $members = $this->dbhr->preQuery($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
+
         foreach ($members as $member) {
             if (pres('yahooapprove', $member)) {
                 # We can trigger approval by email - do so.  Yahoo is sluggish so we send multiple times.
@@ -1562,7 +1619,7 @@ class User extends Entity
         $this->maybeMail($groupid, $subject, $body, 'Approve Member');
     }
 
-    public function markApproved($groupid, $emailid) {
+    public function markYahooApproved($groupid) {
         # Move a member from pending to approved in response to a Yahoo notification mail.
         #
         # Perhaps we can get a notification mail for a member not in Pending, but this is less of an issue as we
@@ -1582,15 +1639,21 @@ class User extends Entity
                 'text' => 'Move from Pending to Approved after Yahoo notification mail'
             ]);
 
+            # Set the membership to be approved.
             $sql = "UPDATE memberships SET collection = ? WHERE userid = ? AND groupid = ?;";
-            $rc = $this->dbhm->preExec($sql, [
+            $this->dbhm->preExec($sql, [
                 MembershipCollection::APPROVED,
                 $this->id,
                 $groupid
             ]);
 
-            # We know that we are no longer waiting to join Yahoo, if we ever were.
-            $this->dbhm->preExec("DELETE FROM yahoo_joining WHERE emailid = ? AND groupid = ?;", [ $emailid, $groupid]);
+            # The Yahoo membership should exist as we'll have created it when we triggered the application.
+            $sql = "UPDATE memberships_yahoo SET collection = ? WHERE membershipid = (SELECT id FROM memberships WHERE userid = ? AND groupid = ?);";
+            $rc = $this->dbhm->preExec($sql, [
+                MembershipCollection::APPROVED,
+                $this->id,
+                $groupid
+            ]);
         }
     }
 
@@ -1804,9 +1867,9 @@ class User extends Entity
             $headers = "From: ModTools <" . NOREPLY_ADDR . ">\nContent-Type: multipart/alternative; boundary=\"_I_Z_N_I_K_\"\nMIME-Version: 1.0";
             $canon = User::canonMail($email);
             $key = uniqid();
-            $sql = "INSERT INTO users_emails (email, canon, validatekey) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE validatekey = ?;";
+            $sql = "INSERT INTO users_emails (email, canon, validatekey, backwards) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE validatekey = ?;";
             $this->dbhm->preExec($sql,
-                [$email, $canon, $key, $key]);
+                [$email, $canon, $key, strrev($canon), $key]);
             $confirm = "https://" . $_SERVER['HTTP_HOST'] . "/modtools/settings/confirmmail/" . urlencode($key);
             $this->mailer($email, "Please verify your email", modtools_verify_email($email, $confirm), $headers, "-f" . NOREPLY_ADDR);
         }
@@ -1894,57 +1957,39 @@ class User extends Entity
         $g = new Group($this->dbhr, $this->dbhm, $groupid);
         $email = $this->inventEmail();
         $emailid = $this->addEmail($email, 0);
+//        error_log("Added email $email id $emailid");
 
-        if ($emailid) {
-            $headers = "From: $email>\r\n";
+        # Set up a pending membership - will be converted to approved when we process the approval notification.
+        $this->addMembership($groupid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING);
 
-            # Unfortuntely, Yahoo is not very reliable; if we subscribe multiple times it seems to be more likely to react.
-            # We also add this into a table to allow us to retry the application periodically until it deigns to respond.
-            $this->dbhm->preExec("INSERT INTO yahoo_joining (groupid, emailid) VALUES (?, ?);", [ $groupid, $emailid]);
-            for ($i = 0; $i < 10; $i++) {
-                mail($g->getPrivate('nameshort') . "-subscribe@yahoogroups.com", "Please let me join", "Pretty please", $headers, "-f$email");
-            }
+        $headers = "From: $email>\r\n";
 
-            # And for good measure, we set up a piece of plugin work to trigger an invitation.
-            $p = new Plugin($this->dbhr, $this->dbhm);
-            $p->add($groupid, [
-                'type' => 'Invite',
-                'email' => $email
-            ]);
+        # Yahoo is not very reliable; if we subscribe multiple times it seems to be more likely to react.
+        for ($i = 0; $i < 10; $i++) {
+            mail($g->getPrivate('nameshort') . "-subscribe@yahoogroups.com", "Please let me join", "Pretty please", $headers, "-f$email");
         }
 
         return($email);
     }
 
     public function submitYahooQueued($groupid) {
-        # Get the email address we use on the Yahoo group.  We need it to be an email address we host before we can submit.
+        # Get an email address we can use on the group.
         $submitted = 0;
-        $eid = $this->getEmailForGroup($groupid, TRUE);
+        list ($eid, $email) = $this->getEmailForYahooGroup($groupid, TRUE);
+        error_log("Got email $email for {$this->id} on $groupid, eid $eid");
 
-        if ($eid) {
-            $emails = $this->getEmails();
-            $email = NULL;
-            foreach ($emails as $thisemail) {
-                if ($thisemail['id'] == $eid) {
-                    $email = $thisemail['email'];
-                }
-            }
+        if ($email) {
+            $sql = "SELECT msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id WHERE groupid = ? AND collection = ? AND messages_groups.deleted = 0 AND messages.fromuser = ?;";
+            $msgs = $this->dbhr->preQuery($sql, [
+                $groupid,
+                MessageCollection::QUEUED_YAHOO_USER,
+                $this->id
+            ]);
 
-            error_log("Got email $email for {$this->id} on $groupid, eid $eid");
-
-            if ($email) {
-                $sql = "SELECT msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id WHERE groupid = ? AND collection = ? AND messages_groups.deleted = 0 AND messages.fromuser = ?;";
-                $msgs = $this->dbhr->preQuery($sql, [
-                    $groupid,
-                    MessageCollection::QUEUED_YAHOO_USER,
-                    $this->id
-                ]);
-
-                foreach ($msgs as $msg) {
-                    $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
-                    $m->submit($this, $email, $groupid);
-                    $submitted++;
-                }
+            foreach ($msgs as $msg) {
+                $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
+                $m->submit($this, $email, $groupid);
+                $submitted++;
             }
         }
 

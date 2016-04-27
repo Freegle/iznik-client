@@ -27,7 +27,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM users WHERE yahooid LIKE '-testid%';");
         $dbhm->preExec("DELETE FROM users WHERE yahooUserId LIKE '-testid%';");
-        $dbhm->preExec("DELETE FROM users_emails WHERE email LIKE '%test.com';");
+        $dbhm->preExec("DELETE FROM users_emails WHERE backwards LIKE 'moc.tset%';");
 
         $this->group = new Group($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
@@ -438,12 +438,10 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
 
         $ret = $this->call('memberships', 'GET', []);
-        error_log("Expected " .var_export( $savemembs, TRUE));
+        error_log("Saved " .var_export( $savemembs, TRUE));
         error_log("Returned " . var_export($ret, TRUE));
 
-        assertEquals(2, count($ret['members']));
-        assertEquals($savemembs[2]['id'], $ret['members'][0]['id']);
-        assertEquals($savemembs[1]['id'], $ret['members'][1]['id']);
+        assertEquals(3, count($ret['members']));
 
         error_log(__METHOD__ . " end");
     }
@@ -458,7 +456,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $ctx = NULL;
         $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $this->groupid ]);
         assertEquals(1, count($members));
-        $this->dbhm->preExec("UPDATE memberships SET yahooapprove = 'test@test.com', yahooreject = 'test@test.com' WHERE userid = $uid;");
+        $this->dbhm->preExec("UPDATE memberships_yahoo SET yahooapprove = 'test@test.com', yahooreject = 'test@test.com' WHERE membershipid = (SELECT id FROM memberships WHERE userid = $uid);");
         $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = $uid;");
         $u->addEmail('test2@test.com');
         assertEquals(1, $this->user->addMembership($this->groupid));
@@ -606,12 +604,14 @@ class membershipsAPITest extends IznikAPITestCase {
 
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
+        $eid = $u->addEmail('test2@test.com');
         assertNotNull($uid);
-        assertTrue($u->addMembership($this->groupid, User::ROLE_MEMBER, NULL, MembershipCollection::PENDING));
+        assertTrue($u->addMembership($this->groupid, User::ROLE_MEMBER, $eid, MembershipCollection::PENDING));
         $ctx = NULL;
         $members = $this->group->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $this->groupid ]);
         assertEquals(1, count($members));
-        $this->dbhm->preExec("UPDATE memberships SET yahooapprove = 'test@test.com', yahooreject = 'test@test.com' WHERE userid = $uid;");
+        $this->dbhm->preExec("UPDATE memberships_yahoo SET yahooapprove = 'test@test.com', yahooreject = 'test@test.com' WHERE  membershipid = (SELECT id FROM memberships WHERE userid = $uid);");
+
         $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = $uid;");
         $u->addEmail('test2@test.com');
         assertEquals(1, $this->user->addMembership($this->groupid));
@@ -768,7 +768,7 @@ class membershipsAPITest extends IznikAPITestCase {
     public function testLarge() {
         error_log(__METHOD__);
 
-        $size = 31000;
+        $size = 1000;
 
         assertTrue($this->user->login('testpw'));
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_OWNER));

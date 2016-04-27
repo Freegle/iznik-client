@@ -31,7 +31,7 @@ class groupTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = '-testid1';");
         $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = '-testyahoouserid';");
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
-        $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.email LIKE '%test.com';");
+        $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.backwards LIKE 'moc.tset%';");
     }
 
     protected function tearDown() {
@@ -132,7 +132,9 @@ class groupTest extends IznikTestCase {
         # Create owner
         $u = new User($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        $u->addMembership($gid, User::ROLE_OWNER);
+        $eid = $u->addEmail('test@test.com');
+        error_log("Create owner $id with email $eid");
+        $u->addMembership($gid, User::ROLE_OWNER, $eid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
@@ -167,6 +169,7 @@ class groupTest extends IznikTestCase {
         assertEquals(0, $rc['ret']);
 
         $membs = $g->getMembers();
+        error_log("Got " . count($membs) . " now");
         error_log(var_export($membs, TRUE));
         assertEquals('-testid1', $membs[0]['yahooid']);
         assertEquals('test2@test.com', $membs[0]['otheremails'][0]['email']);
