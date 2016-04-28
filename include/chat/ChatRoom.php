@@ -244,10 +244,11 @@ class ChatRoom extends Entity
         # We have a unique key, and an update on current timestamp.
         #
         # Don't want to log these - lots of them.
-        $this->dbhm->preExec("REPLACE INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?);",
+        $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?) ON DUPLICATE KEY UPDATE lastip = ?;",
             [
                 $this->id,
                 $userid,
+                presdef('REMOTE_ADDR', $_SERVER, NULL),
                 presdef('REMOTE_ADDR', $_SERVER, NULL)
             ],
             FALSE);
