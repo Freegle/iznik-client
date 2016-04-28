@@ -27,7 +27,9 @@ function messages() {
             $userids = [];
 
             if ($collection != MessageCollection::DRAFT) {
-                if ($groupid) {
+                if ($subaction == 'searchall' && $me && $me->isAdminOrSupport()) {
+                    # We are intentionally searching the whole system, and are allowed to.
+                } else if ($groupid) {
                     # A group was specified
                     $groups[] = $groupid;
                 } else if ($me) {
@@ -67,6 +69,7 @@ function messages() {
                     break;
                 case 'search':
                 case 'searchmess':
+                case 'searchall':
                     # A search on message info.
                     $search = presdef('search', $_REQUEST, NULL);
                     $search = $search ? trim($search) : NULL;

@@ -381,4 +381,11 @@ define([
             return(url);
         }
     });
+
+    Iznik.Collections.Messages.SearchAll = Iznik.Collections.Message.extend({
+        url: function() {
+            url = API + 'messages/searchall/' + encodeURIComponent(this.options.searchmess);
+            return(url);
+        }
+    });
 });

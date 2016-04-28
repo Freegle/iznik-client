@@ -3,7 +3,9 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/views/pages/pages'
+    'iznik/views/pages/pages',
+    'iznik/views/pages/modtools/messages_approved'
+
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
         modtools: true,
@@ -13,6 +15,7 @@ define([
         events: function () {
             return _.extend({}, Iznik.Views.Page.prototype.events, {
                 'click .js-searchuser': 'searchUser',
+                'click .js-searchmsg': 'searchMessage',
                 'keyup .js-searchuserinp': 'keyup',
                 'click .js-mailgroup': 'mailGroup'
             });
@@ -57,6 +60,46 @@ define([
 
                     if (collection.length == 0) {
                         self.$('.js-none').fadeIn('slow');
+                    }
+                }
+            });
+        },
+
+        searchMessage: function () {
+            var self = this;
+
+            self.messages = new Iznik.Collections.Messages.SearchAll(null, {
+                searchmess: self.$('.js-searchmsginp').val(),
+                collection: 'Approved'
+            });
+
+            self.messagesView = new Backbone.CollectionView({
+                el: self.$('.js-searchmsgres'),
+                modelView: Iznik.Views.ModTools.Message.SupportSearchResult,
+                modelViewOptions: {
+                    collection: self.messages,
+                    page: self
+                },
+                collection: self.messages
+            });
+
+            self.messagesView.render();
+
+            var v = new Iznik.Views.PleaseWait();
+            v.render();
+
+            self.messages.fetch({
+                remove: true,
+                data: {
+                    search: self.$('.js-searchmsginp').val(),
+                },
+                success: function (collection, response, options) {
+                    v.close();
+
+                    if (collection.length == 0) {
+                        self.$('.js-msgnone').fadeIn('slow');
+                    } else {
+                        self.$('.js-msgnone').hide();
                     }
                 }
             });
@@ -187,5 +230,8 @@ define([
 
             return (this);
         }
+    });
+
+    Iznik.Views.ModTools.Message.SupportSearchResult = Iznik.Views.ModTools.Message.Approved.extend({
     });
 });

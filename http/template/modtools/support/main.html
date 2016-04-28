@@ -1,4 +1,5 @@
 <p class="text-muted">These are useful tools for Support.  You need to have been given appropriate permissions before you'll see this page.</p>
+<div class="alert alert-warning">Some of these are a bit slow compared to normal member operations, as they have to look quite hard to find things.</div>
 <div class="panel-group" id="suppor" role="tablist" aria-multiselectable="true">
     <div class="panel panel-default">
         <div class="panel-heading" role="tab" id="findhead">
@@ -8,7 +9,7 @@
                 </a>
             </h4>
         </div>
-        <div id="find" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="findhead">
+        <div id="find" class="panel-collapse collapse" role="tabpanel" aria-labelledby="findhead">
             <div class="panel-body">
                 <p class="text-muted">You can find any user in the system.  This is a bit slow, as it has to look quite hard.</p>
                 <div class="input-group botspace">
@@ -22,6 +23,33 @@
                 <ul class="list-unstyled js-searchuserres" />
                 <div class="js-none text-muted" style="display: none">
                     No members found.
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="msgfindhead">
+            <h4 class="panel-title">
+                <a role="button" data-toggle="collapse" data-parent="#support" href="#msgfind" aria-expanded="true" aria-controls="find">
+                    Find Message
+                </a>
+            </h4>
+        </div>
+        <div id="msgfind" class="panel-collapse collapse" role="tabpanel" aria-labelledby="msgfindhead">
+            <div class="panel-body">
+                <p class="text-muted">You can search for messages by subject.  This will only return the first
+                few results, so the more specific, the better.</p>
+                <div class="input-group botspace">
+                    <input type="text" class="form-control js-searchmsginp" placeholder="Search message subjects">
+                    <span class="input-group-btn">
+                        <button class="btn btn-success js-searchmsg" type="button">
+                            <div class="glyphicon glyphicon-search" />
+                        </button>
+                    </span>
+                </div>
+                <ul class="list-unstyled js-searchmsgres" />
+                <div class="js-msgnone text-muted" style="display: none">
+                    No messages found.
                 </div>
             </div>
         </div>

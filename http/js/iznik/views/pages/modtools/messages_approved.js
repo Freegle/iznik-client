@@ -217,62 +217,65 @@ define([
                 // Add the default standard actions.
                 var configs = Iznik.Session.get('configs');
                 var sessgroup = Iznik.Session.get('groups').get(group.id);
-                var config = configs.get(sessgroup.get('configid'));
 
-                self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
-                    model: new Iznik.Model({
-                        title: 'Reply',
-                        action: 'Leave Approved Message',
-                        message: self.model,
-                        config: config
-                    })
-                }).render().el);
+                if (sessgroup) {
+                    var config = configs.get(sessgroup.get('configid'));
 
-                self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
-                    model: new Iznik.Model({
-                        title: 'Delete',
-                        action: 'Delete Approved Message',
-                        message: self.model,
-                        config: config
-                    })
-                }).render().el);
+                    self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
+                        model: new Iznik.Model({
+                            title: 'Reply',
+                            action: 'Leave Approved Message',
+                            message: self.model,
+                            config: config
+                        })
+                    }).render().el);
 
-                self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
-                    model: new Iznik.Model({
-                        title: 'Spam',
-                        action: 'Spam',
-                        message: self.model
-                    })
-                }).render().el);
+                    self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
+                        model: new Iznik.Model({
+                            title: 'Delete',
+                            action: 'Delete Approved Message',
+                            message: self.model,
+                            config: config
+                        })
+                    }).render().el);
 
-                if (config) {
-                    self.checkMessage(config);
-                    self.showRelated();
+                    self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
+                        model: new Iznik.Model({
+                            title: 'Spam',
+                            action: 'Spam',
+                            message: self.model
+                        })
+                    }).render().el);
 
-                    // Add the other standard messages, in the order requested.
-                    var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
-                    var anyrare = false;
+                    if (config) {
+                        self.checkMessage(config);
+                        self.showRelated();
 
-                    _.each(sortmsgs, function (stdmsg) {
-                        if (_.contains(['Leave Approved Message', 'Delete Approved Message'], stdmsg.action)) {
-                            stdmsg.message = self.model;
-                            var v = new Iznik.Views.ModTools.StdMessage.Button({
-                                model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
-                                config: config
-                            });
+                        // Add the other standard messages, in the order requested.
+                        var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
+                        var anyrare = false;
 
-                            var el = v.render().el;
-                            self.$('.js-stdmsgs').append(el);
+                        _.each(sortmsgs, function (stdmsg) {
+                            if (_.contains(['Leave Approved Message', 'Delete Approved Message'], stdmsg.action)) {
+                                stdmsg.message = self.model;
+                                var v = new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
+                                    config: config
+                                });
 
-                            if (stdmsg.rarelyused) {
-                                anyrare = true;
-                                $(el).hide();
+                                var el = v.render().el;
+                                self.$('.js-stdmsgs').append(el);
+
+                                if (stdmsg.rarelyused) {
+                                    anyrare = true;
+                                    $(el).hide();
+                                }
                             }
-                        }
-                    });
+                        });
 
-                    if (!anyrare) {
-                        self.$('.js-rarelyholder').hide();
+                        if (!anyrare) {
+                            self.$('.js-rarelyholder').hide();
+                        }
                     }
                 }
             });
