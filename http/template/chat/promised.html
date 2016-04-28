@@ -1,0 +1,26 @@
+<div class="panel panel-success padmd">
+    <div class="panel-heading">
+        <div class="row padleft">
+            <% if (refmsg.fromuser.id == obj.myid) { %>
+            <h3 class="nomargin"><span class="glyphicons glyphicons-handshake glyphicon-larger" />&nbsp;You promised this:</h3>
+            <% } else { %>
+            <h3 class="nomargin"><span class="glyphicons glyphicons-handshake glyphicon-larger" />&nbsp;Good news!</h3>
+            You've been promised this:
+            <% } %>
+        </div>
+     </div>
+    <div class="panel-body">
+        <div class="row">`
+            <% if (refmsg.attachments && refmsg.attachments.length > 0) { %>
+                <div class="col-xs-2">
+                    <img class="nomargin thumbnail img-smallerthumbnail" src="{{refmsg.attachments[0].path}}?w=100" />
+                </div>
+                <div class="col-xs-10">
+            <% } else { %>
+                <div class="col-xs-12 nopadright">
+            <% } %>
+                    {{refmsg.subject}}
+                </div>
+        </div>
+    </div>
+</div>

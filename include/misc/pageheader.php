@@ -4,6 +4,8 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
 ?><!DOCTYPE HTML>
 <html>
 <head>
+    <!-- Hi there.  We always need geek volunteers.  Why not mail geeks@ilovefreegle.org to get in touch, or
+    help make the code better at https://github.com/Freegle/iznik ?  -->
     <meta name="msapplication-tap-highlight" content="no"/>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
     <meta name="viewport"

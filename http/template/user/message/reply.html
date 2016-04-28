@@ -1,6 +1,6 @@
 <div class="row-fluid panel">
     <div class="panel-body">
-        <div class="nopad col-xs-8">
+        <div class="nopad col-xs-6">
             {{user.displayname}}<br />
             <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" ></abbr>
         </div>
@@ -16,11 +16,11 @@
         <div class="col-xs-2">
             <% if (message.type == 'Offer') { %>
             <% if (obj.promised) { %>
-                <div class="btn btn-warning btn-sm js-renege" title="Remove promise">
+                <div class="btn btn-warning btn-sm js-renege margright" title="Remove promise">
                     <div class="glyphicons glyphicons-remove-circle glyphicon-larger" />
                 </div>
                 <% } else { %>
-                <div class="btn btn-success btn-sm js-promise" title="Promise it to this person">
+                <div class="btn btn-success btn-sm js-promise margright" title="Promise it to this person">
                     <div class="glyphicons glyphicons-handshake glyphicon-larger" />
                 </div>
                 <% } %>

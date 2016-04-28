@@ -6,7 +6,6 @@ function chatmessages() {
 
     $roomid = intval(presdef('roomid', $_REQUEST, NULL));
     $message = presdef('message', $_REQUEST, NULL);
-    $refmsgid = presdef('refmsgid', $_REQUEST, NULL);
 
     $r = new ChatRoom($dbhr, $dbhm, $roomid);
     $id = intval(presdef('id', $_REQUEST, NULL));
@@ -51,7 +50,7 @@ function chatmessages() {
                 $ret = ['ret' => 2, 'status' => 'Not visible to you'];
 
                 if ($message && $roomid && $r->canSee($me->getId())) {
-                    $id = $m->create($roomid, $me->getId(), $message, FALSE, $refmsgid);
+                    $id = $m->create($roomid, $me->getId(), $message, ChatMessage::TYPE_DEFAULT, NULL);
                     $ret = ['ret' => 3, 'status' => 'Message create failed'];
 
                     if ($id) {

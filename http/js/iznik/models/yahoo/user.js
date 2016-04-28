@@ -28,49 +28,53 @@ define([
             if (self.get('userId')) {
                 console.log("Remove member", self.get('userId'), crumb);
 
-                var data = [{
-                    userId: self.get('userId')
-                }];
+                if (self.get('moderatorStatus')) {
+                    console.error("Refused to remove mod/owner", self);
+                } else {
+                    var data = [{
+                        userId: self.get('userId')
+                    }];
 
-                new majax({
-                    type: "DELETE",
-                    url: YAHOOAPIv2 + "groups/" + this.get('group') + "/members?gapi_crumb=" + crumb + "&members=" + encodeURIComponent(JSON.stringify(data)),
-                    data: data,
-                    success: function (ret) {
-                        console.log("Delete ret", ret);
-                        console.log("Type", typeof ret);
-                        console.log("data?", ret.hasOwnProperty('ygData'));
-                        console.log("passed?", ret.hasOwnProperty('ygData') &&
-                            ret.ygData.hasOwnProperty('numPassed'));
-                        if (ret.hasOwnProperty('ygData') &&
-                            ret.ygData.hasOwnProperty('numPassed')) {
-                            // If the delete worked, numPassed == 1.
-                            if (ret.ygData.numPassed == 1) {
-                                console.log("Succeeded");
-                                self.trigger('removesucceeded');
-                            } else {
-                                // If we get a status of NOT SUBSCRIBED then the member is no longer on the group - which
-                                // means this remove is complete.
-                                if (ret.ygData.hasOwnProperty('members') &&
-                                    ret.ygData.members.length == 1 &&
-                                    ret.ygData.members[0].hasOwnProperty('status') &&
-                                    ret.ygData.members[0].status == 'NOT_SUBSCRIBED') {
-                                    console.log("Succeeded as gone");
+                    new majax({
+                        type: "DELETE",
+                        url: YAHOOAPIv2 + "groups/" + this.get('group') + "/members?gapi_crumb=" + crumb + "&members=" + encodeURIComponent(JSON.stringify(data)),
+                        data: data,
+                        success: function (ret) {
+                            console.log("Delete ret", ret);
+                            console.log("Type", typeof ret);
+                            console.log("data?", ret.hasOwnProperty('ygData'));
+                            console.log("passed?", ret.hasOwnProperty('ygData') &&
+                                ret.ygData.hasOwnProperty('numPassed'));
+                            if (ret.hasOwnProperty('ygData') &&
+                                ret.ygData.hasOwnProperty('numPassed')) {
+                                // If the delete worked, numPassed == 1.
+                                if (ret.ygData.numPassed == 1) {
+                                    console.log("Succeeded");
                                     self.trigger('removesucceeded');
                                 } else {
-                                    console.log("Failed to remove");
-                                    self.trigger('removefailed');
+                                    // If we get a status of NOT SUBSCRIBED then the member is no longer on the group - which
+                                    // means this remove is complete.
+                                    if (ret.ygData.hasOwnProperty('members') &&
+                                        ret.ygData.members.length == 1 &&
+                                        ret.ygData.members[0].hasOwnProperty('status') &&
+                                        ret.ygData.members[0].status == 'NOT_SUBSCRIBED') {
+                                        console.log("Succeeded as gone");
+                                        self.trigger('removesucceeded');
+                                    } else {
+                                        console.log("Failed to remove");
+                                        self.trigger('removefailed');
+                                    }
                                 }
+                            } else {
+                                console.log("DELETE failed", ret);
+                                self.trigger('removefailed');
                             }
-                        } else {
-                            console.log("DELETE failed", ret);
+                        }, error: function(a,b,c) {
+                            console.log("DELETE error", a, b, c);
                             self.trigger('removefailed');
                         }
-                    }, error: function(a,b,c) {
-                        console.log("DELETE error", a, b, c);
-                        self.trigger('removefailed');
-                    }
-                });
+                    });
+                }
             } else {
                 // The model doesn't have a user id, which means we didn't find it on Yahoo.
                 self.trigger('removesucceeded');
@@ -80,42 +84,46 @@ define([
         ban: function(crumb) {
             var self = this;
 
-            var members = [
-                {
-                    userId: self.get('userId'),
-                    subscriptionStatus: 'BANNED'
-                }
-            ];
+            if (self.get('moderatorStatus')) {
+                console.error("Refused to ban mod/owner", self);
+            } else {
+                var members = [
+                    {
+                        userId: self.get('userId'),
+                        subscriptionStatus: 'BANNED'
+                    }
+                ];
 
-            new majax({
-                type: "PUT",
-                url: YAHOOAPI + "groups/" + this.get('group') + "/members?gapi_crumb=" + crumb,
-                data: {
-                    members: JSON.stringify(members)
-                },
-                success: function (ret) {
-                    console.log("Ban returned", ret);
-                    if (ret.hasOwnProperty('ygData') &&
-                        ret.ygData.hasOwnProperty('numPassed')) {
-                        // If the ban worked, numPassed == 1.  If the user is no longer on the group that works for us
-                        // too.
-                        if (ret.ygData.numPassed == 1 || ret.ygData.members[0].status == 'INVALID_ADDRESS') {
-                            self.trigger('bansucceeded');
-                        } else if (ret.ygData.numPassed == 1 || ret.ygData.members[0].status == 'FAILED') {
-                            // Probably we don't have Ban rights.
-                            console.log("Prohibited?");
-                            self.trigger('banprohibited');
+                new majax({
+                    type: "PUT",
+                    url: YAHOOAPI + "groups/" + this.get('group') + "/members?gapi_crumb=" + crumb,
+                    data: {
+                        members: JSON.stringify(members)
+                    },
+                    success: function (ret) {
+                        console.log("Ban returned", ret);
+                        if (ret.hasOwnProperty('ygData') &&
+                            ret.ygData.hasOwnProperty('numPassed')) {
+                            // If the ban worked, numPassed == 1.  If the user is no longer on the group that works for us
+                            // too.
+                            if (ret.ygData.numPassed == 1 || ret.ygData.members[0].status == 'INVALID_ADDRESS') {
+                                self.trigger('bansucceeded');
+                            } else if (ret.ygData.numPassed == 1 || ret.ygData.members[0].status == 'FAILED') {
+                                // Probably we don't have Ban rights.
+                                console.log("Prohibited?");
+                                self.trigger('banprohibited');
+                            } else {
+                                self.trigger('banfailed');
+                            }
                         } else {
                             self.trigger('banfailed');
                         }
-                    } else {
+                    }, error: function (a, b, c) {
+                        console.log("DELETE error", a, b, c);
                         self.trigger('banfailed');
                     }
-                }, error: function(a,b,c) {
-                    console.log("DELETE error", a, b, c);
-                    self.trigger('banfailed');
-                }
-            });
+                });
+            }
         },
 
         changeAttr: function(attr, val) {

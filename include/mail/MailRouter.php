@@ -207,7 +207,7 @@ class MailRouter
 
                 $u = new User($this->dbhr, $this->dbhm);
                 $uid = $u->findByEmail($to);
-                $this->log([
+                $this->log->log([
                     'type' => Log::TYPE_USER,
                     'subtype' => Log::SUBTYPE_YAHOO_CONFIRMED,
                     'user' => $uid,
@@ -226,7 +226,7 @@ class MailRouter
 
                 $u = new User($this->dbhr, $this->dbhm);
                 $uid = $u->findByEmail($to);
-                $this->log([
+                $this->log->log([
                     'type' => Log::TYPE_USER,
                     'subtype' => Log::SUBTYPE_YAHOO_CONFIRMED,
                     'user' => $uid,
@@ -530,7 +530,7 @@ class MailRouter
                             if ($rid) {
                                 # And now add our text into the chat room as a message.  This will notify them.
                                 $m = new ChatMessage($this->dbhr, $this->dbhm);
-                                $mid = $m->create($rid, $this->msg->getFromuser(), $textbody, FALSE, $this->msg->getID());
+                                $mid = $m->create($rid, $this->msg->getFromuser(), $textbody, ChatMessage::TYPE_INTERESTED, $this->msg->getID());
                                 #error_log("Created chat message $mid");
                             }
                         }

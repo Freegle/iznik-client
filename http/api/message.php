@@ -303,14 +303,19 @@ function message() {
 
             # Other actions which we can do on our own messages.
             if ($myid == $m->getFromuser()) {
+                $r = new ChatRoom($dbhr, $dbhm);
+                $rid = $r->createConversation($myid, $userid);
+                $cm = new ChatMessage($dbhr, $dbhm);
                 switch ($action) {
                     case 'Promise':
                         $m->promise($userid);
-                        $ret = ['ret' => 0, 'status' => 'Success'];
+                        $mid = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_PROMISED, $id);
+                        $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
                         break;
                     case 'Renege':
                         $m->renege($userid);
-                        $ret = ['ret' => 0, 'status' => 'Success'];
+                        $mid = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_RENEGED, $id);
+                        $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
                         break;
                 }
             }

@@ -167,8 +167,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $ret = $this->call('chatmessages', 'POST', [
             'roomid' => $this->cid,
-            'message' => 'Test',
-            'refmsgid' => $refmsgid
+            'message' => 'Test'
         ]);
         error_log("Create message " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
@@ -200,7 +199,6 @@ class chatMessagesAPITest extends IznikAPITestCase
         error_log("Get message" . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals($mid1, $ret['chatmessage']['id']);
-        assertEquals($refmsgid, $ret['chatmessage']['refmsg']['id']);
 
         # Should be able to post
         $ret = $this->call('chatmessages', 'POST', [ 'roomid' => $this->cid, 'message' => 'Test' ]);

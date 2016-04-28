@@ -1650,7 +1650,7 @@ class User extends Entity
             ]);
 
             # The Yahoo membership should exist as we'll have created it when we triggered the application.
-            $this->log([
+            $this->log->log([
                 'type' => Log::TYPE_USER,
                 'subtype' => Log::SUBTYPE_YAHOO_JOINED,
                 'user' => $this->getId(),

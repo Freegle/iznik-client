@@ -9,8 +9,14 @@ require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 class ChatMessage extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid');
+    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type');
     var $settableatts = array('name');
+
+    const TYPE_DEFAULT = 'Default';
+    const TYPE_SYSTEM = 'System';
+    const TYPE_INTERESTED = 'Interested';
+    const TYPE_PROMISED = 'Promised';
+    const TYPE_RENEGED = 'Reneged';
 
     /** @var  $log Log */
     private $log;
@@ -29,13 +35,13 @@ class ChatMessage extends Entity
         $this->dbhm = $dbhm;
     }
 
-    public function create($chatid, $userid, $message, $system = FALSE, $refmsgid = NULL) {
+    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL) {
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, system, refmsgid) VALUES (?,?,?,?,?)", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid) VALUES (?,?,?,?,?)", [
                 $chatid,
                 $userid,
                 $message,
-                $system,
+                $type,
                 $refmsgid
             ]);
 

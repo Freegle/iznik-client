@@ -20,14 +20,14 @@ define([
                 this.$('.js-replycount').addClass('reallyHide');
                 this.$('.js-unreadcountholder').addClass('reallyHide');
                 this.$('.js-promised').addClass('reallyHide');
-                this.$('.js-caretdown').hide();
-                this.$('.js-caretup').show();
+                this.$('.js-caretdown').show();
+                this.$('.js-caretup').hide();
             } else {
                 this.$('.js-replycount').removeClass('reallyHide');
                 this.$('.js-unreadcountholder').removeClass('reallyHide');
                 this.$('.js-promised').removeClass('reallyHide');
-                this.$('.js-caretdown').show();
-                this.$('.js-caretup').hide();
+                this.$('.js-caretdown').hide();
+                this.$('.js-caretup').show();
             }
         },
 

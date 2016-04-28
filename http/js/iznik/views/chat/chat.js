@@ -57,18 +57,14 @@ define([
                                         modtools: self.options.modtools
                                     }).then(function() {
                                         // Now that we have the chat, update our status in it.
-                                        console.log("Fetched chats");
                                         var chat = Iznik.Session.chats.get(data.newroom);
 
                                         // If the unread message count changes in the new chat, we want to update.
                                         self.listenTo(chat, 'change:unseen', self.updateCounts);
                                         self.updateCounts();
 
-                                        console.log("found chat", chat);
-
                                         if (chat) {
                                             var chatView = Iznik.activeChats.viewManager.findByModel(chat);
-                                            console.log("found chat view", chatView);
                                             chatView.updateRoster(chatView.statusWithOverride('Online'), chatView.noop);
                                         }
 
@@ -455,14 +451,6 @@ define([
         },
 
         zapViews: function() {
-            // Zap views
-            // var minview = Iznik.minimisedChats.viewManager.findByModel(this.model);
-            // Iznik.minimisedChats.viewManager.remove(minview);
-            // Iznik.activeChats.viewManager.remove(this);
-            //
-            // minview.destroyIt();
-            // this.destroyIt();
-            // console.log("Remove model", this.model.get('id'));
             Iznik.Session.chats.remove({
                 id: this.model.get('id')
             });
@@ -880,13 +868,26 @@ define([
         render: function() {
             if (this.model.get('id')) {
                 // Insert some wbrs to allow us to word break long words (e.g. URLs).
-                this.model.set('message', wbr(this.model.get('message'), 20));
+                var message = this.model.get('message');
+                if (message) {
+                    message = this.model.set('message', wbr(message, 20));
+                }
+
                 this.model.set('group', this.options.chatModel.get('group'));
+                this.model.set('myid', Iznik.Session.get('me').id);
 
                 this.model.set('lastmsgseen', this.options.chatModel.get('lastmsgseen'));
 
-                // We might have a referenced message attached.
-                var tpl = this.model.get('refmsg') ? 'chat_refmsg' : 'chat_message';
+                // This could be a simple chat message, or something more complex.
+                var tpl;
+
+                switch (this.model.get('type')) {
+                    case 'Interested': tpl = 'chat_interested'; break;
+                    case 'Promised': tpl = 'chat_promised'; break;
+                    case 'Reneged': tpl = 'chat_reneged'; break;
+                    default: tpl = 'chat_message'; break;
+                }
+
                 this.$el.html(window.template(tpl)(this.model.toJSON2()));
 
                 this.$('.timeago').timeago();
@@ -897,7 +898,7 @@ define([
     });
 
     Iznik.Views.Chat.Roster = Iznik.View.extend({
-        template: 'chat_roster',
+        template: 'chat_roster'
     });
 
     Iznik.Views.Chat.RosterEntry = Iznik.View.extend({
