@@ -1,11 +1,11 @@
 <div class="row-fluid panel">
     <div class="panel-body">
-        <div class="nopad col-xs-6">
+        <div class="nopad col-xs-8">
             {{user.displayname}}<br />
             <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" ></abbr>
         </div>
         <div class="col-xs-2">
-            <div class="btn btn-primary btn-sm js-chat" title="Chat to this person">
+            <div class="btn btn-primary btn-sm js-chat nopad" title="Chat to this person">
                 <div class="glyphicons glyphicons-conversation glyphicon-larger">
                 <% if (unseen != 0) { %>
                     <span class="badge badge-unread">{{unseen}}</span>
@@ -16,11 +16,11 @@
         <div class="col-xs-2">
             <% if (message.type == 'Offer') { %>
             <% if (obj.promised) { %>
-                <div class="btn btn-warning btn-sm js-renege margright" title="Remove promise">
+                <div class="btn btn-warning btn-sm js-renege nopad" title="Remove promise">
                     <div class="glyphicons glyphicons-remove-circle glyphicon-larger" />
                 </div>
                 <% } else { %>
-                <div class="btn btn-success btn-sm js-promise margright" title="Promise it to this person">
+                <div class="btn btn-success btn-sm js-promise nopad" title="Promise it to this person">
                     <div class="glyphicons glyphicons-handshake glyphicon-larger" />
                 </div>
                 <% } %>

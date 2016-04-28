@@ -12,10 +12,10 @@
     <div class="panel-body">
         <div class="row">
             <% if (refmsg.attachments && refmsg.attachments.length > 0) { %>
-                <div class="col-xs-2">
-                    <img class="nomargin thumbnail img-smallerthumbnail" src="{{refmsg.attachments[0].path}}?w=100" />
+                <div class="col-xs-2 nopad">
+                    <img class="nomargin thumbnail img-responsive" src="{{refmsg.attachments[0].path}}?w=100" />
                 </div>
-                <div class="col-xs-10">
+                <div class="col-xs-10 nopadright">
             <% } else { %>
                 <div class="col-xs-12 nopadright">
             <% } %>

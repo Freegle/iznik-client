@@ -51,7 +51,7 @@ function chatmessages() {
                 $ret = ['ret' => 2, 'status' => 'Not visible to you'];
 
                 if ($message && $roomid && $r->canSee($me->getId())) {
-                    $id = $m->create($roomid, $me->getId(), $message, $refmsg ? ChatMessage::TYPE_INTERESTED : ChatMessage::TYPE_DEFAULT, $refmsgid);
+                    $id = $m->create($roomid, $me->getId(), $message, $refmsgid ? ChatMessage::TYPE_INTERESTED : ChatMessage::TYPE_DEFAULT, $refmsgid);
                     $ret = ['ret' => 3, 'status' => 'Message create failed'];
 
                     if ($id) {
