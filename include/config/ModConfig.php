@@ -246,7 +246,10 @@ class ModConfig extends Entity
 //        error_log("Protected {$this->modconfig['protected']}");
 //        error_log("Cansee " . $this->canSee());
 
-        return($this->canSee() && ($myid == $this->modconfig['createdby'] || !$this->modconfig['protected']));
+        # We can modify if:
+        # - we can see the config
+        # - we created it, or it's not owned any more (if the user has gone), or it's not protected.
+        return($this->canSee() && ($myid == $this->modconfig['createdby'] || !$this->modconfig['createdby'] || !$this->modconfig['protected']));
     }
 
     public function canSee() {
