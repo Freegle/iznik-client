@@ -275,11 +275,8 @@ define([
                             }).then(function() {
                                 // Defer to give the CollectionView time to respond.
                                 _.defer(function() {
-                                    console.log("Look for chat", ret.id, Iznik.Session.chats);
                                     var chatmodel = Iznik.Session.chats.get(ret.id);
-                                    console.log("Found model", chatmodel);
                                     var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
-                                    console.log("Found view", chatView);
                                     chatView.restore();
                                 })
                             });
@@ -412,6 +409,7 @@ define([
             'click .js-remove, touchstart .js-remove': 'removeIt',
             'click .js-minimise, touchstart .js-minimise': 'minimise',
             'focus .js-message': 'messageFocus',
+            'click .js-promise': 'promise',
             'keyup .js-message': 'keyUp',
             'change .js-status': 'status'
         },
@@ -470,6 +468,11 @@ define([
 
         noop: function() {
 
+        },
+
+        promise: function() {
+            // Promise a message to someone.
+            var self = this;
         },
 
         messageFocus: function() {
@@ -777,6 +780,8 @@ define([
 
             if (!self.options.modtools) {
                 self.$('.js-privacy').hide();
+            } else {
+                self.$('.js-promise').hide();
             }
 
             try {

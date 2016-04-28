@@ -1,0 +1,16 @@
+#!/bin/bash
+#
+# Restore the last backup into MySQL.  For use on the archive server.
+/etc/init.d/mysql stop
+rm -r /archive/mysql
+mkdir /archive/mysql
+rm -r /archive/t
+mkdir /archive/t
+cd /archive/backups
+back=`ls -1tr *gz | tail -1`
+cd /archive/t
+tar -xvzf /archive/backups/$back
+innobackupex --apply-log /archive/t
+innobackupex --copy-back /archive/t
+chown -R mysql:mysql /archive/mysql
+/etc/init.d/mysql start

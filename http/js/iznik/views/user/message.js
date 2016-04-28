@@ -202,25 +202,15 @@ define([
         promise: function() {
             var self = this;
 
-            var v = new Iznik.Views.Confirm({
-                model: self.model
-            });
-            v.template = 'user_message_promise';
-
-            self.listenToOnce(v, 'confirmed', function() {
-                $.ajax({
-                    url: API + 'message/' + self.options.message.get('id'),
-                    type: 'POST',
-                    data: {
-                        action: 'Promise',
-                        userid: self.model.get('user').id
-                    }, success: function() {
-                        self.options.message.fetch().then(function() {
-                            console.log("Fetched", self.options.message);
-                            self.render.call(self, self.options);
-                        });
-                    }
+            var v = new Iznik.Views.User.Message.Promise({
+                model: new Iznik.Model({
+                    message: self.options.message.toJSON2(),
+                    user: self.model.get('user')
                 })
+            });
+
+            self.listenToOnce(v, 'promised', function() {
+                self.render.call(self, self.options);
             });
 
             v.render();
@@ -272,6 +262,33 @@ define([
                 self.$('.timeago').timeago();
             }
 
+            return(this);
+        }
+    });
+
+    Iznik.Views.User.Message.Promise = Iznik.Views.Confirm.extend({
+        template: 'user_message_promise',
+
+        promised: function() {
+            var self = this;
+
+            $.ajax({
+                url: API + 'message/' + self.model.get('message').id,
+                type: 'POST',
+                data: {
+                    action: 'Promise',
+                    userid: self.model.get('user').id
+                }, success: function() {
+                    self.options.message.fetch().then(function() {
+                        self.trigger('promised')
+                    });
+                }
+            })
+        },
+
+        render: function() {
+            this.listenToOnce(this, 'confirmed', this.promised);
+            this.open(this.template);
             return(this);
         }
     });
