@@ -29,7 +29,7 @@ define([
                 el: self.$('.js-offers'),
                 modelView: Iznik.Views.User.Home.Offer,
                 modelViewOptions: {
-                    collection: self.offers,
+                    offers: self.offers,
                     page: self
                 },
                 collection: self.offers
@@ -41,7 +41,7 @@ define([
                 el: self.$('.js-wanteds'),
                 modelView: Iznik.Views.User.Home.Wanted,
                 modelViewOptions: {
-                    collection: self.wanteds,
+                    wanteds: self.wanteds,
                     page: self
                 },
                 collection: self.wanteds

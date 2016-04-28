@@ -473,6 +473,46 @@ define([
         promise: function() {
             // Promise a message to someone.
             var self = this;
+
+            // Get our offers.
+            self.offers = new Iznik.Collections.Message(null, {
+                collection: 'Approved'
+            });
+
+            self.offers.fetch({
+                data: {
+                    fromuser: Iznik.Session.get('me').id,
+                    types: ['Offer'],
+                    limit: 100
+                }
+            }).then(function() {
+                if (self.offers.length > 0) {
+                    // The message we want to suggest as the one to promise is any last message mentioned in this chat.
+                    var msgid = _.last(self.model.get('refmsgids'));
+
+                    var msg = null;
+                    self.offers.each(function(offer) {
+                        if (offer.get('id') == msgid) {
+                            msg = offer;
+                        }
+                    });
+
+                    var v = new Iznik.Views.User.Message.Promise({
+                        model: new Iznik.Model({
+                            message: msg ? msg.toJSON2() : null,
+                            user: self.model.get('user1').id != Iznik.Session.get('me').id ?
+                                self.model.get('user1'): self.model.get('user2')
+                        }),
+                        offers: self.offers
+                    });
+
+                    self.listenToOnce(v, 'promised', function() {
+                        msg.fetch();
+                    });
+
+                    v.render();
+                }
+            });
         },
 
         messageFocus: function() {

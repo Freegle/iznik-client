@@ -54,7 +54,16 @@ self.addEventListener('message', function(event) {
             console.log("Save subscription ", event.data.subscription);
             var request = db.transaction(['swdata'], 'readwrite')
                 .objectStore('swdata')
-                .add({ id: 'pushsubscription', value: event.data.subscription})
+                .add({ id: 'pushsubscription', value: event.data.subscription});
+
+            request.onsuccess = function(e) {
+                console.log("Saved subscription");
+            };
+
+            request.onerror = function(e) {
+                console.error("Failed to save subscription", e);
+                e.preventDefault();
+            };
             break;
     }
 

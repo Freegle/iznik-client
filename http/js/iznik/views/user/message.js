@@ -15,7 +15,6 @@ define([
         expanded: false,
 
         caretshow: function() {
-            console.log("Expanded?", this.expanded);
             if (!this.expanded) {
                 this.$('.js-replycount').addClass('reallyHide');
                 this.$('.js-unreadcountholder').addClass('reallyHide');
@@ -52,15 +51,12 @@ define([
                 _.each(refmsgids, function(refmsgid) {
                     if (refmsgid == self.model.get('id')) {
                         var thisun = chat.get('unseen');
-                        console.log("Got chat unseen", thisun);
                         unread += thisun;
 
                         if (thisun > 0) {
                             // This chat might indicate a new replier we've not got listed.
                             // TODO Could make this perform better than doing a full fetch.
                             self.model.fetch().then(function() {
-                                console.log("Fetched");
-                                console.log("add new replies", self.model.get('replies'));
                                 self.replies.add(self.model.get('replies'));
                                 self.updateReplies();
                             });
@@ -83,9 +79,7 @@ define([
             if (this.inDOM()) {
                 // If the number of unread messages relating to this message changes, we want to flag it in the count.  So
                 // look for chats which refer to this message.  Note that chats can refer to multiple.
-                console.log("watchChatRooms");
                 Iznik.Session.chats.fetch().then(function() {
-                    console.log("Fetched chats");
                     Iznik.Session.chats.each(function (chat) {
                         self.listenTo(chat, 'change:unseen', self.updateUnread);
                     });
@@ -206,11 +200,14 @@ define([
                 model: new Iznik.Model({
                     message: self.options.message.toJSON2(),
                     user: self.model.get('user')
-                })
+                }),
+                offers: self.options.offers
             });
 
             self.listenToOnce(v, 'promised', function() {
-                self.render.call(self, self.options);
+                self.options.message.fetch().then(function() {
+                    self.render.call(self, self.options);
+                })
             });
 
             v.render();
@@ -279,16 +276,26 @@ define([
                     action: 'Promise',
                     userid: self.model.get('user').id
                 }, success: function() {
-                    self.options.message.fetch().then(function() {
-                        self.trigger('promised')
-                    });
+                    self.trigger('promised')
                 }
             })
         },
 
         render: function() {
+            var self = this;
+            console.log("Offers?", this.options.offers);
             this.listenToOnce(this, 'confirmed', this.promised);
             this.open(this.template);
+
+            var msgid = self.model.get('message').id;
+
+            this.options.offers.each(function(offer) {
+                self.$('.js-offers').append('<option value="' + offer.get('id') + '" />');
+                self.$('.js-offers option:last').html(offer.get('subject'));
+            });
+
+            self.$('.js-offers').val(msgid);
+
             return(this);
         }
     });
