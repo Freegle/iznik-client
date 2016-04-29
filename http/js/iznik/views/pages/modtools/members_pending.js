@@ -109,8 +109,10 @@ define([
     Iznik.Views.ModTools.Member.Pending = Iznik.Views.ModTools.Member.extend({
         template: 'modtools_members_pending_member',
 
-        events: {
-            'click .js-rarelyused': 'rarelyUsed'
+        events: function(){
+            return _.extend({},Iznik.Views.ModTools.Member.prototype.events,{
+                'click .js-rarelyused': 'rarelyUsed'
+            });
         },
 
         render: function () {

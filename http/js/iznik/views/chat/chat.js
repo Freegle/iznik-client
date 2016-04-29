@@ -364,8 +364,10 @@ define([
 
         tagName: 'li',
 
-        events: {
-            'click': 'click'
+        events: function(){
+            return _.extend({},Iznik.View.prototype.events,{
+                'click': 'click'
+            });
         },
 
         click: function() {
@@ -405,13 +407,15 @@ define([
 
         className: 'chat-window nopad nomarginleft nomarginbot nomarginright col-xs-4 col-md-3 col-lg-2',
 
-        events: {
-            'click .js-remove, touchstart .js-remove': 'removeIt',
-            'click .js-minimise, touchstart .js-minimise': 'minimise',
-            'focus .js-message': 'messageFocus',
-            'click .js-promise': 'promise',
-            'keyup .js-message': 'keyUp',
-            'change .js-status': 'status'
+        events: function(){
+            return _.extend({},Iznik.View.prototype.events,{
+                'click .js-remove, touchstart .js-remove': 'removeIt',
+                'click .js-minimise, touchstart .js-minimise': 'minimise',
+                'focus .js-message': 'messageFocus',
+                'click .js-promise': 'promise',
+                'keyup .js-message': 'keyUp',
+                'change .js-status': 'status'
+            });
         },
 
         removed: false,
@@ -949,8 +953,11 @@ define([
     Iznik.Views.Chat.RosterEntry = Iznik.View.extend({
         template: 'chat_rosterentry',
 
-        events: {
-            'click .js-click': 'dm'
+
+        events: function(){
+            return _.extend({},Iznik.View.prototype.events,{
+                'click .js-click': 'dm'
+            });
         },
 
         dm: function() {

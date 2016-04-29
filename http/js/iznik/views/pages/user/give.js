@@ -257,8 +257,10 @@ define([
 
         template: "user_give_thumbnail",
 
-        events: {
-            'click .js-remove': 'removeMe'
+        events: function(){
+            return _.extend({},Iznik.View.prototype.events,{
+                'click .js-remove': 'removeMe'
+            });
         },
 
         removeMe: function () {

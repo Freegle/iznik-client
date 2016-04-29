@@ -15,8 +15,10 @@ define([
     Iznik.Views.Page = Iznik.View.extend({
         modtools: false,
 
-        events: {
-            'click .js-signin': 'signin'
+        events: function(){
+            return _.extend({},Iznik.View.prototype.events,{
+                'click .js-signin': 'signin'
+            });
         },
 
         home: function () {

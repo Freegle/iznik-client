@@ -797,9 +797,32 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     animation:spin 4s linear infinite;
 }
 
+.blockclick {
+    pointer-events: none;
+}
+
 @-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
 @-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
 @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+
+.showclicked {
+    -webkit-animation:showclicked 4s linear infinite;
+    -moz-animation:showclicked 4s linear infinite;
+    animation:showclicked 4s linear infinite;
+}
+
+@-moz-keyframes showclicked {
+    0%, 50%, 100% {opacity: 1;}
+    25%, 75% {opacity: 0.25;}
+}
+@-webkit-keyframes showclicked {
+    0%, 50%, 100% {opacity: 1;}
+    25%, 75% {opacity: 0.25;}
+}
+@keyframes showclicked {
+    0%, 50%, 100% {opacity: 1;}
+    25%, 75% {opacity: 0.25;}
+}
 
 .forcebreak {
     -ms-word-break: break-all;

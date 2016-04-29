@@ -70,9 +70,11 @@ define([
         template: 'modtools_spam_message',
         collectionType: 'Spam',
 
-        events: {
-            'click .js-notspam': 'notspam',
-            'click .js-spam': 'spam'
+        events: function(){
+            return _.extend({},Iznik.Views.ModTools.Message.prototype.events,{
+                'click .js-notspam': 'notspam',
+                'click .js-spam': 'spam'
+            });
         },
 
         notspam: function () {

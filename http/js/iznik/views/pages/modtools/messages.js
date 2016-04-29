@@ -350,8 +350,10 @@ define([
 
         template: 'modtools_message_photo',
 
-        events: {
-            'click .js-img': 'click'
+        events: function(){
+            return _.extend({},Iznik.View.prototype.events,{
+                'click .js-img': 'click'
+            });
         },
 
         click: function (e) {
@@ -776,14 +778,16 @@ define([
 
         className: 'js-stdbutton',
 
-        events: {
-            'click .js-approve': 'approve',
-            'click .js-reject': 'reject',
-            'click .js-delete': 'deleteMe',
-            'click .js-hold': 'hold',
-            'click .js-release': 'release',
-            'click .js-leave': 'leave',
-            'click .js-edit': 'edit'
+        events: function(){
+            return _.extend({},Iznik.View.prototype.events,{
+                'click .js-approve': 'approve',
+                'click .js-reject': 'reject',
+                'click .js-delete': 'deleteMe',
+                'click .js-hold': 'hold',
+                'click .js-release': 'release',
+                'click .js-leave': 'leave',
+                'click .js-edit': 'edit'
+            });
         },
 
         hold: function () {
@@ -923,8 +927,10 @@ define([
     Iznik.Views.ModTools.StdMessage.Leave = Iznik.Views.ModTools.StdMessage.Modal.extend({
         template: 'modtools_message_leave',
 
-        events: {
-            'click .js-send': 'send'
+        events: function(){
+            return _.extend({},Iznik.Views.ModTools.StdMessage.Modal.prototype.events,{
+                'click .js-send': 'send'
+            });
         },
 
         send: function () {
@@ -944,8 +950,10 @@ define([
     Iznik.Views.ModTools.StdMessage.Delete = Iznik.Views.ModTools.StdMessage.Modal.extend({
         template: 'modtools_message_delete',
 
-        events: {
-            'click .js-send': 'send'
+        events: function(){
+            return _.extend({},Iznik.Views.ModTools.StdMessage.Modal.prototype.events,{
+                'click .js-send': 'send'
+            });
         },
 
         send: function () {

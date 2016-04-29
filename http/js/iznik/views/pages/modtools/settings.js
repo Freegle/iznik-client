@@ -855,16 +855,19 @@ define([
     
     Iznik.Views.ModTools.StdMessage.SettingsButton = Iznik.Views.ModTools.StdMessage.Button.extend({
         // We override the events, so we get the same visual display but when we click do an edit of the settings.
-        events: {
-            'click .js-approve': 'edit',
-            'click .js-reject': 'edit',
-            'click .js-delete': 'edit',
-            'click .js-hold': 'edit',
-            'click .js-release': 'edit',
-            'click .js-edit': 'edit',
-            'click .js-leave': 'edit'
+
+        events: function(){
+            return _.extend({},Iznik.Views.ModTools.StdMessage.Button.prototype.events,{
+                'click .js-approve': 'edit',
+                'click .js-reject': 'edit',
+                'click .js-delete': 'edit',
+                'click .js-hold': 'edit',
+                'click .js-release': 'edit',
+                'click .js-edit': 'edit',
+                'click .js-leave': 'edit'
+            });
         },
-    
+
         edit: function() {
             var self = this;
             var v = new Iznik.Views.ModTools.Settings.StdMessage({
@@ -886,11 +889,13 @@ define([
         defaults: {
             type: 'actionselect'
         },
-    
-        events: {
-            'change .js-action': 'getValueFromDOM'
+
+        events: function(){
+            return _.extend({},Backform.InputControl.prototype.events,{
+                'change .js-action': 'getValueFromDOM'
+            });
         },
-    
+
         getValueFromDOM: function() {
             this.model.set('action', this.$('.js-action').val());
         },
@@ -906,12 +911,14 @@ define([
         template: 'modtools_settings_stdmsg',
     
         shaded: true,
-    
-        events: {
-            'click .js-save': 'save',
-            'click .js-delete': 'delete'
+
+        events: function(){
+            return _.extend({},Iznik.Views.Modal.prototype.events,{
+                'click .js-save': 'save',
+                'click .js-delete': 'delete'
+            });
         },
-    
+
         save: function() {
             var self = this;
     
@@ -1062,11 +1069,13 @@ define([
     
     Iznik.Views.ModTools.Settings.AddGroup = Iznik.Views.Modal.extend({
         template: 'modtools_settings_addgroup',
-    
-        events: {
-            'click .js-add': 'add'
+
+        events: function(){
+            return _.extend({},Iznik.Views.Modal.prototype.events,{
+                'click .js-add': 'add'
+            });
         },
-    
+
         createFailed: function() {
             var v = new Iznik.Views.ModTools.Settings.CreateFailed();
             v.render();
@@ -1132,13 +1141,15 @@ define([
     
     Iznik.Views.ModTools.BulkOp = Iznik.Views.Modal.extend({
         template: 'modtools_settings_bulkop',
-    
-        events: {
-            'click .js-save': 'save',
-            'click .js-delete': 'delete',
-            'change .js-criterion': 'criterion'
+
+        events: function(){
+            return _.extend({},Iznik.Views.Modal.prototype.events,{
+                'click .js-save': 'save',
+                'click .js-delete': 'delete',
+                'change .js-criterion': 'criterion'
+            });
         },
-    
+
         criterion: function() {
             var disabled = this.$('.js-criterion').val().indexOf('BouncingFor') == -1;
             this.$('.js-bouncingfor').prop('disabled', disabled);
@@ -1254,11 +1265,13 @@ define([
         template: 'modtools_settings_bulkopbutton',
     
         tagName: 'li',
-    
-        events: {
-            'click .js-edit': 'edit'
+
+        events: function(){
+            return _.extend({},Iznik.View.prototype.events,{
+                'click .js-edit': 'edit'
+            });
         },
-    
+
         edit: function() {
             var self = this;
     
@@ -1276,13 +1289,15 @@ define([
     
     Iznik.Views.ModTools.Settings.AddLicense = Iznik.Views.Modal.extend({
         template: 'modtools_settings_addlicense',
-    
-        events: {
-            'click .js-add': 'add',
-            'click .js-close': 'close',
-            'click .js-cancel': 'cancel'
+
+        events: function(){
+            return _.extend({},Iznik.Views.Modal.prototype.events,{
+                'click .js-add': 'add',
+                'click .js-close': 'close',
+                'click .js-cancel': 'cancel'
+            });
         },
-    
+
         licenseFailed: function() {
             var v = new Iznik.Views.ModTools.Settings.LicenseFailed();
             v.render();
@@ -1326,15 +1341,17 @@ define([
         editing: false,
     
         template: "modtools_settings_map",
-    
-        events: {
-            'click .js-save': 'save',
-            'click .js-delete': 'exclude',
-            'click #js-shade': 'shade',
-            'keyup .js-wkt': 'paste',
-            'click .js-discard': 'discard'
+
+        events: function(){
+            return _.extend({},Iznik.Views.Page.prototype.events,{
+                'click .js-save': 'save',
+                'click .js-delete': 'exclude',
+                'click #js-shade': 'shade',
+                'keyup .js-wkt': 'paste',
+                'click .js-discard': 'discard'
+            });
         },
-    
+
         discard: function() {
             this.editing = false;
             this.getAreas();

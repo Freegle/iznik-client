@@ -6,8 +6,10 @@ define([
 ], function($, _, Backbone, Iznik) {
     // Stickily dismissible help boxes.
     Iznik.Views.Help.Box = Iznik.View.extend({
-        events: {
-            'click .js-close': 'close'
+        events: function(){
+            return _.extend({},Iznik.View.prototype.events,{
+                'click .js-close': 'close'
+            });
         },
 
         close: function () {

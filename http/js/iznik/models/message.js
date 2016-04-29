@@ -252,7 +252,7 @@ define([
 
                                                         if (match) {
                                                             var url = match[1];
-                                                            $.ajaxq('plugin', {
+                                                            $.ajax({
                                                                 type: "GET",
                                                                 url: url,
                                                                 success: getCrumb(self),

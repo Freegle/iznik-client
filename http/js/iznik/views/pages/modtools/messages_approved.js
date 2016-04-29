@@ -148,13 +148,16 @@ define([
 
     Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
         template: 'modtools_messages_approved_message',
+
         collectionType: 'Approved',
 
-        events: {
-            'click .js-viewsource': 'viewSource',
-            'click .js-excludelocation': 'excludeLocation',
-            'click .js-rarelyused': 'rarelyUsed',
-            'click .js-spam': 'spam'
+        events: function(){
+            return _.extend({},Iznik.Views.ModTools.Message.prototype.events,{
+                'click .js-viewsource': 'viewSource',
+                'click .js-excludelocation': 'excludeLocation',
+                'click .js-rarelyused': 'rarelyUsed',
+                'click .js-spam': 'spam'
+            });
         },
 
         render: function () {

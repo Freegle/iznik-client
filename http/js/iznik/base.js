@@ -8,7 +8,6 @@ define([
     'backbone.collectionView',
     'backform',
     'waypoints',
-    'ajaxq',
     'moment',
     'timeago',
     'dateshim',
@@ -96,6 +95,36 @@ define([
     // Set options into this.options by default.
     Iznik.View = (function (View) {
         return View.extend({
+            events: {
+                'click': 'click'
+            },
+
+            click: function(e) {
+                // When a click occurs, we block further clicks for a few seconds, to stop double click damage.
+                $(e.target).addClass('blockclick');
+                window.setTimeout(function() {
+                    $(e.target).removeClass('blockclick');
+                }, 5000);
+
+                // We also want to spot if an AJAX call has been made; since this goes to the server, it may take a
+                // while before it completes and the user sees some action.  We add a class to pulse the element to
+                // provide visual comfort.
+                //
+                // Note that we expect to have one outstanding request (our long poll) at all times.
+                window.setTimeout(function() {
+                    if ($.active > 1) {
+                        // An AJAX call was started in another click handler.  Start pulsing.
+                        $(e.target).addClass('showclicked');
+
+                        window.setTimeout(function() {
+                            // The pulse should be removed in the ajaxStop handler, but have a fallback just in
+                            // case.
+                            $(e.target).removeClass('showclicked');
+                        }, 5000);
+                    }
+                }, 0);
+            },
+
             constructor: function (options) {
                 this.options = options || {};
                 View.apply(this, arguments);

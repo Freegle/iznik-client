@@ -67,15 +67,18 @@ define([
 
     Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
         template: 'modtools_messages_pending_message',
+
         collectionType: 'Pending',
 
-        events: {
-            'click .js-viewsource': 'viewSource',
-            'click .js-excludelocation': 'excludeLocation',
-            'click .js-rarelyused': 'rarelyUsed',
-            'click .js-savesubj': 'saveSubject',
-            'click .js-editnotstd': 'edit',
-            'click .js-spam': 'spam'
+        events: function(){
+            return _.extend({},Iznik.Views.ModTools.Message.prototype.events,{
+                'click .js-viewsource': 'viewSource',
+                'click .js-excludelocation': 'excludeLocation',
+                'click .js-rarelyused': 'rarelyUsed',
+                'click .js-savesubj': 'saveSubject',
+                'click .js-editnotstd': 'edit',
+                'click .js-spam': 'spam'
+            });
         },
 
         edit: function () {
@@ -291,8 +294,10 @@ define([
     Iznik.Views.ModTools.StdMessage.Pending.Approve = Iznik.Views.ModTools.StdMessage.Modal.extend({
         template: 'modtools_messages_pending_approve',
 
-        events: {
-            'click .js-send': 'send'
+        events: function(){
+            return _.extend({},Iznik.Views.ModTools.StdMessage.Modal.prototype.events,{
+                'click .js-send': 'send'
+            });
         },
 
         send: function () {
@@ -312,8 +317,10 @@ define([
     Iznik.Views.ModTools.StdMessage.Pending.Reject = Iznik.Views.ModTools.StdMessage.Modal.extend({
         template: 'modtools_messages_pending_reject',
 
-        events: {
-            'click .js-send': 'send'
+        events: function(){
+            return _.extend({},Iznik.Views.ModTools.StdMessage.Modal.prototype.events,{
+                'click .js-send': 'send'
+            });
         },
 
         send: function () {

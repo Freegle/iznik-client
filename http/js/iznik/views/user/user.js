@@ -10,20 +10,22 @@ define([
         Iznik.Views.ModTools.User = Iznik.View.extend({
         template: 'modtools_user_user',
 
-        events: {
-            'click .js-posts': 'posts',
-            'click .js-offers': 'offers',
-            'click .js-takens': 'takens',
-            'click .js-wanteds': 'wanteds',
-            'click .js-receiveds': 'receiveds',
-            'click .js-modmails': 'modmails',
-            'click .js-others': 'others',
-            'click .js-logs': 'logs',
-            'click .js-remove': 'remove',
-            'click .js-ban': 'ban',
-            'click .js-addcomment': 'addComment',
-            'click .js-spammer': 'spammer',
-            'click .js-whitelist': 'whitelist'
+        events: function(){
+            return _.extend({},Iznik.View.prototype.events,{
+                'click .js-posts': 'posts',
+                'click .js-offers': 'offers',
+                'click .js-takens': 'takens',
+                'click .js-wanteds': 'wanteds',
+                'click .js-receiveds': 'receiveds',
+                'click .js-modmails': 'modmails',
+                'click .js-others': 'others',
+                'click .js-logs': 'logs',
+                'click .js-remove': 'remove',
+                'click .js-ban': 'ban',
+                'click .js-addcomment': 'addComment',
+                'click .js-spammer': 'spammer',
+                'click .js-whitelist': 'whitelist'
+            });
         },
 
         showPosts: function(offers, wanteds, takens, receiveds, others) {
@@ -328,8 +330,10 @@ define([
 
         context: null,
 
-        events: {
-            'click .js-more': 'more'
+        events: function(){
+            return _.extend({},Iznik.Views.Modal.prototype.events,{
+                'click .js-more': 'more'
+            });
         },
 
         first: true,
@@ -541,9 +545,11 @@ define([
     Iznik.Views.ModTools.User.Comment = Iznik.View.extend({
         template: 'modtools_user_comment',
 
-        events: {
-            'click .js-editnote': 'edit',
-            'click .js-deletenote': 'deleteMe'
+        events: function(){
+            return _.extend({},Iznik.View.prototype.events,{
+                'click .js-editnote': 'edit',
+                'click .js-deletenote': 'deleteMe'
+            });
         },
 
         edit: function() {
@@ -582,8 +588,10 @@ define([
     Iznik.Views.ModTools.User.CommentModal = Iznik.Views.Modal.extend({
         template: 'modtools_user_comment_modal',
 
-        events: {
-            'click .js-save': 'save'
+        events: function(){
+            return _.extend({},Iznik.Views.Modal.prototype.events,{
+                'click .js-save': 'save'
+            });
         },
 
         save: function() {
@@ -700,9 +708,11 @@ define([
     Iznik.Views.ModTools.EnterReason = Iznik.Views.Modal.extend({
         template: 'modtools_members_spam_reason',
 
-        events: {
-            'click .js-cancel': 'close',
-            'click .js-confirm': 'confirm'
+        events: function(){
+            return _.extend({},Iznik.Views.Modal.prototype.events,{
+                'click .js-cancel': 'close',
+                'click .js-confirm': 'confirm'
+            });
         },
 
         confirm: function () {

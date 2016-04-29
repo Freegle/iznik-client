@@ -130,8 +130,10 @@ define([
     Iznik.Views.User.SearchResult = Iznik.Views.User.Message.extend({
         template: 'user_find_result',
 
-        events: {
-            'click .js-send': 'send'
+        events: function(){
+            return _.extend({},Iznik.Views.User.Message.prototype.events,{
+                'click .js-send': 'send'
+            });
         },
 
         initialize: function(){

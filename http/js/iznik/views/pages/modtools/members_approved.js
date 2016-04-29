@@ -251,8 +251,10 @@ define([
     Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
         template: 'modtools_members_approved_member',
 
-        events: {
-            'click .js-rarelyused': 'rarelyUsed'
+        events: function(){
+            return _.extend({},Iznik.Views.ModTools.Member.prototype.events,{
+                'click .js-rarelyused': 'rarelyUsed'
+            });
         },
 
         render: function () {

@@ -13,6 +13,9 @@ require([
     // We have a busy indicator.
     $(document).ajaxStop(function () {
         $('#spinner').hide();
+
+        // We might have added a class to indicate that we were waiting for an AJAX call to complete.
+        $('.showclicked').removeClass('showclicked');
     });
 
     $(document).ajaxStart(function () {

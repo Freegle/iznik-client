@@ -8,9 +8,11 @@ define([
         Iznik.Views.ModTools.Yahoo.User = Iznik.View.extend({
         template: 'modtools_yahoo_user',
 
-        events: {
-            'change .js-posting': 'changePostingStatus',
-            'change .js-delivery': 'changeDelivery'
+        events: function(){
+            return _.extend({},Iznik.View.prototype.events,{
+                'change .js-posting': 'changePostingStatus',
+                'change .js-delivery': 'changeDelivery'
+            });
         },
 
         changePostingStatus: function() {

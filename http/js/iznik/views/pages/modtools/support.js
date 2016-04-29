@@ -162,8 +162,6 @@ define([
     Iznik.Views.ModTools.Member.SupportSearch = Iznik.View.extend({
         template: 'modtools_support_member',
 
-        events: {},
-
         render: function () {
             var self = this;
 

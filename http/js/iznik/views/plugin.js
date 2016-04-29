@@ -269,7 +269,7 @@ define([
     
                         if (match) {
                             var url = match[1];
-                            $.ajaxq('plugin', {
+                            $.ajax({
                                 type: "GET",
                                 url: url,
                                 success: parseCrumb,
@@ -284,7 +284,7 @@ define([
     
                 var url = "https://groups.yahoo.com/neo/groups/" + groupname + crumblocation + "?" + Math.random();
     
-                $.ajaxq('plugin', {
+                $.ajax({
                     type: "GET",
                     url: url,
                     success: parseCrumb,
@@ -415,7 +415,7 @@ define([
             var hoursago = 0;
             var now = new moment();
     
-            $.ajaxq('plugin', {
+            $.ajax({
                 type: 'GET',
                 url: API + 'plugin',
                 success: function(ret) {
@@ -676,7 +676,7 @@ define([
         getYahooGroupChunk: function() {
             // If this fails, we just won't finish checking, and therefore won't make any changes, which is probably
             // the best option.
-            $.ajaxq('plugin', {
+            $.ajax({
                 type: "GET",
                 context: this,
                 url: YAHOOAPI + 'user/groups/all?start=' + this.yahooGroupStart + "&count=20&sortOrder=asc&orderBy=name&chrome=raw",
@@ -962,7 +962,7 @@ define([
 
                 if (total == 0 || total < this.chunkSize || maxage >= self.ageLimit) {
                     // Finished.  Now check with the server whether we have any messages which it doesn't.
-                    $.ajaxq('plugin', {
+                    $.ajax({
                         type: "POST",
                         url: API + 'messages',
                         context: self,
@@ -989,7 +989,7 @@ define([
                                     self.promises = [];
                                     _.each(ret.missingonclient, function(missing, index, list) {
                                         if (self.deleteAllMissing || missing[self.dateField] > self.earliest) {
-                                            self.promises.push($.ajaxq('plugin', {
+                                            self.promises.push($.ajax({
                                                 type: "POST",
                                                 headers: {
                                                     'X-HTTP-Method-Override': 'DELETE'
@@ -1004,67 +1004,86 @@ define([
                                                     reason: 'Not present on Yahoo'
                                                 }
                                             }));
+                                            console.log("Promise delete", self.promisesCount, self.promisesLen);
                                         }
                                     });
     
                                     // If there are messages which we have but the server doesn't, then the server is
                                     // wrong and we need to add them.
-                                    _.each(ret.missingonserver, function(missing, index, list) {
-                                        missing.deferred = new $.Deferred();
-                                        self.promises.push(missing.deferred.promise());
+                                    //
+                                    // We need a closure to ensure we resolve the right promise.
+                                    function handleMissing(missing) {
+                                        return(function() {
+                                            var url = self.sourceurl(missing[self.idField]);
+                                            console.log("Handle missing", missing, url);
+                                            $.ajax({
+                                                type: "GET",
+                                                url: url,
+                                                context: self,
+                                                success: function(ret) {
+                                                    console.log("Returned", url, ret);
+                                                    if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
+                                                        var source = decodeEntities(ret.ygData.rawEmail);
 
-                                        $.ajaxq('plugin', {
-                                            type: "GET",
-                                            url: self.sourceurl(missing[self.idField]),
-                                            context: self,
-                                            success: function(ret) {
-                                                if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
-                                                    var source = decodeEntities(ret.ygData.rawEmail);
+                                                        if (source.indexOf('X-eGroups-Edited-By:') == -1) {
+                                                            var data = {
+                                                                groupid: self.model.get('id'),
+                                                                from: ret.ygData.email,
+                                                                message: source,
+                                                                source: self.source
+                                                            };
 
-                                                    if (source.indexOf('X-eGroups-Edited-By:') == -1) {
-                                                        var data = {
-                                                            groupid: self.model.get('id'),
-                                                            from: ret.ygData.email,
-                                                            message: source,
-                                                            source: self.source
-                                                        };
-    
-                                                        data[self.idField] = missing[self.idField];
-    
-                                                        $.ajaxq('plugin', {
-                                                            type: "POST",
-                                                            headers: {
-                                                                'X-HTTP-Method-Override': 'PUT'
-                                                            },
-                                                            url: API + 'messages',
-                                                            data: data,
-                                                            context: self,
-                                                            success: function (ret) {
-                                                                if (ret.ret == 0) {
+                                                            data[self.idField] = missing[self.idField];
+
+                                                            $.ajax({
+                                                                type: "POST",
+                                                                headers: {
+                                                                    'X-HTTP-Method-Override': 'PUT'
+                                                                },
+                                                                url: API + 'messages',
+                                                                data: data,
+                                                                context: self,
+                                                                success: function (ret) {
+                                                                    console.log("Message put returned", ret);
+                                                                    if (ret.ret == 0) {
+                                                                        missing.deferred.resolve();
+                                                                    } else {
+                                                                        console.error("Message sync error", ret);
+                                                                        missing.deferred.resolve();
+                                                                    }
+                                                                }, error: function() {
+                                                                    // If we failed to sync, we will pick it up next time.
+                                                                    console.log("Message post failed", url, self.model.get('nameshort'));
                                                                     missing.deferred.resolve();
                                                                 }
-                                                            }, error: function() {
-                                                                console.log("Message post failed");
-                                                            }
-                                                        });
+                                                            });
+                                                        } else {
+                                                            // This is an edited message, which is all messed up and difficult
+                                                            // to sync.  Ignore it.
+                                                            console.log("Can't sync edited message", url, self.model.get('nameshort'), ret);
+                                                            missing.deferred.resolve();
+                                                        }
                                                     } else {
-                                                        // This is an edited message, which is all messed up and difficult
-                                                        // to sync.  Ignore it.
-                                                        // console.log("Can't sync edited message", self.model.get('nameshort'), ret);
+                                                        // Couldn't fetch.  Not much we can do - Yahoo has some messages
+                                                        // which are not accessible.
+                                                        console.log("Couldn't fetch", url, self.model.get('nameshort'), ret);
                                                         missing.deferred.resolve();
                                                     }
-                                                } else {
+                                                }, error: function(req, status, error) {
                                                     // Couldn't fetch.  Not much we can do - Yahoo has some messages
                                                     // which are not accessible.
+                                                    console.log("Couldn't fetch message", status);
                                                     missing.deferred.resolve();
                                                 }
-                                            }, error: function(req, status, error) {
-                                                // Couldn't fetch.  Not much we can do - Yahoo has some messages
-                                                // which are not accessible.
-                                                console.log("Couldn't fetch message", status);
-                                                missing.deferred.resolve();
-                                            }
-                                        });
+                                            });
+                                        })
+                                    }
+                                    _.each(ret.missingonserver, function(missing) {
+                                        missing.deferred = new $.Deferred();
+                                        self.promises.push(missing.deferred.promise());
+                                        console.log("Promise missing", missing, self.promisesCount, self.promisesLen)
+
+                                        handleMissing(missing)();
                                     });
     
                                     // Record how many there are and update progress bar
@@ -1074,7 +1093,8 @@ define([
                                         promise.done(function() {
                                             self.promisesCount++;
                                             self.ourSyncProgressBar.apply(self);
-    
+                                            console.log("Promise resolved", promise, self.promisesCount, self.promisesLen);
+
                                             if (self.promisesCount >= self.promisesLen) {
                                                 // Once they're all done, we have succeeded.
                                                 self.succeed();
@@ -1265,7 +1285,7 @@ define([
                         window.IznikPlugin.outstandingSyncs--;
                     } else {
                         // Pass to server
-                        $.ajaxq('plugin', {
+                        $.ajax({
                             type: 'POST',
                             headers: {
                                 'X-HTTP-Method-Override': 'PATCH'
@@ -1594,7 +1614,7 @@ define([
             var self = this;
             this.startBusy();
     
-            $.ajaxq('plugin', {
+            $.ajax({
                 type: "POST",
                 url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/pending/messages",
                 data: {
@@ -1632,7 +1652,7 @@ define([
             var self = this;
             this.startBusy();
     
-            $.ajaxq('plugin', {
+            $.ajax({
                 type: "POST",
                 url: YAHOOAPIv2 + 'groups/' + this.model.get('group').nameshort + "/pending/members?gapi_crumb=" + this.crumb,
                 data: {
@@ -1669,7 +1689,7 @@ define([
             var self = this;
             this.startBusy();
     
-            $.ajaxq('plugin', {
+            $.ajax({
                 type: "POST",
                 url: YAHOOAPIv2 + 'groups/' + this.model.get('group').nameshort + "/pending/members?gapi_crumb=" + this.crumb,
                 data: {
@@ -1719,7 +1739,7 @@ define([
             var self = this;
             this.startBusy();
     
-            $.ajaxq('plugin', {
+            $.ajax({
                 type: "POST",
                 url: YAHOOAPI + 'groups/' + this.model.get('group').nameshort + "/pending/messages",
                 data: {
