@@ -1422,7 +1422,7 @@ class User extends Entity
                     #error_log("Delete $id2");
                     error_log("Merged $id1 < $id2, $reason");
                     $deleteme = new User($this->dbhr, $this->dbhm, $id2);
-                    $rc = $deleteme->delete();
+                    $rc = $deleteme->delete(NULL, NULL, NULL, FALSE);
                 }
 
                 if ($rc) {
@@ -2012,12 +2012,12 @@ class User extends Entity
         return($submitted);
     }
 
-    public function delete($groupid = NULL, $subject = NULL, $body = NULL) {
+    public function delete($groupid = NULL, $subject = NULL, $body = NULL, $log = TRUE) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         $rc = $this->dbhm->preExec("DELETE FROM users WHERE id = ?;", [$this->id]);
 
-        if ($rc) {
+        if ($rc && $log) {
             $this->log->log([
                 'type' => Log::TYPE_USER,
                 'subtype' => Log::SUBTYPE_DELETED,
