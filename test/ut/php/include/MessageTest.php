@@ -259,6 +259,35 @@ class messageTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testReverseSubject() {
+        error_log(__METHOD__);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $m = new Message($this->dbhr, $this->dbhm);
+
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+
+        assertEquals('TAKEN: Test item (location)', $m->reverseSubject());
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_REUSE);
+        $g = new Group($this->dbhr, $this->dbhm, $gid);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        assertEquals('TAKEN: Test item (location)', $m->reverseSubject());
+
+        error_log(__METHOD__ . " end");
+    }
+
     // For manual testing
 //    public function testSpecial() {
 //        error_log(__METHOD__);

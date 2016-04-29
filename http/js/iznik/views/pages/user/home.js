@@ -106,10 +106,69 @@ define([
     });
 
     Iznik.Views.User.Home.Offer = Iznik.Views.User.Message.extend({
-        template: "user_home_offer"
+        template: "user_home_offer",
+
+        events: function(){
+            return _.extend({},Iznik.Views.User.Message.prototype.events,{
+                'click .js-taken': 'taken',
+                'click .js-withdraw': 'withdrawn'
+            });
+        },
+        
+        taken: function() {
+            this.outcome('Taken');
+        },
+        
+        withdrawn: function() {
+            this.outcome('Widthdrawn');
+        },
+        
+        outcome: function(outcome) {
+            var v = new Iznik.Views.User.Outcome({
+                model: this.model,
+                outcome: outcome
+            });
+
+            v.render();
+        }
     });
 
     Iznik.Views.User.Home.Wanted = Iznik.Views.User.Message.extend({
         template: "user_home_wanted"
+    });
+
+    Iznik.Views.User.Outcome = Iznik.Views.Modal.extend({
+        template: 'user_home_outcome',
+
+        events: function(){
+            return _.extend({},Iznik.Views.Modal.prototype.events,{
+                'click .js-confirm': 'confirm',
+                'click .btn-radio .btn': 'click'
+            });
+        },
+        
+        click: function(ev) {
+            $('.btn-radio .btn').removeClass('active');
+            var btn = $(ev.currentTarget);
+            btn.addClass('active');
+
+            if (btn.hasClass('js-unhappy')) {
+                this.$('.js-public').hide();
+                this.$('.js-private').fadeIn('slow');
+            } else {
+                this.$('.js-private').hide();
+                this.$('.js-public').fadeIn('slow');
+            }
+        },
+
+        confirm: function() {
+            this.trigger('confirmed');
+            this.close();
+        },
+
+        render: function() {
+            this.model.set('outcome', this.options.outcome);
+            this.open(this.template);
+        }
     });
 });

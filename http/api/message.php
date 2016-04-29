@@ -306,6 +306,7 @@ function message() {
                 $r = new ChatRoom($dbhr, $dbhm);
                 $rid = $r->createConversation($myid, $userid);
                 $cm = new ChatMessage($dbhr, $dbhm);
+
                 switch ($action) {
                     case 'Promise':
                         $m->promise($userid);
@@ -316,6 +317,45 @@ function message() {
                         $m->renege($userid);
                         $mid = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_RENEGED, $id);
                         $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
+                        break;
+                    case 'Outcome':
+                        $outcome = presdef('outcome', $_REQUEST, NULL);
+                        $h = presdef('happiness', $_REQUEST, NULL);
+                        $happiness = NULL;
+                        
+                        switch ($h) {
+                            case User::HAPPY:
+                            case User::FINE:
+                            case User::UNHAPPY:
+                                $happiness = $h;
+                                break;
+                        }
+                        
+                        $comment = presdef('comment', $_REQUEST, NULL);
+                        
+                        $ret = ['ret' => 1, 'status' => 'Odd action'];
+
+                        switch ($outcome) {
+                            case Message::OUTCOME_TAKEN:
+                                if ($m->getType() == Message::TYPE_OFFER) {
+                                    $m->mark($outcome, $comment, $happiness, $userid);
+                                    $ret = ['ret' => 0, 'status' => 'Success'];
+                                };
+                                break;
+                            case Message::OUTCOME_RECEIVED:
+                                if ($m->getType() == Message::TYPE_WANTED) {
+                                    $m->mark($outcome, $comment, $happiness, $userid);
+                                    $ret = ['ret' => 0, 'status' => 'Success'];
+                                };
+                                break;
+                            case Message::OUTCOME_WITHDRAWN:
+                                $m->withdraw($comment, $happiness, $userid);
+                                $ret = ['ret' => 0, 'status' => 'Success'];
+                                break;
+                            default:
+                                $outcome = NULL;
+                                break;
+                        }
                         break;
                 }
             }

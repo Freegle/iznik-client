@@ -96,10 +96,10 @@ define([
     Iznik.View = (function (View) {
         return View.extend({
             events: {
-                'click': 'click'
+                'click': 'globalClick'
             },
 
-            click: function(e) {
+            globalClick: function(e) {
                 // When a click occurs, we block further clicks for a few seconds, to stop double click damage.
                 $(e.target).addClass('blockclick');
                 window.setTimeout(function() {

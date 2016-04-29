@@ -61,6 +61,10 @@ class Group extends Entity
         $this->dbhm = $dbhm;
     }
 
+    public function getDefaults() {
+        return($this->defaultSettings);
+    }
+
     public function create($shortname, $type) {
         try {
             # Check for duplicate.  Might still occur in a timing window but in that rare case we'll get an exception

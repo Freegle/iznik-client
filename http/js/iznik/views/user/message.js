@@ -294,7 +294,6 @@ define([
 
         render: function() {
             var self = this;
-            console.log("Offers?", this.options.offers);
             this.listenToOnce(this, 'confirmed', this.promised);
             this.open(this.template);
 

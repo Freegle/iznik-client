@@ -24,6 +24,10 @@ class User extends Entity
     const ROLE_MODERATOR = 'Moderator';
     const ROLE_OWNER = 'Owner';
 
+    const HAPPY = 'Happy';
+    const FINE = 'Fine';
+    const UNHAPPY = 'Unhappy';
+
     # Role on site
     const SYSTEMROLE_SUPPORT = 'Support';
     const SYSTEMROLE_ADMIN = 'Admin';

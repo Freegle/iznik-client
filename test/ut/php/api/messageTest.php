@@ -1208,7 +1208,6 @@ class messageAPITest extends IznikAPITestCase
         error_log(__METHOD__ . " end");
     }
 
-
     public function testSubmit2()
     {
         error_log(__METHOD__);
@@ -1422,6 +1421,54 @@ class messageAPITest extends IznikAPITestCase
             'action' => 'Renege'
         ]);
         assertEquals(2, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testMark()
+    {
+        error_log(__METHOD__);
+
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
+        $msg = str_replace('test@test.com', $email, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Outcome',
+            'outcome' => Message::OUTCOME_TAKEN,
+            'happiness' => User::FINE,
+            'userid' => $uid
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Outcome',
+            'outcome' => Message::OUTCOME_WITHDRAWN,
+            'happiness' => User::FINE,
+            'userid' => $uid
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $m->delete("UT delete");
 
         error_log(__METHOD__ . " end");
     }

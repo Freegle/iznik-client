@@ -1,0 +1,53 @@
+<div class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title js-modal-title">{{subject}}</h4>
+            </div>
+            <div class="modal-body js-modal-body">
+                <select class="form-control js-outcome">
+                    <option value="Taken" <% if (outcome == 'Taken') { %>selected<% } %>>Taken</option>
+                    <option value="Received" <% if (outcome == 'Received') { %>selected<% } %>>Received</option>
+                    <option value="Withdrawn" <% if (outcome == 'Withdrawn') { %>selected<% } %>>Withdrawn</option>
+                </select>
+                <p class="text-center topspace">
+                    Thanks for letting us know.  How do you feel about freegling just now?
+                </p>
+                <div class="row botspace">
+                    <div class="col-xs-2"></div>
+                    <div class="col-xs-8">
+                        <div class="btn-group btn-group-justified btn-radio" role="group" aria-label="...">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="js-happy btn btn-success">
+                                    <img src="images/happy.png" width="30px" />&nbsp;
+                                    Happy
+                                </button>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="js-fine btn btn-default">
+                                    <img src="images/neutral.png" width="30px" />&nbsp;
+                                    Fine
+                                </button>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="js-unhappy btn btn-danger">
+                                    <img src="images/unhappy.png" width="30px" />&nbsp;
+                                    Sad
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-2"></div>
+                 </div>
+                <textarea lines="4" class="topspace form-control" placeholder="Any comments?  Please let us know here." />
+                <div class="text-muted pull-right topspace botspace js-public" style="display: none">Your comment will be public.</div>
+                <div class="text-muted pull-right topspace botspace js-private" style="display: none">Your comment will only go to our volunteers.</div>
+                <div class="clearfix" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success js-confirm">Submit</button>
+                <button type="button" class="btn btn-error js-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

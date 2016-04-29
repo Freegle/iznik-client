@@ -25,6 +25,10 @@ class Message
     const TYPE_ADMIN = 'Admin';
     const TYPE_OTHER = 'Other';
 
+    const OUTCOME_TAKEN = 'Taken';
+    const OUTCOME_RECEIVED = 'Received';
+    const OUTCOME_WITHDRAWN = 'Withdrawn';
+
     static public function checkType($type) {
         switch($type) {
             case Message::TYPE_OFFER:
@@ -2188,6 +2192,81 @@ class Message
         $this->dbhm->preExec($sql, [
             $this->id,
             $userid
+        ]);
+    }
+
+    public function reverseSubject() {
+        $subj = $this->getSubject();
+        $type = $this->getType();
+
+        # Strip the relevant keywords.
+        $keywords = Message::keywords()[$type];
+        error_log($subj);
+
+        foreach ($keywords as $keyword) {
+            if (preg_match('/^' . preg_quote($keyword) . '\b(.*)/i', $subj, $matches)) {
+                $subj = $matches[1];
+                error_log($subj);
+            }
+        }
+
+        # Now we have to add in the corresponding keyword.  The message should be on at least one group; if the
+        # groups have different keywords then there's not much we can do.
+        $groups = $this->getGroups();
+        $key = strtoupper($type == Message::TYPE_OFFER ? Message::TYPE_TAKEN : Message::TYPE_RECEIVED);
+        
+        foreach ($groups as $groupid) {
+            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $defs = $g->getDefaults()['keywords'];
+            $keywords = $g->getSetting('keywords', $defs);
+            $key = $keywords[$key];
+            break;
+        }
+
+        $subj = $key . $subj;
+
+        error_log("Return $subj");
+        return($subj);
+    }
+
+    public function mark($outcome, $comment, $happiness, $userid) {
+        $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, userid, comments) VALUES (?,?,?,?,?);", [
+            $this->id,
+            $outcome,
+            $happiness,
+            $userid,
+            $comment
+        ]);
+
+        # This message may be on one or more Yahoo groups; if so we need to send a TAKEN.
+        $subj = $this->reverseSubject();
+        $u = new User($this->dbhr, $this->dbhm, $this->fromuser);
+
+        $groups = $this->getGroups();
+
+        foreach ($groups as $groupid) {
+            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+
+            if ($g->getPrivate('onyahoo')) {
+                list ($eid, $email) = $u->getEmailForYahooGroup($groupid);
+                $headers = 'From: "' . $u->getName() . '" <' . $email . ">\r\n";
+                $this->mailer(
+                    $g->getGroupEmail(),
+                    $subj,
+                    $happiness == User::HAPPY || User::FINE ? $comment : '',
+                    $headers,
+                    "-f" . $g->getModsEmail()
+                );
+            }
+        }
+    }
+
+    public function withdraw($comment, $happiness) {
+        $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
+            $this->id,
+            Message::OUTCOME_WITHDRAWN,
+            $happiness,
+            $comment
         ]);
     }
 }
