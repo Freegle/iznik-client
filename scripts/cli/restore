@@ -4,14 +4,10 @@
 /etc/init.d/mysql stop
 rm -r /archive/mysql
 mkdir /archive/mysql
-rm -r /archive/t
-mkdir /archive/t
 cd /archive/backups
 back=`ls -1tr *gz | tail -1`
-cd /archive/t
+cd /archive/mysql
 tar -xvzf /archive/backups/$back
-innobackupex --apply-log /archive/t
-innobackupex --copy-back /archive/t
-rm -r /archive/t&
+innobackupex --apply-log /archive/mysql
 chown -R mysql:mysql /archive/mysql
 /etc/init.d/mysql start

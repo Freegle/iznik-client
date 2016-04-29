@@ -243,10 +243,14 @@ define([
             v.render();
         },
 
+        chatPromised: function() {
+            var self = this;
+            self.model.set('promised', true);
+            self.render();
+        },
+
         render: function() {
             var self = this;
-
-            console.log("Render message", this);
 
             var chat = Iznik.Session.chats.get({
                 id: self.model.get('chatid')
@@ -261,6 +265,9 @@ define([
                 self.model.set('message', self.options.message.toJSON2());
                 Iznik.View.prototype.render.call(self);
                 self.$('.timeago').timeago();
+
+                // We might promise to this person from a chat.
+                self.listenTo(chat, 'promised', _.bind(self.chatPromised, self));
             }
 
             return(this);
