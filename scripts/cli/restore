@@ -12,5 +12,6 @@ cd /archive/t
 tar -xvzf /archive/backups/$back
 innobackupex --apply-log /archive/t
 innobackupex --copy-back /archive/t
+rm -r /archive/t&
 chown -R mysql:mysql /archive/mysql
 /etc/init.d/mysql start

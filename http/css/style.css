@@ -466,8 +466,8 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     padding-right: 10px;
 }
 
-#bodyEnvelope {
-    min-height: 100% !important;
+#bodyEnvelope, #bodyContent {
+    min-height: 100vh !important;
     height: auto !important;
 }
 

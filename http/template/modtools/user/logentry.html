@@ -23,7 +23,6 @@
                 <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>
         <% } else if (type == 'Message') { %>
-            <% if (message.deleted) { %><del><% } %>
             <% if (subtype == 'Received') { %>
                 Posted #{{msgid}} <em>{{message.subject}}</em><% if (obj.group) { %> to {{obj.group.namedisplay}}<% } %><% if (message.sourceheader) { %> via {{message.sourceheader}}<% } %>
             <% } else if (subtype == 'Approved') { %>
@@ -34,7 +33,7 @@
                 </div>
             <% } else if (subtype == 'Replied') { %>
             <div class="nomargin alert alert-danger">
-                Mod sent <% if (obj.text && obj.text.length > 0) { %> with <em>{{text}} </em><% } else if (obj.stdmsg) { %> standard message <em>{{stdmsg.title}} </em><% } else { %>mail<% } %>
+                Modmail sent <% if (obj.text && obj.text.length > 0) { %> with <em>{{text}} </em><% } else if (obj.stdmsg) { %> standard message <em>{{stdmsg.title}} </em><% } else { %>mail<% } %>
             </div>
             <% } else if (subtype == 'Deleted') { %>
                 <div class="nomargin alert alert-danger">
@@ -49,7 +48,6 @@
             <% } else { %>
                     <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>
-        <% if (message.deleted) { %></del> <% if (message.deletereason) { %><span class="text-muted"> deleted because {{message.deletereason}}</span><% } %><% } %>
         <% } else if (type == 'User') { %>
             <% if (subtype == 'YahooDeliveryType') { %>
             Set Yahoo Delivery Type to {{text}}

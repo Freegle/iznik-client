@@ -1631,7 +1631,7 @@ class Message
                 $sql .= " OR id = (SELECT msgid FROM messages_groups WHERE groupid = {$this->groupid} AND yahooapprovedid = {$this->yahooapprovedid}) ";
             }
             if ($this->yahoopendingid) {
-                $sql .= " OR id = (SELECT msgid FROM messages_groups WHERE groupid = {$this->groupid} AND yahooapprovedid = {$this->yahoopendingid}) ";
+                $sql .= " OR id = (SELECT msgid FROM messages_groups WHERE groupid = {$this->groupid} AND yahoopendingid = {$this->yahoopendingid}) ";
             }
         }
 
