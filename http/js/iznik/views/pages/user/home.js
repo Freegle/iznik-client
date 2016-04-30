@@ -118,7 +118,7 @@ define([
         },
         
         withdrawn: function() {
-            this.outcome('Widthdrawn');
+            this.outcome('Withdrawn');
         },
         
         outcome: function(outcome) {
@@ -218,6 +218,7 @@ define([
         render: function() {
             var self = this;
             this.model.set('outcome', this.options.outcome);
+            console.log("Outcome is", this);
             this.open(this.template);
             this.changeOutcome();
 
