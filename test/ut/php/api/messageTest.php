@@ -1440,7 +1440,8 @@ class messageAPITest extends IznikAPITestCase
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $origmsg = file_get_contents('msgs/basic');
+        $msg = $this->unique($origmsg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
@@ -1454,6 +1455,26 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'Outcome',
             'outcome' => Message::OUTCOME_TAKEN,
+            'happiness' => User::FINE,
+            'userid' => $uid
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $msg = $this->unique($origmsg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
+        $msg = str_replace('test@test.com', $email, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals(Message::TYPE_WANTED, $m->getType());
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Outcome',
+            'outcome' => Message::OUTCOME_RECEIVED,
             'happiness' => User::FINE,
             'userid' => $uid
         ]);

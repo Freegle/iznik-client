@@ -354,9 +354,6 @@ function message() {
                                 $m->withdraw($comment, $happiness, $userid);
                                 $ret = ['ret' => 0, 'status' => 'Success'];
                                 break;
-                            default:
-                                $outcome = NULL;
-                                break;
                         }
                         break;
                 }

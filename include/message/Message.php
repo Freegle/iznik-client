@@ -2229,8 +2229,12 @@ class Message
             $g = new Group($this->dbhr, $this->dbhm, $groupid);
             $defs = $g->getDefaults()['keywords'];
             $keywords = $g->getSetting('keywords', $defs);
-            error_log("Keywords" . var_export($keywords, TRUE));
-            $key = $keywords[strtolower($key)];
+
+            foreach ($keywords as $word => $val) {
+                if (strtoupper($word) == $key) {
+                    $key = $val;
+                }
+            }
             break;
         }
 
