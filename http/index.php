@@ -35,7 +35,16 @@ include_once(BASE_DIR . '/include/misc/pageheader.php');
 <div id="pageloader" style="position: relative; height: 100%; width: 100%">
     <img src="/images/pageloader.gif" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto;"/>
 </div>
-
+<script>
+    window.setTimeout(function() {
+        var loader = document.getElementById('pageloader');
+        if (loader) {
+            // We've not managed to render and remove the page.  Probably a network issue.  Reload.
+            console.log("Loader found - force reload", loader);
+            window.location.reload();
+        }
+    }, 120000);
+</script>
 <div id="fb-root"></div>
 <div id="bodyEnvelope">
     <div id="bodyContent" class="nopad">
