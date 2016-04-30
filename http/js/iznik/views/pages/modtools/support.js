@@ -12,13 +12,11 @@ define([
 
         template: "modtools_support_main",
 
-        events: function () {
-            return _.extend({}, Iznik.Views.Page.prototype.events, {
-                'click .js-searchuser': 'searchUser',
-                'click .js-searchmsg': 'searchMessage',
-                'keyup .js-searchuserinp': 'keyup',
-                'click .js-mailgroup': 'mailGroup'
-            });
+        events: {
+            'click .js-searchuser': 'searchUser',
+            'click .js-searchmsg': 'searchMessage',
+            'keyup .js-searchuserinp': 'keyup',
+            'click .js-mailgroup': 'mailGroup'
         },
 
         keyup: function (e) {

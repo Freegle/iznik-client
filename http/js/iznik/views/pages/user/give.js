@@ -14,12 +14,10 @@ define([
     Iznik.Views.User.Pages.Give.WhatIsIt = Iznik.Views.Page.extend({
         template: "user_give_whatisit",
 
-        events: function () {
-            return _.extend({}, Iznik.Views.Page.prototype.events, {
-                'click .js-next': 'next',
-                'change .js-items': 'checkNext',
-                'change .bootstrap-tagsinput .tt-input': 'checkNext'
-            });
+        events: {
+            'click .js-next': 'next',
+            'change .js-items': 'checkNext',
+            'change .bootstrap-tagsinput .tt-input': 'checkNext'
         },
 
         getItem: function() {
@@ -257,10 +255,8 @@ define([
 
         template: "user_give_thumbnail",
 
-        events: function(){
-            return _.extend({},Iznik.View.prototype.events,{
-                'click .js-remove': 'removeMe'
-            });
+        events: {
+            'click .js-remove': 'removeMe'
         },
 
         removeMe: function () {
@@ -271,12 +267,10 @@ define([
     Iznik.Views.User.Pages.Give.WhoAmI = Iznik.Views.Page.extend({
         template: "user_give_whoami",
 
-        events: function () {
-            return _.extend({}, Iznik.Views.Page.prototype.events, {
-                'change .js-email': 'changeEmail',
-                'keyup .js-email': 'changeEmail',
-                'click .js-next': 'doit'
-            });
+        events: {
+            'change .js-email': 'changeEmail',
+            'keyup .js-email': 'changeEmail',
+            'click .js-next': 'doit'
         },
 
         doit: function () {
@@ -354,10 +348,6 @@ define([
 
     Iznik.Views.User.Pages.Give.WhatNext = Iznik.Views.Page.extend({
         template: "user_give_whatnext",
-
-        events: function () {
-            return _.extend({}, Iznik.Views.Page.prototype.events, {});
-        },
 
         render: function () {
             var self = this;

@@ -12,14 +12,12 @@ define([
 
         template: "modtools_members_approved_main",
 
-        events: function () {
-            return _.extend({}, Iznik.Views.Page.prototype.events, {
-                'click .js-search': 'search',
-                'keyup .js-searchterm': 'keyup',
-                'click .js-sync': 'sync',
-                'click .js-export': 'export',
-                'click .js-exportyahoo': 'exportYahoo'
-            });
+        events: {
+            'click .js-search': 'search',
+            'keyup .js-searchterm': 'keyup',
+            'click .js-sync': 'sync',
+            'click .js-export': 'export',
+            'click .js-exportyahoo': 'exportYahoo'
         },
 
         keyup: function (e) {
@@ -251,10 +249,8 @@ define([
     Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
         template: 'modtools_members_approved_member',
 
-        events: function(){
-            return _.extend({},Iznik.Views.ModTools.Member.prototype.events,{
-                'click .js-rarelyused': 'rarelyUsed'
-            });
+        events: {
+            'click .js-rarelyused': 'rarelyUsed'
         },
 
         render: function () {

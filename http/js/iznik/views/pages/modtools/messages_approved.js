@@ -10,13 +10,11 @@ define([
 
         template: "modtools_messages_approved_main",
 
-        events: function () {
-            return _.extend({}, Iznik.Views.Page.prototype.events, {
-                'click .js-searchmess': 'searchmess',
-                'keyup .js-searchtermmess': 'keyupmess',
-                'click .js-searchmemb': 'searchmemb',
-                'keyup .js-searchtermmemb': 'keyupmemb'
-            });
+        events: {
+            'click .js-searchmess': 'searchmess',
+            'keyup .js-searchtermmess': 'keyupmess',
+            'click .js-searchmemb': 'searchmemb',
+            'keyup .js-searchtermmemb': 'keyupmemb'
         },
 
         keyupmess: function (e) {
@@ -151,13 +149,11 @@ define([
 
         collectionType: 'Approved',
 
-        events: function(){
-            return _.extend({},Iznik.Views.ModTools.Message.prototype.events,{
-                'click .js-viewsource': 'viewSource',
-                'click .js-excludelocation': 'excludeLocation',
-                'click .js-rarelyused': 'rarelyUsed',
-                'click .js-spam': 'spam'
-            });
+        events: {
+            'click .js-viewsource': 'viewSource',
+            'click .js-excludelocation': 'excludeLocation',
+            'click .js-rarelyused': 'rarelyUsed',
+            'click .js-spam': 'spam'
         },
 
         render: function () {

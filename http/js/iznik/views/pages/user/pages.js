@@ -7,12 +7,10 @@ define([
     'typeahead'
 ], function($, _, Backbone, Iznik) {
         Iznik.Views.User.Pages.WhereAmI = Iznik.Views.Page.extend({
-        events: function(){
-            return _.extend({}, Iznik.Views.Page.prototype.events,{
-                'click .js-getloc': 'getLocation',
-                'change .js-homegroup': 'changeHomeGroup',
-                'typeahead:change .js-postcode': 'locChange'
-            });
+        events: {
+            'click .js-getloc': 'getLocation',
+            'change .js-homegroup': 'changeHomeGroup',
+            'typeahead:change .js-postcode': 'locChange'
         },
 
         getLocation: function() {

@@ -74,12 +74,10 @@ define([
     Iznik.Views.ModTools.Member.Spam = Iznik.Views.ModTools.Member.extend({
         template: 'modtools_members_spam_member',
 
-        events: function(){
-            return _.extend({},Iznik.Views.ModTools.Member.prototype.events,{
-                'click .js-notspam': 'notSpam',
-                'click .js-spam': 'spam',
-                'click .js-whitelist': 'whitelist'
-            });
+        events: {
+            'click .js-notspam': 'notSpam',
+            'click .js-spam': 'spam',
+            'click .js-whitelist': 'whitelist'
         },
 
         clearSuspect: function () {

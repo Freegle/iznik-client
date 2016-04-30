@@ -7,12 +7,10 @@ define([
         var modalOpen = null;
 
     Iznik.Views.Modal = Iznik.View.extend({
-        events: function(){
-            return _.extend({},Iznik.View.prototype.events,{
-                "click .js-cancel": "cancel",
-                "click .js-close": "close",
-                "keydown": "keydown"
-            });
+        events: {
+            "click .js-cancel": "cancel",
+            "click .js-close": "close",
+            "keydown": "keydown"
         },
 
         keydown: function(e) {
@@ -101,11 +99,9 @@ define([
     Iznik.Views.Confirm = Iznik.Views.Modal.extend({
         template: 'confirm',
 
-        events: function(){
-            return _.extend({},Iznik.Views.Modal.prototype.events,{
-                'click .js-confirm': 'confirm',
-                'click .js-cancel': 'cancel'
-            });
+        events: {
+            'click .js-confirm': 'confirm',
+            'click .js-cancel': 'cancel'
         },
 
         confirm: function() {

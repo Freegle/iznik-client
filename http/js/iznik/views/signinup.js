@@ -10,17 +10,15 @@ define([
     Iznik.Views.SignInUp = Iznik.Views.Modal.extend({
         className: "signinup",
 
-        events: function () {
-            return _.extend({}, _.result(Iznik.Views.Modal, 'events'), {
-                'click .js-loginNative': 'showNative',
-                'click .js-signin': 'signin',
-                'click .js-signup': 'signup',
-                'click .js-loginYahoo': 'yahoologin',
-                'click .js-loginFB': 'fblogin',
-                'click .js-forgot': 'lostPassword',
-                'keyup .js-signinform .js-password': 'enterSubmit',
-                'keyup .js-signupform .js-password': 'enterSubmit2'
-            });
+        events: {
+            'click .js-loginNative': 'showNative',
+            'click .js-signin': 'signin',
+            'click .js-signup': 'signup',
+            'click .js-loginYahoo': 'yahoologin',
+            'click .js-loginFB': 'fblogin',
+            'click .js-forgot': 'lostPassword',
+            'keyup .js-signinform .js-password': 'enterSubmit',
+            'keyup .js-signupform .js-password': 'enterSubmit2'
         },
 
         'enterSubmit': function (e) {

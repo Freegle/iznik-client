@@ -350,10 +350,8 @@ define([
 
         template: 'modtools_message_photo',
 
-        events: function(){
-            return _.extend({},Iznik.View.prototype.events,{
-                'click .js-img': 'click'
-            });
+        events: {
+            'click .js-img': 'click'
         },
 
         click: function (e) {
@@ -650,10 +648,8 @@ define([
     Iznik.Views.ModTools.StdMessage.Edit = Iznik.Views.Modal.extend({
         template: 'modtools_message_edit',
 
-        events: function () {
-            return _.extend({}, _.result(Iznik.Views.Modal, 'events'), {
-                'click .js-save': 'save'
-            });
+        events: {
+            'click .js-save': 'save'
         },
 
         save: function () {
@@ -778,16 +774,14 @@ define([
 
         className: 'js-stdbutton',
 
-        events: function(){
-            return _.extend({},Iznik.View.prototype.events,{
-                'click .js-approve': 'approve',
-                'click .js-reject': 'reject',
-                'click .js-delete': 'deleteMe',
-                'click .js-hold': 'hold',
-                'click .js-release': 'release',
-                'click .js-leave': 'leave',
-                'click .js-edit': 'edit'
-            });
+        events: {
+            'click .js-approve': 'approve',
+            'click .js-reject': 'reject',
+            'click .js-delete': 'deleteMe',
+            'click .js-hold': 'hold',
+            'click .js-release': 'release',
+            'click .js-leave': 'leave',
+            'click .js-edit': 'edit'
         },
 
         hold: function () {
@@ -927,10 +921,8 @@ define([
     Iznik.Views.ModTools.StdMessage.Leave = Iznik.Views.ModTools.StdMessage.Modal.extend({
         template: 'modtools_message_leave',
 
-        events: function(){
-            return _.extend({},Iznik.Views.ModTools.StdMessage.Modal.prototype.events,{
-                'click .js-send': 'send'
-            });
+        events: {
+            'click .js-send': 'send'
         },
 
         send: function () {
@@ -950,10 +942,8 @@ define([
     Iznik.Views.ModTools.StdMessage.Delete = Iznik.Views.ModTools.StdMessage.Modal.extend({
         template: 'modtools_message_delete',
 
-        events: function(){
-            return _.extend({},Iznik.Views.ModTools.StdMessage.Modal.prototype.events,{
-                'click .js-send': 'send'
-            });
+        events: {
+            'click .js-send': 'send'
         },
 
         send: function () {

@@ -13,11 +13,9 @@ define([
         members: null,
         context: null,
 
-        events: function () {
-            return _.extend({}, Iznik.Views.Page.prototype.events, {
-                'click .js-search': 'search',
-                'keyup .js-searchterm': 'keyup'
-            });
+        events: {
+            'click .js-search': 'search',
+            'keyup .js-searchterm': 'keyup'
         },
 
         template: "modtools_spammerlist_main",
@@ -156,12 +154,10 @@ define([
     Iznik.Views.ModTools.Spammer = Iznik.Views.ModTools.Member.Spam.extend({
         template: 'modtools_spammerlist_member',
 
-        events: function(){
-            return _.extend({},Iznik.Views.ModTools.Member.Spam.prototype.events,{
-                'click .js-notspam': 'notSpam',
-                'click .js-confirm': 'confirm',
-                'click .js-whitelist': 'whitelist'
-            });
+        events: {
+            'click .js-notspam': 'notSpam',
+            'click .js-confirm': 'confirm',
+            'click .js-whitelist': 'whitelist'
         },
 
         notSpam: function () {

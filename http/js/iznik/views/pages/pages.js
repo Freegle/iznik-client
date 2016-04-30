@@ -15,10 +15,8 @@ define([
     Iznik.Views.Page = Iznik.View.extend({
         modtools: false,
 
-        events: function(){
-            return _.extend({},Iznik.View.prototype.events,{
-                'click .js-signin': 'signin'
-            });
+        events: {
+            'click .js-signin': 'signin'
         },
 
         home: function () {
@@ -149,10 +147,8 @@ define([
     Iznik.Views.ModTools.LeftMenu = Iznik.View.extend({
         template: "layout_leftmenu",
 
-        events: function () {
-            return _.extend({}, Iznik.Views.Page.prototype.events, {
-                'click .js-logout': 'logout'
-            });
+        events: {
+            'click .js-logout': 'logout'
         },
 
         logout: function () {

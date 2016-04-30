@@ -108,11 +108,9 @@ define([
     Iznik.Views.User.Home.Offer = Iznik.Views.User.Message.extend({
         template: "user_home_offer",
 
-        events: function(){
-            return _.extend({},Iznik.Views.User.Message.prototype.events,{
-                'click .js-taken': 'taken',
-                'click .js-withdraw': 'withdrawn'
-            });
+        events: {
+            'click .js-taken': 'taken',
+            'click .js-withdraw': 'withdrawn'
         },
         
         taken: function() {
@@ -148,12 +146,10 @@ define([
     Iznik.Views.User.Outcome = Iznik.Views.Modal.extend({
         template: 'user_home_outcome',
 
-        events: function(){
-            return _.extend({},Iznik.Views.Modal.prototype.events,{
-                'click .js-confirm': 'confirm',
-                'change .js-outcome': 'changeOutcome',
-                'click .btn-radio .btn': 'click'
-            });
+        events: {
+            'click .js-confirm': 'confirm',
+            'change .js-outcome': 'changeOutcome',
+            'click .btn-radio .btn': 'click'
         },
 
         changeOutcome: function() {

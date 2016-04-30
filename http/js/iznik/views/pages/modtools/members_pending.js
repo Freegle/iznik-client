@@ -11,11 +11,9 @@ define([
 
         template: "modtools_members_pending_main",
 
-        events: function () {
-            return _.extend({}, Iznik.Views.Page.prototype.events, {
-                'click .js-search': 'search',
-                'keyup .js-searchterm': 'keyup'
-            });
+        events: {
+            'click .js-search': 'search',
+            'keyup .js-searchterm': 'keyup'
         },
 
         keyup: function (e) {
@@ -109,10 +107,8 @@ define([
     Iznik.Views.ModTools.Member.Pending = Iznik.Views.ModTools.Member.extend({
         template: 'modtools_members_pending_member',
 
-        events: function(){
-            return _.extend({},Iznik.Views.ModTools.Member.prototype.events,{
-                'click .js-rarelyused': 'rarelyUsed'
-            });
+        events: {
+            'click .js-rarelyused': 'rarelyUsed'
         },
 
         render: function () {

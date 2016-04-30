@@ -8,10 +8,8 @@ define([
     Iznik.Views.User.Message = Iznik.View.extend({
         className: "panel panel-info marginbotsm",
 
-        events: function(){
-            return _.extend({},Iznik.View.prototype.events,{
-                'click .js-caret': 'carettoggle'
-            });
+        events: {
+            'click .js-caret': 'carettoggle'
         },
 
         expanded: false,
@@ -188,12 +186,10 @@ define([
 
         template: 'user_message_reply',
 
-        events: function(){
-            return _.extend({},Iznik.View.prototype.events,{
-                'click .js-chat': 'dm',
-                'click .js-promise': 'promise',
-                'click .js-renege': 'renege'
-            });
+        events: {
+            'click .js-chat': 'dm',
+            'click .js-promise': 'promise',
+            'click .js-renege': 'renege'
         },
 
         dm: function() {

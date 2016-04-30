@@ -12,19 +12,17 @@ define([
     
         template: "modtools_settings_main",
     
-        events: function(){
-            return _.extend({}, Iznik.Views.Page.prototype.events,{
-                'change .js-configselect': 'configSelect',
-                'click .js-addbulkop': 'addBulkOp',
-                'click .js-addstdmsg': 'addStdMsg',
-                'click .js-addconfig': 'addConfig',
-                'click .js-deleteconfig': 'deleteConfig',
-                'click .js-copyconfig': 'copyConfig',
-                'click .js-addgroup': 'addGroup',
-                'click .js-addlicense': 'addLicense',
-                'click .js-hideall': 'hideAll',
-                'click .js-mapsettings': 'mapSettings'
-            });
+        events: {
+            'change .js-configselect': 'configSelect',
+            'click .js-addbulkop': 'addBulkOp',
+            'click .js-addstdmsg': 'addStdMsg',
+            'click .js-addconfig': 'addConfig',
+            'click .js-deleteconfig': 'deleteConfig',
+            'click .js-copyconfig': 'copyConfig',
+            'click .js-addgroup': 'addGroup',
+            'click .js-addlicense': 'addLicense',
+            'click .js-hideall': 'hideAll',
+            'click .js-mapsettings': 'mapSettings'
         },
     
         addGroup: function() {
@@ -856,16 +854,14 @@ define([
     Iznik.Views.ModTools.StdMessage.SettingsButton = Iznik.Views.ModTools.StdMessage.Button.extend({
         // We override the events, so we get the same visual display but when we click do an edit of the settings.
 
-        events: function(){
-            return _.extend({},Iznik.Views.ModTools.StdMessage.Button.prototype.events,{
-                'click .js-approve': 'edit',
-                'click .js-reject': 'edit',
-                'click .js-delete': 'edit',
-                'click .js-hold': 'edit',
-                'click .js-release': 'edit',
-                'click .js-edit': 'edit',
-                'click .js-leave': 'edit'
-            });
+        events: {
+            'click .js-approve': 'edit',
+            'click .js-reject': 'edit',
+            'click .js-delete': 'edit',
+            'click .js-hold': 'edit',
+            'click .js-release': 'edit',
+            'click .js-edit': 'edit',
+            'click .js-leave': 'edit'
         },
 
         edit: function() {
@@ -890,10 +886,8 @@ define([
             type: 'actionselect'
         },
 
-        events: function(){
-            return _.extend({},Backform.InputControl.prototype.events,{
-                'change .js-action': 'getValueFromDOM'
-            });
+        events: {
+            'change .js-action': 'getValueFromDOM'
         },
 
         getValueFromDOM: function() {
@@ -912,11 +906,9 @@ define([
     
         shaded: true,
 
-        events: function(){
-            return _.extend({},Iznik.Views.Modal.prototype.events,{
-                'click .js-save': 'save',
-                'click .js-delete': 'delete'
-            });
+        events: {
+            'click .js-save': 'save',
+            'click .js-delete': 'delete'
         },
 
         save: function() {
@@ -1070,10 +1062,8 @@ define([
     Iznik.Views.ModTools.Settings.AddGroup = Iznik.Views.Modal.extend({
         template: 'modtools_settings_addgroup',
 
-        events: function(){
-            return _.extend({},Iznik.Views.Modal.prototype.events,{
-                'click .js-add': 'add'
-            });
+        events: {
+            'click .js-add': 'add'
         },
 
         createFailed: function() {
@@ -1142,12 +1132,10 @@ define([
     Iznik.Views.ModTools.BulkOp = Iznik.Views.Modal.extend({
         template: 'modtools_settings_bulkop',
 
-        events: function(){
-            return _.extend({},Iznik.Views.Modal.prototype.events,{
-                'click .js-save': 'save',
-                'click .js-delete': 'delete',
-                'change .js-criterion': 'criterion'
-            });
+        events: {
+            'click .js-save': 'save',
+            'click .js-delete': 'delete',
+            'change .js-criterion': 'criterion'
         },
 
         criterion: function() {
@@ -1266,10 +1254,8 @@ define([
     
         tagName: 'li',
 
-        events: function(){
-            return _.extend({},Iznik.View.prototype.events,{
-                'click .js-edit': 'edit'
-            });
+        events: {
+            'click .js-edit': 'edit'
         },
 
         edit: function() {
@@ -1290,12 +1276,10 @@ define([
     Iznik.Views.ModTools.Settings.AddLicense = Iznik.Views.Modal.extend({
         template: 'modtools_settings_addlicense',
 
-        events: function(){
-            return _.extend({},Iznik.Views.Modal.prototype.events,{
-                'click .js-add': 'add',
-                'click .js-close': 'close',
-                'click .js-cancel': 'cancel'
-            });
+        events: {
+            'click .js-add': 'add',
+            'click .js-close': 'close',
+            'click .js-cancel': 'cancel'
         },
 
         licenseFailed: function() {
@@ -1342,14 +1326,12 @@ define([
     
         template: "modtools_settings_map",
 
-        events: function(){
-            return _.extend({},Iznik.Views.Page.prototype.events,{
-                'click .js-save': 'save',
-                'click .js-delete': 'exclude',
-                'click #js-shade': 'shade',
-                'keyup .js-wkt': 'paste',
-                'click .js-discard': 'discard'
-            });
+        events: {
+            'click .js-save': 'save',
+            'click .js-delete': 'exclude',
+            'click #js-shade': 'shade',
+            'keyup .js-wkt': 'paste',
+            'click .js-discard': 'discard'
         },
 
         discard: function() {

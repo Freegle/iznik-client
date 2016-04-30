@@ -92,13 +92,9 @@ define([
         }
     });
 
-    // Set options into this.options by default.
     Iznik.View = (function (View) {
-        return View.extend({
-            events: {
-                'click': 'globalClick'
-            },
 
+        var ourview = View.extend({
             globalClick: function(e) {
                 // When a click occurs, we block further clicks for a few seconds, to stop double click damage.
                 $(e.target).addClass('blockclick');
@@ -153,6 +149,35 @@ define([
                 Backbone.View.prototype.remove.call(this);
             }
         });
+
+        ourview.extend = function(child) {
+            // We want to inherit events when we extend a view.  This is useful in cases such as a modal which has
+            // its own events but wants the modal events too.
+            //
+            // We do this by overriding extend itself, so that we merge in the events from the child.  Using
+            // _.extend to do this makes weird bad things happen, so we do it ourselves in JS.
+            //
+            // We don't have to worry about the case where the events property is a function because we don't use that.
+            var view = View.extend.apply(this, arguments);
+
+            if (view.prototype.events) {
+                if (child.hasOwnProperty('events')) {
+                    var ourevents = typeof this.prototype.events !== 'undefined' ? this.prototype.events : {
+                        'click': 'globalClick'
+                    };
+                    for (var i in child.events) {
+                        ourevents[i] = child.events[i];
+                    }
+
+                    view.prototype.events = ourevents;
+                }
+            }
+
+            return view;
+        }
+
+        return(ourview);
+
     })(Backbone.View);
 
     // Save as global as it's useful for debugging.
