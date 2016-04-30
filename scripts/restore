@@ -1,7 +1,9 @@
 #!/bin/bash
+EMAIL=geek-alerts@ilovefreegle.org
 #
 # Restore the last backup into MySQL.  For use on the archive server.
 /etc/init.d/mysql stop
+killall -9 mysqld
 rm -r /archive/mysql
 mkdir /archive/mysql
 cd /archive/backups
@@ -11,3 +13,5 @@ tar -xvzf /archive/backups/$back
 innobackupex --apply-log /archive/mysql
 chown -R mysql:mysql /archive/mysql
 /etc/init.d/mysql start
+maxdate=`mysql --execute="use iznik; SELECT MAX(arrival) FROM messages;" | grep -`
+echo "Restored"| mail -s "RESTORE: DB restored on hub upto $maxdate" $EMAIL

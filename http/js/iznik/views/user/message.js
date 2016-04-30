@@ -96,6 +96,12 @@ define([
         render: function() {
             var self = this;
 
+            var outcomes = self.model.get('outcomes');
+            if (outcomes && outcomes.length > 0) {
+                // Hide completed posts by default.
+                self.$el.hide();
+            }
+
             // Make sure any URLs in the message break.
             this.model.set('textbody', wbr(this.model.get('textbody'), 20));
 

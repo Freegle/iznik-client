@@ -435,6 +435,10 @@ class Message
                     }
                 }
             }
+
+            # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
+            $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
+            $ret['outcomes'] = $this->dbhr->preQuery($sql, [ $this->id ]);
         }
 
         # Add derived attributes.
@@ -2199,6 +2203,12 @@ class Message
         $subj = $this->getSubject();
         $type = $this->getType();
 
+        # Remove any group tag at the start.
+        if (preg_match('/\[.*\](.*)/', $subj, $matches)) {
+            # Strip possible group name
+            $subj = trim($matches[1]);
+        }
+
         # Strip the relevant keywords.
         $keywords = Message::keywords()[$type];
         error_log($subj);
@@ -2219,13 +2229,13 @@ class Message
             $g = new Group($this->dbhr, $this->dbhm, $groupid);
             $defs = $g->getDefaults()['keywords'];
             $keywords = $g->getSetting('keywords', $defs);
-            $key = $keywords[$key];
+            error_log("Keywords" . var_export($keywords, TRUE));
+            $key = $keywords[strtolower($key)];
             break;
         }
 
         $subj = $key . $subj;
 
-        error_log("Return $subj");
         return($subj);
     }
 

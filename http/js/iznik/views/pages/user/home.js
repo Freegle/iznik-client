@@ -124,10 +124,18 @@ define([
         },
         
         outcome: function(outcome) {
+            var self = this;
+
             var v = new Iznik.Views.User.Outcome({
                 model: this.model,
                 outcome: outcome
             });
+
+            self.listenToOnce(v, 'outcame', function() {
+                self.$el.fadeOut('slow', function() {
+                    self.destroyIt();
+                });
+            })
 
             v.render();
         }
@@ -143,8 +151,17 @@ define([
         events: function(){
             return _.extend({},Iznik.Views.Modal.prototype.events,{
                 'click .js-confirm': 'confirm',
+                'change .js-outcome': 'changeOutcome',
                 'click .btn-radio .btn': 'click'
             });
+        },
+
+        changeOutcome: function() {
+            if (this.$('.js-outcome').val() == 'Withdrawn') {
+                this.$('.js-user').addClass('reallyHide');
+            } else {
+                this.$('.js-user').removeClass('reallyHide');
+            }
         },
         
         click: function(ev) {
@@ -162,13 +179,63 @@ define([
         },
 
         confirm: function() {
-            this.trigger('confirmed');
-            this.close();
+            var self = this;
+            var outcome = self.$('.js-outcome').val();
+            var comment = self.$('.js-comment').val().trim();
+            comment = comment.length > 0 ? comment : null;
+            var happiness = null;
+            var selbutt = self.$('.btn.active');
+            var userid = self.$('.js-user').val();
+            console.log("selbutt", selbutt);
+
+            if (selbutt.length > 0) {
+                if (selbutt.hasClass('js-happy')) {
+                    console.log("Happy");
+                    happiness = 'Happy';
+                } else if (selbutt.hasClass('js-unhappy')) {
+                    console.log("Unhappy");
+                    happiness = 'Unhappy';
+                } else {
+                    console.log("Fine");
+                    happiness = 'Fine';
+                }
+            }
+
+            $.ajax({
+                url: API + 'message/' + self.model.get('id'),
+                type: 'POST',
+                data: {
+                    action: 'Outcome',
+                    outcome: outcome,
+                    happiness: happiness,
+                    comment: comment,
+                    userid: userid
+                }, success: function(ret) {
+                    if (ret.ret === 0) {
+                        self.trigger('outcame');
+                        self.close();
+                    }
+                }
+            })
         },
 
         render: function() {
+            var self = this;
             this.model.set('outcome', this.options.outcome);
             this.open(this.template);
+            this.changeOutcome();
+
+            // We want to show the people to whom it's promised first, as they're likely to be correct and most
+            // likely to make the user change it if they're not correct.
+            var replies = this.model.get('replies');
+            replies = _.sortBy(replies, function(reply) {
+                return(- reply.promised);
+            });
+            _.each(replies, function(reply) {
+                self.$('.js-user').append('<option value="' + reply.user.id + '" />');
+                self.$('.js-user option:last').html(reply.user.displayname);
+            })
+            self.$('.js-user').append('<option value="0">Someone else</option>');
         }
     });
 });

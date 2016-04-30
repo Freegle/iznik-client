@@ -5,11 +5,18 @@
                 <h4 class="modal-title js-modal-title">{{subject}}</h4>
             </div>
             <div class="modal-body js-modal-body">
-                <select class="form-control js-outcome">
-                    <option value="Taken" <% if (outcome == 'Taken') { %>selected<% } %>>Taken</option>
-                    <option value="Received" <% if (outcome == 'Received') { %>selected<% } %>>Received</option>
-                    <option value="Withdrawn" <% if (outcome == 'Withdrawn') { %>selected<% } %>>Withdrawn</option>
-                </select>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <select class="form-control js-outcome">
+                            <option value="Taken" <% if (outcome == 'Taken') { %>selected<% } %>>Taken by</option>
+                            <option value="Received" <% if (outcome == 'Received') { %>selected<% } %>>Received from</option>
+                            <option value="Withdrawn" <% if (outcome == 'Withdrawn') { %>selected<% } %>>Withdrawn because</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-8">
+                        <select class="form-control js-user reallyHide"></select>
+                    </div>
+                </div>
                 <p class="text-center topspace">
                     Thanks for letting us know.  How do you feel about freegling just now?
                 </p>
@@ -31,7 +38,7 @@
                             </div>
                             <div class="btn-group" role="group">
                                 <button type="button" class="js-unhappy btn btn-danger">
-                                    <img src="images/unhappy.png" width="30px" />&nbsp;
+                                    <img src="images/sad.png" width="30px" />&nbsp;
                                     Sad
                                 </button>
                             </div>
@@ -39,9 +46,9 @@
                     </div>
                     <div class="col-xs-2"></div>
                  </div>
-                <textarea lines="4" class="topspace form-control" placeholder="Any comments?  Please let us know here." />
-                <div class="text-muted pull-right topspace botspace js-public" style="display: none">Your comment will be public.</div>
-                <div class="text-muted pull-right topspace botspace js-private" style="display: none">Your comment will only go to our volunteers.</div>
+                <textarea lines="4" class="topspace form-control js-comment" placeholder="Any comments?  Please let us know here." />
+                <div class="text-muted pull-right topspace botspace js-public" style="display: none"><span class="glyphicon glyphicon-globe" />&nbsp;Your comment will be public.</div>
+                <div class="text-muted pull-right topspace botspace js-private" style="display: none"><span class="glyphicon glyphicon-lock" />&nbsp;Your comment will only go to our volunteers.</div>
                 <div class="clearfix" />
             </div>
             <div class="modal-footer">

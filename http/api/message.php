@@ -303,9 +303,11 @@ function message() {
 
             # Other actions which we can do on our own messages.
             if ($myid == $m->getFromuser()) {
-                $r = new ChatRoom($dbhr, $dbhm);
-                $rid = $r->createConversation($myid, $userid);
-                $cm = new ChatMessage($dbhr, $dbhm);
+                if ($userid) {
+                    $r = new ChatRoom($dbhr, $dbhm);
+                    $rid = $r->createConversation($myid, $userid);
+                    $cm = new ChatMessage($dbhr, $dbhm);
+                }
 
                 switch ($action) {
                     case 'Promise':
