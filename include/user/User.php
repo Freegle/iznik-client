@@ -1465,10 +1465,16 @@ class User extends Entity
     private function maybeMail($groupid, $subject, $body, $action) {
         if ($body) {
             # We have a mail to send.
-            $mails = $this->getEmails();
+            list ($eid, $to) = $this->getEmailForYahooGroup($groupid);
 
-            if (count($mails) > 0) {
-                $to = $mails[0]['email'];
+            if (!$to) {
+                $mails = $this->getEmails();
+                if (count($mails) > 0) {
+                    $to = $mails[0]['email'];
+                }
+            }
+
+            if ($to) {
                 $g = new Group($this->dbhr, $this->dbhm, $groupid);
                 $atts = $g->getPublic();
 
