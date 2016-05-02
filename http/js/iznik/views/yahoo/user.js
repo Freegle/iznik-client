@@ -33,7 +33,14 @@ define([
 
             if (self.model.get('date')) {
                 var mom = new moment(self.model.get('date') * 1000);
+                var now = new moment();
+
                 self.$('.js-joined').html(mom.format('ll'));
+
+                console.log("Age", now, mom, now.diff(mom, 'days'));
+                if (now.diff(mom, 'days') <= 31) {
+                    self.$('.js-joined').addClass('error');
+                }
             } else {
                 self.$('.js-joinholder').hide();
             }

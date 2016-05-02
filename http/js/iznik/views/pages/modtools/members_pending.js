@@ -120,7 +120,14 @@ define([
                 self.model.set('group', group.attributes);
                 self.$el.html(window.template(self.template)(self.model.toJSON2()));
                 var mom = new moment(this.model.get('joined'));
-                this.$('.js-joined').html(mom.format('llll'));
+
+                var now = new moment();
+
+                self.$('.js-joined').html(mom.format('llll'));
+
+                if (now.diff(mom, 'days') <= 31) {
+                    self.$('.js-joined').addClass('error');
+                }
 
                 self.addOtherInfo();
 
