@@ -155,7 +155,8 @@ define([
                         if (!group.get('licensed')) {
                             text = '<div class="alert alert-warning">This group is using a trial license for 30 days from <abbr class="timeago" title="' + group.get('trial') + '"></abbr>.</div>'
                         } else {
-                            text = 'This group is licensed until <abbr class="timeago" title="' + group.get('licenseduntil') + '"></abbr>.';
+                            var mom = new moment(group.get('licenseduntil'));
+                            text = 'This group is licensed until ' + mom.format('ll') + '.';
                         }
     
                         self.$('.js-addlicense').show();
