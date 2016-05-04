@@ -15,7 +15,7 @@
                     Applied to {{group.namedisplay}}
             <% } else if (subtype == 'Left') { %>
                 <% if (obj.user && obj.byuser && obj.byuser.id != obj.user.id) { %>
-                Removed from {{group.namedisplay}} <% if (obj.text) { %>{{text}}<% } %>
+                Removed member <% if (user.displayname.length > 1) { %>{{user.displayname}}<% } else { %><em>(No name)</em><% } %> #{{user.id}} from {{group.namedisplay}} <% if (obj.text) { %>{{text}}<% } %>
                 <% } else { %>
                 Left {{group.namedisplay}}
                 <% } %>
@@ -62,7 +62,7 @@
             <% } else if (subtype == 'Merged') { %>
             Detected as the same as another user - {{text}}
             <% } else if (subtype == 'Approved') { %>
-            Approved member {{user.displayname}} #{{user.id}} on {{group.namedisplay}}
+            Approved member <% if (user.displayname.length > 1) { %>{{user.displayname}}<% } else { %><em>(No name)</em><% } %> #{{user.id}} on {{group.namedisplay}}
             <% } else if (subtype == 'Rejected') { %>
             Rejected member {{text}} on {{group.namedisplay}} using <em>{{stdmsg.title}}</em>
             <% } else if (subtype == 'Deleted') { %>
@@ -72,9 +72,9 @@
                 Mod sent <% if (obj.text && obj.text.length > 0) { %> <em>{{text}} </em><% } else if (obj.stdmsg) { %> standard message <em>{{stdmsg.title}} </em><% } else { %>mail <% } %>
             </div>
             <% } else if (subtype == 'Hold') { %>
-            Held member {{user.displayname}} on {{group.namedisplay}}
+            Held member <% if (user.displayname.length > 1) { %>{{user.displayname}}<% } else { %><em>(No name)</em><% } %> #{{user.id}} on {{group.namedisplay}}
             <% } else if (subtype == 'Hold') { %>
-            Released member {{user.displayname}} on {{group.namedisplay}}
+            Released member <% if (user.displayname.length > 1) { %>{{user.displayname}}<% } else { %><em>(No name)</em><% } %> #{{user.id}} on {{group.namedisplay}}
             <% } else if (subtype == 'Suspect') { %>
             Detected as suspicious<% if (obj.text) { %>: {{text}}<% } %>
             <% } else if (subtype == 'Split') { %>

@@ -594,14 +594,17 @@ class Group extends Entity
                 # Long
                 set_time_limit(60);
 
-                $this->log->log([
-                    'type' => Log::TYPE_GROUP,
-                    'subtype' => Log::SUBTYPE_LEFT,
-                    'user' => $todelete['userid'],
-                    'byuser' => $meid,
-                    'groupid' => $this->id,
-                    'text' => "Sync of whole $collection membership list"
-                ]);
+                if ($collection == MembershipCollection::APPROVED) {
+                    # No point logging removal of pending members - that's normal.
+                    $this->log->log([
+                        'type' => Log::TYPE_GROUP,
+                        'subtype' => Log::SUBTYPE_LEFT,
+                        'user' => $todelete['userid'],
+                        'byuser' => $meid,
+                        'groupid' => $this->id,
+                        'text' => "Sync of whole $collection membership list"
+                    ]);
+                }
 
                 $this->dbhm->preExec("DELETE FROM memberships WHERE id = ?;", [ $todelete['id'] ]);
             }

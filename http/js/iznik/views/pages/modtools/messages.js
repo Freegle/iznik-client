@@ -373,6 +373,7 @@ define([
 
         expand: function () {
             var self = this;
+            console.log("Expand", this);
 
             this.$el.html(window.template(this.template)(this.model.toJSON2()));
 

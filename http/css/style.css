@@ -1006,6 +1006,12 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     padding: 5px;
 }
 
+.chat-footer {
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+}
+
 #chatHolder {
     position:fixed;
     bottom:0;
