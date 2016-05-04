@@ -30,31 +30,6 @@ define([
             sign.render();
         },
 
-        loggedInOnly: function() {
-            var self = this;
-
-            // Show anything which should or shouldn't be visible based on login status.
-            this.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
-                var loggedInOnly = $('.js-loggedinonly');
-                var loggedOutOnly = $('.js-loggedoutonly');
-
-                if (loggedIn) {
-                    loggedInOnly.removeClass('reallyHide');
-                    loggedOutOnly.addClass('reallyHide');
-
-                    // Since we're logged in, we can start chat.
-                    ChatHolder({
-                        modtools: self.modtools
-                    }).render();
-                } else {
-                    loggedOutOnly.removeClass('reallyHide');
-                    loggedInOnly.addClass('reallyHide');
-                }
-            });
-
-            Iznik.Session.testLoggedIn();
-        },
-
         render: function (options) {
             var self = this;
 
@@ -117,7 +92,27 @@ define([
                 this.$el.html(window.template(this.template)(Iznik.Session.toJSON2()));
                 $('.js-pageContent').append(this.$el);
 
-                this.loggedInOnly();
+                // Show anything which should or shouldn't be visible based on login status.
+                this.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                    var loggedInOnly = $('.js-loggedinonly');
+                    var loggedOutOnly = $('.js-loggedoutonly');
+                    console.log("Logged in?", loggedIn);
+
+                    if (loggedIn) {
+                        loggedInOnly.removeClass('reallyHide');
+                        loggedOutOnly.addClass('reallyHide');
+
+                        // Since we're logged in, we can start chat.
+                        ChatHolder({
+                            modtools: self.modtools
+                        }).render();
+                    } else {
+                        loggedOutOnly.removeClass('reallyHide');
+                        loggedInOnly.addClass('reallyHide');
+                    }
+                });
+
+                Iznik.Session.testLoggedIn();
 
                 // Sort out any menu
                 $("#menu-toggle").click(function (e) {

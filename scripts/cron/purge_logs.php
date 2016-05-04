@@ -15,7 +15,23 @@ $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 ));
 
 $start = date('Y-m-d', strtotime("midnight 1 day ago"));
-error_log("Purge logs before $start");
+error_log("Purge detailed logs before $start");
+
+error_log("Plugin logs:");
+$total = 0;
+do {
+    $count = $dbhm->exec("DELETE FROM logs WHERE `timestamp` < '$start' AND TYPE = 'Plugin' LIMIT 1000;");
+    $total += $count;
+    error_log("...$total");
+} while ($count > 0);
+
+error_log("Session logs:");
+$total = 0;
+do {
+    $count = $dbhm->exec("DELETE FROM logs_events WHERE `timestamp` < '$start' LIMIT 1000;");
+    $total += $count;
+    error_log("...$total");
+} while ($count > 0);
 
 error_log("API logs:");
 $total = 0;

@@ -41,6 +41,7 @@ require_once(IZNIK_BASE . '/include/mail/MailRouter.php');
 require_once(IZNIK_BASE . '/include/misc/plugin.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
 require_once(IZNIK_BASE . '/include/misc/Search.php');
+require_once(IZNIK_BASE . '/include/misc/Events.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/config/StdMessage.php');
 require_once(IZNIK_BASE . '/include/config/BulkOp.php');
@@ -69,6 +70,7 @@ require_once(IZNIK_BASE . '/http/api/chatmessages.php');
 require_once(IZNIK_BASE . '/http/api/locations.php');
 require_once(IZNIK_BASE . '/http/api/image.php');
 require_once(IZNIK_BASE . '/http/api/upload.php');
+require_once(IZNIK_BASE . '/http/api/event.php');
 
 $includetime = microtime(true) - $scriptstart;
 
@@ -94,7 +96,6 @@ if ($_REQUEST['type'] == 'OPTIONS') {
     # Actual API calls
     $ret = array('ret' => 1000, 'status' => 'Invalid API call');
     $t = microtime(true);
-    $whoamitime = microtime(true) - $t;
 
     # We wrap the whole request in a retry handler.  This is so that we can deal with errors caused by
     # conflicts within the Percona cluster.
@@ -137,6 +138,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     throw new Exception();
                 case 'image':
                     $ret = image();
+                    break;
+                case 'event':
+                    $ret = event();
                     break;
                 case 'upload':
                     $ret = upload();
@@ -234,7 +238,6 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 $ret['cpucost'] = getCpuUsage();
                 $ret['dbwaittime'] = $dbhr->getWaitTime() + $dbhm->getWaitTime();
                 $ret['includetime'] = $includetime;
-                $ret['whoamitime'] = $whoamitime;
 
                 filterResult($ret);
                 $str = json_encode($ret);

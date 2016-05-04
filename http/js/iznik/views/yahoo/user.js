@@ -37,7 +37,6 @@ define([
 
                 self.$('.js-joined').html(mom.format('ll'));
 
-                console.log("Age", now, mom, now.diff(mom, 'days'));
                 if (now.diff(mom, 'days') <= 31) {
                     self.$('.js-joined').addClass('error');
                 }
