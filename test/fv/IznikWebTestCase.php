@@ -38,17 +38,14 @@ abstract class IznikWebTestCase extends PHPUnit_Framework_TestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $this->dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.backwards LIKE 'moc.tset%';");
+        $this->dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.backwards LIKE 'oi.elohkcalb%';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';");
     }
 
     protected function tearDown() {
         parent::tearDown ();
-        $this->driver->close();
+        $this->driver->quit();
         @session_destroy();
-    }
-
-    public function testDownAfterClass() {
     }
 
     public function waitLoad() {

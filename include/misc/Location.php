@@ -538,4 +538,16 @@ class Location extends Entity
 
         return($ret);
     }
+
+    public function ensureVague()
+    {
+        $ret = $this->loc['name'];
+        $p = strpos($ret, ' ');
+
+        if ($this->loc['type'] == 'Postcode' && $p !== FALSE) {
+            $ret = substr($ret, 0, $p);
+        }
+
+        return($ret);
+    }
 }

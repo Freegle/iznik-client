@@ -29,4 +29,46 @@ class homeTest extends IznikWebTestCase
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testGive()
+    {
+        error_log(__METHOD__);
+
+        $this->driver->get(USER_TEST_SITE);
+        $this->driver->switchTo();
+        $this->waitLoad();
+        $this->driver->findElement(WebDriverBy::xpath("//a[@href='/give/whereami']"))->click();
+        sleep(2);
+
+        # Next page - enter postcode.
+        $this->driver->findElement(WebDriverBy::className("js-postcode"))->click();
+        $this->driver->getKeyboard()->sendKeys('PR3 3TN');
+        sleep(2);
+        $this->driver->findElement(WebDriverBy::className("tt-suggestion"))->click();
+        sleep(2);
+        $this->driver->findElement(WebDriverBy::className("js-next"))->isDisplayed();
+        $this->driver->findElement(WebDriverBy::className("js-next"))->click();
+        sleep(2);
+
+        # Uploading files is hard, so don't.
+        $this->driver->findElement(WebDriverBy::className("tt-input"))->click();
+        $this->driver->getKeyboard()->sendKeys('a thing');
+        $this->driver->findElement(WebDriverBy::className("js-description"))->click();
+        $this->driver->getKeyboard()->sendKeys("This comes from automated testing.  Please don't reply.");
+        sleep(2);
+        $this->driver->findElement(WebDriverBy::className("js-next"))->isDisplayed();
+        $this->driver->findElement(WebDriverBy::className("js-next"))->click();
+        sleep(2);
+
+        # Add email
+        $email = 'test-' . rand() . '@blackhole.io';
+        $this->driver->findElement(WebDriverBy::className("js-email"))->click();
+        $this->driver->getKeyboard()->sendKeys($email);
+        sleep(2);
+        $this->driver->findElement(WebDriverBy::className("js-next"))->isDisplayed();
+        $this->driver->findElement(WebDriverBy::className("js-next"))->click();
+        sleep(5);
+
+        error_log(__METHOD__ . " end");
+    }
 }

@@ -2075,7 +2075,13 @@ class Message
 
         if (pres('location', $atts)) {
             # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
-            $loc = (pres('area', $atts) && pres('postcode', $atts)) ? ($atts['area']['name'] . ' ' . $atts['postcode']['name']) : $atts['location']['name'];
+            if (pres('area', $atts) && pres('postcode', $atts)) {
+                $loc = $atts['area']['name'] . ' ' . $atts['postcode']['name'];
+            } else {
+                $l = new Location($this->dbhr, $this->dbhm, $atts['location']['id']);
+                $loc = $l->ensureVague();
+            }
+            
             $subject = $this->type . ': ' . $this->subject . " ($loc)";
             error_log("Construct #{$this->id} {$this->subject} into $subject");
             $this->setPrivate('subject', $subject);

@@ -162,7 +162,7 @@ define([
 
             if (view.prototype.events) {
                 if (child.hasOwnProperty('events')) {
-                    var ourevents = typeof this.prototype.events !== 'undefined' ? this.prototype.events : {
+                    var ourevents = typeof this.prototype.events !== 'undefined' ? jQuery.extend({}, this.prototype.events) : {
                         // 'click .btn': 'globalClick'
                     };
                     for (var i in child.events) {

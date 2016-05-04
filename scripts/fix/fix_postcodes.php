@@ -10,18 +10,23 @@ require_once(IZNIK_BASE . '/include/misc/Location.php');
 
 $l = new Location($dbhr, $dbhm);
 
-$sql = "SELECT id, gridid, name FROM locations WHERE LOCATE(' ', name) = 0 AND type = 'Postcode' AND postcodeid IS NULL ORDER BY name ASC;";
+$sql = "SELECT id, gridid, name FROM locations WHERE LOCATE(' ', name) = 0 AND type = 'Postcode' ORDER BY name ASC;";
 $pcs = $dbhr->preQuery($sql);
 $count = 0;
 $total = count($pcs);
 foreach ($pcs as $pc) {
-    $dbhm->preExec("UPDATE locations SET postcodeid = {$pc['id']} WHERE name like '{$pc['name']}% ' AND type = 'Postcode';");
+    $sql = "UPDATE locations SET postcodeid = {$pc['id']} WHERE name like '{$pc['name']} %' AND type = 'Postcode';";
+    #error_log($sql);
+    $dbhm->preExec($sql);
+
     $count++;
 
-    if ($count % 1000 == 0) {
+    if ($count % 100 == 0) {
         error_log("...$count / $total");
     }
 }
+
+exit(0);
 
 $locs = $dbhr->preQuery("select id from locations where areaid not in (select id from locations);");
 foreach ($locs as $loc) {
@@ -35,7 +40,6 @@ $count = 0;
 $found = 0;
 
 $sql = "SELECT id, gridid, name, type, lat, lng, geometry, AsText(geometry) AS geomtext FROM locations WHERE LOCATE(' ', name) > 0 AND type = 'Postcode' AND areaid IS NULL ORDER BY name ASC;";
-$sql = "SELECT id, gridid, name, type, lat, lng, geometry, AsText(geometry) AS geomtext FROM locations WHERE LOCATE(' ', name) > 0 AND type = 'Postcode' AND lat <= 55 AND lat >= 54.9 AND lng <= -1.52 AND lng >= -1.75;";
 
 $locs = $dbhr->preQuery($sql);
 $total = count($locs);

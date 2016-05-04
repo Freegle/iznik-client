@@ -72,7 +72,7 @@ function fill_word($word, $length, $trigrams, callable $rand = null)
  */
 function array_weighted_rand(array $list)
 {
-    $totalWeight = gmp_init(0);
+    $totalWeight = 0;
     foreach ($list as $key => $weight) {
         if ($weight < 0) {
             throw new \InvalidArgumentException("Weights cannot be negative. Found $key => $weight.");
@@ -86,7 +86,7 @@ function array_weighted_rand(array $list)
         return array_search(1, $list);
     }
 
-    $rand = gmp_random_range(1, $totalWeight);
+    $rand = mt_rand(1, $totalWeight);
     foreach ($list as $key => $weight) {
         $rand -= $weight;
         if ($rand <= 0) {

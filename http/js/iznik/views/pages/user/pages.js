@@ -10,7 +10,8 @@ define([
         events: {
             'click .js-getloc': 'getLocation',
             'change .js-homegroup': 'changeHomeGroup',
-            'typeahead:change .js-postcode': 'locChange'
+            'typeahead:change .js-postcode': 'locChange',
+            'click .tt-suggestion': 'locChange'
         },
 
         getLocation: function() {

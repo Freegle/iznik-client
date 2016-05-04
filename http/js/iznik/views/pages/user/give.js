@@ -28,7 +28,6 @@ define([
 
         checkNext: function () {
             var item = this.getItem();
-            console.log("Checknext", item);
             if (item.length > 0) {
                 this.$('.js-next').fadeIn('slow');
             } else {
@@ -57,7 +56,6 @@ define([
                 self.$('.tt-input').focus();
                 self.$('.bootstrap-tagsinput').addClass('error-border');
             }
-
 
             var locationid = null;
             var groupid = null;
@@ -104,6 +102,7 @@ define([
 
         next: function () {
             var self = this;
+            console.log("Whatisit next");
 
             this.save().done(function () {
                 Router.navigate('/give/whoami', true);
@@ -293,8 +292,6 @@ define([
                     }, success: function (ret) {
                         if (ret.ret == 0) {
                             Router.navigate('/give/whatnext', true)
-                        } else {
-                            self.fail();
                         }
                     }, error: self.fail
                 });
@@ -353,14 +350,6 @@ define([
             var self = this;
 
             Iznik.Views.Page.prototype.render.call(this);
-
-            this.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
-                if (loggedIn) {
-                } else {
-                }
-            });
-
-            Iznik.Session.testLoggedIn();
         }
     });
 });
