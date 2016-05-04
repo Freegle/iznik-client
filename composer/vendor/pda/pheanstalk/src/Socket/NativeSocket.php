@@ -10,7 +10,7 @@ use Pheanstalk\Socket;
  *
  * @author Paul Annesley
  * @package Pheanstalk
- * @licence http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class NativeSocket implements Socket
 {
@@ -31,10 +31,15 @@ class NativeSocket implements Socket
      * @param int    $port
      * @param int    $connectTimeout
      */
-    public function __construct($host, $port, $connectTimeout)
+    public function __construct($host, $port, $connectTimeout, $connectPersistent)
     {
-        $this->_socket = $this->_wrapper()
-            ->fsockopen($host, $port, $errno, $errstr, $connectTimeout);
+        if ($connectPersistent) {
+            $this->_socket = $this->_wrapper()
+                ->pfsockopen($host, $port, $errno, $errstr, $connectTimeout, $connectPersistent);
+        } else {
+            $this->_socket = $this->_wrapper()
+                ->fsockopen($host, $port, $errno, $errstr, $connectTimeout, $connectPersistent);
+        }
 
         if (!$this->_socket) {
             throw new Exception\ConnectionException($errno, $errstr . " (connecting to $host:$port)");
@@ -105,6 +110,11 @@ class NativeSocket implements Socket
         } while ($data === false);
 
         return rtrim($data);
+    }
+
+    public function disconnect()
+    {
+        $this->_wrapper()->fclose($this->_socket);
     }
 
     // ----------------------------------------

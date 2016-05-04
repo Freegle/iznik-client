@@ -10,7 +10,7 @@
     }
   ],
   "require": {
-    "phpunit/phpunit": "4.8.5",
+    "phpunit/phpunit": "5.3",
     "php-mime-mail-parser/php-mime-mail-parser" : "^2.1",
     "pda/pheanstalk": "^3.0",
     "geoip2/geoip2": "^2.3",
@@ -18,6 +18,8 @@
     "minishlink/web-push": "^0.2.2",
     "facebook/php-sdk-v4": "^5.1",
     "google/apiclient": "^1.1",
-    "jenssegers/imagehash": "^0.4.0"
+    "jenssegers/imagehash": "^0.4.0",
+    "phpunit/phpunit-selenium": "^3.0",
+    "facebook/webdriver": "^1.1"
   }
 }

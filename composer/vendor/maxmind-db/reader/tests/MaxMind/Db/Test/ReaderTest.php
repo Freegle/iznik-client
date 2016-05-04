@@ -59,6 +59,8 @@ class ReaderTest extends \PHPUnit_Framework_TestCase
         // For the C extension, which returns a hexadecimal
         if (extension_loaded('gmp')) {
             $uint128 = gmp_strval($uint128);
+        } else {
+            $this->markTestIncomplete('Requires gmp extension to check value of uint128');
         }
 
         $this->assertEquals(
@@ -85,7 +87,14 @@ class ReaderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(0, $record['uint16']);
         $this->assertEquals(0, $record['uint32']);
         $this->assertEquals(0, $record['uint64']);
-        $this->assertEquals(0, $record['uint128']);
+
+        $uint128 = $record['uint128'];
+        if (extension_loaded('gmp')) {
+            $uint128 = gmp_strval($uint128);
+        } else {
+            $this->markTestIncomplete('Requires gmp extension to check value of uint128');
+        }
+        $this->assertEquals('0', $uint128);
     }
 
     public function testNoIpV4SearchTree()
@@ -308,7 +317,7 @@ class ReaderTest extends \PHPUnit_Framework_TestCase
         for ($i = 0; $i <= 5; $i++) {
             $address = '1.1.1.' . pow(2, $i);
             $this->assertEquals(
-                array('fromip' => $address),
+                array('ip' => $address),
                 $reader->get($address),
                 'found expected data record for '
                 . $address . ' in ' . $fileName
@@ -325,7 +334,7 @@ class ReaderTest extends \PHPUnit_Framework_TestCase
             '1.1.1.31' => '1.1.1.16'
         );
         foreach ($pairs as $keyAddress => $valueAddress) {
-            $data = array('fromip' => $valueAddress);
+            $data = array('ip' => $valueAddress);
 
             $this->assertEquals(
                 $data,
@@ -348,7 +357,7 @@ class ReaderTest extends \PHPUnit_Framework_TestCase
 
         foreach ($subnets as $address) {
             $this->assertEquals(
-                array('fromip' => $address),
+                array('ip' => $address),
                 $reader->get($address),
                 'found expected data record for ' . $address . ' in '
                 . $fileName
@@ -368,7 +377,7 @@ class ReaderTest extends \PHPUnit_Framework_TestCase
 
         foreach ($pairs as $keyAddress => $valueAddress) {
             $this->assertEquals(
-                array('fromip' => $valueAddress),
+                array('ip' => $valueAddress),
                 $reader->get($keyAddress),
                 'found expected data record for ' . $keyAddress . ' in '
                 . $fileName

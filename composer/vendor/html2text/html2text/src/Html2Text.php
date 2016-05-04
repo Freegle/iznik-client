@@ -50,8 +50,6 @@ class Html2Text
         '/<head[^>]*>.*?<\/head>/i',                      // <head>
         '/<script[^>]*>.*?<\/script>/i',                  // <script>s -- which strip_tags supposedly has problems with
         '/<style[^>]*>.*?<\/style>/i',                    // <style>s -- which strip_tags supposedly has problems with
-        '/<p[^>]*>/i',                                    // <P>
-        '/<br[^>]*>/i',                                   // <br>
         '/<i[^>]*>(.*?)<\/i>/i',                          // <i>
         '/<em[^>]*>(.*?)<\/em>/i',                        // <em>
         '/(<ul[^>]*>|<\/ul>)/i',                          // <ul> and </ul>
@@ -82,8 +80,6 @@ class Html2Text
         '',                              // <head>
         '',                              // <script>s -- which strip_tags supposedly has problems with
         '',                              // <style>s -- which strip_tags supposedly has problems with
-        "\n\n",                          // <P>
-        "\n",                            // <br>
         '_\\1_',                         // <i>
         '_\\1_',                         // <em>
         "\n\n",                          // <ul> and </ul>
@@ -137,6 +133,8 @@ class Html2Text
      */
     protected $callbackSearch = array(
         '/<(h)[123456]( [^>]*)?>(.*?)<\/h[123456]>/i',           // h1 - h6
+        '/[ ]*<(p)( [^>]*)?>(.*?)<\/p>[ ]*/si',                  // <p> with surrounding whitespace.
+        '/<(br)[^>]*>[ ]*/i',                                    // <br> with leading whitespace after the newline.
         '/<(b)( [^>]*)?>(.*?)<\/b>/i',                           // <b>
         '/<(strong)( [^>]*)?>(.*?)<\/strong>/i',                 // <strong>
         '/<(th)( [^>]*)?>(.*?)<\/th>/i',                         // <th> and </th>
@@ -212,6 +210,7 @@ class Html2Text
                                 // 'inline' (show links inline)
                                 // 'nextline' (show links on the next line)
                                 // 'table' (if a table of link URLs should be listed after the text.
+                                // 'bbcode' (show links as bbcode)
 
         'width' => 70,          //  Maximum width of the formatted text, in columns.
                                 //  Set this value to 0 (or less) to ignore word wrapping
@@ -411,6 +410,8 @@ class Html2Text
             return $display . ' [' . ($index + 1) . ']';
         } elseif ($linkMethod == 'nextline') {
             return $display . "\n[" . $url . ']';
+        } elseif ($linkMethod == 'bbcode') {
+            return sprintf('[url=%s]%s[/url]', $url, $display);
         } else { // link_method defaults to inline
             return $display . ' [' . $url . ']';
         }
@@ -488,7 +489,7 @@ class Html2Text
                         $text = substr($text, 0, $start - $diff)
                             . $body . substr($text, $end + strlen($m[0]) - $diff);
 
-                        $diff = $len + $taglen + strlen($m[0]) - strlen($body);
+                        $diff += $len + $taglen + strlen($m[0]) - strlen($body);
                         unset($body);
                     }
                 } else {
@@ -511,6 +512,17 @@ class Html2Text
     protected function pregCallback($matches)
     {
         switch (strtolower($matches[1])) {
+            case 'p':
+                // Replace newlines with spaces.
+                $para = str_replace("\n", " ", $matches[3]);
+
+                // Trim trailing and leading whitespace within the tag.
+                $para = trim($para);
+
+                // Add trailing newlines for this para.
+                return "\n" . $para . "\n";
+            case 'br':
+                return "\n";
             case 'b':
             case 'strong':
                 return $this->toupper($matches[3]);
@@ -553,7 +565,7 @@ class Html2Text
     protected function toupper($str)
     {
         // string can contain HTML tags
-        $chunks = preg_split('/(<[^>]*>)/', $str, null, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+        $chunks = preg_split('/(<[^>]*>)/', $str, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
 
         // convert toupper only the text between HTML tags
         foreach ($chunks as $i => $chunk) {

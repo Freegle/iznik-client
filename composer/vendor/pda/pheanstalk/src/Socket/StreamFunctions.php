@@ -8,7 +8,7 @@ namespace Pheanstalk\Socket;
  *
  * @author Paul Annesley
  * @package Pheanstalk
- * @licence http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class StreamFunctions
 {
@@ -70,9 +70,12 @@ class StreamFunctions
 
     public function fsockopen($hostname, $port = -1, &$errno = null, &$errstr = null, $timeout = null)
     {
-        // Warnings (e.g. connection refused) suppressed;
-        // return value, $errno and $errstr should be checked instead.
         return @fsockopen($hostname, $port, $errno, $errstr, $timeout);
+    }
+
+    public function pfsockopen($hostname, $port = -1, &$errno = null, &$errstr = null, $timeout = null)
+    {
+        return @pfsockopen($hostname, $port, $errno, $errstr, $timeout);
     }
 
     public function fwrite($handle, $string, $length = null)
@@ -82,6 +85,11 @@ class StreamFunctions
         } else {
             return fwrite($handle, $string);
         }
+    }
+
+    public function fclose($handle)
+    {
+        fclose($handle);
     }
 
     public function stream_set_timeout($stream, $seconds, $microseconds = 0)

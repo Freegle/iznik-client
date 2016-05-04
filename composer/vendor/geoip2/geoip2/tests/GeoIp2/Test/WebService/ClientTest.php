@@ -47,7 +47,7 @@ class ClientTest extends \PHPUnit_Framework_TestCase
                 400,
                 array(
                     'code' => 'IP_ADDRESS_INVALID',
-                    'error' => 'The value "1.2.3" is not a valid fromip address'
+                    'error' => 'The value "1.2.3" is not a valid ip address'
                 )
             ),
             '1.2.3.7' => $this->response(
@@ -138,55 +138,55 @@ class ClientTest extends \PHPUnit_Framework_TestCase
 
         $this->assertInstanceOf('GeoIp2\Model\Country', $country);
 
-        $this->assertEquals(
+        $this->assertSame(
             42,
             $country->continent->geonameId,
             'continent geoname_id is 42'
         );
 
-        $this->assertEquals(
+        $this->assertSame(
             'NA',
             $country->continent->code,
             'continent code is NA'
         );
 
-        $this->assertEquals(
+        $this->assertSame(
             array('en' => 'North America'),
             $country->continent->names,
             'continent names'
         );
 
-        $this->assertEquals(
+        $this->assertSame(
             'North America',
             $country->continent->name,
             'continent name is North America'
         );
 
-        $this->assertEquals(
+        $this->assertSame(
             1,
             $country->country->geonameId,
             'country geoname_id is 1'
         );
 
-        $this->assertEquals(
+        $this->assertSame(
             'US',
             $country->country->isoCode,
             'country iso_code is US'
         );
 
-        $this->assertEquals(
+        $this->assertSame(
             array('en' => 'United States of America'),
             $country->country->names,
             'country names'
         );
 
-        $this->assertEquals(
+        $this->assertSame(
             'United States of America',
             $country->country->name,
             'country name is United States of America'
         );
 
-        $this->assertEquals(
+        $this->assertSame(
             11,
             $country->maxmind->queriesRemaining,
             'queriesRemaining is correct'
@@ -201,7 +201,7 @@ class ClientTest extends \PHPUnit_Framework_TestCase
 
         $this->assertInstanceOf('GeoIp2\Model\Insights', $record);
 
-        $this->assertEquals(
+        $this->assertSame(
             42,
             $record->continent->geonameId,
             'continent geoname_id is 42'
@@ -222,7 +222,7 @@ class ClientTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf(
             'GeoIp2\Model\City',
             $city,
-            'can set fromip parameter to me'
+            'can set ip parameter to me'
         );
     }
 
@@ -248,7 +248,7 @@ class ClientTest extends \PHPUnit_Framework_TestCase
     /**
      * @expectedException GeoIp2\Exception\InvalidRequestException
      * @expectedExceptionCode 400
-     * @expectedExceptionMessage The value "1.2.3" is not a valid fromip address
+     * @expectedExceptionMessage The value "1.2.3" is not a valid ip address
      */
     public function testInvalidIPException()
     {

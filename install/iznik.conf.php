@@ -69,3 +69,7 @@ define('NOREPLY_ADDR', 'noreply@zzz');
 
 # This speeds up load time
 define('MINIFY', TRUE);
+
+# For test scripts
+define('USER_TEST_SITE', 'https://iznik.ilovefreegle.org');
+define('MOD_TEST_SITE', 'https://iznik.modtools.org');

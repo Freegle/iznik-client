@@ -9,7 +9,7 @@ use Pheanstalk\Socket\NativeSocket;
  *
  * @author Paul Annesley
  * @package Pheanstalk
- * @licence http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Connection
 {
@@ -37,13 +37,15 @@ class Connection
     private $_hostname;
     private $_port;
     private $_connectTimeout;
+    private $_connectPersistent;
 
     /**
      * @param string $hostname
-     * @param int    $port
-     * @param float  $connectTimeout
+     * @param int $port
+     * @param float $connectTimeout
+     * @param bool $connectPersistent
      */
-    public function __construct($hostname, $port, $connectTimeout = null)
+    public function __construct($hostname, $port, $connectTimeout = null, $connectPersistent = false)
     {
         if (is_null($connectTimeout) || !is_numeric($connectTimeout)) {
             $connectTimeout = self::DEFAULT_CONNECT_TIMEOUT;
@@ -52,19 +54,38 @@ class Connection
         $this->_hostname = $hostname;
         $this->_port = $port;
         $this->_connectTimeout = $connectTimeout;
+        $this->_connectPersistent = $connectPersistent;
     }
 
     /**
      * Sets a manually created socket, used for unit testing.
      *
      * @param Socket $socket
-     * @chainable
+     * @return $this
      */
     public function setSocket(Socket $socket)
     {
         $this->_socket = $socket;
 
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasSocket()
+    {
+        return isset($this->_socket);
+    }
+
+    /**
+     * Disconnect the socket.
+     * Subsequent socket operations will create a new connection.
+     */
+    public function disconnect()
+    {
+        $this->_getSocket()->disconnect();
+        $this->_socket = null;
     }
 
     /**
@@ -165,7 +186,8 @@ class Connection
             $this->_socket = new NativeSocket(
                 $this->_hostname,
                 $this->_port,
-                $this->_connectTimeout
+                $this->_connectTimeout,
+                $this->_connectPersistent
             );
         }
 

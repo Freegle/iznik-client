@@ -11,8 +11,10 @@ return array(
     'Pheanstalk\\' => array($vendorDir . '/pda/pheanstalk/src'),
     'Minishlink\\WebPush\\' => array($vendorDir . '/minishlink/web-push/src'),
     'MaxMind\\' => array($vendorDir . '/maxmind/web-service-common/src'),
+    'Jenssegers\\ImageHash\\' => array($vendorDir . '/jenssegers/imagehash/src'),
     'Html2Text\\' => array($vendorDir . '/html2text/html2text/src', $vendorDir . '/html2text/html2text/test'),
     'GeoIp2\\' => array($vendorDir . '/geoip2/geoip2/src'),
+    'Facebook\\' => array($vendorDir . '/facebook/php-sdk-v4/src/Facebook'),
     'Doctrine\\Instantiator\\' => array($vendorDir . '/doctrine/instantiator/src/Doctrine/Instantiator'),
-    '' => array($vendorDir . '/geoip2/geoip2/compat'),
+    'DeepCopy\\' => array($vendorDir . '/myclabs/deep-copy/src/DeepCopy'),
 );

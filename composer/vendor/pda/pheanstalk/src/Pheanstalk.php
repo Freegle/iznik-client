@@ -11,7 +11,7 @@ namespace Pheanstalk;
  *
  * @author Paul Annesley
  * @package Pheanstalk
- * @licence http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Pheanstalk implements PheanstalkInterface
 {
@@ -23,16 +23,17 @@ class Pheanstalk implements PheanstalkInterface
 
     /**
      * @param string $host
-     * @param int    $port
-     * @param int    $connectTimeout
+     * @param int $port
+     * @param int $connectTimeout
+     * @param bool $connectPersistent
      */
-    public function __construct($host, $port = PheanstalkInterface::DEFAULT_PORT, $connectTimeout = null)
+    public function __construct($host, $port = PheanstalkInterface::DEFAULT_PORT, $connectTimeout = null, $connectPersistent = false)
     {
-        $this->setConnection(new Connection($host, $port, $connectTimeout));
+        $this->setConnection(new Connection($host, $port, $connectTimeout, $connectPersistent));
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function setConnection(Connection $connection)
     {
@@ -42,7 +43,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getConnection()
     {
@@ -52,7 +53,7 @@ class Pheanstalk implements PheanstalkInterface
     // ----------------------------------------
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function bury($job, $priority = PheanstalkInterface::DEFAULT_PRIORITY)
     {
@@ -60,7 +61,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function delete($job)
     {
@@ -70,7 +71,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function ignore($tube)
     {
@@ -83,7 +84,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function kick($max)
     {
@@ -93,7 +94,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function kickJob($job)
     {
@@ -103,7 +104,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function listTubes()
     {
@@ -113,7 +114,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function listTubesWatched($askServer = false)
     {
@@ -128,7 +129,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function listTubeUsed($askServer = false)
     {
@@ -143,7 +144,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function pauseTube($tube, $delay)
     {
@@ -153,7 +154,18 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
+     */
+    public function resumeTube($tube)
+    {
+        // Pause a tube with zero delay will resume the tube
+        $this->pauseTube($tube, 0);
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function peek($jobId)
     {
@@ -165,7 +177,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function peekReady($tube = null)
     {
@@ -181,7 +193,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function peekDelayed($tube = null)
     {
@@ -197,7 +209,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function peekBuried($tube = null)
     {
@@ -213,7 +225,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function put(
         $data,
@@ -230,7 +242,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function putInTube(
         $tube,
@@ -246,7 +258,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function release(
         $job,
@@ -262,7 +274,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function reserve($timeout = null)
     {
@@ -283,7 +295,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function reserveFromTube($tube, $timeout = null)
     {
@@ -293,7 +305,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function statsJob($job)
     {
@@ -301,7 +313,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function statsTube($tube)
     {
@@ -309,7 +321,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function stats()
     {
@@ -317,7 +329,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function touch($job)
     {
@@ -327,7 +339,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function useTube($tube)
     {
@@ -340,7 +352,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function watch($tube)
     {
@@ -353,7 +365,7 @@ class Pheanstalk implements PheanstalkInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function watchOnly($tube)
     {
