@@ -104,6 +104,17 @@ function memberships() {
                                     $ret['logcontext'] = $logctx;
                                 }
                             } else {
+                                if ($me->isAdminOrSupport()) {
+                                    # Get any sessions.
+                                    $u = new User($dbhr, $dbhm);
+                                    foreach ($members as &$member) {
+                                        if (pres('userid', $member)) {
+                                            $member['sessions'] = $u->getSessions($dbhr, $dbhm, $member['userid']);
+                                            error_log("Got " . count($member['sessions']));
+                                        }
+                                    }
+                                }
+
                                 # Get some/all.
                                 $ret = [
                                     'members' => $members,

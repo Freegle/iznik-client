@@ -1127,6 +1127,17 @@ class User extends Entity
         return($atts);
     }
 
+    public static function getSessions($dbhr, $dbhm, $id) {
+        # Get any sessions
+        $sql = "SELECT MIN(timestamp) AS timestamp, sessionid FROM logs_events WHERE userid = ?;";
+        $sessions = $dbhr->preQuery($sql, [ $id ]);
+        foreach ($sessions as &$session) {
+            $session['timestamp'] = ISODate($session['timestamp']);
+        }
+
+        return($sessions);
+    }
+
     public function isAdminOrSupport() {
         return($this->user['systemrole'] == User::SYSTEMROLE_ADMIN || $this->user['systemrole'] == User::SYSTEMROLE_SUPPORT);
     }

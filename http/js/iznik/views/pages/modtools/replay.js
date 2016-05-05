@@ -99,19 +99,15 @@ define([
 
             // Determine how long the replay has taken compared to the original session, which tells us if our
             // replay is lagging.
-
             var event = self.replayEvents[self.eventIndex++];
-
-            keepgoing = false;
-
             var lag = (start - this.replayStart) - ((new Date(event.clienttimestamp)) - self.clientStart);
             lag = lag < 0 ? 0 : lag;
             // console.log("playEvent", self.eventIndex, event.clienttimestamp, start - this.replayStart, (new Date(event.clienttimestamp)) - self.clientStart, lag);
 
+            // Adjust window size if necessary.
             var currHeight = $(window).height();
             var currWidth = $(window).width();
 
-            // Adjust window size if necessary.
             if (currHeight - self.headerHeight != event.viewy || currWidth != event.viewx) {
                 // console.log("Adjust size", currHeight - self.headerHeight, currWidth, event.viewy, event.viewx);
                 window.resizeTo(event.viewx, event.viewy + self.headerHeight)
@@ -181,6 +177,54 @@ define([
             this.playEvent();
         },
 
+        heatbar: function() {
+            var gradient = [
+                '#FF0001', '#FF191A', '#FF3333', '#FF4C4D', '#FF6666', '#FF7F80', '#FF9999', '#FFB2B2', '#FFCCCC',
+                '#FFE5E5', '#FFFFFF'
+            ]
+
+            // The heatbar sits below the progress bar and shows the level of activity at each point.
+            var chunkSize = 1000;
+            var heatwidth = $('#heatBar').innerWidth();
+            var timePerPixel = this.clientDuration / heatwidth;
+            console.log("Time per pixel", timePerPixel, heatwidth, this.clientDuration);
+            var eventIndex = 0;
+            var heats = [];
+            var maxheat = 0;
+
+            for (var chunk = 0; chunk < heatwidth; chunk++) {
+                var heat = 0;
+                var eventtime;
+                var below;
+
+                do {
+                    below = false;
+                    eventtime = (new Date(this.replayEvents[eventIndex].clienttimestamp)).getTime();
+
+                    if (eventtime - this.clientStart < chunk * timePerPixel) {
+                        heat++;
+                        eventIndex++;
+                        below = true;
+                    }
+                } while (below && eventIndex < this.replayEvents.length);
+
+                heats[chunk] = heat;
+                maxheat = heat > maxheat ? heat : maxheat;
+            }
+
+            //console.log("Heats", maxheat, heats);
+
+            // Now we have an array of the heat for each chunk.  Apply it by creating a div of the appropriate colour.
+            for (var chunk = 0; chunk < heatwidth; chunk++) {
+                var div = $('<div />').appendTo($('#heatBar'));
+                div.width(1);
+                div.css('position', 'absolute');
+                div.css('left', chunk + 'px');
+                var colourind = Math.floor(gradient.length - heats[chunk] / maxheat * gradient.length);
+                div.css('background-color', gradient[colourind]);
+            }
+        },
+
         render: function() {
             var self = this;
             
@@ -209,9 +253,16 @@ define([
                             self.clientEnd = (new Date(ret.events[ret.events.length - 1].clienttimestamp)).getTime();
                             $('#js-endtime').html(ret.events[ret.events.length - 1].clienttimestamp + '&nbsp;GMT');
                             self.clientDuration = self.clientEnd - self.clientStart;
-                            console.log("Duration", self.clientDurtion, ret.events[0].clienttimestamp, ret.events[ret.events.length - 1].clienttimestamp);
                             self.replayStart = (new Date()).getTime();
-                            self.playEvent();
+
+                            _.defer(function() {
+                                // Now start playing.
+                                self.playEvent();
+
+                                // Do the heatbar after the first event as it may affect the window size, and therefore
+                                // introduce a scrollbar which reduces the space available for the heatbar.
+                                self.heatbar();
+                            })
                         }
                     }
                 }

@@ -145,7 +145,6 @@ define([
                 data: {
                     'grouptype': type
                 }, success: function (ret) {
-                    console.log("Got grouplist", ret);
                     _.each(ret.groups, function (group) {
                         self.$('.js-grouplist').append('<option value="' + group.id + '"></option>');
                         self.$('.js-grouplist option:last').html(group.namedisplay);
@@ -189,6 +188,18 @@ define([
                 }
             });
 
+            // Add any sessions.
+            self.sessionCollection = new Iznik.Collection(self.model.get('sessions'));
+            console.log("Sessions", self.sessionCollection);
+
+            self.sessionCollectionView = new Backbone.CollectionView({
+                el: self.$('.js-sessions'),
+                modelView: Iznik.Views.ModTools.Member.Session,
+                collection: self.sessionCollection
+            });
+
+            self.sessionCollectionView.render();
+
             // Add any group memberships.
             self.$('.js-memberof').empty();
             _.each(self.model.get('memberof'), function (group) {
@@ -229,5 +240,25 @@ define([
     });
 
     Iznik.Views.ModTools.Message.SupportSearchResult = Iznik.Views.ModTools.Message.Approved.extend({
+    });
+
+    Iznik.Views.ModTools.Member.Session = Iznik.View.extend({
+        template: 'modtools_support_session',
+        
+        events: {
+            'click .js-play': 'play'
+        },
+        
+        play: function() {
+            var width = window.innerWidth * 0.66 ;
+            var height = width * window.innerHeight / window.innerWidth ;
+            window.open('/modtools/replay/' + this.model.get('sessionid'), 'Session Replay', 'width=' + width + ', height=' + height + ', top=' + ((window.innerHeight - height) / 2) + ', left=' + ((window.innerWidth - width) / 2));
+        },
+
+        render: function() {
+            this.$el.html(window.template(this.template)(this.model.toJSON2()));
+            this.$('.timeago').timeago();
+            return (this);
+        }
     });
 });

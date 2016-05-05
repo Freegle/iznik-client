@@ -128,28 +128,6 @@ define([
 
                 window.setTimeout(flushEventQueue, 5000);
 
-                var observer = new MutationObserver(function (mutations) {
-                    // Whether you iterate over mutations..
-                    mutations.forEach(function (mutation) {
-                        // or use all mutation records is entirely up to you
-                        var entry = {
-                            mutation: mutation,
-                            el: mutation.target,
-                            value: mutation.target.textContent,
-                            oldValue: mutation.oldValue
-                        };
-                        console.log('Recording mutation:', entry);
-                    });
-                });
-
-                var observerConfig = {
-                    attributes: true,
-                    childList: true,
-                    characterData: true
-                };
-
-                observer.observe(document.body, observerConfig);
-
                 this.startTimer();
             }
         });

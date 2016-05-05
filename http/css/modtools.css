@@ -462,14 +462,25 @@ body, #bodyContent {
 #endTime {
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
-    background-color: white;;
+    background-color: white;
+    line-height: 20px;
 }
 
 #replayBar .progress {
-    margin-top: 7px !important;
+    margin-top: 5px !important;
     height: 6px !important;
-    margin-bottom: 7px !important;
     margin-right: 5px !important;
+}
+
+#heatBar {
+    background-color: white;
+    height: 7px !important;
+    margin-bottom: 2px !important;
+    margin-right: 5px !important;
+}
+
+#heatBar div {
+    height: 5px !important;
 }
 
 #replayBar .progress-bar {
