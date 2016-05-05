@@ -14,6 +14,7 @@ define([
         pauseAt: null,
         timerRunning: false,
         currentDOM: null,
+        fastForward: false,
             
         lastMouseX: null,
         lastMouseY: null,    
@@ -67,6 +68,18 @@ define([
             this.playEvent();
         },
 
+        forward: function() {
+            this.fastForward = true;
+            $('#js-forward').addClass('reallyHide');
+            $('#js-forward-off').removeClass('reallyHide');
+        },
+
+        forwardOff: function() {
+            this.fastForward = false;
+            $('#js-forward-off').addClass('reallyHide');
+            $('#js-forward').removeClass('reallyHide');
+        },
+
         finished: function () {
             $('#js-pause').removeClass('reallyHide');
             $('#js-play').addClass('reallyHide');
@@ -77,6 +90,7 @@ define([
             if (!this.pauseAt) {
                 // When we're scanning we don't update the actual DOM for speed.
                 $('#replayContent').html(data);
+                $('#replayContent iframe').remove();
             }
 
             this.currentDOM = data;
@@ -263,7 +277,18 @@ define([
                             diff = self.pauseAt ? 0 : diff;
                         }
 
+                        // If we're fast forwarding, there's no delay.
+                        diff = self.fastForward ? 0 : diff;
+
+                        if (diff > 5000) {
+                            // Don't wait too long.  Adjust the replay start time so that our lagging calculations
+                            // still work.
+                            self.replayStart += diff - 5000;
+                            diff = 5000;
+                        }
+
                         self.timerRunning = true;
+                        // console.log("playEvent", event.clienttimestamp, event.event, diff);
                         window.setTimeout(_.bind(self.playNext, self), diff);
                     }
                 } else {
@@ -340,6 +365,8 @@ define([
             $('#js-play').click(_.bind(self.play, self));
             $('#js-pause').click(_.bind(self.pause, self));
             $('#replayBar').click(_.bind(self.jump, self));
+            $('#js-forward').click(_.bind(self.forward, self));
+            $('#js-forward-off').click(_.bind(self.forwardOff, self));
 
             // Retrieve the session
             $.ajax({
