@@ -53,11 +53,14 @@ define([
                 var type;
 
                 if (!this.lastDOM) {
-                    //console.log("Initial DOM len", dom.length);
+                    // We've not captured the DOM yet
                     type = 'f';
                     strdiff = dom;
                 } else {
-                    if (dom.length / this.lastDOM.length < 0.75 || dom.length / this.lastDOM.length > 1.25) {
+                    if (dom.length == this.lastDOM.length) {
+                        // Very probably, this is exactly the same.  Save some CPU.
+                        return;
+                    } else if (dom.length / this.lastDOM.length < 0.75 || dom.length / this.lastDOM.length > 1.25) {
                         // The two must be pretty different.  Just track the whole thing.
                         //console.log("Don't even bother with a diff", dom.length, this.lastDOM.length);
                         type = 'f';
@@ -78,15 +81,14 @@ define([
                 if (strdiff.length > 80) {
                     // 80 is the "no differences" text.
                     trackEvent('window', 'DOM-' + type, null, null, strdiff);
+                    this.lastDOM = dom;
                 }
-
-                this.lastDOM = dom;
                 //console.timeEnd('checkDOM');
             },
 
             // We have a background timer to spot DOM changes which are not driven by events such as clicks.
             startTimer: function () {
-                window.setTimeout(_.bind(this.checkTimer, this), 100);
+                window.setTimeout(_.bind(this.checkTimer, this), 200);
             },
 
             checkTimer: function () {

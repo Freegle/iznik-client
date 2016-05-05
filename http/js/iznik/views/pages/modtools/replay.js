@@ -90,6 +90,9 @@ define([
             if (!this.pauseAt) {
                 // When we're scanning we don't update the actual DOM for speed.
                 $('#replayContent').html(data);
+
+                // We can have some hidden IFRAMEs from e.g. Google.  We don't want those - some of them cause
+                // network requests.
                 $('#replayContent iframe').remove();
             }
 
