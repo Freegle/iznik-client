@@ -454,6 +454,18 @@ body, #bodyContent {
     border-bottom-left-radius: 5px;
 }
 
+#replayCanvas {
+    z-index:100050 !important;
+    max-width:100% !important;
+    max-height:100% !important;
+    width:100% !important;
+    height:100% !important;
+    pointer-events: none !important;
+    position:absolute !important;
+    top:0px !important;
+    left:0px !important
+}
+
 #replayBar {
     border: 1px grey;
     background-color: white;;

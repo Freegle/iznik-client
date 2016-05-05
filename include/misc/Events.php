@@ -26,6 +26,6 @@ class Events {
 
         $sql = "INSERT IGNORE INTO logs_events (`userid`, `sessionid`, `timestamp`, `clienttimestamp`, `route`, `target`, `event`, `posx`, `posy`, `viewx`, `viewy`, `data`, `ip`) VALUES ($myid, " . $this->dbhr->quote($sessid) . ", CURTIME(3), FROM_UNIXTIME($timestamp), " . $this->dbhr->quote($route) . ", " . $this->dbhr->quote($target) . ", " . $this->dbhr->quote($action) . ", $posx, $posy, $viewx, $viewy, " . $this->dbhr->quote($data) . ", " . $this->dbhr->quote($lastip) . ");";
         #error_log($sql);
-        $this->dbhm->preExec($sql, NULL, false);
+        $this->dbhm->background($sql);
     }
 }

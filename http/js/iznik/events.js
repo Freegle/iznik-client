@@ -15,8 +15,8 @@ define([
             route: location.pathname + location.hash,
             target: target,
             event: event,
-            viewx: $(window).width(),
-            viewy: $(window).height(),
+            viewx: $(window).outerWidth(),
+            viewy: $(window).outerHeight(),
             posX: posX,
             posY: posY,
             data: data
@@ -47,8 +47,9 @@ define([
             lastDOM: null,
 
             checkDOM: function () {
-                // Use outerHTML as we want any classes on the body.
-                var dom = $('body')[0].outerHTML;
+                // Use innerHTML as we don't put classes on body, and it allows us to restore the content within
+                // a div when replaying.
+                var dom = $('body')[0].innerHTML;
                 var type;
 
                 if (!this.lastDOM) {

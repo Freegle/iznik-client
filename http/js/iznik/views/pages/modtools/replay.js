@@ -14,6 +14,9 @@ define([
         pauseAt: null,
         timerRunning: false,
         currentDOM: null,
+            
+        lastMouseX: null,
+        lastMouseY: null,    
 
         eventIndex: 0,
 
@@ -73,12 +76,9 @@ define([
         replaceDOM: function(data) {
             if (!this.pauseAt) {
                 // When we're scanning we don't update the actual DOM for speed.
-                var canvas = $('#replayCanvas').detach();
-                var header  = $('#replayHeader').detach();
-                $('body')[0].outerHTML = data;
-                $('body').prepend(header);
-                $('body').append(canvas);
+                $('#replayContent').html(data);
             }
+
             this.currentDOM = data;
         },
 
@@ -108,9 +108,20 @@ define([
             var currHeight = $(window).height();
             var currWidth = $(window).width();
 
-            if (currHeight - self.headerHeight != event.viewy || currWidth != event.viewx) {
-                // console.log("Adjust size", currHeight - self.headerHeight, currWidth, event.viewy, event.viewx);
-                window.resizeTo(event.viewx, event.viewy + self.headerHeight)
+            if (currHeight != event.viewy || currWidth != event.viewx) {
+                if (event.viewx != self.lastWindowWidth &&
+                    event.viewy != self.lastWindowHeight) {
+                    // Although we try to resize the window, we may not get what we asked for - window.open tends to
+                    // open without the bookmark bar, for example.  No point repeatedly trying to resize unless
+                    // it's changed, especially as resizing the canvas clears it.
+                    window.resizeTo(event.viewx, event.viewy);
+                    self.lastWindowWidth = event.viewx;
+                    self.lastWindowHeight = event.viewy;
+
+                    var canvas = document.getElementById('replayCanvas');
+                    canvas.width = event.viewx;
+                    canvas.height = event.viewy;
+                }
             }
 
             // Update time and progress
@@ -136,6 +147,97 @@ define([
 
                     break;
                 }
+
+                case 'scroll': {
+                    $('body').scrollTo(parseInt(event.data));
+                    break;
+                }
+
+                case 'click':
+                case 'focus': {
+                    // Don't actually click - just draw on the canvas to illustrate it.
+                    var canvas = document.getElementById('replayCanvas');
+                    var context = canvas.getContext('2d');
+                    var x = Math.round(parseInt(event.posx));
+                    var y = Math.round(parseInt(event.posy));
+
+                    function drawClick(context, x, y, oldradius, newradius, grow) {
+                        return (function () {
+                            // console.log("Draw click at", x, y);
+                            if (oldradius) {
+                                // Wipe any previous one.
+                                var old = context.globalCompositeOperation;
+                                context.globalCompositeOperation = "destination-out";
+                                context.beginPath();
+                                context.arc(x, y, oldradius + 10, 0, Math.PI * 2, true);
+                                context.fillStyle = "rgba(0,0,0,1)";
+                                context.fill();
+                                context.globalCompositeOperation = old;
+                            }
+
+                            // Draw the new one.
+                            context.beginPath();
+                            context.arc(x, y, newradius, 0, Math.PI * 2, true);
+                            context.fillStyle = 'red';
+                            context.fill();
+
+                            if (grow) {
+                                if (newradius < 20) {
+                                    window.setTimeout(drawClick(context, x, y, newradius, newradius + 1, true), 100);
+                                } else {
+                                    window.setTimeout(drawClick(context, x, y, newradius + 1, newradius, false), 100);
+                                }
+                            } else {
+                                if (newradius > 0) {
+                                    window.setTimeout(drawClick(context, x, y, newradius, newradius - 1, false), 100);
+                                }
+                            }
+                        });
+                    }
+
+                    drawClick(context, x, y, 0, 0, true)();
+
+                    break;
+                }
+
+                case 'mousemove': {
+                    // Mouse track - draw a line from the last one, then wipe it after a while.
+                    if (self.lastMouseX && self.lastMouseY) {
+                        var canvas = document.getElementById('replayCanvas');
+                        var context = canvas.getContext('2d');
+                        context.beginPath();
+                        context.moveTo(self.lastMouseX, self.lastMouseY);
+                        context.lineTo(event.posx, event.posy);
+                        context.lineWidth = 5;
+                        context.globalAlpha = 0.5;
+                        context.strokeStyle = 'red';
+                        context.stroke();
+
+                        function wipe(context, lastMouseX, lastMouseY, posx, posy) {
+                            return (function () {
+                                //console.log("Wipe", lastMouseX, lastMouseY, posx, posy);
+                                var old = context.globalCompositeOperation;
+                                context.globalCompositeOperation = "destination-out";
+                                context.strokeStyle = "rgba(0,0,0,1)";
+                                context.beginPath();
+                                context.moveTo(lastMouseX, lastMouseY);
+                                context.lineTo(posx, posy);
+                                context.lineWidth = 10;
+                                context.globalAlpha = 1;
+                                context.stroke();
+
+                                context.globalCompositeOperation = old;
+                            });
+                        }
+
+                        window.setTimeout(wipe(context, self.lastMouseX, self.lastMouseY, event.posx, event.posy), 5000);
+                    }
+
+                    self.lastMouseX = event.posx;
+                    self.lastMouseY = event.posy;
+
+                    break;
+                }    
             }
 
             if (self.pauseAt == self.eventIndex) {
@@ -187,7 +289,7 @@ define([
             var chunkSize = 1000;
             var heatwidth = $('#heatBar').innerWidth();
             var timePerPixel = this.clientDuration / heatwidth;
-            console.log("Time per pixel", timePerPixel, heatwidth, this.clientDuration);
+            // console.log("Time per pixel", timePerPixel, heatwidth, this.clientDuration);
             var eventIndex = 0;
             var heats = [];
             var maxheat = 0;
