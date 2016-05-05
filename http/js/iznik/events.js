@@ -26,8 +26,6 @@ define([
     }
 
     function flushEventQueue() {
-        console.log("Flush event queue", eventQueue);
-
         if (eventQueue.length > 0) {
             $.ajax({
                 url: API + 'event',
@@ -43,46 +41,12 @@ define([
         window.setTimeout(flushEventQueue, 5000);
     }
 
-    // Capture scrolls on the window
-    $(window).scroll(function (e) {
-        var scroll = $(window).scrollTop();
-        trackEvent('window', 'scroll', null, null, scroll);
-    });
-
-    // Track mouse movements
-    (function () {
-        var lastX = null;
-        var lastY = null;
-        var granularity = 10;
-
-        $(document).mousemove(function (e) {
-            if (Math.abs(lastX - e.pageX) > granularity || Math.abs(lastY - e.pageY) > granularity) {
-                trackEvent('window', 'mousemove', e.pageX, e.pageY, null);
-
-                lastX = e.pageX;
-                lastY = e.pageY;
-            }
-        });
-    })();
-
-    $(window).click(function (e) {
-
-    });
-
-    // If we reload, we'd like to flush out the events first.
-    $(window).unload(function () {
-        flushEventQueue();
-    });
-
-    window.setTimeout(flushEventQueue, 5000);
-
     // Scan the DOM on a timer and detect changes.
     var monitorDOM = (function () {
         return ({
             lastDOM: null,
 
             checkDOM: function () {
-                console.time('checkDOM');
                 // Use outerHTML as we want any classes on the body.
                 var dom = $('body')[0].outerHTML;
                 var type;
@@ -121,7 +85,7 @@ define([
 
             // We have a background timer to spot DOM changes which are not driven by events such as clicks.
             startTimer: function () {
-                window.setTimeout(_.bind(this.checkTimer, this), 1000);
+                window.setTimeout(_.bind(this.checkTimer, this), 100);
             },
 
             checkTimer: function () {
@@ -130,10 +94,44 @@ define([
             },
 
             start: function () {
+                // Capture scrolls on the window
+                $(window).scroll(function (e) {
+                    var scroll = $(window).scrollTop();
+                    trackEvent('window', 'scroll', null, null, scroll);
+                });
+
+                // Track mouse movements
+                (function () {
+                    var lastX = null;
+                    var lastY = null;
+                    var granularity = 10;
+
+                    $(document).mousemove(function (e) {
+                        if (Math.abs(lastX - e.pageX) > granularity || Math.abs(lastY - e.pageY) > granularity) {
+                            trackEvent('window', 'mousemove', e.pageX, e.pageY, null);
+
+                            lastX = e.pageX;
+                            lastY = e.pageY;
+                        }
+                    });
+                })();
+
+                // Track mouse clicks
+                $(window).click(function (e) {
+                    trackEvent('window', 'click', e.pageX, e.pageY, null);
+                });
+
+                // If we reload, we'd like to flush out the events first.
+                $(window).on('mousedown', function (e) {
+                    flushEventQueue();
+                });
+
+                window.setTimeout(flushEventQueue, 5000);
+
                 this.startTimer();
             }
         });
     })();
 
-    monitorDOM.start();
+    return(monitorDOM);
 });

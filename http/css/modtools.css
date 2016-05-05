@@ -443,6 +443,39 @@ body, #bodyContent {
     display: none;
 }
 
+#replayHeader {
+    top: 0px;
+    z-index: 1500 !important;
+}
+
+#replayControls {
+    background-color: white;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+#replayBar {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border: 1px grey;
+    background-color: white;;
+}
+
+#replayBar .progress {
+    margin-top: 7px !important;
+    height: 6px !important;
+    margin-bottom: 7px !important;
+    margin-right: 5px !important;
+}
+
+#replayBar .progress-bar {
+    -webkit-transition: none;
+    -moz-transition: none;
+    -ms-transition: none;
+    -o-transition: none;
+    transition: none;
+}
+
 @media(min-width:768px) {
     .mapimage {
         display: block;

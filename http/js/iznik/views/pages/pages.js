@@ -4,11 +4,12 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/chat/chat',
+    'iznik/events',
     'iznik/accordionpersist',
     'iznik/views/group/select',
     'iznik/views/infinite',
     'iznik/views/plugin',
-], function($, _, Backbone, Iznik, ChatHolder) {
+], function($, _, Backbone, Iznik, ChatHolder, monitorDOM) {
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
 
@@ -32,6 +33,11 @@ define([
 
         render: function (options) {
             var self = this;
+
+            // Start event tracking.
+            if (monitorDOM) {
+                monitorDOM.start();
+            }
 
             // try {
                 if (currentPage) {
