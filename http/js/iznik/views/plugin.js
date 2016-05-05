@@ -1015,13 +1015,13 @@ define([
                                     function handleMissing(missing) {
                                         return(function() {
                                             var url = self.sourceurl(missing[self.idField]);
-                                            console.log("Handle missing", missing, url);
+                                            // console.log("Handle missing", missing, url);
                                             $.ajax({
                                                 type: "GET",
                                                 url: url,
                                                 context: self,
                                                 success: function(ret) {
-                                                    console.log("Returned", url, ret);
+                                                    // console.log("Returned", url, ret);
                                                     if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
                                                         var source = decodeEntities(ret.ygData.rawEmail);
 
@@ -1081,7 +1081,7 @@ define([
                                     _.each(ret.missingonserver, function(missing) {
                                         missing.deferred = new $.Deferred();
                                         self.promises.push(missing.deferred.promise());
-                                        console.log("Promise missing", missing, self.promisesCount, self.promisesLen)
+                                        // console.log("Promise missing", missing, self.promisesCount, self.promisesLen)
 
                                         handleMissing(missing)();
                                     });
@@ -1093,7 +1093,7 @@ define([
                                         promise.done(function() {
                                             self.promisesCount++;
                                             self.ourSyncProgressBar.apply(self);
-                                            console.log("Promise resolved", promise, self.promisesCount, self.promisesLen);
+                                            // console.log("Promise resolved", promise, self.promisesCount, self.promisesLen);
 
                                             if (self.promisesCount >= self.promisesLen) {
                                                 // Once they're all done, we have succeeded.

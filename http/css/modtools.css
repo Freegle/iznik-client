@@ -455,9 +455,13 @@ body, #bodyContent {
 }
 
 #replayBar {
+    border: 1px grey;
+    background-color: white;;
+}
+
+#endTime {
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
-    border: 1px grey;
     background-color: white;;
 }
 

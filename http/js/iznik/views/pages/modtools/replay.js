@@ -13,16 +13,35 @@ define([
         paused: false,
         pauseAt: null,
         timerRunning: false,
-        
+        currentDOM: null,
+
         eventIndex: 0,
 
         jump: function(e) {
+            var self = this;
             var x = e.pageX - $('#replayBar').offset().left;
-            this.eventIndex = Math.floor(this.replayEvents.length * x / $('#replayBar').width());
+            var fraction = x / $('#replayBar').width();
+            var time = self.clientStart + fraction * (self.clientEnd - self.clientStart);
+
+            this.eventIndex = 0;
+            var eventtime;
+            do {
+                eventtime = (new Date(this.replayEvents[this.eventIndex].clienttimestamp)).getTime();
+                if (eventtime > time) {
+                    this.eventIndex--;
+                    break;
+                } else {
+                    this.eventIndex++;
+                }
+            } while (true);
+
+            this.eventIndex = Math.max(0, this.eventIndex);
+
             this.progress();
 
             // Find any previous full DOM, and then play forwards until we get to this point, then pause.
             this.pauseAt = this.eventIndex;
+            $('#replayHeader').addClass('showclicked');
             this.paused = false;
 
             while (this.eventIndex > 0 && this.replayEvents[this.eventIndex].event != 'DOM-f') {
@@ -46,34 +65,48 @@ define([
         },
 
         finished: function () {
-            console.log("Finished");
             $('#js-pause').removeClass('reallyHide');
             $('#js-play').addClass('reallyHide');
             this.eventIndex = 0;
         },
 
         replaceDOM: function(data) {
-            var canvas = $('#replayCanvas').detach();
-            var header  = $('#replayHeader').detach();
-            $('body')[0].outerHTML = data;
-            $('body').prepend(header);
-            $('body').append(canvas);
+            if (!this.pauseAt) {
+                // When we're scanning we don't update the actual DOM for speed.
+                var canvas = $('#replayCanvas').detach();
+                var header  = $('#replayHeader').detach();
+                $('body')[0].outerHTML = data;
+                $('body').prepend(header);
+                $('body').append(canvas);
+            }
             this.currentDOM = data;
         },
 
         progress: function() {
             var self = this;
-            var percent = 100 * self.eventIndex / self.replayEvents.length;
-            $('#js-progress').css('width',  percent + '%').attr('aria-valuenow', percent);
             if (self.eventIndex < self.replayEvents.length) {
-                $('#js-time').html(this.replayEvents[self.eventIndex].clienttimestamp + "&nbsp;GMT");
+                var event = this.replayEvents[self.eventIndex];
+                var percent = 100 * ((new Date(event.clienttimestamp)).getTime() - self.clientStart) / self.clientDuration;
+                // console.log("Progress", event.clienttimestamp, (new Date(event.clienttimestamp)).getTime(), self.clientStart, self.clientDuration, percent)
+                $('#js-progress').css('width',  percent + '%').attr('aria-valuenow', percent);
+                $('#js-time').html(event.clienttimestamp + "&nbsp;GMT");
             }
         },
 
         playEvent: function() {
             var self = this;
+            var start = (new Date()).getTime();
+
+            // Determine how long the replay has taken compared to the original session, which tells us if our
+            // replay is lagging.
 
             var event = self.replayEvents[self.eventIndex++];
+
+            keepgoing = false;
+
+            var lag = (start - this.replayStart) - ((new Date(event.clienttimestamp)) - self.clientStart);
+            lag = lag < 0 ? 0 : lag;
+            // console.log("playEvent", self.eventIndex, event.clienttimestamp, start - this.replayStart, (new Date(event.clienttimestamp)) - self.clientStart, lag);
 
             var currHeight = $(window).height();
             var currWidth = $(window).width();
@@ -111,16 +144,27 @@ define([
 
             if (self.pauseAt == self.eventIndex) {
                 // We wanted to play forwards to here and then stop.
+                self.pauseAt = null;
                 self.pause();
+                $('#replayHeader').removeClass('showclicked');
+                self.replaceDOM(self.currentDOM);
             } else if (!self.paused) {
                 if (self.eventIndex < self.replayEvents.length) {
                     if (!self.timerRunning) {
-                        // Start a timer for the next one.  Don't make it too long, and if we've not got a DOM yet, or
-                        // we're playing forwards to a pause, speed things up.
-                        var diff =  parseInt(event.clientdiff);
-                        diff = Math.min(5000, diff);
-                        diff = self.currentDOM ? diff : 0;
-                        diff = self.pauseAt ? 0 : diff;
+                        // See when the next event is due, which might be immediately if we took a while to replay.
+                        var diff = parseInt(event.clientdiff);
+
+                        if (lag > diff) {
+                            // We're lagging - the loop will keep going.
+                            diff = 0;
+                        } else {
+                            diff -= lag - 50;
+
+                            // If we don't yet have a DOM or we're running to a pause, we want to speed it up.
+                            diff = self.currentDOM ? diff : 0;
+                            diff = self.pauseAt ? 0 : diff;
+                        }
+
                         self.timerRunning = true;
                         window.setTimeout(_.bind(self.playNext, self), diff);
                     }
@@ -128,6 +172,8 @@ define([
                     self.finished();
                 }
             }
+
+            // console.log("Replayed", event.clienttimestamp, (new Date()).getTime() - start);
         },
 
         playNext: function() {
@@ -156,10 +202,17 @@ define([
                 data: {
                     sessionid: self.options.sessionid
                 }, success: function(ret) {
-                    console.log(ret);
                     if (ret.ret == 0) {
-                        self.replayEvents = ret.events;
-                        self.playEvent();
+                        if (ret.events.length > 0) {
+                            self.replayEvents = ret.events;
+                            self.clientStart = (new Date(ret.events[0].clienttimestamp)).getTime();
+                            self.clientEnd = (new Date(ret.events[ret.events.length - 1].clienttimestamp)).getTime();
+                            $('#js-endtime').html(ret.events[ret.events.length - 1].clienttimestamp + '&nbsp;GMT');
+                            self.clientDuration = self.clientEnd - self.clientStart;
+                            console.log("Duration", self.clientDurtion, ret.events[0].clienttimestamp, ret.events[ret.events.length - 1].clienttimestamp);
+                            self.replayStart = (new Date()).getTime();
+                            self.playEvent();
+                        }
                     }
                 }
             });
