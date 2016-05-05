@@ -82,6 +82,15 @@ define([
                     // 80 is the "no differences" text.
                     trackEvent('window', 'DOM-' + type, null, null, strdiff);
                     this.lastDOM = dom;
+
+                    // Rewriting the DOM may lose input values which were set post-page-load (most of 'em).
+                    // However this doesn't seem to work very well, and it's also quite expensive.
+                    // $('input').each(function() {
+                    //     var val = $(this).val();
+                    //     if (val) {
+                    //         trackEvent(self.getPath($(this)), 'input', e.pageX, e.pageY, val);
+                    //     }
+                    // });
                 }
                 //console.timeEnd('checkDOM');
             },
@@ -96,7 +105,35 @@ define([
                 this.startTimer();
             },
 
+            getPath: function (node) {
+                var path = '';
+                if (node[0].id) return "#" + node[0].id;
+                while (node.length) {
+                    var realNode = node[0], name = realNode.localName;
+                    if (!name) break;
+                    name = name.toLowerCase();
+
+                    var parent = node.parent();
+
+                    var sameTagSiblings = parent.children(name);
+                    if (sameTagSiblings.length > 1) {
+                        allSiblings = parent.children();
+                        var index = allSiblings.index(realNode) + 1;
+                        if (index > 1) {
+                            name += ':nth-child(' + index + ')';
+                        }
+                    }
+
+                    path = name + (path ? '>' + path : '');
+                    node = parent;
+                }
+
+                return path;
+            },
+
             start: function () {
+                var self = this;
+
                 // Capture scrolls on the window
                 $(window).scroll(function (e) {
                     var scroll = $(window).scrollTop();
@@ -123,6 +160,16 @@ define([
                 $(window).click(function (e) {
                     trackEvent('window', 'click', e.pageX, e.pageY, null);
                 });
+
+                $(window).on('keydown', _.bind(function(e) {
+                    if ($(e.target).is('input')) {
+                        console.log("Input key");
+                        var val = $(e.target).val();
+                        if (val) {
+                            trackEvent(self.getPath($(e.target)), 'input', e.pageX, e.pageY, val);
+                        }
+                    }
+                }, self));
 
                 // If we reload, we'd like to flush out the events first.
                 $(window).on('mousedown', function (e) {

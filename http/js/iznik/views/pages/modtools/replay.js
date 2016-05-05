@@ -254,7 +254,16 @@ define([
                     self.lastMouseY = event.posy;
 
                     break;
-                }    
+                }
+
+                case 'input': {
+                    var target = event.target.replace('html>body', '#replayContent');
+                    $(target).focus();
+                    $(target).val(event.data);
+                    console.log("Trigger", event.data, target);
+
+                    break;
+                }
             }
 
             if (self.pauseAt == self.eventIndex) {

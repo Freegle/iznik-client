@@ -72,7 +72,7 @@ class notificationsTest extends IznikTestCase {
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('fputs'))
             ->getMock();
-        $mock->method('fsockopen')->willThrowException(new Exception());
+        $mock->method('fputs')->willThrowException(new Exception());
         $mock->poke($id, [ 'ut' => 1 ]);
 
         $mock = $this->getMockBuilder('Notifications')
@@ -86,7 +86,7 @@ class notificationsTest extends IznikTestCase {
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('puts'))
             ->getMock();
-        $mock->method('fsockopen')->willReturn(NULL);
+        $mock->method('puts')->willReturn(NULL);
         $mock->poke($id, [ 'ut' => 1 ]);
         
         error_log(__METHOD__ . " end");
