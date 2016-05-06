@@ -32,6 +32,19 @@ define([
         updateCounts: function () {
             this.testLoggedIn();
         },
+        
+        gotVersion: function(version) {
+            try {
+                // Pass the version to the service worker, so that it can use it to cache the resources we need.
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'version',
+                    version: version
+                });
+                console.log("Passed version to service worker", version);
+            } catch (e) {
+                console.log("Pass version to service worker failed", e.message);
+            }
+        },
 
         gotSubscription: function (sub) {
             console.log('Subscription endpoint:', sub);
@@ -47,10 +60,9 @@ define([
                     type: 'subscription',
                     subscription: subscription
                 });
-                console.log("Passed to service worker");
+                console.log("Passed subscription to service worker");
             } catch (e) {
-                // This can happen when you do a Ctrl+Shift+R.
-                console.log("Passed to service worker failed", e.message);
+                console.log("Passed version to service worker failed", e.message);
             }
 
             // See if we have this stored on the server.
@@ -136,13 +148,16 @@ define([
                             self.notificationsSetup = true;
 
                             if ('serviceWorker' in navigator) {
-                                // Add rand to avoid SW code being cached.
-                                navigator.serviceWorker.register('/sw.js?' + Math.random()).then(function (reg) {
+                                // Use our cache buster, which is based on the versions of code on the server, so that
+                                // we will add a new service worker when the code changes.
+                                navigator.serviceWorker.register('/sw.js?version=' + bust).then(function (reg) {
                                     console.log("Registered service worker");
                                     // Spot when the service worker has been activated.
                                     navigator.serviceWorker.addEventListener('message', function (event) {
                                         if (event.data.type == 'activated') {
                                             console.log("SW has been activated");
+                                            self.gotVersion(bust);
+                                            
                                             reg.pushManager.getSubscription().then(function (subscription) {
                                                 if (!subscription) {
                                                     var p = reg.pushManager.subscribe({
@@ -158,8 +173,9 @@ define([
                                             });
                                         }
                                     });
+                                    
                                 }).catch(function (err) {
-                                    console.log(':^(', err);
+                                    console.log("Can't register service worker", err);
                                 });
                             }
                         }
