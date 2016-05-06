@@ -102,6 +102,7 @@ class groupTest extends IznikTestCase {
         $rc = $g->setMembers([
             [
                 'uid' => $this->uid,
+                'yahooid' => 'testid',
                 'yahooModeratorStatus' => 'OWNER',
                 'email' => 'test@test.com'
             ]

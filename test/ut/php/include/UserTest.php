@@ -251,7 +251,7 @@ class userTest extends IznikTestCase {
         $modships = $u->getModeratorships();
         assertEquals(1, count($modships));
 
-        $u->addMembership($group2);
+        $u->addMembership($group2, User::ROLE_MEMBER, $eid);
         $membs = $u->getMemberships();
         assertEquals(2, count($membs));
 
