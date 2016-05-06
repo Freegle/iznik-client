@@ -31,6 +31,58 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta property="description" content="<?php echo SITE_DESC; ?>"/>
 
+    <?php
+    # We use require on the client, and we want to avoid caching code after it has changed.  Find out when the
+    # last change was.
+    #
+    # TODO We could speed page load by changing this.  It takes about 0.1s, which is significant.
+    $buststart = microtime(true);
+    $directory =new RecursiveDirectoryIterator(IZNIK_BASE);
+    $flattened = new RecursiveIteratorIterator($directory);
+    $files = new RegexIterator($flattened, '/.*\.((php)|(html)|(js)|(css))/i');
+
+    $max = 0;
+
+    foreach ($files as $filename=>$cur) {
+        $time = $cur->getMTime();
+        $max = max($max, $time);
+    }
+
+    echo "<meta name=\"iznikcache\" content=\"$max\" >\n";
+    echo '<meta name="iznikcachecalc" content="' . (microtime(true) - $buststart) . '" >';
+    ?>
+    
+    <!-- Before we do anything else, get our service worker up and running.  This will allow us to do better
+         caching. -->
+    <script type="text/javascript">
+        if ('serviceWorker' in navigator) {
+            // Use our version so that we will add a new service worker when the code changes.
+            var version = <?php echo $max; ?>;
+            console.log("Register service worker", version);
+            navigator.serviceWorker.register('/sw.js?version=' + version).then(function (reg) {
+                console.log("Registered service worker");
+
+                // Spot when the service worker has been activated.
+                navigator.serviceWorker.addEventListener('message', function (event) {
+                    if (event.data.type == 'activated') {
+                        console.log("SW has been activated");
+                        try {
+                            // Pass the version to the service worker, so that it can use it to cache the resources we need.
+                            navigator.serviceWorker.controller.postMessage({
+                                type: 'version',
+                                version: version
+                            });
+                            console.log("Passed version to service worker", version);
+                        } catch (e) {
+                            console.log("Pass version to service worker failed", e.message);
+                        }
+                    }
+                });
+            }).catch(function (err) {
+                console.log("Can't register service worker", err);
+            });
+        }
+    </script>    
     <!-- Google signin -->
     <script src="https://apis.google.com/js/platform.js" async defer></script>
     <meta name="google-signin-client_id" content="<?php echo GOOGLE_CLIENT_ID; ?>">
@@ -76,28 +128,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <!-- Iznik info -->
     <meta name="iznikchat" content="<?php echo CHAT_HOST; ?>">
     <meta name="iznikusergroupoverride" content="<?php echo USER_GROUP_OVERRIDE; ?>">
-    <?php
-
-    # We use require on the client, and we want to avoid caching code after it has changed.  Find out when the
-    # last change was.
-    #
-    # TODO We could speed page load by changing this.  It takes about 0.1s, which is significant.
-    $buststart = microtime(true);
-    $directory =new RecursiveDirectoryIterator(IZNIK_BASE);
-    $flattened = new RecursiveIteratorIterator($directory);
-    $files = new RegexIterator($flattened, '/.*\.((php)|(html)|(js)|(css))/i');
-
-    $max = 0;
-
-    foreach ($files as $filename=>$cur) {
-        $time = $cur->getMTime();
-        $max = max($max, $time);
-    }
-
-    echo "<meta name=\"iznikcache\" content=\"$max\" >\n";
-    echo '<meta name="iznikcachecalc" content="' . (microtime(true) - $buststart) . '" >';
-    ?>
-
+    
     <!-- And then some custom styles for our different apps -->
     <?php
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {

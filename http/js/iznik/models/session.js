@@ -33,19 +33,6 @@ define([
             this.testLoggedIn();
         },
         
-        gotVersion: function(version) {
-            try {
-                // Pass the version to the service worker, so that it can use it to cache the resources we need.
-                navigator.serviceWorker.controller.postMessage({
-                    type: 'version',
-                    version: version
-                });
-                console.log("Passed version to service worker", version);
-            } catch (e) {
-                console.log("Pass version to service worker failed", e.message);
-            }
-        },
-
         gotSubscription: function (sub) {
             console.log('Subscription endpoint:', sub);
             var subscription = sub.endpoint;
@@ -143,42 +130,21 @@ define([
                         //console.log("Logged in");
                         self.set(ret);
 
-                        if (!self.notificationsSetup) {
-                            // Set up service worker for push notifications
-                            self.notificationsSetup = true;
-
-                            if ('serviceWorker' in navigator) {
-                                // Use our cache buster, which is based on the versions of code on the server, so that
-                                // we will add a new service worker when the code changes.
-                                navigator.serviceWorker.register('/sw.js?version=' + bust).then(function (reg) {
-                                    console.log("Registered service worker");
-                                    // Spot when the service worker has been activated.
-                                    navigator.serviceWorker.addEventListener('message', function (event) {
-                                        if (event.data.type == 'activated') {
-                                            console.log("SW has been activated");
-                                            self.gotVersion(bust);
-                                            
-                                            reg.pushManager.getSubscription().then(function (subscription) {
-                                                if (!subscription) {
-                                                    var p = reg.pushManager.subscribe({
-                                                        userVisibleOnly: true
-                                                    });
-                                                    pushManagerPromise = p;
-                                                    p.then(self.gotSubscription, function (error) {
-                                                        console.log("Subscribe error", error);
-                                                    });
-                                                } else {
-                                                    self.gotSubscription(subscription);
-                                                }
-                                            });
-                                        }
-                                    });
-                                    
-                                }).catch(function (err) {
-                                    console.log("Can't register service worker", err);
+                        // Try to get push notification permissions.
+                        // TODO Do this at an appropriate point, not here.
+                        reg.pushManager.getSubscription().then(function (subscription) {
+                            if (!subscription) {
+                                var p = reg.pushManager.subscribe({
+                                    userVisibleOnly: true
                                 });
+                                pushManagerPromise = p;
+                                p.then(self.gotSubscription, function (error) {
+                                    console.log("Subscribe error", error);
+                                });
+                            } else {
+                                self.gotSubscription(subscription);
                             }
-                        }
+                        });
 
                         // We get an array of groups back - we want it to be a collection.
                         self.set('groups', new Iznik.Collection(ret.groups));

@@ -90,12 +90,12 @@ self.addEventListener('message', function(event) {
                     .put({id: 'version', value: event.data.version});
 
                 request.onsuccess = function (e) {
-                    console.log("Saved version", event.data.version);
+                    console.log("Saved new version", event.data.version);
                     version = event.data.version;
                 };
 
                 request.onerror = function (e) {
-                    console.error("Failed to save version", e);
+                    console.error("Failed to save new version", e);
                     e.preventDefault();
                 };
             } else {
