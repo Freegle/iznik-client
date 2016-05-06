@@ -5,6 +5,7 @@ define([
     'moment',
     'iznik/base',
     'iznik/views/pages/pages',
+    'tinymce.min',
     'jquery-show-first'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Message = Iznik.View.extend({

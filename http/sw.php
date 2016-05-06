@@ -16,7 +16,7 @@ header('Content-type: text/javascript');
 // - To cache our application to speed up page loads and (in time) work offline.  The use of service workers is a
 //   better approach than using appcache, which is initially appealing but turns into a nightmare.  The great thing
 ///  about service workers is that a fetch occurs whenever the browser wants to retrieve something.  This is fantastic,
-//   because it allows usto intercept them and return cached versions.  There's a nice tutorial about this
+//   because it allows us to intercept them and return cached versions.  There's a nice tutorial about this
 //   at https://www.smashingmagazine.com/2016/02/making-a-service-worker/.
 
 var currentVersion = <?php echo getVersion(); ?>;
@@ -320,12 +320,15 @@ function offlineResponse(resourceType, opts) {
 
 self.addEventListener('fetch', function(event) {
 
+
     function shouldHandleFetch(event, opts) {
-        // We want to cache GET requests to anything on our own domain which is not an API call.
+        // We want to cache GET requests to anything on our own domain which is not an API call, or an image (because
+        // we generate a lot of images and might fill our cache).
         var request = event.request;
         var url = new URL(request.url);
         var ret = request.method === 'GET' &&
             url.origin === self.location.origin &&
+            url.pathname.indexOf('img_') === -1 &&
             url.pathname.indexOf('/api') === -1 &&
             url.pathname.indexOf('/subscribe') === -1 ;
         // console.log("Should handle", url, ret);
