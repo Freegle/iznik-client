@@ -49,7 +49,7 @@ define([
                 });
                 console.log("Passed subscription to service worker");
             } catch (e) {
-                console.log("Passed version to service worker failed", e.message);
+                console.log("Pass subscription to service worker failed", e.message);
             }
 
             // See if we have this stored on the server.
@@ -132,9 +132,9 @@ define([
 
                         // Try to get push notification permissions.
                         // TODO Do this at an appropriate point, not here.
-                        reg.pushManager.getSubscription().then(function (subscription) {
+                        serviceWorker.pushManager.getSubscription().then(function (subscription) {
                             if (!subscription) {
-                                var p = reg.pushManager.subscribe({
+                                var p = serviceWorker.pushManager.subscribe({
                                     userVisibleOnly: true
                                 });
                                 pushManagerPromise = p;

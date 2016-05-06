@@ -1,5 +1,21 @@
 <?php
 
+function getVersion() {
+    # TODO We could speed page load by changing this.  It takes about 0.1s, which is significant.
+    $directory = new RecursiveDirectoryIterator(IZNIK_BASE);
+    $flattened = new RecursiveIteratorIterator($directory);
+    $files = new RegexIterator($flattened, '/.*\.((php)|(html)|(js)|(css))/i');
+
+    $max = 0;
+
+    foreach ($files as $filename=>$cur) {
+        $time = $cur->getMTime();
+        $max = max($max, $time);
+    }
+
+    return($max);
+}
+
 # We take the minify function as a parameter to ease UT.
 function scriptInclude($minify)
 {
