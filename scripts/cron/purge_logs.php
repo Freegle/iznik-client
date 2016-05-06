@@ -14,6 +14,40 @@ $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
+error_log("Purge main logs");
+
+# Non-Freegle groups only keep data for 31 days.
+$start = date('Y-m-d', strtotime("midnight 31 days ago"));
+error_log("Non-Freegle logs");
+$total = 0;
+do {
+    $count = $dbhm->exec("DELETE FROM logs WHERE groupid IS NOT NULL AND groupid IN (SELECT id FROM groups WHERE type != 'Freegle') LIMIT 1000;");
+    $total += $count;
+    error_log("...$total");
+} while ($count > 0);
+
+# In the main logs table we might have logs that can be removed once enough time has elapsed for us using them for PD.
+$start = date('Y-m-d', strtotime("midnight 7 days ago"));
+$keys = [
+    'user' => 'users',
+    'byuser' => 'users',
+    'msgid' => 'messages',
+    'groupid' => 'groups',
+    'configid' => 'mod_configs',
+    'stdmsgid' => 'mod_stdmsgs',
+    'bulkopid' => 'mod_bulkops'
+];
+
+foreach ($keys as $att => $table) {
+    error_log("Logs for $att not in $table");
+    $total = 0;
+    do {
+        $count = $dbhm->exec("DELETE FROM logs WHERE timestamp < '$start' AND $att IS NOT NULL AND $att NOT IN (SELECT id FROM $table) LIMIT 1000;");
+        $total += $count;
+        error_log("...$total");
+    } while ($count > 0);
+}
+
 $start = date('Y-m-d', strtotime("midnight 1 day ago"));
 error_log("Purge detailed logs before $start");
 
