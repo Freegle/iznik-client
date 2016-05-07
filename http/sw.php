@@ -304,6 +304,7 @@ function fetchFromCache(event) {
         }
 
         console.log("SW found in cache", event.request.url);
+        response.fromCache = true;
 
         return response;
     });
@@ -320,17 +321,20 @@ function offlineResponse(resourceType, opts) {
 
 self.addEventListener('fetch', function(event) {
 
-
     function shouldHandleFetch(event, opts) {
-        // We want to cache GET requests to anything on our own domain which is not an API call, or an image (because
-        // we generate a lot of images and might fill our cache).
+        // We want to cache:
+        // - GET requests only
+        // - Anything on our own domain which is not an API call, or an image (because
+        //   we generate a lot of images and might fill our cache).
         var request = event.request;
         var url = new URL(request.url);
         var ret = request.method === 'GET' &&
-            url.origin === self.location.origin &&
-            url.pathname.indexOf('img_') === -1 &&
-            url.pathname.indexOf('/api') === -1 &&
-            url.pathname.indexOf('/subscribe') === -1 ;
+            (url.origin === self.location.origin &&
+                url.pathname.indexOf('img_') === -1 &&
+                url.pathname.indexOf('/api') === -1 &&
+                url.pathname.indexOf('/subscribe') === -1)
+            )
+        ;
         // console.log("Should handle", url, ret);
 
         return(ret);
@@ -354,9 +358,13 @@ self.addEventListener('fetch', function(event) {
         event.respondWith(fetchFromCache(event).catch(function () {
             return fetch(request);
         }).then(function (response) {
-            return addToCache(cacheKey, request, response);
+            if (!response.fromCache) {
+                // Only add to the cache if we didn't get it from there.
+                return addToCache(cacheKey, request, response);
+            } else {
+                return response;
+            }
         }).catch(function () {
-            console.log("Offline - return holder");
             return offlineResponse(resourceType, opts);
         }));
     }

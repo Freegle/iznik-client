@@ -56,9 +56,6 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
             });
         }
     </script>    
-    <!-- Google signin -->
-    <script src="https://apis.google.com/js/platform.js" async defer></script>
-    <meta name="google-signin-client_id" content="<?php echo GOOGLE_CLIENT_ID; ?>">
 
     <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/jekkhomlnoblcnangfcdohhaipmmaddc">
     <link rel="shortcut icon" href="/images/favicon/<?php echo FAVICON_HOME; ?>/favicon/<?php echo FAVICON_HOME; ?>.ico" type="image/x-icon" />
@@ -122,7 +119,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     echo implode("\n", $tpls);
     ?>
     <script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization"></script>
-    <script type="text/javascript" src="https://google-maps-utility-library-v3.googlecode.com/svn/trunk/maplabel/src/maplabel-compiled.js"></script>
+    <script type="text/javascript" src="/js/lib/maplabel-compiled.js"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['corechart', 'annotationchart']}]}"></script>
 
     <!--[if lt IE 9]>
@@ -134,6 +131,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <meta name="HandheldFriendly" content="true">
 
     <script src="https://apis.google.com/js/client:platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="<?php echo GOOGLE_CLIENT_ID; ?>">
     <script>
         (function() {
             var po = document.createElement('script');
