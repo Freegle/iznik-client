@@ -122,6 +122,31 @@ class messageTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testRelated2() {
+        error_log(__METHOD__);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Basic test', '[hertford_freegle] Offered - Grey Driveway Blocks - Hoddesdon', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        list($id1, $already) = $m->save();
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Basic test', '[hertford_freegle] Offer - Pedestal Fan - Hoddesdon', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        list($id2, $already) = $m->save();
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Basic test', '[hertford_freegle] TAKEN: Grey Driveway Blocks (Hoddesdon)', $msg);
+        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        assertEquals(1, $m->recordRelated());
+        $atts = $m->getPublic();
+        assertEquals($id1, $atts['related'][0]['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testNoSender() {
         error_log(__METHOD__);
 
