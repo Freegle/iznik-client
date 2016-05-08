@@ -4,9 +4,10 @@ define([
     'backbone',
     'Sortable',
     'wicket-gmap3',
+    'moment',
     'iznik/base',
     'iznik/views/pages/pages'
-], function($, _, Backbone, Sortable, Wkt, Iznik) {
+], function($, _, Backbone, Sortable, Wkt, moment, Iznik) {
         Iznik.Views.ModTools.Pages.Settings = Iznik.Views.Page.extend({
         modtools: true,
     
