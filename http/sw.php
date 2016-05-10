@@ -8,6 +8,7 @@ header("Cache-Control: max-age=0, no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: Wed, 11 Jan 1984 05:00:00 GMT");
 header('Content-type: text/javascript');
+
 ?>
 // Our ServiceWorker is used for two purposes:
 // - To hold the push subscription.  Unfortunately localStorage isn't allowed in service workers and
@@ -332,8 +333,8 @@ self.addEventListener('fetch', function(event) {
             (url.origin === self.location.origin &&
                 url.pathname.indexOf('img_') === -1 &&
                 url.pathname.indexOf('/api') === -1 &&
+                url.pathname.indexOf('/maintenance') === -1 &&
                 url.pathname.indexOf('/subscribe') === -1)
-            )
         ;
         // console.log("Should handle", url, ret);
 
