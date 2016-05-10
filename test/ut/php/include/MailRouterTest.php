@@ -362,7 +362,6 @@ class MailRouterTest extends IznikTestCase {
         assertNull($pend->getFromhost());
         assertNotNull($pend->getGroups()[0]);
         assertEquals($id, $pend->getID());
-        assertEquals($msg, $pend->getMessage());
         assertEquals(Message::YAHOO_PENDING, $pend->getSource());
         assertEquals('from@test.com', $pend->getEnvelopefrom());
         assertEquals('to@test.com', $pend->getEnvelopeto());

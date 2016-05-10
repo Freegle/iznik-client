@@ -1099,11 +1099,11 @@ class Message
                         #
                         # For other bodyparts keep a max of 10K. Observant readers may wish to comment on this
                         # definition of K.
-                        #error_log("$ct breakpos $breakpos nextboundpos $nextboundpos size " . ($nextboundpos - $breakpos));
+                        #error_log("$ct breakpos $breakpos nextboundpos $nextboundpos size " . ($nextboundpos - $breakpos) . " strpos " . strpos($ct, 'image/') . ", " . strpos($ct, 'text/html'));
                         if ($breakpos && $nextboundpos &&
-                            ($nextboundpos - $breakpos > 10000 ||
-                                (strpos($ct, 'image/') !== -1) ||
-                                (strpos($ct, 'text/html') !== -1))) {
+                            (($nextboundpos - $breakpos > 10000) ||
+                                (strpos($ct, 'image/') !== FALSE) ||
+                                (strpos($ct, 'text/html') !== FALSE))) {
                             # Strip out the bodypart data and replace it with some short text.
                             $current = substr($current, 0, $breakpos + 2) .
                                 "\r\n...Content of size " . ($nextboundpos - $breakpos + 2) . " removed...\r\n\r\n" .
