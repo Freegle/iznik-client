@@ -1071,7 +1071,7 @@ class Message
 
             if ($p) {
                 $crpos = strpos($current, "\r\n", $p);
-                $ct = substr($current, $p, $crpos - $p);
+                $ct = strtolower(substr($current, $p, $crpos - $p));
                 #error_log($ct);
 
                 $found = TRUE;
@@ -1093,11 +1093,17 @@ class Message
                         # Find the end of the bodypart.
                         $nextboundpos = strpos($current, $boundary, $breakpos);
 
-                        # Keep a max of 10K.
+                        # Always prune image and HTML bodyparts - images are stored off as attachments, and HTML
+                        # bodyparts are quite long and typically there's also a text one present.  Ideally we might
+                        # keep HTML, but we need to control our disk space usage.
                         #
-                        # Observant readers may wish to comment on this definition of K.
-                        #error_log("breakpos $breakpos nextboundpos $nextboundpos size " . ($nextboundpos - $breakpos));
-                        if ($breakpos && $nextboundpos && $nextboundpos - $breakpos > 10000) {
+                        # For other bodyparts keep a max of 10K. Observant readers may wish to comment on this
+                        # definition of K.
+                        #error_log("$ct breakpos $breakpos nextboundpos $nextboundpos size " . ($nextboundpos - $breakpos));
+                        if ($breakpos && $nextboundpos &&
+                            ($nextboundpos - $breakpos > 10000 ||
+                                (strpos($ct, 'image/') !== -1) ||
+                                (strpos($ct, 'text/html') !== -1))) {
                             # Strip out the bodypart data and replace it with some short text.
                             $current = substr($current, 0, $breakpos + 2) .
                                 "\r\n...Content of size " . ($nextboundpos - $breakpos + 2) . " removed...\r\n\r\n" .
@@ -1121,38 +1127,40 @@ class Message
     }
 
     private function saveAttachments($msgid) {
-        # Save the attachments.
-        #
-        # If we crash or fail at this point, we would have mislaid an attachment for a message.  That's not great, but the
-        # perf cost of a transaction for incoming messages is significant, and we can live with it.
-        $a = new Attachment($this->dbhr, $this->dbhm);
+        if ($this->type != Message::TYPE_TAKEN && $this->type != Message::TYPE_RECEIVED) {
+            # Don't want attachments for TAKEN/RECEIVED.  They can occur if people forward the original message.
+            #
+            # If we crash or fail at this point, we would have mislaid an attachment for a message.  That's not great, but the
+            # perf cost of a transaction for incoming messages is significant, and we can live with it.
+            $a = new Attachment($this->dbhr, $this->dbhm);
 
-        foreach ($this->attachments as $att) {
-            /** @var \PhpMimeMailParser\Attachment $att */
-            $ct = $att->getContentType();
-            $fn = $this->attach_dir . DIRECTORY_SEPARATOR . $att->getFilename();
+            foreach ($this->attachments as $att) {
+                /** @var \PhpMimeMailParser\Attachment $att */
+                $ct = $att->getContentType();
+                $fn = $this->attach_dir . DIRECTORY_SEPARATOR . $att->getFilename();
 
-            # Can't use LOAD_FILE as server may be remote.
-            $data = file_get_contents($fn);
+                # Can't use LOAD_FILE as server may be remote.
+                $data = file_get_contents($fn);
 
-            # Scale the image if it's large.  Ideally we'd store the full size image, but images can be many meg, and
-            # it chews up disk space.
-            if (strlen($data) > 300000) {
-                $i = new Image($data);
-                if ($i->img) {
-                    $w = $i->width();
-                    $w = min(1024, $w);
-                    $i->scale($w, NULL);
-                    $data = $i->getData();
-                    $ct = 'image/jpeg';
+                # Scale the image if it's large.  Ideally we'd store the full size image, but images can be many meg, and
+                # it chews up disk space.
+                if (strlen($data) > 300000) {
+                    $i = new Image($data);
+                    if ($i->img) {
+                        $w = $i->width();
+                        $w = min(1024, $w);
+                        $i->scale($w, NULL);
+                        $data = $i->getData();
+                        $ct = 'image/jpeg';
+                    }
                 }
+
+                $a->create($msgid, $ct, $data);
             }
 
-            $a->create($msgid, $ct, $data);
-        }
-
-        foreach ($this->inlineimgs as $att) {
-            $a->create($msgid, 'image/jpeg', $att);
+            foreach ($this->inlineimgs as $att) {
+                $a->create($msgid, 'image/jpeg', $att);
+            }
         }
     }
 

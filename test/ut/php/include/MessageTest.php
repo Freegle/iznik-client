@@ -273,13 +273,21 @@ class messageTest extends IznikTestCase {
         error_log(__METHOD__);
 
         $msg = $this->unique(file_get_contents('msgs/prune'));
-
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertGreaterThan(0, strlen($m->getMessage()));
+
+        $msg = $this->unique(file_get_contents('msgs/prune2'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        error_log("Pruned to " . $m->getMessage());
+        assertLessThan(20000, strlen($m->getMessage()));
 
         error_log(__METHOD__ . " end");
     }
