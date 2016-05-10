@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 class ChatMessage extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type');
+    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall');
     var $settableatts = array('name');
 
     const TYPE_DEFAULT = 'Default';

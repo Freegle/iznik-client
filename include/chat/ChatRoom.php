@@ -4,12 +4,12 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
-require_once(IZNIK_BASE . '/mailtemplates/user/chat_notify.php');
+require_once(IZNIK_BASE . '/mailtemplates/chat_notify.php');
 
 class ChatRoom extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'name', 'groupid', 'modonly', 'description', 'user1', 'user2');
+    var $publicatts = array('id', 'name', 'groupid', 'modonly', 'modtools', 'description', 'user1', 'user2');
     var $settableatts = array('name', 'description');
 
     const STATUS_ONLINE = 'Online';
@@ -364,7 +364,7 @@ class ChatRoom extends Entity
     public function lastSeenByAll() {
         $sql = "SELECT MAX(id) AS maxid FROM chat_messages WHERE chatid = ? AND seenbyall = 1;";
         $lasts = $this->dbhr->preQuery($sql, [ $this->id ]);
-        $ret = 0;
+        $ret = NULL;
 
         foreach ($lasts as $last) {
             $ret = $last['maxid'];
@@ -389,6 +389,13 @@ class ChatRoom extends Entity
             }
         }
 
+        if (count($ret) === 0) {
+            # All messages for this chat have, in fact, been seen.  Record this so that we don't re-examine this
+            # chat.
+            $sql = "UPDATE chat_messages SET seenbyall = 1 WHERE chatid = ? AND id >= ?;";
+            $this->dbhm->preExec($sql, [ $this->id, $lastseenbyall ]);
+        }
+
         return($ret);
     }
 
@@ -402,13 +409,14 @@ class ChatRoom extends Entity
         $chatq = $chatid ? " AND chatid = $chatid " : '';
         $sql = "SELECT DISTINCT chatid FROM chat_messages WHERE date >= ? AND seenbyall = 0 $chatq;";
         $chats = $this->dbhr->preQuery($sql, [ $start ]);
+        $notified = 0;
 
         foreach ($chats as $chat) {
             # Different members of the chat might have seen different messages.
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
             $chatatts = $r->getPublic();
             $lastseen = $r->lastSeenByAll();
-            $notseenby = $r->getMembersNotSeen($lastseen);
+            $notseenby = $r->getMembersNotSeen($lastseen ? $lastseen : 0);
 
             foreach ($notseenby as $member) {
                 # Now we have a member who has not seen all of the messages in this chat.  Find the other one.
@@ -457,7 +465,7 @@ class ChatRoom extends Entity
                 #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
                 #   added.
                 $url = "https://www.google.com";
-                $msg = user_chat_notify($fromname, $url, $textsummary, $htmlsummary);
+                $msg = chat_notify($chatatts['modtools'] ? MODLOGO : USERLOGO, $fromname, $url, $textsummary, $htmlsummary);
 
                 # We ask them to reply to an email address which will direct us back to this chat.
                 $replyto = 'notify-' . $this->id . '-' . $member['userid'] . '@' . USER_DOMAIN;
@@ -466,8 +474,11 @@ class ChatRoom extends Entity
                 $headers = "From: $fromname <$replyto>\nContent-Type: multipart/alternative; boundary=\"_I_Z_N_I_K_\"\nMIME-Version: 1.0";
 
                 $this->mailer($to['email'], $subject, $msg, $headers, "-f$replyto");
+                $notified++;
             }
         }
+
+        return($notified);
     }
 
     public function delete() {

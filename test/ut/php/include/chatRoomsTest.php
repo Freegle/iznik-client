@@ -135,7 +135,18 @@ class chatRoomsTest extends IznikTestCase {
             'test2@test.com',
             'Re: OFFER: Test item (location)');
         
-        $r->notifyByEmail($id);
+        assertEquals(1, $r->notifyByEmail($id));
+
+        # Now pretend we've seen the messages.  Shouldn't notify as we've seen them, and should end up flagging the
+        # message as seen by all.
+        $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = $msgid WHERE chatid = $id;");
+        $r->expects($this->never())->method('mailer');
+        assertEquals(0, $r->notifyByEmail($id));
+        $m = new ChatMessage($this->dbhr, $this->dbhm, $cm);
+        assertEquals(1, $m->getPrivate('seenbyall'));
+
+        # Once more for luck - this time won't even check this chat.
+        assertEquals(0, $r->notifyByEmail($id));
 
         error_log(__METHOD__ . " end");
     }

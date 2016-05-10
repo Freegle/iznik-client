@@ -1,7 +1,6 @@
 <?php
 
-function user_chat_notify($fromname, $reply, $textsummary, $htmlsummary) {
-    $logo = USERLOGO;
+function chat_notify($logo, $fromname, $reply, $textsummary, $htmlsummary) {
     $html = <<<EOT
 --_I_Z_N_I_K_
 Content-Type: text/plain; charset="utf-8"; format="fixed"
