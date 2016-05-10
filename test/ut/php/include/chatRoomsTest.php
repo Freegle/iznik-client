@@ -6,6 +6,7 @@ if (!defined('UT_DIR')) {
 require_once UT_DIR . '/IznikTestCase.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
+require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 
 /**
@@ -95,6 +96,46 @@ class chatRoomsTest extends IznikTestCase {
 
         $id = $r->createGroupChat('test');
         assertNull($id);
+
+        error_log(__METHOD__ . " end");
+    }
+    
+    public function testChase() {
+        error_log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = new User($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addEmail('test1@test.com');
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addEmail('test2@test.com');
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createConversation($u1, $u2);
+        error_log("Chat room $id for $u1 <-> $u2");
+        assertNotNull($id);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        list($msgid, $already) = $m->save();
+        
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_DEFAULT, $msgid);
+        error_log("Created chat message $cm");
+        
+        $r = $this->getMockBuilder('ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('mailer'))
+            ->getMock();
+        
+        $r->method('mailer')->with(
+            'test2@test.com',
+            'Re: OFFER: Test item (location)');
+        
+        $r->notifyByEmail($id);
 
         error_log(__METHOD__ . " end");
     }

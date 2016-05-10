@@ -58,6 +58,7 @@ class ChatMessage extends Entity
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
             $r->pokeMembers();
         } catch (Exception $e) {
+            error_log("Failed to create chat " . $e->getMessage());
             $id = NULL;
             $rc = 0;
         }

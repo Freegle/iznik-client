@@ -1,24 +1,13 @@
 <?php
 
-function modtools_verify_email($email, $confirm) {
-    $logo = MODLOGO;
+function user_chat_notify($fromname, $reply, $textsummary, $htmlsummary) {
+    $logo = USERLOGO;
     $html = <<<EOT
 --_I_Z_N_I_K_
 Content-Type: text/plain; charset="utf-8"; format="fixed"
 Content-Transfer-Encoding: quoted-printable
 
-Someone, probably you, said that $email was your email addr=
-ess.
-
-If this was you, please click here to verify it:
-
-$confirm
-
-If this wasn't you, just ignore this mail.
-
-Regards,
-
-ModTools
+$textsummary
 
 --_I_Z_N_I_K_
 Content-Type: text/html; charset="utf-8"
@@ -28,7 +17,7 @@ Content-Transfer-Encoding: quoted-printable
 <html>
 <head>
 
-    <title>Email Verification</title>
+    <title>$fromname</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <!--[if !mso]><!-->
@@ -70,14 +59,14 @@ Content-Transfer-Encoding: quoted-printable
     <![endif]-->
 
 </head>
-<body marginwidth="0" marginheight="0" leftmargin="0" topmargin="0" style="background-color:#F6F6F6; font-family:Arial,serif; margin:0; padding:0; min-width: 100%; -webkit-text-size-adjust:none; -ms-text-size-adjust:none;">
+<body marginwidth="0" marginheight="0" leftmargin="0" topmargin="0" style="background-color:#F7F5EB; font-family:Arial,serif; margin:0; padding:0; min-width: 100%; -webkit-text-size-adjust:none; -ms-text-size-adjust:none;">
 
 <!--[if !mso]><!-- -->
 <img style="min-width:640px; display:block; margin:0; padding:0" class="mobileOff" width="640" height="1" src="images/spacer.gif">
 <!--<![endif]-->
 
 <!-- Start Background -->
-<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F6F6F6">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F7F5EB">
     <tr>
         <td width="100%" valign="top" align="center">
 
@@ -105,13 +94,13 @@ Content-Transfer-Encoding: quoted-printable
                                                 <!-- Start Container  -->
                                                 <table width="600" cellpadding="0" cellspacing="0" border="0" class="container">
                                                     <tr>
-                                                        <td width="300" class="mobile" align="center" valign="top">
+                                                        <td width="150" class="mobile" align="center" valign="top">
 
                                                             <!-- Start Content -->
-                                                            <table width="280" cellpadding="0" cellspacing="0" border="0" class="container" align="left">
+                                                            <table width="140" cellpadding="0" cellspacing="0" border="0" class="container" align="left">
                                                                 <tr>
-                                                                    <td width="280" class="mobile" style="font-size:12px; line-height:18px;">
-                                                                        <img src="$logo" width="280" height="280" style="margin:0; padding:0; border:none; display:block;" alt="" class="imgClass" />
+                                                                    <td width="140" class="mobile" style="font-size:12px; line-height:18px;">
+                                                                        <img src="$logo" width="100" height="100" style="margin:0; padding:0; border:none; display:block;" alt="" class="imgClass" />
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
@@ -123,38 +112,36 @@ Content-Transfer-Encoding: quoted-printable
                                                             </table>
                                                             <!-- Start Content -->
                                                         </td>
-                                                        <td width="300" class="mobile" align="center" valign="top">
+                                                        <td width="450" class="mobile" align="center" valign="top">
 
                                                             <!-- Start Content -->
-                                                            <table width="280" cellpadding="0" cellspacing="0" border="0" class="container" align="right">
+                                                            <table width="430" cellpadding="0" cellspacing="0" border="0" class="container" align="right">
                                                                 <tr>
-                                                                    <td width="280" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:20px; line-height:26px; font-weight:bold;">
-                                                                        Please confirm your email
+                                                                    <td width="430" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:20px; line-height:26px; font-weight:bold;">
+                                                                        $fromname wrote:
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
                                                                 </tr>
                                                                 <tr>
-                                                                    <td width="280" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:14px; line-height:20px;">
-                                                                        <p>Someone, probably you, has said that <b>$email</b> is their email address.<p>
-                                                                        <p>If this was you, please click on the link below to verify the address; if this wasn't you,
-                                                                        please just ignore this mail.</p>
+                                                                    <td width="430" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:14px; line-height:20px;">
+                                                                        $htmlsummary                                                                     
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
                                                                 </tr>
                                                                 <tr>
-                                                                    <td width="280" class="mobile" style="font-size:14px; line-height:20px;">
+                                                                    <td width="430" class="mobile" style="font-size:14px; line-height:20px;">
 
                                                                         <!-- Start Button -->
                                                                         <table width="170" cellpadding="0" cellspacing="0" align="left" border="0">
                                                                             <tr>
-                                                                                <td width="170" height="36" bgcolor="#00008B" align="center" valign="middle"
+                                                                                <td width="170" height="36" bgcolor="#377615" align="center" valign="middle"
                                                                                     style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                         line-height:18px; border-radius:3px;">
-                                                                                    <a href="$confirm" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">$confirm</a>
+                                                                                    <a href="$reply" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Reply</a>
                                                                                 </td>
                                                                             </tr>
                                                                         </table>
@@ -200,5 +187,5 @@ Content-Transfer-Encoding: quoted-printable
 --_I_Z_N_I_K_--
 EOT;
 
-return($html);
+    return($html);
 }

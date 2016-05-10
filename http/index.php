@@ -43,7 +43,7 @@ include_once(BASE_DIR . '/include/misc/pageheader.php');
             console.log("Loader found - force reload", loader);
             window.location.reload();
         }
-    }, 120000);
+    }, 30000);
 </script>
 <div id="fb-root"></div>
 <div id="bodyEnvelope">

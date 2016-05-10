@@ -6,6 +6,10 @@ define('SQLPASSWORD', 'zzzz');
 define('PASSWORD_SALT', 'zzzz');
 define('MODERATOR_EMAIL', 'zzzz');
 
+# Logos
+define('USERLOGO', 'https://iznik.modtools.org/images/user_logo.png');
+define('MODLOGO', 'https://iznik.modtools.org/images/modlogo-large.jpg');
+
 # We can query Trash Nothing to get real email addresses for their users.
 define('TNKEY', 'zzzzz');
 
@@ -56,8 +60,9 @@ switch($host) {
         break;
 }
 
-# Image host domain
+# Image host domain - both for active, and archived.
 define('IMAGE_DOMAIN', 'zzzz');
+define('IMAGE_ARCHIVED_DOMAIN', 'zzz');
 
 # Domain for email addresses for our users
 define('USER_DOMAIN', 'zzzz');

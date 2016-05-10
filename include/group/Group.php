@@ -737,8 +737,13 @@ class Group extends Entity
                     # We check where the message came from to decide whether to return it.  This is because we
                     # might have a message currently in spam from YAHOO_APPROVED, and we might be doing a
                     # correlate on pending, and we don't want to return that message as missing.
+                    #
+                    # We could have a message in originally in Pending which we have later received because it's been
+                    # approved elsewhere, in which case we'll have updated the source to Approved, but we want to
+                    # include that.
                     $source = $msg['source'];
-                    if (($pending && $source == Message::YAHOO_PENDING) ||
+                    #error_log("Consider {$msg['id']} missing on client $pending, $approved, $source");
+                    if (($pending && ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED)) ||
                         ($approved && $source == Message::YAHOO_APPROVED)) {
                         $missingonclient[] = [
                             'id' => $msg['id'],

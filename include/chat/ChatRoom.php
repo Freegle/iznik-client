@@ -4,6 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
+require_once(IZNIK_BASE . '/mailtemplates/user/chat_notify.php');
 
 class ChatRoom extends Entity
 {
@@ -23,6 +24,11 @@ class ChatRoom extends Entity
     {
         $this->fetch($dbhr, $dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
         $this->log = new Log($dbhr, $dbhm);
+    }
+
+    # Default mailer is to use the standard PHP one, but this can be overridden in UT.
+    public function mailer() {
+        call_user_func_array('mail', func_get_args());
     }
 
     /**
@@ -167,7 +173,7 @@ class ChatRoom extends Entity
         }
 
         $me = whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me->getId();
+        $myid = $me ? $me->getId() : NULL;
 
         $ret['unseen'] = $this->unseenForUser($myid);
 
@@ -318,6 +324,8 @@ class ChatRoom extends Entity
             $n->poke($rost['userid'], $data);
             $count++;
         }
+
+        return($count);
     }
 
     public function getMessages($limit = 100) {
@@ -351,6 +359,115 @@ class ChatRoom extends Entity
         }
 
         return([$ret, $users]);
+    }
+
+    public function lastSeenByAll() {
+        $sql = "SELECT MAX(id) AS maxid FROM chat_messages WHERE chatid = ? AND seenbyall = 1;";
+        $lasts = $this->dbhr->preQuery($sql, [ $this->id ]);
+        $ret = 0;
+
+        foreach ($lasts as $last) {
+            $ret = $last['maxid'];
+        }
+
+        return($ret);
+    }
+
+    public function getMembersNotSeen($lastseenbyall) {
+        # TODO We should chase for group chats too.
+        $ret = [];
+        if ($this->chatroom['user1']) {
+            # This is a conversation between two users.  They're both in the roster so we can see what their last
+            # seen message was and decide who to chase.
+            $sql = "SELECT userid, lastmsgseen FROM chat_roster WHERE chatid = ?;";
+            $users = $this->dbhr->preQuery($sql, [ $this->id ]);
+            foreach ($users as $user) {
+                if (!$user['lastmsgseen'] || $user['lastmsgseen'] < $lastseenbyall) {
+                    # We've not seen any messages, or seen some but not this one.
+                    $ret[] = [ 'userid' => $user['userid'], 'lastmsgseen' => $user['lastmsgseen'] ];
+                }
+            }
+        }
+
+        return($ret);
+    }
+
+    public function notifyByEmail($chatid) {
+        # We want to find chatrooms with messages which haven't been seen by people who should have seen them.
+        # These could either be a group chatroom, or a conversation.  There aren't too many of the former, but there
+        # could be a large number of the latter.  However we don't want to keep nagging people forever - so we are
+        # only interested in rooms containing a message which was posted recently and which has not been seen by all
+        # members - which is a much smaller set.
+        $start = date('Y-m-d', strtotime("midnight 2 weeks ago"));
+        $chatq = $chatid ? " AND chatid = $chatid " : '';
+        $sql = "SELECT DISTINCT chatid FROM chat_messages WHERE date >= ? AND seenbyall = 0 $chatq;";
+        $chats = $this->dbhr->preQuery($sql, [ $start ]);
+
+        foreach ($chats as $chat) {
+            # Different members of the chat might have seen different messages.
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
+            $chatatts = $r->getPublic();
+            $lastseen = $r->lastSeenByAll();
+            $notseenby = $r->getMembersNotSeen($lastseen);
+
+            foreach ($notseenby as $member) {
+                # Now we have a member who has not seen all of the messages in this chat.  Find the other one.
+                $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
+                $otheru = new User($this->dbhr, $this->dbhm, $other);
+                $fromname = $otheru->getName();
+
+                $thisu = new User($this->dbhr, $this->dbhm, $member['userid']);
+                
+                # Now collect a summary of what they've missed.
+                $minmsg = $member['lastmsgseen'] ? $member['lastmsgseen'] : 0;
+                $unseenmsgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE chatid = ? AND id > ? ORDER BY id ASC;",
+                    [
+                        $chat['chatid'],
+                        $minmsg
+                    ]);
+
+                $textsummary = '';
+                $htmlsummary = '';
+                foreach ($unseenmsgs as $unseenmsg) {
+                    $thisone = $unseenmsg['message'];
+                    $textsummary .= $thisone . "\r\n";
+                    $htmlsummary .= $thisone . "<br>";
+                }
+
+                # As a subject, we should use the last referenced message in this chat.
+                $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? ORDER BY chat_messages.id DESC LIMIT 1;";
+                $subjs = $this->dbhr->preQuery($sql, [
+                    $chat['chatid']
+                ]);
+
+                $subject = "You have a new message";
+                foreach ($subjs as $subj) {
+                    $subject = 'Re: ' . $subj['subject'];
+                }
+                
+                # Construct the SMTP message.
+                # - The text bodypart is just the user text.  This means that people who aren't showing HTML won't see
+                #   all the wrapping.  It also means that the kinds of preview notification popups you get on mail
+                #   clients will show something interesting.
+                # - The HTML bodypart will show the user text, but in a way that is designed to encourage people to
+                #   click and reply on the web rather than by email.  This reduces the problems we have with quoting,
+                #   and encourages people to use the (better) web interface, while still allowing email replies for 
+                #   those users who prefer it.  Because we put the text they're replying to inside a visual wrapping,
+                #   it's less likely that they will interleave their response inside it - they will probably reply at
+                #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
+                #   added.
+                $url = "https://www.google.com";
+                $msg = user_chat_notify($fromname, $url, $textsummary, $htmlsummary);
+
+                # We ask them to reply to an email address which will direct us back to this chat.
+                $replyto = 'notify-' . $this->id . '-' . $member['userid'] . '@' . USER_DOMAIN;
+                $to = $thisu->getEmails()[0];
+
+                $headers = "From: $fromname <$replyto>\nContent-Type: multipart/alternative; boundary=\"_I_Z_N_I_K_\"\nMIME-Version: 1.0";
+
+                $this->mailer($to['email'], $subject, $msg, $headers, "-f$replyto");
+            }
+        }
     }
 
     public function delete() {
