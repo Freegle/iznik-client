@@ -106,10 +106,20 @@ class Attachment
     public function getData() {
         $ret = NULL;
 
-        $sql = "SELECT data FROM messages_attachments WHERE id = ?;";
+        $sql = "SELECT * FROM messages_attachments WHERE id = ?;";
         $datas = $this->dbhr->preQuery($sql, [$this->id]);
         foreach ($datas as $data) {
-            $ret = $data['data'];
+            if ($data['archived']) {
+                # This attachment has been archived out of our database, to our archive host.  This happens to
+                # older attachments to save space in the DB.
+                #
+                # We fetch the data - not using SSL as we don't need to, and that host might not have a cert.
+                #
+                # This isn't very efficient - but these are rarely accessed messages, so it doesn't need to be.
+                $ret = file_get_contents('http://' . IMAGE_ARCHIVED_DOMAIN . "/img_{$this->id}.jpg");
+            } else {
+                $ret = $data['data'];
+            }
         }
 
         return($ret);

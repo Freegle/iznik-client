@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/misc/Image.php');
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
 
-$sql = "SELECT id, data, LENGTH(data) FROM messages_attachments WHERE LENGTH(data) > 300000;";
+$sql = "SELECT id, data, LENGTH(data) FROM messages_attachments WHERE LENGTH(data) > 300000 AND id = 865048;";
 $atts = $dbhr->query($sql);
 
 foreach ($atts as $att) {

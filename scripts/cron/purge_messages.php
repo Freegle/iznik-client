@@ -71,3 +71,16 @@ do {
 } while (count($msgs) > 0);
 
 error_log("Deleted $total");
+
+# We don't need the HTML content or full message for old messages - we're primarily interested in the text body, and
+# these are large attributes.
+$start = date('Y-m-d', strtotime("midnight 2 days ago"));
+error_log("Purge HTML body for messages before $start");
+$total = 0;
+
+do {
+    $sql = "UPDATE messages SET htmlbody = NULL WHERE arrival <= '$start' LIMIT 1000;";
+    $count = $dbhm->exec($sql);
+    $total += $count;
+    error_log("...$total");
+} while ($count > 0);

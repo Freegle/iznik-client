@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/message/Message.php');
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
 
-$sql = "SELECT id, LENGTH(message) AS len FROM messages WHERE length(message) > 10000;";
+$sql = "SELECT id, LENGTH(message) AS len FROM messages WHERE length(message) > 10000 ORDER BY len DESC;";
 #$sql = "SELECT id, LENGTH(message) AS len FROM messages WHERE id = 866660";
 $msgs = $dbhr->query($sql);
 
@@ -20,8 +20,9 @@ foreach ($msgs as $msg) {
     $pruned = $m->pruneMessage();
     $prunelen = strlen($pruned);
 
+    #error_log("#{$msg['id']} len {$msg['len']} => " . strlen($pruned));
+
     if ($prunelen < $msg['len']) {
-        #error_log("#{$msg['id']} len {$msg['len']} => " . strlen($pruned));
         $total += $msg['len'] - $prunelen;
         $dbhm->preExec("UPDATE messages SET message = ? WHERE id = ?;", [ $pruned, $msg['id'] ]);
     }
