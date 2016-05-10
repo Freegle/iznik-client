@@ -1,0 +1,5 @@
+#!/bin/bash
+killall -9 hhvm
+killall -9 nginx
+/etc/init.d/hhvm start
+/etc/inid.d/nginx start
