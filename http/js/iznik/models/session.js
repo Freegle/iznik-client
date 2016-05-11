@@ -132,19 +132,23 @@ define([
 
                         // Try to get push notification permissions.
                         // TODO Do this at an appropriate point, not here.
-                        serviceWorker.pushManager.getSubscription().then(function (subscription) {
-                            if (!subscription) {
-                                var p = serviceWorker.pushManager.subscribe({
-                                    userVisibleOnly: true
-                                });
-                                pushManagerPromise = p;
-                                p.then(self.gotSubscription, function (error) {
-                                    console.log("Subscribe error", error);
-                                });
-                            } else {
-                                self.gotSubscription(subscription);
-                            }
-                        });
+                        try {
+                            navigator.serviceWorker.pushManager.getSubscription().then(function (subscription) {
+                                if (!subscription) {
+                                    var p = serviceWorker.pushManager.subscribe({
+                                        userVisibleOnly: true
+                                    });
+                                    pushManagerPromise = p;
+                                    p.then(self.gotSubscription, function (error) {
+                                        console.log("Subscribe error", error);
+                                    });
+                                } else {
+                                    self.gotSubscription(subscription);
+                                }
+                            });
+                        } catch (e) {
+                            console.log("Can't get sub", e);
+                        }
 
                         // We get an array of groups back - we want it to be a collection.
                         self.set('groups', new Iznik.Collection(ret.groups));

@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "Restarting app at `date`" >> /tmp/restartapp.log
 killall -9 hhvm
 killall -9 nginx
 /etc/init.d/hhvm start
