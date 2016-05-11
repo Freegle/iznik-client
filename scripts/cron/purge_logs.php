@@ -38,15 +38,15 @@ $keys = [
     'bulkopid' => 'mod_bulkops'
 ];
 
-foreach ($keys as $att => $table) {
-    error_log("Logs for $att not in $table");
-    $total = 0;
-    do {
-        $count = $dbhm->exec("DELETE FROM logs WHERE timestamp < '$start' AND $att IS NOT NULL AND $att NOT IN (SELECT id FROM $table) LIMIT 1000;");
-        $total += $count;
-        error_log("...$total");
-    } while ($count > 0);
-}
+//foreach ($keys as $att => $table) {
+//    error_log("Logs for $att not in $table");
+//    $total = 0;
+//    do {
+//        $count = $dbhm->exec("DELETE FROM logs WHERE timestamp < '$start' AND $att IS NOT NULL AND $att <> 0 AND $att NOT IN (SELECT id FROM $table) LIMIT 1000;");
+//        $total += $count;
+//        error_log("...$total");
+//    } while ($count > 0);
+//}
 
 $start = date('Y-m-d', strtotime("midnight 1 day ago"));
 error_log("Purge detailed logs before $start");

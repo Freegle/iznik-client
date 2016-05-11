@@ -2014,7 +2014,7 @@ class User extends Entity
         # Get an email address we can use on the group.
         $submitted = 0;
         list ($eid, $email) = $this->getEmailForYahooGroup($groupid, TRUE);
-        error_log("Got email $email for {$this->id} on $groupid, eid $eid");
+        #error_log("Got email $email for {$this->id} on $groupid, eid $eid");
 
         if ($email) {
             $sql = "SELECT msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id WHERE groupid = ? AND collection = ? AND messages_groups.deleted = 0 AND messages.fromuser = ?;";

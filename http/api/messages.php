@@ -122,7 +122,6 @@ function messages() {
                     $members = $g->getMembers(1000, $search, $membctx, NULL, $collection, $groupids, NULL, NULL);
                     $userids = [];
                     foreach ($members as $member) {
-                        error_log("Got user {$member['userid']}");
                         $userids[] = $member['userid'];
                     }
 

@@ -58,15 +58,22 @@ try {
                     $sql = implode($sqls);
                     $rc = $dbhm->exec($sql, FALSE);
                 } catch (Exception $e) {
-                    $msg = $e->getMessage();
+                    # Something awry in this batch.  Do them one by one to reduce the number we lose.
+                    foreach ($sqls as $sql) {
+                        try {
+                            $dbhm->exec($sql, FALSE);
+                        } catch (Exception $e) {
+                            $msg = $e->getMessage();
 
-                    if (strpos($e, 'gone away')) {
-                        # SQL server has gone away.  Exit - cron will restart and we'll get new handles.
-                        error_log("SQL gone away - exit");
-                        exit(1);
+                            if (strpos($e, 'gone away')) {
+                                # SQL server has gone away.  Exit - cron will restart and we'll get new handles.
+                                error_log("SQL gone away - exit");
+                                exit(1);
+                            }
+
+                            error_log("SQL exception " . var_export($e, TRUE));
+                        }
                     }
-
-                    error_log("SQL exception " . var_export($e, true));
                 }
 
                 if (count($sqls) < 5) {

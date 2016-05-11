@@ -124,7 +124,7 @@ Content-Transfer-Encoding: quoted-printable
                                                                     <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
                                                                 </tr>
                                                                 <tr>
-                                                                    <td width="430" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:14px; line-height:20px;">
+                                                                    <td width="430" align="left" class="mobile" style="background-color: #F0FBFF; font-family: Century Gothic, Arial, sans-serif; font-size:14px; line-height:20px;">
                                                                         $htmlsummary                                                                     
                                                                     </td>
                                                                 </tr>
@@ -173,7 +173,11 @@ Content-Transfer-Encoding: quoted-printable
                 <tr>
                     <td height="10" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
                 </tr>
-            </table>
+                <tr>
+                    <td height="20" style="padding-left: 10px; color: grey; font-size:14px; line-height:18px;">Or just reply to this message by email - but it works better if you
+                        use the button.</td>
+                </tr>
+           </table>
             <!-- End Wrapper  -->
 
         </td>

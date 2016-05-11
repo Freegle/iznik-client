@@ -110,7 +110,6 @@ function memberships() {
                                     foreach ($members as &$member) {
                                         if (pres('userid', $member)) {
                                             $member['sessions'] = $u->getSessions($dbhr, $dbhm, $member['userid']);
-                                            error_log("Got " . count($member['sessions']));
                                         }
                                     }
                                 }
