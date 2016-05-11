@@ -186,4 +186,12 @@ define([
     window.Iznik = Iznik;
     
     return(Iznik);
+}, function(err) {
+    // We failed to load.  This could be due to various things - network error, server issues.  We've also seen it
+    // when the service worker is updated and this causes our fetch requests to fail.  Reload the page after a slight
+    // delay.
+    console.log("Require error", err);
+    window.setTimeout(function() {
+        window.location.reload();
+    }, 1000);
 });

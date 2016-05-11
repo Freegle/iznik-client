@@ -39,9 +39,20 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     echo "<meta name=\"iznikcache\" content=\"$version\" >\n";
     ?>
     
-    <!-- Before we do anything else, get our service worker up and running.  This will allow us to do better
-         caching. -->
     <script type="text/javascript">
+        // Start a timer to reload if we fail to get the page rendered.  Do this now as any JS errors might prevent
+        // us doing it later.
+        window.setTimeout(function() {
+            var loader = document.getElementById('pageloader');
+            if (loader) {
+                // We've not managed to render and remove the page.  Probably a network issue.  Reload.
+                console.log("Loader found - force reload", loader);
+                window.location.reload();
+            }
+        }, 30000);
+
+        // Before we do anything else, get our service worker up and running.  This will allow us to do better
+        // caching where the browser supports them.
         var serviceWorker;
 
         if ('serviceWorker' in navigator) {
