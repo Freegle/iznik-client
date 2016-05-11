@@ -325,12 +325,17 @@ self.addEventListener('fetch', function(event) {
     function shouldHandleFetch(event, opts) {
         // We want to cache:
         // - GET requests only
-        // - Anything on our own domain which is not an API call, or an image (because
+        // - Not the SW itself.
+        // - Any file on our own domain which is not an API call, or an image (because
         //   we generate a lot of images and might fill our cache).
         var request = event.request;
         var url = new URL(request.url);
+        var p = url.pathname.lastIndexOf('/');
+        var dot = url.pathname.indexOf('.', p+1);
         var ret = request.method === 'GET' &&
             (url.origin === self.location.origin &&
+                dot &&
+                url.pathname.indexOf('sw.js') === -1 &&
                 url.pathname.indexOf('img_') === -1 &&
                 url.pathname.indexOf('/api') === -1 &&
                 url.pathname.indexOf('/maintenance') === -1 &&

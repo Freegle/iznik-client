@@ -129,8 +129,9 @@ define([
             var self = this;
 
             var v = new Iznik.Views.Confirm({
-                model: self.modConfigModel
+                model: self.model
             });
+            v.template = 'modtools_members_removeconfirm';
 
             self.listenToOnce(v, 'confirmed', function() {
                 $.ajax({
@@ -156,8 +157,9 @@ define([
             var self = this;
 
             var v = new Iznik.Views.Confirm({
-                model: self.modConfigModel
+                model: self.model
             });
+            v.template = 'modtools_members_banconfirm';
 
             self.listenToOnce(v, 'confirmed', function() {
                 $.ajax({

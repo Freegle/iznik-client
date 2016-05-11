@@ -876,7 +876,10 @@ define([
 
                 v.render();
             } else {
-                var v = new Iznik.Views.Confirm({});
+                var v = new Iznik.Views.Confirm({
+                    model: message
+                });
+                v.template = 'modtools_message_delconfirm';
 
                 self.listenToOnce(v, 'confirmed', function () {
                     message ? message.delete() : member.delete();
