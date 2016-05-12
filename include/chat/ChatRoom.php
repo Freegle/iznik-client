@@ -31,7 +31,7 @@ class ChatRoom extends Entity
         $message = Swift_Message::newInstance()
             ->setSubject($subject)
             ->setFrom([$from => $fromname])
-            ->setTo(['log@ehibbert.org.uk'])
+            ->setTo([$to])
             ->setBody($text)
             ->addPart($html, 'text/html');
         $headers = $message->getHeaders();
