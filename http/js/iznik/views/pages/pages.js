@@ -68,6 +68,11 @@ define([
                     window.template('user_layout_layout'));
                 $('.js-pageContent').html(this.$el);
                 $('#notifchatdropdown').html(chats);
+                if (chats.length) {
+                    $('#js-notifchat').show();
+                } else {
+                    $('#js-notifchat').hide();
+                }
 
                 if (this.modtools) {
                     // ModTools menu and sidebar.
