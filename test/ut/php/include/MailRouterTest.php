@@ -258,7 +258,7 @@ class MailRouterTest extends IznikTestCase {
 
         $msg = file_get_contents('msgs/spam');
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::YAHOO_APPROVED, 'from1@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -277,7 +277,7 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(0, strpos($spam->getMessageID(), 'GTUBE1.1010101@example.net'));
         assertEquals($msg, $spam->getMessage());
         assertEquals(Message::YAHOO_APPROVED, $spam->getSource());
-        assertEquals('from@test.com', $spam->getEnvelopefrom());
+        assertEquals('from1@test.com', $spam->getEnvelopefrom());
         assertEquals('to@test.com', $spam->getEnvelopeto());
         assertNotNull($spam->getTextbody());
         assertNull($spam->getHtmlbody());
@@ -334,7 +334,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents('msgs/spam');
         $msg = str_replace('Precedence: junk', 'X-Freegle-IP: 1.2.3.4', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::YAHOO_APPROVED, 'from1@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
@@ -485,7 +485,7 @@ class MailRouterTest extends IznikTestCase {
         # Force a TN message to spam
         $msg = file_get_contents('msgs/tn');
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::YAHOO_PENDING, 'from1@test.com', 'to@test.com', $msg);
         list($id, $already) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
@@ -545,7 +545,7 @@ class MailRouterTest extends IznikTestCase {
             ->getMock();
         $r->method('markAsSpam')->willReturn(false);
 
-        $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $r->received(Message::YAHOO_APPROVED, 'from1@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::FAILURE, $rc);
 

@@ -228,7 +228,7 @@ class messagesTest extends IznikAPITestCase {
         $msg = file_get_contents('msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::YAHOO_PENDING, 'from1@test.com', 'to@test.com', $msg);
         error_log("Spam msgid $id");
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
