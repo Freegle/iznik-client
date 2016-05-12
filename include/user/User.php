@@ -2051,4 +2051,15 @@ class User extends Entity
 
         return($rc);
     }
+
+    public static function getUnsubLink($id) {
+        return("https://" . SITE_HOST . "/unsubscribe/$id");
+    }
+    
+    public static function listUnsubscribe($id) {
+        # Generates the value for the List-Unsubscribe header field.
+        $host = $_SERVER && array_key_exists('HTTP_HOST', $_SERVER) ? $_SERVER['HTTP_HOST'] : 'iznik.modtools.org';
+        $ret = "<mailto:unsubscribe-$id@" . USER_DOMAIN . ">, <" . User::getUnsubLink($id) .">";
+        return($ret);
+    }
 }

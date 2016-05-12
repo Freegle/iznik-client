@@ -77,7 +77,8 @@ X-YGroups-SubInfo: t=1;f=768;g=QATvcHEwJKriyTpzUQABGdMYdONdWwHNKmUl-dyJOgrbvebNd
 Content-Type: text/plain; format=flowed; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-Hey.
+Hey.  This is a test message widely used in the unit test.
+
 --------=_MB3F4E24FD-EFD6-48C1-97A3-F6120856B490
 Content-Type: text/html; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
@@ -94,6 +95,7 @@ t: normal; font-style: normal; white-space: pre-wrap; }
 a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 .plain pre, .plain tt {font-family: Tahoma;font-size: 12pt;}</STYLE>
 </HEAD>
-<BODY>Hey.</BODY></HTML>
+<BODY>Hey.  This is a test message widely used in the unit test.
+</BODY></HTML>
 --------=_MB3F4E24FD-EFD6-48C1-97A3-F6120856B490--
 

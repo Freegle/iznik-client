@@ -103,6 +103,7 @@ define([
             "give/whatisit": "userGiveWhatIsIt",
             "give/whoami": "userGiveWhoAmI",
             "give/whatnext": "userWhatNext",
+            "unsubscribe(/:id)": "unsubscribe",
             "post": "userHome", // legacy route
             "*path": "userHome"
         },
@@ -224,6 +225,15 @@ define([
 
             require(["iznik/views/pages/user/give"], function() {
                 var page = new Iznik.Views.User.Pages.Give.WhatNext();
+                self.loadRoute({page: page});
+            });
+        },
+
+        unsubscribe: function () {
+            var self = this;
+
+            require(["iznik/views/pages/user/unsubscribe"], function() {
+                var page = new Iznik.Views.User.Pages.Unsubscribe();
                 self.loadRoute({page: page});
             });
         },

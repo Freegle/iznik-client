@@ -26,9 +26,18 @@ class ChatRoom extends Entity
         $this->log = new Log($dbhr, $dbhm);
     }
 
-    # Default mailer is to use the standard PHP one, but this can be overridden in UT.
-    public function mailer() {
-        call_user_func_array('mail', func_get_args());
+    # his can be overridden in UT.
+    public function constructMessage($id, $to, $fromname, $from, $subject, $text, $html) {
+        $message = Swift_Message::newInstance()
+            ->setSubject($subject)
+            ->setFrom([$from => $fromname])
+            ->setTo(['log@ehibbert.org.uk'])
+            ->setBody($text)
+            ->addPart($html, 'text/html');
+        $headers = $message->getHeaders();
+        $headers->addTextHeader('List-Unsubscribe', User::listUnsubscribe($id));
+
+        return($message);
     }
 
     /**
@@ -411,6 +420,9 @@ class ChatRoom extends Entity
         $chats = $this->dbhr->preQuery($sql, [ $start ]);
         $notified = 0;
 
+        $transport = Swift_SmtpTransport::newInstance();
+        $mailer = Swift_Mailer::newInstance($transport);
+
         foreach ($chats as $chat) {
             # Different members of the chat might have seen different messages.
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
@@ -465,15 +477,20 @@ class ChatRoom extends Entity
                 #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
                 #   added.
                 $url = "https://www.google.com";
-                $msg = chat_notify($chatatts['modtools'] ? MODLOGO : USERLOGO, $fromname, $url, $textsummary, $htmlsummary);
+                $html = chat_notify($chatatts['modtools'] ? MODLOGO : USERLOGO, $fromname, $url,
+                    $htmlsummary, User::getUnsubLink($member['userid']));
 
                 # We ask them to reply to an email address which will direct us back to this chat.
-                $replyto = 'notify-' . $this->id . '-' . $member['userid'] . '@' . USER_DOMAIN;
+                $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
                 $to = $thisu->getEmails()[0];
 
-                $headers = "From: $fromname <$replyto>\nContent-Type: multipart/alternative; boundary=\"_I_Z_N_I_K_\"\nMIME-Version: 1.0";
+                $message = $this->constructMessage($member['userid'], $to['email'], $fromname, $replyto, $subject, $textsummary, $html);
+                try {
+                    $mailer->send($message);
+                } catch (Exception $e) {
+                    error_log("Send failed with " . $e->getMessage());
+                }
 
-                $this->mailer($to['email'], $subject, $msg, $headers, "-f$replyto");
                 $notified++;
             }
         }

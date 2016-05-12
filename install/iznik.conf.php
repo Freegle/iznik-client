@@ -34,6 +34,7 @@ define('PHEANSTALK_SERVER', '127.0.0.1');
 define('USER_GROUP_OVERRIDE', 'FreeglePlayground');
 
 $host = $_SERVER && array_key_exists('HTTP_HOST', $_SERVER) ? $_SERVER['HTTP_HOST'] : 'iznik.modtools.org';
+define('SITE_HOST', $host);
 
 switch($host) {
     case 'iznik.modtools.org':

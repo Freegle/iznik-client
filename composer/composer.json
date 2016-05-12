@@ -20,6 +20,7 @@
     "google/apiclient": "^1.1",
     "jenssegers/imagehash": "^0.4.0",
     "phpunit/phpunit-selenium": "^3.0",
-    "facebook/webdriver": "^1.1"
+    "facebook/webdriver": "^1.1",
+    "swiftmailer/swiftmailer": "@stable"
   }
 }
