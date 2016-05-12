@@ -334,7 +334,7 @@ self.addEventListener('fetch', function(event) {
         var dot = url.pathname.indexOf('.', p+1);
         var ret = request.method === 'GET' &&
             (url.origin === self.location.origin &&
-                dot &&
+                dot != -1 &&
                 url.pathname.indexOf('sw.js') === -1 &&
                 url.pathname.indexOf('img_') === -1 &&
                 url.pathname.indexOf('/api') === -1 &&
