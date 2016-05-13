@@ -53,7 +53,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
 
         // Before we do anything else, get our service worker up and running.  This will allow us to do better
         // caching where the browser supports them.
-        var serviceWorker;
+        var serviceWorker = null;
 
         if ('serviceWorker' in navigator) {
             // Use our version so that we will add a new service worker when the code changes.

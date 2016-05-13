@@ -127,23 +127,23 @@ define([
                             localStorage.setItem('session', JSON.stringify(ret));
                         } catch (e) {
                         }
-                        //console.log("Logged in");
                         self.set(ret);
 
-                        console.log("Got service worker?", 'serviceWorker' in navigator);
-                        
-                        if ('serviceWorker' in navigator) {
+                        if (serviceWorker) {
                             // Try to get push notification permissions.
                             // TODO Do this at an appropriate point, not here.
                             try {
-                                navigator.serviceWorker.pushManager.getSubscription().then(function (subscription) {
+                                serviceWorker.pushManager.getSubscription().then(function (subscription) {
                                     if (!subscription) {
                                         var p = serviceWorker.pushManager.subscribe({
                                             userVisibleOnly: true
                                         });
                                         pushManagerPromise = p;
                                         p.then(self.gotSubscription, function (error) {
-                                            console.log("Subscribe error", error);
+                                            if (error.indexOf("permission denied") == -1) {
+                                                // Permission denied is normal.
+                                                console.log("Subscribe error", error);
+                                            }
                                         });
                                     } else {
                                         self.gotSubscription(subscription);
