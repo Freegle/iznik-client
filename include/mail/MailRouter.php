@@ -532,7 +532,7 @@ class MailRouter
                             if ($rid) {
                                 # And now add our text into the chat room as a message.  This will notify them.
                                 $m = new ChatMessage($this->dbhr, $this->dbhm);
-                                $mid = $m->create($rid, $this->msg->getFromuser(), $textbody, ChatMessage::TYPE_INTERESTED, $this->msg->getID());
+                                $mid = $m->create($rid, $this->msg->getFromuser(), $textbody, ChatMessage::TYPE_INTERESTED, $this->msg->getID(), FALSE);
                                 #error_log("Created chat message $mid");
                             }
                         }

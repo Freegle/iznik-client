@@ -35,14 +35,15 @@ class ChatMessage extends Entity
         $this->dbhm = $dbhm;
     }
 
-    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL) {
+    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE) {
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid) VALUES (?,?,?,?,?)", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform) VALUES (?,?,?,?,?,?)", [
                 $chatid,
                 $userid,
                 $message,
                 $type,
-                $refmsgid
+                $refmsgid,
+                $platform
             ]);
 
             $id = $this->dbhm->lastInsertId();

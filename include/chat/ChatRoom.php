@@ -417,7 +417,7 @@ class ChatRoom extends Entity
         # members - which is a much smaller set.
         $start = date('Y-m-d', strtotime("midnight 2 weeks ago"));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
-        $sql = "SELECT DISTINCT chatid FROM chat_messages  INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= '$start' AND seenbyall = 0 AND modtools = 0 $chatq;";
+        $sql = "SELECT DISTINCT chatid FROM chat_messages  INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= '$start' AND seenbyall = 0 AND modtools = 0 AND platform = 1 $chatq;";
         $chats = $this->dbhr->preQuery($sql, [ $start ]);
         $notified = 0;
 

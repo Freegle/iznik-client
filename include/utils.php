@@ -406,3 +406,27 @@ function randstr($length = 10) {
     }
     return $randomString;
 }
+
+function lockScript($fn) {
+    $lock = "/tmp/iznik_lock_$fn.lock";
+    error_log("Lockfile $lock");
+    $lockh = fopen($lock, 'wa');
+
+    try {
+        $block = 0;
+
+        if (!flock($lockh, LOCK_EX | LOCK_NB, $block)) {
+            exit(0);
+        }
+    } catch (Exception $e) {
+        error_log("Top-level exception " . $e->getMessage() . "\n");
+        exit(0);
+    }
+
+    return($lockh);
+}
+
+function unlockScript($lockh) {
+    flock($lockh, LOCK_UN);
+    fclose($lockh);
+}
