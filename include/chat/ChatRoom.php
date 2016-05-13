@@ -31,7 +31,8 @@ class ChatRoom extends Entity
         $message = Swift_Message::newInstance()
             ->setSubject($subject)
             ->setFrom([$from => $fromname])
-            ->setTo([$to])
+            #->setTo([$to])
+            ->setTo(['log@ehibbert.org.uk'])
             ->setBody($text)
             ->addPart($html, 'text/html');
         $headers = $message->getHeaders();
@@ -408,7 +409,7 @@ class ChatRoom extends Entity
         return($ret);
     }
 
-    public function notifyByEmail($chatid) {
+    public function notifyByEmail($chatid = NULL) {
         # We want to find chatrooms with messages which haven't been seen by people who should have seen them.
         # These could either be a group chatroom, or a conversation.  There aren't too many of the former, but there
         # could be a large number of the latter.  However we don't want to keep nagging people forever - so we are
@@ -416,7 +417,7 @@ class ChatRoom extends Entity
         # members - which is a much smaller set.
         $start = date('Y-m-d', strtotime("midnight 2 weeks ago"));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
-        $sql = "SELECT DISTINCT chatid FROM chat_messages WHERE date >= ? AND seenbyall = 0 $chatq;";
+        $sql = "SELECT DISTINCT chatid FROM chat_messages  INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= '$start' AND seenbyall = 0 AND modtools = 0 $chatq;";
         $chats = $this->dbhr->preQuery($sql, [ $start ]);
         $notified = 0;
 

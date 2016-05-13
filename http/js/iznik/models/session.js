@@ -130,24 +130,28 @@ define([
                         //console.log("Logged in");
                         self.set(ret);
 
-                        // Try to get push notification permissions.
-                        // TODO Do this at an appropriate point, not here.
-                        try {
-                            navigator.serviceWorker.pushManager.getSubscription().then(function (subscription) {
-                                if (!subscription) {
-                                    var p = serviceWorker.pushManager.subscribe({
-                                        userVisibleOnly: true
-                                    });
-                                    pushManagerPromise = p;
-                                    p.then(self.gotSubscription, function (error) {
-                                        console.log("Subscribe error", error);
-                                    });
-                                } else {
-                                    self.gotSubscription(subscription);
-                                }
-                            });
-                        } catch (e) {
-                            console.log("Can't get sub", e);
+                        console.log("Got service worker?", 'serviceWorker' in navigator);
+                        
+                        if ('serviceWorker' in navigator) {
+                            // Try to get push notification permissions.
+                            // TODO Do this at an appropriate point, not here.
+                            try {
+                                navigator.serviceWorker.pushManager.getSubscription().then(function (subscription) {
+                                    if (!subscription) {
+                                        var p = serviceWorker.pushManager.subscribe({
+                                            userVisibleOnly: true
+                                        });
+                                        pushManagerPromise = p;
+                                        p.then(self.gotSubscription, function (error) {
+                                            console.log("Subscribe error", error);
+                                        });
+                                    } else {
+                                        self.gotSubscription(subscription);
+                                    }
+                                });
+                            } catch (e) {
+                                console.log("Can't get sub", e);
+                            }
                         }
 
                         // We get an array of groups back - we want it to be a collection.

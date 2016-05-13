@@ -2,6 +2,8 @@
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
 function chat_notify($logo, $fromname, $reply, $htmlsummary, $unsub) {
+    $siteurl = "https://" . SITE_HOST;
+
     $html = <<<EOT
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -84,7 +86,9 @@ function chat_notify($logo, $fromname, $reply, $htmlsummary, $unsub) {
                                                             <table class="mobileOff" width="120" cellpadding="0" cellspacing="0" border="0" class="container" align="left">
                                                                 <tr>
                                                                     <td width="120" style="font-size:12px; line-height:18px;">
-                                                                        <img src="$logo" width="100" height="100" style="border-radius:3px; margin:0; padding:0; border:none; display:block;" alt="" class="imgClass" />
+                                                                        <a href="$siteurl">
+                                                                            <img src="$logo" width="100" height="100" style="border-radius:3px; margin:0; padding:0; border:none; display:block;" alt="" class="imgClass" />
+                                                                        </a>    
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
@@ -134,6 +138,11 @@ function chat_notify($logo, $fromname, $reply, $htmlsummary, $unsub) {
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
+                                                                    <td height="20" style="color: grey; font-size:11px; line-height:18px;">
+                                                                        You can reply to this message by email - but it works better if you
+                                                                        use the button.
+                                                                    </td>
+                                                                <tr>
                                                                     <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
                                                                 </tr>
                                                             </table>
@@ -155,10 +164,6 @@ function chat_notify($logo, $fromname, $reply, $htmlsummary, $unsub) {
                 </tr>
                 <tr>
                     <td height="10" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
-                </tr>
-                <tr>
-                    <td height="20" style="padding-left: 10px; color: grey; font-size:14px; line-height:18px;">You can reply to this message by email - but it works better if you
-                        use the button.</td>
                 </tr>
            </table>
             <!-- End Wrapper  -->

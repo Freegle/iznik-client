@@ -49,6 +49,7 @@ requirejs.config({
         "jquery-ui": "/js/lib/jquery-ui/jquery-ui.min",
         "underscore": "/js/lib/underscore",
         "jquery-show-first": "/js/lib/jquery-show-first",
+        "tinymce": "https://cdn.tinymce.com/4/tinymce.min",
 
         "iznik": "/js/iznik"
     },

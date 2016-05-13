@@ -5,7 +5,6 @@ define([
     'moment',
     'iznik/base',
     'iznik/views/pages/pages',
-    'tinymce.min',
     'jquery-show-first'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Message = Iznik.View.extend({
@@ -741,6 +740,7 @@ define([
 
             self.$('.js-text').val(body);
 
+            console.log("Edit", self.$('.js-text'));
             tinymce.init({
                 selector: '.js-text',
                 height: 300,
@@ -758,14 +758,16 @@ define([
         render: function () {
             var self = this;
 
-            if (self.options.stdmsg) {
-                // Need to fetch as the body is excluded from what is returned in session.
-                self.options.stdmsg.fetch().then(function () {
+            require(['tinymce'], function() {
+                if (self.options.stdmsg) {
+                    // Need to fetch as the body is excluded from what is returned in session.
+                    self.options.stdmsg.fetch().then(function () {
+                        self.expand();
+                    });
+                } else {
                     self.expand();
-                });
-            } else {
-                self.expand();
-            }
+                }
+            })
         }
     });
 

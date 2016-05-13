@@ -145,6 +145,7 @@ define([
                 data: {
                     'grouptype': type
                 }, success: function (ret) {
+                    ret.groups = _.sortBy(ret.groups, function(group) { return group.namedisplay });
                     _.each(ret.groups, function (group) {
                         self.$('.js-grouplist').append('<option value="' + group.id + '"></option>');
                         self.$('.js-grouplist option:last').html(group.namedisplay);
