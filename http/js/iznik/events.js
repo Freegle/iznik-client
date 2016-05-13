@@ -32,13 +32,17 @@ define([
                 type: 'POST',
                 data: {
                     'events': eventQueue
+                }, success: function(ret) {
+                    if (ret.ret === 0) {
+                        eventQueue = [];
+                    }
+                }, complete: function() {
+                    window.setTimeout(flushEventQueue, 5000);
                 }
             });
-
-            eventQueue = [];
+        } else {
+            window.setTimeout(flushEventQueue, 5000);
         }
-
-        window.setTimeout(flushEventQueue, 5000);
     }
 
     // Scan the DOM on a timer and detect changes.

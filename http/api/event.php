@@ -27,6 +27,8 @@ function event() {
                     }
                 }
             }
+
+            $ret = array('ret' => 0, 'status' => 'Success');
             break;
         case 'GET':
             $me = whoAmI($dbhr, $dbhm);
