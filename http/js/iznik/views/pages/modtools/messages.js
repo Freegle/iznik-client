@@ -52,39 +52,41 @@ define([
         saveSubject: function () {
             var self = this;
 
-            self.removeEditors();
-            self.listenToOnce(self.model, 'editfailed', self.editFailed);
-            self.listenToOnce(self.model, 'editsucceeded', self.editSucceeded);
+            require(['tinymce'], function() {
+                self.removeEditors();
+                self.listenToOnce(self.model, 'editfailed', self.editFailed);
+                self.listenToOnce(self.model, 'editsucceeded', self.editSucceeded);
 
-            self.$('.js-savesubj .glyphicon').removeClass('glyphicon-floppy-save glyphicon-warning-sign').addClass('glyphicon-refresh rotate');
+                self.$('.js-savesubj .glyphicon').removeClass('glyphicon-floppy-save glyphicon-warning-sign').addClass('glyphicon-refresh rotate');
 
-            self.listenToOnce(self.model, 'editsucceeded', function () {
-                // If we've just edited, we don't want to display a diffferent subject in the edit box, as that's confusing.
-                self.model.set('suggestedsubject', self.model.get('subject'));
-                self.render();
-            });
-
-            var html = self.model.get('htmlbody');
-
-            if (html) {
-                // Yahoo is quite picky about the HTML that we pass back, and can fail edits.  Passing it through TinyMCE
-                // to sanitise it works for this.
-                $('#js-tinymce').remove();
-                self.$el.append('<textarea class="hidden js-tinymce" id="js-tinymce" />');
-                self.$('#js-tinymce').val(html);
-                tinyMCE.init({
-                    selector: '#js-tinymce'
+                self.listenToOnce(self.model, 'editsucceeded', function () {
+                    // If we've just edited, we don't want to display a diffferent subject in the edit box, as that's confusing.
+                    self.model.set('suggestedsubject', self.model.get('subject'));
+                    self.render();
                 });
 
-                var html = tinyMCE.get('js-tinymce').getContent({format: 'raw'});
-                self.model.set('htmlbody', html);
-            }
+                var html = self.model.get('htmlbody');
 
-            self.model.edit(
-                self.$('.js-subject').val(),
-                self.model.get('textbody'),
-                self.model.get('htmlbody')
-            );
+                if (html) {
+                    // Yahoo is quite picky about the HTML that we pass back, and can fail edits.  Passing it through TinyMCE
+                    // to sanitise it works for this.
+                    $('#js-tinymce').remove();
+                    self.$el.append('<textarea class="hidden js-tinymce" id="js-tinymce" />');
+                    self.$('#js-tinymce').val(html);
+                    tinyMCE.init({
+                        selector: '#js-tinymce'
+                    });
+
+                    var html = tinyMCE.get('js-tinymce').getContent({format: 'raw'});
+                    self.model.set('htmlbody', html);
+                }
+
+                self.model.edit(
+                    self.$('.js-subject').val(),
+                    self.model.get('textbody'),
+                    self.model.get('htmlbody')
+                );
+            });
         },
 
         viewSource: function (e) {
