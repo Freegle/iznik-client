@@ -26,7 +26,7 @@ function prepareSession($dbhr, $dbhm) {
         if (array_key_exists(COOKIE_NAME, $_COOKIE)) {
             # Check our cookie to see if it's a valid session
             $cookie = json_decode($_COOKIE[COOKIE_NAME], true);
-            error_log("Cookie " . var_export($cookie, TRUE));
+            #error_log("Cookie " . var_export($cookie, TRUE));
 
             if ((array_key_exists('id', $cookie)) &&
                 (array_key_exists('series', $cookie)) &&

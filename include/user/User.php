@@ -84,6 +84,33 @@ class User extends Entity
         return(FALSE);
     }
 
+    public function linkLogin($key) {
+        $ret = FALSE;
+
+        if (presdef('id', $_SESSION, NULL) != $this->id) {
+            # We're not already logged in as this user.
+            $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ? AND credentials = ?;";
+            $logins = $this->dbhr->preQuery($sql, [ $this->id, 'Link', $key ]);
+            foreach ($logins as $login) {
+                # We found a match - log them in.
+                $s = new Session($this->dbhr, $this->dbhm);
+                $s->create($this->id);
+
+                $l = new Log($this->dbhr, $this->dbhm);
+                $l->log([
+                    'type' => Log::TYPE_USER,
+                    'subtype' => Log::SUBTYPE_LOGIN,
+                    'byuser' => $this->id,
+                    'text' => 'Using link'
+                ]);
+
+                $ret = TRUE;
+            }
+        }
+
+        return($ret);
+    }
+
     public function getToken() {
         $s = new Session($this->dbhr, $this->dbhm);
         return($s->getToken($this->id));
@@ -2052,14 +2079,40 @@ class User extends Entity
         return($rc);
     }
 
-    public static function getUnsubLink($id) {
-        return("https://" . SITE_HOST . "/unsubscribe/$id");
+    public function getUnsubLink($domain, $id) {
+        return(User::loginLink($domain, $id, "/unsubscribe/$id"));
     }
-    
-    public static function listUnsubscribe($id) {
+
+    public function listUnsubscribe($domain, $id) {
         # Generates the value for the List-Unsubscribe header field.
-        $host = $_SERVER && array_key_exists('HTTP_HOST', $_SERVER) ? $_SERVER['HTTP_HOST'] : 'iznik.modtools.org';
-        $ret = "<mailto:unsubscribe-$id@" . USER_DOMAIN . ">, <" . User::getUnsubLink($id) .">";
+        $ret = "<mailto:unsubscribe-$id@" . USER_SITE . ">, <" . $this->getUnsubLink($domain, $id) .">";
         return($ret);
+    }
+
+    public function loginLink($domain, $id, $url = '/') {
+        # Get a per-user link we can use to log in without a password.
+        $key = NULL;
+        $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ?;";
+        $logins = $this->dbhr->preQuery($sql, [ $id, 'Link' ]);
+        foreach ($logins as $login) {
+            $key = $login['credentials'];
+        }
+
+        if (!$key) {
+            $key = randstr(32);
+            $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, type, credentials) VALUES (?,?,?);", [
+                $id,
+                'Link',
+                $key
+            ]);
+
+            # If this didn't work, we still return an URL - worst case they'll have to sign in.
+            $key = $rc ? $key : NULL;
+        }
+
+        $p = strpos($url, '?');
+        $url = $p === FALSE ? ("https://$domain$url?u=$id&k=$key") : ("https://" . SITE_HOST . "$url&u=$id&k=$key");
+
+        return($url);
     }
 }

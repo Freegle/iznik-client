@@ -8,6 +8,7 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/session/Yahoo.php');
+require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . "/lib/JSMin.php");
 
 global $dbhr, $dbhm;
@@ -23,6 +24,22 @@ if (pres('REQUEST_URI', $_SERVER) == 'yahoologin') {
     $y->login(get_current_url());
 }
 include_once(BASE_DIR . '/include/misc/pageheader.php');
+
+# Depending on rewrites we might not have set up $_REQUEST.
+if (strpos($_SERVER['REQUEST_URI'], '?') !== FALSE) {
+    list($path, $qs) = explode("?", $_SERVER["REQUEST_URI"], 2);
+    parse_str($qs, $qss);
+    $_REQUEST = array_merge($_REQUEST, $qss);
+}
+
+# Check if we are fetching this url with a key which allows us to auto-login a user.
+$uid = presdef('u', $_REQUEST, NULL);
+$key = presdef('k', $_REQUEST, NULL);
+if ($uid && $key) {
+    $u = new User($dbhr, $dbhm, $uid);
+    $u->linkLogin($key);
+}
+
 ?>
 <body style="background-colour: #dff2d1;">
 <noscript>

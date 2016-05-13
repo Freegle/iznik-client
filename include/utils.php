@@ -409,7 +409,6 @@ function randstr($length = 10) {
 
 function lockScript($fn) {
     $lock = "/tmp/iznik_lock_$fn.lock";
-    error_log("Lockfile $lock");
     $lockh = fopen($lock, 'wa');
 
     try {

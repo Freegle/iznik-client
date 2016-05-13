@@ -33,6 +33,12 @@ define('PHEANSTALK_SERVER', '127.0.0.1');
 # You can force all user activity onto a test group
 define('USER_GROUP_OVERRIDE', 'FreeglePlayground');
 
+# The domain for users to access.
+define('USER_SITE', 'iznik.ilovefreegle.org');
+
+# The domain for mods to access.
+define('MOD_SITE', 'modtools.org');
+
 $host = $_SERVER && array_key_exists('HTTP_HOST', $_SERVER) ? $_SERVER['HTTP_HOST'] : 'iznik.modtools.org';
 define('SITE_HOST', $host);
 

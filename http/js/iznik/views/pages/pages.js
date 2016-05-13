@@ -13,6 +13,37 @@ define([
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
 
+    function logout() {
+        try {
+            // We might be signed in to Google.  Make sure we're not.
+            gapi.auth.signOut();
+            console.log("Google signed out");
+            var GoogleLoad = new Iznik.Views.GoogleLoad();
+            GoogleLoad.disconnectUser();
+            console.log("Google access token revoked");
+        } catch (e) {
+            console.log("Google signout failed", e);
+        };
+
+        $.ajax({
+            url: API + 'session',
+            type: 'POST',
+            headers: {
+                'X-HTTP-Method-Override': 'DELETE'
+            },
+            complete: function () {
+                // Zap our session cache - we're no longer logged in.
+                try {
+                    localStorage.removeItem('session');
+                } catch (e) {
+                }
+
+                // Force reload of window to clear any data.
+                window.location = window.location.protocol + '//' + window.location.host;
+            }
+        })
+    }
+
     Iznik.Views.Page = Iznik.View.extend({
         modtools: false,
 
@@ -29,6 +60,11 @@ define([
                 modtools: this.modtools
             });
             sign.render();
+        },
+
+        logout: function() {
+            console.log("logout");
+            logout();
         },
 
         render: function (options) {
@@ -144,6 +180,10 @@ define([
                 if (this.signin) {
                     $('#bodyContent .js-signin').click(_.bind(this.signin, this));
                 }
+
+                $('.js-logout').click(function() {
+                    logout();
+                });
             // } catch (e) {
             //     console.error("Page render failed", e.message);
             // }
@@ -162,34 +202,7 @@ define([
         },
 
         logout: function () {
-            try {
-                // We might be signed in to Google.  Make sure we're not.
-                gapi.auth.signOut();
-                console.log("Google signed out");
-                var GoogleLoad = new Iznik.Views.GoogleLoad();
-                GoogleLoad.disconnectUser();
-                console.log("Google access token revoked");
-            } catch (e) {
-                console.log("Google signout failed", e);
-            };
-
-            $.ajax({
-                url: API + 'session',
-                type: 'POST',
-                headers: {
-                    'X-HTTP-Method-Override': 'DELETE'
-                },
-                complete: function () {
-                    // Zap our session cache - we're no longer logged in.
-                    try {
-                        localStorage.removeItem('session');
-                    } catch (e) {
-                    }
-
-                    // Force reload of window to clear any data.
-                    window.location = window.location.protocol + '//' + window.location.host + '/modtools?signedout';
-                }
-            })
+            logout();
         },
 
         render: function () {

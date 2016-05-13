@@ -27,7 +27,7 @@ class ChatRoom extends Entity
     }
 
     # his can be overridden in UT.
-    public function constructMessage($id, $to, $fromname, $from, $subject, $text, $html) {
+    public function constructMessage(User $u, $id, $to, $fromname, $from, $subject, $text, $html) {
         $message = Swift_Message::newInstance()
             ->setSubject($subject)
             ->setFrom([$from => $fromname])
@@ -36,7 +36,7 @@ class ChatRoom extends Entity
             ->setBody($text)
             ->addPart($html, 'text/html');
         $headers = $message->getHeaders();
-        $headers->addTextHeader('List-Unsubscribe', User::listUnsubscribe($id));
+        $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $id));
 
         return($message);
     }
@@ -409,7 +409,7 @@ class ChatRoom extends Entity
         return($ret);
     }
 
-    public function notifyByEmail($chatid = NULL) {
+    public function notifyByEmail($chatid = NULL, $user = TRUE) {
         # We want to find chatrooms with messages which haven't been seen by people who should have seen them.
         # These could either be a group chatroom, or a conversation.  There aren't too many of the former, but there
         # could be a large number of the latter.  However we don't want to keep nagging people forever - so we are
@@ -417,7 +417,8 @@ class ChatRoom extends Entity
         # members - which is a much smaller set.
         $start = date('Y-m-d', strtotime("midnight 2 weeks ago"));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
-        $sql = "SELECT DISTINCT chatid FROM chat_messages  INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= '$start' AND seenbyall = 0 AND modtools = 0 AND platform = 1 $chatq;";
+        $modq = $user ? 0 : 1;
+        $sql = "SELECT DISTINCT chatid FROM chat_messages  INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= '$start' AND seenbyall = 0 AND modtools = $modq AND platform = 1 $chatq;";
         $chats = $this->dbhr->preQuery($sql, [ $start ]);
         $notified = 0;
 
@@ -450,9 +451,11 @@ class ChatRoom extends Entity
                 $textsummary = '';
                 $htmlsummary = '';
                 foreach ($unseenmsgs as $unseenmsg) {
-                    $thisone = $unseenmsg['message'];
-                    $textsummary .= $thisone . "\r\n";
-                    $htmlsummary .= $thisone . "<br>";
+                    if (pres('message', $unseenmsg)) {
+                        $thisone = $unseenmsg['message'];
+                        $textsummary .= $thisone . "\r\n";
+                        $htmlsummary .= $thisone . "<br>";
+                    }
                 }
 
                 # As a subject, we should use the last referenced message in this chat.
@@ -477,15 +480,16 @@ class ChatRoom extends Entity
                 #   it's less likely that they will interleave their response inside it - they will probably reply at
                 #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
                 #   added.
-                $url = "https://www.google.com";
-                $html = chat_notify($chatatts['modtools'] ? MODLOGO : USERLOGO, $fromname, $url,
-                    $htmlsummary, User::getUnsubLink($member['userid']));
+                $site = $chatatts['modtools'] ? MOD_SITE : USER_SITE;
+                $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid']);
+                $html = chat_notify($site, $chatatts['modtools'] ? MODLOGO : USERLOGO, $fromname, $url,
+                    $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
 
                 # We ask them to reply to an email address which will direct us back to this chat.
                 $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
                 $to = $thisu->getEmails()[0];
 
-                $message = $this->constructMessage($member['userid'], $to['email'], $fromname, $replyto, $subject, $textsummary, $html);
+                $message = $this->constructMessage($thisu, $member['userid'], $to['email'], $fromname, $replyto, $subject, $textsummary, $html);
                 try {
                     $mailer->send($message);
                 } catch (Exception $e) {

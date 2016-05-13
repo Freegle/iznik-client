@@ -1,8 +1,8 @@
 <?php
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function chat_notify($logo, $fromname, $reply, $htmlsummary, $unsub) {
-    $siteurl = "https://" . SITE_HOST;
+function chat_notify($domain, $logo, $fromname, $reply, $htmlsummary, $unsub) {
+    $siteurl = "https://$domain";
 
     $html = <<<EOT
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
