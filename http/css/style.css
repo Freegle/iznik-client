@@ -895,6 +895,17 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     -ms-transform: scaleY(-1);
 }
 
+@-webkit-keyframes pulsebox
+{
+    0%   {background-color: white !important;}
+    50%  {background-color: #4895DD !important;}
+    100% {background-color: white !important;}
+}
+
+.pulsebox {
+    -webkit-animation: pulsebox 4s 5;
+}
+
 .subjectdifference {
     border-color: #eb9316;
     border-radius: 6px;
@@ -1055,6 +1066,19 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     height: 300px;
     width: 300px;
     bottom: 0;
+    animation: chatIn 3s;
+    transform-origin: right bottom;
+}
+
+@keyframes chatIn {
+    0% {
+        transform: scale(0.1);
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .chat-content {

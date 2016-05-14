@@ -346,6 +346,7 @@ define([
                         });
 
                         Iznik.minimisedChats.render();
+                        Iznik.Session.trigger('chatsfetched');
                     })
 
                     self.organise();
@@ -609,9 +610,17 @@ define([
             } catch (e) {}
         },
 
-        restore: function() {
+        restore: function(large) {
             var self = this;
             self.minimised = false;
+
+            if (large) {
+                // We want a larger and more prominent chat.
+                try {
+                    localStorage.setItem(this.lsID() + '-height', Math.floor(window.innerHeight * 2 / 3));
+                    localStorage.setItem(this.lsID() + '-width', Math.floor(window.innerWidth * 2 / 3));
+                } catch (e) {}
+            }
 
             // Restore the window first, so it feels zippier.
             self.setSize();
@@ -631,10 +640,12 @@ define([
             } catch (e) {
             }
 
+            self.listenTo(self.messages, 'add', _.bind(function() {
+                _.defer(this.scrollBottom);
+            }, self));
+
             // We fetch the messages when restoring - no need before then.
             self.messages.fetch().then(function() {
-                self.scrollBottom();
-
                 // We've just opened this chat - so we have had a decent chance to see any unread messages.
                 self.messageFocus();
 
@@ -648,6 +659,7 @@ define([
                 var msglist = self.$('.js-messages');
                 var height = msglist[0].scrollHeight;
                 msglist.scrollTop(height);
+                console.log("Scroll to ", height);
             }, 100);
         },
 

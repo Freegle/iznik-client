@@ -2,6 +2,14 @@
 //
 // If you add a standard jQuery plugin in here which is not AMD-compatible, then it also needs to go in
 // requirejs-setup as a shim.
+window.onerror = function(e) {
+    // This is here primarily because if we update our service worker then we can get errors on the script files.
+    console.log("Global error", e);
+    window.setTimeout(function() {
+        window.location.reload();
+    }, 1000);
+}
+
 define([
     'jquery',
     'backbone',

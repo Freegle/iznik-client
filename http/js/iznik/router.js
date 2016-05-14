@@ -30,7 +30,7 @@ define([
     'iznik/views/pages/modtools/messages'
 ], function($, _, Backbone, Iznik) {
     Iznik.Session = new Iznik.Models.Session();
-    
+
     Iznik.Session.askedPush = false;
 
     var IznikRouter = Backbone.Router.extend({
@@ -107,6 +107,7 @@ define([
             "give/whatnext": "userWhatNext",
             "unsubscribe(/:id)": "unsubscribe",
             "post": "userHome", // legacy route
+            "chat/:id": "userChat",
             "*path": "userHome"
         },
 
@@ -163,6 +164,21 @@ define([
 
                 Iznik.Session.testLoggedIn();
             }
+        },
+
+        userChat: function(chatid) {
+            console.log("user chat");
+            var self = this;
+            self.listenToOnce(Iznik.Session, 'chatsfetched', function() {
+                console.log("Chats fetched");
+                var chatmodel = Iznik.Session.chats.get(chatid);
+                var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
+                console.log("Fetch chat", chatid, chatmodel, chatView);
+                chatView.restore(true);
+                chatView.focus();
+            });
+            
+            self.userHome();
         },
 
         userFindWhereAmI: function () {
