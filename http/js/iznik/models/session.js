@@ -123,16 +123,25 @@ define([
                         window.location = '/maintenance_on.html';
                     } else if ((ret.ret == 0)) {
                         // Save off the returned session information into local storage.
+                        var lastasked = null;
+                        var now = (new Date()).getTime();
                         try {
                             localStorage.setItem('session', JSON.stringify(ret));
+                            lastasked = localStorage.getItem('lastAskedPush');
                         } catch (e) {
                         }
                         self.set(ret);
 
-                        if (serviceWorker) {
+                        // Don't ask for push notif permissions too often.
+                        if (serviceWorker && !Iznik.Session.askedPush && (!lastasked || now - lastasked > 7 * 24 * 60 * 60 * 1000)) {
                             // Try to get push notification permissions.
                             // TODO Do this at an appropriate point, not here.
                             try {
+                                //Iznik.Session.askedPush = true;
+                                try {
+                                    localStorage.setItem('lastAskedPush', now);
+                                } catch (e) {}
+                                
                                 serviceWorker.pushManager.getSubscription().then(function (subscription) {
                                     if (!subscription) {
                                         var p = serviceWorker.pushManager.subscribe({

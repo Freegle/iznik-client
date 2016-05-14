@@ -172,7 +172,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
         $ret = $this->call('memberships', 'GET', [
             'groupid' => $this->groupid,
-            'search' => 'st U'
+            'search' => 'Test U'
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['members']));
@@ -197,7 +197,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
         # Search across all groups.
         $ret = $this->call('memberships', 'GET', [
-            'search' => 'est@test'
+            'search' => 'test@test'
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['members']));

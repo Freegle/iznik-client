@@ -35,9 +35,8 @@ define([
                 }, success: function(ret) {
                     if (ret.ret === 0) {
                         eventQueue = [];
+                        window.setTimeout(flushEventQueue, 5000);
                     }
-                }, complete: function() {
-                    window.setTimeout(flushEventQueue, 5000);
                 }
             });
         } else {

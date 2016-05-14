@@ -9,7 +9,7 @@ global $dbhr, $dbhm;
 
 use Pheanstalk\Pheanstalk;
 
-$lockh = lockScript(__FILE__);
+$lockh = lockScript(basename(__FILE__));
 
 try {
     $pheanstalk = new Pheanstalk('127.0.0.1');

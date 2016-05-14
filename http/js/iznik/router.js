@@ -30,6 +30,8 @@ define([
     'iznik/views/pages/modtools/messages'
 ], function($, _, Backbone, Iznik) {
     Iznik.Session = new Iznik.Models.Session();
+    
+    Iznik.Session.askedPush = false;
 
     var IznikRouter = Backbone.Router.extend({
         initialize: function () {

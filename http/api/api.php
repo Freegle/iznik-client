@@ -109,7 +109,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             # Repeat logins are OK.
             #
             # So are correlations, which are repeatable without ill effects.
-            if (($call != 'session') && ($call != 'correlate') && ($call != 'chatrooms') &&
+            if (($call != 'session') && ($call != 'correlate') && ($call != 'chatrooms') && ($call != 'events') &&
                 array_key_exists('POSTLASTTIME', $_SESSION)) {
                 $ago = time() - $_SESSION['POSTLASTTIME'];
 
