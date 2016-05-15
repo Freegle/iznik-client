@@ -656,11 +656,11 @@ define([
         scrollBottom: function() {
             var self = this;
             _.delay(function() {
-                var msglist = self.$('.js-messages');
-                var height = msglist[0].scrollHeight;
-                msglist.scrollTop(height);
-                console.log("Scroll to ", height);
-            }, 100);
+            var msglist = self.$('.js-messages');
+            var height = msglist[0].scrollHeight;
+            msglist.scrollTop(height);
+            console.log("Scroll to ", height);
+            }, 1000);
         },
 
         dragend: function(event, el, opt) {

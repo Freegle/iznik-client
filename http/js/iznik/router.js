@@ -170,10 +170,8 @@ define([
             console.log("user chat");
             var self = this;
             self.listenToOnce(Iznik.Session, 'chatsfetched', function() {
-                console.log("Chats fetched");
                 var chatmodel = Iznik.Session.chats.get(chatid);
                 var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
-                console.log("Fetch chat", chatid, chatmodel, chatView);
                 chatView.restore(true);
                 chatView.focus();
             });
