@@ -129,9 +129,10 @@ define([
             });
 
             // Show and update the reply details.
-            if ( self.$('.js-replies').length > 0) {
+            var replies = self.model.get('replies');
+            if (replies.length > 0) {
                 self.$('.js-noreplies').hide();
-                self.replies = new Iznik.Collection(self.model.get('replies'));
+                self.replies = new Iznik.Collection(replies);
                 self.listenTo(self.model, 'change:replies', self.updateReplies);
                 self.updateReplies();
 
