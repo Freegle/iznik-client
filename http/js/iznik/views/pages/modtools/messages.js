@@ -691,10 +691,22 @@ define([
                 var stdbody = self.options.stdmsg.get('body');
 
                 if (stdbody) {
-                    body = stdbody + '<br><br>' + body;
+                    if (self.options.stdmsg.get('insert') == 'Top') {
+                        body = stdbody + '<br><br>' + body;
+                    } else {
+                        body = body + '<br><br>' + stdbody;
+                    }
                 }
 
                 var subj = self.model.get('subject');
+
+                if (self.options.stdmsg && self.options.stdmsg.get('edittext') == 'Correct Case') {
+                    // First the subject, if it's easy to parse.
+                    var matches = /(.*?)\:([^)].*)\((.*)\)/.exec(subj);
+                    if (matches && matches.length > 0 && matches[0].length > 0) {
+                        subj = matches[1] + ':' + matches[2].toLowerCase().trim() + '(' + matches[3] + ')';
+                    }
+                }
 
                 if (subjpref) {
                     subj = subjpref + subj;
@@ -708,6 +720,7 @@ define([
             }
 
             if (self.options.stdmsg && self.options.stdmsg.get('edittext') == 'Correct Case') {
+                // Now the body.
                 body = body.toLowerCase();
 
                 // Contentious choice of single space

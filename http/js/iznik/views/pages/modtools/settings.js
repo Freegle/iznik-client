@@ -1006,6 +1006,15 @@ define([
                         control: 'input'
                     },
                     {
+                        name: 'insert',
+                        label: 'Insert text',
+                        control: 'select',
+                        options: [
+                            {label: 'Top', value: 'Top'},
+                            {label: 'Bottom', value: 'Bottom'}
+                        ]
+                    },
+                    {
                         name: 'body',
                         label: 'Message Body',
                         control: 'textarea',

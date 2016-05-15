@@ -8,6 +8,7 @@ define([
     // issues.
     var lastEventTimestamp = null;
     var eventQueue = [];
+    var flushTimerRunning;
 
     function trackEvent(target, event, posX, posY, data) {
         var data = {
@@ -26,7 +27,13 @@ define([
     }
 
     function flushEventQueue() {
+        flushTimerRunning = false;
+
         if (eventQueue.length > 0) {
+            // If we fail, we'll lose events.  Oh well.
+            var currQueue = eventQueue;
+            eventQueue = [];
+
             $.ajax({
                 url: API + 'event',
                 type: 'POST',
@@ -34,13 +41,22 @@ define([
                     'events': eventQueue
                 }, success: function(ret) {
                     if (ret.ret === 0) {
-                        eventQueue = [];
-                        window.setTimeout(flushEventQueue, 5000);
+                        if (!flushTimerRunning) {
+                            console.log("Start monitor timer 1");
+                            flushTimerRunning = true;
+                            window.setTimeout(flushEventQueue, 5000);
+                        } else {
+                            console.log("Monitor timer already running 1");
+                        }
                     }
                 }
             });
-        } else {
+        } else if (!flushTimerRunning) {
+            console.log("Start monitor timer 2");
+            flushTimerRunning = true;
             window.setTimeout(flushEventQueue, 5000);
+        } else {
+            console.log("Monitor timer already running 2");
         }
     }
 
@@ -174,11 +190,7 @@ define([
                     }
                 }, self));
 
-                // If we reload, we'd like to flush out the events first.
-                $(window).on('mousedown', function (e) {
-                    flushEventQueue();
-                });
-
+                flushTimerRunning = true;
                 window.setTimeout(flushEventQueue, 5000);
 
                 this.startTimer();

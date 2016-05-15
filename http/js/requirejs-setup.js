@@ -38,6 +38,7 @@ requirejs.config({
         "iznik/accordionpersist": [ "jquery" ],
         "iznik/selectpersist": [ "jquery" ],
         "jquery-resizable": [ "jquery" ],
+        "jquery-show-first": [ "jquery" ]
     },
 
     paths: {

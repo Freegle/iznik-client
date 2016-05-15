@@ -5,9 +5,9 @@
 window.onerror = function(e) {
     // This is here primarily because if we update our service worker then we can get errors on the script files.
     console.log("Global error", e);
-    window.setTimeout(function() {
-        window.location.reload();
-    }, 1000);
+    // window.setTimeout(function() {
+    //     window.location.reload();
+    // }, 1000);
 }
 
 define([
