@@ -215,6 +215,11 @@ class Group extends Entity
         $ret = [];
         $groupids = $groupids ? $groupids : ($this->id ? [ $this-> id ] : NULL);
 
+        if ($search) {
+            # Remove wildcards - people put them in, but that's not how it works.
+            $search = str_replace('*', '', $search);
+        }
+
         $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Added']));
         $addq = $ctx == NULL ? '' : (" AND (memberships.added < $date OR memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ") ");
         # TODO We ought to search on firstname/lastname too, and handle word splits.  But this is sufficient for ModTools.
@@ -239,7 +244,7 @@ class Group extends Entity
         }
 
         $sql = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, memberships_yahoo.yahooAlias, memberships_yahoo.yahooPostingStatus, memberships_yahoo.yahooDeliveryType, memberships_yahoo.yahooapprove, memberships_yahoo.yahooreject, memberships_yahoo.joincomment FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid LEFT JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
-        #error_log("Members $sql");
+        error_log("Members $sql");
         $members = $this->dbhr->preQuery($sql);
 
         $ctx = [ 'Added' => NULL ];

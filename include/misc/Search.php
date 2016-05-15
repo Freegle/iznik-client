@@ -211,6 +211,9 @@ class Search
 
     public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $filts = NULL)
     {
+        # Remove wildcards - people put them in, but that's not how it works.
+        $string = str_replace('*', '', $string);
+
         if (empty($restrict)) {
             $exclude = NULL;
         }

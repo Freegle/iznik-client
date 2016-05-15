@@ -126,10 +126,14 @@ function messages() {
                     }
 
                     $members = NULL;
+                    $groups = [];
+                    $msgs = [];
 
-                    # Now get the messages for those members.
-                    $c = new MessageCollection($dbhr, $dbhm, $collection);
-                    list ($groups, $msgs) = $c->get($ctx, $limit, $groupids, $userids);
+                    if (count($userids) > 0) {
+                        # Now get the messages for those members.
+                        $c = new MessageCollection($dbhr, $dbhm, $collection);
+                        list ($groups, $msgs) = $c->get($ctx, $limit, $groupids, $userids);
+                    }
                     break;
             }
 

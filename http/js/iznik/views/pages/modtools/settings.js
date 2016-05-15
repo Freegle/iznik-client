@@ -893,7 +893,7 @@ define([
         },
 
         getValueFromDOM: function() {
-            this.model.set('action', this.$('.js-action').val());
+            return this.formatter.toRaw(this.$('.js-action').val(), this.model);
         },
     
         render: function() {
