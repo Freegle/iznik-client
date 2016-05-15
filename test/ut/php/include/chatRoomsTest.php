@@ -153,7 +153,7 @@ class chatRoomsTest extends IznikTestCase {
         # Now send an email reply to this notification.
         $msg = $this->unique(file_get_contents('msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
-        $mid = $mr->received(Message::EMAIL, 'from@test.com', "notify-$id-$u1@" . USER_DOMAIN, $msg);
+        $mid = $mr->received(Message::EMAIL, 'from@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
         $rc = $mr->route();
         assertEquals(MailRouter::TO_USER, $rc);
         $r = new ChatRoom($this->dbhr, $this->dbhm, $id);

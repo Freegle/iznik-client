@@ -522,7 +522,12 @@ class MailRouter
                                 $textbody = $this->msg->stripQuoted();
 
                                 $m = new ChatMessage($this->dbhr, $this->dbhm);
-                                $mid = $m->create($chatid, $other, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
+                                $mid = $m->create($chatid, $userid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
+
+                                # The user sending this is up to date with this conversation.  This prevents us
+                                # notifying her about other messages
+                                $r->seenLastForUser($userid);
+
                                 $ret = MailRouter::TO_USER;
                             }
                         }

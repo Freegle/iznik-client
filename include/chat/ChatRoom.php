@@ -210,6 +210,15 @@ class ChatRoom extends Entity
         #return(round(rand(1, 10)));
         return(count($counts) > 0 ? $counts[0]['lastmsgseen'] : NULL);
     }
+    
+    public function seenLastForUser($userid) {
+        $sql = "UPDATE chat_roster SET lastmsgseen = (SELECT MAX(id) FROM chat_messages WHERE chatid = ?) WHERE userid = ? AND chatid = ?;";
+        $this->dbhm->preExec($sql, [
+            $this->id,
+            $userid,
+            $this->id
+        ]);
+    }
 
     public function unseenForUser($userid) {
         # Find if we have any unseen messages.
