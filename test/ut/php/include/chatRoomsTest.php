@@ -8,6 +8,8 @@ require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
 require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
 require_once IZNIK_BASE . '/include/user/User.php';
+require_once IZNIK_BASE . '/include/mail/MailRouter.php';
+
 
 /**
  * @backupGlobals disabled
@@ -147,6 +149,19 @@ class chatRoomsTest extends IznikTestCase {
 
         # Once more for luck - this time won't even check this chat.
         assertEquals(0, $r->notifyByEmail($id), TRUE);
+        
+        # Now send an email reply to this notification.
+        $msg = $this->unique(file_get_contents('msgs/notif_reply_text'));
+        $mr = new MailRouter($this->dbhm, $this->dbhm);
+        $mid = $mr->received(Message::EMAIL, 'from@test.com', "notify-$id-$u1@" . USER_DOMAIN, $msg);
+        $rc = $mr->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+        $r = new ChatRoom($this->dbhr, $this->dbhm, $id);
+        list($msgs, $users) = $r->getMessages();
+        error_log("Messages " . var_export($msgs, TRUE));
+        assertEquals(ChatMessage::TYPE_DEFAULT, $msgs[1]['type']);
+        assertEquals("Ok, here's a reply.", $msgs[1]['message']);
+        assertEquals($u2, $msgs[1]['userid']);
 
         error_log(__METHOD__ . " end");
     }

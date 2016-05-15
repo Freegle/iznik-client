@@ -7,6 +7,7 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
+require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/lib/spamc.php');
 
 # This class routes an incoming message
@@ -385,9 +386,6 @@ class MailRouter
                         $ret = MailRouter::TO_SYSTEM;
                     }
                 }
-            } else {
-                if ($log) { error_log("Dropped 1"); }
-                $ret = MailRouter::DROPPED;
             }
         } else {
             if (!$notspam) {
@@ -492,12 +490,46 @@ class MailRouter
                         }
                     }
                 } else {
-                    # It's not to one of our groups - but it could be a reply to one of our users.
+                    # It's not to one of our groups - but it could be a reply to one of our users - either directly
+                    # (which happens after posting on a group) or in reply to an email notification (which happens
+                    # in subsequent exchanges).
                     #error_log("Look for reply");
                     $u = new User($this->dbhr, $this->dbhm);
                     $to = $this->msg->getEnvelopeto();
-                    $uid = $u->findByEmail($to);
+                    $uid = NULL;
                     $ret = MailRouter::DROPPED;
+
+                    if (preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {
+                        # It's a reply to an email notification.
+                        $chatid = intval($matches[1]);
+                        $userid = intval($matches[2]);
+                        $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+
+                        if ($r->getId()) {
+                            # It's a valid chat.
+                            if ($r->getPrivate('user1') == $userid || $r->getPrivate('user2') == $userid) {
+                                # ...and the user we're replying to is part of it.
+                                #
+                                # The email address that we replied from might not currently be attached to the
+                                # other user, for example if someone has email forwarding set up.  So make sure we
+                                # have it.
+                                $other =  $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') :
+                                    $r->getPrivate('user1');
+                                $otheru = new User($this->dbhr, $this->dbhm, $other);
+                                $otheru->addEmail($this->msg->getEnvelopefrom(), 0, FALSE);
+
+                                # Now add this into the conversation as a message.  This will notify them.
+                                $textbody = $this->msg->stripQuoted();
+
+                                $m = new ChatMessage($this->dbhr, $this->dbhm);
+                                $mid = $m->create($chatid, $other, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
+                                $ret = MailRouter::TO_USER;
+                            }
+                        }
+                    } else {
+                        # See if it's a direct reply.
+                        $uid = $u->findByEmail($to);
+                    }
 
                     if ($uid) {
                         # This is to one of our users.  We try to pair it as best we can with one of the posts.
@@ -508,20 +540,7 @@ class MailRouter
                             # We've found (probably) the original message to which this is a reply.
                             $ret = MailRouter::TO_USER;
 
-                            # Try to get the text we care about by stripping out quoted text.  This can't be
-                            # perfect - quoting varies and it's a well-known hard problem.
-                            $htmlbody = $this->msg->getHtmlbody();
-                            $textbody = $this->msg->getTextbody();
-
-                            if ($htmlbody && !$textbody) {
-                                $html = new \Html2Text\Html2Text($htmlbody);
-                                $textbody = $html->getText();
-                                #error_log("Converted HTML text $textbody");
-                            }
-
-                            $textbody = trim(preg_replace('#(^\w.+:\n)?(^>.*(\n|$))+#mi', "", $textbody));
-
-                            #error_log("Pruned text to $textbody");
+                            $textbody = $this->msg->stripQuoted();
 
                             # Get/create the chat room between the two users.
                             #error_log("Create chat between " . $this->msg->getFromuser() . " and " . $uid);

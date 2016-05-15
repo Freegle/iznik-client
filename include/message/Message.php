@@ -1795,6 +1795,46 @@ class Message
         $messages = $this->dbhr->preQuery($sql, [ $this->subject, $userid ]);
         return(count($messages) > 0 ? $messages[0]['id'] : NULL);
     }
+    
+    public function stripQuoted() {
+        # Try to get the text we care about by stripping out quoted text.  This can't be
+        # perfect - quoting varies and it's a well-known hard problem.
+        $htmlbody = $this->getHtmlbody();
+        $textbody = $this->getTextbody();
+
+        if ($htmlbody && !$textbody) {
+            $html = new \Html2Text\Html2Text($htmlbody);
+            $textbody = $html->getText();
+            #error_log("Converted HTML text $textbody");
+        }
+
+        $textbody = trim(preg_replace('#(^\w.+:\n)?(^>.*(\n|$))+#mi', "", $textbody));
+
+        # We might have a section like this, for example from eM Client
+        #
+        # ------ Original Message ------
+        # From: "Edward Hibbert" <notify-5147-16226909@users.ilovefreegle.org>
+        # To: log@ehibbert.org.uk
+        # Sent: 14/05/2016 14:19:19
+        # Subject: Re: [FreeglePlayground] Offer: chair (Hesketh Lane PR3)
+        $p = strpos($textbody, '------ Original Message ------');
+
+        if ($p !== FALSE) {
+            $q = strpos($textbody, "\r\n\r\n", $p);
+            $textbody = ($q !== FALSE) ? (substr($textbody, 0, $p) . substr($textbody, $q)) : substr($textbody, 0, $p);
+        }
+
+        # Or we might have this, for example from GMail:
+        #
+        # On Sat, May 14, 2016 at 2:19 PM, Edward Hibbert <
+        # notify-5147-16226909@users.ilovefreegle.org> wrote:
+        if (preg_match('/(.*)^On.*wrote\:$(.*)/ms', $textbody, $matches)) {
+            $textbody = $matches[1] . $matches[2];
+        }
+
+        #error_log("Pruned text to $textbody");
+        return(trim($textbody));
+    }
 
     public function recordRelated() {
         # Message A is related to message B if:
