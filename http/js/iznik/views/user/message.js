@@ -147,6 +147,25 @@ define([
                 });
 
                 self.repliesView.render();
+
+                // We might have been asked to open up one of these messages because we're showing the corresponding
+                // chat.
+                if (self.options.chatid ) {
+                    var model = self.replies.get(self.options.chatid);
+                    console.log("Get chat model", model);
+                    if (model) {
+                        var view = self.repliesView.viewManager.findByModel(model);
+                        console.log("Got view", view, view.$('.js-caret'));
+                        // Slightly hackily jump up to find the owning message and click to expand.
+                        view.$el.closest('.panel-heading').find('.js-caret').click();
+                    }
+                    self.replies.each(function(reply) {
+                        console.log("Compare", reply.get('chatid'), self.options.chatid);
+                        if (reply.get('chatid') == self.options.chatid) {
+                            console.log("Found it");
+                        }
+                    });
+                }
             } else {
                 self.$('.js-noreplies').show();
             }

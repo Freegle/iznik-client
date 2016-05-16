@@ -30,7 +30,8 @@ define([
                 modelView: Iznik.Views.User.Home.Offer,
                 modelViewOptions: {
                     offers: self.offers,
-                    page: self
+                    page: self,
+                    chatid: self.options.chatid
                 },
                 collection: self.offers
             });
@@ -42,7 +43,8 @@ define([
                 modelView: Iznik.Views.User.Home.Wanted,
                 modelViewOptions: {
                     wanteds: self.wanteds,
-                    page: self
+                    page: self,
+                    chatid: self.options.chatid
                 },
                 collection: self.wanteds
             });

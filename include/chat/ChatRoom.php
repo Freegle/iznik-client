@@ -27,12 +27,12 @@ class ChatRoom extends Entity
     }
 
     # his can be overridden in UT.
-    public function constructMessage(User $u, $id, $to, $fromname, $from, $subject, $text, $html) {
+    public function constructMessage(User $u, $id, $toname, $to, $fromname, $from, $subject, $text, $html) {
         $message = Swift_Message::newInstance()
             ->setSubject($subject)
             ->setFrom([$from => $fromname])
-            #->setTo([$to])
-            ->setTo(['log@ehibbert.org.uk'])
+            #->setTo([$to => $toname])
+            ->setTo(['log@ehibbert.org.uk' => $toname])
             ->setBody($text)
             ->addPart($html, 'text/html');
         $headers = $message->getHeaders();
@@ -198,6 +198,11 @@ class ChatRoom extends Entity
         $ret['refmsgids'] = [];
         foreach ($refmsgs as $refmsg) {
             $ret['refmsgids'][] = $refmsg['refmsgid'];
+        }
+
+        $lasts = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE chatid = ? ORDER BY id DESC LIMIT 1;", [ $this->id] );
+        foreach ($lasts as $last) {
+            $ret['lastmsg'] = $last['id'];
         }
         
         return($ret);
@@ -392,14 +397,23 @@ class ChatRoom extends Entity
         return($ret);
     }
 
-    public function getMembersNotSeen($lastseenbyall) {
+    public function getMembersNotSeen($lastseenbyall, $lastmessage) {
         # TODO We should chase for group chats too.
         $ret = [];
         if ($this->chatroom['user1']) {
             # This is a conversation between two users.  They're both in the roster so we can see what their last
             # seen message was and decide who to chase.
-            $sql = "SELECT userid, lastmsgseen FROM chat_roster WHERE chatid = ?;";
-            $users = $this->dbhr->preQuery($sql, [ $this->id ]);
+            #
+            # There are restrictions on when we email:
+            # - We don't chase before someone has been offline for five minutes, which saves people who are
+            #   using the site getting a bunch of emails for chats they've already seen.
+            # - We don't email if we've already emailed for this message, unless that was a day ago.  That means
+            #   we remind people daily when they have unread messages.
+            # - When we have a new message since our last email, we don't email more often than hourly, so that if
+            #   someone keeps hammering away in chat we don't flood the recipient with emails.
+            $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster WHERE chatid = ? HAVING secondsago > 300 AND lastemailed IS NULL OR ((lastmsgemailed = ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 24) OR (lastmsgemailed < ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 1));";
+            #error_log("$sql {$this->id}, $lastmessage");
+            $users = $this->dbhr->preQuery($sql, [ $this->id, $lastmessage, $lastmessage ]);
             foreach ($users as $user) {
                 if (!$user['lastmsgseen'] || $user['lastmsgseen'] < $lastseenbyall) {
                     # We've not seen any messages, or seen some but not this one.
@@ -427,7 +441,7 @@ class ChatRoom extends Entity
         $start = date('Y-m-d', strtotime("midnight 2 weeks ago"));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
         $modq = $user ? 0 : 1;
-        $sql = "SELECT DISTINCT chatid FROM chat_messages  INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= '$start' AND seenbyall = 0 AND modtools = $modq AND platform = 1 $chatq;";
+        $sql = "SELECT DISTINCT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= '$start' AND seenbyall = 0 AND modtools = $modq $chatq;";
         $chats = $this->dbhr->preQuery($sql, [ $start ]);
         $notified = 0;
 
@@ -439,7 +453,7 @@ class ChatRoom extends Entity
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
             $chatatts = $r->getPublic();
             $lastseen = $r->lastSeenByAll();
-            $notseenby = $r->getMembersNotSeen($lastseen ? $lastseen : 0);
+            $notseenby = $r->getMembersNotSeen($lastseen ? $lastseen : 0, $chatatts['lastmsg']);
 
             foreach ($notseenby as $member) {
                 # Now we have a member who has not seen all of the messages in this chat.  Find the other one.
@@ -459,11 +473,13 @@ class ChatRoom extends Entity
 
                 $textsummary = '';
                 $htmlsummary = '';
+                $lastmsgemailed = 0;
                 foreach ($unseenmsgs as $unseenmsg) {
                     if (pres('message', $unseenmsg)) {
                         $thisone = $unseenmsg['message'];
                         $textsummary .= $thisone . "\r\n";
                         $htmlsummary .= $thisone . "<br>";
+                        $lastmsgemailed = max($lastmsgemailed, $unseenmsg['id']);
                     }
                 }
 
@@ -498,9 +514,16 @@ class ChatRoom extends Entity
                 $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
                 $to = $thisu->getEmails()[0];
 
-                $message = $this->constructMessage($thisu, $member['userid'], $to['email'], $fromname, $replyto, $subject, $textsummary, $html);
+                $message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to['email'], $fromname, $replyto, $subject, $textsummary, $html);
                 try {
+                    error_log($to['email'] . " " . $subject);
                     $mailer->send($message);
+
+                    $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
+                        $lastmsgemailed,
+                        $member['userid'],
+                        $chat['chatid']
+                    ]);
                 } catch (Exception $e) {
                     error_log("Send failed with " . $e->getMessage());
                 }

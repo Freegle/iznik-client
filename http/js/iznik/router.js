@@ -141,7 +141,7 @@ define([
             loadPage();
         },
 
-        userHome: function () {
+        userHome: function (chatid) {
             var self = this;
 
             if (document.URL.indexOf('modtools') !== -1) {
@@ -151,7 +151,9 @@ define([
                     if (loggedIn) {
                         $('body').addClass('bodyback');
                         require(["iznik/views/pages/user/home"], function() {
-                            var page = new Iznik.Views.User.Pages.Home();
+                            var page = new Iznik.Views.User.Pages.Home({
+                                chatid: chatid
+                            });
                             self.loadRoute({page: page});
                         });
                     } else {
@@ -167,7 +169,6 @@ define([
         },
 
         userChat: function(chatid) {
-            console.log("user chat");
             var self = this;
             self.listenToOnce(Iznik.Session, 'chatsfetched', function() {
                 var chatmodel = Iznik.Session.chats.get(chatid);
@@ -176,7 +177,7 @@ define([
                 chatView.focus();
             });
             
-            self.userHome();
+            self.userHome(chatid);
         },
 
         userFindWhereAmI: function () {
