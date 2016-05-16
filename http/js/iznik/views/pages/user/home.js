@@ -9,8 +9,49 @@ define([
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
         template: "user_home_main",
 
-        render: function() {
+        addReplies: function() {
             var self = this;
+            Iznik.Session.chats.each(function (chat) {
+                if (chat.get('user1').id == Iznik.Session.get('me').id) {
+                    var refmsgs = chat.get('refmsgids');
+
+                    // Show most recent message first.
+                    refmsgs = _.sortBy(refmsgs, function(msgid) {
+                        return(-msgid)
+                    });
+
+                    _.each(refmsgs, function(msgid) {
+                        var m = new Iznik.Models.Message({
+                            id: msgid,
+                            chat: chat.toJSON2()
+                        });
+
+                        m.fetch().then(function() {
+                            console.log("Got message", m);
+                            var v = new Iznik.Views.User.Home.Reply({
+                                model: m
+                            });
+
+                            self.$('.js-replylist').append(v.render().el);
+                        })
+                    })
+                }
+            });
+        },
+
+        render: function () {
+            var self = this;
+
+            // Our replies are chats which we initiated to another user.
+            if (Iznik.Session.hasOwnProperty('chats')) {
+                // We have the chats already.
+                self.addReplies();
+            } else {
+                // The chats will be fetched within the page render so we must be ready for that event.
+                self.listenToOnce(Iznik.Session, 'chatsfetched', function() {
+                    self.addReplies();
+                });
+            }
 
             Iznik.Views.Page.prototype.render.call(this, {
                 noSupporters: true
@@ -58,7 +99,7 @@ define([
 
             // We listen for events on the messages collection and ripple them through to the relevant offers/wanteds
             // collection.  CollectionView will then handle rendering/removing the messages view.
-            self.listenTo(self.messages, 'add', function(msg) {
+            self.listenTo(self.messages, 'add', function (msg) {
                 var related = msg.get('related');
 
                 if (msg.get('type') == 'Offer') {
@@ -80,7 +121,7 @@ define([
                 }
             });
 
-            self.listenTo(self.messages, 'remove', function(msg) {
+            self.listenTo(self.messages, 'remove', function (msg) {
                 if (this.model.get('type') == 'Offer') {
                     self.offers.remove(msg);
                 } else if (this.model.get('type') == 'Wanted') {
@@ -95,7 +136,7 @@ define([
                     types: ['Offer', 'Wanted'],
                     limit: 100
                 }
-            }).then(function() {
+            }).then(function () {
                 if (self.offers.length == 0) {
                     self.$('.js-nooffers').fadeIn('slow');
                 } else {
@@ -103,7 +144,7 @@ define([
                 }
             });
 
-            return(this);
+            return (this);
         }
     });
 
@@ -114,16 +155,16 @@ define([
             'click .js-taken': 'taken',
             'click .js-withdraw': 'withdrawn'
         },
-        
-        taken: function() {
+
+        taken: function () {
             this.outcome('Taken');
         },
-        
-        withdrawn: function() {
+
+        withdrawn: function () {
             this.outcome('Withdrawn');
         },
-        
-        outcome: function(outcome) {
+
+        outcome: function (outcome) {
             var self = this;
 
             var v = new Iznik.Views.User.Outcome({
@@ -131,8 +172,8 @@ define([
                 outcome: outcome
             });
 
-            self.listenToOnce(v, 'outcame', function() {
-                self.$el.fadeOut('slow', function() {
+            self.listenToOnce(v, 'outcame', function () {
+                self.$el.fadeOut('slow', function () {
                     self.destroyIt();
                 });
             })
@@ -154,15 +195,15 @@ define([
             'click .btn-radio .btn': 'click'
         },
 
-        changeOutcome: function() {
+        changeOutcome: function () {
             if (this.$('.js-outcome').val() == 'Withdrawn') {
                 this.$('.js-user').addClass('reallyHide');
             } else {
                 this.$('.js-user').removeClass('reallyHide');
             }
         },
-        
-        click: function(ev) {
+
+        click: function (ev) {
             $('.btn-radio .btn').removeClass('active');
             var btn = $(ev.currentTarget);
             btn.addClass('active');
@@ -176,7 +217,7 @@ define([
             }
         },
 
-        confirm: function() {
+        confirm: function () {
             var self = this;
             var outcome = self.$('.js-outcome').val();
             var comment = self.$('.js-comment').val().trim();
@@ -208,7 +249,7 @@ define([
                     happiness: happiness,
                     comment: comment,
                     userid: userid
-                }, success: function(ret) {
+                }, success: function (ret) {
                     if (ret.ret === 0) {
                         self.trigger('outcame');
                         self.close();
@@ -217,24 +258,62 @@ define([
             })
         },
 
-        render: function() {
+        render: function () {
             var self = this;
             this.model.set('outcome', this.options.outcome);
-            console.log("Outcome is", this);
             this.open(this.template);
             this.changeOutcome();
 
             // We want to show the people to whom it's promised first, as they're likely to be correct and most
             // likely to make the user change it if they're not correct.
             var replies = this.model.get('replies');
-            replies = _.sortBy(replies, function(reply) {
-                return(- reply.promised);
+            replies = _.sortBy(replies, function (reply) {
+                return (-reply.promised);
             });
-            _.each(replies, function(reply) {
+            _.each(replies, function (reply) {
                 self.$('.js-user').append('<option value="' + reply.user.id + '" />');
                 self.$('.js-user option:last').html(reply.user.displayname);
             })
             self.$('.js-user').append('<option value="0">Someone else</option>');
+        }
+    });
+
+    Iznik.Views.User.Home.Reply = Iznik.View.extend({
+        template: "user_home_reply",
+
+        events: {
+            'click .js-chat': 'dm'
+        },
+
+        dm: function() {
+            var self = this;
+            require(['iznik/views/chat/chat'], function(ChatHolder) {
+                var chatmodel = Iznik.Session.chats.get(self.model.get('chat').id);
+                var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
+                chatView.restore();
+            })
+        },
+
+        updateUnread: function() {
+            var unread = 0;
+            var chat = this.model.get('chat');
+
+            if (chat.unseen > 0) {
+                this.$('.js-unreadcount').html(chat.unseen);
+                this.$('.js-unreadcountholder').show();
+            } else {
+                this.$('.js-unreadcountholder').hide();
+            }
+        },
+
+        render: function() {
+            var self = this;
+
+            self.$el.html(window.template(self.template)(self.model.toJSON2()));
+            self.$('.timeago').timeago();
+            self.updateUnread();
+
+            return(self);
         }
     });
 });

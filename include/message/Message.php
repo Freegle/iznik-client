@@ -382,6 +382,8 @@ class Message
             }
         }
 
+        $ret['mine'] == $myid && $this->fromuser == $myid;
+
         # Remove any group subject tag.
         $ret['subject'] = preg_replace('/\[.*?\]\s*/', '', $ret['subject']);
         $ret['subject'] = preg_replace('/\[.*Attachment.*\]\s*/', '', $ret['subject']);
@@ -421,7 +423,7 @@ class Message
                         $reply['userid'],
                         $reply['chatid']
                     ]);
-                    
+
                     foreach ($lastreplies as $lastreply) {
                         $thisone['lastdate'] = ISODate($lastreply['date']);
                         $thisone['snippet'] = substr($lastreply['message'], 0, 30);

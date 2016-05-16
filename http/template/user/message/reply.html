@@ -5,7 +5,7 @@
             <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" ></abbr>
             <span class="js-chat text-muted">{{snippet}}...<em>more&nbsp;>></em></span>
         </div>
-        <li class="col-xs-3">
+        <li class="col-xs-3 nopad">
             <ul class="list-unstyled pull-right">
                 <li class="btn btn-primary btn-sm js-chat nopad" title="Chat to {{user.displayname}}">
                     <div class="glyphicons glyphicons-conversation glyphicon-larger">
@@ -14,7 +14,7 @@
                         <% } %>
                     </div>
                 </li>
-                <% if (message.type == 'Offer') { %>
+                <% if (message.type == 'Offer' && message.mine) { %>
                     <% if (obj.promised) { %>
                     <li class="btn btn-warning btn-sm js-renege nopad" title="Remove promise">
                         <div class="glyphicons glyphicons-remove-circle glyphicon-larger" />

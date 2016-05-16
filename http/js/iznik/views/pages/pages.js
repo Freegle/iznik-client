@@ -143,7 +143,6 @@ define([
                 this.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                     var loggedInOnly = $('.js-loggedinonly');
                     var loggedOutOnly = $('.js-loggedoutonly');
-                    console.log("Logged in?", loggedIn);
 
                     if (loggedIn) {
                         loggedInOnly.removeClass('reallyHide');

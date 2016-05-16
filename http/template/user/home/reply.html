@@ -1,0 +1,57 @@
+<div class="panel panel-info">
+    <div class="panel-heading">
+        <a class="nodecor js-caret" data-toggle="collapse" href="#reply-{{id}}">
+            <button class="btn btn-white pull-right">
+                <span class="js-caretdown caret"></span>
+                <span class="js-caretup caret icon-flipped-y" style="display: none"></span>
+            </button>
+            <div class="msgsubj panel-title">
+                Re: {{subject}}
+                <div class="js-unreadcountholder inline">
+                <span class="badge badge-unread" title="The number of unread replies in this conversation.">
+                    <div class="glyphicon glyphicon-comment" />
+                    <div class="js-unreadcount inline" />
+                </span>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div id="reply-{{id}}" class="panel-collapse collapse">
+        <div class="panel-body nopad">
+            <div class="padleft row topspace">
+                <div class="col-xs-12">
+                    {{textbody}}
+                </div>
+            </div>
+            <div class="row topspace">
+                <div class="col-sm-10">
+                    <div class="js-groups" />
+                    <div class="panel-body">
+                        <div class="nopad col-xs-12">
+                            <span class="text-muted">{{chat.user2.displayname}}:</span>
+                            &nbsp;<span class="clickme js-chat">{{chat.snippet}}...</span>
+                            <abbr class="timeago" title="{{chat.lastdate}}" ></abbr>
+                        </div>
+                    </div>
+                </div>
+                <div class="nopad col-sm-2">
+                    <ul class="list-inline list-unstyled js-attlist" />
+                </div>
+            </div>
+        </div>
+        <hr class="nopad nomargin" />
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="btn btn-primary js-chat margin" title="Chat to {{chat.user2.displayname}}">
+                    <span class="vcenter glyphicons glyphicons-conversation glyphicon-larger" />
+                    <% if (chat.unseen != 0) { %>
+                    <span class="badge badge-unread">{{chat.unseen}}</span>
+                    <% } %>
+                    <span class="topspace">
+                        &nbsp;Chat
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

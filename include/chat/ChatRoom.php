@@ -200,9 +200,11 @@ class ChatRoom extends Entity
             $ret['refmsgids'][] = $refmsg['refmsgid'];
         }
 
-        $lasts = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE chatid = ? ORDER BY id DESC LIMIT 1;", [ $this->id] );
+        $lasts = $this->dbhr->preQuery("SELECT id, date, message FROM chat_messages WHERE chatid = ? ORDER BY id DESC LIMIT 1;", [ $this->id] );
         foreach ($lasts as $last) {
             $ret['lastmsg'] = $last['id'];
+            $ret['lastdate'] = ISODate($last['date']);
+            $ret['snippet'] = substr($last['message'], 0, 30);
         }
         
         return($ret);
