@@ -767,6 +767,7 @@ define([
                 var chatmodel = Iznik.Session.chats.get(chatid);
                 var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
                 chatView.restore();
+                chatView.focus();
             });
         },
 

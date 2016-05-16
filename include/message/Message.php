@@ -410,12 +410,24 @@ class Message
                 $ctx = NULL;
                 if ($reply['userid']) {
                     $u = new User($this->dbhr, $this->dbhm, $reply['userid']);
-                    $ret['replies'][] = [
+                    $thisone = [
                         'id' => $reply['chatid'],
                         'user' => $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE),
-                        'chatid' => $reply['chatid'],
-                        'lastdate' => ISODate($reply['lastdate'])
+                        'chatid' => $reply['chatid']
                     ];
+
+                    # Add the last reply date and a snippet.
+                    $lastreplies = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid = ? AND chatid = ? ORDER BY id DESC LIMIT 1;", [
+                        $reply['userid'],
+                        $reply['chatid']
+                    ]);
+                    
+                    foreach ($lastreplies as $lastreply) {
+                        $thisone['lastdate'] = ISODate($lastreply['date']);
+                        $thisone['snippet'] = substr($lastreply['message'], 0, 30);
+                    }
+
+                    $ret['replies'][] = $thisone;;
                 }
             }
 

@@ -1,30 +1,31 @@
 <div class="row-fluid panel">
     <div class="panel-body">
-        <div class="nopad col-xs-8">
+        <div class="nopad col-xs-9">
             {{user.displayname}}<br />
             <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" ></abbr>
+            <span class="js-chat text-muted">{{snippet}}...<em>more&nbsp;>></em></span>
         </div>
-        <div class="col-xs-2">
-            <div class="btn btn-primary btn-sm js-chat nopad" title="Chat to this person">
-                <div class="glyphicons glyphicons-conversation glyphicon-larger">
-                <% if (unseen != 0) { %>
-                    <span class="badge badge-unread">{{unseen}}</span>
+        <li class="col-xs-3">
+            <ul class="list-unstyled pull-right">
+                <li class="btn btn-primary btn-sm js-chat nopad" title="Chat to {{user.displayname}}">
+                    <div class="glyphicons glyphicons-conversation glyphicon-larger">
+                        <% if (unseen != 0) { %>
+                        <span class="badge badge-unread">{{unseen}}</span>
+                        <% } %>
+                    </div>
+                </li>
+                <% if (message.type == 'Offer') { %>
+                    <% if (obj.promised) { %>
+                    <li class="btn btn-warning btn-sm js-renege nopad" title="Remove promise">
+                        <div class="glyphicons glyphicons-remove-circle glyphicon-larger" />
+                    </li>
+                    <% } else { %>
+                    <li class="btn btn-success btn-sm js-promise nopad" title="Promise it to {{user.displayname}}">
+                        <div class="glyphicons glyphicons-handshake glyphicon-larger" />
+                    </li>
+                    <% } %>
                 <% } %>
-                </div>
-            </div>
-        </div>
-        <div class="col-xs-2">
-            <% if (message.type == 'Offer') { %>
-            <% if (obj.promised) { %>
-                <div class="btn btn-warning btn-sm js-renege nopad" title="Remove promise">
-                    <div class="glyphicons glyphicons-remove-circle glyphicon-larger" />
-                </div>
-                <% } else { %>
-                <div class="btn btn-success btn-sm js-promise nopad" title="Promise it to this person">
-                    <div class="glyphicons glyphicons-handshake glyphicon-larger" />
-                </div>
-                <% } %>
-            <% } %>
+            </ul>
         </div>
     </div>
 </div>

@@ -298,7 +298,7 @@ class ChatRoom extends Entity
             #error_log("UPDATE chat_roster SET lastmsgseen = $lastmsgseen WHERE chatid = {$this->id} AND userid = $userid AND (lastmsgseen IS NULL OR lastmsgseen < $lastmsgseen);");
         }
 
-        $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE chatid = ? AND userid = ?;",
+        $this->dbhm->preExec("UPDATE chat_roster SET date = NOW(), status = ? WHERE chatid = ? AND userid = ?;",
             [
                 $status,
                 $this->id,
@@ -484,10 +484,13 @@ class ChatRoom extends Entity
                 }
 
                 # As a subject, we should use the last referenced message in this chat.
-                $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? ORDER BY chat_messages.id DESC LIMIT 1;";
+                $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.type = ? ORDER BY chat_messages.id DESC LIMIT 1;";
+                #error_log($sql . $chat['chatid']);
                 $subjs = $this->dbhr->preQuery($sql, [
-                    $chat['chatid']
+                    $chat['chatid'],
+                    ChatMessage::TYPE_INTERESTED,
                 ]);
+                #error_log(var_export($subjs, TRUE));
 
                 $subject = "You have a new message";
                 foreach ($subjs as $subj) {
