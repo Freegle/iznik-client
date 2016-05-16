@@ -16,6 +16,7 @@ function message() {
     $messagehistory = array_key_exists('messagehistory', $_REQUEST) ? filter_var($_REQUEST['messagehistory'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $localonly = array_key_exists('localonly', $_REQUEST) ? filter_var($_REQUEST['localonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $userid = intval(presdef('userid', $_REQUEST, NULL));
+    $userid = $userid ? $userid : NULL;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
