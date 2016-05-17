@@ -311,6 +311,10 @@ define([
 
             self.$el.html(window.template(self.template)(self.model.toJSON2()));
             self.$('.timeago').timeago();
+
+            var chat = Iznik.Session.chats.get(this.model.get('chat').id);
+            self.listenTo(chat, 'change:unseen', self.updateUnread);
+
             self.updateUnread();
 
             return(self);
