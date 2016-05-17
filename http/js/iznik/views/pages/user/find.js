@@ -27,7 +27,7 @@ define([
         },
 
         doSearch: function () {
-            this.$('h1').slideUp();
+            this.$('h1').slideUp('slow');
 
             var term = this.$('.js-search').val();
 
@@ -170,7 +170,7 @@ define([
                 }
             })
         },
-        
+
         render: function() {
             var related = this.model.get('related');
 
@@ -180,6 +180,7 @@ define([
 
             if (taken.length == 0) {
                 // Only show a search result for an offer which has not been taken.
+                this.stripGumf();
                 Iznik.Views.User.Message.prototype.render.call(this);
             } else {
                 this.$el.hide();

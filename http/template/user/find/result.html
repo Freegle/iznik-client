@@ -1,29 +1,38 @@
-<div class="panel-heading">
-    <a class=nodecor" data-toggle="collapse" href="#offer-{{id}}">
-        <button class="btn btn-white pull-right">
-            <span class="js-caretdown caret"></span>
-            <span class="js-caretup caret icon-flipped-y" style="display: none"></span>
-        </button>
-        <div class="msgsubj panel-title">
-            {{subject}}
-        </div>
-    </a>
-    <div id="offer-{{id}}" class="panel-collapse collapse">
-        <div class="panel-body nopad">
+<div class="panel panel-info">
+    <div class="panel-heading">
+        <a class=nodecor" data-toggle="collapse" href="#result-{{id}}">
+            <button class="btn btn-white pull-right">
+                <span class="js-caretdown caret"></span>
+                <span class="js-caretup caret icon-flipped-y" style="display: none"></span>
+            </button>
+            <div class="msgsubj panel-title">
+                {{subject}}
+            </div>
+        </a>
+    </div>
+    <div id="result-{{id}}" class="panel-collapse collapse">
+        <div class="panel-body">
             <div class="row">
                 <div class="col-md-9">
-                    <p class="lead">{{textbody}}</p>
+                    <div class="lead prewrap">{{textbody}}</div>
+                    <span class="text-muted pull-right">#{{id}}</span>
                     <span class="text-muted">
                         Posted by {{fromuser.displayname}}.
                     </span>
                     <div class="js-groups" />
+                    <% if (FOP) { %>
+                    <div class="btn btn-warning js-fop">
+                        <span class="glyphicon glyphicon-info-sign" />&nbsp;Fair Offer Policy
+                    </div>
+                    <% } %>
                 </div>
                 <div class="col-md-3 nopadright">
                     <ul class="list-inline list-unstyled js-attlist" />
                 </div>
             </div>
+        </div>
+        <div class="panel-footer">
             <div class="row js-replybox">
-                <hr />
                 <div class="col-xs-9 nopadright">
                     <textarea rows="3" class="form-control completefull js-replytext" placeholder="Interested?  Please explain why you'd like it and when you can collect.  Always be polite and helpful."></textarea>
                 </div>

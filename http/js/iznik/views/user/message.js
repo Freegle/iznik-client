@@ -91,6 +91,24 @@ define([
             }
         },
 
+        stripGumf: function() {
+            var textbody = this.model.get('textbody');
+
+            // Strip photo links - we should have those as attachments.
+            textbody = textbody.replace(/You can see a photo[^]*jpg/, '');
+            textbody = textbody.replace(/Check out the pictures[^]*https:\/\/trashnothing[^]*pics\/\d*/, '');
+
+            // FOPs
+            textbody = textbody.replace(/Fair Offer Policy applies \(see https:\/\/[^]*\)/, '');
+
+            // Footers
+            textbody = textbody.replace(/--[\s\S]*Get Freegling[\s\S]*book/m, '');
+
+            textbody = textbody.trim();
+
+            this.model.set('textbody', textbody);
+        },
+
         render: function() {
             var self = this;
 

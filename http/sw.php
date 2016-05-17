@@ -7,7 +7,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 header("Cache-Control: max-age=0, no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: Wed, 11 Jan 1984 05:00:00 GMT");
-header('Content-type: text/javascript');
+header('Content-type: text/javascript'); 
 
 ?>
 // Our ServiceWorker is used for two purposes:

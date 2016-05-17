@@ -1237,6 +1237,10 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     min-height: 70px;
 }
 
+.prewrap {
+    white-space: pre-wrap !important;       /* css-3 */
+}
+
 /*==================================================
 =            Bootstrap 3 Media Queries             =
 ==================================================*/
