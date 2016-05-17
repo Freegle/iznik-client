@@ -9,7 +9,8 @@ define([
         className: "panel panel-info marginbotsm",
 
         events: {
-            'click .js-caret': 'carettoggle'
+            'click .js-caret': 'carettoggle',
+            'click .js-fop': 'fop'
         },
 
         expanded: false,
@@ -33,6 +34,11 @@ define([
         carettoggle: function() {
             this.expanded = !this.expanded;
             this.caretshow();
+        },
+
+        fop: function() {
+            var v = new Iznik.Views.Modal();
+            v.open('user_home_fop');
         },
 
         updateReplies: function() {
