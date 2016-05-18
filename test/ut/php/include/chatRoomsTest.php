@@ -137,7 +137,7 @@ class chatRoomsTest extends IznikTestCase {
             'test2@test.com',
             'Re: OFFER: Test item (location)');
         
-        assertEquals(1, $r->notifyByEmail($id, TRUE));
+        assertEquals(1, $r->notifyByEmail($id, TRUE, 0));
 
         # Now pretend we've seen the messages.  Shouldn't notify as we've seen them, and should end up flagging the
         # message as seen by all.

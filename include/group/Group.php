@@ -831,6 +831,10 @@ class Group extends Entity
     private function mailer() {
         call_user_func_array('mail', func_get_args());
     }
+    
+    public function onYahoo() {
+        return($this->group['onyahoo']);
+    }
 
     public function contact($from, $subject, $body) {
         $headers = "From: $from <$from>\r\n";

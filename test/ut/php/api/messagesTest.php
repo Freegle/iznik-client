@@ -441,12 +441,12 @@ class messagesTest extends IznikAPITestCase {
         error_log("Approved id $id");
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        $lid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
         $ret = $this->call('messages', 'GET', [
-            'search' => 'basic',
+            'search' => 'basic t',
             'subaction' => 'searchmess',
-            'nearlocation' => 'Tuvalu High Street'
+            'nearlocation' => $lid
         ]);
         error_log("Get near " . var_export($ret, true));
         assertEquals(0, $ret['ret']);

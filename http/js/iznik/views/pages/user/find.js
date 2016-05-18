@@ -66,8 +66,19 @@ define([
                 this.$('h1').hide();
                 this.$('.js-search').val(this.options.search);
 
-                self.collection = new Iznik.Collections.Messages.Search(null, {
+                var mylocation = null;
+                try {
+                    mylocation = localStorage.getItem('mylocation');
+
+                    if (mylocation) {
+                        mylocation = JSON.parse(mylocation);
+                    }
+                } catch (e) {
+                }
+
+                self.collection = new Iznik.Collections.Messages.GeoSearch(null, {
                     searchmess: self.options.search,
+                    nearlocation: mylocation ? mylocation : null,
                     collection: 'Approved'
                 });
 
@@ -86,21 +97,15 @@ define([
                 var v = new Iznik.Views.PleaseWait();
                 v.render();
 
-                var mylocation = null;
-                try {
-                    mylocation = localStorage.getItem('mylocation');
-                } catch (e) {
-                }
-
                 self.collection.fetch({
                     remove: true,
                     data: {
                         messagetype: 'Offer',
-                        nearlocation: mylocation,
+                        nearlocation: mylocation ? mylocation.id : null,
                         search: this.options.search,
                         subaction: 'searchmess'
                     },
-                    success: function (collection, response, options) {
+                    success: function (collection) {
                         v.close();
 
                         if (collection.length == 0) {
@@ -138,6 +143,26 @@ define([
         
         send: function() {
             var self = this;
+
+            // When we reply to a message on a group, we join the group if we're not already a member.
+            var memberofs = Iznik.Session.get('groups');
+            var member = false;
+            var tojoin = null;
+            _.each(memberofs, function(memberof) {
+                console.log("Check member", memberof);
+                var msggroups = self.model.get('groups');
+                _.each(msggroups, function(msggroup) {
+                    console.log("Check msg", msggroup);
+                    tojoin = msggroup.groupid;
+                    if (memberof.id = msggroup.groupid) {
+                        member = true;
+                    }
+                });
+            })
+
+            if (!member) {
+                // We're not a member of any groups on which this message appears.  Join one.
+            }
 
             // We start a conversation with the sender.
             $.ajax({

@@ -382,7 +382,7 @@ class Message
             }
         }
 
-        $ret['mine'] == $myid && $this->fromuser == $myid;
+        $ret['mine'] = $myid && $this->fromuser == $myid;
 
         # Remove any group subject tag.
         $ret['subject'] = preg_replace('/\[.*?\]\s*/', '', $ret['subject']);
@@ -459,7 +459,7 @@ class Message
         $ret['arrival'] = ISODate($ret['arrival']);
         $ret['date'] = ISODate($ret['date']);
         $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
-        $ret['FOP'] = strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE;
+        $ret['FOP'] = pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE);
 
         if (pres('fromcountry', $ret)) {
             $ret['fromcountry'] = code_to_country($ret['fromcountry']);

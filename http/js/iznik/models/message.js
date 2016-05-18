@@ -331,12 +331,12 @@ define([
 
         initialize: function (models, options) {
             this.options = options;
+        },
 
+        comparator: function(a, b) {
             // Use a comparator to show in most recent first order
-            this.comparator = function(a, b) {
-                var ret = (new Date(b.get('date'))).getTime() - (new Date(a.get('date'))).getTime();
-                return(ret);
-            }
+            var ret = (new Date(b.get('date'))).getTime() - (new Date(a.get('date'))).getTime();
+            return(ret);
         },
 
         url: function() {
@@ -387,5 +387,29 @@ define([
             url = API + 'messages/searchall/' + encodeURIComponent(this.options.searchmess);
             return(url);
         }
+    });
+
+    // Search sorted by closeness.
+    Iznik.Collections.Messages.GeoSearch = Iznik.Collections.Messages.Search.extend({
+        comparator: function(a, b) {
+            console.log("Compare", a, b);
+            var mylat = this.options.nearlocation.lat;
+            var mylng = this.options.nearlocation.lng;
+
+            // Some messages don't have locations.  Assume they're far away.
+            if (!a.get('location')) {
+                return(1)
+            } else if (!b.get('location')) {
+                return(-1);
+            }
+
+            var adist = haversineDistance([mylat, mylng], [a.get('location').lat, a.get('location').lng], true);
+            var bdist = haversineDistance([mylat, mylng], [b.get('location').lat, b.get('location').lng], true);
+            console.log("Distances", adist, bdist);
+            a.set('distance', Math.round(adist, 1));
+            b.set('distance', Math.round(bdist, 1));
+
+            return(adist - bdist);
+        }    
     });
 });

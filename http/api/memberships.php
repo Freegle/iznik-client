@@ -140,6 +140,15 @@ function memberships() {
 
                     $u->addMembership($groupid, $role, $emailid);
 
+                    $g = new Group($dbhr, $dbhm, $groupid);
+                    if ($g->onYahoo()) {
+                        # This group is on Yahoo too, so we should trigger a membership application to there.
+                        #
+                        # TODO Need to handle the case where this application is rejected.  In FDv1-2 this could
+                        # not occur as FBUser members were pre-approved, but it can now.
+                        $u->triggerYahooApplication($groupid);
+                    }
+
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success'

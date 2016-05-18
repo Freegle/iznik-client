@@ -45,11 +45,33 @@ class User extends Entity
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
+        $this->log = new Log($dbhr, $dbhm);
+        $this->notif = new Notifications($dbhr, $dbhm);
         # Don't cache this - too many users to flood the query cache.
         $this->fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts, FALSE);
+    }
 
-        $this->log = new Log($dbhr, $dbhm);
-        $this->notif = new Notifications($this->dbhr, $this->dbhm);
+    # Override fetch for caching purposes.
+    function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts, $cache = TRUE)
+    {
+        if ($id) {
+            if (pres('cache', $_SESSION) && $id == pres('id', $_SESSION)) {
+                # We're getting our own user.  This is very common, even within a single API call, so cache it.
+                if (!pres('me', $_SESSION['cache'])) {
+                    parent::fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts, FALSE);
+                    $_SESSION['cache']['me'] = $this->user;
+                } else {
+                    parent::fetch($dbhr, $dbhm, NULL, 'users', 'user', $this->publicatts, FALSE);
+                    $this->id = $id;
+                    $this->user = $_SESSION['cache']['me'];
+                }
+            } else {
+                # Some other user - just fetch.
+                parent::fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts, FALSE);
+            }
+        } else {
+            parent::fetch($dbhr, $dbhm, NULL, 'users', 'user', $this->publicatts, FALSE);
+        }
     }
 
     public function hashPassword($pw) {
@@ -656,13 +678,19 @@ class User extends Entity
     }
 
     public function getModeratorships() {
-        $ret = [];
-        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner');", [ $this->id ]);
-        foreach ($groups as $group) {
-            $ret[] = $group['groupid'];
+        # This gets called a lot - cache it.
+        $key = "memberships.{$this->id}";
+        if (!pres($key, $_SESSION['cache'])) {
+            $ret = [];
+            $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner');", [ $this->id ]);
+            foreach ($groups as $group) {
+                $ret[] = $group['groupid'];
+            }
+
+            $_SESSION['cache'][$key] = $ret;
         }
 
-        return($ret);
+        return($_SESSION['cache'][$key]);
     }
 
     public function isModOrOwner($groupid) {

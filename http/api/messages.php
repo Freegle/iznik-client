@@ -76,7 +76,7 @@ function messages() {
                     $ctx = presdef('context', $_REQUEST, NULL);
                     $limit = presdef('limit', $_REQUEST, Search::Limit);
                     $messagetype = presdef('messagetype', $_REQUEST, NULL);
-                    $nearlocation = presdef('nearlocation', $_REQUEST, NULL);
+                    $nearlocation = intval(presdef('nearlocation', $_REQUEST, NULL));
 
                     if (is_numeric($search)) {
                         $m = new Message($dbhr, $dbhm, $search);
@@ -91,17 +91,16 @@ function messages() {
 
                         if ($nearlocation) {
                             # We need to look in the groups near this location.
-                            $l = new Location($dbhr, $dbhm);
-                            $id = $l->findByName($nearlocation);
-
-                            if ($id) {
-                                $l = new Location($dbhr, $dbhm, $id);
-                                $groups = $l->groupsNear();
-                            }
+                            $l = new Location($dbhr, $dbhm, $nearlocation);
+                            $groups = $l->groupsNear();
                         }
 
                         $msgs = $m->search($search, $ctx, $limit, NULL, $groups);
                         list($groups, $msgs) = $c->fillIn($msgs, $limit, $messagetype, NULL);
+                        
+                        if ($nearlocation) {
+                            # Now that we have found the 
+                        }
                     }
 
                     break;

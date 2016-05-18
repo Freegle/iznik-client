@@ -399,7 +399,7 @@ class ChatRoom extends Entity
         return($ret);
     }
 
-    public function getMembersNotSeen($lastseenbyall, $lastmessage) {
+    public function getMembersNotSeen($lastseenbyall, $lastmessage, $age = 300) {
         # TODO We should chase for group chats too.
         $ret = [];
         if ($this->chatroom['user1']) {
@@ -413,7 +413,7 @@ class ChatRoom extends Entity
             #   we remind people daily when they have unread messages.
             # - When we have a new message since our last email, we don't email more often than hourly, so that if
             #   someone keeps hammering away in chat we don't flood the recipient with emails.
-            $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster WHERE chatid = ? HAVING secondsago > 300 AND lastemailed IS NULL OR ((lastmsgemailed = ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 24) OR (lastmsgemailed < ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 1));";
+            $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster WHERE chatid = ? HAVING secondsago >= $age AND lastemailed IS NULL OR ((lastmsgemailed = ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 24) OR (lastmsgemailed < ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 1));";
             #error_log("$sql {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [ $this->id, $lastmessage, $lastmessage ]);
             foreach ($users as $user) {
@@ -434,7 +434,7 @@ class ChatRoom extends Entity
         return($ret);
     }
 
-    public function notifyByEmail($chatid = NULL, $user = TRUE) {
+    public function notifyByEmail($chatid = NULL, $user = TRUE, $age = 300) {
         # We want to find chatrooms with messages which haven't been seen by people who should have seen them.
         # These could either be a group chatroom, or a conversation.  There aren't too many of the former, but there
         # could be a large number of the latter.  However we don't want to keep nagging people forever - so we are
@@ -444,6 +444,7 @@ class ChatRoom extends Entity
         $chatq = $chatid ? " AND chatid = $chatid " : '';
         $modq = $user ? 0 : 1;
         $sql = "SELECT DISTINCT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= '$start' AND seenbyall = 0 AND modtools = $modq $chatq;";
+        #error_log("$sql $start");
         $chats = $this->dbhr->preQuery($sql, [ $start ]);
         $notified = 0;
 
@@ -455,7 +456,7 @@ class ChatRoom extends Entity
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
             $chatatts = $r->getPublic();
             $lastseen = $r->lastSeenByAll();
-            $notseenby = $r->getMembersNotSeen($lastseen ? $lastseen : 0, $chatatts['lastmsg']);
+            $notseenby = $r->getMembersNotSeen($lastseen ? $lastseen : 0, $chatatts['lastmsg'], $age);
 
             foreach ($notseenby as $member) {
                 # Now we have a member who has not seen all of the messages in this chat.  Find the other one.

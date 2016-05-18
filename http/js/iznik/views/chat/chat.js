@@ -346,7 +346,6 @@ define([
                         });
 
                         Iznik.minimisedChats.render();
-                        console.log("Trigger chatsfetched");
                         Iznik.Session.trigger('chatsfetched');
                     })
 

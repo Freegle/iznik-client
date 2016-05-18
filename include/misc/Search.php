@@ -20,6 +20,7 @@ class Search
     private $idatt;
     private $sortatt;
     private $wordtab;
+    private $wordcache = [];
 
     # Common words to remove before indexing, because they are so generic that they
     # wouldn't be useful in indexing.  This reduces the index size .
@@ -172,12 +173,18 @@ class Search
     }
 
     private function getWord($id, $tag) {
-        $words = $this->dbhr->preQuery("SELECT * FROM words WHERE id = ?;", [ $id ]);
-        return([
-            'id' => $words[0]['id'],
-            'word' => $words[0]['word'],
-            'type' => $tag
-        ]);
+        # We often get the same word when processing search results.  Cache in memory to speed that case.
+        if (!pres($id, $this->wordcache)) {
+            $words = $this->dbhr->preQuery("SELECT * FROM words WHERE id = ?;", [ $id ]);
+            $this->wordcache[$id] = [
+                'id' => $words[0]['id'],
+                'word' => $words[0]['word']
+            ];
+        }
+
+        $w = $this->wordcache[$id];
+        $w['type'] = $tag;
+        return($w);
     }
 
     private function processResults(&$results, $batch, $word, $tag, $weight)
