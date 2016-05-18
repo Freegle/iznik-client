@@ -259,7 +259,6 @@ define([
 });
 
 function haversineDistance(coords1, coords2, isMiles) {
-    console.log("Get dist", coords1, coords2);
     function toRad(x) {
         return x * Math.PI / 180;
     }

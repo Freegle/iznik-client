@@ -1,18 +1,29 @@
 <div class="panel panel-info">
-    <div class="panel-heading">
-        <a class=nodecor js-caret" data-toggle="collapse" href="#result-{{id}}">
-            <button class="btn btn-white pull-right">
-                <span class="js-caretdown caret"></span>
-                <span class="js-caretup caret icon-flipped-y" style="display: none"></span>
-            </button>
-            <div class="msgsubj panel-title">
-                {{subject}} <br/>
-                <!--<% if (obj.distance) { %>-->
-                <!--<span class="text-muted small">-->
+    <div class="panel-heading nopad">
+        <a class="nodecor js-caret row" data-toggle="collapse" href="#result-{{id}}">
+            <div class="col-xs-9">
+                <div class="msgsubj panel-title">
+                    {{subject}} <br/>
+                    <!--<% if (obj.distance) { %>-->
+                    <!--<span class="text-muted small">-->
                     <!--{{distance}} miles away-->
-                <!--</span>-->
-                <!--<% } %>-->
-                <div class="js-groups" />
+                    <!--</span>-->
+                    <!--<% } %>-->
+                    <div class="js-groups" />
+                </div>
+            </div>
+            <div class="col-xs-2">
+                <% if (obj.location && obj.mylocation) { %>
+                <div class="mapimage margleft pull-right">
+                    <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&center={{mylocation.lat}},{{mylocation.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{location.lat}},{{location.lng}}&sensor=false" />
+                </div>
+                <% } %>
+            </div>
+            <div class="col-xs-1">
+                <button class="btn btn-white pull-right">
+                    <span class="js-caretdown caret"></span>
+                    <span class="js-caretup caret icon-flipped-y" style="display: none"></span>
+                </button>
             </div>
         </a>
     </div>

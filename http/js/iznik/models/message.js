@@ -392,7 +392,6 @@ define([
     // Search sorted by closeness.
     Iznik.Collections.Messages.GeoSearch = Iznik.Collections.Messages.Search.extend({
         comparator: function(a, b) {
-            console.log("Compare", a, b);
             var mylat = this.options.nearlocation.lat;
             var mylng = this.options.nearlocation.lng;
 
@@ -405,7 +404,6 @@ define([
 
             var adist = haversineDistance([mylat, mylng], [a.get('location').lat, a.get('location').lng], true);
             var bdist = haversineDistance([mylat, mylng], [b.get('location').lat, b.get('location').lng], true);
-            console.log("Distances", adist, bdist);
             a.set('distance', Math.round(adist, 1));
             b.set('distance', Math.round(bdist, 1));
 

@@ -107,8 +107,21 @@ define([
                     },
                     success: function (collection) {
                         v.close();
+                        var some = false;
 
-                        if (collection.length == 0) {
+                        collection.each(function(msg) {
+                            var related = msg.get('related');
+
+                            var taken = _.where(related, {
+                                type: 'Taken'
+                            });
+
+                            if (taken.length == 0) {
+                                some = true;
+                            }
+                        });
+
+                        if (!some) {
                             self.$('.js-none').fadeIn('slow');
                         } else {
                             self.$('.js-none').hide();
@@ -197,6 +210,7 @@ define([
         },
 
         render: function() {
+            var self = this;
             var related = this.model.get('related');
 
             var taken = _.where(related, {
@@ -206,6 +220,21 @@ define([
             if (taken.length == 0) {
                 // Only show a search result for an offer which has not been taken.
                 this.stripGumf();
+                var mylocation = null;
+                try {
+                    mylocation = localStorage.getItem('mylocation');
+
+                    if (mylocation) {
+                        mylocation = JSON.parse(mylocation);
+                    }
+                } catch (e) {
+                }
+
+                this.model.set('mylocation', mylocation);
+
+                // Static map custom markers don't support SSL.
+                this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapmarker.gif');
+
                 Iznik.Views.User.Message.prototype.render.call(this);
             } else {
                 this.$el.hide();
