@@ -339,22 +339,25 @@ function message() {
                         $ret = ['ret' => 1, 'status' => 'Odd action'];
 
                         switch ($outcome) {
-                            case Message::OUTCOME_TAKEN:
+                            case Message::OUTCOME_TAKEN: {
                                 if ($m->getType() == Message::TYPE_OFFER) {
                                     $m->mark($outcome, $comment, $happiness, $userid);
                                     $ret = ['ret' => 0, 'status' => 'Success'];
                                 };
                                 break;
-                            case Message::OUTCOME_RECEIVED:
+                            }
+                            case Message::OUTCOME_RECEIVED: {
                                 if ($m->getType() == Message::TYPE_WANTED) {
                                     $m->mark($outcome, $comment, $happiness, $userid);
                                     $ret = ['ret' => 0, 'status' => 'Success'];
                                 };
                                 break;
-                            case Message::OUTCOME_WITHDRAWN:
+                            }
+                            case Message::OUTCOME_WITHDRAWN: {
                                 $m->withdraw($comment, $happiness, $userid);
                                 $ret = ['ret' => 0, 'status' => 'Success'];
                                 break;
+                            }
                         }
                         break;
                 }
