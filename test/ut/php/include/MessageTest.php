@@ -338,7 +338,19 @@ class messageTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+    
+    public function testCensor() {
+        error_log(__METHOD__);
 
+        $msg = $this->unique(file_get_contents('msgs/phonemail'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $atts = $m->getPublic();
+        assertEquals('Hey. xxx xxx and xxx@xxx.com.', $atts['textbody']);
+
+        error_log(__METHOD__ . " end");
+    }
+    
     // For manual testing
 //    public function testSpecial() {
 //        error_log(__METHOD__);

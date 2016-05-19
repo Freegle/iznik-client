@@ -210,11 +210,11 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby'
+        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody'
     ];
 
     public $memberAtts = [
-        'textbody', 'htmlbody', 'fromname', 'fromuser'
+        'fromname', 'fromuser'
     ];
 
     public $moderatorAtts = [
@@ -453,6 +453,15 @@ class Message
             # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
             $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
             $ret['outcomes'] = $this->dbhr->preQuery($sql, [ $this->id ]);
+        }
+
+        if ($role == User::ROLE_NONMEMBER) {
+            # For non-members we want to strip out any potential phone numbers or email addresses.
+            $ret['textbody'] = preg_replace('/[0-9]{2,}/', 'xxx', $ret['textbody']);
+            $ret['textbody'] = preg_replace('/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i', 'xxx@xxx.com', $ret['textbody']);
+
+            # We can't do this in HTML, so just zap it.
+            $ret['htmlbody'] = NULL;
         }
 
         # Add derived attributes.

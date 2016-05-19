@@ -52,24 +52,28 @@ define([
         updateUnread: function() {
             var self = this;
             var unread = 0;
-            Iznik.Session.chats.each(function(chat) {
-                var refmsgids = chat.get('refmsgids');
-                _.each(refmsgids, function(refmsgid) {
-                    if (refmsgid == self.model.get('id')) {
-                        var thisun = chat.get('unseen');
-                        unread += thisun;
 
-                        if (thisun > 0) {
-                            // This chat might indicate a new replier we've not got listed.
-                            // TODO Could make this perform better than doing a full fetch.
-                            self.model.fetch().then(function() {
-                                self.replies.add(self.model.get('replies'));
-                                self.updateReplies();
-                            });
+            // We might or might not have the chats, depending on whether we're logged in at this point.
+            if (Iznik.Session.hasOwnProperty('chats')) {
+                Iznik.Session.chats.each(function(chat) {
+                    var refmsgids = chat.get('refmsgids');
+                    _.each(refmsgids, function(refmsgid) {
+                        if (refmsgid == self.model.get('id')) {
+                            var thisun = chat.get('unseen');
+                            unread += thisun;
+
+                            if (thisun > 0) {
+                                // This chat might indicate a new replier we've not got listed.
+                                // TODO Could make this perform better than doing a full fetch.
+                                self.model.fetch().then(function() {
+                                    self.replies.add(self.model.get('replies'));
+                                    self.updateReplies();
+                                });
+                            }
                         }
-                    }
+                    });
                 });
-            });
+            }
 
             if (unread > 0) {
                 this.$('.js-unreadcount').html(unread);
@@ -82,7 +86,7 @@ define([
         watchChatRooms: function() {
             var self = this;
 
-            if (this.inDOM()) {
+            if (this.inDOM() && Iznik.Session.hasOwnProperty('chats')) {
                 // If the number of unread messages relating to this message changes, we want to flag it in the count.  So
                 // look for chats which refer to this message.  Note that chats can refer to multiple.
                 Iznik.Session.chats.fetch().then(function() {
@@ -100,17 +104,21 @@ define([
         stripGumf: function() {
             var textbody = this.model.get('textbody');
 
-            // Strip photo links - we should have those as attachments.
-            textbody = textbody.replace(/You can see a photo[^]*jpg/, '');
-            textbody = textbody.replace(/Check out the pictures[^]*https:\/\/trashnothing[^]*pics\/\d*/, '');
+            if (textbody) {
+                // Strip photo links - we should have those as attachments.
+                textbody = textbody.replace(/You can see a photo[^]*jpg/, '');
+                textbody = textbody.replace(/Check out the pictures[^]*https:\/\/trashnothing[^]*pics\/\d*/, '');
 
-            // FOPs
-            textbody = textbody.replace(/Fair Offer Policy applies \(see https:\/\/[^]*\)/, '');
+                // FOPs
+                textbody = textbody.replace(/Fair Offer Policy applies \(see https:\/\/[^]*\)/, '');
 
-            // Footers
-            textbody = textbody.replace(/--[\s\S]*Get Freegling[\s\S]*book/m, '');
+                // Footers
+                textbody = textbody.replace(/--[\s\S]*Get Freegling[\s\S]*book/m, '');
 
-            textbody = textbody.trim();
+                textbody = textbody.trim();
+            } else {
+                textbody = '';
+            }
 
             this.model.set('textbody', textbody);
         },
@@ -152,46 +160,48 @@ define([
                 self.$('.js-attlist').append(v.render().el);
             });
 
-            // Show and update the reply details.
-            var replies = self.model.get('replies');
-            if (replies.length > 0) {
-                self.$('.js-noreplies').hide();
-                self.replies = new Iznik.Collection(replies);
-                self.listenTo(self.model, 'change:replies', self.updateReplies);
-                self.updateReplies();
+            if (self.$('.js-replies').length > 0) {
+                // Show and update the reply details.
+                var replies = self.model.get('replies');
+                if (replies.length > 0) {
+                    self.$('.js-noreplies').hide();
+                    self.replies = new Iznik.Collection(replies);
+                    self.listenTo(self.model, 'change:replies', self.updateReplies);
+                    self.updateReplies();
 
-                self.repliesView = new Backbone.CollectionView({
-                    el: self.$('.js-replies'),
-                    modelView: Iznik.Views.User.Message.Reply,
-                    modelViewOptions: {
-                        collection: self.replies,
-                        message: self.model
-                    },
-                    collection: self.replies
-                });
-
-                self.repliesView.render();
-
-                // We might have been asked to open up one of these messages because we're showing the corresponding
-                // chat.
-                if (self.options.chatid ) {
-                    var model = self.replies.get(self.options.chatid);
-                    console.log("Get chat model", model);
-                    if (model) {
-                        var view = self.repliesView.viewManager.findByModel(model);
-                        console.log("Got view", view, view.$('.js-caret'));
-                        // Slightly hackily jump up to find the owning message and click to expand.
-                        view.$el.closest('.panel-heading').find('.js-caret').click();
-                    }
-                    self.replies.each(function(reply) {
-                        console.log("Compare", reply.get('chatid'), self.options.chatid);
-                        if (reply.get('chatid') == self.options.chatid) {
-                            console.log("Found it");
-                        }
+                    self.repliesView = new Backbone.CollectionView({
+                        el: self.$('.js-replies'),
+                        modelView: Iznik.Views.User.Message.Reply,
+                        modelViewOptions: {
+                            collection: self.replies,
+                            message: self.model
+                        },
+                        collection: self.replies
                     });
+
+                    self.repliesView.render();
+
+                    // We might have been asked to open up one of these messages because we're showing the corresponding
+                    // chat.
+                    if (self.options.chatid ) {
+                        var model = self.replies.get(self.options.chatid);
+                        console.log("Get chat model", model);
+                        if (model) {
+                            var view = self.repliesView.viewManager.findByModel(model);
+                            console.log("Got view", view, view.$('.js-caret'));
+                            // Slightly hackily jump up to find the owning message and click to expand.
+                            view.$el.closest('.panel-heading').find('.js-caret').click();
+                        }
+                        self.replies.each(function(reply) {
+                            console.log("Compare", reply.get('chatid'), self.options.chatid);
+                            if (reply.get('chatid') == self.options.chatid) {
+                                console.log("Found it");
+                            }
+                        });
+                    }
+                } else {
+                    self.$('.js-noreplies').show();
                 }
-            } else {
-                self.$('.js-noreplies').show();
             }
 
             self.updateUnread();

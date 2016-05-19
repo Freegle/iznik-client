@@ -36,9 +36,11 @@
                 <div class="col-md-9">
                     <div class="lead prewrap">{{textbody}}</div>
                     <span class="text-muted pull-right">#{{id}}</span>
+                    <% if (obj.fromuser) { %>
                     <span class="text-muted">
                         Posted by {{fromuser.displayname}}.
                     </span>
+                    <% } %>
                     <% if (FOP) { %>
                     <div class="btn btn-warning js-fop">
                         <span class="glyphicon glyphicon-info-sign" />&nbsp;Fair Offer Policy

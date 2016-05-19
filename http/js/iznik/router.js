@@ -101,10 +101,13 @@ define([
             "find/whereami": "userFindWhereAmI",
             "find/search/(:search)": "userSearched",
             "find/search": "userSearch",
+            "find/whatnext": "userFindWhatNext",
+            "find/whatisit": "userFindWhatIsIt",
+            "find/whoami": "userFindWhoAmI",
             "give/whereami": "userGiveWhereAmI",
             "give/whatisit": "userGiveWhatIsIt",
             "give/whoami": "userGiveWhoAmI",
-            "give/whatnext": "userWhatNext",
+            "give/whatnext": "userGiveWhatNext",
             "unsubscribe(/:id)": "unsubscribe",
             "post": "userHome", // legacy route
             "chat/:id": "userChat",
@@ -243,11 +246,38 @@ define([
             });
         },
 
-        userWhatNext: function () {
+        userFindWhatIsIt: function () {
+            var self = this;
+
+            require(["iznik/views/pages/user/find"], function() {
+                var page = new Iznik.Views.User.Pages.Find.WhatIsIt();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userFindWhoAmI: function () {
+            var self = this;
+
+            require(["iznik/views/pages/user/find"], function() {
+                var page = new Iznik.Views.User.Pages.Find.WhoAmI();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userGiveWhatNext: function () {
             var self = this;
 
             require(["iznik/views/pages/user/give"], function() {
                 var page = new Iznik.Views.User.Pages.Give.WhatNext();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userFindWhatNext: function () {
+            var self = this;
+
+            require(["iznik/views/pages/user/find"], function() {
+                var page = new Iznik.Views.User.Pages.Find.WhatNext();
                 self.loadRoute({page: page});
             });
         },
