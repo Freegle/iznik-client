@@ -33,6 +33,11 @@ define([
 
         carettoggle: function() {
             this.expanded = !this.expanded;
+            if (this.expanded) {
+                this.$('.js-snippet').slideUp();
+            } else {
+                this.$('.js-snippet').slideDown();
+            }
             this.caretshow();
         },
 

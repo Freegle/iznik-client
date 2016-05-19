@@ -221,6 +221,7 @@ function message() {
                         $ret = ['ret' => 3, 'status' => 'Not our message'];
                         $sql = "SELECT * FROM messages_drafts WHERE msgid = ? AND (session = ? OR (userid IS NOT NULL AND userid = ?));";
                         $drafts = $dbhr->preQuery($sql, [$id, session_id(), $myid]);
+                        $newuser = FALSE;
                         #error_log("$sql, $id, " . session_id() . ", $myid");
 
                         foreach ($drafts as $draft) {
@@ -256,6 +257,7 @@ function message() {
                                     # We don't yet know this user.  Create them.
                                     $name = substr($email, 0, strpos($email, '@'));
                                     $u->create(NULL, NULL, $name, 'Created to allow post');
+                                    $newuser = TRUE;
                                     $eid = $u->addEmail($email, 1);
                                 } else {
                                     $u = new User($dbhr, $dbhm, $uid);
@@ -297,6 +299,8 @@ function message() {
                                 }
                             }
                         }
+
+                        $ret['newuser'] = $newuser;
 
                         break;
                 }

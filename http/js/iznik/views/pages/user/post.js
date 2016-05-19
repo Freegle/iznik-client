@@ -43,6 +43,8 @@ define([
 
         save: function () {
             // Save the current message as a draft.
+            var self = this;
+
             var item = this.getItem();
             if (item.length == 0) {
                 self.$('.tt-input').focus();
@@ -55,9 +57,7 @@ define([
                 var loc = localStorage.getItem('mylocation');
                 locationid = loc ? JSON.parse(loc).id : null;
                 groupid = localStorage.getItem('myhomegroup');
-            } catch (e) {
-            }
-            ;
+            } catch (e) {};
 
             var d = jQuery.Deferred();
             var attids = [];
@@ -65,24 +65,26 @@ define([
                 attids.push(photo.get('id'))
             });
 
+            var data = {
+                collection: 'Draft',
+                locationid: locationid,
+                messagetype: self.msgType,
+                item: item,
+                textbody: self.$('.js-description').val(),
+                attachments: attids,
+                groupid: groupid
+            };
+
             $.ajax({
                 type: 'PUT',
                 url: API + 'message',
-                data: {
-                    collection: 'Draft',
-                    locationid: locationid,
-                    messagetype: self.msgType,
-                    item: item,
-                    textbody: self.$('.js-description').val(),
-                    attachments: attids,
-                    groupid: groupid
-                }, success: function (ret) {
+                data: data,
+                success: function (ret) {
                     if (ret.ret == 0) {
                         d.resolve();
                         try {
                             localStorage.setItem('draft', ret.id);
-                        } catch (e) {
-                        }
+                        } catch (e) {}
                     } else {
                         d.reject();
                     }
@@ -267,6 +269,7 @@ define([
         },
 
         doit: function () {
+            var self = this;
             var email = this.$('.js-email').val();
             var id = null;
 
@@ -285,6 +288,7 @@ define([
                         id: id
                     }, success: function (ret) {
                         if (ret.ret == 0) {
+                            console.log("Next", self);
                             Router.navigate(self.whatnext, true)
                         }
                     }, error: self.fail

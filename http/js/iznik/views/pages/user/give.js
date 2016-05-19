@@ -14,12 +14,12 @@ define([
     Iznik.Views.User.Pages.Give.WhatIsIt = Iznik.Views.User.Pages.WhatIsIt.extend({
         msgType: 'Offer',
         template: "user_give_whatisit",
-        whoami: '/give/whoami',
-        whatnext: '/give/whatnext'
+        whoami: '/give/whoami'
     });
 
     Iznik.Views.User.Pages.Give.WhoAmI = Iznik.Views.User.Pages.WhoAmI.extend({
-        template: "user_give_whoami"
+        template: "user_give_whoami",
+        whatnext: '/give/whatnext'
     });
     
     Iznik.Views.User.Pages.Give.WhatNext = Iznik.Views.Page.extend({

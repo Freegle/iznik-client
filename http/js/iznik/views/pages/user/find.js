@@ -250,8 +250,7 @@ define([
         msgType: 'Wanted',
         template: "user_find_whatisit",
         whoami: '/find/whoami',
-        whatnext: '/find/whatnext',
-        
+
         render: function() {
             // We want to start the wanted with the last search term.
             try {
@@ -263,6 +262,7 @@ define([
     });
 
     Iznik.Views.User.Pages.Find.WhoAmI = Iznik.Views.User.Pages.WhoAmI.extend({
+        whatnext: '/find/whatnext',
         template: "user_find_whoami"
     });
 
