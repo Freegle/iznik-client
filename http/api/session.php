@@ -120,6 +120,7 @@ function session() {
                 $fullname = presdef('displayname', $_REQUEST, NULL);
                 $firstname = presdef('firstname', $_REQUEST, NULL);
                 $lastname = presdef('lastname', $_REQUEST, NULL);
+                $password = presdef('password', $_REQUEST, NULL);
                 $key = presdef('key', $_REQUEST, NULL);
 
                 if ($fullname) {
@@ -164,6 +165,10 @@ function session() {
                     if (!$me->confirmEmail($key)) {
                         $ret = ['ret' => 11, 'status' => 'Confirmation failed'];
                     }
+                }
+                
+                if ($password) {
+                    $me->addLogin(User::LOGIN_NATIVE, $me->getId(), $password);
                 }
             }
             break;

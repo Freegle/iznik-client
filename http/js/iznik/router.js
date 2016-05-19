@@ -108,6 +108,7 @@ define([
             "give/whatisit": "userGiveWhatIsIt",
             "give/whoami": "userGiveWhoAmI",
             "give/whatnext": "userGiveWhatNext",
+            "newuser": "newUser",
             "unsubscribe(/:id)": "unsubscribe",
             "post": "userHome", // legacy route
             "chat/:id": "userChat",
@@ -287,6 +288,15 @@ define([
 
             require(["iznik/views/pages/user/unsubscribe"], function() {
                 var page = new Iznik.Views.User.Pages.Unsubscribe();
+                self.loadRoute({page: page});
+            });
+        },
+
+        newUser: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/new"], function() {
+                var page = new Iznik.Views.User.Pages.New();
                 self.loadRoute({page: page});
             });
         },

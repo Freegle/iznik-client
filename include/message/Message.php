@@ -2156,7 +2156,7 @@ class Message
             }
             
             $subject = $this->type . ': ' . $this->subject . " ($loc)";
-            error_log("Construct #{$this->id} {$this->subject} into $subject");
+            #error_log("Construct #{$this->id} {$this->subject} into $subject");
             $this->setPrivate('subject', $subject);
 
             $messageid = $this->id . '@' . USER_DOMAIN;

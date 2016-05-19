@@ -288,8 +288,16 @@ define([
                         id: id
                     }, success: function (ret) {
                         if (ret.ret == 0) {
-                            console.log("Next", self);
-                            Router.navigate(self.whatnext, true)
+                            if (ret.newuser) {
+                                // We didn't know this email and have created a user for them.  Show them an invented
+                                // password, and allow them to change it.
+                                Iznik.Session.set('inventedpassword', ret.newpassword);
+                                Iznik.Session.set('newuser', ret.newuser);
+                                Router.navigate('/newuser', true);
+                            } else {
+                                // Known user.  Just display the confirm page.
+                                Router.navigate(self.whatnext, true)
+                            }
                         }
                     }, error: self.fail
                 });

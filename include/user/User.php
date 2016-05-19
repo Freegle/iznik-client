@@ -192,6 +192,18 @@ class User extends Entity
         }
     }
 
+    public function inventPassword() {
+        $lengths  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
+        $bigrams  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), true);
+        $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
+        $length = \Wordle\array_weighted_rand($lengths);
+        $start  = \Wordle\array_weighted_rand($bigrams);
+        $pw = \Wordle\fill_word($start, $length, $trigrams);
+        $pw = strtolower($pw);
+
+        return($pw);
+    }
+
     public function findByYahooUserId($id) {
         # Take care not to pick up empty or null else that will cause is to overmerge.
         $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooUserId = ? AND yahooUserId IS NOT NULL AND LENGTH(yahooUserId) > 0;", [ $id ]);
@@ -732,8 +744,8 @@ class User extends Entity
         }
 
         # If the login with this type already exists in the table, that's fine.
-        $rc = $this->dbhm->preExec("INSERT IGNORE INTO users_logins (userid, uid, type, credentials) VALUES (?, ?, ?, ?)",
-            [$this->id, $uid, $type, $creds]);
+        $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, uid, type, credentials) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE credentials = ?;",
+            [$this->id, $uid, $type, $creds, $creds]);
         return($rc);
     }
 

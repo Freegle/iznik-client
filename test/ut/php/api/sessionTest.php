@@ -260,6 +260,23 @@ class sessionTest extends IznikAPITestCase
         ]);
         assertEquals(10, $ret['ret']);
 
+        # Change password and check it works.
+        $u = new User($this->dbhm, $this->dbhm, $id);
+        $u->addLogin(User::LOGIN_NATIVE, $u->getId(), 'testpw');
+        $ret = $this->call('session', 'POST', [
+            'email' =>'test3@test.com',
+            'password' => 'testpw'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('session', 'PATCH', [
+            'password' => 'testpw2'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('session', 'POST', [
+            'email', 'test3@test.com',
+            'password' => 'testpw2'
+        ]);
+
         $u->delete();
 
         error_log(__METHOD__ . " end");

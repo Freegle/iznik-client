@@ -221,7 +221,8 @@ function message() {
                         $ret = ['ret' => 3, 'status' => 'Not our message'];
                         $sql = "SELECT * FROM messages_drafts WHERE msgid = ? AND (session = ? OR (userid IS NOT NULL AND userid = ?));";
                         $drafts = $dbhr->preQuery($sql, [$id, session_id(), $myid]);
-                        $newuser = FALSE;
+                        $newuser = NULL;
+                        $pw = NULL;
                         #error_log("$sql, $id, " . session_id() . ", $myid");
 
                         foreach ($drafts as $draft) {
@@ -256,9 +257,14 @@ function message() {
                                 if (!$uid) {
                                     # We don't yet know this user.  Create them.
                                     $name = substr($email, 0, strpos($email, '@'));
-                                    $u->create(NULL, NULL, $name, 'Created to allow post');
-                                    $newuser = TRUE;
+                                    $newuser = $u->create(NULL, NULL, $name, 'Created to allow post');
+
+                                    # Create a password and mail it to them.  Also log them in and return it.  This
+                                    # avoids us having to ask the user for a password, though they can change it if
+                                    # they like.  Less friction.
+                                    $pw = $u->inventPassword();
                                     $eid = $u->addEmail($email, 1);
+                                    $u->login($pw);
                                 } else {
                                     $u = new User($dbhr, $dbhm, $uid);
                                     $eid = $u->getIdForEmail($email)['id'];
@@ -301,6 +307,7 @@ function message() {
                         }
 
                         $ret['newuser'] = $newuser;
+                        $ret['newpassword'] = $pw;
 
                         break;
                 }
