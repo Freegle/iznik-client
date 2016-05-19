@@ -21,7 +21,7 @@ $start = date('Y-m-d', strtotime("midnight 31 days ago"));
 error_log("Non-Freegle logs");
 $total = 0;
 do {
-    $count = $dbhm->exec("DELETE FROM logs WHERE groupid IS NOT NULL AND groupid IN (SELECT id FROM groups WHERE type != 'Freegle') LIMIT 1000;");
+    $count = $dbhm->exec("DELETE FROM logs WHERE `timestamp` < '$start' AND groupid IS NOT NULL AND groupid IN (SELECT id FROM groups WHERE type != 'Freegle') LIMIT 1000;");
     $total += $count;
     error_log("...$total");
 } while ($count > 0);

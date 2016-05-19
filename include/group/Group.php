@@ -244,7 +244,7 @@ class Group extends Entity
         }
 
         $sql = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, memberships_yahoo.yahooAlias, memberships_yahoo.yahooPostingStatus, memberships_yahoo.yahooDeliveryType, memberships_yahoo.yahooapprove, memberships_yahoo.yahooreject, memberships_yahoo.joincomment FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid LEFT JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
-        error_log("Members $sql");
+        #error_log("Members $sql");
         $members = $this->dbhr->preQuery($sql);
 
         $ctx = [ 'Added' => NULL ];
@@ -292,6 +292,7 @@ class Group extends Entity
             $thisone['otheremails'] = $others;
             $thisone['yahooDeliveryType'] = $member['yahooDeliveryType'];
             $thisone['yahooPostingStatus'] = $member['yahooPostingStatus'];
+            $thisone['yahooAlias'] = $member['yahooAlias'];
             $thisone['role'] = $u->getRole($member['groupid']);
             $thisone['joincomment'] = $member['joincomment'];
 
@@ -476,6 +477,7 @@ class Group extends Entity
                     # batch them up into groups because that performs better in a cluster.
                     $yps = presdef('yahooPostingStatus', $member, NULL);
                     $ydt = presdef('yahooDeliveryType', $member, NULL);
+                    $yahooAlias = presdef('yahooAlias', $member, NULL);
                     $joincomment = pres('joincomment', $member) ? $this->dbhm->quote($member['joincomment']) : 'NULL';
 
                     # Get any existing Yahoo membership for this user with this email.
@@ -532,11 +534,11 @@ class Group extends Entity
                         $yahoorole = $this->getYahooRole($memb);
                         
                         if ($new ||
-                            $yahoomembs[0]['role'] != $yahoorole || $yahoomembs[0]['collection'] != $collection || $yahoomembs[0]['yahooPostingStatus'] != $yps || $yahoomembs[0]['yahooDeliveryType'] != $ydt || $yahoomembs[0]['joincomment'] != $joincomment || $yahoomembs[0]['emailid'] != $member['emailid'] || $yahoomembs[0]['added'] != $added)
+                            $yahoomembs[0]['role'] != $yahoorole || $yahoomembs[0]['collection'] != $collection || $yahoomembs[0]['yahooPostingStatus'] != $yps || $yahoomembs[0]['yahooDeliveryType'] != $ydt || $yahoomembs[0]['joincomment'] != $joincomment || $yahoomembs[0]['emailid'] != $member['emailid'] || $yahoomembs[0]['added'] != $added || $yahoomembs[0]['yahooAlias'] != $yahooAlias)
                         {
                             $bulksql .=  "UPDATE memberships SET role = '$overallrole', collection = '$collection', added = $added WHERE userid = " .
                                 "{$member['uid']} AND groupid = {$this->id};";
-                            $sql = "UPDATE memberships_yahoo SET role = '$yahoorole', collection = '$collection', yahooPostingStatus = " . $this->dbhm->quote($yps) .
+                            $sql = "UPDATE memberships_yahoo SET role = '$yahoorole', collection = '$collection', yahooPostingStatus = " . $this->dbhm->quote($yps) . ", yahooAlias = " . $this->dbhm->quote($yahooAlias) .
                                 ", yahooDeliveryType = " . $this->dbhm->quote($ydt) . ", joincomment = $joincomment, added = $added WHERE membershipid = (SELECT id FROM memberships WHERE userid = " .
                                 "{$member['uid']} AND groupid = {$this->id}) AND emailid = {$member['emailid']};";
                             $bulksql .= $sql;

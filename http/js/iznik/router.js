@@ -201,10 +201,16 @@ define([
         userSearched: function (query) {
             var self = this;
 
+            $('body').addClass('bodyback');
+
             require(["iznik/views/pages/user/find"], function() {
                 var page = new Iznik.Views.User.Pages.Find.Search({
                     search: query
                 });
+
+                try {
+                    localStorage.setItem('lastsearch', query);
+                } catch (e) {}
 
                 self.loadRoute({page: page});
             });

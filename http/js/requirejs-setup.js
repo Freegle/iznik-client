@@ -24,9 +24,15 @@ requirejs.config({
         "ga": {
             exports: "ga"
         },
+        "gmaps": {
+            exports: "google"
+        },
         "waypoints": {
             deps: [ "jquery" ],
             exports: 'Waypoint'
+        },
+        "maplabel": {
+            deps: [ "jquery", "gmaps"]
         },
         "jquery.dd": [ "jquery" ],
         "jquery.dotdotdot": [ "jquery" ],
@@ -51,6 +57,8 @@ requirejs.config({
         "underscore": "/js/lib/underscore",
         "jquery-show-first": "/js/lib/jquery-show-first",
         "tinymce": "https://cdn.tinymce.com/4/tinymce.min",
+        "gmaps": "https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization",
+        "maplabel": "/js/lib/maplabel-compiled",
 
         "iznik": "/js/iznik"
     },

@@ -5,6 +5,7 @@ define([
     'iznik/base',
     'iznik/views/pages/pages',
     'iznik/views/pages/user/pages',
+    'iznik/views/pages/user/post',
     'iznik/views/user/message'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Find.WhereAmI = Iznik.Views.User.Pages.WhereAmI.extend({
@@ -126,6 +127,7 @@ define([
                         } else {
                             self.$('.js-none').hide();
                         }
+                        self.$('.js-wanted').fadeIn('slow');
                     }
                 });
             }
@@ -242,5 +244,29 @@ define([
             
             return(this);
         }
+    });
+
+    Iznik.Views.User.Pages.Find.WhatIsIt = Iznik.Views.User.Pages.WhatIsIt.extend({
+        msgType: 'Wanted',
+        template: "user_find_whatisit",
+        whoami: '/find/whoami',
+        whatnext: '/find/whatnext',
+        
+        render: function() {
+            // We want to start the wanted with the last search term.
+            try {
+                this.options.item = localStorage.getItem('lastsearch');
+            } catch (e) {}
+
+            Iznik.Views.User.Pages.WhatIsIt.prototype.render.call(this);
+        }
+    });
+
+    Iznik.Views.User.Pages.Find.WhoAmI = Iznik.Views.User.Pages.WhoAmI.extend({
+        template: "user_find_whoami"
+    });
+
+    Iznik.Views.User.Pages.Find.WhatNext = Iznik.Views.Page.extend({
+        template: "user_find_whatnext"
     });
 });

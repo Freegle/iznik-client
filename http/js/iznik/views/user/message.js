@@ -6,7 +6,7 @@ define([
     'iznik/views/chat/chat'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Message = Iznik.View.extend({
-        className: "panel panel-info marginbotsm",
+        className: "panel panel-info marginbotsm botspace",
 
         events: {
             'click .js-caret': 'carettoggle',

@@ -129,8 +129,6 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     $tpls = addTemplate(IZNIK_BASE . '/http/template/', IZNIK_BASE . '/http/template/');
     echo implode("\n", $tpls);
     ?>
-    <script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization"></script>
-    <script type="text/javascript" src="/js/lib/maplabel-compiled.js"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['corechart', 'annotationchart']}]}"></script>
 
     <!--[if lt IE 9]>

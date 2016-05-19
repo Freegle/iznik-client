@@ -460,6 +460,7 @@ class Message
         $ret['date'] = ISODate($ret['date']);
         $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
         $ret['FOP'] = pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE);
+        $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
 
         if (pres('fromcountry', $ret)) {
             $ret['fromcountry'] = code_to_country($ret['fromcountry']);
