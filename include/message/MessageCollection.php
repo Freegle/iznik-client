@@ -41,6 +41,7 @@ class MessageCollection
             case MessageCollection::PENDING:
             case MessageCollection::SPAM:
             case MessageCollection::DRAFT:
+            case MessageCollection::QUEUED_YAHOO_USER:
                 $this->collection = $collection;
                 break;
             default:
@@ -54,10 +55,12 @@ class MessageCollection
         if ($this->collection == MessageCollection::DRAFT) {
             # Draft messages are handled differently, as they're not attached to any group.
             $me = whoAmI($this->dbhr, $this->dbhm);
-            $msgs = $this->dbhr->preQuery("SELECT msgid FROM messages_drafts WHERE session = ? OR (userid = ? AND userid IS NOT NULL);", [
+            $sql = "SELECT msgid FROM messages_drafts WHERE session = ? OR (userid = ? AND userid IS NOT NULL);";
+            $msgs = $this->dbhr->preQuery($sql, [
                 session_id(),
                 $me ? $me->getId() : NULL
             ]);
+            error_log($sql . " " . ($me ? $me->getId() : NULL));
 
             foreach ($msgs as $msg) {
                 $msgids[] = ['id' => $msg['msgid']];
@@ -126,6 +129,7 @@ class MessageCollection
             $type = $m->getType();
             if (!$messagetype || $type == $messagetype) {
                 $role = $m->getRoleForMessage();
+                #error_log("Role $role for {$msg['id']}");
 
                 $thisgroups = $m->getGroups();
                 $cansee = ($role == User::ROLE_MODERATOR) || ($role == User::ROLE_OWNER);
@@ -151,6 +155,7 @@ class MessageCollection
                 if ($cansee) {
                     switch ($this->collection) {
                         case MessageCollection::DRAFT:
+                        case MessageCollection::QUEUED_YAHOO_USER:
                             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                                 # Only visible to moderators or owners, or self (which returns a role of moderator).
                                 $n = $m->getPublic(TRUE, TRUE);

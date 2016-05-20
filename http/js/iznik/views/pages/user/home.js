@@ -96,7 +96,9 @@ define([
 
             self.wantedsView.render();
 
-            // And collections for all the approved and all the pending messages.
+            // We want to get all messages we've sent.  From the user pov we don't distinguish in
+            // how they look.  This is because most messages are approved and there's no point worrying them, and
+            // provoking "why hasn't it been approved yet" complaints.
             self.messages = new Iznik.Collections.Message(null, {
                 modtools: false,
                 collection: 'Approved'
@@ -105,18 +107,14 @@ define([
                 modtools: false,
                 collection: 'Pending'
             });
-            self.draftMessages = new Iznik.Collections.Message(null, {
+            self.queuedMessages = new Iznik.Collections.Message(null, {
                 modtools: false,
-                collection: 'Draft'
+                collection: 'QueuedYahooUser'
             });
 
             var count = 0;
 
-            // We want to get both pending messages and approved messages.  From the user pov we don't distinguish in
-            // how they look.  This is because most messages are approved and there's no point worrying them, and
-            // provoking "why hasn't it been approved yet" complaints.
-            _.each([self.messages, self.pendingMessages, self.draftMessages], function(coll) {
-                console.log("Coll", coll);
+            _.each([self.messages, self.pendingMessages, self.queuedMessages], function(coll) {
                 // We listen for events on the messages collection and ripple them through to the relevant offers/wanteds
                 // collection.  CollectionView will then handle rendering/removing the messages view.
                 self.listenTo(coll, 'add', function (msg) {
@@ -159,9 +157,8 @@ define([
                 }).then(function () {
                     // We want both fetches to finish.
                     count++;
-                    console.log("Fetched", count);
 
-                    if (count == 2) {
+                    if (count == 3) {
                         if (self.offers.length == 0) {
                             self.$('.js-nooffers').fadeIn('slow');
                         } else {

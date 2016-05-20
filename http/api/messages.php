@@ -47,14 +47,14 @@ function messages() {
 
                     # Ensure that if we aren't in any groups, we don't treat this as a systemwide search.
                     $groups[] = 0;
-
-                    if ($fromuser) {
-                        # We're looking for messages from a specific user
-                        $userids[] = $fromuser;
-                    }
                 }
             }
 
+            if ($fromuser) {
+                # We're looking for messages from a specific user
+                $userids[] = $fromuser;
+            }
+            
             $msgs = NULL;
             $c = new MessageCollection($dbhr, $dbhm, $collection);
 

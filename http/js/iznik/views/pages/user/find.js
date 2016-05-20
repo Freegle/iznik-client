@@ -222,7 +222,6 @@ define([
 
             if (taken.length == 0) {
                 // Only show a search result for an offer which has not been taken.
-                this.stripGumf();
                 var mylocation = null;
                 try {
                     mylocation = localStorage.getItem('mylocation');

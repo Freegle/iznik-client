@@ -30,7 +30,11 @@
         <div class="panel-body nopad">
             <div class="row topspace">
                 <div class="col-xs-10">
+                    <% if (textbody.length == 0) { %>
+                    <em>There's no description.</em>
+                    <% } else { %>
                     {{textbody}}
+                    <% } %>
                 </div>
                 <div class="nopad col-xs-2">
                     <ul class="list-inline list-unstyled js-attlist" />

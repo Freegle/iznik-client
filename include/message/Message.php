@@ -277,7 +277,7 @@ class Message
         $role = User::ROLE_NONMEMBER;
 
         if ($me) {
-            $sql = "SELECT role FROM memberships
+            $sql = "SELECT role, messages_groups.collection FROM memberships
               INNER JOIN messages_groups ON messages_groups.msgid = ?
                   AND messages_groups.groupid = memberships.groupid
                   AND userid = ?;";
@@ -300,6 +300,11 @@ class Message
                         # Just a member
                         $role = User::ROLE_MEMBER;
                         break;
+                }
+
+                # We have rights to any messages which we have sent but which are queued waiting for Yahoo membership.
+                if ($group['collection'] == MessageCollection::QUEUED_YAHOO_USER && $me->getId() == $this->fromuser) {
+                    $role = User::ROLE_MODERATOR;
                 }
             }
 
@@ -468,7 +473,7 @@ class Message
         $ret['arrival'] = ISODate($ret['arrival']);
         $ret['date'] = ISODate($ret['date']);
         $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
-        $ret['FOP'] = pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE);
+        $ret['FOP'] = pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE) ? 1 : 0;
         $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
 
         if (pres('fromcountry', $ret)) {
@@ -2253,7 +2258,9 @@ class Message
             $rc = $this->mailf($fromemail, $g->getGroupEmail(), $hdrs, $body);
 
             if ($rc) {
+                # This message is not a draft any more, it's pending.
                 $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $this->id ]);
+                $this->dbhm->preExec("UPDATE messags_groups SET collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
             }
         }
 

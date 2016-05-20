@@ -34,7 +34,13 @@
         <div class="panel-body">
             <div class="row">
                 <div class="col-md-9">
-                    <div class="lead prewrap">{{textbody}}</div>
+                    <div class="lead prewrap">
+                        <% if (textbody.length == 0) { %>
+                        <em>There's no description.</em>
+                        <% } else { %>
+                        {{textbody}}
+                        <% } %>
+                    </div>
                     <span class="text-muted pull-right">#{{id}}</span>
                     <% if (obj.fromuser) { %>
                     <span class="text-muted">

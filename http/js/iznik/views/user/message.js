@@ -108,11 +108,13 @@ define([
 
         stripGumf: function() {
             var textbody = this.model.get('textbody');
+            console.log("textbody", textbody);
 
             if (textbody) {
                 // Strip photo links - we should have those as attachments.
-                textbody = textbody.replace(/You can see a photo[^]*jpg/, '');
-                textbody = textbody.replace(/Check out the pictures[^]*https:\/\/trashnothing[^]*pics\/\d*/, '');
+                textbody = textbody.replace(/You can see a photo[\s\S]*?jpg/, '');
+                textbody = textbody.replace(/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/\d*/, '');
+                textbody = textbody.replace(/You can see photos here[\s\S]*?jpg/m, '');
 
                 // FOPs
                 textbody = textbody.replace(/Fair Offer Policy applies \(see https:\/\/[^]*\)/, '');
@@ -136,6 +138,8 @@ define([
                 // Hide completed posts by default.
                 self.$el.hide();
             }
+
+            this.stripGumf();
 
             // Make sure any URLs in the message break.
             this.model.set('textbody', wbr(this.model.get('textbody'), 20));
