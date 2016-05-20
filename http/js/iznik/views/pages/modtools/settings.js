@@ -1518,7 +1518,7 @@ define([
                 wkt.read(wktstr);
             } catch (e1) {
                 try {
-                    self.Wkt.read(el.value.replace('\n', '').replace('\r', '').replace('\t', ''));
+                    self.Wkt.read(wktstr.replace('\n', '').replace('\r', '').replace('\t', ''));
                 } catch (e2) {
                     if (e2.name === 'WKTError') {
                         console.error("Ignore invalid WKT", wktstr);
@@ -1528,9 +1528,9 @@ define([
             }
 
             var obj = wkt.toObject(this.map.defaults); // Make an object
+            console.log("WKT", obj, wktstr);
     
-            // Add listeners for overlay editing events
-            if (!self.Wkt.isArray(obj) && wkt.type !== 'point') {
+            if (!self.Wkt.isArray(obj) && wkt.type !== 'point' && typeof obj.getPath == 'function') {
                 // New vertex is inserted
                 google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj, true));
     
@@ -1539,53 +1539,53 @@ define([
     
                 // Existing vertex is moved (set elsewhere)
                 google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj, true));
-            }
-    
-            // Click to show info
-            google.maps.event.addListener(obj, 'click', self.changeHandler(self, area, obj, false));
-    
-            area.set('obj', obj);
-            self.features.push(obj);
-    
-            if (area) {
-                var mapLabel = new MapLabel({
-                    text: area.get('name'),
-                    position: new google.maps.LatLng(area.get('lat'), area.get('lng')),
-                    map: self.map,
-                    fontSize: 20,
-                    fontColor: 'red',
-                    align: 'right'
-                });
-    
-                area.set('label', mapLabel);
-            }
-    
-            var bounds = new google.maps.LatLngBounds();
-    
-            if (self.Wkt.isArray(obj)) { // Distinguish multigeometries (Arrays) from objects
-                for (i in obj) {
-                    if (obj.hasOwnProperty(i) && !self.Wkt.isArray(obj[i])) {
-                        obj[i].setMap(self.map);
-                        this.features.push(obj[i]);
-    
-                        if(self.Wkt.type === 'point' || self.Wkt.type === 'multipoint')
-                            bounds.extend(obj[i].getPosition());
-                        else
-                            obj[i].getPath().forEach(function(element,index){bounds.extend(element)});
-                    }
-                }
-    
-                self.features = self.features.concat(obj);
-            } else {
-                obj.setMap(this.map); // Add it to the map
+
+                // Click to show info
+                google.maps.event.addListener(obj, 'click', self.changeHandler(self, area, obj, false));
+
+                area.set('obj', obj);
                 self.features.push(obj);
-    
-                if(self.Wkt.type === 'point' || self.Wkt.type === 'multipoint')
-                    bounds.extend(obj.getPosition());
-                else
-                    obj.getPath().forEach(function(element,index){bounds.extend(element)});
+
+                if (area) {
+                    var mapLabel = new MapLabel({
+                        text: area.get('name'),
+                        position: new google.maps.LatLng(area.get('lat'), area.get('lng')),
+                        map: self.map,
+                        fontSize: 20,
+                        fontColor: 'red',
+                        align: 'right'
+                    });
+
+                    area.set('label', mapLabel);
+                }
+
+                var bounds = new google.maps.LatLngBounds();
+
+                if (self.Wkt.isArray(obj)) { // Distinguish multigeometries (Arrays) from objects
+                    for (i in obj) {
+                        if (obj.hasOwnProperty(i) && !self.Wkt.isArray(obj[i])) {
+                            obj[i].setMap(self.map);
+                            this.features.push(obj[i]);
+
+                            if(self.Wkt.type === 'point' || self.Wkt.type === 'multipoint')
+                                bounds.extend(obj[i].getPosition());
+                            else
+                                obj[i].getPath().forEach(function(element,index){bounds.extend(element)});
+                        }
+                    }
+
+                    self.features = self.features.concat(obj);
+                } else {
+                    obj.setMap(this.map); // Add it to the map
+                    self.features.push(obj);
+
+                    if(self.Wkt.type === 'point' || self.Wkt.type === 'multipoint')
+                        bounds.extend(obj.getPosition());
+                    else
+                        obj.getPath().forEach(function(element,index){bounds.extend(element)});
+                }
             }
-    
+
             return obj;
         },
     
