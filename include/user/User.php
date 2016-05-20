@@ -196,11 +196,16 @@ class User extends Entity
         $lengths  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
         $bigrams  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), true);
         $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
-        $length = \Wordle\array_weighted_rand($lengths);
-        $start  = \Wordle\array_weighted_rand($bigrams);
-        $pw = \Wordle\fill_word($start, $length, $trigrams);
-        $pw = strtolower($pw);
 
+        $pw = '';
+        
+        do {
+            $length = \Wordle\array_weighted_rand($lengths);
+            $start  = \Wordle\array_weighted_rand($bigrams);
+            $pw .= \Wordle\fill_word($start, $length, $trigrams);
+        } while (strlen($pw) < 6);
+
+        $pw = strtolower($pw);
         return($pw);
     }
 

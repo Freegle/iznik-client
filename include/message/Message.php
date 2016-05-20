@@ -2121,6 +2121,22 @@ class Message
             MessageCollection::QUEUED_YAHOO_USER
         ]);
 
+        # Construct the subject - do this now as it may get displayed to the user before we get the membership.
+        $atts = $this->getPublic(FALSE, FALSE, TRUE);
+
+        if (pres('location', $atts)) {
+            # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
+            if (pres('area', $atts) && pres('postcode', $atts)) {
+                $loc = $atts['area']['name'] . ' ' . $atts['postcode']['name'];
+            } else {
+                $l = new Location($this->dbhr, $this->dbhm, $atts['location']['id']);
+                $loc = $l->ensureVague();
+            }
+
+            $subject = $this->type . ': ' . $this->subject . " ($loc)";
+            $this->setPrivate('subject', $subject);
+        }
+
         if ($rc) {
             # We've stored the message; send a subscription.
             $ret = $fromuser->triggerYahooApplication($groupid);
@@ -2152,18 +2168,6 @@ class Message
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
 
         if (pres('location', $atts)) {
-            # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
-            if (pres('area', $atts) && pres('postcode', $atts)) {
-                $loc = $atts['area']['name'] . ' ' . $atts['postcode']['name'];
-            } else {
-                $l = new Location($this->dbhr, $this->dbhm, $atts['location']['id']);
-                $loc = $l->ensureVague();
-            }
-            
-            $subject = $this->type . ': ' . $this->subject . " ($loc)";
-            #error_log("Construct #{$this->id} {$this->subject} into $subject");
-            $this->setPrivate('subject', $subject);
-
             $messageid = $this->id . '@' . USER_DOMAIN;
             $this->setPrivate('messageid', $messageid);
 
@@ -2196,7 +2200,7 @@ class Message
             $headers = [
                 "From" => $fromuser->getName() . " <$fromemail>",
                 "To" => $g->getGroupEmail(),
-                "Subject" => $subject,
+                "Subject" => $this->subject,
                 "Date" => date(DateTime::RFC2822),
                 "Message-Id" => "<$messageid>",
                 "X-Freegle-MsgId" => $this->id,
@@ -2255,13 +2259,11 @@ class Message
             # Logging
             $atts = $this->getPublic();
 
-            $rc = $this->mailf($fromemail, $g->getGroupEmail(), $hdrs, $body);
+            $this->mailf($fromemail, $g->getGroupEmail(), $hdrs, $body);
 
-            if ($rc) {
-                # This message is not a draft any more, it's pending.
-                $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $this->id ]);
-                $this->dbhm->preExec("UPDATE messags_groups SET collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
-            }
+            # This message is not a draft any more, it's pending.
+            $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $this->id ]);
+            $this->dbhm->preExec("UPDATE messags_groups SET collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
         }
 
         return($rc);
