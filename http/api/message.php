@@ -284,6 +284,7 @@ function message() {
                                     if (!$eidforgroup) {
                                         # Not a member yet.  We need to sign them up to the Yahoo group before we
                                         # can send it.
+                                        $m->constructSubject();
                                         $ret = [
                                             'ret' => 0,
                                             'status' => 'Queued for group membership',
@@ -295,6 +296,7 @@ function message() {
                                         # We're good to go.  Make sure we submit with the email that is a group member
                                         # rather than the one they supplied.
                                         $ret = ['ret' => 7, 'status' => 'Failed to submit'];
+                                        $m->constructSubject();
 
                                         $fromemail = $u->getEmailById($eidforgroup);
 

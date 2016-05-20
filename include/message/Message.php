@@ -2108,19 +2108,7 @@ class Message
         return($rc);
     }
 
-    public function queueForMembership(User $fromuser, $groupid) {
-        # We would like to submit this message, but we can't do so because we don't have a membership on the Yahoo
-        # group yet.  So fire off an application for one; when this gets processed, we will submit the
-        # message.
-        $ret = NULL;
-        $this->setPrivate('fromuser', $fromuser->getId());
-
-        $rc = $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, collection) VALUES (?,?,?);", [
-            $this->id,
-            $groupid,
-            MessageCollection::QUEUED_YAHOO_USER
-        ]);
-
+    public function constructSubject() {
         # Construct the subject - do this now as it may get displayed to the user before we get the membership.
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
 
@@ -2136,6 +2124,20 @@ class Message
             $subject = $this->type . ': ' . $this->subject . " ($loc)";
             $this->setPrivate('subject', $subject);
         }
+    }
+
+    public function queueForMembership(User $fromuser, $groupid) {
+        # We would like to submit this message, but we can't do so because we don't have a membership on the Yahoo
+        # group yet.  So fire off an application for one; when this gets processed, we will submit the
+        # message.
+        $ret = NULL;
+        $this->setPrivate('fromuser', $fromuser->getId());
+
+        $rc = $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, collection) VALUES (?,?,?);", [
+            $this->id,
+            $groupid,
+            MessageCollection::QUEUED_YAHOO_USER
+        ]);
 
         if ($rc) {
             # We've stored the message; send a subscription.
@@ -2264,7 +2266,7 @@ class Message
             # This message is not a draft any more, it's pending.
             $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $this->id ]);
             $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
-            
+
             $rc = TRUE;
         }
 
