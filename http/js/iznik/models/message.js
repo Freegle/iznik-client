@@ -340,7 +340,7 @@ define([
         },
 
         url: function() {
-            return (API + 'messages?' + (this.options.groupid > 0 ? ("groupid=" + this.options.groupid + "&") : '') + 'collection=' + this.options.collection)
+            return (API + 'messages?' + (this.options.groupid > 0 ? ("groupid=" + this.options.groupid + "&") : '') + 'collection=' + this.options.collection + '&modtools=' + this.options.modtools)
         },
 
         parse: function(ret) {

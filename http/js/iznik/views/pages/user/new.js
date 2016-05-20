@@ -17,14 +17,18 @@ define([
             var self = this;
 
             // We grab the new user id from where we saved it in post.js.
-            Iznik.Session.save({
-                id: Iznik.Session.get('newuser').id,
-                password: this.$('.js-pass').val()
-            }, {
-                patch: true
-            }).then(function() {
-                self.$('.js-passstuff').slideUp();
-            });
+            $.ajax({
+                url: API + 'session',
+                type: 'PATCH',
+                data: {
+                    id: Iznik.Session.get('newuser'),
+                    password: this.$('.js-pass').val()
+                }, success: function(ret) {
+                    if (ret.ret === 0) {
+                        Router.navigate('', true);
+                    }
+                }
+            })
         },
 
         render: function() {

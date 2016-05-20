@@ -67,6 +67,7 @@ define([
             var self = this;
 
             self.messages = new Iznik.Collections.Messages.SearchAll(null, {
+                modtools: true,
                 searchmess: self.$('.js-searchmsginp').val(),
                 collection: 'Approved'
             });

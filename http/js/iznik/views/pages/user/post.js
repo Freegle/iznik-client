@@ -4,7 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'fileupload'
-], function($, _, Backbone, Iznik) {
+], function ($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.WhatIsIt = Iznik.Views.Page.extend({
         events: {
             'click .js-next': 'next',
@@ -13,9 +13,8 @@ define([
         },
 
         getItem: function () {
-            // We might have some tags input, and also some freeform text.  We are interested in having both, so just
-            // grab the underlying
-            return (this.$('.tt-input').val());
+            // We might have some tags input, and also some freeform text.  We are interested in having both.
+            return (this.$('.js-items').val().join(' ') + ' ' + this.$('.tt-input').val());
         },
 
         checkNext: function () {
@@ -24,20 +23,6 @@ define([
                 this.$('.js-next').fadeIn('slow');
             } else {
                 this.$('.js-next').fadeOut('slow');
-            }
-        },
-
-        changedItems: function () {
-            // We show the next button if we have an item and either a picture or a description.
-            var self = this;
-            if (self.$('.js-items').length == 0) {
-                self.$('.bootstrap-tagsinput').addClass('error-border');
-                self.$('.js-next').fadeOut('slow');
-                self.$('.js-ok').fadeOut('slow');
-            } else if (self.$('.js-description').val().length > 0 || self.photos.length > 0) {
-                self.$('.bootstrap-tagsinput').removeClass('error-border');
-                self.$('.js-next').fadeIn('slow');
-                self.$('.js-ok').fadeIn('slow');
             }
         },
 
@@ -84,7 +69,8 @@ define([
                         d.resolve();
                         try {
                             localStorage.setItem('draft', ret.id);
-                        } catch (e) {}
+                        } catch (e) {
+                        }
                     } else {
                         d.reject();
                     }
@@ -213,6 +199,8 @@ define([
                                         self.$('.js-items').tagsinput('add', item.name);
                                         self.tagcount++;
                                     });
+
+                                    self.checkNext();
                                 }
                             }
                         }));

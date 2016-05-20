@@ -78,6 +78,7 @@ define([
                 }
 
                 self.collection = new Iznik.Collections.Messages.GeoSearch(null, {
+                    modtools: false,
                     searchmess: self.options.search,
                     nearlocation: mylocation ? mylocation : null,
                     collection: 'Approved'

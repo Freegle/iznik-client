@@ -894,9 +894,9 @@ define([
                 v.render();
             } else {
                 var v = new Iznik.Views.Confirm({
-                    model: message
+                    model: message ? message : member
                 });
-                v.template = 'modtools_message_delconfirm';
+                v.template = message ? 'modtools_message_delconfirm' : 'modtools_member_delconfirm';
 
                 self.listenToOnce(v, 'confirmed', function () {
                     message ? message.delete() : member.delete();

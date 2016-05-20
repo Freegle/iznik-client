@@ -28,6 +28,7 @@ define([
             });
 
             self.collection = new Iznik.Collections.Message(null, {
+                modtools: true,
                 groupid: self.selected,
                 group: Iznik.Session.get('groups').get(self.selected),
                 collection: 'Pending'

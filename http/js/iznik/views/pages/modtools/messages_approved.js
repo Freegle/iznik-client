@@ -73,6 +73,7 @@ define([
             // The type of collection we're using depends on whether we're searching.  It controls how we fetch.
             if (self.options.searchmess) {
                 self.collection = new Iznik.Collections.Messages.Search(null, {
+                    modtools: true,
                     searchmess: self.options.searchmess,
                     groupid: self.selected,
                     group: Iznik.Session.get('groups').get(self.selected),
@@ -83,6 +84,7 @@ define([
                 self.$('.js-searchtermmemb, .js-searchmemb').attr('disabled', 1);
             } else if (self.options.searchmemb) {
                 self.collection = new Iznik.Collections.Messages.Search(null, {
+                    modtools: true,
                     searchmemb: self.options.searchmemb,
                     groupid: self.selected,
                     group: Iznik.Session.get('groups').get(self.selected),
@@ -93,6 +95,7 @@ define([
                 self.$('.js-searchtermmess, .js-searchmess').attr('disabled', 1);
             } else {
                 self.collection = new Iznik.Collections.Message(null, {
+                    modtools: true,
                     groupid: self.selected,
                     group: Iznik.Session.get('groups').get(self.selected),
                     collection: 'Approved'

@@ -263,6 +263,7 @@ function message() {
                                     # avoids us having to ask the user for a password, though they can change it if
                                     # they like.  Less friction.
                                     $pw = $u->inventPassword();
+                                    $u->addLogin(User::LOGIN_NATIVE, $newuser, $pw);
                                     $eid = $u->addEmail($email, 1);
                                     $u->login($pw);
                                 } else {

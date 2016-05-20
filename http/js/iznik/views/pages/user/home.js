@@ -98,10 +98,16 @@ define([
 
             // And collections for all the approved and all the pending messages.
             self.messages = new Iznik.Collections.Message(null, {
+                modtools: false,
                 collection: 'Approved'
             });
             self.pendingMessages = new Iznik.Collections.Message(null, {
+                modtools: false,
                 collection: 'Pending'
+            });
+            self.draftMessages = new Iznik.Collections.Message(null, {
+                modtools: false,
+                collection: 'Draft'
             });
 
             var count = 0;
@@ -109,7 +115,7 @@ define([
             // We want to get both pending messages and approved messages.  From the user pov we don't distinguish in
             // how they look.  This is because most messages are approved and there's no point worrying them, and
             // provoking "why hasn't it been approved yet" complaints.
-            _.each([self.messages, self.pendingMessages], function(coll) {
+            _.each([self.messages, self.pendingMessages, self.draftMessages], function(coll) {
                 console.log("Coll", coll);
                 // We listen for events on the messages collection and ripple them through to the relevant offers/wanteds
                 // collection.  CollectionView will then handle rendering/removing the messages view.

@@ -477,7 +477,8 @@ define([
 
             // Get our offers.
             self.offers = new Iznik.Collections.Message(null, {
-                collection: 'Approved'
+                collection: 'Approved',
+                modtools: false
             });
 
             self.offers.fetch({

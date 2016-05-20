@@ -155,15 +155,11 @@ define([
             try {
                 // See if we know where we are from last time.
                 var mylocation = localStorage.getItem('mylocation');
-                console.log("Got old location", mylocation);
                 var postcode = JSON.parse(mylocation).name;
-                console.log("Postcode", postcode);
 
                 if (mylocation) {
                     this.$('.js-postcode').typeahead('val', postcode);
-                    console.log("Set it");
                     this.locChange.call(this);
-                    console.log("Called change");
                 }
             } catch (e) {};
 
