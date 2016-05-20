@@ -38,25 +38,19 @@ define([
                 url: API + 'event',
                 type: 'POST',
                 data: {
-                    'events': eventQueue
+                    'events': currQueue
                 }, success: function(ret) {
                     if (ret.ret === 0) {
                         if (!flushTimerRunning) {
-                            console.log("Start monitor timer 1");
                             flushTimerRunning = true;
                             window.setTimeout(flushEventQueue, 5000);
-                        } else {
-                            console.log("Monitor timer already running 1");
                         }
                     }
                 }
             });
         } else if (!flushTimerRunning) {
-            console.log("Start monitor timer 2");
             flushTimerRunning = true;
             window.setTimeout(flushEventQueue, 5000);
-        } else {
-            console.log("Monitor timer already running 2");
         }
     }
 

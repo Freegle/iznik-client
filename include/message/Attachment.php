@@ -72,7 +72,7 @@ class Attachment
 
         # We generate a perceptual hash.  This allows us to spot duplicate or similar images later.
         $hasher = new ImageHash;
-        $img = imagecreatefromstring($data);
+        $img = @imagecreatefromstring($data);
         $hash = $img ? $hasher->hash($img) : NULL;
 
         $rc = $this->dbhm->preExec("INSERT INTO messages_attachments (`msgid`, `contenttype`, `data`, `hash`) VALUES (?, ?, ?, ?);", [

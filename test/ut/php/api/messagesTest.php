@@ -72,14 +72,13 @@ class messagesTest extends IznikAPITestCase {
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        # Omit groupid - should use groups for currently logged in user but we're only a member so this shouldn't
-        # work.
+        # Omit groupid - should use groups for currently logged in user.
         $ret = $this->call('messages', 'GET', [
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         #error_log(var_export($msgs, TRUE));
-        assertEquals(0, count($msgs));
+        assertEquals(1, count($msgs));
 
         # Test search by word
         $ret = $this->call('messages', 'GET', [

@@ -9,20 +9,29 @@ define([
         events: {
             'click .js-next': 'next',
             'change .js-items': 'checkNext',
+            'keyup .js-description': 'checkNext',
             'change .bootstrap-tagsinput .tt-input': 'checkNext'
         },
 
         getItem: function () {
             // We might have some tags input, and also some freeform text.  We are interested in having both.
-            return (this.$('.js-items').val().join(' ') + ' ' + this.$('.tt-input').val());
+            var tags = this.$('.js-items').val();
+            var tags = tags ? (tags.join(' ') + ' ') : '';
+            return (tags + this.$('.tt-input').val());
         },
 
         checkNext: function () {
+            var self = this;
             var item = this.getItem();
-            if (item.length > 0) {
-                this.$('.js-next').fadeIn('slow');
-            } else {
-                this.$('.js-next').fadeOut('slow');
+
+            if (item.length == 0) {
+                self.$('.bootstrap-tagsinput').addClass('error-border');
+                self.$('.js-next').fadeOut('slow');
+                self.$('.js-ok').fadeOut('slow');
+            } else if (self.$('.js-description').val().length > 0 || self.photos.length > 0) {
+                self.$('.bootstrap-tagsinput').removeClass('error-border');
+                self.$('.js-next').fadeIn('slow');
+                self.$('.js-ok').fadeIn('slow');
             }
         },
 
@@ -215,7 +224,10 @@ define([
                             self.$('.js-sugghelp').html(v.render().el);
                         }
                     });
-                },
+                }.fail(function() {
+                    self.$('.js-uploading').addClass('hidden');
+                    self.$('.js-uploadfailed').removeClass('hidden');
+                }),
                 progressall: function (e, data) {
                     self.$('.js-addprompt').addClass('hidden');
                     self.$('.js-uploading').removeClass('hidden');
