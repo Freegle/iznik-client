@@ -176,7 +176,6 @@ define([
 
                 $(window).on('keydown', _.bind(function(e) {
                     if ($(e.target).is('input')) {
-                        console.log("Input key");
                         var val = $(e.target).val();
                         if (val) {
                             trackEvent(self.getPath($(e.target)), 'input', e.pageX, e.pageY, val);

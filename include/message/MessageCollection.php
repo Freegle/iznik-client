@@ -67,7 +67,7 @@ class MessageCollection
             }
         } else {
             $typeq = $types ? (" AND `type` IN (" . implode(',', $types) . ") ") : '';
-            $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Date']));
+            $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
             $dateq = $ctx == NULL ? ' 1=1 ' : (" (messages.date < $date OR messages.date = $date AND messages.id < " . $this->dbhr->quote($ctx['id']) . ") ");
 
             # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.

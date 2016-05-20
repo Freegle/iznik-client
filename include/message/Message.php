@@ -2264,6 +2264,8 @@ class Message
             # This message is not a draft any more, it's pending.
             $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $this->id ]);
             $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
+            
+            $rc = TRUE;
         }
 
         return($rc);

@@ -3,7 +3,8 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'fileupload'
+    'fileupload',
+    'iznik/models/user/message'
 ], function ($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.WhatIsIt = Iznik.Views.Page.extend({
         events: {
@@ -121,6 +122,24 @@ define([
             }
         },
 
+        uploadFailed: function() {
+            var self = this;
+            self.pleaseWait.close();
+            self.$('.js-uploading').addClass('hidden');
+            self.$('.js-uploadfailed').removeClass('hidden');
+        },
+
+        allUploaded: function() {
+            var self = this;
+            self.pleaseWait.close();
+
+            if (self.tagcount > 0) {
+                var v = new Iznik.Views.Help.Box();
+                v.template = 'user_give_suggestions';
+                self.$('.js-sugghelp').html(v.render().el);
+            }
+        },
+
         render: function () {
             var self = this;
 
@@ -185,49 +204,48 @@ define([
                     var promises = [];
                     self.tagcount = 0;
 
-                    _.each(data.result.files, function (file) {
-                        // Create attachment object and try to identify this as an object
-                        promises.push($.ajax({
-                            type: 'PUT',
-                            url: API + 'image',
-                            data: {
-                                identify: true,
-                                filename: file.name
-                            }, success: function (ret) {
-                                if (ret.ret === 0) {
-                                    // Add thumbnail.
-                                    var mod = new Iznik.Models.Message.Attachment({
-                                        id: ret.id,
-                                        src: file.thumbnailUrl
-                                    });
+                    if (data.result.files.length > 0) {
+                        _.each(data.result.files, function (file) {
+                            // Create attachment object and try to identify this as an object
+                            promises.push($.ajax({
+                                type: 'PUT',
+                                url: API + 'image',
+                                data: {
+                                    identify: true,
+                                    filename: file.name
+                                }, success: function (ret) {
+                                    if (ret.ret === 0) {
+                                        // Add thumbnail.
+                                        var mod = new Iznik.Models.Message.Attachment({
+                                            id: ret.id,
+                                            src: file.thumbnailUrl
+                                        });
 
-                                    self.photos.add(mod);
+                                        self.photos.add(mod);
 
-                                    // Add any hints about the item
-                                    _.each(ret.items, function (item) {
-                                        self.$('.js-items').tagsinput('add', item.name);
-                                        self.tagcount++;
-                                    });
+                                        // Add any hints about the item
+                                        _.each(ret.items, function (item) {
+                                            self.$('.js-items').tagsinput('add', item.name);
+                                            self.tagcount++;
+                                        });
 
-                                    self.checkNext();
+                                        self.checkNext();
+                                    }
                                 }
-                            }
-                        }));
-                    });
+                            }));
+                        });
 
-                    $.when.apply($, promises).done(function () {
-                        self.pleaseWait.close();
-
-                        if (self.tagcount > 0) {
-                            var v = new Iznik.Views.Help.Box();
-                            v.template = 'user_give_suggestions';
-                            self.$('.js-sugghelp').html(v.render().el);
+                        // Requests can complete inline
+                        if (promises.length > 0) {
+                            $.when.apply($, promises).done(_.bind(self.allUploaded, self));
+                        } else {
+                            self.allUploaded();
                         }
-                    });
-                }.fail(function() {
-                    self.$('.js-uploading').addClass('hidden');
-                    self.$('.js-uploadfailed').removeClass('hidden');
-                }),
+                    } else {
+                        self.uploadFailed();
+                    }
+                },
+                fail: self.uploadFailed,
                 progressall: function (e, data) {
                     self.$('.js-addprompt').addClass('hidden');
                     self.$('.js-uploading').removeClass('hidden');
@@ -239,8 +257,7 @@ define([
                     );
                 }
             }).on('fileuploadfail', function (e, data) {
-                self.$('.js-uploading').addClass('hidden');
-                self.$('.js-uploadfailed').removeClass('hidden');
+                self.uploadFailed();
             });
 
             return (this);
