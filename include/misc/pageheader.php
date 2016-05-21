@@ -167,7 +167,6 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     $tpls = addTemplate(IZNIK_BASE . '/http/template/', IZNIK_BASE . '/http/template/');
     echo implode("\n", $tpls);
     ?>
-    <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['corechart', 'annotationchart']}]}"></script>
 
     <!--[if lt IE 9]>
     <script src="/js/lib/html5shiv.js"></script>
@@ -177,7 +176,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
     <meta name="HandheldFriendly" content="true">
 
-    <script src="https://apis.google.com/js/client:platform.js" async defer></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <meta name="google-signin-client_id" content="<?php echo GOOGLE_CLIENT_ID; ?>">
     <script>
         (function() {

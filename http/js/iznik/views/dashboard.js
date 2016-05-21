@@ -38,44 +38,51 @@ define([
         render: function () {
             var self = this;
 
-            // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
-            _.defer(function () {
-                self.$el.html(window.template(self.template)());
+            function apiLoaded() {
+                // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+                _.defer(function () {
+                    self.$el.html(window.template(self.template)());
 
-                var data = new google.visualization.DataTable();
-                data.addColumn('date', 'Date');
-                data.addColumn('number', 'Count');
-                self.options.data.each(function (count) {
-                    if (self.options.data.indexOf(count) < self.options.data.length - 1) {
+                    var data = new google.visualization.DataTable();
+                    data.addColumn('date', 'Date');
+                    data.addColumn('number', 'Count');
+                    self.options.data.each(function (count) {
+                        if (self.options.data.indexOf(count) < self.options.data.length - 1) {
 
-                        data.addRow([new Date(count.get('date')), parseInt(count.get('count'), 10)]);
-                    }
+                            data.addRow([new Date(count.get('date')), parseInt(count.get('count'), 10)]);
+                        }
+                    });
+
+                    var formatter = new google.visualization.DateFormat({formatType: 'yy-M-d H'});
+                    formatter.format(data, 1);
+
+                    self.chart = new google.visualization.LineChart(self.options.target);
+                    self.data = data;
+                    self.chartOptions = {
+                        title: self.options.title,
+                        interpolateNulls: false,
+                        animation: {
+                            duration: 5000,
+                            easing: 'out',
+                            startup: true
+                        },
+                        legend: {position: 'none'},
+                        chartArea: {'width': '80%', 'height': '80%'},
+                        vAxis: {viewWindow: {min: 0}},
+                        hAxis: {
+                            format: 'dd MMM'
+                        },
+                        series: {
+                            0: {color: 'blue'}
+                        }
+                    };
+                    self.chart.draw(self.data, self.chartOptions);
                 });
+            }
 
-                var formatter = new google.visualization.DateFormat({formatType: 'yy-M-d H'});
-                formatter.format(data, 1);
-
-                self.chart = new google.visualization.LineChart(self.options.target);
-                self.data = data;
-                self.chartOptions = {
-                    title: self.options.title,
-                    interpolateNulls: false,
-                    animation: {
-                        duration: 5000,
-                        easing: 'out',
-                        startup: true
-                    },
-                    legend: {position: 'none'},
-                    chartArea: {'width': '80%', 'height': '80%'},
-                    vAxis: {viewWindow: {min: 0}},
-                    hAxis: {
-                        format: 'dd MMM'
-                    },
-                    series: {
-                        0: {color: 'blue'}
-                    }
-                };
-                self.chart.draw(self.data, self.chartOptions);
+            google.load('visualization', '1.0', {
+                'packages':['corechart', 'annotationchart'],
+                'callback': apiLoaded
             });
         }
     });
@@ -86,27 +93,34 @@ define([
         render: function () {
             var self = this;
 
-            // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
-            _.defer(function () {
-                self.$el.html(window.template(self.template)());
-                var arr = [['Type', 'Count']];
+            function apiLoaded() {
+                // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+                _.defer(function () {
+                    self.$el.html(window.template(self.template)());
+                    var arr = [['Type', 'Count']];
 
-                _.each(self.options.data, function (count, key) {
-                    arr.push([key, count]);
+                    _.each(self.options.data, function (count, key) {
+                        arr.push([key, count]);
+                    });
+
+                    self.data = google.visualization.arrayToDataTable(arr);
+                    self.chart = new google.visualization.PieChart(self.options.target);
+                    self.chartOptions = {
+                        title: self.options.title,
+                        chartArea: {'width': '80%', 'height': '80%'},
+                        colors: leftColours,
+                        slices2: {
+                            1: {offset: 0.2},
+                            2: {offset: 0.2}
+                        }
+                    };
+                    self.chart.draw(self.data, self.chartOptions);
                 });
+            }
 
-                self.data = google.visualization.arrayToDataTable(arr);
-                self.chart = new google.visualization.PieChart(self.options.target);
-                self.chartOptions = {
-                    title: self.options.title,
-                    chartArea: {'width': '80%', 'height': '80%'},
-                    colors: leftColours,
-                    slices2: {
-                        1: {offset: 0.2},
-                        2: {offset: 0.2}
-                    }
-                };
-                self.chart.draw(self.data, self.chartOptions);
+            google.load('visualization', '1.0', {
+                'packages':['corechart', 'annotationchart'],
+                'callback': apiLoaded
             });
         }
     });
@@ -117,27 +131,34 @@ define([
         render: function () {
             var self = this;
 
-            // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
-            _.defer(function () {
-                self.$el.html(window.template(self.template)());
-                var arr = [['Email Delivery', 'Count']];
+            function apiLoaded() {
+                // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+                _.defer(function () {
+                    self.$el.html(window.template(self.template)());
+                    var arr = [['Email Delivery', 'Count']];
 
-                _.each(self.options.data, function (count, key) {
-                    arr.push([key, count]);
+                    _.each(self.options.data, function (count, key) {
+                        arr.push([key, count]);
+                    });
+
+                    self.data = google.visualization.arrayToDataTable(arr);
+                    self.chart = new google.visualization.PieChart(self.options.target);
+                    self.chartOptions = {
+                        title: self.options.title,
+                        chartArea: {'width': '80%', 'height': '80%'},
+                        colors: leftColours,
+                        slices2: {
+                            1: {offset: 0.2},
+                            2: {offset: 0.2}
+                        }
+                    };
+                    self.chart.draw(self.data, self.chartOptions);
                 });
+            }
 
-                self.data = google.visualization.arrayToDataTable(arr);
-                self.chart = new google.visualization.PieChart(self.options.target);
-                self.chartOptions = {
-                    title: self.options.title,
-                    chartArea: {'width': '80%', 'height': '80%'},
-                    colors: leftColours,
-                    slices2: {
-                        1: {offset: 0.2},
-                        2: {offset: 0.2}
-                    }
-                };
-                self.chart.draw(self.data, self.chartOptions);
+            google.load('visualization', '1.0', {
+                'packages':['corechart', 'annotationchart'],
+                'callback': apiLoaded
             });
         }
     });
@@ -148,27 +169,34 @@ define([
         render: function () {
             var self = this;
 
-            // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
-            _.defer(function () {
-                self.$el.html(window.template(self.template)());
-                var arr = [['Posting Status', 'Count']];
+            function apiLoaded() {
+                // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+                _.defer(function () {
+                    self.$el.html(window.template(self.template)());
+                    var arr = [['Posting Status', 'Count']];
 
-                _.each(self.options.data, function (count, key) {
-                    arr.push([key, count]);
+                    _.each(self.options.data, function (count, key) {
+                        arr.push([key, count]);
+                    });
+
+                    self.data = google.visualization.arrayToDataTable(arr);
+                    self.chart = new google.visualization.PieChart(self.options.target);
+                    self.chartOptions = {
+                        title: self.options.title,
+                        chartArea: {'width': '80%', 'height': '80%'},
+                        colors: leftColours,
+                        slices2: {
+                            1: {offset: 0.2},
+                            2: {offset: 0.2}
+                        }
+                    };
+                    self.chart.draw(self.data, self.chartOptions);
                 });
+            }
 
-                self.data = google.visualization.arrayToDataTable(arr);
-                self.chart = new google.visualization.PieChart(self.options.target);
-                self.chartOptions = {
-                    title: self.options.title,
-                    chartArea: {'width': '80%', 'height': '80%'},
-                    colors: leftColours,
-                    slices2: {
-                        1: {offset: 0.2},
-                        2: {offset: 0.2}
-                    }
-                };
-                self.chart.draw(self.data, self.chartOptions);
+            google.load('visualization', '1.0', {
+                'packages':['corechart', 'annotationchart'],
+                'callback': apiLoaded
             });
         }
     });
@@ -179,27 +207,34 @@ define([
         render: function () {
             var self = this;
 
-            // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
-            _.defer(function () {
-                self.$el.html(window.template(self.template)());
-                var arr = [['Source', 'Count']];
+            function apiLoaded() {
+                // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+                _.defer(function () {
+                    self.$el.html(window.template(self.template)());
+                    var arr = [['Source', 'Count']];
 
-                _.each(self.options.data, function (count, key) {
-                    arr.push([key, count]);
+                    _.each(self.options.data, function (count, key) {
+                        arr.push([key, count]);
+                    });
+
+                    self.data = google.visualization.arrayToDataTable(arr);
+                    self.chart = new google.visualization.PieChart(self.options.target);
+                    self.chartOptions = {
+                        title: self.options.title,
+                        chartArea: {'width': '80%', 'height': '80%'},
+                        colors: leftColours,
+                        slices2: {
+                            1: {offset: 0.2},
+                            2: {offset: 0.2}
+                        }
+                    };
+                    self.chart.draw(self.data, self.chartOptions);
                 });
+            }
 
-                self.data = google.visualization.arrayToDataTable(arr);
-                self.chart = new google.visualization.PieChart(self.options.target);
-                self.chartOptions = {
-                    title: self.options.title,
-                    chartArea: {'width': '80%', 'height': '80%'},
-                    colors: leftColours,
-                    slices2: {
-                        1: {offset: 0.2},
-                        2: {offset: 0.2}
-                    }
-                };
-                self.chart.draw(self.data, self.chartOptions);
+            google.load('visualization', '1.0', {
+                'packages':['corechart', 'annotationchart'],
+                'callback': apiLoaded
             });
         }
     });
