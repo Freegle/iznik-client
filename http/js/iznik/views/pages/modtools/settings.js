@@ -1443,8 +1443,7 @@ define([
     
         getAreas: function() {
             var self = this;
-            console.log("GetAreas start");
-    
+
             // No longer got one selected.
             self.selected = null;
             self.$('.js-wkt').val('');
@@ -1467,7 +1466,6 @@ define([
                     nelng: bounds.getNorthEast().lng()
                 }
             }).then(function() {
-                console.log("Fetched");
                 v.close();
             })
         },
@@ -1507,6 +1505,10 @@ define([
                     feature.setOptions({strokeColor: '#990000'});
                 });
                 obj.setOptions({strokeColor: 'blue'});
+
+                // Set the area so that it's editable.  We default to non-editable because performance is terrible
+                // for editable areas.
+                obj.setOptions({editable: true});
             });
         },
     
@@ -1527,10 +1529,15 @@ define([
                 }
             }
 
-            var obj = wkt.toObject(this.map.defaults); // Make an object
-            console.log("WKT", obj, wktstr);
-    
-            if (!self.Wkt.isArray(obj) && wkt.type !== 'point' && typeof obj.getPath == 'function') {
+            var obj = null;
+
+            try {
+                obj = wkt.toObject(this.map.defaults); // Make an object
+            } catch (e) {
+                console.log("WKT error", wktstr, obj);
+            }
+
+            if (obj && !self.Wkt.isArray(obj) && wkt.type !== 'point' && typeof obj.getPath == 'function') {
                 // New vertex is inserted
                 google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj, true));
     
@@ -1612,7 +1619,6 @@ define([
                         defaults: {
                             icon: '/images/red_dot.png',
                             shadow: '/images/dot_shadow.png',
-                            editable: true,
                             strokeColor: '#990000',
                             fillColor: '#EEFFCC',
                             fillOpacity: 0.6
@@ -1716,7 +1722,7 @@ define([
                                 self.mapWKT(poly, area);
                             } else {
                                 var wkt = 'POINT(' + lng + ' ' + lat + ')';
-                                self.mapWKT(wkt, area);
+                                self.mapWKT(poly, area);
                             }
                         }
                     });
