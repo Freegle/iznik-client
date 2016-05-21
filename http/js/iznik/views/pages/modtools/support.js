@@ -3,11 +3,12 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'moment',
     'iznik/views/pages/pages',
     'iznik/views/pages/modtools/messages_approved',
     'tinymce'
 
-], function($, _, Backbone, Iznik) {
+], function($, _, Backbone, Iznik, moment) {
     Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
         modtools: true,
 
@@ -17,7 +18,8 @@ define([
             'click .js-searchuser': 'searchUser',
             'click .js-searchmsg': 'searchMessage',
             'keyup .js-searchuserinp': 'keyup',
-            'click .js-mailgroup': 'mailGroup'
+            'click .js-sendalert': 'sendAlert',
+            'click .js-getalerts': 'getAlerts'
         },
 
         keyup: function (e) {
@@ -105,7 +107,7 @@ define([
             });
         },
 
-        mailGroup: function () {
+        sendAlert: function () {
             var self = this;
 
             $.ajax({
@@ -127,6 +129,28 @@ define([
                     self.$('.js-mailerror').fadeIn('slow');
                 }
             });
+        },
+
+        getAlerts: function() {
+            var self = this;
+            self.$('.js-getalerts').hide();
+            self.$('.js-alertshdr').fadeIn('slow');
+            self.$('.js-alerts').show();
+
+            $.ajax({
+                url: API + 'alert',
+                type: 'GET',
+                success: function(ret) {
+                    var coll = new Iznik.Collection(ret.alerts);
+                    var alerts = new Backbone.CollectionView({
+                        el: self.$('.js-alerts'),
+                        modelView: Iznik.Views.ModTools.Alert,
+                        collection: coll
+                    });
+
+                    alerts.render();
+                }
+            })
         },
 
         render: function () {
@@ -158,6 +182,110 @@ define([
                 elementpath: false,
                 toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright |  bullist numlist link | forecolor styleselect formatselect fontselect fontsizeselect | cut copy paste'
             });
+        }
+    });
+
+    Iznik.Views.ModTools.Alert = Iznik.View.extend({
+        tagName: 'li',
+
+        className: 'row',
+
+        template: 'modtools_support_alert',
+
+        events: {
+            'click .js-showstats': 'showStats'
+        },
+
+        showStats: function() {
+            var v = new Iznik.Views.ModTools.Alert.Stats({
+                model: this.model
+            });
+            v.render();
+        },
+
+        render: function() {
+            Iznik.View.prototype.render.call(this);
+            var mom = new moment(this.model.get('created'));
+            this.$('.js-created').html(mom.format('MMMM Do YYYY, h:mm:ssa'));
+            if (this.model.get('complete')) {
+                var mom = new moment(this.model.get('complete'));
+                this.$('.js-complete').html(mom.format('MMMM Do YYYY, h:mm:ssa'));
+            }
+
+            return(this);
+        }
+    });
+
+    Iznik.Views.ModTools.Alert.Stats = Iznik.Views.Modal.extend({
+        template: 'modtools_support_alertstats',
+        render: function() {
+            var self = this;
+            this.open(this.template);
+
+            function apiLoaded() {
+                console.log("Loaded");
+                // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+                _.defer(function () {
+
+                    var colors = [
+                        'green',
+                        'red'
+                    ];
+
+                    var arr = [['Destination', 'Count']];
+                    var stats = self.model.get('stats');
+                    console.log("Stats", stats);
+
+                    var data = new google.visualization.DataTable();
+                    data.addColumn('string', 'Result');
+                    data.addColumn('number', 'Count');
+                    data.addRows([
+                        [ 'Reached', stats.responses.mods.reached ],
+                        [ 'No Response', stats.responses.mods.none ]
+                    ]);
+
+                    var chart = new google.visualization.PieChart(self.$('.js-mods').get()[0]);
+                    chartOptions = {
+                        title: 'Volunteers',
+                        chartArea: {'width': '80%', 'height': '80%'},
+                        colors: colors,
+                        slices2: {
+                            1: {offset: 0.2},
+                            2: {offset: 0.2}
+                        }
+                    };
+
+                    chart.draw(data, chartOptions);
+
+                    data = new google.visualization.DataTable();
+                    data.addColumn('string', 'Result');
+                    data.addColumn('number', 'Count');
+                    data.addRows([
+                        [ 'Reached', stats.responses.owner.reached ],
+                        [ 'No Response', stats.responses.owner.none ]
+                    ]);
+
+                    chart = new google.visualization.PieChart(self.$('.js-owner').get()[0]);
+                    chartOptions = {
+                        title: 'Owner',
+                        chartArea: {'width': '80%', 'height': '80%'},
+                        colors: colors,
+                        slices2: {
+                            1: {offset: 0.2},
+                            2: {offset: 0.2}
+                        }
+                    };
+
+                    chart.draw(data, chartOptions);
+                });
+            }
+
+            google.load('visualization', '1.0', {
+                'packages':['corechart', 'annotationchart'],
+                'callback': apiLoaded
+            });
+
+            return(this);
         }
     });
 

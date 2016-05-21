@@ -1,0 +1,20 @@
+<div class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="glyphicon glyphicon-remove-circle pull-right glyphicon-larger" class="close" data-dismiss="modal" />
+                <h4 class="modal-title js-modal-title">{{subject}}</h4>
+            </div>
+            <div class="modal-body js-modal-body">
+                <p>Sent to {{stats.sent.mods}} volunteer<% if (stats.sent.mods != 1) { %>s<% } %> <% if (stats.sent.owneremails) { %> and the Yahoo <em>-owner</em> address<% } %>.  Here's what happened.</p>
+                <div class="row">
+                    <div class="col-md-6 js-mods graph"></div>
+                    <div class="col-md-6 js-owner graph"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default js-close" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

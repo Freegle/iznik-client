@@ -43,6 +43,22 @@ class Alert extends Entity
         return($id);
     }
 
+    public function getList() {
+        $sql = "SELECT id FROM alerts ORDER BY id DESC;";
+        $alerts = $this->dbhr->preQuery($sql);
+        $ret = [];
+        foreach ($alerts as $alert) {
+            $a = new Alert($this->dbhr, $this->dbhm, $alert['id']);
+            $thisone = $a->getPublic();
+            $thisone['created'] = ISODate($thisone['created']);
+            $thisone['complete'] = ISODate($thisone['complete']);
+            $thisone['stats'] = $a->getStats();
+            $ret[] = $thisone;
+        }
+
+        return($ret);
+    }
+
     public function constructMessage($to, $toname, $from, $subject, $text, $html) {
         $message = Swift_Message::newInstance()
             ->setSubject($subject)
@@ -128,12 +144,7 @@ class Alert extends Entity
             Alert::TYPE_MODEMAIL
         ]));
 
-        $ret['responses']['mods']['read'] = count($this->dbhr->preQuery("SELECT DISTINCT userid FROM alerts_tracking WHERE alertid = ? AND `type` = ? AND response = 'Read' ;", [
-            $this->id,
-            Alert::TYPE_MODEMAIL
-        ]));
-
-        $ret['responses']['mods']['clicked'] = count($this->dbhr->preQuery("SELECT DISTINCT userid FROM alerts_tracking WHERE alertid = ? AND `type` = ? AND response = 'Clicked' ;", [
+        $ret['responses']['mods']['reached'] = count($this->dbhr->preQuery("SELECT DISTINCT userid FROM alerts_tracking WHERE alertid = ? AND `type` = ? AND response IN ('Read', 'Clicked');", [
             $this->id,
             Alert::TYPE_MODEMAIL
         ]));
@@ -143,12 +154,7 @@ class Alert extends Entity
             Alert::TYPE_OWNEREMAIL
         ]));
 
-        $ret['responses']['owner']['read'] = count($this->dbhr->preQuery("SELECT DISTINCT userid FROM alerts_tracking WHERE alertid = ? AND `type` = ? AND response = 'Read' ;", [
-            $this->id,
-            Alert::TYPE_OWNEREMAIL
-        ]));
-
-        $ret['responses']['owner']['clicked'] = count($this->dbhr->preQuery("SELECT DISTINCT userid FROM alerts_tracking WHERE alertid = ? AND `type` = ? AND response = 'Clicked' ;", [
+        $ret['responses']['owner']['reached'] = count($this->dbhr->preQuery("SELECT DISTINCT userid FROM alerts_tracking WHERE alertid = ? AND `type` = ? AND response IN ('Read', 'Clicked');", [
             $this->id,
             Alert::TYPE_OWNEREMAIL
         ]));

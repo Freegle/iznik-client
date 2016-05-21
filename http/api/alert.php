@@ -10,15 +10,28 @@ function alert() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            # We're not bothered about privacy of alerts - people may not be logged in when they see them.
-            $ret = [
-                'ret' => 0,
-                'status' => 'Success',
-                'alert' => $a->getPublic()
-            ];
+            if ($id) {
+                # We're not bothered about privacy of alerts - people may not be logged in when they see them.
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'alert' => $a->getPublic()
+                ];
 
-            if ($me && $me->isAdminOrSupport()) {
-                $ret['alert']['stats'] = $a->getStats();
+                if ($me && $me->isAdminOrSupport()) {
+                    $ret['alert']['stats'] = $a->getStats();
+                }
+            } else {
+                # List all.
+                $ret = ['ret' => 1, 'status' => 'Not logged in or can\'t do that'];
+
+                if ($me && $me->isAdminOrSupport()) {
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'alerts' => $a->getList()
+                    ];
+                }
             }
             break;
         }

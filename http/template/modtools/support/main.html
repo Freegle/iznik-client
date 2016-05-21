@@ -64,10 +64,10 @@
         </div>
         <div id="mailgroup" class="panel-collapse collapse" role="tabpanel" aria-labelledby="mailgrouphead">
             <div class="panel-body">
-                <p class="text-muted">
-                    You can contact group volunteers. This will try a variety of ways to reach them, including email
+                <div class="alert alert-info">
+                    You can contact volunteers for some or all groups. This will try a variety of ways to reach them, including email
                     to personal addresses we know about, and to the <em>-owner</em> address.
-                </p>
+                </div>
                 <div class="botspace form-horizontal padleft">
                     <div class="form-group">
                         <label for="mailfrom" class="col-sm-2 control-label">From:</label>
@@ -113,12 +113,29 @@
                     <div class="alert alert-danger js-mailerror" style="display: none">Something went wrong.</div>
                     <div class="form-group">
                         <div class="col-sm-offset-2 col-sm-10">
-                            <button class="btn btn-success btn-lg js-mailgroup" type="button">
+                            <button class="btn btn-success btn-lg js-sendalert" type="button">
                                 Send
                             </button>
                         </div>
                     </div>
                 </div>
+                <hr />
+                <div class="alert alert-info">
+                    You can also see previous ones that have been sent.
+                </div>
+                <button class="btn btn-success btn-lg js-getalerts" type="button">
+                    Show History
+                </button>
+                <ul class="list-unstyled js-alertshdr" style="display: none">
+                    <li>
+                        <div class="col-md-2"><b>Created</b></div>
+                        <div class="col-md-2"><b>Complete</b></div>
+                        <div class="col-md-6"><b>Subject</b></div>
+                    </li>
+                </ul>
+                <div class="clearfix" />
+                <ul class="js-alerts list-unstyled" style="display: none">
+                </ul>
             </div>
         </div>
     </div>

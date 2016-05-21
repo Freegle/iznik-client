@@ -117,8 +117,7 @@ class alertAPITest extends IznikAPITestCase
                               'mods' =>
                                   array (
                                       'none' => 1,
-                                      'read' => 0,
-                                      'clicked' => 0
+                                      'reached' => 0
                                   ),
                               'modemails' =>
                                   array (
@@ -126,8 +125,7 @@ class alertAPITest extends IznikAPITestCase
                               'owner' =>
                                   array (
                                       'none' => 1,
-                                      'read' => 0,
-                                      'clicked' => 0
+                                      'reached' => 0
                                   ),
                           )
                     ), $stats);
@@ -140,6 +138,17 @@ class alertAPITest extends IznikAPITestCase
             'trackid' => $tracks[1]['id']
         ]);
         assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('alert', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        $found = FALSE;
+        foreach ($ret['alerts'] as $alert) {
+            if ($id == $alert['id']) {
+                $found = TRUE;
+            }
+        }
+
+        assertTrue($found);
 
         $ret = $this->call('alert', 'GET', [ 'id' => $id ]);
         assertEquals(0, $ret['ret']);
@@ -157,8 +166,7 @@ class alertAPITest extends IznikAPITestCase
                     'mods' =>
                         array (
                             'none' => 0,
-                            'read' => 1,
-                            'clicked' => 0
+                            'reached' => 1
                         ),
                     'modemails' =>
                         array (
@@ -166,8 +174,7 @@ class alertAPITest extends IznikAPITestCase
                     'owner' =>
                         array (
                             'none' => 0,
-                            'read' => 0,
-                            'clicked' => 1
+                            'reached' => 1
                         ),
                 )
         ), $stats);        
