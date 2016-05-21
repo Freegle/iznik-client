@@ -41,7 +41,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     
     <script type="text/javascript">
         // Start a timer to reload if we fail to get the page rendered.  Do this now as any JS errors might prevent
-        // us doing it later.
+        // us doing it later.  This is a last resort so the timer can be long.
         window.setTimeout(function() {
             var loader = document.getElementById('pageloader');
             if (loader) {
@@ -49,39 +49,59 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
                 console.log("Loader found - force reload", loader);
                 window.location.reload();
             }
-        }, 30000);
-
-        // Before we do anything else, get our service worker up and running.  This will allow us to do better
-        // caching where the browser supports them.
-        var serviceWorker = null;
+        }, 120000);
 
         if ('serviceWorker' in navigator) {
-            // Use our version so that we will add a new service worker when the code changes.
-            var lastversion = null;
+            // Before we do anything else, get our service worker up and running.  This will allow us to do better
+            // caching where the browser supports them.
+            //
+            // We see problems with Service Workers in Firefox, so stick to Chrome for now.
+            var serviceWorker = null;
+            var inChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+            console.log("Chrome?", inChrome);
 
-            try {
-                lastversion = localStorage.getItem('version');
-            } catch (e) {};
+            if (inChrome) {
+                // Use our version so that we will add a new service worker when the code changes.
+                var lastversion = null;
 
-            var version = <?php echo $version; ?>;
-            console.log("Register service worker", version);
-            navigator.serviceWorker.register('/sw.js?version=' + version).then(function (reg) {
-                console.log("Registered service worker");
-                serviceWorker = reg;
-            }).catch(function (err) {
-                console.log("Can't register service worker", err);
-            });
+                try {
+                    lastversion = localStorage.getItem('version');
+                } catch (e) {
+                }
+                ;
 
-            try {
-                localStorage.setItem('version', version);
-            } catch (e) {};
+                var version = <?php echo $version; ?>;
+                console.log("Register service worker", version);
+                navigator.serviceWorker.register('/sw.js?version=' + version).then(function (reg) {
+                    console.log("Registered service worker");
+                    serviceWorker = reg;
+                }).catch(function (err) {
+                    console.log("Can't register service worker", err);
+                });
 
-            console.log("Versions", lastversion, version);
+                try {
+                    localStorage.setItem('version', version);
+                } catch (e) {
+                }
+                ;
 
-            if (lastversion != null && version != lastversion) {
-                // The code has changed.  Reload to pick up the changes.
-                console.log("Code changed, reload");
-                window.location.reload();
+                console.log("Versions", lastversion, version);
+
+                if (lastversion != null && version != lastversion) {
+                    // The code has changed.  Reload to pick up the changes.
+                    console.log("Code changed, reload");
+                    window.setTimeout(function () {
+                        window.location.reload();
+                    }, 1000);
+                }
+            } else {
+                // Make sure no service workers running.
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    console.log("Got SW registrations", registrations);
+                    for(let registration of registrations) {
+                        registration.unregister()
+                    }
+                });
             }
         }
     </script>    
