@@ -2,6 +2,17 @@ var API = '/api/';
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
+requirejs.onError = function (err) {
+    // Any require errors are most likely either due to flaky networks (so we should retry), bad code (which we'll
+    // surely fix very soon now), or Service Worker issues with registering a new one while a fetch is outstanding.
+    //
+    // In all cases, reloading the page will help.  Delay slightly to avoid hammering the server.
+    console.log("Require Error", err);
+    window.setTimeout(function() {
+        window.location.reload();
+    }, 1000);
+};
+
 require([
     'jquery',
     'underscore',

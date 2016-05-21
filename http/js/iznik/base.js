@@ -2,14 +2,6 @@
 //
 // If you add a standard jQuery plugin in here which is not AMD-compatible, then it also needs to go in
 // requirejs-setup as a shim.
-window.onerror = function(e) {
-    // This is here primarily because if we update our service worker then we can get errors on the script files.
-    console.log("Global error", e);
-    // window.setTimeout(function() {
-    //     window.location.reload();
-    // }, 1000);
-}
-
 define([
     'jquery',
     'backbone',
@@ -30,7 +22,7 @@ define([
     'iznik/underscore',
     'iznik/utility',
     'iznik/majax'
-], function($, Backbone, _) {
+], function ($, Backbone, _) {
     var Iznik = {
         Models: {
             ModTools: {},
@@ -105,10 +97,10 @@ define([
     Iznik.View = (function (View) {
 
         var ourview = View.extend({
-            globalClick: function(e) {
+            globalClick: function (e) {
                 // When a click occurs, we block further clicks for a few seconds, to stop double click damage.
                 $(e.target).addClass('blockclick');
-                window.setTimeout(function() {
+                window.setTimeout(function () {
                     $(e.target).removeClass('blockclick');
                 }, 5000);
 
@@ -117,12 +109,12 @@ define([
                 // provide visual comfort.
                 //
                 // Note that we expect to have one outstanding request (our long poll) at all times.
-                window.setTimeout(function() {
+                window.setTimeout(function () {
                     if ($.active > 1) {
                         // An AJAX call was started in another click handler.  Start pulsing.
                         $(e.target).addClass('showclicked');
 
-                        window.setTimeout(function() {
+                        window.setTimeout(function () {
                             // The pulse should be removed in the ajaxStop handler, but have a fallback just in
                             // case.
                             $(e.target).removeClass('showclicked');
@@ -148,8 +140,8 @@ define([
                 return self;
             },
 
-            inDOM: function() {
-                return(this.$el.closest('body').length > 0);
+            inDOM: function () {
+                return (this.$el.closest('body').length > 0);
             },
 
             destroyIt: function () {
@@ -160,7 +152,7 @@ define([
             }
         });
 
-        ourview.extend = function(child) {
+        ourview.extend = function (child) {
             // We want to inherit events when we extend a view.  This is useful in cases such as a modal which has
             // its own events but wants the modal events too.
             //
@@ -186,20 +178,20 @@ define([
             return view;
         }
 
-        return(ourview);
+        return (ourview);
 
     })(Backbone.View);
 
     // Save as global as it's useful for debugging.
     window.Iznik = Iznik;
-    
-    return(Iznik);
-}, function(err) {
+
+    return (Iznik);
+}, function (err) {
     // We failed to load.  This could be due to various things - network error, server issues.  We've also seen it
     // when the service worker is updated and this causes our fetch requests to fail.  Reload the page after a slight
     // delay.
     console.log("Require error", err);
-    window.setTimeout(function() {
+    window.setTimeout(function () {
         window.location.reload();
     }, 1000);
 });
