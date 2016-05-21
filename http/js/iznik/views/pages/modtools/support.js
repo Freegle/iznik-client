@@ -4,7 +4,8 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/pages/pages',
-    'iznik/views/pages/modtools/messages_approved'
+    'iznik/views/pages/modtools/messages_approved',
+    'tinymce'
 
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
@@ -106,31 +107,26 @@ define([
 
         mailGroup: function () {
             var self = this;
-            var subject = self.$('.js-mailsubj').val();
-            var body = self.$('.js-mailbody').val();
 
-            console.log("Subject, body", subject, body);
-            if (subject.length > 0 && body.length > 0) {
-                $.ajax({
-                    type: 'POST',
-                    url: API + 'group',
-                    data: {
-                        action: 'Contact',
-                        id: self.$('.js-grouplist').val(),
-                        from: self.$('.js-mailfrom').val(),
-                        subject: subject,
-                        body: body
-                    }, success: function (ret) {
-                        if (ret.ret == 0) {
-                            self.$('.js-mailsuccess').fadeIn('slow');
-                        } else {
-                            self.$('.js-mailerror').fadeIn('slow');
-                        }
-                    }, error: function () {
+            $.ajax({
+                type: 'PUT',
+                url: API + 'alert',
+                data: {
+                    groupid: self.$('.js-grouplist').val(),
+                    from: self.$('.js-mailfrom').val(),
+                    subject: self.$('.js-mailsubj').val(),
+                    text: self.$('.js-mailtext').val(),
+                    html: tinyMCE.activeEditor.getContent({format: 'raw'})
+                }, success: function (ret) {
+                    if (ret.ret == 0) {
+                        self.$('.js-mailsuccess').fadeIn('slow');
+                    } else {
                         self.$('.js-mailerror').fadeIn('slow');
                     }
-                });
-            }
+                }, error: function () {
+                    self.$('.js-mailerror').fadeIn('slow');
+                }
+            });
         },
 
         render: function () {
@@ -152,7 +148,16 @@ define([
                         self.$('.js-grouplist option:last').html(group.namedisplay);
                     })
                 }
-            })
+            });
+
+            tinyMCE.init({
+                selector: '#mailhtml',
+                plugins: 'link textcolor',
+                height: 300,
+                menubar: false,
+                elementpath: false,
+                toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright |  bullist numlist link | forecolor styleselect formatselect fontselect fontsizeselect | cut copy paste'
+            });
         }
     });
 

@@ -112,6 +112,7 @@ define([
             "unsubscribe(/:id)": "unsubscribe",
             "post": "userHome", // legacy route
             "chat/:id": "userChat",
+            "alert/viewed/:id": "alertViewed",
             "*path": "userHome"
         },
 
@@ -612,6 +613,19 @@ define([
                 Iznik.Session.forceLogin({
                     modtools: true
                 });
+            });
+        },
+
+        alertViewed: function(alertid) {
+            var self = this;
+
+            require(["iznik/views/pages/user/alerts"], function() {
+                var page = new Iznik.Views.User.Pages.Alert.Viewed({
+                    model: new Iznik.Model({
+                        id: alertid
+                    })
+                });
+                self.loadRoute({page: page, modtools: false});
             });
         },
 

@@ -9,7 +9,7 @@ requirejs.onError = function (err) {
     // In all cases, reloading the page will help.  Delay slightly to avoid hammering the server.
     console.log("Require Error", err);
     window.setTimeout(function() {
-        window.location.reload();
+        // window.location.reload();
     }, 1000);
 };
 

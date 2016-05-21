@@ -77,6 +77,11 @@ define('USER_DOMAIN', 'zzzz');
 # Contact emails
 define('SUPPORT_ADDR', 'support@zzz');
 define('INFO_ADDR', 'info@zzz');
+define('GEEKS_ADDR', 'geeks@zzz');
+define('BOARD_ADDR', 'board@zzz');
+define('MENTORS_ADDR', 'mentors@zzz');
+define('NEWGROUPS_ADDR', 'newgroups@zzz');
+
 define('NOREPLY_ADDR', 'noreply@zzz');
 
 # This speeds up load time

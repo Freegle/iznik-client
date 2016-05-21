@@ -23,7 +23,7 @@ function group() {
         $id = $g->findByShortName($nameshort);
     }
 
-    if ($id || ($action == 'Create')) {
+    if ($id || ($action == 'Create') || ($action == 'Contact')) {
         $g = new Group($dbhr, $dbhm, $id);
 
         switch ($_REQUEST['type']) {
@@ -135,10 +135,11 @@ function group() {
                         break;
                     }
 
-                    case 'Contact': {
+                    case 'Alert': {
                         $from = presdef('from', $_REQUEST, NULL);
                         $subject = presdef('subject', $_REQUEST, NULL);
-                        $body = presdef('body', $_REQUEST, NULL);
+                        $textbody = presdef('textbody', $_REQUEST, NULL);
+                        $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
 
                         $ret = [
                             'ret' => 1,
@@ -148,11 +149,16 @@ function group() {
                         switch ($from) {
                             case 'info': $from = INFO_ADDR; break;
                             case 'support': $from = SUPPORT_ADDR; break;
+                            case 'geeks': $from = GEEKS_ADDR; break;
+                            case 'board': $from = BOARD_ADDR; break;
+                            case 'mentors': $from = MENTORS_ADDR; break;
+                            case 'newgroups': $from = NEWGROUPS_ADDR; break;
+                            
                             default: $from = NULL; break;
                         }
 
-                        if ($me && $me->isAdminOrSupport() && $from && $subject && $body) {
-                            $g->contact($from, $subject, $body);
+                        if ($me && $me->isAdminOrSupport() && $from && $subject && $textbody && $htmlbody) {
+                            $g->alert($from, $subject, $textbody, $htmlbody);
                             $ret = [
                                 'ret' => 0,
                                 'status' => 'Success',

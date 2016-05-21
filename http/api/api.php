@@ -34,6 +34,7 @@ require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/message/Item.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
+require_once(IZNIK_BASE . '/include/group/Alerts.php');
 require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/include/misc/Supporters.php');
@@ -49,6 +50,7 @@ require_once(IZNIK_BASE . '/lib/UploadHandler.php');
 require_once(IZNIK_BASE . '/include/misc/CustomUploadHandler.php');
 
 # Include each API call
+require_once(IZNIK_BASE . '/http/api/alert.php');
 require_once(IZNIK_BASE . '/http/api/session.php');
 require_once(IZNIK_BASE . '/http/api/modconfig.php');
 require_once(IZNIK_BASE . '/http/api/stdmsg.php');
@@ -130,6 +132,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             # call_user_func doesn't scale well on multicores with HHVM, so we need can't figure out the function from
             # the call name - use a switch instead.
             switch ($call) {
+                case 'alert':
+                    $ret = alert();
+                    break;
                 case 'dashboard':
                     $ret = dashboard();
                     break;

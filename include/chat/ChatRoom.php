@@ -26,7 +26,7 @@ class ChatRoom extends Entity
         $this->log = new Log($dbhr, $dbhm);
     }
 
-    # his can be overridden in UT.
+    # This can be overridden in UT.
     public function constructMessage(User $u, $id, $toname, $to, $fromname, $from, $subject, $text, $html) {
         $message = Swift_Message::newInstance()
             ->setSubject($subject)

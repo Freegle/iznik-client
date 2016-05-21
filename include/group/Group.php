@@ -837,46 +837,7 @@ class Group extends Entity
         return($this->group['onyahoo']);
     }
 
-    public function contact($from, $subject, $body) {
-        $headers = "From: $from <$from>\r\n";
-
-        $sql = "SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');";
-        $mods = $this->dbhr->preQuery($sql, [ $this->id ]);
-
-        foreach ($mods as $mod) {
-            $u = new User($this->dbhr, $this->dbhm, $mod['userid']);
-            $email = $u->getEmails()[0];
-
-            $this->mailer(
-                $email['email'],
-                $subject,
-                $body,
-                $headers,
-                "-f$from"
-            );
-        }
-
-        if ($this->group['onyahoo']) {
-            # This group is on Yahoo - so mail the owner address too.
-            $this->mailer(
-                $this->getModsEmail(),
-                $subject,
-                $body,
-                $headers,
-                "-f$from"
-            );
-        }
-
-        $this->mailer(
-            $from,
-            "Copy of message to {$this->group['nameshort']}:$subject",
-            $body,
-            $headers,
-            "-f$from"
-        );
-    }
-
-    public function listByType($type) {
+   public function listByType($type) {
         $typeq = $type ? "type = ?" : '1=1';
         $sql = "SELECT id, nameshort, namefull FROM groups WHERE $typeq ORDER BY nameshort;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);

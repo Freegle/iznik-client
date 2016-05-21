@@ -1093,7 +1093,7 @@ define([
                 data: {
                     action: 'Create',
                     name: self.diff[self.$('.js-grouplist').val()],
-                    type: self.$('.js-type').val()
+                    grouptype: self.$('.js-type').val()
                 }, success: function(ret) {
                     if (ret.ret == 0) {
                         var v = new Iznik.Views.ModTools.Settings.CreateSucceeded();

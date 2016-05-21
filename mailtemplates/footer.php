@@ -7,7 +7,15 @@ function footer($unsub) {
 <table width="95%" cellpadding="0" cellspacing="0" border="0" class="wrapper" bgcolor="#F7F5EB">
     <tr>
         <td style="padding-left: 10px; color: grey; font-size:10px;">
-            <p>You've got this mail because you're a member of Freegle.  <a href="$unsub">Unsubscribe</a></p>
+            <p>You've got this mail because you're a member of Freegle.  
+EOT;
+if ($unsub) {
+    $html .= <<<EOT
+        <a href="$unsub">Unsubscribe</a></p>
+EOT;
+}
+
+    $html .= <<<EOT
         </td>
     </tr>
     <tr>
