@@ -133,7 +133,7 @@ define([
                         self.set(ret);
 
                         // Don't ask for push notif permissions too often.
-                        if (serviceWorker && !Iznik.Session.askedPush && (!lastasked || now - lastasked > 7 * 24 * 60 * 60 * 1000)) {
+                        if (window.serviceWorker && !Iznik.Session.askedPush && (!lastasked || now - lastasked > 7 * 24 * 60 * 60 * 1000)) {
                             // Try to get push notification permissions.
                             // TODO Do this at an appropriate point, not here.
                             try {
@@ -142,9 +142,9 @@ define([
                                     localStorage.setItem('lastAskedPush', now);
                                 } catch (e) {}
                                 
-                                serviceWorker.pushManager.getSubscription().then(function (subscription) {
+                                window.serviceWorker.pushManager.getSubscription().then(function (subscription) {
                                     if (!subscription) {
-                                        var p = serviceWorker.pushManager.subscribe({
+                                        var p = window.serviceWorker.pushManager.subscribe({
                                             userVisibleOnly: true
                                         });
                                         pushManagerPromise = p;

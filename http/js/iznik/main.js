@@ -5,7 +5,12 @@ var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 requirejs.onError = function (err) {
     console.log("Require Error", err);
     var mods = err.requireModules;
-    if (mods.length == 1 && mods[0] === "ga") {
+    var msg = err.message;
+    if (msg && msg.indexOf('showFirst') !== -1) {
+        // TODO There's something weird about this plugin which means it sometimes doesn't load.  Ignore this until
+        // we replace it.
+        console.log("showFirst error - ignore for now");
+    } else if (mods && mods.length == 1 && mods[0] === "ga") {
         // Analytics can be blocked by privacy tools.
         console.log("Analytics - ignore");
     } else {

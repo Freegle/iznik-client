@@ -56,7 +56,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
             // caching where the browser supports them.
             //
             // We see problems with Service Workers in Firefox, so stick to Chrome for now.
-            var serviceWorker = null;
+            window.serviceWorker = null;
             var inChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
             console.log("Chrome?", inChrome);
 
@@ -74,7 +74,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
                 console.log("Register service worker", version);
                 navigator.serviceWorker.register('/sw.js?version=' + version).then(function (reg) {
                     console.log("Registered service worker");
-                    serviceWorker = reg;
+                    window.serviceWorker = reg;
                 }).catch(function (err) {
                     console.log("Can't register service worker", err);
                 });
@@ -98,7 +98,7 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
                 // Make sure no service workers running.
                 navigator.serviceWorker.getRegistrations().then(function(registrations) {
                     console.log("Got SW registrations", registrations);
-                    for(let registration of registrations) {
+                    for (var registration in registrations) {
                         registration.unregister()
                     }
                 });
