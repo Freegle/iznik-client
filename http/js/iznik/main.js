@@ -3,14 +3,21 @@ var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
 requirejs.onError = function (err) {
-    // Any require errors are most likely either due to flaky networks (so we should retry), bad code (which we'll
-    // surely fix very soon now), or Service Worker issues with registering a new one while a fetch is outstanding.
-    //
-    // In all cases, reloading the page will help.  Delay slightly to avoid hammering the server.
     console.log("Require Error", err);
-    window.setTimeout(function() {
-        window.location.reload();
-    }, 1000);
+    var mods = err.requireModules;
+    if (mods.length == 1 && mods[0] === "ga") {
+        // Analytics can be blocked by privacy tools.
+        console.log("Analytics - ignore");
+    } else {
+        // Any require errors are most likely either due to flaky networks (so we should retry), bad code (which we'll
+        // surely fix very soon now), or Service Worker issues with registering a new one while a fetch is outstanding.
+        //
+        // In all cases, reloading the page will help.  Delay slightly to avoid hammering the server.
+        console.log("One we care about");
+        window.setTimeout(function() {
+            window.location.reload();
+        }, 1000);
+    }
 };
 
 require([
