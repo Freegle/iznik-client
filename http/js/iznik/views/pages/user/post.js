@@ -7,6 +7,8 @@ define([
     'iznik/models/user/message'
 ], function ($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.WhatIsIt = Iznik.Views.Page.extend({
+        pleaseWait: null,
+
         events: {
             'click .js-next': 'next',
             'change .js-items': 'checkNext',
@@ -125,6 +127,7 @@ define([
         uploadFailed: function() {
             var self = this;
             self.pleaseWait.close();
+            self.pleaseWait = null;
             self.$('.js-uploading').addClass('hidden');
             self.$('.js-uploadfailed').removeClass('hidden');
         },
@@ -132,6 +135,7 @@ define([
         allUploaded: function() {
             var self = this;
             self.pleaseWait.close();
+            self.pleaseWait = null;
 
             if (self.tagcount > 0) {
                 var v = new Iznik.Views.Help.Box();
@@ -186,11 +190,13 @@ define([
                 acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
                 dataType: 'json',
                 add: function (e, data) {
-                    self.pleaseWait = new Iznik.Views.PleaseWait({
-                        timeout: 1
-                    });
-                    self.pleaseWait.template = 'user_give_uploadwait';
-                    self.pleaseWait.render();
+                    if (!self.pleaseWait) {
+                        self.pleaseWait = new Iznik.Views.PleaseWait({
+                            timeout: 1
+                        });
+                        self.pleaseWait.template = 'user_give_uploadwait';
+                        self.pleaseWait.render();
+                    }
 
                     if (data.autoUpload || (data.autoUpload !== false &&
                         $(this).fileupload('option', 'autoUpload'))) {

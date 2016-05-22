@@ -176,12 +176,12 @@ class Alert extends Entity
         ]));
 
         # Owner.  It looks like Yahoo fetches our beacon, so only count clicks.
-        $ret['responses']['owner']['none'] = count($this->dbhr->preQuery("SELECT DISTINCT userid FROM alerts_tracking WHERE alertid = ? AND `type` = ? AND (response IS NULL OR response = 'Read');", [
+        $ret['responses']['owner']['none'] = count($this->dbhr->preQuery("SELECT * FROM alerts_tracking WHERE alertid = ? AND `type` = ? AND (response IS NULL OR response = 'Read');", [
             $this->id,
             Alert::TYPE_OWNEREMAIL
         ]));
 
-        $ret['responses']['owner']['reached'] = count($this->dbhr->preQuery("SELECT DISTINCT userid FROM alerts_tracking WHERE alertid = ? AND `type` = ? AND response IN ('Clicked');", [
+        $ret['responses']['owner']['reached'] = count($this->dbhr->preQuery("SELECT * FROM alerts_tracking WHERE alertid = ? AND `type` = ? AND response IN ('Clicked');", [
             $this->id,
             Alert::TYPE_OWNEREMAIL
         ]));
@@ -224,59 +224,69 @@ class Alert extends Entity
 
             $emails = $u->getEmails();
             foreach ($emails as $email) {
-                error_log("check {$email['email']} real " . realEmail($email['email']));
-                if (realEmail($email['email'])) {
-                    $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, userid, emailid, `type`) VALUES (?,?,?,?,?);",
-                        [
-                            $this->id,
-                            $groupid,
-                            $mod['userid'],
-                            $email['id'],
-                            Alert::TYPE_MODEMAIL
-                        ]
-                    );
-                    $trackid = $this->dbhm->lastInsertId();
-                    $html = alert_tpl(
-                        $u->getName(),
-                        USER_SITE, 
-                        USERLOGO, 
-                        $this->alert['subject'], 
-                        $this->alert['html'], 
-                        NULL, # Should be $u->getUnsubLink(USER_SITE, $mod['userid']) once we go live TODO ,
-                        'https://' . USER_SITE . "/alert/viewed/$trackid",
-                        'https://' . USER_SITE . "/beacon/$trackid");
-                    $msg = $this->constructMessage($email['email'], $u->getName(), $from, $this->alert['subject'], $this->alert['text'], $html);
-                    $mailer->send($msg);
-                    $done++;
+                try {
+                    error_log("check {$email['email']} real " . realEmail($email['email']));
+                    if (realEmail($email['email'])) {
+                        $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, userid, emailid, `type`) VALUES (?,?,?,?,?);",
+                            [
+                                $this->id,
+                                $groupid,
+                                $mod['userid'],
+                                $email['id'],
+                                Alert::TYPE_MODEMAIL
+                            ]
+                        );
+                        $trackid = $this->dbhm->lastInsertId();
+                        $html = alert_tpl(
+                            $g->getPrivate('nameshort'),
+                            $u->getName(),
+                            USER_SITE,
+                            USERLOGO,
+                            $this->alert['subject'],
+                            $this->alert['html'],
+                            NULL, # Should be $u->getUnsubLink(USER_SITE, $mod['userid']) once we go live TODO ,
+                            'https://' . USER_SITE . "/alert/viewed/$trackid",
+                            'https://' . USER_SITE . "/beacon/$trackid");
+                        $msg = $this->constructMessage($email['email'], $u->getName(), $from, $this->alert['subject'], $this->alert['text'], $html);
+                        $mailer->send($msg);
+                        $done++;
+                    }
+                } catch (Exception $e) {
+                    error_log("Failed with " . $e->getMessage());
                 }
             }
         }
 
         if ($g->getPrivate('onyahoo')) {
-            # This group is on Yahoo - so mail the owner address too.
-            $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, `type`) VALUES (?,?,?);",
-                [
-                    $this->id,
-                    $groupid,
-                    Alert::TYPE_OWNEREMAIL
-                ]
-            );
+            try {
+                # This group is on Yahoo - so mail the owner address too.
+                $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, `type`) VALUES (?,?,?);",
+                    [
+                        $this->id,
+                        $groupid,
+                        Alert::TYPE_OWNEREMAIL
+                    ]
+                );
 
-            $trackid = $this->dbhm->lastInsertId();
-            $toname = $g->getPrivate('nameshort') . " volunteers";
-            $html = alert_tpl(
-                $toname,
-                USER_SITE,
-                USERLOGO,
-                $this->alert['subject'],
-                $this->alert['html'],
-                NULL,
-                'https://' . USER_SITE . "/alert/viewed/$trackid",
-                'https://' . USER_SITE . "/beacon/$trackid");
+                $trackid = $this->dbhm->lastInsertId();
+                $toname = $g->getPrivate('nameshort') . " volunteers";
+                $html = alert_tpl(
+                    $g->getPrivate('nameshort'),
+                    $toname,
+                    USER_SITE,
+                    USERLOGO,
+                    $this->alert['subject'],
+                    $this->alert['html'],
+                    NULL,
+                    'https://' . USER_SITE . "/alert/viewed/$trackid",
+                    'https://' . USER_SITE . "/beacon/$trackid");
 
-            $msg = $this->constructMessage($g->getModsEmail(), $toname, $from, $this->alert['subject'], $this->alert['text'], $html);
-            $mailer->send($msg);
-            $done++;
+                $msg = $this->constructMessage($g->getModsEmail(), $toname, $from, $this->alert['subject'], $this->alert['text'], $html);
+                $mailer->send($msg);
+                $done++;
+            } catch (Exception $e) {
+                error_log("Owner mail failed with " . $e->getMessage());
+            }
         }
 
         return($done);

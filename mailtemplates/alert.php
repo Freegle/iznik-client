@@ -1,7 +1,7 @@
 <?php
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function alert_tpl($toname, $domain, $logo, $subject, $htmlsummary, $unsub, $click, $beacon)
+function alert_tpl($groupname, $toname, $domain, $logo, $subject, $htmlsummary, $unsub, $click, $beacon)
 {
     $siteurl = "https://$domain";
     $html = <<<EOT
@@ -117,7 +117,7 @@ function alert_tpl($toname, $domain, $logo, $subject, $htmlsummary, $unsub, $cli
 EOT;
     if ($click) {
         $html .= <<<EOT
-                                                                        <p style="color: red;">Please let us know that you got this by clicking here:</p>
+                                                                        <p style="color: red;">If you're active on $groupname please let us know that you got this by clicking here:</p>
             
                                                                         <!-- Start Button -->
                                                                         <table class="button" width="50%" cellpadding="0" cellspacing="0" align="left" border="0">
