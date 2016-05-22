@@ -70,7 +70,7 @@ class Alert extends Entity
 
         return($message);
     }
-    
+
     public function beacon($id) {
         $this->dbhm->preExec("UPDATE alerts_tracking SET responded = NOW(), response = 'Read' WHERE id = ?;", [ $id] );
     }
@@ -83,6 +83,7 @@ class Alert extends Entity
         $done = 0;
         $idq = $id ? " id = $id AND " : '';
         $sql = "SELECT * FROM alerts WHERE $idq complete IS NULL;";
+        error_log("Process $sql");
         $alerts = $this->dbhr->preQuery($sql);
 
         foreach ($alerts as $alert) {
@@ -190,6 +191,9 @@ class Alert extends Entity
 
         foreach ($groups as $group) {
             # We have reached a group if we've had a click on an owner, or a read/click on a mod.
+            #
+            # TODO If we send to a user on one group who reads it, and who is a mod on that group, should we count the
+            # second group as having been reached?
             $sql = "SELECT COUNT(*) AS count, CASE WHEN ((response = 'Clicked') OR (response = 'Read' AND `type` = 'ModEmail')) THEN 'Reached' ELSE 'None' END AS rsp FROM alerts_tracking WHERE alertid = ? AND groupid = ? GROUP BY rsp;";
             $data = $this->dbhr->preQuery($sql, [ $this->id, $group['groupid'] ]);
             $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
@@ -212,6 +216,7 @@ class Alert extends Entity
 
         $sql = "SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');";
         $mods = $this->dbhr->preQuery($sql, [ $groupid ]);
+        error_log("..." . count($mods) . " volunteers");
         $from = $this->getFrom();
 
         foreach ($mods as $mod) {
@@ -219,6 +224,7 @@ class Alert extends Entity
 
             $emails = $u->getEmails();
             foreach ($emails as $email) {
+                error_log("check {$email['email']} real " . realEmail($email['email']));
                 if (realEmail($email['email'])) {
                     $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, userid, emailid, `type`) VALUES (?,?,?,?,?);",
                         [

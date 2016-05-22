@@ -415,6 +415,7 @@ function lockScript($fn) {
         $block = 0;
 
         if (!flock($lockh, LOCK_EX | LOCK_NB, $block)) {
+            error_log("Script locked");
             exit(0);
         }
     } catch (Exception $e) {
