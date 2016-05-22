@@ -104,6 +104,7 @@ class alertAPITest extends IznikAPITestCase
         $ret = $this->call('alert', 'GET', [ 'id' => $id ]);
         assertEquals(0, $ret['ret']);
         $stats = $ret['alert']['stats'];
+        unset($stats['responses']['groups'][0]['group']);
         error_log("Stats " . var_export($stats, TRUE));
         assertEquals(array (
                       'sent' =>
@@ -114,6 +115,17 @@ class alertAPITest extends IznikAPITestCase
                           ),
                       'responses' =>
                           array (
+                              'groups' =>
+                                  array (
+                                      0 =>
+                                          array (
+                                              'summary' =>
+                                                  array (
+                                                      'count' => 2,
+                                                      'response' => 'none',
+                                                  ),
+                                          ),
+                                  ),
                               'mods' =>
                                   array (
                                       'none' => 1,
@@ -153,6 +165,7 @@ class alertAPITest extends IznikAPITestCase
         $ret = $this->call('alert', 'GET', [ 'id' => $id ]);
         assertEquals(0, $ret['ret']);
         $stats = $ret['alert']['stats'];
+        unset($stats['responses']['groups'][0]['group']);
         error_log("Stats 2 " . var_export($stats, TRUE));
         assertEquals(array (
             'sent' =>
@@ -163,6 +176,17 @@ class alertAPITest extends IznikAPITestCase
                 ),
             'responses' =>
                 array (
+                    'groups' =>
+                        array (
+                            0 =>
+                                array (
+                                    'summary' =>
+                                        array (
+                                            'count' => 1,
+                                            'response' => 'Read',
+                                        ),
+                                ),
+                        ),
                     'mods' =>
                         array (
                             'none' => 0,

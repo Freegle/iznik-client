@@ -429,3 +429,13 @@ function unlockScript($lockh) {
     flock($lockh, LOCK_UN);
     fclose($lockh);
 }
+
+function realEmail($email) {
+    # TODO What's the right way to spot a 'real' address?
+    return(
+        stripos($email, USER_DOMAIN) === FALSE &&
+        stripos($email, 'fbuser') === FALSE &&
+        stripos($email, 'trashnothing.com') === FALSE &&
+        stripos($email, 'modtools.org') === FALSE
+    );
+}

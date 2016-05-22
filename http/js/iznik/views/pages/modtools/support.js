@@ -6,6 +6,7 @@ define([
     'moment',
     'iznik/views/pages/pages',
     'iznik/views/pages/modtools/messages_approved',
+    'iznik/models/user/alert',
     'tinymce'
 
 ], function($, _, Backbone, Iznik, moment) {
@@ -197,10 +198,18 @@ define([
         },
 
         showStats: function() {
-            var v = new Iznik.Views.ModTools.Alert.Stats({
-                model: this.model
+            var self = this;
+
+            // Get up to date stats.
+            var mod = new Iznik.Models.Alert({
+                id: this.model.get('id')
             });
-            v.render();
+            mod.fetch().then(function() {
+                var v = new Iznik.Views.ModTools.Alert.Stats({
+                    model: mod
+                });
+                v.render();
+            })
         },
 
         render: function() {
@@ -218,35 +227,47 @@ define([
 
     Iznik.Views.ModTools.Alert.Stats = Iznik.Views.Modal.extend({
         template: 'modtools_support_alertstats',
+
         render: function() {
             var self = this;
-            this.open(this.template);
 
             function apiLoaded() {
-                console.log("Loaded");
                 // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
                 _.defer(function () {
 
                     var colors = [
                         'green',
-                        'red'
+                        'orange'
                     ];
 
-                    var arr = [['Destination', 'Count']];
                     var stats = self.model.get('stats');
+                    var data;
                     console.log("Stats", stats);
 
-                    var data = new google.visualization.DataTable();
+                    // First the group chart - this shows what happened on a per-group basis.
+                    var reached = 0;
+                    var total = 0;
+                    var unreached = 0;
+                    _.each(stats.responses.groups, function(group) {
+                        total++;
+                        _.each(group.summary, function(result) {
+                            if (result.rsp == 'Reached') {
+                                reached ++;;
+                            }
+                        })
+                    });
+
+                    data = new google.visualization.DataTable();
                     data.addColumn('string', 'Result');
                     data.addColumn('number', 'Count');
                     data.addRows([
-                        [ 'Reached', stats.responses.mods.reached ],
-                        [ 'No Response', stats.responses.mods.none ]
+                        [ 'Reached', reached ],
+                        [ 'No Response', total - reached ]
                     ]);
 
-                    var chart = new google.visualization.PieChart(self.$('.js-mods').get()[0]);
+                    self.groupchart = new google.visualization.PieChart(self.$('.js-groups').get()[0]);
                     chartOptions = {
-                        title: 'Volunteers',
+                        title: "Groups",
                         chartArea: {'width': '80%', 'height': '80%'},
                         colors: colors,
                         slices2: {
@@ -255,8 +276,31 @@ define([
                         }
                     };
 
-                    chart.draw(data, chartOptions);
+                    self.groupchart.draw(data, chartOptions);
 
+                    // Now the volunteers chart - this shows what happened on a per-volunteer basis.
+                    data = new google.visualization.DataTable();
+                    data.addColumn('string', 'Result');
+                    data.addColumn('number', 'Count');
+                    data.addRows([
+                        [ 'Reached', stats.responses.mods.reached ],
+                        [ 'No Response', stats.responses.mods.none ]
+                    ]);
+
+                    self.volschart = new google.visualization.PieChart(self.$('.js-mods').get()[0]);
+                    chartOptions = {
+                        title: "Volunteers",
+                        chartArea: {'width': '80%', 'height': '80%'},
+                        colors: colors,
+                        slices2: {
+                            1: {offset: 0.2},
+                            2: {offset: 0.2}
+                        }
+                    };
+
+                    self.volschart.draw(data, chartOptions);
+
+                    // Now the owner address chart.
                     data = new google.visualization.DataTable();
                     data.addColumn('string', 'Result');
                     data.addColumn('number', 'Count');
@@ -265,9 +309,9 @@ define([
                         [ 'No Response', stats.responses.owner.none ]
                     ]);
 
-                    chart = new google.visualization.PieChart(self.$('.js-owner').get()[0]);
+                    self.ownchart = new google.visualization.PieChart(self.$('.js-owner').get()[0]);
                     chartOptions = {
-                        title: 'Owner',
+                        title: '-owner Address',
                         chartArea: {'width': '80%', 'height': '80%'},
                         colors: colors,
                         slices2: {
@@ -276,14 +320,20 @@ define([
                         }
                     };
 
-                    chart.draw(data, chartOptions);
+                    self.ownchart.draw(data, chartOptions);
                 });
             }
 
-            google.load('visualization', '1.0', {
-                'packages':['corechart', 'annotationchart'],
-                'callback': apiLoaded
+            // We have to load the chart after the modal is shown, otherwise odd things happen on the second such
+            // modal we open.
+            $('body').one('shown.bs.modal', '#alertstats', function(){
+                google.load('visualization', '1.0', {
+                    'packages':['corechart', 'annotationchart'],
+                    'callback': apiLoaded
+                });
             });
+
+            this.open(this.template);
 
             return(this);
         }

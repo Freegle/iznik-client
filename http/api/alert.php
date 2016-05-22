@@ -4,7 +4,8 @@ function alert() {
 
     $me = whoAmI($dbhr, $dbhm);
 
-    $id = intval(presdef('id', $_REQUEST, NULL));
+    $id = presdef('id', $_REQUEST, NULL);
+    $id = $id ? intval($id) : NULL;
     $a = new Alert($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -60,7 +61,8 @@ function alert() {
                 $subject = presdef('subject', $_REQUEST, NULL);
                 $text = presdef('text', $_REQUEST, NULL);
                 $html = presdef('html', $_REQUEST, NULL);
-                $groupid = intval(presdef('groupid', $_REQUEST, NULL));
+                $groupid = presdef('groupid', $_REQUEST, NULL);
+                $groupid = $groupid == 'AllFreegle' ? NULL : intval($groupid);
                 
                 $alertid = $a->create($groupid, $from, $to, $subject, $text, $html);
 

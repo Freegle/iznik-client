@@ -1,4 +1,4 @@
-<div class="modal fade" tabindex="-1">
+<div class="modal fade" id="alertstats" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -6,7 +6,14 @@
                 <h4 class="modal-title js-modal-title">{{subject}}</h4>
             </div>
             <div class="modal-body js-modal-body">
-                <p>Sent to {{stats.sent.mods}} volunteer<% if (stats.sent.mods != 1) { %>s<% } %> <% if (stats.sent.owneremails) { %> and the Yahoo <em>-owner</em> address<% } %>.  Here's what happened.</p>
+                <p>If we think a group or volunteer has been reached, then we're certain about it.  If we think they haven't, then we could be wrong.  But this gives a pretty good idea.</p>
+                <h2>Group Stats</h2>
+                <p>Sent to {{stats.responses.groups.length}} group<% if (stats.responses.groups.length != 1) { %>s<% } %>.</p>
+                <div class="row">
+                    <div class="col-md-12 js-groups graph" />
+                </div>
+                <h2>Volunteer Stats</h2>
+                <p>Sent to {{stats.sent.mods}} volunteer<% if (stats.sent.mods != 1) { %>s<% } %> <% if (stats.sent.owneremails) { %> and {{stats.sent.owneremails}} Yahoo <em>-owner</em> address<% if (stats.sent.owneremails != 1) { %>es<% } %><% } %>.</p>
                 <div class="row">
                     <div class="col-md-6 js-mods graph"></div>
                     <div class="col-md-6 js-owner graph"></div>
