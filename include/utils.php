@@ -437,6 +437,7 @@ function realEmail($email) {
         stripos($email, USER_DOMAIN) === FALSE &&
         stripos($email, 'fbuser') === FALSE &&
         stripos($email, 'trashnothing.com') === FALSE &&
+        stripos($email, '@ilovefreegle.org') === FALSE &&
         stripos($email, 'modtools.org') === FALSE
     );
 }

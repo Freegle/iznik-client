@@ -83,7 +83,6 @@ class Alert extends Entity
         $done = 0;
         $idq = $id ? " id = $id AND " : '';
         $sql = "SELECT * FROM alerts WHERE $idq complete IS NULL;";
-        error_log("Process $sql");
         $alerts = $this->dbhr->preQuery($sql);
 
         foreach ($alerts as $alert) {
