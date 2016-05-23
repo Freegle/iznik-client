@@ -25,6 +25,15 @@ define([
     'iznik/utility',
     'iznik/majax'
 ], function ($, Backbone, _) {
+
+    // Promise polyfill for older browsers or IE11 which has less excuse.
+    if (typeof window.Promise !== 'function') {
+        console.log("Promise polyfill");
+        require('es6-promise').polyfill();
+    } else {
+        console.log("Got Promise");
+    }
+
     var Iznik = {
         Models: {
             ModTools: {},
@@ -98,14 +107,6 @@ define([
 
     Iznik.View = (function (View) {
 
-        // Promise polyfill for older browsers or IE11 which has less excuse.
-        if (typeof window.Promise !== 'function') {
-            console.log("Promise polyfill");
-            require('es6-promise').polyfill();
-        } else {
-            console.log("Got Promise");
-        }
-
         var ourview = View.extend({
             globalClick: function (e) {
                 // When a click occurs, we block further clicks for a few seconds, to stop double click damage.
@@ -138,24 +139,84 @@ define([
                 View.apply(this, arguments);
             },
 
-            fetchTemplate: function() {
+            checkDOM: function(self) {
+                console.log("CheckDOM", this);
+                if (!self) {
+                    self = this;
+                }
 
+                if (self.$el.closest('body').length > 0) {
+                    console.log("Now in DOM", self);
+                    self.inDOMProm.resolve(self);
+                } else {
+                    console.log("Not in DOM yet", self);
+                    window.setTimeout(self.checkDOM, 50, self);
+                }
+            },
+
+            waitDOM: function(self) {
+                // Some libraries we use don't work properly until the view element is in the DOM.
+                var self = this;
+
+                function pollRecursive() {
+                    return self.$el.closest('body').length > 0 ?
+                        Promise.resolve(true) :
+                        Promise.delay(50).then(pollRecursive);
+                }
+
+                return pollRecursive();
+            },
+
+            ourRender: function() {
+                if (this.model) {
+                    this.$el.html(window.template(this.template)(this.model.toJSON2()));
+                } else {
+                    this.$el.html(window.template(this.template));
+                }
+
+                return this;
             },
 
             render: function () {
+                // A key difference from normal Backbone is that our render method is async and returns a Promise,
+                // rather than synchronous.  The reason for this is to allow us to fetch templates on demand from
+                // the server, rather than in a big blob.  This reduces page load time.
+                //
+                // This means that where we override render in a view, and call the prototype render, we have to both 
+                // issue a then() on the returned promise and return it from our own render.  So you'll see code
+                // along the lines of:
+                //
+                // var p = Iznik.View.prototype.render.call(this);
+                // p.then(function() {...}
+                // return(p);
+                //
+                // You'll get used to it.
                 var self = this;
+                var promise = new Promise(function(resolve, reject) {
+                    if (!self.hasOwnProperty('template')) {
+                        // We don't have a template.  We can render.
+                        resolve(self.ourRender.call(self));
+                    } else {
+                        // We have a template.  We ought to fetch it.
+                        resolve(self.ourRender.call(self));
+                    }
+                })
 
-                if (self.model) {
-                    self.$el.html(window.template(self.template)(self.model.toJSON2()));
-                } else {
-                    self.$el.html(window.template(self.template));
-                }
-
-                return self;
+                return(promise);
             },
 
             inDOM: function () {
                 return (this.$el.closest('body').length > 0);
+            },
+
+            waitDOM: function(self, cb) {
+                // Sometimes, we need to wait until our rendering has completed and an element is in the DOM.  We
+                // do this in a rather clunky polling way, as it's not idiomatic with promises.
+                if (self.$el.closest('body').length > 0) {
+                    cb.call(self);
+                } else {
+                    window.setTimeout(self.waitDOM, 50, self, cb);
+                }
             },
 
             destroyIt: function () {
@@ -195,6 +256,17 @@ define([
         return (ourview);
 
     })(Backbone.View);
+
+    Iznik.View.Timeago = Iznik.View.extend({
+        render: function() {
+            // Expand the template via the parent then set the times.
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                self.$('.js-timego').timeago();
+            });
+            return(p);
+        }
+    });
 
     // Save as global as it's useful for debugging.
     window.Iznik = Iznik;

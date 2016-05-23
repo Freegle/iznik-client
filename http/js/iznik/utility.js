@@ -285,3 +285,20 @@ function haversineDistance(coords1, coords2, isMiles) {
 
     return d;
 }
+
+function templateFetch(tpl) {
+    // TODO This will fetch them asynchronously.
+    var promise = new Promise(function(resolve, reject) {
+        resolve(tpl);
+    });
+
+    return(promise);
+}
+
+function resolvedPromise(self) {
+    // Return a resolved promise as there is nothing to do.
+    var p = new Promise(function(resolve, reject) {
+        resolve(self);
+    });
+    return(p);
+}

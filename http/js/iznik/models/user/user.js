@@ -71,7 +71,7 @@ define([
                     user9: user9,
                     user10: user10,
                     user11: user11
-                }, success: function(ret) {
+                }, success: function() {
                     self.trigger('edited');
                 }
             });

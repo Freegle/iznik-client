@@ -184,7 +184,9 @@ define([
                                         var v = new Iznik.Views.ModTools.Message.Duplicate({
                                             model: new Iznik.Model(message)
                                         });
-                                        self.$('.js-duplist').append(v.render().el);
+                                        v.render().then(function(v) {
+                                            self.$('.js-duplist').append(v.el);
+                                        })
 
                                         dups.push(message);
                                     } else {
@@ -196,7 +198,10 @@ define([
                                         var v = new Iznik.Views.ModTools.Message.Crosspost({
                                             model: new Iznik.Model(message)
                                         });
-                                        self.$('.js-crosspostlist').append(v.render().el);
+
+                                        v.render().then(function(v) {
+                                            self.$('.js-crosspostlist').append(v.el);
+                                        });
 
                                         crossposts.push(message);
                                     }
@@ -242,7 +247,10 @@ define([
                 var v = new Iznik.Views.ModTools.Message.Related({
                     model: new Iznik.Model(related)
                 });
-                self.$('.js-relatedlist').append(v.render().el);
+
+                v.render().then(function(v) {
+                    self.$('.js-relatedlist').append(v.el);
+                });
             });
         },
 
@@ -263,7 +271,10 @@ define([
                             var v = new Iznik.Views.ModTools.Message.OtherEmail({
                                 model: mod
                             });
-                            self.$('.js-otheremails').append(v.render().el);
+
+                            v.render().then(function(v) {
+                                self.$('.js-otheremails').append(v.el);
+                            })
                         }
                     });
 
@@ -284,7 +295,9 @@ define([
                                 model: mod,
                                 user: new Iznik.Model(fromuser)
                             });
-                            self.$('.js-memberof').append(v.render().el);
+                            v.render().then(function(v) {
+                                self.$('.js-memberof').append(v.el);
+                            })
                             groupids.push(group.id);
                         }
                     });
@@ -297,7 +310,10 @@ define([
                             var v = new Iznik.Views.ModTools.Member.Applied({
                                 model: mod
                             });
-                            self.$('.js-applied').append(v.render().el);
+
+                            v.render().then(function(v) {
+                                self.$('.js-applied').append(v.el);
+                            });
                         }
                     });
 
@@ -375,39 +391,77 @@ define([
 
         expand: function () {
             var self = this;
-            console.log("Expand", this);
+            var p = Iznik.Views.Modal.prototype.render.call(this);
+            p.then(function() {
+                // Apply standard message settings.  Need to refetch as the textbody is not returned in the session.
+                if (self.options.stdmsg && self.options.stdmsg.get('id')) {
+                    self.options.stdmsg.fetch().then(function () {
+                        var stdmsg = self.options.stdmsg.attributes;
+                        var config = self.options.config ? self.options.config.attributes : null;
 
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
+                        var subj = self.model.get('subject');
 
-            // Apply standard message settings.  Need to refetch as the textbody is not returned in the session.
-            if (this.options.stdmsg && this.options.stdmsg.get('id')) {
-                this.options.stdmsg.fetch().then(function () {
-                    var stdmsg = self.options.stdmsg.attributes;
-                    var config = self.options.config ? self.options.config.attributes : null;
+                        if (subj) {
+                            // We have a pre-existing subject to include
+                            subj = (stdmsg.subjpref ? stdmsg.subjpref : 'Re') + ': ' + subj +
+                                (stdmsg.subjsuff ? stdmsg.subjsuff : '')
+                            subj = self.substitutionStrings(subj, self.model.attributes, config, self.model.get('groups')[0]);
+                            focuson = 'js-text';
+                        } else {
+                            // Just expand substitutions in the stdmsg.
+                            subj = (stdmsg.subjpref ? stdmsg.subjpref : '') + (stdmsg.subjsuff ? stdmsg.subjsuff : '');
+                            subj = self.substitutionStrings(subj, self.model.attributes, config, self.model.get('groups')[0]);
+                            focuson = 'js-subject';
+                        }
 
+                        self.$('.js-subject').val(subj);
+
+                        // Decide who the mail will look as though it comes from.
+                        var name = Iznik.Session.get('me').displayname;
+                        if (config && config.fromname == 'Groupname Moderator') {
+                            name = self.model.get('groups')[0].nameshort + " Moderator";
+                        }
+
+                        self.$('.js-myname').html(name);
+
+                        // Quote original message.
+                        var msg = self.model.get('textbody');
+
+                        if (msg) {
+                            // We have an existing body to include.
+                            msg = '> ' + msg.replace(/((\r\n)|\r|\n)/gm, '\n> ');
+
+                            // Add text
+                            msg = (stdmsg.body ? (stdmsg.body + '\n\n') : '') + msg;
+
+                            // Expand substitution strings in body
+                            msg = self.substitutionStrings(msg, self.model.attributes, config, self.model.get('groups')[0]);
+                        } else if (stdmsg) {
+                            // Just expand substitutions in the stdmsg.
+                            msg = self.substitutionStrings(stdmsg.body, self.model.attributes, config, self.model.get('groups')[0]);
+                        }
+
+                        // Put it in
+                        self.$('.js-text').val(msg);
+
+                        self.open(null);
+                        $('.modal').on('shown.bs.modal', function () {
+                            $('.modal ' + focuson).focus();
+                        });
+
+                        if (self.options.stdmsg.get('autosend')) {
+                            self.$('.js-send').click();
+                        }
+                    });
+                } else {
+                    // No standard message; just quote and open
                     var subj = self.model.get('subject');
-
-                    if (subj) {
-                        // We have a pre-existing subject to include
-                        subj = (stdmsg.subjpref ? stdmsg.subjpref : 'Re') + ': ' + subj +
-                            (stdmsg.subjsuff ? stdmsg.subjsuff : '')
-                        subj = self.substitutionStrings(subj, self.model.attributes, config, self.model.get('groups')[0]);
-                        focuson = 'js-text';
-                    } else {
-                        // Just expand substitutions in the stdmsg.
-                        subj = (stdmsg.subjpref ? stdmsg.subjpref : '') + (stdmsg.subjsuff ? stdmsg.subjsuff : '');
-                        subj = self.substitutionStrings(subj, self.model.attributes, config, self.model.get('groups')[0]);
-                        focuson = 'js-subject';
-                    }
-
+                    subj = _.isUndefined(subj) ? '' : subj;
+                    subj = 'Re: ' + self.substitutionStrings(subj, self.model.attributes, null, self.model.get('groups')[0]);
                     self.$('.js-subject').val(subj);
 
                     // Decide who the mail will look as though it comes from.
                     var name = Iznik.Session.get('me').displayname;
-                    if (config && config.fromname == 'Groupname Moderator') {
-                        name = self.model.get('groups')[0].nameshort + " Moderator";
-                    }
-
                     self.$('.js-myname').html(name);
 
                     // Quote original message.
@@ -417,57 +471,20 @@ define([
                         // We have an existing body to include.
                         msg = '> ' + msg.replace(/((\r\n)|\r|\n)/gm, '\n> ');
 
-                        // Add text
-                        msg = (stdmsg.body ? (stdmsg.body + '\n\n') : '') + msg;
-
                         // Expand substitution strings in body
-                        msg = self.substitutionStrings(msg, self.model.attributes, config, self.model.get('groups')[0]);
-                    } else if (stdmsg) {
-                        // Just expand substitutions in the stdmsg.
-                        msg = self.substitutionStrings(stdmsg.body, self.model.attributes, config, self.model.get('groups')[0]);
+                        msg = self.substitutionStrings(msg, self.model.attributes, null, self.model.get('groups')[0]);
                     }
 
                     // Put it in
                     self.$('.js-text').val(msg);
 
                     self.open(null);
-                    $('.modal').on('shown.bs.modal', function () {
-                        $('.modal ' + focuson).focus();
-                    });
-
-                    if (self.options.stdmsg.get('autosend')) {
-                        self.$('.js-send').click();
-                    }
-                });
-            } else {
-                // No standard message; just quote and open
-                var subj = self.model.get('subject');
-                subj = _.isUndefined(subj) ? '' : subj;
-                subj = 'Re: ' + self.substitutionStrings(subj, self.model.attributes, null, self.model.get('groups')[0]);
-                self.$('.js-subject').val(subj);
-
-                // Decide who the mail will look as though it comes from.
-                var name = Iznik.Session.get('me').displayname;
-                self.$('.js-myname').html(name);
-
-                // Quote original message.
-                var msg = self.model.get('textbody');
-
-                if (msg) {
-                    // We have an existing body to include.
-                    msg = '> ' + msg.replace(/((\r\n)|\r|\n)/gm, '\n> ');
-
-                    // Expand substitution strings in body
-                    msg = self.substitutionStrings(msg, self.model.attributes, null, self.model.get('groups')[0]);
                 }
-
-                // Put it in
-                self.$('.js-text').val(msg);
-
-                self.open(null);
-            }
+            });
 
             self.closeWhenRequired();
+
+            return(p);
         },
 
         substitutionStrings: function (text, model, config, group) {
@@ -907,37 +924,16 @@ define([
         }
     });
 
-    Iznik.Views.ModTools.Message.Duplicate = Iznik.View.extend({
+    Iznik.Views.ModTools.Message.Duplicate = Iznik.View.Timeago.extend({
         template: 'modtools_message_duplicate',
-
-        render: function () {
-            var self = this;
-            self.$el.html(window.template(self.template)(self.model.toJSON2()));
-            this.$('.timeago').timeago();
-            return (this);
-        }
     });
 
-    Iznik.Views.ModTools.Message.Crosspost = Iznik.View.extend({
+    Iznik.Views.ModTools.Message.Crosspost = Iznik.View.Timeago.extend({
         template: 'modtools_message_crosspost',
-
-        render: function () {
-            var self = this;
-            self.$el.html(window.template(self.template)(self.model.toJSON2()));
-            this.$('.timeago').timeago();
-            return (this);
-        }
     });
 
-    Iznik.Views.ModTools.Message.Related = Iznik.View.extend({
+    Iznik.Views.ModTools.Message.Related = Iznik.View.Timeago.extend({
         template: 'modtools_message_related',
-
-        render: function () {
-            var self = this;
-            self.$el.html(window.template(self.template)(self.model.toJSON2()));
-            this.$('.timeago').timeago();
-            return (this);
-        }
     });
 
     Iznik.Views.ModTools.StdMessage.Leave = Iznik.Views.ModTools.StdMessage.Modal.extend({
@@ -956,8 +952,7 @@ define([
         },
 
         render: function () {
-            this.expand();
-            return (this);
+            return(this.expand());
         }
     });
 
@@ -988,8 +983,7 @@ define([
         },
 
         render: function () {
-            this.expand();
-            return (this);
+            return(this.expand());
         }
     });
 });

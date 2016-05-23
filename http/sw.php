@@ -300,11 +300,11 @@ function addToCache(cacheKey, request, response) {
 function fetchFromCache(event) {
     return caches.match(event.request).then(function (response) {
         if (!response) {
-            console.log("SW not in cache", event.request.url);
+            // console.log("SW not in cache", event.request.url);
             throw Error(event.request.url + ' not found in cache');
         }
 
-        console.log("SW found in cache", event.request.url);
+        // console.log("SW found in cache", event.request.url);
         response.fromCache = true;
 
         return response;

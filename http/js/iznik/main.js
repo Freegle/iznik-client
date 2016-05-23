@@ -18,10 +18,10 @@ requirejs.onError = function (err) {
         // surely fix very soon now), or Service Worker issues with registering a new one while a fetch is outstanding.
         //
         // In all cases, reloading the page will help.  Delay slightly to avoid hammering the server.
-        console.log("One we care about");
-        window.setTimeout(function() {
-            window.location.reload();
-        }, 1000);
+        console.error("One we care about");
+        // window.setTimeout(function() {
+        //     window.location.reload();
+        // }, 1000);
     }
 };
 

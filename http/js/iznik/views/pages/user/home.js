@@ -32,7 +32,9 @@ define([
                                 model: m
                             });
 
-                            self.$('.js-replylist').append(v.render().el);
+                            v.render().then(function(v) {
+                                self.$('.js-replylist').append(v.el);
+                            });
                         })
                     })
                 }
@@ -53,122 +55,127 @@ define([
                 });
             }
 
-            Iznik.Views.Page.prototype.render.call(this, {
+            var p = Iznik.Views.Page.prototype.render.call(this, {
                 noSupporters: true
             });
-
-            var v = new Iznik.Views.Help.Box();
-            v.template = 'user_home_homehelp';
-            this.$('.js-homehelp').html(v.render().el);
-
-            var v = new Iznik.Views.Help.Box();
-            v.template = 'user_home_offerhelp';
-            this.$('.js-offerhelp').html(v.render().el);
-
-            // It's quicker to get all our messages in a single call.  So we have two CollectionViews, one for offers,
-            // one for wanteds.
-            self.offers = new Iznik.Collection();
-            self.wanteds = new Iznik.Collection();
-
-            self.offersView = new Backbone.CollectionView({
-                el: self.$('.js-offers'),
-                modelView: Iznik.Views.User.Home.Offer,
-                modelViewOptions: {
-                    offers: self.offers,
-                    page: self,
-                    chatid: self.options.chatid
-                },
-                collection: self.offers
-            });
-
-            self.offersView.render();
-
-            self.wantedsView = new Backbone.CollectionView({
-                el: self.$('.js-wanteds'),
-                modelView: Iznik.Views.User.Home.Wanted,
-                modelViewOptions: {
-                    wanteds: self.wanteds,
-                    page: self,
-                    chatid: self.options.chatid
-                },
-                collection: self.wanteds
-            });
-
-            self.wantedsView.render();
-
-            // We want to get all messages we've sent.  From the user pov we don't distinguish in
-            // how they look.  This is because most messages are approved and there's no point worrying them, and
-            // provoking "why hasn't it been approved yet" complaints.
-            self.messages = new Iznik.Collections.Message(null, {
-                modtools: false,
-                collection: 'Approved'
-            });
-            self.pendingMessages = new Iznik.Collections.Message(null, {
-                modtools: false,
-                collection: 'Pending'
-            });
-            self.queuedMessages = new Iznik.Collections.Message(null, {
-                modtools: false,
-                collection: 'QueuedYahooUser'
-            });
-
-            var count = 0;
-
-            _.each([self.messages, self.pendingMessages, self.queuedMessages], function(coll) {
-                // We listen for events on the messages collection and ripple them through to the relevant offers/wanteds
-                // collection.  CollectionView will then handle rendering/removing the messages view.
-                self.listenTo(coll, 'add', function (msg) {
-                    var related = msg.get('related');
-
-                    if (msg.get('type') == 'Offer') {
-                        var taken = _.where(related, {
-                            type: 'Taken'
-                        });
-
-                        if (taken.length == 0) {
-                            self.offers.add(msg);
-                        }
-                    } else if (msg.get('type') == 'Wanted') {
-                        var received = _.where(related, {
-                            type: 'Received'
-                        });
-
-                        if (received.length == 0) {
-                            self.wanteds.add(msg);
-                        }
-                    }
+            p.then(function(self) {
+                var v = new Iznik.Views.Help.Box();
+                v.template = 'user_home_homehelp';
+                v.render().then(function(v) {
+                    self.$('.js-homehelp').html(v.el);
                 });
 
-                self.listenTo(coll, 'remove', function (msg) {
-                    if (this.model.get('type') == 'Offer') {
-                        self.offers.remove(msg);
-                    } else if (this.model.get('type') == 'Wanted') {
-                        self.wanteds.remove(msg);
-                    }
+                var v = new Iznik.Views.Help.Box();
+                v.template = 'user_home_offerhelp';
+                v.render().then(function(v) {
+                    self.$('.js-offerhelp').html(v.el);
                 });
 
-                // Now get the messages.
-                coll.fetch({
-                    data: {
-                        fromuser: Iznik.Session.get('me').id,
-                        types: ['Offer', 'Wanted'],
-                        limit: 100
-                    }
-                }).then(function () {
-                    // We want both fetches to finish.
-                    count++;
+                // It's quicker to get all our messages in a single call.  So we have two CollectionViews, one for offers,
+                // one for wanteds.
+                self.offers = new Iznik.Collection();
+                self.wanteds = new Iznik.Collection();
 
-                    if (count == 3) {
-                        if (self.offers.length == 0) {
-                            self.$('.js-nooffers').fadeIn('slow');
-                        } else {
-                            self.$('.js-nooffers').hide();
+                self.offersView = new Backbone.CollectionView({
+                    el: self.$('.js-offers'),
+                    modelView: Iznik.Views.User.Home.Offer,
+                    modelViewOptions: {
+                        offers: self.offers,
+                        page: self,
+                        chatid: self.options.chatid
+                    },
+                    collection: self.offers
+                });
+
+                self.offersView.render();
+
+                self.wantedsView = new Backbone.CollectionView({
+                    el: self.$('.js-wanteds'),
+                    modelView: Iznik.Views.User.Home.Wanted,
+                    modelViewOptions: {
+                        wanteds: self.wanteds,
+                        page: self,
+                        chatid: self.options.chatid
+                    },
+                    collection: self.wanteds
+                });
+
+                self.wantedsView.render();
+
+                // We want to get all messages we've sent.  From the user pov we don't distinguish in
+                // how they look.  This is because most messages are approved and there's no point worrying them, and
+                // provoking "why hasn't it been approved yet" complaints.
+                self.messages = new Iznik.Collections.Message(null, {
+                    modtools: false,
+                    collection: 'Approved'
+                });
+                self.pendingMessages = new Iznik.Collections.Message(null, {
+                    modtools: false,
+                    collection: 'Pending'
+                });
+                self.queuedMessages = new Iznik.Collections.Message(null, {
+                    modtools: false,
+                    collection: 'QueuedYahooUser'
+                });
+
+                var count = 0;
+
+                _.each([self.messages, self.pendingMessages, self.queuedMessages], function(coll) {
+                    // We listen for events on the messages collection and ripple them through to the relevant offers/wanteds
+                    // collection.  CollectionView will then handle rendering/removing the messages view.
+                    self.listenTo(coll, 'add', function (msg) {
+                        var related = msg.get('related');
+
+                        if (msg.get('type') == 'Offer') {
+                            var taken = _.where(related, {
+                                type: 'Taken'
+                            });
+
+                            if (taken.length == 0) {
+                                self.offers.add(msg);
+                            }
+                        } else if (msg.get('type') == 'Wanted') {
+                            var received = _.where(related, {
+                                type: 'Received'
+                            });
+
+                            if (received.length == 0) {
+                                self.wanteds.add(msg);
+                            }
                         }
-                    }
+                    });
+
+                    self.listenTo(coll, 'remove', function (msg) {
+                        if (self.model.get('type') == 'Offer') {
+                            self.offers.remove(msg);
+                        } else if (self.model.get('type') == 'Wanted') {
+                            self.wanteds.remove(msg);
+                        }
+                    });
+
+                    // Now get the messages.
+                    coll.fetch({
+                        data: {
+                            fromuser: Iznik.Session.get('me').id,
+                            types: ['Offer', 'Wanted'],
+                            limit: 100
+                        }
+                    }).then(function () {
+                        // We want both fetches to finish.
+                        count++;
+
+                        if (count == 3) {
+                            if (self.offers.length == 0) {
+                                self.$('.js-nooffers').fadeIn('slow');
+                            } else {
+                                self.$('.js-nooffers').hide();
+                            }
+                        }
+                    });
                 });
             });
 
-            return (this);
+            return(p);
         }
     });
 
@@ -331,17 +338,17 @@ define([
         },
 
         render: function() {
-            var self = this;
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                self.$('.timeago').timeago();
 
-            self.$el.html(window.template(self.template)(self.model.toJSON2()));
-            self.$('.timeago').timeago();
+                var chat = Iznik.Session.chats.get(this.model.get('chat').id);
+                self.listenTo(chat, 'change:unseen', self.updateUnread);
 
-            var chat = Iznik.Session.chats.get(this.model.get('chat').id);
-            self.listenTo(chat, 'change:unseen', self.updateUnread);
+                self.updateUnread();
+            });
 
-            self.updateUnread();
-
-            return(self);
+            return(p);
         }
     });
 });

@@ -60,11 +60,8 @@ define([
             }
         },
 
-        render: function() {
+        inDOM: function() {
             var self = this;
-
-            // We hide the raw select now otherwise it shows briefly.  We set visibility on the dropdown once it's built.
-            self.$el.css('visibility', 'hidden');
 
             if (self.options.hasOwnProperty('id') && !self.options.hasOwnProperty('selected')) {
                 // We have a specified id.  We try to remember this in local storage
@@ -85,86 +82,92 @@ define([
             // The library needs the element to have an id
             self.$el.prop('id', self.options.id);
 
-            // Needs to be in DOM.
-            _.defer(function() {
-                if (self.dropdown) {
-                    // Remove old values.
-                    do {
-                        self.dropdown.remove(0);
-                    } while (self.dropdown.options.length > 0);
-                } else {
-                    // Create dropdown from scratch.
-                    self.dropdown = self.$el.msDropdown().data("dd");
-                }
+            if (self.dropdown) {
+                // Remove old values.
+                do {
+                    self.dropdown.remove(0);
+                } while (self.dropdown.options.length > 0);
+            } else {
+                // Create dropdown from scratch.
+                self.dropdown = self.$el.msDropdown().data("dd");
+            }
 
-                if (self.options.all) {
-                    self.dropdown.add({
-                        text: 'All my groups',
-                        value: -1,
-                        title: 'All my groups'
-                    });
-                }
-
-                if (self.options.choose) {
-                    self.dropdown.add({
-                        text: 'Please choose a group...',
-                        value: -1,
-                        title: 'Please choose a group...'
-                    });
-                }
-
-                if ((Iznik.Session.get('me').systemrole == 'Support' || Iznik.Session.get('me').systemrole == 'Admin') &&
-                    (self.options.systemWide)) {
-                    self.dropdown.add({
-                        text: 'Systemwide',
-                        value: -2,
-                        title: 'Systemwide'
-                    });
-                }
-
-                Iznik.Session.get('groups').each(function(group) {
-                    var role = group.get('role');
-
-                    if (!self.options.mod || role == 'Owner' || role ==  'Moderator') {
-                        self.dropdown.add({
-                            text: self.getName(group),
-                            value: group.get('id'),
-                            title: group.get('namedisplay'),
-                            image: group.get('grouplogo')
-                        });
-                    }
+            if (self.options.all) {
+                self.dropdown.add({
+                    text: 'All my groups',
+                    value: -1,
+                    title: 'All my groups'
                 });
+            }
 
-                if (self.options.hasOwnProperty('selected') && self.options.selected) {
-                    self.dropdown.setIndexByValue(self.options.selected);
-                } else {
-                    self.dropdown.set('selectedIndex', 0);
-                }
-
-                self.dropdown.on('change', function() {
-                    if (self.persist) {
-                        // We want to try to save the selected value in local storage to restore next time.
-                        try {
-                            self.options.selected = localStorage.setItem('groupselect.' + self.options.id,
-                                self.dropdown.value);
-                        } catch (e) {
-                        }
-                    }
-
-                    self.trigger('selected', self.dropdown.value);
-                    self.trigger('change');
+            if (self.options.choose) {
+                self.dropdown.add({
+                    text: 'Please choose a group...',
+                    value: -1,
+                    title: 'Please choose a group...'
                 });
+            }
 
-                self.trigger('selected', self.dropdown.value);
+            if ((Iznik.Session.get('me').systemrole == 'Support' || Iznik.Session.get('me').systemrole == 'Admin') &&
+                (self.options.systemWide)) {
+                self.dropdown.add({
+                    text: 'Systemwide',
+                    value: -2,
+                    title: 'Systemwide'
+                });
+            }
 
-                // If any of our counts change, re-render the select in case it includes counts in the dropdown
-                self.listenToOnce(Iznik.Session, 'countschanged', self.updateCounts);
+            Iznik.Session.get('groups').each(function(group) {
+                var role = group.get('role');
 
-                // We've built the dropdown so we can show it now.
-                $('.dd').css('visibility', 'visible');
+                if (!self.options.mod || role == 'Owner' || role ==  'Moderator') {
+                    self.dropdown.add({
+                        text: self.getName(group),
+                        value: group.get('id'),
+                        title: group.get('namedisplay'),
+                        image: group.get('grouplogo')
+                    });
+                }
             });
 
-            return this;
+            if (self.options.hasOwnProperty('selected') && self.options.selected) {
+                self.dropdown.setIndexByValue(self.options.selected);
+            } else {
+                self.dropdown.set('selectedIndex', 0);
+            }
+
+            self.dropdown.on('change', function() {
+                if (self.persist) {
+                    // We want to try to save the selected value in local storage to restore next time.
+                    try {
+                        self.options.selected = localStorage.setItem('groupselect.' + self.options.id,
+                            self.dropdown.value);
+                    } catch (e) {
+                    }
+                }
+
+                self.trigger('selected', self.dropdown.value);
+                self.trigger('change');
+            });
+
+            self.trigger('selected', self.dropdown.value);
+
+            // If any of our counts change, re-render the select in case it includes counts in the dropdown
+            self.listenToOnce(Iznik.Session, 'countschanged', self.updateCounts);
+
+            // We've built the dropdown so we can show it now.
+            $('.dd').css('visibility', 'visible');
+        },
+
+        render: function() {
+            var self = this;
+
+            // We hide the raw select now otherwise it shows briefly.  We set visibility on the dropdown once it's built.
+            self.$el.css('visibility', 'hidden');
+
+            // The dropdown library needs it to be in the DOM.
+            this.waitDOM(this, this.inDOM);
+            return(resolvedPromise(self));
         },
 
         get: function() {

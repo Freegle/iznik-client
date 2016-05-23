@@ -144,87 +144,91 @@ define([
             // Make sure any URLs in the message break.
             this.model.set('textbody', wbr(this.model.get('textbody'), 20));
 
-            Iznik.View.prototype.render.call(self);
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function(self) {
+                if (self.expanded) {
+                    self.$('.panel-collapse').collapse('show');
+                } else {
+                    self.$('.panel-collapse').collapse('hide');
+                }
 
-            if (this.expanded) {
-                this.$('.panel-collapse').collapse('show');
-            } else {
-                this.$('.panel-collapse').collapse('hide');
-            }
+                var groups = self.model.get('groups');
 
-            var groups = self.model.get('groups');
-
-            _.each(groups, function(group) {
-                var v = new Iznik.Views.User.Message.Group({
-                    model: new Iznik.Model(group)
-                });
-                self.$('.js-groups').append(v.render().el);
-            });
-
-            _.each(self.model.get('attachments'), function (att) {
-                var v = new Iznik.Views.User.Message.Photo({
-                    model: new Iznik.Model(att)
-                });
-
-                self.$('.js-attlist').append(v.render().el);
-            });
-
-            if (self.$('.js-replies').length > 0) {
-                // Show and update the reply details.
-                var replies = self.model.get('replies');
-                if (replies.length > 0) {
-                    self.$('.js-noreplies').hide();
-                    self.replies = new Iznik.Collection(replies);
-                    self.listenTo(self.model, 'change:replies', self.updateReplies);
-                    self.updateReplies();
-
-                    self.repliesView = new Backbone.CollectionView({
-                        el: self.$('.js-replies'),
-                        modelView: Iznik.Views.User.Message.Reply,
-                        modelViewOptions: {
-                            collection: self.replies,
-                            message: self.model
-                        },
-                        collection: self.replies
+                _.each(groups, function(group) {
+                    var v = new Iznik.Views.User.Message.Group({
+                        model: new Iznik.Model(group)
                     });
+                    v.render().then(function(v) {
+                        self.$('.js-groups').append(v.el);
+                    });
+                });
 
-                    self.repliesView.render();
+                _.each(self.model.get('attachments'), function (att) {
+                    var v = new Iznik.Views.User.Message.Photo({
+                        model: new Iznik.Model(att)
+                    });
+                    v.render().then(function(v) {
+                        self.$('.js-attlist').append(v.el);
+                    });
+                });
 
-                    // We might have been asked to open up one of these messages because we're showing the corresponding
-                    // chat.
-                    if (self.options.chatid ) {
-                        var model = self.replies.get(self.options.chatid);
-                        console.log("Get chat model", model);
-                        if (model) {
-                            var view = self.repliesView.viewManager.findByModel(model);
-                            console.log("Got view", view, view.$('.js-caret'));
-                            // Slightly hackily jump up to find the owning message and click to expand.
-                            view.$el.closest('.panel-heading').find('.js-caret').click();
-                        }
-                        self.replies.each(function(reply) {
-                            console.log("Compare", reply.get('chatid'), self.options.chatid);
-                            if (reply.get('chatid') == self.options.chatid) {
-                                console.log("Found it");
+                if (self.$('.js-replies').length > 0) {
+                    // Show and update the reply details.
+                    var replies = self.model.get('replies');
+                    if (replies.length > 0) {
+                        self.$('.js-noreplies').hide();
+                        self.replies = new Iznik.Collection(replies);
+                        self.listenTo(self.model, 'change:replies', self.updateReplies);
+                        self.updateReplies();
+
+                        self.repliesView = new Backbone.CollectionView({
+                            el: self.$('.js-replies'),
+                            modelView: Iznik.Views.User.Message.Reply,
+                            modelViewOptions: {
+                                collection: self.replies,
+                                message: self.model
+                            },
+                            collection: self.replies
+                        });
+
+                        self.repliesView.render().then(function() {
+                            // We might have been asked to open up one of these messages because we're showing the corresponding
+                            // chat.
+                            if (self.options.chatid ) {
+                                var model = self.replies.get(self.options.chatid);
+                                console.log("Get chat model", model);
+                                if (model) {
+                                    var view = self.repliesView.viewManager.findByModel(model);
+                                    console.log("Got view", view, view.$('.js-caret'));
+                                    // Slightly hackily jump up to find the owning message and click to expand.
+                                    view.$el.closest('.panel-heading').find('.js-caret').click();
+                                }
+                                self.replies.each(function(reply) {
+                                    console.log("Compare", reply.get('chatid'), self.options.chatid);
+                                    if (reply.get('chatid') == self.options.chatid) {
+                                        console.log("Found it");
+                                    }
+                                });
                             }
                         });
+                    } else {
+                        self.$('.js-noreplies').show();
                     }
-                } else {
-                    self.$('.js-noreplies').show();
                 }
-            }
 
-            self.updateUnread();
+                self.updateUnread();
 
-            // We want to keep an eye on chat messages, because those which are in conversations referring to our
-            // message should affect the counts we display.
-            self.watchChatRooms();
+                // We want to keep an eye on chat messages, because those which are in conversations referring to our
+                // message should affect the counts we display.
+                self.watchChatRooms();
 
-            // If the number of promises changes, then we want to update what we display.
-            self.listenTo(self.model, 'change:promisecount', self.render);
+                // If the number of promises changes, then we want to update what we display.
+                self.listenTo(self.model, 'change:promisecount', self.render);
 
-            self.$('.timeago').timeago();
+                self.$('.timeago').timeago();
+            });
 
-            return(this);
+            return(p);
         }
     });
 
@@ -232,9 +236,12 @@ define([
         template: "user_message_group",
 
         render: function() {
-            Iznik.View.prototype.render.call(this);
-            this.$('.timeago').timeago();
-            return(this);
+            var self = this;
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                self.$('.timeago').timeago();
+            });
+            return(p);
         }
     });
 
@@ -316,6 +323,7 @@ define([
 
         render: function() {
             var self = this;
+            var p;
 
             var chat = Iznik.Session.chats.get({
                 id: self.model.get('chatid')
@@ -328,12 +336,17 @@ define([
                 self.listenToOnce(chat, 'change:unseen', self.render);
                 self.model.set('unseen', chat.get('unseen'));
                 self.model.set('message', self.options.message.toJSON2());
-                Iznik.View.prototype.render.call(self);
-                self.$('.timeago').timeago();
+                p = Iznik.View.prototype.render.call(self).then(function() {
+                    self.$('.timeago').timeago();
+                });
 
                 // We might promise to this person from a chat.
                 self.listenTo(chat, 'promised', _.bind(self.chatPromised, self));
-            }
+            } else {{
+                p = new Promise(function(resolve, reject) {
+                    resolve(self);
+                });
+            }}
 
             return(this);
         }

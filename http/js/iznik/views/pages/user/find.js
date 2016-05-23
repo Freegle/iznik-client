@@ -59,90 +59,88 @@ define([
         },
 
         render: function () {
-            var self = this;
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function(self) {
+                if (self.options.search) {
+                    self.$('h1').hide();
+                    self.$('.js-search').val(self.options.search);
 
-            Iznik.Views.Page.prototype.render.call(this);
+                    var mylocation = null;
+                    try {
+                        mylocation = localStorage.getItem('mylocation');
 
-            if (this.options.search) {
-                this.$('h1').hide();
-                this.$('.js-search').val(this.options.search);
+                        if (mylocation) {
+                            mylocation = JSON.parse(mylocation);
+                        }
+                    } catch (e) {}
 
-                var mylocation = null;
-                try {
-                    mylocation = localStorage.getItem('mylocation');
+                    self.collection = new Iznik.Collections.Messages.GeoSearch(null, {
+                        modtools: false,
+                        searchmess: self.options.search,
+                        nearlocation: mylocation ? mylocation : null,
+                        collection: 'Approved'
+                    });
 
-                    if (mylocation) {
-                        mylocation = JSON.parse(mylocation);
-                    }
-                } catch (e) {
-                }
+                    self.collectionView = new Backbone.CollectionView({
+                        el: self.$('.js-list'),
+                        modelView: Iznik.Views.User.SearchResult,
+                        modelViewOptions: {
+                            collection: self.collection,
+                            page: self
+                        },
+                        collection: self.collection
+                    });
 
-                self.collection = new Iznik.Collections.Messages.GeoSearch(null, {
-                    modtools: false,
-                    searchmess: self.options.search,
-                    nearlocation: mylocation ? mylocation : null,
-                    collection: 'Approved'
-                });
+                    self.collectionView.render();
 
-                self.collectionView = new Backbone.CollectionView({
-                    el: self.$('.js-list'),
-                    modelView: Iznik.Views.User.SearchResult,
-                    modelViewOptions: {
-                        collection: self.collection,
-                        page: self
-                    },
-                    collection: self.collection
-                });
+                    var v = new Iznik.Views.PleaseWait();
+                    v.render();
 
-                self.collectionView.render();
+                    self.collection.fetch({
+                        remove: true,
+                        data: {
+                            messagetype: 'Offer',
+                            nearlocation: mylocation ? mylocation.id : null,
+                            search: self.options.search,
+                            subaction: 'searchmess'
+                        },
+                        success: function (collection) {
+                            v.close();
+                            var some = false;
 
-                var v = new Iznik.Views.PleaseWait();
-                v.render();
+                            collection.each(function(msg) {
+                                var related = msg.get('related');
 
-                self.collection.fetch({
-                    remove: true,
-                    data: {
-                        messagetype: 'Offer',
-                        nearlocation: mylocation ? mylocation.id : null,
-                        search: this.options.search,
-                        subaction: 'searchmess'
-                    },
-                    success: function (collection) {
-                        v.close();
-                        var some = false;
+                                var taken = _.where(related, {
+                                    type: 'Taken'
+                                });
 
-                        collection.each(function(msg) {
-                            var related = msg.get('related');
-
-                            var taken = _.where(related, {
-                                type: 'Taken'
+                                if (taken.length == 0) {
+                                    some = true;
+                                }
                             });
 
-                            if (taken.length == 0) {
-                                some = true;
+                            if (!some) {
+                                self.$('.js-none').fadeIn('slow');
+                            } else {
+                                self.$('.js-none').hide();
                             }
-                        });
-
-                        if (!some) {
-                            self.$('.js-none').fadeIn('slow');
-                        } else {
-                            self.$('.js-none').hide();
+                            self.$('.js-wanted').fadeIn('slow');
                         }
-                        self.$('.js-wanted').fadeIn('slow');
-                    }
-                });
-            }
+                    });
+                }
 
-            this.$('.js-search').typeahead({
-                minLength: 2,
-                hint: false,
-                highlight: true
-            }, {
-                name: 'items',
-                source: this.itemSource
+                self.$('.js-search').typeahead({
+                    minLength: 2,
+                    hint: false,
+                    highlight: true
+                }, {
+                    name: 'items',
+                    source: self.itemSource
+                });
             });
 
-            return (this);
+            return (p);
         }
     });
 
@@ -214,6 +212,7 @@ define([
 
         render: function() {
             var self = this;
+            var p = null;
             var related = this.model.get('related');
 
             var taken = _.where(related, {
@@ -237,12 +236,14 @@ define([
                 // Static map custom markers don't support SSL.
                 this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapmarker.gif');
 
-                Iznik.Views.User.Message.prototype.render.call(this);
+                p = Iznik.Views.User.Message.prototype.render.call(this);
             } else {
-                this.$el.hide();
+                p = new Promise(function(resolve, reject) {
+                    resolve(self);
+                });
             }
             
-            return(this);
+            return(p);
         }
     });
 
@@ -257,7 +258,7 @@ define([
                 this.options.item = localStorage.getItem('lastsearch');
             } catch (e) {}
 
-            Iznik.Views.User.Pages.WhatIsIt.prototype.render.call(this);
+            return(Iznik.Views.User.Pages.WhatIsIt.prototype.render.call(this));
         }
     });
 

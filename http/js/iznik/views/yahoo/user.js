@@ -25,30 +25,30 @@ define([
         },
 
         render: function() {
-            var self = this;
-            self.$el.html(window.template(self.template)(self.model.toJSON2()));
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                self.$('.js-posting').val(self.model.get('postingStatus'));
+                self.$('.js-delivery').val(self.model.get('deliveryType'));
 
-            self.$('.js-posting').val(self.model.get('postingStatus'));
-            self.$('.js-delivery').val(self.model.get('deliveryType'));
+                if (self.model.get('date')) {
+                    var mom = new moment(self.model.get('date') * 1000);
+                    var now = new moment();
 
-            if (self.model.get('date')) {
-                var mom = new moment(self.model.get('date') * 1000);
-                var now = new moment();
+                    self.$('.js-joined').html(mom.format('ll'));
 
-                self.$('.js-joined').html(mom.format('ll'));
-
-                if (now.diff(mom, 'days') <= 31) {
-                    self.$('.js-joined').addClass('error');
+                    if (now.diff(mom, 'days') <= 31) {
+                        self.$('.js-joined').addClass('error');
+                    }
+                } else {
+                    self.$('.js-joinholder').hide();
                 }
-            } else {
-                self.$('.js-joinholder').hide();
-            }
 
-            self.listenToOnce(self.model, 'change:postingStatus change:deliveryType', self.render);
+                self.listenToOnce(self.model, 'change:postingStatus change:deliveryType', self.render);
 
-            self.$('select').selectpicker();
+                self.$('select').selectpicker();
+            });
 
-            return(this);
+            return(p);
         }
     });
 });

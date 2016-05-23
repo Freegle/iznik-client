@@ -22,6 +22,7 @@ define([
 
         render: function () {
             // We might have already said we don't want to see this.
+            var self = this;
             var show = true;
 
             try {
@@ -29,11 +30,18 @@ define([
             } catch (e) {
             }
 
+            var p;
+            
             if (show) {
-                this.$el.html(window.template(this.template));
+                // We need to render it.
+                p = Iznik.View.prototype.render.call(this);
+            } else {
+                p = new Promise(function(resolve, reject) {
+                    resolve(self);
+                });
             }
 
-            return (this);
+            return(p);
         }
     });
 });

@@ -75,117 +75,131 @@ define([
                 monitorDOM.start();
             }
 
-            // try {
-                if (currentPage) {
-                    // We have previous rendered a page.  Kill that off, so that it is not listening for events and
-                    // messing about with the DOM.
-                    currentPage.remove();
-                }
+            if (currentPage) {
+                // We have previous rendered a page.  Kill that off, so that it is not listening for events and
+                // messing about with the DOM.
+                currentPage.remove();
+            }
 
-                currentPage = self;
+            currentPage = self;
 
-                // Record whether we are showing a user or ModTools page.
-                Iznik.Session.set('modtools', self.modtools);
+            // Record whether we are showing a user or ModTools page.
+            Iznik.Session.set('modtools', self.modtools);
 
-                options = typeof options == 'undefined' ? {} : options;
+            options = typeof options == 'undefined' ? {} : options;
 
-                var rightbar = null;
-                var rightaccordion = $('#rightaccordion');
+            var rightbar = null;
+            var rightaccordion = $('#rightaccordion');
 
-                if (rightaccordion.length > 0) {
-                    // We render the right sidebar only once, so that the plugin work remains there if we route to a new page
-                    rightbar = rightaccordion.children().detach();
-                }
+            if (rightaccordion.length > 0) {
+                // We render the right sidebar only once, so that the plugin work remains there if we route to a new page
+                rightbar = rightaccordion.children().detach();
+            }
 
-                // Set the base page layout.  Save and restore the minimised chats which would otherwise get zapped.
-                var chats = $('#notifchatdropdown').children().detach();
-                $('#bodyContent').html(this.modtools ?
-                    window.template('modtools_layout_layout') :
-                    window.template('user_layout_layout'));
-                $('.js-pageContent').html(this.$el);
-                $('#notifchatdropdown').html(chats);
-                if (chats.length) {
-                    $('#js-notifchat').show();
-                } else {
-                    $('#js-notifchat').hide();
-                }
+            // Set the base page layout.
+            var p = new Promise(function(resolve, reject) {
+                templateFetch(self.modtools ? 'modtools_layout_layout' : 'user_layout_layout').then(function(tpl) {
+                    // Save and restore the minimised chats which would otherwise get zapped.
+                    var chats = $('#notifchatdropdown').children().detach();
 
-                if (this.modtools) {
-                    // ModTools menu and sidebar.
-                    var m = new Iznik.Views.ModTools.LeftMenu();
-                    $('.js-leftsidebar').html(m.render().el);
+                    $('#bodyContent').html(window.template(tpl));
+                    $('.js-pageContent').html(self.$el);
 
-                    rightaccordion = $('#rightaccordion');
+                    $('#notifchatdropdown').html(chats);
 
-                    if (!rightbar) {
-                        var s = new Iznik.Views.Supporters();
-                        rightaccordion.append(s.render().el);
-
-                        window.IznikPlugin = new Iznik.Views.Plugin.Main();
-                        rightaccordion.append(IznikPlugin.render().el);
-                        rightaccordion.accordionPersist();
+                    if (chats.length) {
+                        $('#js-notifchat').show();
                     } else {
-                        rightaccordion.empty().append(rightbar);
+                        $('#js-notifchat').hide();
                     }
 
-                    if (options.noSupporters) {
-                        $('.js-supporters').hide();
-                    } else {
-                        $('.js-supporters').show();
+                    if (self.modtools) {
+                        // ModTools menu and sidebar.
+                        new Iznik.Views.ModTools.LeftMenu().render().then(function(m) {
+                            $('.js-leftsidebar').html(m.el);
+                        });
+
+                        rightaccordion = $('#rightaccordion');
+
+                        if (!rightbar) {
+                            var s = new Iznik.Views.Supporters();
+                            s.render().then(function(s) {
+                                rightaccordion.append(s.el);
+
+                                window.IznikPlugin = new Iznik.Views.Plugin.Main();
+                                IznikPlugin.render().then(function(v) {
+                                    rightaccordion.append(v.el);
+                                })
+
+                                rightaccordion.accordionPersist();
+                            });
+                        } else {
+                            rightaccordion.empty().append(rightbar);
+                        }
+
+                        if (options.noSupporters) {
+                            $('.js-supporters').hide();
+                        } else {
+                            $('.js-supporters').show();
+                        }
                     }
-                }
 
-                // Put this page in
-                this.$el.html(window.template(this.template)(Iznik.Session.toJSON2()));
-                $('.js-pageContent').append(this.$el);
+                    // Put self page in
+                    templateFetch(self.template).then(function(tpl) {
+                        self.$el.html(window.template(tpl)(Iznik.Session.toJSON2()));
+                        $('.js-pageContent').append(self.$el);
 
-                // Show anything which should or shouldn't be visible based on login status.
-                this.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
-                    var loggedInOnly = $('.js-loggedinonly');
-                    var loggedOutOnly = $('.js-loggedoutonly');
+                        // Show anything which should or shouldn't be visible based on login status.
+                        self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                            var loggedInOnly = $('.js-loggedinonly');
+                            var loggedOutOnly = $('.js-loggedoutonly');
 
-                    if (loggedIn) {
-                        loggedInOnly.removeClass('reallyHide');
-                        loggedOutOnly.addClass('reallyHide');
+                            if (loggedIn) {
+                                loggedInOnly.removeClass('reallyHide');
+                                loggedOutOnly.addClass('reallyHide');
 
-                        // Since we're logged in, we can start chat.
-                        ChatHolder({
-                            modtools: self.modtools
-                        }).render();
-                    } else {
-                        loggedOutOnly.removeClass('reallyHide');
-                        loggedInOnly.addClass('reallyHide');
-                    }
+                                // Since we're logged in, we can start chat.
+                                ChatHolder({
+                                    modtools: self.modtools
+                                }).render();
+                            } else {
+                                loggedOutOnly.removeClass('reallyHide');
+                                loggedInOnly.addClass('reallyHide');
+                            }
+                        });
+
+                        Iznik.Session.testLoggedIn();
+
+                        // Sort out any menu
+                        $("#menu-toggle").click(function (e) {
+                            e.preventDefault();
+                            $("#wrapper").toggleClass("toggled");
+                        });
+
+                        window.scrollTo(0, 0);
+
+                        // Let anyone who cares know.
+                        self.trigger('pageContentAdded');
+
+                        // This doesn't work as an event as it's outwith our element, so attach manually.
+                        if (self.home) {
+                            $('#bodyContent .js-home').click(_.bind(self.home, self));
+                        }
+
+                        if (self.signin) {
+                            $('#bodyContent .js-signin').click(_.bind(self.signin, self));
+                        }
+
+                        $('.js-logout').click(function() {
+                            logout();
+                        });
+
+                        resolve(self);
+                    });
                 });
+            });
 
-                Iznik.Session.testLoggedIn();
-
-                // Sort out any menu
-                $("#menu-toggle").click(function (e) {
-                    e.preventDefault();
-                    $("#wrapper").toggleClass("toggled");
-                });
-
-                window.scrollTo(0, 0);
-
-                // Let anyone who cares know.
-                this.trigger('pageContentAdded');
-
-                // This doesn't work as an event as it's outwith our element, so attach manually.
-                if (this.home) {
-                    $('#bodyContent .js-home').click(_.bind(this.home, this));
-                }
-
-                if (this.signin) {
-                    $('#bodyContent .js-signin').click(_.bind(this.signin, this));
-                }
-
-                $('.js-logout').click(function() {
-                    logout();
-                });
-            // } catch (e) {
-            //     console.error("Page render failed", e.message);
-            // }
+            return(p);
         }
     });
 
@@ -205,42 +219,43 @@ define([
         },
 
         render: function () {
-            this.$el.html(window.template(this.template));
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                // Bypass caching for plugin load
+                self.$('.js-firefox').attr('href',
+                    self.$('.js-firefox').attr('href') + '?' + Math.random()
+                );
 
-            // Bypass caching for plugin load
-            this.$('.js-firefox').attr('href',
-                this.$('.js-firefox').attr('href') + '?' + Math.random()
-            );
+                // Highlight current page if any.
+                self.$('a').each(function () {
+                    var href = $(self).attr('href');
+                    $(self).closest('li').removeClass('active');
 
-            // Highlight current page if any.
-            this.$('a').each(function () {
-                var href = $(this).attr('href');
-                $(this).closest('li').removeClass('active');
+                    if (href == window.location.pathname) {
+                        $(self).closest('li').addClass('active');
 
-                if (href == window.location.pathname) {
-                    $(this).closest('li').addClass('active');
+                        // Force reload on click, which doesn't happen by default.
+                        $(self).click(function () {
+                            Backbone.history.loadUrl(href);
+                        });
+                    }
+                });
 
-                    // Force reload on click, which doesn't happen by default.
-                    $(this).click(function () {
-                        Backbone.history.loadUrl(href);
-                    });
+                if (Iznik.Session.isAdminOrSupport()) {
+                    self.$('.js-adminsupportonly').removeClass('hidden');
                 }
+
+                if (Iznik.Session.isAdmin()) {
+                    self.$('.js-adminonly').removeClass('hidden');
+                }
+
+                // We need to create a hidden signin button because otherwise the Google logout method doesn't
+                // work properly.  See http://stackoverflow.com/questions/19353034/how-to-sign-out-using-when-using-google-sign-in/19356354#19356354
+                var GoogleLoad = new Iznik.Views.GoogleLoad();
+                GoogleLoad.buttonShim('googleshim');
             });
 
-            if (Iznik.Session.isAdminOrSupport()) {
-                this.$('.js-adminsupportonly').removeClass('hidden');
-            }
-
-            if (Iznik.Session.isAdmin()) {
-                this.$('.js-adminonly').removeClass('hidden');
-            }
-
-            // We need to create a hidden signin button because otherwise the Google logout method doesn't
-            // work properly.  See http://stackoverflow.com/questions/19353034/how-to-sign-out-using-when-using-google-sign-in/19356354#19356354
-            var GoogleLoad = new Iznik.Views.GoogleLoad();
-            GoogleLoad.buttonShim('googleshim');
-
-            return this;
+            return p;
         }
     });
 
@@ -250,42 +265,41 @@ define([
         template: "layout_supporters",
 
         render: function () {
-            var self = this;
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function (self) {
+                $.ajax({
+                    url: API + 'supporters',
+                    success: function (ret) {
+                        var html = '';
+                        _.each(ret.supporters.Wowzer, function (el, index, list) {
+                            if (index == ret.supporters.Wowzer.length - 1) {
+                                html += ' and '
+                            } else if (index > 0) {
+                                html += ', '
+                            }
 
-            $.ajax({
-                url: API + 'supporters',
-                success: function (ret) {
-                    self.$el.html(window.template(self.template));
+                            html += el.name;
+                        });
+                        self.$('.js-wowzer').html(html);
 
-                    var html = '';
-                    _.each(ret.supporters.Wowzer, function (el, index, list) {
-                        if (index == ret.supporters.Wowzer.length - 1) {
-                            html += ' and '
-                        } else if (index > 0) {
-                            html += ', '
-                        }
+                        var html = '';
+                        _.each(ret.supporters['Front Page'], function (el, index, list) {
+                            if (index == ret.supporters['Front Page'].length - 1) {
+                                html += ' and '
+                            } else if (index > 0) {
+                                html += ', '
+                            }
 
-                        html += el.name;
-                    });
-                    self.$('.js-wowzer').html(html);
+                            html += el.name;
+                        });
+                        self.$('.js-frontpage').html(html);
 
-                    var html = '';
-                    _.each(ret.supporters['Front Page'], function (el, index, list) {
-                        if (index == ret.supporters['Front Page'].length - 1) {
-                            html += ' and '
-                        } else if (index > 0) {
-                            html += ', '
-                        }
-
-                        html += el.name;
-                    });
-                    self.$('.js-frontpage').html(html);
-
-                    self.$('.js-content').fadeIn('slow');
-                }
+                        self.$('.js-content').fadeIn('slow');
+                    }
+                });
             });
 
-            return self;
+            return(p);
         }
     });
 
@@ -299,34 +313,29 @@ define([
 
             Iznik.Views.Page.prototype.render.call(this, {
                 noSupporters: true
-            });
+            }).then(function() {
+                $.ajax({
+                    url: API + 'supporters',
+                    success: function (ret) {
+                        var html = '';
 
-            $.ajax({
-                url: API + 'supporters',
-                success: function (ret) {
-                    self.$el.html(window.template(self.template));
+                        function add(el, index, list) {
+                            if (html) {
+                                html += ', '
+                            }
 
-                    var html = '';
-
-                    function add(el, index, list) {
-                        console.log("Add", el.name);
-                        if (html) {
-                            html += ', '
+                            html += el.name;
                         }
 
-                        html += el.name;
+                        _.each(ret.supporters['Wowzer'], add);
+                        _.each(ret.supporters['Front Page'], add);
+                        _.each(ret.supporters['Supporter'], add);
+
+                        self.$('.js-list').html(html);
+                        self.$('.js-content').fadeIn('slow');
                     }
-
-                    _.each(ret.supporters['Wowzer'], add);
-                    _.each(ret.supporters['Front Page'], add);
-                    _.each(ret.supporters['Supporter'], add);
-
-                    self.$('.js-list').html(html);
-                    self.$('.js-content').fadeIn('slow');
-                }
+                });
             });
-
-            return self;
         }
     });
 });

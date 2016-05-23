@@ -112,42 +112,45 @@ define([
         },
 
         render: function () {
-            var self = this;
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function(self) {
+                self.$('.js-searchterm').val(self.options.search);
 
-            Iznik.Views.Page.prototype.render.call(this);
+                var v = new Iznik.Views.Help.Box();
+                v.template = self.options.helpTemplate;
+                v.render().then(function(v) {
+                    self.$('.js-help').html(v.el);
+                })
 
-            self.$('.js-searchterm').val(self.options.search);
+                self.spammers = new Iznik.Collections.ModTools.Spammers();
 
-            var v = new Iznik.Views.Help.Box();
-            v.template = self.options.helpTemplate;
-            this.$('.js-help').html(v.render().el);
+                // CollectionView handles adding/removing/sorting for us.
+                self.collectionView = new Backbone.CollectionView({
+                    el: self.$('.js-list'),
+                    modelView: Iznik.Views.ModTools.Spammer,
+                    modelViewOptions: {
+                        collection: self.spammers,
+                        type: self.options.urlfragment,
+                        page: self
+                    },
+                    collection: self.spammers
+                });
 
-            self.spammers = new Iznik.Collections.ModTools.Spammers();
+                self.collectionView.render();
 
-            // CollectionView handles adding/removing/sorting for us.
-            self.collectionView = new Backbone.CollectionView({
-                el: self.$('.js-list'),
-                modelView: Iznik.Views.ModTools.Spammer,
-                modelViewOptions: {
-                    collection: self.spammers,
-                    type: self.options.urlfragment,
-                    page: self
-                },
-                collection: self.spammers
+                // Do so.
+                self.fetch();
+
+                // If we detect that the counts have changed on the server, refetch the members so that we add/remove
+                // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
+                self.listenTo(Iznik.Session, 'spammerpendingaddcountschanged', self.fetch);
+                self.listenTo(Iznik.Session, 'spammerpendingremovecountschanged', self.fetch);
+
+                // We seem to need to redelegate
+                self.delegateEvents();
             });
 
-            self.collectionView.render();
-
-            // Do so.
-            self.fetch();
-
-            // If we detect that the counts have changed on the server, refetch the members so that we add/remove
-            // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
-            this.listenTo(Iznik.Session, 'spammerpendingaddcountschanged', this.fetch);
-            this.listenTo(Iznik.Session, 'spammerpendingremovecountschanged', this.fetch);
-
-            // We seem to need to redelegate
-            self.delegateEvents();
+            return(p);
         }
     });
 
@@ -199,58 +202,65 @@ define([
             var self = this;
 
             self.model.set('type', self.options.type);
-            self.$el.html(window.template(self.template)(self.model.toJSON2()));
+            var p = Iznik.Views.ModTools.Member.Spam.prototype.render.call(self);
+            p.then(function(self) {
+                if (Iznik.Session.isAdmin()) {
+                    self.$('.js-adminonly').removeClass('hidden');
+                }
 
-            if (Iznik.Session.isAdmin()) {
-                self.$('.js-adminonly').removeClass('hidden');
-            }
+                if (Iznik.Session.isAdminOrSupport()) {
+                    self.$('.js-adminsupportonly').removeClass('hidden');
+                }
 
-            if (Iznik.Session.isAdminOrSupport()) {
-                self.$('.js-adminsupportonly').removeClass('hidden');
-            }
+                var mom = new moment(self.model.get('added'));
+                self.$('.js-added').html(mom.format('ll'));
 
-            var mom = new moment(this.model.get('added'));
-            this.$('.js-added').html(mom.format('ll'));
+                var v = new Iznik.Views.ModTools.User({
+                    model: new Iznik.Models.ModTools.User(self.model.get('user'))
+                });
 
-            var v = new Iznik.Views.ModTools.User({
-                model: new Iznik.Models.ModTools.User(self.model.get('user'))
-            });
+                v.render().then(function (v) {
+                    self.$('.js-user').html(v.el);
+                });
 
-            self.$('.js-user').html(v.render().el);
+                // No point duplicating spammer info
+                self.$('.js-spammerinfo').hide();
 
-            // No point duplicating spammer info
-            self.$('.js-spammerinfo').hide();
+                // Add any other emails
+                self.$('.js-otheremails').empty();
+                var selfemail = self.model.get('user').email;
+                _.each(self.model.get('user').otheremails, function (email) {
+                    if (email.email != selfemail) {
+                        var mod = new Iznik.Model(email);
+                        var v = new Iznik.Views.ModTools.Message.OtherEmail({
+                            model: mod
+                        });
+                        v.render().then(function (v) {
+                            self.$('.js-otheremails').html(v.el);
+                        });
+                    }
+                });
 
-            // Add any other emails
-            self.$('.js-otheremails').empty();
-            var thisemail = self.model.get('user').email;
-            _.each(self.model.get('user').otheremails, function (email) {
-                if (email.email != thisemail) {
-                    var mod = new Iznik.Model(email);
-                    var v = new Iznik.Views.ModTools.Message.OtherEmail({
+                self.$('.js-applied').empty();
+                _.each(self.model.get('user').applied, function (group) {
+                    var mod = new Iznik.Model(group);
+                    var v = new Iznik.Views.ModTools.Member.Applied({
                         model: mod
                     });
-                    self.$('.js-otheremails').append(v.render().el);
-                }
-            });
-
-            self.$('.js-applied').empty();
-            _.each(self.model.get('user').applied, function (group) {
-                var mod = new Iznik.Model(group);
-                var v = new Iznik.Views.ModTools.Member.Applied({
-                    model: mod
+                    v.render().then(function (v) {
+                        self.$('.js-applied').html(v.el);
+                    });
                 });
-                self.$('.js-applied').append(v.render().el);
+
+
+                self.$('.timeago').timeago();
+
+                self.listenToOnce(self.model, 'deleted removed', function () {
+                    self.$el.fadeOut('slow');
+                });
             });
 
-
-            this.$('.timeago').timeago();
-
-            this.listenToOnce(self.model, 'deleted removed', function () {
-                self.$el.fadeOut('slow');
-            });
-
-            return (this);
+            return (p);
         }
     });
 });

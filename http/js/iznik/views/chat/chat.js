@@ -300,43 +300,30 @@ define([
 
         render: function() {
             var self = this;
+            var p;
 
             // We might already be rendered, as we're outside the body content that gets zapped when we move from
             // page to page.
             if ($('#chatHolder').length == 0) {
                 self.$el.css('visibility', 'hidden');
-                self.$el.html(window.template(self.template)());
-                $("#bodyEnvelope").append(self.$el);
 
-                Iznik.Session.chats = new Iznik.Collections.Chat.Rooms();
-                Iznik.Session.chats.fetch({
-                    data: {
-                        modtools: self.options.modtools
-                    }
-                }).then(function () {
-                    Iznik.Session.chats.each(function (chat) {
-                        // If the unread message count changes, we want to update it.
-                        self.listenTo(chat, 'change:unseen', self.updateCounts);
-                    });
+                p = Iznik.View.prototype.render.call(self).then(function(self) {
+                    $("#bodyEnvelope").append(self.$el);
 
-                    Iznik.activeChats = new Backbone.CollectionView({
-                        el: self.$('.js-chats'),
-                        modelView: Iznik.Views.Chat.Active,
-                        collection: Iznik.Session.chats,
-                        modelViewOptions: {
-                            organise: _.bind(self.organise, self),
-                            updateCounts: _.bind(self.updateCounts, self),
+                    Iznik.Session.chats = new Iznik.Collections.Chat.Rooms();
+                    Iznik.Session.chats.fetch({
+                        data: {
                             modtools: self.options.modtools
                         }
-                    });
+                    }).then(function () {
+                        Iznik.Session.chats.each(function (chat) {
+                            // If the unread message count changes, we want to update it.
+                            self.listenTo(chat, 'change:unseen', self.updateCounts);
+                        });
 
-                    Iznik.activeChats.render();
-
-                    // Defer as container not yet in DOM.
-                    _.defer(function() {
-                        Iznik.minimisedChats = new Backbone.CollectionView({
-                            el: $('#notifchatdropdown'),
-                            modelView: Iznik.Views.Chat.Minimised,
+                        Iznik.activeChats = new Backbone.CollectionView({
+                            el: self.$('.js-chats'),
+                            modelView: Iznik.Views.Chat.Active,
                             collection: Iznik.Session.chats,
                             modelViewOptions: {
                                 organise: _.bind(self.organise, self),
@@ -345,18 +332,38 @@ define([
                             }
                         });
 
-                        Iznik.minimisedChats.render();
-                        Iznik.Session.trigger('chatsfetched');
-                    })
+                        Iznik.activeChats.render();
 
-                    self.organise();
-                    self.showMin();
+                        // Defer as container not yet in DOM.
+                        _.defer(function () {
+                            Iznik.minimisedChats = new Backbone.CollectionView({
+                                el: $('#notifchatdropdown'),
+                                modelView: Iznik.Views.Chat.Minimised,
+                                collection: Iznik.Session.chats,
+                                modelViewOptions: {
+                                    organise: _.bind(self.organise, self),
+                                    updateCounts: _.bind(self.updateCounts, self),
+                                    modtools: self.options.modtools
+                                }
+                            });
+
+                            Iznik.minimisedChats.render();
+                            Iznik.Session.trigger('chatsfetched');
+                        })
+
+                        self.organise();
+                        self.showMin();
+                    });
+
+                    // Now ensure we are told about new messages.
+                    self.wait();
+                    _.delay(_.bind(self.fallback, self), self.fallbackInterval);
                 });
-
-                // Now ensure we are told about new messages.
-                self.wait();
-                _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+            } else {
+                p = resolvedPromise(self);
             }
+
+            return(p);
         }
     });
 
@@ -388,14 +395,15 @@ define([
         },
 
         render: function() {
-            var self = this;
-            self.$el.html(window.template(self.template)(self.model.toJSON2()));
-            self.updateCount();
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                self.updateCount();
 
-            // If the unread message count changes, we want to update it.
-            self.listenTo(self.model, 'change:unseen', self.updateCount);
+                // If the unread message count changes, we want to update it.
+                self.listenTo(self.model, 'change:unseen', self.updateCount);
+            });
 
-            return(self);
+            return(p);
         }
     });
 
@@ -784,7 +792,9 @@ define([
                         modtools: self.options.modtools
                     });
                     self.listenTo(v, 'openchat', self.openChat);
-                    self.$('.js-roster').append(v.render().el);
+                    v.render().then(function(v) {
+                        self.$('.js-roster').append(v.el);
+                    })
                 });
 
                 self.model.set('unseen', ret.unseen);
@@ -831,96 +841,101 @@ define([
 
             self.$el.css('visibility', 'hidden');
 
-            self.$el.html(window.template(self.template)(self.model.toJSON2()));
-
-            if (!self.options.modtools) {
-                self.$('.js-privacy').hide();
-            } else {
-                self.$('.js-promise').hide();
-            }
-
-            try {
-                var status = localStorage.getItem('mystatus');
-
-                if (status) {
-                    self.$('.js-status').val(status);
-                }
-            } catch (e) {}
-
-            self.updateCount();
-
-            // If the unread message count changes, we want to update it.
-            self.listenTo(self.model, 'change:unseen', self.updateCount);
-
-            // If the window size changes, we will need to adapt.
-            $(window).resize(function() {
-                self.setSize();
-                self.adjust();
-                self.options.organise();
-                self.scrollBottom();
-            });
-
-            var narrow = isNarrow();
-            var minimise = true;
-
-            try {
-                // On mobile we start them all minimised as there's not much room.
-                //
-                // Default to minimised, which is what we get if the key is missing and returns null.
-                var lsval = localStorage.getItem(self.lsID() + '-minimised');
-                lsval = lsval === null ? lsval : parseInt(lsval);
-
-                if (lsval === null || lsval || narrow) {
-                    minimise = true;
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function(self) {
+                if (!self.options.modtools) {
+                    self.$('.js-privacy').hide();
                 } else {
-                    minimise = false;
+                    self.$('.js-promise').hide();
                 }
-            } catch (e) {}
 
-            self.messages = new Iznik.Collections.Chat.Messages({
-                roomid: self.model.get('id')
-            });
+                try {
+                    var status = localStorage.getItem('mystatus');
 
-            self.messageViews = new Backbone.CollectionView({
-                el: self.$('.js-messages'),
-                modelView: Iznik.Views.Chat.Message,
-                collection: self.messages,
-                chatView: self,
-                modelViewOptions: {
+                    if (status) {
+                        self.$('.js-status').val(status);
+                    }
+                } catch (e) {
+                }
+
+                self.updateCount();
+
+                // If the unread message count changes, we want to update it.
+                self.listenTo(self.model, 'change:unseen', self.updateCount);
+
+                // If the window size changes, we will need to adapt.
+                $(window).resize(function () {
+                    self.setSize();
+                    self.adjust();
+                    self.options.organise();
+                    self.scrollBottom();
+                });
+
+                var narrow = isNarrow();
+                var minimise = true;
+
+                try {
+                    // On mobile we start them all minimised as there's not much room.
+                    //
+                    // Default to minimised, which is what we get if the key is missing and returns null.
+                    var lsval = localStorage.getItem(self.lsID() + '-minimised');
+                    lsval = lsval === null ? lsval : parseInt(lsval);
+
+                    if (lsval === null || lsval || narrow) {
+                        minimise = true;
+                    } else {
+                        minimise = false;
+                    }
+                } catch (e) {
+                }
+
+                self.messages = new Iznik.Collections.Chat.Messages({
+                    roomid: self.model.get('id')
+                });
+
+                self.messageViews = new Backbone.CollectionView({
+                    el: self.$('.js-messages'),
+                    modelView: Iznik.Views.Chat.Message,
+                    collection: self.messages,
                     chatView: self,
-                    chatModel: self.model
-                }
+                    modelViewOptions: {
+                        chatView: self,
+                        chatModel: self.model
+                    }
+                });
+
+                self.messages.on('add', function () {
+                    self.scrollBottom();
+                });
+
+                self.messageViews.render();
+
+                self.$el.resizable({
+                    handleSelector: '#chat-' + self.model.get('id') + ' .js-grip',
+                    resizeWidthFrom: 'left',
+                    resizeHeightFrom: 'top',
+                    onDrag: _.bind(self.drag, self),
+                    onDragEnd: _.bind(self.dragend, self)
+                });
+
+                self.$(".js-leftpanel").resizable({
+                    handleSelector: ".splitter",
+                    resizeHeight: false,
+                    onDragEnd: _.bind(self.panelSize, self)
+                });
+
+                minimise ? self.minimise() : self.restore();
+
+                // The minimised chat can signal to us that we should restore.
+                self.listenTo(self.model, 'restore', self.restore);
+
+                self.trigger('rendered');
+
+                // Get the roster to see who's there.
+                self.roster();
             });
 
-            self.messages.on('add', function() {
-                self.scrollBottom();
-            });
-
-            self.messageViews.render();
-
-            self.$el.resizable({
-                handleSelector: '#chat-' + self.model.get('id') + ' .js-grip',
-                resizeWidthFrom: 'left',
-                resizeHeightFrom: 'top',
-                onDrag: _.bind(self.drag, self),
-                onDragEnd: _.bind(self.dragend, self)
-            });
-
-            self.$(".js-leftpanel").resizable({
-                handleSelector: ".splitter",
-                resizeHeight: false,
-                onDragEnd: _.bind(self.panelSize, self)
-            });
-
-            minimise ? self.minimise() : self.restore();
-
-            // The minimised chat can signal to us that we should restore.
-            self.listenTo(self.model, 'restore', self.restore);
-
-            self.trigger('rendered');
-
-            // Get the roster to see who's there.
-            self.roster();
+            return(p);
         }
     });
 
@@ -948,11 +963,12 @@ define([
                     default: tpl = 'chat_message'; break;
                 }
 
-                this.$el.html(window.template(tpl)(this.model.toJSON2()));
-
-                this.$('.timeago').timeago();
-                this.$('.timeago').show();
-                this.$el.fadeIn('slow');
+                this.template = tpl;
+                Iznik.View.prototype.render.call(this).then(function(self) {
+                    self.$('.timeago').timeago();
+                    self.$('.timeago').show();
+                    self.$el.fadeIn('slow');
+                });
             }
         }
     });
@@ -999,4 +1015,3 @@ define([
         return instance;
     }
 });
-

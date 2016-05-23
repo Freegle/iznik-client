@@ -365,51 +365,51 @@ define([
         },
 
         render: function() {
-            var self = this;
-            
             // For a reply we don't have the usual page structure - we need the whole window.
-            Iznik.View.prototype.render.call(this);
-            $('body').html(this.el);
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                $('body').html(self.el);
 
-            self.headerHeight = $('#replayHeader').outerHeight();
-            
-            // Can't use backbone events because of the way we mess with the DOM.
-            $('#js-play').click(_.bind(self.play, self));
-            $('#js-pause').click(_.bind(self.pause, self));
-            $('#replayBar').click(_.bind(self.jump, self));
-            $('#js-forward').click(_.bind(self.forward, self));
-            $('#js-forward-off').click(_.bind(self.forwardOff, self));
+                self.headerHeight = $('#replayHeader').outerHeight();
 
-            // Retrieve the session
-            $.ajax({
-                url: API + 'event',
-                type: 'GET',
-                data: {
-                    sessionid: self.options.sessionid
-                }, success: function(ret) {
-                    if (ret.ret == 0) {
-                        if (ret.events.length > 0) {
-                            self.replayEvents = ret.events;
-                            self.clientStart = (new Date(ret.events[0].clienttimestamp)).getTime();
-                            self.clientEnd = (new Date(ret.events[ret.events.length - 1].clienttimestamp)).getTime();
-                            $('#js-endtime').html(ret.events[ret.events.length - 1].clienttimestamp + '&nbsp;GMT');
-                            self.clientDuration = self.clientEnd - self.clientStart;
-                            self.replayStart = (new Date()).getTime();
+                // Can't use backbone events because of the way we mess with the DOM.
+                $('#js-play').click(_.bind(self.play, self));
+                $('#js-pause').click(_.bind(self.pause, self));
+                $('#replayBar').click(_.bind(self.jump, self));
+                $('#js-forward').click(_.bind(self.forward, self));
+                $('#js-forward-off').click(_.bind(self.forwardOff, self));
 
-                            _.defer(function() {
-                                // Now start playing.
-                                self.playEvent();
+                // Retrieve the session
+                $.ajax({
+                    url: API + 'event',
+                    type: 'GET',
+                    data: {
+                        sessionid: self.options.sessionid
+                    }, success: function(ret) {
+                        if (ret.ret == 0) {
+                            if (ret.events.length > 0) {
+                                self.replayEvents = ret.events;
+                                self.clientStart = (new Date(ret.events[0].clienttimestamp)).getTime();
+                                self.clientEnd = (new Date(ret.events[ret.events.length - 1].clienttimestamp)).getTime();
+                                $('#js-endtime').html(ret.events[ret.events.length - 1].clienttimestamp + '&nbsp;GMT');
+                                self.clientDuration = self.clientEnd - self.clientStart;
+                                self.replayStart = (new Date()).getTime();
 
-                                // Do the heatbar after the first event as it may affect the window size, and therefore
-                                // introduce a scrollbar which reduces the space available for the heatbar.
-                                self.heatbar();
-                            })
+                                _.defer(function() {
+                                    // Now start playing.
+                                    self.playEvent();
+
+                                    // Do the heatbar after the first event as it may affect the window size, and therefore
+                                    // introduce a scrollbar which reduces the space available for the heatbar.
+                                    self.heatbar();
+                                })
+                            }
                         }
                     }
-                }
+                });
             });
 
-            return(this);
+            return(p);
         }
     });
 });

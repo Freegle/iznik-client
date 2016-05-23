@@ -155,34 +155,36 @@ define([
         },
 
         render: function () {
-            var self = this;
-            Iznik.Views.Page.prototype.render.call(this);
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function(self) {
+                // TODO This should be more generic, but it's really part of hosting multiple networks on the same
+                // server, which we don't do.
+                var type = Iznik.Session.isAdmin() ? null : 'Freegle';
+                type = 'Freegle';
+                $.ajax({
+                    url: API + 'groups',
+                    data: {
+                        'grouptype': type
+                    }, success: function (ret) {
+                        ret.groups = _.sortBy(ret.groups, function(group) { return group.namedisplay });
+                        _.each(ret.groups, function (group) {
+                            self.$('.js-grouplist').append('<option value="' + group.id + '"></option>');
+                            self.$('.js-grouplist option:last').html(group.namedisplay);
+                        })
+                    }
+                });
 
-            // TODO This should be more generic, but it's really part of hosting multiple networks on the same
-            // server, which we don't do.
-            var type = Iznik.Session.isAdmin() ? null : 'Freegle';
-            type = 'Freegle';
-            $.ajax({
-                url: API + 'groups',
-                data: {
-                    'grouptype': type
-                }, success: function (ret) {
-                    ret.groups = _.sortBy(ret.groups, function(group) { return group.namedisplay });
-                    _.each(ret.groups, function (group) {
-                        self.$('.js-grouplist').append('<option value="' + group.id + '"></option>');
-                        self.$('.js-grouplist option:last').html(group.namedisplay);
-                    })
-                }
+                tinyMCE.init({
+                    selector: '#mailhtml',
+                    plugins: 'link textcolor',
+                    height: 300,
+                    menubar: false,
+                    elementpath: false,
+                    toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright |  bullist numlist link | forecolor styleselect formatselect fontselect fontsizeselect | cut copy paste'
+                });
             });
 
-            tinyMCE.init({
-                selector: '#mailhtml',
-                plugins: 'link textcolor',
-                height: 300,
-                menubar: false,
-                elementpath: false,
-                toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright |  bullist numlist link | forecolor styleselect formatselect fontselect fontsizeselect | cut copy paste'
-            });
+            return(p);
         }
     });
 
@@ -213,15 +215,17 @@ define([
         },
 
         render: function() {
-            Iznik.View.prototype.render.call(this);
-            var mom = new moment(this.model.get('created'));
-            this.$('.js-created').html(mom.format('MMMM Do YYYY, h:mm:ssa'));
-            if (this.model.get('complete')) {
-                var mom = new moment(this.model.get('complete'));
-                this.$('.js-complete').html(mom.format('MMMM Do YYYY, h:mm:ssa'));
-            }
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                var mom = new moment(self.model.get('created'));
+                self.$('.js-created').html(mom.format('MMMM Do YYYY, h:mm:ssa'));
+                if (self.model.get('complete')) {
+                    var mom = new moment(self.model.get('complete'));
+                    self.$('.js-complete').html(mom.format('MMMM Do YYYY, h:mm:ssa'));
+                }
+            })
 
-            return(this);
+            return(p);
         }
     });
 
@@ -345,89 +349,96 @@ define([
         template: 'modtools_support_member',
 
         render: function () {
-            var self = this;
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                // Our user
+                var v = new Iznik.Views.ModTools.User({
+                    model: self.model
+                });
 
-            self.$el.html(window.template(self.template)(self.model.toJSON2()));
+                v.render().then(function (v) {
+                    self.$('.js-user').html(v.el);
+                });
 
-            // Our user
-            var v = new Iznik.Views.ModTools.User({
-                model: self.model
-            });
+                // We are not in the context of a specific group here, so the general remove/ban buttons don't make sense.
+                self.$('.js-ban, .js-remove').closest('li').remove();
 
-            self.$('.js-user').html(v.render().el);
+                // Add any emails
+                self.$('.js-otheremails').empty();
+                _.each(self.model.get('otheremails'), function (email) {
+                    if (email.preferred) {
+                        self.$('.js-email').append(email.email);
+                    } else {
+                        var mod = new Iznik.Model(email);
+                        var v = new Iznik.Views.ModTools.Message.OtherEmail({
+                            model: mod
+                        });
+                        v.render().then(function (v) {
+                            self.$('.js-otheremails').html(v.el);
+                        });
+                    }
+                });
 
-            // We are not in the context of a specific group here, so the general remove/ban buttons don't make sense.
-            self.$('.js-ban, .js-remove').closest('li').remove();
+                // Add any sessions.
+                self.sessionCollection = new Iznik.Collection(self.model.get('sessions'));
 
-            // Add any emails
-            self.$('.js-otheremails').empty();
-            _.each(self.model.get('otheremails'), function (email) {
-                if (email.preferred) {
-                    self.$('.js-email').append(email.email);
-                } else {
-                    var mod = new Iznik.Model(email);
-                    var v = new Iznik.Views.ModTools.Message.OtherEmail({
+                self.sessionCollectionView = new Backbone.CollectionView({
+                    el: self.$('.js-sessions'),
+                    modelView: Iznik.Views.ModTools.Member.Session,
+                    collection: self.sessionCollection
+                });
+
+                self.sessionCollectionView.render();
+
+                // Add any group memberships.
+                self.$('.js-memberof').empty();
+                _.each(self.model.get('memberof'), function (group) {
+                    var mod = new Iznik.Model(group);
+                    var v = new Iznik.Views.ModTools.Member.Of({
+                        model: mod,
+                        user: self.model
+                    });
+                    v.render().then(function (v) {
+                        self.$('.js-memberof').html(v.el);
+                    });
+                });
+
+                self.$('.js-applied').empty();
+                _.each(self.model.get('applied'), function (group) {
+                    var mod = new Iznik.Model(group);
+                    var v = new Iznik.Views.ModTools.Member.Applied({
                         model: mod
                     });
-                    self.$('.js-otheremails').append(v.render().el);
-                }
-            });
-
-            // Add any sessions.
-            self.sessionCollection = new Iznik.Collection(self.model.get('sessions'));
-            console.log("Sessions", self.sessionCollection);
-
-            self.sessionCollectionView = new Backbone.CollectionView({
-                el: self.$('.js-sessions'),
-                modelView: Iznik.Views.ModTools.Member.Session,
-                collection: self.sessionCollection
-            });
-
-            self.sessionCollectionView.render();
-
-            // Add any group memberships.
-            self.$('.js-memberof').empty();
-            _.each(self.model.get('memberof'), function (group) {
-                var mod = new Iznik.Model(group);
-                var v = new Iznik.Views.ModTools.Member.Of({
-                    model: mod,
-                    user: self.model
+                    v.render().then(function (v) {
+                        self.$('.js-applied').html(v.el);
+                    });
                 });
-                self.$('.js-memberof').append(v.render().el);
-            });
 
-            self.$('.js-applied').empty();
-            _.each(self.model.get('applied'), function (group) {
-                var mod = new Iznik.Model(group);
-                var v = new Iznik.Views.ModTools.Member.Applied({
-                    model: mod
+                // Add the default standard actions.
+                self.model.set('fromname', self.model.get('displayname'));
+                self.model.set('fromaddr', self.model.get('email'));
+                self.model.set('fromuser', self.model);
+
+                new Iznik.Views.ModTools.StdMessage.Button({
+                    model: new Iznik.Model({
+                        title: 'Mail',
+                        action: 'Leave Approved Member',
+                        member: self.model
+                    })
+                }).render().then(function (v) {
+                    self.$('.js-stdmsgs').append(v.el);
+                    self.$('.timeago').timeago();
                 });
-                self.$('.js-applied').append(v.render().el);
             });
 
-            // Add the default standard actions.
-            self.model.set('fromname', self.model.get('displayname'));
-            self.model.set('fromaddr', self.model.get('email'));
-            self.model.set('fromuser', self.model);
-
-            self.$('.js-stdmsgs').append(new Iznik.Views.ModTools.StdMessage.Button({
-                model: new Iznik.Model({
-                    title: 'Mail',
-                    action: 'Leave Approved Member',
-                    member: self.model
-                })
-            }).render().el);
-
-            this.$('.timeago').timeago();
-
-            return (this);
+            return (p);
         }
     });
 
     Iznik.Views.ModTools.Message.SupportSearchResult = Iznik.Views.ModTools.Message.Approved.extend({
     });
 
-    Iznik.Views.ModTools.Member.Session = Iznik.View.extend({
+    Iznik.Views.ModTools.Member.Session = Iznik.View.Timeago.extend({
         template: 'modtools_support_session',
         
         events: {
@@ -438,12 +449,6 @@ define([
             var width = window.innerWidth * 0.66 ;
             var height = width * window.innerHeight / window.innerWidth ;
             window.open('/modtools/replay/' + this.model.get('sessionid'), 'Session Replay', 'width=' + width + ', height=' + height + ', top=' + ((window.innerHeight - height) / 2) + ', left=' + ((window.innerWidth - width) / 2));
-        },
-
-        render: function() {
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-            this.$('.timeago').timeago();
-            return (this);
         }
     });
 });

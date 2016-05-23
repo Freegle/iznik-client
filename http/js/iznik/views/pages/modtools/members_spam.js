@@ -13,61 +13,66 @@ define([
         template: "modtools_members_spam_main",
 
         render: function () {
-            var self = this;
-
-            Iznik.Views.Page.prototype.render.call(this);
-
-            var v = new Iznik.Views.Help.Box();
-            v.template = 'modtools_members_spam_help';
-            this.$('.js-help').html(v.render().el);
-
-            self.groupSelect = new Iznik.Views.Group.Select({
-                systemWide: false,
-                all: true,
-                mod: true,
-                counts: ['spammembers'],
-                id: 'spamGroupSelect'
-            });
-
-            self.listenTo(self.groupSelect, 'selected', function (selected) {
-                // Change the group selected.
-                self.selected = selected;
-
-                // We haven't fetched anything for this group yet.
-                self.lastFetched = null;
-                self.context = null;
-
-                self.collection = new Iznik.Collections.Members(null, {
-                    groupid: self.selected,
-                    group: Iznik.Session.get('groups').get(self.selected),
-                    collection: 'Spam'
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function(self) {
+                var v = new Iznik.Views.Help.Box();
+                v.template = 'modtools_members_spam_help';
+                v.render().then(function(v) {
+                    self.$('.js-help').html(v.el);
                 });
 
-                // CollectionView handles adding/removing/sorting for us.
-                self.collectionView = new Backbone.CollectionView({
-                    el: self.$('.js-list'),
-                    modelView: Iznik.Views.ModTools.Member.Spam,
-                    modelViewOptions: {
-                        collection: self.collection,
-                        page: self
-                    },
-                    collection: self.collection
+                self.groupSelect = new Iznik.Views.Group.Select({
+                    systemWide: false,
+                    all: true,
+                    mod: true,
+                    counts: ['spammembers'],
+                    id: 'spamGroupSelect'
                 });
 
-                self.collectionView.render();
-                self.fetch();
+                self.listenTo(self.groupSelect, 'selected', function (selected) {
+                    // Change the group selected.
+                    self.selected = selected;
+
+                    // We haven't fetched anything for this group yet.
+                    self.lastFetched = null;
+                    self.context = null;
+
+                    self.collection = new Iznik.Collections.Members(null, {
+                        groupid: self.selected,
+                        group: Iznik.Session.get('groups').get(self.selected),
+                        collection: 'Spam'
+                    });
+
+                    // CollectionView handles adding/removing/sorting for us.
+                    self.collectionView = new Backbone.CollectionView({
+                        el: self.$('.js-list'),
+                        modelView: Iznik.Views.ModTools.Member.Spam,
+                        modelViewOptions: {
+                            collection: self.collection,
+                            page: self
+                        },
+                        collection: self.collection
+                    });
+
+                    self.collectionView.render();
+                    self.fetch();
+                });
+
+                // Render after the listen to as they are called during render.
+                self.groupSelect.render().then(function(v) {
+                    self.$('.js-groupselect').html(v.el);
+                });
+
+                // If we detect that the pending counts have changed on the server, refetch the members so that we add/remove
+                // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
+                self.listenTo(Iznik.Session, 'approvedmemberscountschanged', _.bind(self.groupSelect.render, self.groupSelect));
+                self.listenTo(Iznik.Session, 'approvedmembersothercountschanged', _.bind(self.groupSelect.render, self.groupSelect));
+
+                // We seem to need to redelegate
+                self.delegateEvents();
             });
-
-            // Render after the listen to as they are called during render.
-            self.$('.js-groupselect').html(self.groupSelect.render().el);
-
-            // If we detect that the pending counts have changed on the server, refetch the members so that we add/remove
-            // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
-            this.listenTo(Iznik.Session, 'approvedmemberscountschanged', _.bind(this.groupSelect.render, this.groupSelect));
-            this.listenTo(Iznik.Session, 'approvedmembersothercountschanged', _.bind(this.groupSelect.render, this.groupSelect));
-
-            // We seem to need to redelegate
-            self.delegateEvents();
+            
+            return(p);
         }
     });
 
@@ -158,60 +163,66 @@ define([
             var self = this;
 
             self.model.set('group', Iznik.Session.getGroup(self.model.get('groupid')).attributes);
-            self.$el.html(window.template(self.template)(self.model.toJSON2()));
+            var p = Iznik.Views.ModTools.Member.prototype.render.call(self);
+            p.then(function(self) {
+                if (Iznik.Session.isAdmin()) {
+                    self.$('.js-whitelist').show();
+                }
 
-            if (Iznik.Session.isAdmin()) {
-                self.$('.js-whitelist').show();
-            }
+                var mom = new moment(self.model.get('joined'));
+                self.$('.js-joined').html(mom.format('llll'));
 
-            var mom = new moment(this.model.get('joined'));
-            this.$('.js-joined').html(mom.format('llll'));
+                self.addOtherInfo();
 
-            self.addOtherInfo();
+                // Get the group from the session
+                var group = Iznik.Session.getGroup(self.model.get('groupid'));
 
-            // Get the group from the session
-            var group = Iznik.Session.getGroup(self.model.get('groupid'));
-
-            // Our user.  In memberships the id is that of the member, so we need to get the userid.
-            var mod = self.model.clone();
-            mod.set('id', self.model.get('userid'));
-            var v = new Iznik.Views.ModTools.User({
-                model: mod
-            });
-
-            self.$('.js-user').html(v.render().el);
-
-            // No report spammer button here.
-            //
-            // Auto remove and ban may be turned off, so leave those buttons.
-            self.$('.js-spammer').closest('li').hide();
-
-            // Delay getting the Yahoo info slightly to improve apparent render speed.
-            _.delay(function () {
-                // The Yahoo part of the user
-                var mod = IznikYahooUsers.findUser({
-                    email: self.model.get('email'),
-                    group: group.get('nameshort'),
-                    groupid: group.get('id')
+                // Our user.  In memberships the id is that of the member, so we need to get the userid.
+                var mod = self.model.clone();
+                mod.set('id', self.model.get('userid'));
+                var v = new Iznik.Views.ModTools.User({
+                    model: mod
                 });
 
-                mod.fetch().then(function () {
-                    // We don't want to show the Yahoo joined date because we have our own.
-                    mod.unset('date');
-                    var v = new Iznik.Views.ModTools.Yahoo.User({
-                        model: mod
+                v.render().then(function (v) {
+                    self.$('.js-user').html(v.el);
+                });
+
+                // No report spammer button here.
+                //
+                // Auto remove and ban may be turned off, so leave those buttons.
+                self.$('.js-spammer').closest('li').hide();
+
+                // Delay getting the Yahoo info slightly to improve apparent render speed.
+                _.delay(function () {
+                    // The Yahoo part of the user
+                    var mod = IznikYahooUsers.findUser({
+                        email: self.model.get('email'),
+                        group: group.get('nameshort'),
+                        groupid: group.get('id')
                     });
-                    self.$('.js-yahoo').append(v.render().el);
+
+                    mod.fetch().then(function () {
+                        // We don't want to show the Yahoo joined date because we have our own.
+                        mod.unset('date');
+                        var v = new Iznik.Views.ModTools.Yahoo.User({
+                            model: mod
+                        });
+
+                        v.render().then(function (v) {
+                            self.$('.js-yahoo').append(v.el);
+                        });
+                    });
+                }, 200);
+
+                self.$('.timeago').timeago();
+
+                self.listenToOnce(self.model, 'deleted removed rejected approved', function () {
+                    self.$el.fadeOut('slow');
                 });
-            }, 200);
-
-            this.$('.timeago').timeago();
-
-            this.listenToOnce(self.model, 'deleted removed rejected approved', function () {
-                self.$el.fadeOut('slow');
             });
 
-            return (this);
+            return (p);
         }
     });
 });

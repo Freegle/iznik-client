@@ -32,9 +32,9 @@ define([
         },
 
         render: function() {
-            Iznik.Views.Page.prototype.render.call(this, {
+            return(Iznik.Views.Page.prototype.render.call(this, {
                 model: new Iznik.Model(Iznik.Session)
-            });
+            }));
         }
     });
 });

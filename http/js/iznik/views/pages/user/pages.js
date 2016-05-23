@@ -136,40 +136,40 @@ define([
         },
 
         render: function() {
-            var self = this;
-            Iznik.Views.Page.prototype.render.call(this);
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function(self) {
+                if (!navigator.geolocation) {
+                    self.$('.js-geoloconly').hide();
+                }
 
-            if (!navigator.geolocation) {
-                this.$('.js-geoloconly').hide();
-            }
+                self.$('.js-postcode').typeahead({
+                    minLength: 2,
+                    hint: false,
+                    highlight: true
+                }, {
+                    name: 'postcodes',
+                    source: self.postcodeSource
+                });
 
-            this.$('.js-postcode').typeahead({
-                minLength: 2,
-                hint: false,
-                highlight: true
-            }, {
-                name: 'postcodes',
-                source: this.postcodeSource
+                try {
+                    // See if we know where we are from last time.
+                    var mylocation = localStorage.getItem('mylocation');
+                    var postcode = JSON.parse(mylocation).name;
+
+                    if (mylocation) {
+                        self.$('.js-postcode').typeahead('val', postcode);
+                        self.locChange.call(self);
+                    }
+                } catch (e) {};
+
+                var groupoverride = $('meta[name=iznikusergroupoverride]').attr("content");
+                if (groupoverride) {
+                    self.$('.js-groupoverridename').html(groupoverride);
+                    self.$('.js-groupoverride').fadeIn('slow');
+                }
             });
 
-            try {
-                // See if we know where we are from last time.
-                var mylocation = localStorage.getItem('mylocation');
-                var postcode = JSON.parse(mylocation).name;
-
-                if (mylocation) {
-                    this.$('.js-postcode').typeahead('val', postcode);
-                    this.locChange.call(this);
-                }
-            } catch (e) {};
-
-            var groupoverride = $('meta[name=iznikusergroupoverride]').attr("content");
-            if (groupoverride) {
-                self.$('.js-groupoverridename').html(groupoverride);
-                self.$('.js-groupoverride').fadeIn('slow');
-            }
-
-            return(this);
+            return(p);
         }
     });
 });

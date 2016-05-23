@@ -120,6 +120,7 @@ define([
                     }
                 });
             });
+            
             v.render();
         },
 
@@ -195,7 +196,7 @@ define([
             // When we close, update what's shown.
             this.listenToOnce(v, 'modalClosed', function() {
                 self.model.fetch().then(function() {
-                    self.render()
+                    self.render();
                 });
             });
 
@@ -203,80 +204,84 @@ define([
         },
 
         render: function() {
-            var self = this;
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-            
-            if (self.options.hideban) {
-                self.$('.js-ban').closest('li').hide();
-            }
-
-            self.historyColl = new Iznik.Collections.ModTools.MessageHistory();
-            _.each(this.model.get('messagehistory'), function(message, index, list) {
-                self.historyColl.add(new Iznik.Models.ModTools.User.MessageHistoryEntry(message));
-            });
-
-            this.$('.js-msgcount').html(this.historyColl.length);
-
-            if (this.historyColl.length == 0) {
-                this.$('.js-msgcount').closest('.btn').addClass('disabled');
-            }
-
-            var counts = {
-                Offer: 0,
-                Wanted: 0,
-                Taken: 0,
-                Received: 0,
-                Other: 0
-            };
-
-            this.historyColl.each(function(message) {
-                if (counts.hasOwnProperty(message.get('type'))) {
-                    counts[message.get('type')]++;
-                }
-            });
-
-            _.each(counts, function(value, key, list) {
-                self.$('.js-' + key.toLowerCase() + 'count').html(value);
-            });
-
-            var modcount = this.model.get('modmails');
-            self.$('.js-modmailcount').html(modcount);
-
-            if (modcount > 0) {
-                self.$('.js-modmailcount').closest('.badge').addClass('btn-danger');
-                self.$('.js-modmailcount').addClass('white');
-                self.$('.glyphicon-warning-sign').addClass('white');
-            }
-
-            var comments = this.model.get('comments');
-            _.each(comments, function(comment) {
-                if (comment.groupid) {
-                    comment.group = Iznik.Session.getGroup(comment.groupid).toJSON2();
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                if (self.options.hideban) {
+                    self.$('.js-ban').closest('li').hide();
                 }
 
-                self.$('.js-comments').append((new Iznik.Views.ModTools.User.Comment({
-                    model: new Iznik.Models.ModTools.User.Comment(comment)
-                })).render().el);
-            });
-
-            if (!comments || comments.length == 0) {
-                self.$('.js-comments').hide();
-            }
-
-            var spammer = this.model.get('spammer');
-            if (spammer) {
-                var v = new Iznik.Views.ModTools.User.SpammerInfo({
-                    model: new Iznik.Model(spammer)
+                self.historyColl = new Iznik.Collections.ModTools.MessageHistory();
+                _.each(self.model.get('messagehistory'), function (message, index, list) {
+                    self.historyColl.add(new Iznik.Models.ModTools.User.MessageHistoryEntry(message));
                 });
 
-                self.$('.js-spammerinfo').append(v.render().el);
-            }
+                self.$('.js-msgcount').html(self.historyColl.length);
 
-            if (Iznik.Session.isAdmin()) {
-                self.$('.js-adminonly').removeClass('hidden');
-            }
+                if (self.historyColl.length == 0) {
+                    self.$('.js-msgcount').closest('.btn').addClass('disabled');
+                }
 
-            return (this);
+                var counts = {
+                    Offer: 0,
+                    Wanted: 0,
+                    Taken: 0,
+                    Received: 0,
+                    Other: 0
+                };
+
+                self.historyColl.each(function (message) {
+                    if (counts.hasOwnProperty(message.get('type'))) {
+                        counts[message.get('type')]++;
+                    }
+                });
+
+                _.each(counts, function (value, key, list) {
+                    self.$('.js-' + key.toLowerCase() + 'count').html(value);
+                });
+
+                var modcount = self.model.get('modmails');
+                self.$('.js-modmailcount').html(modcount);
+
+                if (modcount > 0) {
+                    self.$('.js-modmailcount').closest('.badge').addClass('btn-danger');
+                    self.$('.js-modmailcount').addClass('white');
+                    self.$('.glyphicon-warning-sign').addClass('white');
+                }
+
+                var comments = self.model.get('comments');
+                _.each(comments, function (comment) {
+                    if (comment.groupid) {
+                        comment.group = Iznik.Session.getGroup(comment.groupid).toJSON2();
+                    }
+
+                    new Iznik.Views.ModTools.User.Comment({
+                        model: new Iznik.Models.ModTools.User.Comment(comment)
+                    }).render().then(function (v) {
+                        self.$('.js-comments').append(v.el);
+                    });
+                });
+
+                if (!comments || comments.length == 0) {
+                    self.$('.js-comments').hide();
+                }
+
+                var spammer = self.model.get('spammer');
+                if (spammer) {
+                    var v = new Iznik.Views.ModTools.User.SpammerInfo({
+                        model: new Iznik.Model(spammer)
+                    });
+
+                    v.render().then(function (v) {
+                        self.$('.js-spammerinfo').append(v.el);
+                    });
+                }
+
+                if (Iznik.Session.isAdmin()) {
+                    self.$('.js-adminonly').removeClass('hidden');
+                }
+            });
+
+            return (p);
         }
     });
 
@@ -284,32 +289,44 @@ define([
         template: 'modtools_user_postsummary',
 
         render: function() {
-            var self = this;
+            var p = Iznik.Views.Modal.prototype.render.call(this);
+            p.then(function(self) {
+                self.collection.each(function (message) {
+                    var type = message.get('type');
+                    var display = false;
 
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-            this.collection.each(function(message) {
-                var type = message.get('type');
-                var display = false;
+                    switch (type) {
+                        case 'Offer':
+                            display = self.options.offers;
+                            break;
+                        case 'Wanted':
+                            display = self.options.wanteds;
+                            break;
+                        case 'Taken':
+                            display = self.options.takens;
+                            break;
+                        case 'Received':
+                            display = self.options.receiveds;
+                            break;
+                        case 'Other':
+                            display = self.options.others;
+                            break;
+                    }
 
-                switch (type) {
-                    case 'Offer': display = self.options.offers; break;
-                    case 'Wanted': display = self.options.wanteds; break;
-                    case 'Taken': display = self.options.takens; break;
-                    case 'Received': display = self.options.receiveds; break;
-                    case 'Other': display = self.options.others; break;
-                }
+                    if (display) {
+                        var v = new Iznik.Views.ModTools.User.SummaryEntry({
+                            model: message
+                        });
+                        v.render().then(function (v) {
+                            self.$('.js-list').append(v.el);
+                        });
+                    }
+                });
 
-                if (display) {
-                    var v = new Iznik.Views.ModTools.User.SummaryEntry({
-                        model: message
-                    });
-                    self.$('.js-list').append(v.render().el);
-                }
-            });
+                self.open(null);
+            })
 
-            this.open(null);
-
-            return(this);
+            return(p);
         }
     });
 
@@ -317,10 +334,12 @@ define([
         template: 'modtools_user_summaryentry',
 
         render: function() {
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-            var mom = new moment(this.model.get('date'));
-            this.$('.js-date').html(mom.format('llll'));
-            return(this);
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                var mom = new moment(self.model.get('date'));
+                self.$('.js-date').html(mom.format('llll'));
+            });
+            return(p);
         }
     });
 
@@ -349,7 +368,9 @@ define([
                 model: new Iznik.Model(log)
             });
 
-            this.$('.js-list').append(v.render().el);
+            v.render().then(function(v) {
+                self.$('.js-list').append(v.el);
+            });
         },
 
         getChunk: function() {
@@ -391,14 +412,13 @@ define([
         },
 
         render: function() {
-            var self = this;
+            var p = Iznik.Views.Modal.prototype.render.call(this);
+            p.then(function(self) {
+                self.open(null);
+                self.getChunk();
+            });
 
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-
-            this.open(null);
-            this.getChunk();
-
-            return(this);
+            return(p);
         }
     });
 
@@ -406,10 +426,12 @@ define([
         template: 'modtools_user_logentry',
 
         render: function() {
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-            var mom = new moment(this.model.get('timestamp'));
-            this.$('.js-date').html(mom.format('DD-MMM-YY HH:mm'));
-            return(this);
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                var mom = new moment(self.model.get('timestamp'));
+                self.$('.js-date').html(mom.format('DD-MMM-YY HH:mm'));
+            });
+            return(p);
         }
     });
 
@@ -421,7 +443,9 @@ define([
                 model: new Iznik.Model(log)
             });
 
-            this.$('.js-list').append(v.render().el);
+            v.render().then(function(v) {
+                self.$('.js-list').append(v.el);
+            });
         }
     });
 
@@ -429,17 +453,17 @@ define([
         template: 'modtools_user_logentry',
 
         render: function() {
-            var self = this;
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                var mom = new moment(self.model.get('timestamp'));
+                self.$('.js-date').html(mom.format('DD-MMM-YY HH:mm'));
 
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-            var mom = new moment(this.model.get('timestamp'));
-            this.$('.js-date').html(mom.format('DD-MMM-YY HH:mm'));
+                // The log template will add logs, but highlighted.  We want to remove the highlighting for the modmail
+                // display.
+                self.$('div.nomargin.alert.alert-danger').removeClass('nomargin alert alert-danger');
+            });
 
-            // The log template will add logs, but highlighted.  We want to remove the highlighting for the modmail
-            // display.
-            this.$('div.nomargin.alert.alert-danger').removeClass('nomargin alert alert-danger');
-
-            return(this);
+            return(p);
         }
     });
 
@@ -462,7 +486,10 @@ define([
                         var v = new Iznik.Views.ModTools.Message.OtherEmail({
                             model: mod
                         });
-                        self.$('.js-otheremails').append(v.render().el);
+                        v.render().then(function(v) {
+                            self.$('.js-otheremails').append(v.el);
+                        });
+                        
                     }
                 });
 
@@ -482,7 +509,10 @@ define([
                             model: mod,
                             user: self.model
                         });
-                        self.$('.js-memberof').append(v.render().el);
+                        v.render().then(function(v) {
+                            self.$('.js-memberof').append(v.el);
+                        });
+                        
                         groupids.push(group.id);
                     }
                 });
@@ -495,7 +525,9 @@ define([
                         var v = new Iznik.Views.ModTools.Member.Applied({
                             model: mod
                         });
-                        self.$('.js-applied').append(v.render().el);
+                        v.render().then(function(v) {
+                            self.$('.js-applied').append(v.el);
+                        });
                     }
                 });
 
@@ -518,8 +550,9 @@ define([
 
     Iznik.Views.ModTools.Member.Of = Iznik.View.extend({
         template: 'modtools_member_of',
-
+        
         render: function() {
+            var self = this;
             var emails = this.options.user.get('emails');
             var email = _.findWhere(emails, {
                 id: this.model.get('emailid')
@@ -529,20 +562,17 @@ define([
                 this.model.set('email', email.email);
             }
 
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-            this.$('.timeago').timeago();
-            return(this);
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                self.$('.timeago').timeago();
+            });
+
+            return(p);
         }
     });
 
-    Iznik.Views.ModTools.Member.Applied = Iznik.View.extend({
-        template: 'modtools_member_applied',
-
-        render: function() {
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-            this.$('.timeago').timeago();
-            return(this);
-        }
+    Iznik.Views.ModTools.Member.Applied = Iznik.View.Timeago.extend({
+        template: 'modtools_member_applied'
     });
 
     Iznik.Views.ModTools.User.Comment = Iznik.View.extend({
@@ -568,21 +598,23 @@ define([
         },
 
         render: function() {
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
+            var p = Iznik.View.Timeago.prototype.render.call(this);
+            p.then(function(self) {
+                var hideedit = true;
+                var group = self.model.get('group');
+                if (group && (group.role == 'Moderator' || group.role == 'Moderator')) {
+                    // We are a mod on self group - we can modify it.
+                    hideedit = false;
+                }
 
-            var hideedit = true;
-            var group = this.model.get('group');
-            if (group && (group.role == 'Moderator' || group.role == 'Moderator')) {
-                // We are a mod on this group - we can modify it.
-                hideedit = false;
-            }
+                if (hideedit) {
+                    self.$('.js-editnote, js-deletenote').hide();
+                }
 
-            if (hideedit) {
-                self.$('.js-editnote, js-deletenote').hide();
-            }
-
-            this.$('.timeago').timeago();
-            return(this);
+                self.$('.timeago').timeago();
+            });
+            
+            return(p);
         }
     });
 
@@ -664,44 +696,37 @@ define([
                 fields: self.fields
             });
 
-            self.form.render();
+            self.form.render().then(function() {
+                // Make it full width.
+                self.$('label').remove();
+                self.$('.col-sm-8').removeClass('col-sm-8').addClass('col-sm-12');
 
-            // Make it full width.
-            self.$('label').remove();
-            self.$('.col-sm-8').removeClass('col-sm-8').addClass('col-sm-12');
+                // Layout messes up a bit.
+                self.$('.form-group').addClass('clearfix');
 
-            // Layout messes up a bit.
-            self.$('.form-group').addClass('clearfix');
-
-            // Turn on spell-checking
-            self.$('textarea, input:text').attr('spellcheck', true);
+                // Turn on spell-checking
+                self.$('textarea, input:text').attr('spellcheck', true);
+            });
         },
 
         render: function() {
-            var self = this;
+            var p = Iznik.Views.Modal.prototype.render.call(this);
+            p.then(function(self) {
+                if (self.model.get('id')) {
+                    // We want to refetch the model to make sure we edit the most up to date settings.
+                    self.model.fetch().then(self.render2.call(self));
+                } else {
+                    // We're adding one; just render it.
+                    self.render2();
+                }
+            });
 
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-
-            if (self.model.get('id')) {
-                // We want to refetch the model to make sure we edit the most up to date settings.
-                self.model.fetch().then(self.render2.call(self));
-            } else {
-                // We're adding one; just render it.
-                self.render2();
-            }
-
-            return(this);
+            return(p);
         }
     });
 
-    Iznik.Views.ModTools.User.SpammerInfo = Iznik.View.extend({
-        template: 'modtools_user_spammerinfo',
-
-        render: function() {
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-            this.$('.timeago').timeago();
-            return(this);
-        }
+    Iznik.Views.ModTools.User.SpammerInfo = Iznik.View.Timeago.extend({
+        template: 'modtools_user_spammerinfo'
     });
     
     Iznik.Views.ModTools.EnterReason = Iznik.Views.Modal.extend({

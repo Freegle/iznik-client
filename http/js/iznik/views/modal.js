@@ -57,20 +57,8 @@ define([
             this.$el.removeData().unbind();
         },
 
-        open: function(template){
+        attach: function() {
             var self = this;
-
-            // Remove any previous modal.
-            if (modalOpen) {
-                modalOpen.cancel();
-            }
-
-            modalOpen = this;
-
-            if (template) {
-                // For more complex modals we might have set up the content before calling open.
-                this.$el.html(window.template(template)(this.model ? this.model.toJSON2() : null));
-            }
 
             // Attach the modal to the DOM
             $('#bodyContent').append(this.$el);
@@ -89,10 +77,33 @@ define([
             this.$el.on('click', 'a', function(){
                 self.cancel();
             });
+
+            // Because this happens aysynchronously, our events might not be set up.
+            this.delegateEvents();
+        },
+
+        open: function(template){
+            var self = this;
+            // Remove any previous modal.
+            if (modalOpen) {
+                modalOpen.cancel();
+            }
+
+            modalOpen = this;
+
+            if (template) {
+                // For more complex modals we might have set up the content before calling open.
+                Iznik.View.prototype.render.call(this).then(function(self) {
+                    self.attach.call(self);
+                });
+            } else {
+                this.attach();
+            }
         },
 
         render: function() {
             this.open(this.template, this.model);
+            return(resolvedPromise(this));
         }
     });
 
@@ -138,6 +149,8 @@ define([
                     self.open(self.template);
                 }, self.options.timeout ? self.options.timeout : 3000);
             }
+
+            return(resolvedPromise(this));
         },
 
         close: function() {

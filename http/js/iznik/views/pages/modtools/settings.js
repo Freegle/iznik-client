@@ -366,10 +366,10 @@ define([
                     });
     
                     self.groupForm.render();
-    
+
                     // Layout messes up a bit for radio buttons.
                     self.groupForm.$(':radio').closest('.form-group').addClass('clearfix');
-    
+
                     if (group.get('type') == 'Freegle') {
                         self.$('.js-freegleonly').show();
                     } else {
@@ -663,10 +663,11 @@ define([
                         });
     
                         self.listenTo(v, 'buttonChange', self.configSelect);
-    
-                        var el = v.render().el;
-                        $(el).data('buttonid', stdmsg.id);
-                        self.$(container).append(el);
+
+                        v.render().then(function(v) {
+                            $(v.el).data('buttonid', stdmsg.id);
+                            self.$(container).append(v.el);
+                        })
                     });
     
                     // Make the buttons sortable.
@@ -703,9 +704,10 @@ define([
     
                         self.listenTo(v, 'buttonChange', self.configSelect);
     
-                        var el = v.render().el;
-                        $(el).data('buttonid', bulkop.id);
-                        self.$('.js-bulkops').append(el);
+                        v.render().then(function(v) {
+                            $(v.el).data('buttonid', bulkop.id);
+                            self.$('.js-bulkops').append(v.el);
+                        });
                     });
     
                     if (locked) {
@@ -752,106 +754,109 @@ define([
         },
     
         render: function() {
-            var self = this;
-    
-            Iznik.Views.Page.prototype.render.call(this);
-    
-            // Fetch the session to pick up any changes in the list of configs etc.
-            self.listenToOnce(Iznik.Session, 'isLoggedIn', function() {
-                self.groupSelect = new Iznik.Views.Group.Select({
-                    systemWide: false,
-                    all: false,
-                    mod: true,
-                    choose: true,
-                    id: 'settingsGroupSelect'
-                });
-    
-                self.listenTo(self.groupSelect, 'selected', function(selected) {
-                    self.selected = selected;
-                    self.settingsGroup();
-                });
-    
-                // Render after the listen to as they are called during render.
-                self.$('.js-groupselect').html(self.groupSelect.render().el);
-    
-                // Personal settings
-                var me = Iznik.Session.get('me');
-                var settings = presdef('settings', me, null);
-                settings = (settings == null || settings.length == 0) ? {
-                    'playbeep': 1
-                } : settings;
-    
-                self.personalModel = new Iznik.Model({
-                    id: me.id,
-                    displayname: me.displayname,
-                    fullname: me.fullname,
-                    email: me.email,
-                    settings: settings
-                });
-    
-                var personalFields = [
-                    {
-                        name: 'displayname',
-                        label: 'Display Name',
-                        control: 'input',
-                        helpMessage: 'This is your name as displayed publicly to other users, including in the $myname substitution string.'
-                    },
-                    {
-                        name: 'email',
-                        label: 'Email',
-                        type: 'email',
-                        placeholder: 'Please enter an email address',
-                        control: 'input'
-                    },
-                    {
-                        name: 'settings.playbeep',
-                        label: 'Beep',
-                        control: 'select',
-                        options: [{label: 'Off', value: 0 }, {label: 'Play beep for new work', value: 1}]
-                    },
-                    {
-                        control: 'button',
-                        label: 'Save changes',
-                        type: 'submit',
-                        extraClasses: [ 'topspace btn-success' ]
-                    }
-                ];
-    
-                var personalForm = new Backform.Form({
-                    el: $('#personalform'),
-                    model: self.personalModel,
-                    fields: personalFields,
-                    events: {
-                        'submit': function(e) {
-                            e.preventDefault();
-                            var newdata = self.personalModel.toJSON();
-                            console.log("Save personal", newdata, self.personalModel);
-                            Iznik.Session.save(newdata, {
-                                patch: true,
-                                success: _.bind(self.success, self),
-                                error: self.error
-                            });
-                            return(false);
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function(self) {
+                // Fetch the session to pick up any changes in the list of configs etc.
+                self.listenToOnce(Iznik.Session, 'isLoggedIn', function() {
+                    self.groupSelect = new Iznik.Views.Group.Select({
+                        systemWide: false,
+                        all: false,
+                        mod: true,
+                        choose: true,
+                        id: 'settingsGroupSelect'
+                    });
+
+                    self.listenTo(self.groupSelect, 'selected', function(selected) {
+                        self.selected = selected;
+                        self.settingsGroup();
+                    });
+
+                    // Render after the listen to as they are called during render.
+                    self.groupSelect.render().then(function(v) {
+                        self.$('.js-groupselect').html(v.el);
+                    });
+
+                    // Personal settings
+                    var me = Iznik.Session.get('me');
+                    var settings = presdef('settings', me, null);
+                    settings = (settings == null || settings.length == 0) ? {
+                        'playbeep': 1
+                    } : settings;
+
+                    self.personalModel = new Iznik.Model({
+                        id: me.id,
+                        displayname: me.displayname,
+                        fullname: me.fullname,
+                        email: me.email,
+                        settings: settings
+                    });
+
+                    var personalFields = [
+                        {
+                            name: 'displayname',
+                            label: 'Display Name',
+                            control: 'input',
+                            helpMessage: 'This is your name as displayed publicly to other users, including in the $myname substitution string.'
+                        },
+                        {
+                            name: 'email',
+                            label: 'Email',
+                            type: 'email',
+                            placeholder: 'Please enter an email address',
+                            control: 'input'
+                        },
+                        {
+                            name: 'settings.playbeep',
+                            label: 'Beep',
+                            control: 'select',
+                            options: [{label: 'Off', value: 0 }, {label: 'Play beep for new work', value: 1}]
+                        },
+                        {
+                            control: 'button',
+                            label: 'Save changes',
+                            type: 'submit',
+                            extraClasses: [ 'topspace btn-success' ]
                         }
-                    }
+                    ];
+
+                    var personalForm = new Backform.Form({
+                        el: $('#personalform'),
+                        model: self.personalModel,
+                        fields: personalFields,
+                        events: {
+                            'submit': function(e) {
+                                e.preventDefault();
+                                var newdata = self.personalModel.toJSON();
+                                console.log("Save personal", newdata, self.personalModel);
+                                Iznik.Session.save(newdata, {
+                                    patch: true,
+                                    success: _.bind(self.success, self),
+                                    error: self.error
+                                });
+                                return(false);
+                            }
+                        }
+                    });
+
+                    personalForm.render();
+
+                    var configs = Iznik.Session.get('configs');
+                    configs.each(function(config) {
+                        self.$('.js-configselect').append('<option value=' + config.get('id') + '>' +
+                            $('<div />').text(config.get('name')).html() + '</option>');
+                    });
+
+                    self.$(".js-configselect").selectpicker();
+                    self.$(".js-configselect").selectPersist();
+
+                    self.configSelect();
+
+                    // We seem to need to redelegate, otherwise the change event is not caught.
+                    self.delegateEvents();
                 });
-    
-                personalForm.render();
-    
-                var configs = Iznik.Session.get('configs');
-                configs.each(function(config) {
-                    self.$('.js-configselect').append('<option value=' + config.get('id') + '>' +
-                    $('<div />').text(config.get('name')).html() + '</option>');
-                });
-    
-                self.$(".js-configselect").selectpicker();
-                self.$(".js-configselect").selectPersist();
-    
-                self.configSelect();
-    
-                // We seem to need to redelegate, otherwise the change event is not caught.
-                self.delegateEvents();
             });
+
+            return(p);
         }
     });
     
@@ -932,127 +937,135 @@ define([
         },
     
         render: function() {
-            var self = this;
-    
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-    
-            // We want to refetch the model to make sure we edit the most up to date settings.
-            self.model.fetch().then(function() {
-                self.fields = [
-                    {
-                        name: 'title',
-                        label: 'Title',
-                        control: 'input'
-                    },
-                    {
-                        name: 'action',
-                        label: 'Action',
-                        control: Iznik.Views.ModTools.Settings.ActionSelect
-                    },
-                    {
-                        name: 'edittext',
-                        label: 'Edit Text (only for Edits)',
-                        options: [{label: 'Unchanged', value: 'Unchanged'}, {label: 'Correct Case', value: 'Correct Case' }],
-                        disabled: function(model) { return(model.get('action') != 'Edit')},
-                        control: Backform.SelectControl.extend({
-                            initialize: function() {
-                                Backform.InputControl.prototype.initialize.apply(this, arguments);
-                                this.listenTo(this.model, "change:action", this.render);
-                            }
-                        })
-                    },
-                    {
-                        name: 'autosend',
-                        label: 'Autosend',
-                        control: 'select',
-                        options: [{label: 'Edit before send', value: 0 }, {label: 'Send immediately', value: 1}]
-                    },
-                    {
-                        name: 'rarelyused',
-                        label: 'How often do you use this?',
-                        control: 'select',
-                        options: [{label: 'Frequently', value: 0}, {label: 'Rarely', value: 1 }]
-                    },
-                    {
-                        name: 'newmodstatus',
-                        label: 'Change Yahoo Moderation Status?',
-                        control: 'select',
-                        options: [
-                            {label: 'Unchanged', value: 'UNCHANGED'},
-                            {label: 'Moderated', value: 'MODERATED'},
-                            {label: 'Group Settings', value: 'DEFAULT'},
-                            {label: 'Can\'t Post', value: 'PROHIBITED'},
-                            {label: 'Unmoderated', value: 'UNMODERATED'},
-                        ]
-                    },
-                    {
-                        name: 'newdelstatus',
-                        label: 'Change Yahoo Delivery Settings?',
-                        control: 'select',
-                        options: [
-                            {label: 'Unchanged', value: 'UNCHANGED'},
-                            {label: 'Daily Digest', value: 'DIGEST'},
-                            {label: 'Web Only', value: 'NONE'},
-                            {label: 'Individual Emails', value: 'SINGLE'},
-                            {label: 'Special Notices', value: 'ANNOUNCEMENT'}
-                        ]
-                    },
-                    {
-                        name: 'subjpref',
-                        label: 'Subject Prefix',
-                        control: 'input'
-                    },
-                    {
-                        name: 'subjsuff',
-                        label: 'Subject Suffix',
-                        control: 'input'
-                    },
-                    {
-                        name: 'insert',
-                        label: 'Insert text',
-                        control: 'select',
-                        options: [
-                            {label: 'Top', value: 'Top'},
-                            {label: 'Bottom', value: 'Bottom'}
-                        ]
-                    },
-                    {
-                        name: 'body',
-                        label: 'Message Body',
-                        control: 'textarea',
-                        extraClasses: [ 'js-textarea' ]
-                    }
-                ];
-    
-                self.form = new Backform.Form({
-                    el: $('#js-form'),
-                    model: self.model,
-                    fields: self.fields
+            var p = Iznik.Views.Modal.prototype.render.call(this);
+            p.then(function(self) {
+                // We want to refetch the model to make sure we edit the most up to date settings.
+                self.model.fetch().then(function () {
+                    self.fields = [
+                        {
+                            name: 'title',
+                            label: 'Title',
+                            control: 'input'
+                        },
+                        {
+                            name: 'action',
+                            label: 'Action',
+                            control: Iznik.Views.ModTools.Settings.ActionSelect
+                        },
+                        {
+                            name: 'edittext',
+                            label: 'Edit Text (only for Edits)',
+                            options: [{label: 'Unchanged', value: 'Unchanged'}, {
+                                label: 'Correct Case',
+                                value: 'Correct Case'
+                            }],
+                            disabled: function (model) {
+                                return (model.get('action') != 'Edit')
+                            },
+                            control: Backform.SelectControl.extend({
+                                initialize: function () {
+                                    Backform.InputControl.prototype.initialize.apply(this, arguments);
+                                    this.listenTo(this.model, "change:action", this.render);
+                                }
+                            })
+                        },
+                        {
+                            name: 'autosend',
+                            label: 'Autosend',
+                            control: 'select',
+                            options: [{label: 'Edit before send', value: 0}, {label: 'Send immediately', value: 1}]
+                        },
+                        {
+                            name: 'rarelyused',
+                            label: 'How often do you use this?',
+                            control: 'select',
+                            options: [{label: 'Frequently', value: 0}, {label: 'Rarely', value: 1}]
+                        },
+                        {
+                            name: 'newmodstatus',
+                            label: 'Change Yahoo Moderation Status?',
+                            control: 'select',
+                            options: [
+                                {label: 'Unchanged', value: 'UNCHANGED'},
+                                {label: 'Moderated', value: 'MODERATED'},
+                                {label: 'Group Settings', value: 'DEFAULT'},
+                                {label: 'Can\'t Post', value: 'PROHIBITED'},
+                                {label: 'Unmoderated', value: 'UNMODERATED'},
+                            ]
+                        },
+                        {
+                            name: 'newdelstatus',
+                            label: 'Change Yahoo Delivery Settings?',
+                            control: 'select',
+                            options: [
+                                {label: 'Unchanged', value: 'UNCHANGED'},
+                                {label: 'Daily Digest', value: 'DIGEST'},
+                                {label: 'Web Only', value: 'NONE'},
+                                {label: 'Individual Emails', value: 'SINGLE'},
+                                {label: 'Special Notices', value: 'ANNOUNCEMENT'}
+                            ]
+                        },
+                        {
+                            name: 'subjpref',
+                            label: 'Subject Prefix',
+                            control: 'input'
+                        },
+                        {
+                            name: 'subjsuff',
+                            label: 'Subject Suffix',
+                            control: 'input'
+                        },
+                        {
+                            name: 'insert',
+                            label: 'Insert text',
+                            control: 'select',
+                            options: [
+                                {label: 'Top', value: 'Top'},
+                                {label: 'Bottom', value: 'Bottom'}
+                            ]
+                        },
+                        {
+                            name: 'body',
+                            label: 'Message Body',
+                            control: 'textarea',
+                            extraClasses: ['js-textarea']
+                        }
+                    ];
+
+                    self.form = new Backform.Form({
+                        el: $('#js-form'),
+                        model: self.model,
+                        fields: self.fields
+                    });
+
+                    self.form.render();
+
+                    self.$('.js-action').val(self.model.get('action'));
+
+                    // Layout messes up a bit.
+                    self.$('.form-group').addClass('clearfix');
+                    self.$('.js-textarea').attr('rows', 10);
+
+                    // Turn on spell-checking
+                    self.$('textarea, input:text').attr('spellcheck', true);
                 });
-    
-                self.form.render();
-    
-                self.$('.js-action').val(self.model.get('action'));
-    
-                // Layout messes up a bit.
-                self.$('.form-group').addClass('clearfix');
-                self.$('.js-textarea').attr('rows', 10);
-    
-                // Turn on spell-checking
-                self.$('textarea, input:text').attr('spellcheck', true);
+
+                self.open(null);
             });
     
-            this.open(null);
-    
-            return(this);
+            return(p);
         }
     });
     
     Iznik.Views.ModTools.Settings.Saved = Iznik.Views.Modal.extend({
         template: 'modtools_settings_saved',
         render: function() {
-            Iznik.Views.Modal.prototype.render.call(this);
-            _.delay(_.bind(this.close, this), 10000);
+            var p = Iznik.Views.Modal.prototype.render.call(this);
+            p.then(function(self) {
+                _.delay(_.bind(self.close, self), 10000);
+            });
+
+            return(p);
         }
     });
     
@@ -1109,28 +1122,29 @@ define([
         },
     
         render: function() {
-            var self = this;
-    
-            Iznik.Views.Modal.prototype.render.call(this);
-    
-            // Get the list of groups from Yahoo.
-            if (IznikPlugin.yahooGroups.length == 0) {
-                self.$('.js-noplugin').removeClass('hidden');
-                self.$('.js-add').addClass('disabled');
-            } else {
-                // Find the groups which aren't on ModTools.
-                var groups = [];
-                Iznik.Session.get('groups').each(function(group) {
-                    groups.push(group.get('nameshort').toLowerCase());
-                });
-    
-                self.diff = _.difference(IznikPlugin.yahooGroups, groups);
-                _.each(self.diff, function(group, ind) {
-                    self.$('.js-grouplist').append('<option value="' + ind + '" />');
-                    self.$('.js-grouplist option:last').html(group);
-                });
-                self.$('.js-plugin').removeClass('hidden');
-            }
+            var p = Iznik.Views.Modal.prototype.render.call(this);
+            p.then(function(self) {
+                // Get the list of groups from Yahoo.
+                if (IznikPlugin.yahooGroups.length == 0) {
+                    self.$('.js-noplugin').removeClass('hidden');
+                    self.$('.js-add').addClass('disabled');
+                } else {
+                    // Find the groups which aren't on ModTools.
+                    var groups = [];
+                    Iznik.Session.get('groups').each(function(group) {
+                        groups.push(group.get('nameshort').toLowerCase());
+                    });
+
+                    self.diff = _.difference(IznikPlugin.yahooGroups, groups);
+                    _.each(self.diff, function(group, ind) {
+                        self.$('.js-grouplist').append('<option value="' + ind + '" />');
+                        self.$('.js-grouplist option:last').html(group);
+                    });
+                    self.$('.js-plugin').removeClass('hidden');
+                }
+            });
+
+            return(p);
         }
     });
     
@@ -1173,92 +1187,91 @@ define([
         },
     
         render: function() {
-            var self = this;
-    
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-    
-            // We want to refetch the model to make sure we edit the most up to date settings.
-            self.model.fetch().then(function() {
-                self.fields = [
-                    {
-                        name: 'title',
-                        label: 'Title',
-                        control: 'input'
-                    },
-                    {
-                        name: 'runevery',
-                        label: 'Frequency',
-                        control: 'select',
-                        options: [
-                            {label: 'Never', value: 0 },
-                            {label: 'Hourly', value: 1 },
-                            {label: 'Daily', value: 24},
-                            {label: 'Weekly', value: 168},
-                            {label: 'Monthly', value: 744}
-                        ]
-                    },
-                    {
-                        name: 'action',
-                        label: 'Action',
-                        control: 'select',
-                        options: [
-                            {label: 'Yahoo Unbounce', value: 'Unbounce' },
-                            {label: 'Yahoo Remove from Group', value: 'Remove'},
-                            {label: 'Yahoo Change to Group Settings', value: 'ToGroup'},
-                            {label: 'Yahoo Change to Special Notices', value: 'ToSpecialNotices'}
-                        ]
-                    },
-                    {
-                        name: 'set',
-                        label: 'Apply To',
-                        control: 'select',
-                        options: [
-                            {label: 'Members', value: 'Members' }
-                        ]
-                    },
-                    {
-                        name: 'criterion',
-                        label: 'Filter',
-                        control: 'select',
-                        options: [
-                            {label: 'Bouncing', value: 'Bouncing' },
-                            {label: 'Bouncing For', value: 'BouncingFor' },
-                            {label: 'All', value: 'All' },
-                            {label: 'Web Only', value: 'WebOnly' }
-                        ],
-                        extraClasses: [ 'js-criterion' ]
-                    },
-                    {
-                        name: 'bouncingfor',
-                        label: 'Bouncing For (days)',
-                        control: 'input',
-                        type: 'number',
-                        extraClasses: [ 'js-bouncingfor' ]
-                    }
-                ];
-    
-                self.form = new Backform.Form({
-                    el: $('#js-form'),
-                    model: self.model,
-                    fields: self.fields
+            var p = Iznik.Views.Modal.prototype.render.call(this);
+            p.then(function(self) {
+                // We want to refetch the model to make sure we edit the most up to date settings.
+                self.model.fetch().then(function () {
+                    self.fields = [
+                        {
+                            name: 'title',
+                            label: 'Title',
+                            control: 'input'
+                        },
+                        {
+                            name: 'runevery',
+                            label: 'Frequency',
+                            control: 'select',
+                            options: [
+                                {label: 'Never', value: 0},
+                                {label: 'Hourly', value: 1},
+                                {label: 'Daily', value: 24},
+                                {label: 'Weekly', value: 168},
+                                {label: 'Monthly', value: 744}
+                            ]
+                        },
+                        {
+                            name: 'action',
+                            label: 'Action',
+                            control: 'select',
+                            options: [
+                                {label: 'Yahoo Unbounce', value: 'Unbounce'},
+                                {label: 'Yahoo Remove from Group', value: 'Remove'},
+                                {label: 'Yahoo Change to Group Settings', value: 'ToGroup'},
+                                {label: 'Yahoo Change to Special Notices', value: 'ToSpecialNotices'}
+                            ]
+                        },
+                        {
+                            name: 'set',
+                            label: 'Apply To',
+                            control: 'select',
+                            options: [
+                                {label: 'Members', value: 'Members'}
+                            ]
+                        },
+                        {
+                            name: 'criterion',
+                            label: 'Filter',
+                            control: 'select',
+                            options: [
+                                {label: 'Bouncing', value: 'Bouncing'},
+                                {label: 'Bouncing For', value: 'BouncingFor'},
+                                {label: 'All', value: 'All'},
+                                {label: 'Web Only', value: 'WebOnly'}
+                            ],
+                            extraClasses: ['js-criterion']
+                        },
+                        {
+                            name: 'bouncingfor',
+                            label: 'Bouncing For (days)',
+                            control: 'input',
+                            type: 'number',
+                            extraClasses: ['js-bouncingfor']
+                        }
+                    ];
+
+                    self.form = new Backform.Form({
+                        el: $('#js-form'),
+                        model: self.model,
+                        fields: self.fields
+                    });
+
+                    self.form.render();
+                    self.criterion();
+
+                    self.$('.js-action').val(self.model.get('action'));
+
+                    // Layout messes up a bit.
+                    self.$('.form-group').addClass('clearfix');
+                    self.$('.js-textarea').attr('rows', 10);
+
+                    // Turn on spell-checking
+                    self.$('textarea, input:text').attr('spellcheck', true);
                 });
-    
-                self.form.render();
-                self.criterion();
-    
-                self.$('.js-action').val(self.model.get('action'));
-    
-                // Layout messes up a bit.
-                self.$('.form-group').addClass('clearfix');
-                self.$('.js-textarea').attr('rows', 10);
-    
-                // Turn on spell-checking
-                self.$('textarea, input:text').attr('spellcheck', true);
+
+                self.open(null);
             });
     
-            this.open(null);
-    
-            return(this);
+            return(p);
         }
     });
     
@@ -1597,151 +1610,154 @@ define([
         },
     
         render: function() {
-            var self = this;
-    
-            Iznik.Views.Page.prototype.render.call(this);
-    
-            var v = new Iznik.Views.Help.Box();
-            v.template = 'modtools_settings_maphelp';
-            this.$('.js-help').html(v.render().el);
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function(self) {
+                var v = new Iznik.Views.Help.Box();
+                v.template = 'modtools_settings_maphelp';
+                v.render().then(function(v) {
+                    self.$('.js-help').html(v.el);
+                });
 
-            require(['wicket'], function(Wkt) {
-                self.Wkt = Wkt;
-                
-                _.defer(function() {
-                    var group = Iznik.Session.getGroup(self.options.groupid);
-                    var centre = new google.maps.LatLng(group.get('lat'), group.get('lng'));
-                    var mapsettings = group.get('settings').map;
+                require(['wicket'], function(Wkt) {
+                    self.Wkt = Wkt;
 
-                    var options = {
-                        center: centre,
-                        zoom: 14,
-                        defaults: {
-                            icon: '/images/red_dot.png',
-                            shadow: '/images/dot_shadow.png',
-                            strokeColor: '#990000',
-                            fillColor: '#EEFFCC',
-                            fillOpacity: 0.6
-                        },
-                        disableDefaultUI: true,
-                        mapTypeControl: false,
-                        mapTypeId: google.maps.MapTypeId.ROADMAP,
-                        mapTypeControlOptions: {
-                            position: google.maps.ControlPosition.TOP_LEFT,
-                            style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
-                        },
-                        panControl: false,
-                        streetViewControl: false,
-                        zoomControl: true,
-                        minZoom: 12,
-                        zoomControlOptions: {
-                            position: google.maps.ControlPosition.LEFT_TOP,
-                            style: google.maps.ZoomControlStyle.SMALL
-                        }
-                    };
+                    _.defer(function() {
+                        var group = Iznik.Session.getGroup(self.options.groupid);
+                        var centre = new google.maps.LatLng(group.get('lat'), group.get('lng'));
+                        var mapsettings = group.get('settings').map;
 
-                    self.map = new google.maps.Map(document.getElementById("map"), options);
+                        var options = {
+                            center: centre,
+                            zoom: 14,
+                            defaults: {
+                                icon: '/images/red_dot.png',
+                                shadow: '/images/dot_shadow.png',
+                                strokeColor: '#990000',
+                                fillColor: '#EEFFCC',
+                                fillOpacity: 0.6
+                            },
+                            disableDefaultUI: true,
+                            mapTypeControl: false,
+                            mapTypeId: google.maps.MapTypeId.ROADMAP,
+                            mapTypeControlOptions: {
+                                position: google.maps.ControlPosition.TOP_LEFT,
+                                style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+                            },
+                            panControl: false,
+                            streetViewControl: false,
+                            zoomControl: true,
+                            minZoom: 12,
+                            zoomControlOptions: {
+                                position: google.maps.ControlPosition.LEFT_TOP,
+                                style: google.maps.ZoomControlStyle.SMALL
+                            }
+                        };
 
-                    self.map.drawingManager = new google.maps.drawing.DrawingManager({
-                        drawingControlOptions: {
-                            position: google.maps.ControlPosition.TOP_RIGHT,
-                            drawingModes: [
-                                google.maps.drawing.OverlayType.POLYGON
-                            ]
-                        },
-                        markerOptions: self.map.defaults,
-                        polygonOptions: self.map.defaults,
-                        polylineOptions: self.map.defaults,
-                        rectangleOptions: self.map.defaults
-                    });
-                    self.map.drawingManager.setMap(self.map);
+                        self.map = new google.maps.Map(document.getElementById("map"), options);
 
-                    google.maps.event.addListener(self.map.drawingManager, 'overlaycomplete', function (event) {
-                        var wkt;
+                        self.map.drawingManager = new google.maps.drawing.DrawingManager({
+                            drawingControlOptions: {
+                                position: google.maps.ControlPosition.TOP_RIGHT,
+                                drawingModes: [
+                                    google.maps.drawing.OverlayType.POLYGON
+                                ]
+                            },
+                            markerOptions: self.map.defaults,
+                            polygonOptions: self.map.defaults,
+                            polylineOptions: self.map.defaults,
+                            rectangleOptions: self.map.defaults
+                        });
+                        self.map.drawingManager.setMap(self.map);
 
-                        // Set the drawing mode to "pan" (the hand) so users can immediately edit
-                        this.setDrawingMode(null);
+                        google.maps.event.addListener(self.map.drawingManager, 'overlaycomplete', function (event) {
+                            var wkt;
 
-                        // Polygon drawn
-                        var obj = event.overlay;
-                        var area = self.selected;
+                            // Set the drawing mode to "pan" (the hand) so users can immediately edit
+                            self.setDrawingMode(null);
 
-                        if (event.type === google.maps.drawing.OverlayType.POLYGON || event.type === google.maps.drawing.OverlayType.POLYLINE) {
-                            // New vertex is inserted
-                            google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj, true));
+                            // Polygon drawn
+                            var obj = event.overlay;
+                            var area = self.selected;
 
-                            // Existing vertex is removed (insertion is undone)
-                            google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj, true));
+                            if (event.type === google.maps.drawing.OverlayType.POLYGON || event.type === google.maps.drawing.OverlayType.POLYLINE) {
+                                // New vertex is inserted
+                                google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj, true));
 
-                            // Existing vertex is moved (set elsewhere)
-                            google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj, true));
-                        }
+                                // Existing vertex is removed (insertion is undone)
+                                google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj, true));
 
-                        self.features.push(event.overlay);
-                        self.changeHandler(self, area, obj, false)();
-                    });
+                                // Existing vertex is moved (set elsewhere)
+                                google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj, true));
+                            }
 
-                    // Searchbox
-                    var input = document.getElementById('pac-input');
-                    self.searchBox = new google.maps.places.SearchBox(input);
-                    self.map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+                            self.features.push(event.overlay);
+                            self.changeHandler(self, area, obj, false)();
+                        });
 
-                    self.map.addListener('bounds_changed', function() {
-                        self.searchBox.setBounds(self.map.getBounds());
-                    });
+                        // Searchbox
+                        var input = document.getElementById('pac-input');
+                        self.searchBox = new google.maps.places.SearchBox(input);
+                        self.map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
 
-                    self.searchBox.addListener('places_changed', function() {
-                        // Put the map here.
-                        var places = self.searchBox.getPlaces();
+                        self.map.addListener('bounds_changed', function() {
+                            self.searchBox.setBounds(self.map.getBounds());
+                        });
 
-                        if (places.length == 0) {
-                            return;
-                        }
+                        self.searchBox.addListener('places_changed', function() {
+                            // Put the map here.
+                            var places = self.searchBox.getPlaces();
 
-                        var bounds = new google.maps.LatLngBounds();
-                        places.forEach(function(place) {
-                            if (place.geometry.viewport) {
-                                // Only geocodes have viewport.
-                                bounds.union(place.geometry.viewport);
-                            } else {
-                                bounds.extend(place.geometry.location);
+                            if (places.length == 0) {
+                                return;
+                            }
+
+                            var bounds = new google.maps.LatLngBounds();
+                            places.forEach(function(place) {
+                                if (place.geometry.viewport) {
+                                    // Only geocodes have viewport.
+                                    bounds.union(place.geometry.viewport);
+                                } else {
+                                    bounds.extend(place.geometry.location);
+                                }
+                            });
+
+                            self.map.fitBounds(bounds);
+                        });
+
+                        self.areas = new Iznik.Collections.Locations();
+                        self.listenTo(self.areas, 'add', function(area) {
+                            var poly = area.get('polygon');
+                            var lat = area.get('lat');
+                            var lng = area.get('lng');
+
+                            if (poly || lat || lng) {
+                                if (poly) {
+                                    self.mapWKT(poly, area);
+                                } else {
+                                    var wkt = 'POINT(' + lng + ' ' + lat + ')';
+                                    self.mapWKT(poly, area);
+                                }
                             }
                         });
 
-                        self.map.fitBounds(bounds);
-                    });
+                        self.listenTo(self.areas, 'remove', function(area) {
+                            var obj = area.get('obj');
+                            var oldlen = self.features.length;
+                            self.features = _.without(self.features, obj);
+                            console.log("Removed", oldlen, self.features.length);
+                            obj.setMap(null);
+                        });
 
-                    self.areas = new Iznik.Collections.Locations();
-                    self.listenTo(self.areas, 'add', function(area) {
-                        var poly = area.get('polygon');
-                        var lat = area.get('lat');
-                        var lng = area.get('lng');
-
-                        if (poly || lat || lng) {
-                            if (poly) {
-                                self.mapWKT(poly, area);
-                            } else {
-                                var wkt = 'POINT(' + lng + ' ' + lat + ')';
-                                self.mapWKT(poly, area);
+                        google.maps.event.addListener(self.map, 'idle', _.bind(function() {
+                            if (!self.editing) {
+                                self.getAreas();
                             }
-                        }
+                        }, self));
                     });
-
-                    self.listenTo(self.areas, 'remove', function(area) {
-                        var obj = area.get('obj');
-                        var oldlen = self.features.length;
-                        self.features = _.without(self.features, obj);
-                        console.log("Removed", oldlen, self.features.length);
-                        obj.setMap(null);
-                    });
-
-                    google.maps.event.addListener(self.map, 'idle', _.bind(function() {
-                        if (!this.editing) {
-                            this.getAreas();
-                        }
-                    }, self));
                 });
             });
+
+            return(p);
         }
     });
 });

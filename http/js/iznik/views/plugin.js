@@ -95,32 +95,34 @@ define([
         outstandingSyncs: 0,
     
         render: function() {
-            var self = this;
-            self.$el.html(window.template(self.template)());
-    
-            var v = new Iznik.Views.Help.Box();
-            v.template = 'modtools_layout_background';
-            self.$('.js-background').html(v.render().el);
-    
-            // We use a collectionview to display the work items
-            self.collection = new Iznik.Collections.Plugin();
-            self.collectionView = new Backbone.CollectionView( {
-                el : self.$('.js-work'),
-                modelView : Iznik.Views.Plugin.Work,
-                collection: self.collection
-            } );
-    
-            // Update our count when the number of work items changes.
-            self.listenTo(self.collection, 'add remove', self.updatePluginCount);
-    
-            // Also check for work to do when a new item is added
-            self.listenTo(self.collection, 'add', self.checkWork);
-    
-            self.collectionView.render();
-    
-            self.checkPluginStatus();
-    
-            return(this);
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                var v = new Iznik.Views.Help.Box();
+                v.template = 'modtools_layout_background';
+                v.render().then(function(v) {
+                    self.$('.js-background').html(v.el);
+
+                    // We use a collectionview to display the work items
+                    self.collection = new Iznik.Collections.Plugin();
+                    self.collectionView = new Backbone.CollectionView( {
+                        el : self.$('.js-work'),
+                        modelView : Iznik.Views.Plugin.Work,
+                        collection: self.collection
+                    } );
+
+                    // Update our count when the number of work items changes.
+                    self.listenTo(self.collection, 'add remove', self.updatePluginCount);
+
+                    // Also check for work to do when a new item is added
+                    self.listenTo(self.collection, 'add', self.checkWork);
+
+                    self.collectionView.render();
+
+                    self.checkPluginStatus();
+                });
+            });
+
+            return(p);
         },
     
         resume: function() {
@@ -804,9 +806,13 @@ define([
     Iznik.Views.Plugin.Work = Iznik.View.extend({
         render: function() {
             // This view is just a wrapper - the meat of the view is in the subview, so get that back and render it.
+            var self = this;
+
             var v = this.model.get('subview');
-            var el = v.render().el;
-            this.$el.html(el);
+            v.render().then(function(v) {
+                self.$el.html(v.el);
+            })
+            
             return(this);
         }
     });
@@ -1112,9 +1118,11 @@ define([
         },
     
         render: function() {
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-            this.ourSyncProgressBar();
-            return(this);
+            var p = Iznik.Views.Plugin.SubView.prototype.render.call(this);
+            p.then(function(self) {
+                self.ourSyncProgressBar();
+            });
+            return(p);
         }
     });
     
@@ -1309,9 +1317,11 @@ define([
         },
     
         render: function() {
-            this.$el.html(window.template(this.template)(this.model.toJSON2()));
-            this.progressBar();
-            return(this);
+            var p = Iznik.Views.Plugin.SubView.prototype.render.call(this);
+            p.then(function(self) {
+                self.progressBar();
+            });
+            return(p);
         }
     });
     
@@ -1427,11 +1437,13 @@ define([
     
         completed: function(members) {
             // Now we have the list of bouncing members.  Switch to new template.
-            this.$el.html(window.template('plugin_bulk_unbounce_members')(this.model.toJSON2()));
-            this.startBusy();
-            this.offset = 0;
-            this.members = members;
-            this.unbounceone();
+            this.template = 'plugin_bulk_unbounce_members';
+            Iznik.Views.Plugin.Yahoo.SyncMembers.prototype.render.call(this).then(function(self) {
+                self.startBusy();
+                self.offset = 0;
+                self.members = members;
+                self.unbounceone();
+            });
         }
     });
     
@@ -1499,11 +1511,13 @@ define([
     
         completed: function(members) {
             // Now we have the list of bouncing members.  Switch to new template.
-            this.$el.html(window.template('plugin_bulk_remove_bouncing')(this.model.toJSON2()));
-            this.startBusy();
-            this.offset = 0;
-            this.members = members;
-            this.removeone();
+            this.template = 'plugin_bulk_remove_bouncing';
+            Iznik.Views.Plugin.Yahoo.SyncMembers.prototype.render.call(this).then(function(self) {
+                self.startBusy();
+                self.offset = 0;
+                self.members = members;
+                self.removeone();
+            });
         }
     });
     

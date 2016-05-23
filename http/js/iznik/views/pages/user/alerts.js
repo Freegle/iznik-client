@@ -13,8 +13,10 @@ define([
         template: "user_alerts_viewed",
 
         render: function() {
-            Iznik.Views.Page.prototype.render.call(this);
-            $('.js-signin, .js-home').hide();
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function(self) {
+                $('.js-signin, .js-home').hide();
+            });
 
             $.ajax({
                 type: 'POST',
@@ -23,7 +25,9 @@ define([
                     action: 'clicked',
                     trackid: this.model.get('id')
                 }
-            })
+            });
+            
+            return(p);
         }
     });
 });
