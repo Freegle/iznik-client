@@ -18,6 +18,7 @@ define([
     'jquery.dd',
     'jquery.dotdotdot',
     'jquery-show-first',
+    'es6-promise',
     'iznik/diff',
     'iznik/events',
     'iznik/underscore',
@@ -97,6 +98,14 @@ define([
 
     Iznik.View = (function (View) {
 
+        // Promise polyfill for older browsers or IE11 which has less excuse.
+        if (typeof window.Promise !== 'function') {
+            console.log("Promise polyfill");
+            require('es6-promise').polyfill();
+        } else {
+            console.log("Got Promise");
+        }
+
         var ourview = View.extend({
             globalClick: function (e) {
                 // When a click occurs, we block further clicks for a few seconds, to stop double click damage.
@@ -127,6 +136,10 @@ define([
             constructor: function (options) {
                 this.options = options || {};
                 View.apply(this, arguments);
+            },
+
+            fetchTemplate: function() {
+
             },
 
             render: function () {

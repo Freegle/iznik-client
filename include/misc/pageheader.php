@@ -4,8 +4,8 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
 ?><!DOCTYPE HTML>
 <html>
 <head>
-    <!-- Hi there.  We always need geek volunteers.  Why not mail geeks@ilovefreegle.org to get in touch, or
-    help make the code better at https://github.com/Freegle/iznik ?  -->
+    <!-- Hi there.  We always need geek volunteers.  Why not mail geeks@ilovefreegle.org to get in touch, or -->
+    <!-- help make the code better at https://github.com/Freegle/iznik ?  -->
     <meta name="msapplication-tap-highlight" content="no"/>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
     <meta name="viewport"
@@ -137,7 +137,6 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     <link rel="stylesheet" href="/css/dd.css">
 
     <link rel="stylesheet" type="text/css" href="/css/style.css">
-    <![endif]-->
     <!--[if gte IE 9]>
     <link rel="stylesheet" type="text/css" href="/css/style.css"><![endif]-->
     <!--[if lt IE 9]>
