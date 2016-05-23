@@ -43,8 +43,7 @@ requirejs.config({
         "jquery.ui.touch-punch": [ "jquery" ],
         "iznik/accordionpersist": [ "jquery" ],
         "iznik/selectpersist": [ "jquery" ],
-        "jquery-resizable": [ "jquery" ],
-        "jquery-show-first": [ "jquery" ]
+        "jquery-resizable": [ "jquery" ]
     },
 
     paths: {
