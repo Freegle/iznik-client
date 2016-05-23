@@ -135,7 +135,8 @@ define([
                 var mod = self.model.clone();
                 mod.set('id', self.model.get('userid'));
                 var v = new Iznik.Views.ModTools.User({
-                    model: mod
+                    model: mod,
+                    hideban: false
                 });
 
                 self.$('.js-user').html(v.render().el);

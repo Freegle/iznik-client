@@ -535,7 +535,7 @@ class User extends Entity
 
         foreach ($emails as $email) {
             if ($ban) {
-                $type = $this->isPending($groupid) ? 'BanPendingMember' : 'BanApprovedMember';
+                $type = 'BanApprovedMember';
             } else {
                 $type = $this->isPending($groupid) ? 'RemovePendingMember' : 'RemoveApprovedMember';
             }

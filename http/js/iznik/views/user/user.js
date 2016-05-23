@@ -205,6 +205,10 @@ define([
         render: function() {
             var self = this;
             this.$el.html(window.template(this.template)(this.model.toJSON2()));
+            
+            if (self.options.hideban) {
+                self.$('.js-ban').closest('li').hide();
+            }
 
             self.historyColl = new Iznik.Collections.ModTools.MessageHistory();
             _.each(this.model.get('messagehistory'), function(message, index, list) {

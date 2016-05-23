@@ -529,16 +529,6 @@ define([
                                     break;
                                 }
     
-                                case 'BanPendingMember': {
-                                    self.collection.add(new Iznik.Models.Plugin.Work({
-                                        id: work.id,
-                                        subview: new Iznik.Views.Plugin.Yahoo.BanPendingMember({
-                                            model: new Iznik.Model(work)
-                                        })
-                                    }));
-                                    break;
-                                }
-    
                                 case 'RemoveApprovedMember': {
                                     self.collection.add(new Iznik.Models.Plugin.Work({
                                         id: work.id,
@@ -2005,52 +1995,6 @@ define([
         }
     });
 
-    Iznik.Views.Plugin.Yahoo.BanPendingMember = Iznik.Views.Plugin.SubView.extend({
-        template: 'plugin_member_pending_ban',
-    
-        crumbLocation: "/members/all",
-    
-        server: true,
-    
-        start: function() {
-            var self = this;
-    
-            var members = [
-                {
-                    userId: this.model.get('id'),
-                    subscriptionStatus: 'BANNED'
-                }
-            ];
-    
-            new majax({
-                type: "PUT",
-                url: YAHOOAPI + "groups/" + this.model.get('group').nameshort + "/members/pending?gapi_crumb=" + self.crumb,
-                data: {
-                    members: JSON.stringify(members)
-                },
-                success: function (ret) {
-                    console.log("Ban returned", ret);
-                    if (ret.hasOwnProperty('ygData') &&
-                        ret.ygData.hasOwnProperty('numPassed')) {
-                        // If the ban worked, numPassed == 1.
-                        if (ret.ygData.numPassed == 1) {
-                            self.succeed();
-                        } else {
-                            self.fail();
-                        }
-                    } else {
-                        self.fail();
-                    }
-                },
-                error: function (request, status, error) {
-                    self.fail();
-                }
-            });
-    
-            this.startBusy();
-        }
-    });
-    
     Iznik.Views.Plugin.Yahoo.BanApprovedMember = Iznik.Views.Plugin.SubView.extend({
         template: 'plugin_member_approved_ban',
     
