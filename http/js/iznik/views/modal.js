@@ -84,6 +84,7 @@ define([
 
         open: function(template){
             var self = this;
+            
             // Remove any previous modal.
             if (modalOpen) {
                 modalOpen.cancel();

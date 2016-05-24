@@ -97,6 +97,7 @@ define([
                     body: body,
                     stdmsgid: stdmsgid
                 }, success: function(ret) {
+                    console.log("trigger replied", self);
                     self.trigger('replied');
                 }
             });

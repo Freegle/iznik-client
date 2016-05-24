@@ -179,8 +179,8 @@ define([
                 var matched = self.model.get('matchedon');
                 if (matched) {
                     self.$('.js-subject span').each(function () {
-                        if ($(self).html().toLowerCase().indexOf(matched.word) != -1) {
-                            $(self).addClass('searchmatch');
+                        if (self.$el.html().toLowerCase().indexOf(matched.word) != -1) {
+                            self.$el.addClass('searchmatch');
                         }
                     });
                 }

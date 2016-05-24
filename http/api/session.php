@@ -22,10 +22,6 @@ function session() {
                     'push' => $n->get($ret['me']['id'])
                 ];
 
-                # Chat info, used for logging in to ejabberd.
-                $ret['me']['jid'] = $me->getJid();
-                $ret['me']['token'] = $me->getToken();
-
                 $ret['configs'] = $me->getConfigs();
                 $ret['emails'] = $me->getEmails();
                 $ret['groups'] = $me->getMemberships();

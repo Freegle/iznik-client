@@ -477,12 +477,10 @@ define([
 
                     // Put it in
                     self.$('.js-text').val(msg);
-
-                    self.open(null);
                 }
-            });
 
-            self.closeWhenRequired();
+                self.closeWhenRequired();
+            });
 
             return(p);
         },
@@ -614,28 +612,32 @@ define([
             // If the underlying message is approved, rejected or deleted then:
             // - we may have actions to complete
             // - this modal should close.
-            self.listenToOnce(self.model, 'approved', function () {
+            //
+            // TODO This is a bit messy.  We're opening a modal, which needs to redelegate events after the async
+            // render.  This seems to mean that if we do self.listenToOnce we lose them.  So instead we listen on
+            // something else, the model.
+            self.model.listenToOnce(self.model, 'approved', function () {
                 _.each(self.model.get('groups'), function (group, index, list) {
                     self.maybeSettingsChange.call(self, 'approved', self.options.stdmsg, self.model, group);
                 });
                 self.close();
             });
 
-            self.listenToOnce(self.model, 'rejected', function () {
+            self.model.listenToOnce(self.model, 'rejected', function () {
                 _.each(self.model.get('groups'), function (group, index, list) {
                     self.maybeSettingsChange.call(self, 'rejected', self.options.stdmsg, self.model, group);
                 });
                 self.close();
             });
 
-            self.listenToOnce(self.model, 'deleted', function () {
+            self.model.listenToOnce(self.model, 'deleted', function () {
                 _.each(self.model.get('groups'), function (group, index, list) {
                     self.maybeSettingsChange.call(self, 'deleted', self.options.stdmsg, self.model, group);
                 });
                 self.close();
             });
 
-            self.listenToOnce(self.model, 'replied', function () {
+            self.model.listenToOnce(self.model, 'replied', function () {
                 _.each(self.model.get('groups'), function (group, index, list) {
                     self.maybeSettingsChange.call(self, 'replied', self.options.stdmsg, self.model, group);
                 });

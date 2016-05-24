@@ -122,7 +122,7 @@ class alertAPITest extends IznikAPITestCase
                                               'summary' =>
                                                   array (
                                                       'count' => 2,
-                                                      'response' => 'none',
+                                                      'rsp' => 'None',
                                                   ),
                                           ),
                                   ),
@@ -183,7 +183,7 @@ class alertAPITest extends IznikAPITestCase
                                     'summary' =>
                                         array (
                                             'count' => 1,
-                                            'response' => 'Read',
+                                            'rsp' => 'Read',
                                         ),
                                 ),
                         ),

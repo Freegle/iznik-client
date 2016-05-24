@@ -138,14 +138,6 @@ class User extends Entity
         return($s->getToken($this->id));
     }
 
-    public function getJid($domain = TRUE) {
-        # Unique id for chat.
-        #
-        # Add a friendly name part to the id to make it more, well, friendly.
-        $jid = strtolower(str_replace(' ', '', $this->getName()) . '.' . $this->id . ($domain ? "@iznik"  : ''));
-        return($jid);
-    }
-
     public function getName() {
         # We may or may not have the knowledge about how the name is split out, depending
         # on the sign-in mechanism.
