@@ -224,8 +224,6 @@ define([
 
                 // If the number of promises changes, then we want to update what we display.
                 self.listenTo(self.model, 'change:promisecount', self.render);
-
-                self.$('.timeago').timeago();
             });
 
             return(p);

@@ -262,7 +262,7 @@ define([
             // Expand the template via the parent then set the times.
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
-                self.$('.js-timego').timeago();
+                self.$('.timeago').timeago();
             });
             return(p);
         }

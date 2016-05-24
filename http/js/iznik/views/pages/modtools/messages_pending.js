@@ -307,7 +307,7 @@ define([
         }
     });
 
-    Iznik.Views.ModTools.Message.Pending.Group = Iznik.View.extend({
+    Iznik.Views.ModTools.Message.Pending.Group = Iznik.View.Timeago.extend({
         template: 'modtools_messages_pending_group'
     });
 

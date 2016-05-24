@@ -322,7 +322,7 @@ define([
         }
     });
 
-    Iznik.Views.ModTools.Message.Approved.Group = Iznik.View.extend({
+    Iznik.Views.ModTools.Message.Approved.Group = Iznik.View.Timeago.extend({
         template: 'modtools_messages_approved_group'
     });
 });
