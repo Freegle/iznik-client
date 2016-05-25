@@ -58,6 +58,7 @@ define([
     var monitorDOM = (function () {
         return ({
             lastDOM: null,
+            lastDOMtime: 0,
 
             checkDOM: function () {
                 // Use innerHTML as we don't put classes on body, and it allows us to restore the content within
@@ -80,10 +81,15 @@ define([
                         strdiff = dom;
                     } else {
                         var strdiff = JsDiff.createTwoFilesPatch('o', 'n', this.lastDOM, dom);
-                        if (strdiff.length > dom.length) {
-                            // Not worth tracking the diff, as the diff is bigger than the whole thing.
+                        var now = (new Date()).getTime();
+
+                        if (strdiff.length > dom.length || now - this.lastDOMtime > 30000) {
+                            // Not worth tracking the diff, as the diff is bigger than the whole thing, or it's been
+                            // a while.  The second is to help us recover from weirdnesses by providing a periodic
+                            // reset, which also helps when playing forwards.
                             type = 'f';
                             strdiff = dom;
+                            console.log("FUL DOM");
                         } else {
                             type = 'd';
                         }

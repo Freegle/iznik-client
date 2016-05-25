@@ -3,6 +3,7 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    "iznik/modtools",
     'iznik/views/pages/pages',
     "iznik/views/pages/modtools/messages",
     'iznik/views/infinite',

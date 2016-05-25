@@ -123,32 +123,8 @@ define([
 
                 routeOptions.page.render();
             }
-
-            console.log("ModTools page?", self.modtools);
-
-            if (self.modtools) {
-                // Load the base set of stuff that ModTools needs.  We do this here to avoid loading stuff we
-                // don't need for the user site.
-                require([
-                    'jquery.dotdotdot',
-                    'iznik/models/membership',
-                    'iznik/accordionpersist',
-                    'iznik/selectpersist',
-                    'iznik/models/location',
-                    'iznik/models/config/modconfig',
-                    'iznik/models/config/stdmsg',
-                    'iznik/models/config/bulkop',
-                    'iznik/models/spammer',
-                    'iznik/models/user/user',
-                    'iznik/models/yahoo/user',
-                    'iznik/views/yahoo/user',
-                    'iznik/views/plugin',
-                    'iznik/views/group/select',
-                    'iznik/views/user/user'
-                ], loadPage);
-            } else {
-                loadPage();
-            }
+             
+            loadPage();
         },
 
         userHome: function (chatid) {

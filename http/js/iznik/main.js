@@ -19,9 +19,9 @@ requirejs.onError = function (err) {
         //
         // In all cases, reloading the page will help.  Delay slightly to avoid hammering the server.
         console.error("One we care about");
-        // window.setTimeout(function() {
-        //     window.location.reload();
-        // }, 1000);
+        window.setTimeout(function() {
+            window.location.reload();
+        }, 1000);
     }
 };
 

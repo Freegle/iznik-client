@@ -4,6 +4,7 @@ define([
     'backbone',
     'moment',
     'iznik/base',
+    "iznik/modtools",
     'iznik/views/pages/pages',
     'iznik/views/infinite',
     'iznik/views/group/select'

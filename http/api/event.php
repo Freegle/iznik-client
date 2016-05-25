@@ -28,7 +28,7 @@ function event() {
                 }
             }
 
-            $ret = array('ret' => 0, 'status' => 'Success');
+            $ret = array('ret' => 0, 'status' => 'Success', 'nolog' => TRUE);
             break;
         case 'GET':
             $me = whoAmI($dbhr, $dbhm);

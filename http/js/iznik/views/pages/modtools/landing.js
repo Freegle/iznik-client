@@ -3,6 +3,7 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    "iznik/modtools",
     'iznik/views/pages/pages'
 ], function($, _, Backbone, Iznik) {
         Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({

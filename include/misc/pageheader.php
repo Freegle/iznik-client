@@ -35,6 +35,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     # last change was.
     #
     $version = file_get_contents('/tmp/iznik.version');
+    $version = $version ? $version : 0;
     echo "<meta name=\"iznikcache\" content=\"$version\" >\n";
     ?>
     

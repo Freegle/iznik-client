@@ -40,22 +40,41 @@ if ($uid && $key) {
     $u->linkLogin($key);
 }
 
-?>
-<body style="background-colour: #dff2d1;">
-<noscript>
-    <h1>Please enable Javascript</h1>
+$default = TRUE;
 
-    <p>We'd love to do a version
-        which was accessible to people who don't use Javascript, but we do not have the volunteer resources to do that.
-        If you'd like to help with skills or funding, please <a href="mailto:edward@ehibbert.org.uk">mail us</a>.</p>
-</noscript>
-<div id="pageloader" style="position: relative; height: 100%; width: 100%">
-    <img src="/images/pageloader.gif" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto;"/>
-</div>
-<div id="fb-root"></div>
-<div id="bodyEnvelope">
-    <div id="bodyContent" class="nopad">
-    </div>
-</div>
-</body>
+if (!pres('id', $_SESSION)) {
+    # We're not logged in.  Check if we can pre-render some HTML to make us appear fast.  The user can gawp at our
+    # amazing speed, and while they do so, the JS on the client can catch up and do the actual render.
+    $url = "https://" . $_SERVER['HTTP_HOST'] . presdef('REQUEST_URI', $_SERVER, '');
+    $pages = $dbhr->preQuery("SELECT * FROM prerender WHERE url = ?;", [ $url ]);
+
+    if (count($pages) > 0) {
+        ?><!-- Pre-rendered --><?php
+        echo $pages[0]['html'];
+        $default = FALSE;
+    }
+}
+
+if ($default) {
+?>
+        <body style="background-colour: #dff2d1;">
+            <noscript>
+                <h1>Please enable Javascript</h1>
+
+                <p>We'd love to do a version
+                    which was accessible to people who don't use Javascript, but we do not have the volunteer resources to do that.
+                    If you'd like to help with skills or funding, please <a href="mailto:edward@ehibbert.org.uk">mail us</a>.</p>
+            </noscript>
+            <div id="pageloader" style="position: relative; height: 100%; width: 100%">
+                <img src="/images/pageloader.gif" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto;"/>
+            </div>
+            <div id="fb-root"></div>
+            <div id="bodyEnvelope">
+                <div id="bodyContent" class="nopad">
+                </div>
+            </div>
+        </body>
+<?php
+}
+?>
 </html>

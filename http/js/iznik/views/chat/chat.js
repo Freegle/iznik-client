@@ -334,8 +334,7 @@ define([
 
                         Iznik.activeChats.render();
 
-                        // Defer as container not yet in DOM.
-                        _.defer(function () {
+                        self.waitDOM(self, function() {
                             Iznik.minimisedChats = new Backbone.CollectionView({
                                 el: $('#notifchatdropdown'),
                                 modelView: Iznik.Views.Chat.Minimised,

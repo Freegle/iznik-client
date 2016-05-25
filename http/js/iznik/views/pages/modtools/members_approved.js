@@ -5,6 +5,7 @@ define([
     'moment',
     'FileSaver',
     'iznik/base',
+    "iznik/modtools",
     'iznik/views/pages/pages',
     'iznik/views/infinite',
     'iznik/views/group/select'

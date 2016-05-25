@@ -4,6 +4,7 @@ define([
     'backbone',
     'moment',
     'iznik/base',
+    "iznik/modtools",
     'iznik/views/pages/pages',
     'iznik/views/pages/modtools/members_approved',
     'iznik/views/infinite',
@@ -164,6 +165,7 @@ define([
         render: function () {
             var self = this;
 
+            console.log("Spam", self);
             self.model.set('group', Iznik.Session.getGroup(self.model.get('groupid')).attributes);
             var p = Iznik.Views.ModTools.Member.prototype.render.call(self);
             p.then(function(self) {

@@ -1194,7 +1194,7 @@ class User extends Entity
 
     public static function getSessions($dbhr, $dbhm, $id) {
         # Get any sessions
-        $sql = "SELECT MIN(timestamp) AS timestamp, sessionid FROM logs_events WHERE userid = ? GROUP BY sessionid;";
+        $sql = "SELECT MIN(timestamp) AS timestamp, sessionid FROM logs_events WHERE userid = ? GROUP BY sessionid ORDER BY MIN(timestamp) DESC;";
         $sessions = $dbhr->preQuery($sql, [ $id ]);
         foreach ($sessions as &$session) {
             $session['timestamp'] = ISODate($session['timestamp']);

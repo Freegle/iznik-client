@@ -3,7 +3,8 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/diff'
+    'iznik/diff',
+    "iznik/modtools"
 ], function($, _, Backbone, Iznik, JsDiff) {
     Iznik.Views.ModTools.Pages.Replay = Iznik.View.extend({
         modtools: true,

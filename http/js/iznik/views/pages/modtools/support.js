@@ -3,12 +3,12 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    "iznik/modtools",
     'moment',
     'iznik/views/pages/pages',
     'iznik/views/pages/modtools/messages_approved',
     'iznik/models/user/alert',
     'tinymce'
-
 ], function($, _, Backbone, Iznik, moment) {
     Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
         modtools: true,
