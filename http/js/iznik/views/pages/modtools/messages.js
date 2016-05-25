@@ -725,6 +725,8 @@ define([
                 var body = self.model.get('htmlbody');
                 body = body ? body : self.model.get('textbody');
 
+                var subj = self.model.get('subject');
+
                 if (self.options.stdmsg) {
                     var subjpref = self.options.stdmsg.get('subjpref');
                     var subjsuff = self.options.stdmsg.get('subjsuff');
@@ -737,8 +739,6 @@ define([
                             body = body + '<br><br>' + stdbody;
                         }
                     }
-
-                    var subj = self.model.get('subject');
 
                     if (self.options.stdmsg && self.options.stdmsg.get('edittext') == 'Correct Case') {
                         // First the subject, if it's easy to parse.
@@ -755,9 +755,9 @@ define([
                     if (subjsuff) {
                         subj = subj + subjsuff;
                     }
-
-                    self.$('.js-subject').val(subj);
                 }
+
+                self.$('.js-subject').val(subj);
 
                 if (self.options.stdmsg && self.options.stdmsg.get('edittext') == 'Correct Case') {
                     // Now the body.
@@ -795,7 +795,6 @@ define([
 
                 self.$('.js-text').val(body);
 
-                console.log("Edit", self.$('.js-text'));
                 tinymce.init({
                     selector: '.js-text',
                     height: 300,
