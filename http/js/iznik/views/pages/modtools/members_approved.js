@@ -5,7 +5,9 @@ define([
     'moment',
     'FileSaver',
     'iznik/base',
-    'iznik/views/pages/pages'
+    'iznik/views/pages/pages',
+    'iznik/views/infinite',
+    'iznik/views/group/select'
 ], function($, _, Backbone, moment, saveAs, Iznik) {
     Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Infinite.extend({
         modtools: true,

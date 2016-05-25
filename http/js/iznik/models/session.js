@@ -1,8 +1,9 @@
 define([
     'jquery',
     'backbone',
-    'iznik/base',
+    'iznik/base'
 ], function($, Backbone, Iznik) {
+    console.log("init session", Iznik);
     Iznik.Models.Session = Iznik.Model.extend({
         url: API + 'session',
 

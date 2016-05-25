@@ -5,7 +5,9 @@ define([
     'moment',
     'iznik/base',
     'iznik/views/pages/pages',
-    'iznik/views/pages/modtools/members_approved'
+    'iznik/views/pages/modtools/members_approved',
+    'iznik/views/infinite',
+    'iznik/views/group/select'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Pages.SpamMembers = Iznik.Views.Infinite.extend({
         modtools: true,

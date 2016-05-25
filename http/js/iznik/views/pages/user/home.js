@@ -3,6 +3,7 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'iznik/models/message',
     'iznik/views/pages/pages',
     'iznik/views/user/message'
 ], function($, _, Backbone, Iznik) {

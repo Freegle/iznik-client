@@ -4,7 +4,9 @@ define([
     'backbone',
     'moment',
     'iznik/base',
-    'iznik/views/pages/pages'
+    'iznik/views/pages/pages',
+    'iznik/views/infinite',
+    'iznik/views/group/select'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Pages.PendingMembers = Iznik.Views.Infinite.extend({
         modtools: true,

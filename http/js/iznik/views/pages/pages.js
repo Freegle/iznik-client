@@ -4,11 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/chat/chat',
-    'iznik/events',
-    'iznik/accordionpersist',
-    'iznik/views/group/select',
-    'iznik/views/infinite',
-    'iznik/views/plugin',
+    'iznik/events'
 ], function($, _, Backbone, Iznik, ChatHolder, monitorDOM) {
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
@@ -126,12 +122,13 @@ define([
                             s.render().then(function(s) {
                                 rightaccordion.append(s.el);
 
-                                window.IznikPlugin = new Iznik.Views.Plugin.Main();
-                                IznikPlugin.render().then(function(v) {
-                                    rightaccordion.append(v.el);
-                                })
-
-                                rightaccordion.accordionPersist();
+                                require(['iznik/accordionpersist', 'iznik/views/plugin'], function() {
+                                    window.IznikPlugin = new Iznik.Views.Plugin.Main();
+                                    IznikPlugin.render().then(function(v) {
+                                        rightaccordion.append(v.el);
+                                    })
+                                    rightaccordion.accordionPersist();
+                                });
                             });
                         } else {
                             rightaccordion.empty().append(rightbar);

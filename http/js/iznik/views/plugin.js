@@ -3,7 +3,8 @@ define([
     'underscore',
     'backbone',
     'moment',
-    'iznik/base'
+    'iznik/base',
+    'iznik/models/group'
 ], function($, _, Backbone, moment, Iznik) {
     // Plugin work.
     //

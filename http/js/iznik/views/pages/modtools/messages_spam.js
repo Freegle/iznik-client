@@ -3,7 +3,10 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/views/pages/pages'
+    'iznik/views/pages/pages',
+    "iznik/views/pages/modtools/messages",
+    'iznik/views/infinite',
+    'iznik/views/group/select'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.ModTools.Pages.SpamMessages = Iznik.Views.Infinite.extend({
         modtools: true,

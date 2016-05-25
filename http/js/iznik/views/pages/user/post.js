@@ -4,6 +4,8 @@ define([
     'backbone',
     'iznik/base',
     'fileupload',
+    'iznik/models/user/message',
+    'iznik/views/group/select',
     'iznik/models/user/message'
 ], function ($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.WhatIsIt = Iznik.Views.Page.extend({

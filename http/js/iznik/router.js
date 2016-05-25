@@ -5,29 +5,10 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/accordionpersist',
-    'iznik/selectpersist',
     'iznik/models/session',
-    'iznik/models/message',
-    'iznik/models/location',
-    'iznik/models/group',
-    'iznik/models/config/modconfig',
-    'iznik/models/config/stdmsg',
-    'iznik/models/config/bulkop',
-    'iznik/models/spammer',
-    'iznik/models/user/user',
-    'iznik/models/yahoo/user',
-    'iznik/models/membership',
-    'iznik/models/user/message',
     'iznik/views/modal',
-    'iznik/views/user/user',
-    'iznik/views/plugin',
     'iznik/views/help',
-    'iznik/views/signinup',
-    'iznik/views/dashboard',
-    'iznik/views/yahoo/user',
-    'iznik/views/group/select',
-    'iznik/views/pages/modtools/messages'
+    'iznik/views/signinup'
 ], function($, _, Backbone, Iznik) {
     Iznik.Session = new Iznik.Models.Session();
 
@@ -143,7 +124,31 @@ define([
                 routeOptions.page.render();
             }
 
-            loadPage();
+            console.log("ModTools page?", self.modtools);
+
+            if (self.modtools) {
+                // Load the base set of stuff that ModTools needs.  We do this here to avoid loading stuff we
+                // don't need for the user site.
+                require([
+                    'jquery.dotdotdot',
+                    'iznik/models/membership',
+                    'iznik/accordionpersist',
+                    'iznik/selectpersist',
+                    'iznik/models/location',
+                    'iznik/models/config/modconfig',
+                    'iznik/models/config/stdmsg',
+                    'iznik/models/config/bulkop',
+                    'iznik/models/spammer',
+                    'iznik/models/user/user',
+                    'iznik/models/yahoo/user',
+                    'iznik/views/yahoo/user',
+                    'iznik/views/plugin',
+                    'iznik/views/group/select',
+                    'iznik/views/user/user'
+                ], loadPage);
+            } else {
+                loadPage();
+            }
         },
 
         userHome: function (chatid) {
@@ -334,7 +339,7 @@ define([
 
         modtools: function () {
             var self = this;
-            require(["iznik/views/pages/modtools/landing"], function() {
+            require(['iznik/views/dashboard', "iznik/views/pages/modtools/landing"], function() {
                 self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                     var page = new Iznik.Views.ModTools.Pages.Landing();
                     self.loadRoute({page: page, modtools: true});

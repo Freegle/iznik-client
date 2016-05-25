@@ -3,9 +3,10 @@ define([
     'underscore',
     'backbone',
     'moment',
+    'jquery-show-first',
     'iznik/base',
     'iznik/views/pages/pages',
-    'jquery-show-first'
+    'iznik/models/message'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Message = Iznik.View.extend({
         rarelyUsed: function () {

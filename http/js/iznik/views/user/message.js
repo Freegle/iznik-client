@@ -3,6 +3,7 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'iznik/views/infinite',
     'iznik/views/chat/chat'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Message = Iznik.View.extend({

@@ -2,7 +2,8 @@ define([
     'jquery',
     'underscore',
     'backbone',
-    'iznik/base'
+    'iznik/base',
+    'jquery.dd'
 ], function($, _, Backbone, Iznik) {
     var groupSelectIdCounter = 0;
 
