@@ -1,7 +1,6 @@
 <?php
 
 function getVersion() {
-    # TODO We could speed page load by changing this.  It takes about 0.1s, which is significant.
     $directory = new RecursiveDirectoryIterator(IZNIK_BASE);
     $flattened = new RecursiveIteratorIterator($directory);
     $files = new RegexIterator($flattened, '/.*\.((php)|(html)|(js)|(css))/i');

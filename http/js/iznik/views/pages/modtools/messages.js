@@ -3,8 +3,8 @@ define([
     'underscore',
     'backbone',
     'moment',
-    'jquery-show-first',
     'iznik/base',
+    'jquery-show-first',
     'iznik/views/pages/pages',
     'iznik/models/message'
 ], function($, _, Backbone, moment, Iznik) {
