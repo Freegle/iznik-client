@@ -480,27 +480,38 @@ define([
             require(['jquery-show-first'], function() {
                 // Add any other emails
                 self.$('.js-otheremails').empty();
+                var promises = [];
+
                 _.each(self.model.get('otheremails'), function (email) {
                     if (email.email != thisemail) {
                         var mod = new Iznik.Model(email);
                         var v = new Iznik.Views.ModTools.Message.OtherEmail({
                             model: mod
                         });
-                        v.render().then(function(v) {
+                        var p = v.render();
+                        p.then(function(v) {
+                            console.log("Rendered");
                             self.$('.js-otheremails').append(v.el);
                         });
-                        
+                        promises.push(p);
                     }
                 });
 
-                // Restrict how many we show
-                self.$('.js-otheremails').showFirst({
-                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
-                    count: 5
+                console.log("Got promises", promises.length);
+
+                Promise.all(promises).then(function() {
+                    // Restrict how many we show
+                    console.log("Rendered all");
+                    self.$('.js-otheremails').showFirst({
+                        controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                        count: 5
+                    });
                 });
 
                 // Add any other group memberships we need to display.
                 self.$('.js-memberof').empty();
+                var promises2 = [];
+
                 var groupids = [self.model.get('groupid')];
                 _.each(self.model.get('memberof'), function (group) {
                     if (groupids.indexOf(group.id) == -1) {
@@ -509,15 +520,26 @@ define([
                             model: mod,
                             user: self.model
                         });
-                        v.render().then(function(v) {
+                        var p = v.render();
+                        p.then(function(v) {
                             self.$('.js-memberof').append(v.el);
                         });
-                        
+                        promises2.push(p);
+
                         groupids.push(group.id);
                     }
                 });
 
+                Promise.all(promises2).then(function() {
+                    self.$('.js-memberof').showFirst({
+                        controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                        count: 5
+                    });
+                });
+
                 self.$('.js-applied').empty();
+                var promises3 = [];
+
                 _.each(self.model.get('applied'), function (group) {
                     if (groupids.indexOf(group.id) == -1) {
                         // Don't both displaying applications to groups we've just listed as them being a member of.
@@ -525,20 +547,19 @@ define([
                         var v = new Iznik.Views.ModTools.Member.Applied({
                             model: mod
                         });
-                        v.render().then(function(v) {
+                        var p = v.render();
+                        p.then(function(v) {
                             self.$('.js-applied').append(v.el);
                         });
+                        promises3.push(p);
                     }
                 });
 
-                // Don't show too many.
-                self.$('.js-memberof').showFirst({
-                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
-                    count: 5
-                });
-                self.$('.js-applied').showFirst({
-                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
-                    count: 5
+                Promise.all(promises3).then(function() {
+                    self.$('.js-applied').showFirst({
+                        controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                        count: 5
+                    });
                 });
             });
         }
@@ -619,7 +640,7 @@ define([
     });
 
     Iznik.Views.ModTools.User.CommentModal = Iznik.Views.Modal.extend({
-        template: 'modtools_user_comment_modal',
+        template: 'modtools_user_commentmodal',
 
         events: {
             'click .js-save': 'save'

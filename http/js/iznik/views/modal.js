@@ -84,6 +84,7 @@ define([
 
         open: function(template){
             var self = this;
+            var p;
             
             // Remove any previous modal.
             if (modalOpen) {
@@ -94,12 +95,16 @@ define([
 
             if (template) {
                 // For more complex modals we might have set up the content before calling open.
-                Iznik.View.prototype.render.call(this).then(function(self) {
+                p = Iznik.View.prototype.render.call(this);
+                p.then(function(self) {
                     self.attach.call(self);
                 });
             } else {
                 this.attach();
+                p = resolvedPromise(self);
             }
+
+            return(p);
         },
 
         render: function() {

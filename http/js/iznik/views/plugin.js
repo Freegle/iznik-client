@@ -1329,7 +1329,7 @@ define([
         // Setting offset to 0 omits start from first one
         offset: 0,
     
-        template: 'plugin_sync_approved_members',
+        template: 'plugin_sync_members_approved',
     
         crumbLocation: "/members/all",
         memberLocation: 'members',
@@ -1355,7 +1355,7 @@ define([
         // Setting offset to 0 omits start from first one
         offset: 0,
     
-        template: 'plugin_sync_pending_members',
+        template: 'plugin_sync_members_pending',
     
         crumbLocation: "/management/pendingmembers",
         memberLocation: 'members',
@@ -1381,7 +1381,7 @@ define([
         // Setting offset to 0 omits start from first one
         offset: 0,
     
-        template: 'plugin_sync_bouncing_members',
+        template: 'plugin_sync_members_bouncing',
     
         crumbLocation: "/members/bouncing",
         memberLocation: 'members',
@@ -1451,7 +1451,7 @@ define([
         // Setting offset to 0 omits start from first one
         offset: 0,
     
-        template: 'plugin_sync_bouncing_members',
+        template: 'plugin_sync_members_bouncing',
     
         crumbLocation: "/members/bouncing",
         memberLocation: 'members',
@@ -1529,7 +1529,7 @@ define([
     
         crumbLocation: "/members/all",
     
-        template: 'plugin_to_special_notices',
+        template: 'plugin_tospecialnotices',
     
         changeOne: function() {
             var self = this;

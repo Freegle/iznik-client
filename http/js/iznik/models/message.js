@@ -225,11 +225,13 @@ define([
                                                                             console.log("Server edit returned", ret);
                                                                             if (ret.ret == 0) {
                                                                                 // Make sure we're up to date.
+                                                                                console.log("Fetch");
                                                                                 self.fetch({
                                                                                     data: {
                                                                                         messagehistory: true
                                                                                     }
                                                                                 }).then(function () {
+                                                                                    console.log("Fetched", self);
                                                                                     self.trigger('editsucceeded');
                                                                                 });
                                                                             } else {

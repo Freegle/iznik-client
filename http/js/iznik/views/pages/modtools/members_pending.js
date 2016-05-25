@@ -268,11 +268,14 @@ define([
                                         config: config
                                     });
 
+                                    if (stdmsg.rarelyused) {
+                                        anyrare = true;
+                                    }
+
                                     v.render().then(function(v) {
                                         self.$('.js-stdmsgs').append(v.el);
 
                                         if (stdmsg.rarelyused) {
-                                            anyrare = true;
                                             $(v.el).hide();
                                         }
                                     });

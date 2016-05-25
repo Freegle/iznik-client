@@ -88,7 +88,7 @@ define([
     });
 
     Iznik.Views.TypeChart = Iznik.View.extend({
-        template: 'dashboard_type_chart',
+        template: 'dashboard_type',
 
         render: function () {
             var self = this;
@@ -127,7 +127,7 @@ define([
     });
 
     Iznik.Views.DeliveryChart = Iznik.View.extend({
-        template: 'dashboard_delivery_chart',
+        template: 'dashboard_delivery',
 
         render: function () {
             var self = this;
@@ -166,7 +166,7 @@ define([
     });
 
     Iznik.Views.PostingChart = Iznik.View.extend({
-        template: 'dashboard_posting_chart',
+        template: 'dashboard_posting',
 
         render: function () {
             var self = this;
@@ -205,7 +205,7 @@ define([
     });
 
     Iznik.Views.SourceChart = Iznik.View.extend({
-        template: 'dashboard_source_chart',
+        template: 'dashboard_source',
 
         render: function () {
             var self = this;

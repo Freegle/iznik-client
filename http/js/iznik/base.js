@@ -19,6 +19,7 @@ define([
     'jquery.dotdotdot',
     'jquery-show-first',
     'es6-promise',
+    'text',
     'iznik/diff',
     'iznik/events',
     'iznik/underscore',
@@ -193,12 +194,14 @@ define([
                 // You'll get used to it.
                 var self = this;
                 var promise = new Promise(function(resolve, reject) {
-                    if (!self.hasOwnProperty('template')) {
+                    if (!self.template) {
                         // We don't have a template.  We can render.
                         resolve(self.ourRender.call(self));
                     } else {
-                        // We have a template.  We ought to fetch it.
-                        resolve(self.ourRender.call(self));
+                        // We have a template.  We need to fetch it.
+                        templateFetch(self.template).then(function() {
+                            resolve(self.ourRender.call(self));
+                        })
                     }
                 })
 

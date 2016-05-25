@@ -265,6 +265,7 @@ define([
                 var fromuser = self.model.get('fromuser');
 
                 if (fromuser) {
+                    var promises = [];
                     _.each(fromuser.emails, function (email) {
                         if (email.email != fromemail) {
                             var mod = new Iznik.Model(email);
@@ -272,14 +273,25 @@ define([
                                 model: mod
                             });
 
-                            v.render().then(function(v) {
+                            var p = v.render();
+                            p.then(function(v) {
                                 self.$('.js-otheremails').append(v.el);
-                            })
+                            });
+                            promises.push(p);
                         }
+                    });
+
+                    Promise.all(promises).then(function() {
+                        self.$('.js-otheremails').showFirst({
+                            controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                            count: 5
+                        });
                     });
 
                     // Add any other group memberships we need to display.
                     self.$('.js-memberof').empty();
+                    var promises2 = [];
+
                     var groupids = [self.model.get('groupid')];
                     _.each(fromuser.memberof, function (group) {
                         if (groupids.indexOf(group.id) == -1) {
@@ -295,14 +307,27 @@ define([
                                 model: mod,
                                 user: new Iznik.Model(fromuser)
                             });
-                            v.render().then(function(v) {
+
+                            var p = v.render();
+                            p.then(function(v) {
                                 self.$('.js-memberof').append(v.el);
-                            })
+                            });
+                            promises2.push(p);
+
                             groupids.push(group.id);
                         }
                     });
 
+                    Promise.all(promises2).then(function() {
+                        self.$('.js-memberof').showFirst({
+                            controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                            count: 5
+                        });
+                    });
+
                     self.$('.js-applied').empty();
+                    var promises3 = [];
+
                     _.each(fromuser.applied, function (group) {
                         if (groupids.indexOf(group.id) == -1) {
                             // Don't both displaying applications to groups we've just listed as them being a member of.
@@ -311,24 +336,19 @@ define([
                                 model: mod
                             });
 
-                            v.render().then(function(v) {
+                            var p = v.render();
+                            p.then(function(v) {
                                 self.$('.js-applied').append(v.el);
                             });
+                            promises3.push(p);
                         }
                     });
 
-                    // Don't show too many
-                    self.$('.js-memberof').showFirst({
-                        controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
-                        count: 5
-                    });
-                    self.$('.js-applied').showFirst({
-                        controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
-                        count: 5
-                    });
-                    self.$('.js-otheremails').showFirst({
-                        controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
-                        count: 5
+                    Promise.all(promises3).then(function() {
+                        self.$('.js-applied').showFirst({
+                            controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                            count: 5
+                        });
                     });
                 }
             });
@@ -680,6 +700,7 @@ define([
             self.$('.js-editfailed').hide();
 
             self.listenToOnce(self.model, 'editsucceeded', function () {
+                console.log("Edit succeeded - close");
                 self.close();
             });
 
@@ -699,93 +720,93 @@ define([
 
         expand: function () {
             var self = this;
-            this.open(this.template, this.model);
+            this.open(this.template, this.model).then(function() {
+                var body = self.model.get('htmlbody');
+                body = body ? body : self.model.get('textbody');
 
-            var body = self.model.get('htmlbody');
-            body = body ? body : self.model.get('textbody');
+                if (self.options.stdmsg) {
+                    var subjpref = self.options.stdmsg.get('subjpref');
+                    var subjsuff = self.options.stdmsg.get('subjsuff');
+                    var stdbody = self.options.stdmsg.get('body');
 
-            if (self.options.stdmsg) {
-                var subjpref = self.options.stdmsg.get('subjpref');
-                var subjsuff = self.options.stdmsg.get('subjsuff');
-                var stdbody = self.options.stdmsg.get('body');
-
-                if (stdbody) {
-                    if (self.options.stdmsg.get('insert') == 'Top') {
-                        body = stdbody + '<br><br>' + body;
-                    } else {
-                        body = body + '<br><br>' + stdbody;
-                    }
-                }
-
-                var subj = self.model.get('subject');
-
-                if (self.options.stdmsg && self.options.stdmsg.get('edittext') == 'Correct Case') {
-                    // First the subject, if it's easy to parse.
-                    var matches = /(.*?)\:([^)].*)\((.*)\)/.exec(subj);
-                    if (matches && matches.length > 0 && matches[0].length > 0) {
-                        subj = matches[1] + ':' + matches[2].toLowerCase().trim() + '(' + matches[3] + ')';
-                    }
-                }
-
-                if (subjpref) {
-                    subj = subjpref + subj;
-                }
-
-                if (subjsuff) {
-                    subj = subj + subjsuff;
-                }
-
-                self.$('.js-subject').val(subj);
-            }
-
-            if (self.options.stdmsg && self.options.stdmsg.get('edittext') == 'Correct Case') {
-                // Now the body.
-                body = body.toLowerCase();
-
-                // Contentious choice of single space
-                body = body.replace(/\.( |(&nbsp;))+/g, ". ");
-                body = body.replace(/\.\n/g, ".[-<br>-]. ");
-                body = body.replace(/\.\s\n/g, ". [-<br>-]. ");
-                var wordSplit = '. ';
-                var wordArray = body.split(wordSplit);
-                var numWords = wordArray.length;
-
-                for (x = 0; x < numWords; x++) {
-
-                    if (!_.isUndefined(wordArray[x])) {
-                        wordArray[x] = wordArray[x].replace(wordArray[x].charAt(0), wordArray[x].charAt(0).toUpperCase());
-
-                        if (x == 0) {
-                            body = wordArray[x] + ". ";
-                        } else if (x != numWords - 1) {
-                            body = body + wordArray[x] + ". ";
-                        } else if (x == numWords - 1) {
-                            body = body + wordArray[x];
+                    if (stdbody) {
+                        if (self.options.stdmsg.get('insert') == 'Top') {
+                            body = stdbody + '<br><br>' + body;
+                        } else {
+                            body = body + '<br><br>' + stdbody;
                         }
                     }
+
+                    var subj = self.model.get('subject');
+
+                    if (self.options.stdmsg && self.options.stdmsg.get('edittext') == 'Correct Case') {
+                        // First the subject, if it's easy to parse.
+                        var matches = /(.*?)\:([^)].*)\((.*)\)/.exec(subj);
+                        if (matches && matches.length > 0 && matches[0].length > 0) {
+                            subj = matches[1] + ':' + matches[2].toLowerCase().trim() + '(' + matches[3] + ')';
+                        }
+                    }
+
+                    if (subjpref) {
+                        subj = subjpref + subj;
+                    }
+
+                    if (subjsuff) {
+                        subj = subj + subjsuff;
+                    }
+
+                    self.$('.js-subject').val(subj);
                 }
 
-                body = body.replace(/\[-<br>-\]\.\s/g, "\n");
-                body = body.replace(/\si\s/g, " I ");
-                body = body.replace(/(\<p\>.)/i, function (a, b) {
-                    return (b.toUpperCase());
+                if (self.options.stdmsg && self.options.stdmsg.get('edittext') == 'Correct Case') {
+                    // Now the body.
+                    body = body.toLowerCase();
+
+                    // Contentious choice of single space
+                    body = body.replace(/\.( |(&nbsp;))+/g, ". ");
+                    body = body.replace(/\.\n/g, ".[-<br>-]. ");
+                    body = body.replace(/\.\s\n/g, ". [-<br>-]. ");
+                    var wordSplit = '. ';
+                    var wordArray = body.split(wordSplit);
+                    var numWords = wordArray.length;
+
+                    for (x = 0; x < numWords; x++) {
+
+                        if (!_.isUndefined(wordArray[x])) {
+                            wordArray[x] = wordArray[x].replace(wordArray[x].charAt(0), wordArray[x].charAt(0).toUpperCase());
+
+                            if (x == 0) {
+                                body = wordArray[x] + ". ";
+                            } else if (x != numWords - 1) {
+                                body = body + wordArray[x] + ". ";
+                            } else if (x == numWords - 1) {
+                                body = body + wordArray[x];
+                            }
+                        }
+                    }
+
+                    body = body.replace(/\[-<br>-\]\.\s/g, "\n");
+                    body = body.replace(/\si\s/g, " I ");
+                    body = body.replace(/(\<p\>.)/i, function (a, b) {
+                        return (b.toUpperCase());
+                    });
+                }
+
+                self.$('.js-text').val(body);
+
+                console.log("Edit", self.$('.js-text'));
+                tinymce.init({
+                    selector: '.js-text',
+                    height: 300,
+                    plugins: [
+                        'advlist autolink lists link image charmap print preview anchor',
+                        'searchreplace visualblocks code fullscreen',
+                        'insertdatetime media table contextmenu paste code'
+                    ],
+                    menubar: 'edit insert format tools',
+                    statusbar: false,
+                    toolbar: 'bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image'
                 });
-            }
-
-            self.$('.js-text').val(body);
-
-            console.log("Edit", self.$('.js-text'));
-            tinymce.init({
-                selector: '.js-text',
-                height: 300,
-                plugins: [
-                    'advlist autolink lists link image charmap print preview anchor',
-                    'searchreplace visualblocks code fullscreen',
-                    'insertdatetime media table contextmenu paste code'
-                ],
-                menubar: 'edit insert format tools',
-                statusbar: false,
-                toolbar: 'bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image'
             });
         },
 

@@ -1,6 +1,5 @@
 <?php
 require_once(IZNIK_BASE . '/include/misc/scripts.php');
-require_once(IZNIK_BASE . '/include/misc/template.php');
 ?><!DOCTYPE HTML>
 <html>
 <head>
@@ -160,11 +159,6 @@ require_once(IZNIK_BASE . '/include/misc/template.php');
     # Pull in all our JS.
     $ret = scriptInclude(MINIFY ? (function($str) { return(JSMin::minify($str)); }) : FALSE);
     echo implode("\n", $ret[1]);
-
-    # Pull in all the templates as script tags for later expansion.
-    # TODO Could cache these rather than return inline?
-    $tpls = addTemplate(IZNIK_BASE . '/http/template/', IZNIK_BASE . '/http/template/');
-    echo implode("\n", $tpls);
     ?>
 
     <!--[if lt IE 9]>

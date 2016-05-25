@@ -350,13 +350,17 @@ define([
                                     config: config
                                 });
 
-                                var el = v.render().el;
-                                self.$('.js-stdmsgs').append(el);
-
                                 if (stdmsg.rarelyused) {
                                     anyrare = true;
-                                    $(el).hide();
                                 }
+
+                                v.render().then(function(v) {
+                                    self.$('.js-stdmsgs').append(v.el);
+
+                                    if (stdmsg.rarelyused) {
+                                        $(v.el).hide();
+                                    }
+                                });
                             }
                         });
 

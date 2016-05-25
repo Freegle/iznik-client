@@ -81,20 +81,18 @@ define([
             'click .js-excludelocation': 'excludeLocation',
             'click .js-rarelyused': 'rarelyUsed',
             'click .js-savesubj': 'saveSubject',
-            'click .js-editnotstd': 'edit',
+            'click .js-editnotstd': 'editNotStd',
             'click .js-spam': 'spam'
         },
 
-        edit: function () {
+        editNotStd: function () {
             var self = this;
 
             var v = new Iznik.Views.ModTools.StdMessage.Edit({
                 model: this.model
             });
 
-            this.listenToOnce(self.model, 'editsucceeded', function () {
-                // If we've just edited, we don't want to display a diffferent subject in the edit box, as that's confusing.
-                self.model.set('suggestedsubject', self.model.get('subject'));
+            this.listenToOnce(this.model, 'editsucceeded', function () {
                 self.render();
             });
 
@@ -275,14 +273,17 @@ define([
                                     config: config
                                 });
 
-                                v.render().then(function (v) {
+                                if (stdmsg.rarelyused) {
+                                    anyrare = true;
+                                }
+
+                                v.render().then(function(v) {
                                     self.$('.js-stdmsgs').append(v.el);
 
                                     if (stdmsg.rarelyused) {
-                                        anyrare = true;
                                         $(v.el).hide();
                                     }
-                                })
+                                });
                             }
                         });
 
@@ -293,6 +294,9 @@ define([
 
                     // If the message is held or released, we re-render, showing the appropriate buttons.
                     self.listenToOnce(self.model, 'change:heldby', self.render);
+
+                    // If the message is edited, we also re-render to show the new info.
+                    self.listenTo(self.model, 'editsucceeded', self.render);
                 });
 
                 self.$('.timeago').timeago();

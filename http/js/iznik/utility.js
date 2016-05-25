@@ -286,10 +286,19 @@ function haversineDistance(coords1, coords2, isMiles) {
     return d;
 }
 
+function tplName(tpl) {
+    var nm = 'text!/template/' + tpl.replace(/\_/g, '/') + '.html';
+    return(nm);
+}
+
+var loadedTemplates = [];
+
 function templateFetch(tpl) {
-    // TODO This will fetch them asynchronously.
     var promise = new Promise(function(resolve, reject) {
-        resolve(tpl);
+        require([tplName(tpl)], function(html) {
+            loadedTemplates[tpl] = html;
+            resolve(tpl);
+        })
     });
 
     return(promise);
