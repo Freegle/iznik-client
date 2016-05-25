@@ -1159,7 +1159,7 @@ define([
         // Setting offset to 0 omits start from first one
         offset: 0,
     
-        template: 'plugin_sync_approved',
+        template: 'plugin_sync_members_approved',
     
         messageLocation: 'messages',
         crumbLocation: "/management/pendingmessages",

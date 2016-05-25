@@ -899,13 +899,17 @@ define([
             'change .js-action': 'getValueFromDOM'
         },
 
-        getValueFromDOM: function() {
-            return this.formatter.toRaw(this.$('.js-action').val(), this.model);
+        getValueFromDOM: function(e) {
+            var self = this;
+            var val = this.$('.js-action').val();
+            return this.formatter.toRaw(val, this.model);
         },
     
         render: function() {
+            // Since this isn't one of our views we must fetch the template manually.
             this.template = window.template("modtools_settings_action");
             Backform.InputControl.prototype.render.apply(this, arguments);
+
             return(this);
         }
     });
@@ -922,6 +926,9 @@ define([
 
         save: function() {
             var self = this;
+
+            // The model doesn't seem to be updated correctly via Backform.
+            self.model.set('action', self.$('.js-action').val());
     
             self.model.save().then(function() {
                 self.close();
@@ -937,8 +944,13 @@ define([
         },
     
         render: function() {
+            var self = this;
             var p = Iznik.Views.Modal.prototype.render.call(this);
-            p.then(function(self) {
+
+            // Because this isn't our view, and therefore has a sync render, we need to fetch the template first.
+            var q = templateFetch("modtools_settings_action");
+
+            Promise.all([p, q]).then(function() {
                 // We want to refetch the model to make sure we edit the most up to date settings.
                 self.model.fetch().then(function () {
                     self.fields = [
