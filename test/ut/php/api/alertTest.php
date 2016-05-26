@@ -182,8 +182,8 @@ class alertAPITest extends IznikAPITestCase
                                 array (
                                     'summary' =>
                                         array (
-                                            'count' => 1,
-                                            'rsp' => 'Read',
+                                            'count' => 2,
+                                            'rsp' => 'Reached',
                                         ),
                                 ),
                         ),

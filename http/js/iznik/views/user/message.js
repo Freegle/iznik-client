@@ -109,7 +109,6 @@ define([
 
         stripGumf: function() {
             var textbody = this.model.get('textbody');
-            console.log("textbody", textbody);
 
             if (textbody) {
                 // Strip photo links - we should have those as attachments.
@@ -146,30 +145,45 @@ define([
             this.model.set('textbody', wbr(this.model.get('textbody'), 20));
 
             var p = Iznik.View.prototype.render.call(self);
-            p.then(function(self) {
+            p.then(function() {
                 if (self.expanded) {
                     self.$('.panel-collapse').collapse('show');
                 } else {
                     self.$('.panel-collapse').collapse('hide');
                 }
 
+                // There is an unpleasant problem here with our async render.  CollectionView can call render()
+                // more than once, as it is entitled to do.  Because of the order in which the promise callbacks
+                // get executed, we can clear out the groups (and also the atts below), and then process the callbacks,
+                // which means we can render and append more than once - so we get duplicate group entries.  To avoid
+                // this, we save off which ones we have rendered in this object, and check it before appending.
                 var groups = self.model.get('groups');
-
+                self.groupsRendered = [];
+                self.$('.js-groups').empty();
                 _.each(groups, function(group) {
+                    console.log("Render group", self.model.get('id'), group);
                     var v = new Iznik.Views.User.Message.Group({
                         model: new Iznik.Model(group)
                     });
                     v.render().then(function(v) {
-                        self.$('.js-groups').append(v.el);
+                        if (!self.groupsRendered[group.id]) {
+                            self.groupsRendered[group.id] = true;
+                            self.$('.js-groups').append(v.el);
+                        }
                     });
                 });
 
+                self.attsRendered = [];
+                self.$('.js-attlist').empty();
                 _.each(self.model.get('attachments'), function (att) {
                     var v = new Iznik.Views.User.Message.Photo({
                         model: new Iznik.Model(att)
                     });
                     v.render().then(function(v) {
-                        self.$('.js-attlist').append(v.el);
+                        if (!self.attsRendered[att.id]) {
+                            self.attsRendered[att.id] = true;
+                            self.$('.js-attlist').append(v.el);
+                        }
                     });
                 });
 
@@ -178,6 +192,7 @@ define([
                     var replies = self.model.get('replies');
                     if (replies.length > 0) {
                         self.$('.js-noreplies').hide();
+                        self.$('.js-replies').empty();
                         self.replies = new Iznik.Collection(replies);
                         self.listenTo(self.model, 'change:replies', self.updateReplies);
                         self.updateReplies();

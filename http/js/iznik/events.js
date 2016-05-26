@@ -89,7 +89,7 @@ define([
                             // reset, which also helps when playing forwards.
                             type = 'f';
                             strdiff = dom;
-                            console.log("FUL DOM");
+                            this.lastDOMtime = now;
                         } else {
                             type = 'd';
                         }

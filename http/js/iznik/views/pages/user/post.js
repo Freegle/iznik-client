@@ -149,6 +149,8 @@ define([
         },
 
         render: function () {
+            var self = this;
+            
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
                 if (self.options.item) {
                     self.$('.js-items').val(self.options.item);

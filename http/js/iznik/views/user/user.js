@@ -497,11 +497,8 @@ define([
                     }
                 });
 
-                console.log("Got promises", promises.length);
-
                 Promise.all(promises).then(function() {
                     // Restrict how many we show
-                    console.log("Rendered all");
                     self.$('.js-otheremails').showFirst({
                         controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
                         count: 5

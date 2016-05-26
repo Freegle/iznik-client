@@ -105,6 +105,7 @@ define([
                             subaction: 'searchmess'
                         },
                         success: function (collection) {
+                            console.log("Fetched collction", collection);
                             v.close();
                             var some = false;
 
@@ -214,6 +215,7 @@ define([
             var self = this;
             var p = null;
             var related = this.model.get('related');
+            console.log("Render search result", self.model.get('id'));
 
             var taken = _.where(related, {
                 type: 'Taken'

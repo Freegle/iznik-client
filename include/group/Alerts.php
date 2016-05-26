@@ -198,7 +198,7 @@ class Alert extends Entity
             $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
             $ret['responses']['groups'][] = [
                 'group' => $g->getPublic(),
-                'summary' => $data
+                'summary' => $data[0]
             ];
         }
 

@@ -6,6 +6,7 @@ define([
     'iznik/base',
     "iznik/modtools",
     'iznik/views/pages/pages',
+    'iznik/views/pages/modtools/messages',
     'iznik/views/pages/modtools/members_approved',
     'iznik/views/infinite',
     'iznik/views/group/select'
@@ -165,12 +166,10 @@ define([
         render: function () {
             var self = this;
 
-            console.log("Spam", self);
-            self.model.set('group', Iznik.Session.getGroup(self.model.get('groupid')).attributes);
             var p = Iznik.Views.ModTools.Member.prototype.render.call(self);
             p.then(function(self) {
                 if (Iznik.Session.isAdmin()) {
-                    self.$('.js-whitelist').show();
+                    self.$('.js-whitelist').css('visibility', 'visible');
                 }
 
                 var mom = new moment(self.model.get('joined'));
@@ -197,27 +196,29 @@ define([
                 // Auto remove and ban may be turned off, so leave those buttons.
                 self.$('.js-spammer').closest('li').hide();
 
-                // Delay getting the Yahoo info slightly to improve apparent render speed.
-                _.delay(function () {
-                    // The Yahoo part of the user
-                    var mod = IznikYahooUsers.findUser({
-                        email: self.model.get('email'),
-                        group: group.get('nameshort'),
-                        groupid: group.get('id')
-                    });
-
-                    mod.fetch().then(function () {
-                        // We don't want to show the Yahoo joined date because we have our own.
-                        mod.unset('date');
-                        var v = new Iznik.Views.ModTools.Yahoo.User({
-                            model: mod
+                if (group) {
+                    // Delay getting the Yahoo info slightly to improve apparent render speed.
+                    _.delay(function () {
+                        // The Yahoo part of the user
+                        var mod = IznikYahooUsers.findUser({
+                            email: self.model.get('email'),
+                            group: group.get('nameshort'),
+                            groupid: group.get('id')
                         });
 
-                        v.render().then(function (v) {
-                            self.$('.js-yahoo').append(v.el);
+                        mod.fetch().then(function () {
+                            // We don't want to show the Yahoo joined date because we have our own.
+                            mod.unset('date');
+                            var v = new Iznik.Views.ModTools.Yahoo.User({
+                                model: mod
+                            });
+
+                            v.render().then(function (v) {
+                                self.$('.js-yahoo').append(v.el);
+                            });
                         });
-                    });
-                }, 200);
+                    }, 200);
+                }
 
                 self.$('.timeago').timeago();
 
