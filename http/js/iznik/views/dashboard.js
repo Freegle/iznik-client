@@ -33,7 +33,7 @@ define([
     ];
 
     Iznik.Views.DateGraph = Iznik.View.extend({
-        template: 'dashboard_message_graph',
+        template: 'dashboard_message',
 
         render: function () {
             var self = this;

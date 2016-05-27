@@ -206,10 +206,6 @@ define([
         render: function() {
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
-                if (self.options.hideban) {
-                    self.$('.js-ban').closest('li').hide();
-                }
-
                 self.historyColl = new Iznik.Collections.ModTools.MessageHistory();
                 _.each(self.model.get('messagehistory'), function (message, index, list) {
                     self.historyColl.add(new Iznik.Models.ModTools.User.MessageHistoryEntry(message));

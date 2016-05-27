@@ -2013,7 +2013,7 @@ define([
     Iznik.Views.Plugin.Yahoo.BanApprovedMember = Iznik.Views.Plugin.SubView.extend({
         template: 'plugin_member_approved_ban',
     
-        crumbLocation: "/members/all",
+        crumbLocation: "/members/ban",
     
         server: true,
     

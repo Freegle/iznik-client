@@ -141,8 +141,7 @@ define([
                     var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
                     mod.set('groupid', group.id);
                     var v = new Iznik.Views.ModTools.User({
-                        model: mod,
-                        hideban: false
+                        model: mod
                     });
 
                     v.render().then(function (v) {
