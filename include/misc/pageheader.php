@@ -99,6 +99,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
                 navigator.serviceWorker.getRegistrations().then(function(registrations) {
                     console.log("Got SW registrations", registrations);
                     for (var registration in registrations) {
+                        console.log("Registration", registration);
                         registration.unregister()
                     }
                 });

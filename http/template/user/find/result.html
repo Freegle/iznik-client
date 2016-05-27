@@ -36,7 +36,9 @@
         <div class="row">
             <div class="col-xs-12">
                 <% if (obj.snippet) { %>
-                <h3 class="padleft js-snippet">{{snippet}}...</h3>
+                <a class="nodecor js-caret row" data-toggle="collapse" href="#result-{{id}}">
+                    <h3 class="padleft js-snippet">{{snippet}}... Read more >></h3>
+                </a>
                 <% } %>
             </div>
         </div>

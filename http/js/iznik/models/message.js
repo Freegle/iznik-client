@@ -397,13 +397,10 @@ define([
         comparator: function(a, b) {
             var mylat = this.options.nearlocation.lat;
             var mylng = this.options.nearlocation.lng;
-            console.log("My", mylat, mylng, a,b);
 
             // Messages might have an area, or (if we have rights) a location.
             var aloc = a.get('location') ? a.get('location') : a.get('area');
             var bloc = b.get('location') ? b.get('location') : b.get('area');
-
-            console.log(aloc, bloc);
 
             // Some messages don't have locations.  Assume they're far away.
             if (!aloc) {
@@ -414,7 +411,6 @@ define([
 
             var adist = haversineDistance([mylat, mylng], [aloc.lat, aloc.lng], true);
             var bdist = haversineDistance([mylat, mylng], [bloc.lat, bloc.lng], true);
-            console.log(adist, bdist);
             a.set('distance', Math.round(adist, 1));
             b.set('distance', Math.round(bdist, 1));
 

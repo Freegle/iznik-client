@@ -171,31 +171,11 @@ define([
         initialize: function(){
             this.events = _.extend(this.events, Iznik.Views.User.Message.prototype.events);
         },
-        
-        send: function() {
+
+        startChat: function() {
+            // We start a conversation with the sender.
             var self = this;
 
-            // When we reply to a message on a group, we join the group if we're not already a member.
-            var memberofs = Iznik.Session.get('groups');
-            var member = false;
-            var tojoin = null;
-            _.each(memberofs, function(memberof) {
-                console.log("Check member", memberof);
-                var msggroups = self.model.get('groups');
-                _.each(msggroups, function(msggroup) {
-                    console.log("Check msg", msggroup);
-                    tojoin = msggroup.groupid;
-                    if (memberof.id = msggroup.groupid) {
-                        member = true;
-                    }
-                });
-            })
-
-            if (!member) {
-                // We're not a member of any groups on which this message appears.  Join one.
-            }
-
-            // We start a conversation with the sender.
             $.ajax({
                 type: 'PUT',
                 url: API + 'chat/rooms',
@@ -225,6 +205,32 @@ define([
                     }
                 }
             })
+        },
+        
+        send: function() {
+            var self = this;
+
+            // When we reply to a message on a group, we join the group if we're not already a member.
+            var memberofs = Iznik.Session.get('groups');
+            var member = false;
+            var tojoin = null;
+            _.each(memberofs, function(memberof) {
+                console.log("Check member", memberof);
+                var msggroups = self.model.get('groups');
+                _.each(msggroups, function(msggroup) {
+                    console.log("Check msg", msggroup);
+                    tojoin = msggroup.groupid;
+                    if (memberof.id = msggroup.groupid) {
+                        member = true;
+                    }
+                });
+            })
+
+            if (!member) {
+                // We're not a member of any groups on which this message appears.  Join one.
+            } else {
+                self.startChat();
+            }
         },
 
         render: function() {
