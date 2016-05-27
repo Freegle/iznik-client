@@ -24,6 +24,9 @@ define([
 
                             // Sanitise to remove script tags
                             html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+
+                            // Add template name into the HTML, which is very useful for debugging.
+                            html = "<!-- " + id + " -->\r\n" + html;
                             return html;
                         } catch (e) {
                             console.error("Template " + id + " expansion failed with " + e.message + ", ");

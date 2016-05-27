@@ -111,10 +111,12 @@ define([
             var textbody = this.model.get('textbody');
 
             if (textbody) {
+                // console.log("Strip photo", textbody);
                 // Strip photo links - we should have those as attachments.
                 textbody = textbody.replace(/You can see a photo[\s\S]*?jpg/, '');
                 textbody = textbody.replace(/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/\d*/, '');
                 textbody = textbody.replace(/You can see photos here[\s\S]*?jpg/m, '');
+                textbody = textbody.replace(/https:\/\/direct.*jpg/m, '');
 
                 // FOPs
                 textbody = textbody.replace(/Fair Offer Policy applies \(see https:\/\/[^]*\)/, '');
@@ -123,6 +125,7 @@ define([
                 textbody = textbody.replace(/--[\s\S]*Get Freegling[\s\S]*book/m, '');
 
                 textbody = textbody.trim();
+                // console.log("Stripped photo", textbody);
             } else {
                 textbody = '';
             }
@@ -141,9 +144,6 @@ define([
 
             this.stripGumf();
 
-            // Make sure any URLs in the message break.
-            this.model.set('textbody', wbr(this.model.get('textbody'), 20));
-
             var p = Iznik.View.prototype.render.call(self);
             p.then(function() {
                 if (self.expanded) {
@@ -161,7 +161,6 @@ define([
                 self.groupsRendered = [];
                 self.$('.js-groups').empty();
                 _.each(groups, function(group) {
-                    console.log("Render group", self.model.get('id'), group);
                     var v = new Iznik.Views.User.Message.Group({
                         model: new Iznik.Model(group)
                     });

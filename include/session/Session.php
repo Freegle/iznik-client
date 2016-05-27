@@ -220,5 +220,7 @@ function session_reopen() {
     ini_set('session.use_only_cookies', false);
     ini_set('session.use_cookies', false);
     ini_set('session.cache_limiter', null);
-    @session_start(); //Reopen the (previously closed) session for writing.
+    if (!isset($_SESSION)) {
+        session_start(); //Reopen the (previously closed) session for writing.
+    }
 }

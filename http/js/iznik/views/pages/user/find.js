@@ -88,6 +88,14 @@ define([
                             collection: self.collection,
                             page: self
                         },
+                        visibleModelsFilter: function(model) {
+                            // Only show a search result for an offer which has not been taken.
+                            var taken = _.where(model.get('related'), {
+                                type: 'Taken'
+                            });
+
+                            return (taken.length == 0);
+                        },
                         collection: self.collection
                     });
 
@@ -105,11 +113,17 @@ define([
                             subaction: 'searchmess'
                         },
                         success: function (collection) {
-                            console.log("Fetched collction", collection);
                             v.close();
                             var some = false;
 
                             collection.each(function(msg) {
+                                // Get the zoom level for maps and put it somewhere easier.
+                                var zoom = 8;
+                                var groups = msg.get('groups');
+                                if (groups.length > 0) {
+                                    zoom = groups[0].settings.map.zoom;
+                                }
+                                msg.set('zoom', zoom);
                                 var related = msg.get('related');
 
                                 var taken = _.where(related, {
@@ -127,6 +141,8 @@ define([
                                 self.$('.js-none').hide();
                             }
                             self.$('.js-wanted').fadeIn('slow');
+
+                            self.$('.js-postwantd').fadeIn('slow');
                         }
                     });
                 }
@@ -214,37 +230,23 @@ define([
         render: function() {
             var self = this;
             var p = null;
-            var related = this.model.get('related');
-            console.log("Render search result", self.model.get('id'));
+            var mylocation = null;
+            try {
+                mylocation = localStorage.getItem('mylocation');
 
-            var taken = _.where(related, {
-                type: 'Taken'
-            });
-
-            if (taken.length == 0) {
-                // Only show a search result for an offer which has not been taken.
-                var mylocation = null;
-                try {
-                    mylocation = localStorage.getItem('mylocation');
-
-                    if (mylocation) {
-                        mylocation = JSON.parse(mylocation);
-                    }
-                } catch (e) {
+                if (mylocation) {
+                    mylocation = JSON.parse(mylocation);
                 }
-
-                this.model.set('mylocation', mylocation);
-
-                // Static map custom markers don't support SSL.
-                this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapmarker.gif');
-
-                p = Iznik.Views.User.Message.prototype.render.call(this);
-            } else {
-                p = new Promise(function(resolve, reject) {
-                    resolve(self);
-                });
+            } catch (e) {
             }
-            
+
+            this.model.set('mylocation', mylocation);
+
+            // Static map custom markers don't support SSL.
+            this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapmarker.gif');
+
+            p = Iznik.Views.User.Message.prototype.render.call(this);
+
             return(p);
         }
     });

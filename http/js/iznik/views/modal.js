@@ -148,9 +148,11 @@ define([
             var self = this;
             this.waitCount = waitModals.length;
             waitModals.push(this);
+            console.log("Start wait");
 
             if (this.waitCount == 0) {
                 this.timeout = setTimeout(function() {
+                    console.log("Open wait");
                     self.timeout = null;
                     self.open(self.template);
                 }, self.options.timeout ? self.options.timeout : 3000);
@@ -160,11 +162,14 @@ define([
         },
 
         close: function() {
+            console.log("Close wait");
             if (this.waitCount == 0) {
                 // We opened a modal; close it.
                 if (this.timeout) {
+                    console.log("Still timer");
                     clearTimeout(this.timeout);
                 } else {
+                    console.log("Close it");
                     Iznik.Views.Modal.prototype.close.call(this);
                 }
             }

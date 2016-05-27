@@ -21,7 +21,7 @@ requirejs.onError = function (err) {
         console.error("One we care about");
         window.setTimeout(function() {
             window.location.reload();
-        }, 1000);
+        }, 10000);
     }
 };
 

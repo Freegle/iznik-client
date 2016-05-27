@@ -370,8 +370,12 @@ class Message
             $l = new Location($this->dbhr, $this->dbhm, $this->locationid);
             $areaid = $l->getPrivate('areaid');
             if ($areaid) {
+                # This location is quite specific.  Return the area it's in.
                 $a = new Location($this->dbhr, $this->dbhm, $areaid);
                 $ret['area'] = $a->getPublic();
+            } else {
+                # This location isn't in an area; it is one.  Return i.
+                $ret['area'] = $l->getPublic();
             }
 
             $pcid = $l->getPrivate('postcodeid');
@@ -382,8 +386,6 @@ class Message
 
             if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $this->fromuser == $myid)) {
                 $ret['location'] = $l->getPublic();
-                $ret['lat'] = $this->lat;
-                $ret['lng'] = $this->lng;
             }
         }
 
@@ -462,7 +464,7 @@ class Message
 
         if ($role == User::ROLE_NONMEMBER) {
             # For non-members we want to strip out any potential phone numbers or email addresses.
-            $ret['textbody'] = preg_replace('/[0-9]{2,}/', 'xxx', $ret['textbody']);
+            $ret['textbody'] = preg_replace('/[0-9]{4,}/', 'xxx', $ret['textbody']);
             $ret['textbody'] = preg_replace('/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i', 'xxx@xxx.com', $ret['textbody']);
 
             # We can't do this in HTML, so just zap it.
