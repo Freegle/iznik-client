@@ -432,7 +432,6 @@
             var renderResult = modelView.render();
 
             // return false from the view's render function to hide this item
-            console.log("Render result", renderResult);
             if( renderResult === false ) {
                 console.log("Hide");
                 thisModelViewWrapped.hide();

@@ -108,8 +108,7 @@ define([
         },
 
         render: function() {
-            this.open(this.template, this.model);
-            return(resolvedPromise(this));
+            return(this.open(this.template, this.model));
         }
     });
 
