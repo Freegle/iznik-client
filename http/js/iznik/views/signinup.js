@@ -40,6 +40,7 @@ define([
         signin: function () {
             var self = this;
             self.$('.js-signinerror').hide();
+            console.log("Signin");
 
             try {
                 localStorage.setItem('myemail', self.$('.js-signinform .js-email').val());
