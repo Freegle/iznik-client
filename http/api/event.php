@@ -11,6 +11,10 @@ function event() {
             if ($events) {
                 $p = new Events($dbhr, $dbhm);
 
+                $me = whoAmI($dbhr, $dbhm);
+                $myid = $me ? $me->getId() : NULL;
+                $sessid = session_id();
+
                 foreach ($events as $event) {
                     $route = presdef('route', $event, NULL);
                     $target = presdef('target', $event, NULL);
@@ -23,7 +27,7 @@ function event() {
                     $data = presdef('data', $event, NULL);
 
                     if ($route !== NULL) {
-                        $p->record($route, $target, $action, $timestamp, $posx, $posy, $viewx, $viewy, $data);
+                        $p->record($myid, $sessid, $route, $target, $action, $timestamp, $posx, $posy, $viewx, $viewy, $data);
                     }
                 }
             }
