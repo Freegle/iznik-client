@@ -180,7 +180,15 @@ class Message
         $replyto, $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
         $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL,
-        $s, $editedby, $editedat;
+        $s, $editedby, $editedat, $modmail;
+
+    /**
+     * @return mixed
+     */
+    public function getModmail()
+    {
+        return $this->modmail;
+    }
 
     /**
      * @return mixed
@@ -214,7 +222,7 @@ class Message
     ];
 
     public $memberAtts = [
-        'fromname', 'fromuser'
+        'fromname', 'fromuser', 'modmail'
     ];
 
     public $moderatorAtts = [
@@ -264,9 +272,35 @@ class Message
         $this->s = $search;
     }
 
-    # Default mailer is to use the standard PHP one, but this can be overridden in UT.
-    private function mailer() {
-        call_user_func_array('mail', func_get_args());
+    private function mailer($user, $modmail, $toname, $to, $bcc, $fromname, $from, $subject, $text) {
+        try {
+            error_log(session_id() . " mail " . microtime(true));
+
+            $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
+            $transport = Swift_SpoolTransport::newInstance($spool);
+            $mailer = Swift_Mailer::newInstance($transport);
+
+            $message = Swift_Message::newInstance()
+                ->setSubject($subject)
+                ->setFrom([$from => $fromname])
+                ->setTo([$to => $toname])
+                ->setBody($text);
+
+            # We add some headers so that if we receive this back, we can identify it as a mod mail.
+            $headers = $message->getHeaders();
+            $headers->addTextHeader('X-Iznik-From-User', $user->getId());
+            $headers->addTextHeader('X-Iznik-ModMail', $modmail);
+
+            if ($bcc) {
+                $message->setBcc($bcc);
+            }
+
+            $mailer->send($message);
+
+            error_log(session_id() . " mailed " . microtime(true));
+        } catch (Exception $e) {
+            error_log("Send failed with " . $e->getMessage());
+        }
     }
 
     public function getRoleForMessage($overrides = TRUE) {
@@ -1016,21 +1050,34 @@ class Message
         }
 
         if ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED  || $source == Message::EMAIL) {
-            # Make sure we have a user.
+            # Make sure we have a user for the sender.
             $u = new User($this->dbhr, $this->dbhm);
 
             # If there is a Yahoo uid in here - which there isn't always - we might be able to find them that way.
             #
             # This is important as well as checking the email address as users can send from the owner address (which
             # we do not allow to be attached to a specific user, as it can be shared by many).
+            $iznikid = NULL;
             $userid = NULL;
             $yahoouid = NULL;
             $emailid = NULL;
+            $this->modmail = FALSE;
 
-            $gp = $Parser->getHeader('x-yahoo-group-post');
-            if ($gp && preg_match('/u=(.*);/', $gp, $matches)) {
-                $yahoouid = $matches[1];
-                $userid = $u->findByYahooUserId($yahoouid);
+            $iznikid = $Parser->getHeader('x-iznik-from-user');
+            if ($iznikid) {
+                # We know who claims to have sent this.  There's a slight exploit here where someone could spoof
+                # the modmail setting and get a more prominent display.  I may regret writing this comment.
+                $userid = $iznikid;
+                $this->modmail = filter_var($Parser->getHeader('x-iznik-modmail'), FILTER_VALIDATE_BOOLEAN);
+            }
+
+            if (!$userid) {
+                # They might have posted from Yahoo.
+                $gp = $Parser->getHeader('x-yahoo-group-post');
+                if ($gp && preg_match('/u=(.*);/', $gp, $matches)) {
+                    $yahoouid = $matches[1];
+                    $userid = $u->findByYahooUserId($yahoouid);
+                }
             }
 
             if (!$userid) {
@@ -1410,22 +1457,13 @@ class Message
             # We can do a simple substitution in the from name.
             $name = str_replace('$groupname', $atts['namedisplay'], $name);
 
-            $headers = "From: \"$name\" <" . $g->getModsEmail() . ">\r\n";
-
             $bcc = $c->getBcc($action);
 
             if ($bcc) {
                 $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
-                $headers .= "Bcc: $bcc\r\n";
             }
 
-            $this->mailer(
-                $to,
-                $subject,
-                $body,
-                $headers,
-                "-f" . $g->getModsEmail()
-            );
+            $this->mailer($me, TRUE, $this->getFromname(), $to, $bcc, $name, $g->getModsEmail(), $subject, $body);
         }
     }
 
@@ -1449,7 +1487,7 @@ class Message
         foreach ($groups as $group) {
             if ($group['yahooreject']) {
                 # We can trigger rejection by email - do so.
-                $this->mailer($group['yahooreject'], "My name is Iznik and I reject this message", "", NULL, '-f' . MODERATOR_EMAIL);
+                $this->mailer($me, TRUE, $group['yahooreject'], $group['yahooreject'], NULL, MODERATOR_EMAIL, MODERATOR_EMAIL, "My name is Iznik and I reject this message", "");
             }
 
             if ($group['yahoopendingid']) {
@@ -1494,7 +1532,7 @@ class Message
         foreach ($groups as $group) {
             if ($group['yahooapprove']) {
                 # We can trigger approval by email - do so.
-                $this->mailer($group['yahooapprove'], "My name is Iznik and I approve this message", "", NULL, '-f' . MODERATOR_EMAIL);
+                $this->mailer($me, TRUE, $group['yahooapprove'], $group['yahooapprove'], NULL, MODERATOR_EMAIL, MODERATOR_EMAIL, "My name is Iznik and I reject this message", "");
             }
 
             if ($group['yahoopendingid']) {
@@ -1631,7 +1669,7 @@ class Message
                         # Or we might be deleting a pending or spam message, in which case it may also need rejecting on Yahoo.
                         if ($group['yahooreject']) {
                             # We can trigger rejection by email - do so.
-                            $this->mailer($group['yahooreject'], "My name is Iznik and I reject this message", "", NULL, '-f' . MODERATOR_EMAIL);
+                            $this->mailer($me, TRUE, $group['yahooapprove'], $group['yahooapprove'], NULL, MODERATOR_EMAIL, MODERATOR_EMAIL, "My name is Iznik and I reject this message", "");
                         }
 
                         if ($group['yahoopendingid']) {
@@ -1861,6 +1899,11 @@ class Message
         # On Sat, May 14, 2016 at 2:19 PM, Edward Hibbert <
         # notify-5147-16226909@users.ilovefreegle.org> wrote:
         if (preg_match('/(.*)^On.*wrote\:$(.*)/ms', $textbody, $matches)) {
+            $textbody = $matches[1] . $matches[2];
+        }
+
+        # Or we might have this, as a reply from a Yahoo Group message.
+        if (preg_match('/(.*)^To\:.*yahoogroups.*$.*__,_._,___(.*)/ms', $textbody, $matches)) {
             $textbody = $matches[1] . $matches[2];
         }
 
@@ -2359,11 +2402,15 @@ class Message
                 list ($eid, $email) = $u->getEmailForYahooGroup($groupid);
                 $headers = 'From: "' . $u->getName() . '" <' . $email . ">\r\n";
                 $this->mailer(
+                    $u,
+                    FALSE,
                     $g->getGroupEmail(),
+                    $g->getGroupEmail(),
+                    NULL,
+                    $u->getName(),
+                    $email,
                     $subj,
-                    $happiness == User::HAPPY || User::FINE ? $comment : '',
-                    $headers,
-                    "-f" . $g->getModsEmail()
+                    $happiness == User::HAPPY || User::FINE ? $comment : ''
                 );
             }
         }

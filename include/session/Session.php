@@ -215,12 +215,14 @@ class Session {
 }
 
 function session_reopen() {
-    # Generally we close the session for write access in whoAmI().  This allows us to get
-    # write access back.
-    ini_set('session.use_only_cookies', false);
-    ini_set('session.use_cookies', false);
-    ini_set('session.cache_limiter', null);
-    if (!isset($_SESSION)) {
-        session_start(); //Reopen the (previously closed) session for writing.
+    try {
+        # Generally we close the session for write access in whoAmI().  This allows us to get
+        # write access back.
+        ini_set('session.use_only_cookies', false);
+        ini_set('session.use_cookies', false);
+        ini_set('session.cache_limiter', null);
+        session_start(); // Reopen the (previously closed) session for writing.
+    } catch (Exception $e) {
+        # Trap the warning if this is called multiple times.
     }
 }

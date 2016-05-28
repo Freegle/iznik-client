@@ -336,6 +336,16 @@ class messageTest extends IznikTestCase {
         $stripped = $m->stripQuoted();
         assertEquals("Ok, here's a reply.", $stripped);
 
+        $msg = $this->unique(file_get_contents('msgs/notif_reply_text3'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $stripped = $m->stripQuoted();
+        assertEquals('Ok, here\'s a reply.
+
+
+
+And something after it.', $stripped);
+
         error_log(__METHOD__ . " end");
     }
     

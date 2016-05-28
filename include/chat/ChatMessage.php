@@ -13,6 +13,7 @@ class ChatMessage extends Entity
     var $settableatts = array('name');
 
     const TYPE_DEFAULT = 'Default';
+    const TYPE_MODMAIL = 'ModMail';
     const TYPE_SYSTEM = 'System';
     const TYPE_INTERESTED = 'Interested';
     const TYPE_PROMISED = 'Promised';

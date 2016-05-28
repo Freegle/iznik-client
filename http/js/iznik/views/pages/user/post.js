@@ -369,10 +369,10 @@ define([
                         }
                     }
                 });
+
+                Iznik.Session.testLoggedIn();
             });
 
-            Iznik.Session.testLoggedIn();
-            
             return(p);
         }
     });

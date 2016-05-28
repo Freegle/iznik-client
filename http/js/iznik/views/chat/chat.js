@@ -956,6 +956,7 @@ define([
                 var tpl;
 
                 switch (this.model.get('type')) {
+                    case 'ModMail': tpl = 'chat_modmail'; break;
                     case 'Interested': tpl = 'chat_interested'; break;
                     case 'Promised': tpl = 'chat_promised'; break;
                     case 'Reneged': tpl = 'chat_reneged'; break;

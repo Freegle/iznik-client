@@ -534,30 +534,35 @@ class MailRouter
                     } else {
                         # See if it's a direct reply.
                         $uid = $u->findByEmail($to);
-                    }
 
-                    if ($uid) {
-                        # This is to one of our users.  We try to pair it as best we can with one of the posts.
-                        $original = $this->msg->findFromReply($uid);
-                        #error_log("Paired with $original");
+                        if ($uid) {
+                            # This is to one of our users.  We try to pair it as best we can with one of the posts.
+                            $original = $this->msg->findFromReply($uid);
+                            #error_log("Paired with $original");
 
-                        if ($original) {
-                            # We've found (probably) the original message to which this is a reply.
-                            $ret = MailRouter::TO_USER;
+                            if ($original) {
+                                # We've found (probably) the original message to which this is a reply.
+                                $ret = MailRouter::TO_USER;
 
-                            $textbody = $this->msg->stripQuoted();
+                                $textbody = $this->msg->stripQuoted();
 
-                            # Get/create the chat room between the two users.
-                            #error_log("Create chat between " . $this->msg->getFromuser() . " and " . $uid);
-                            $r = new ChatRoom($this->dbhr, $this->dbhm);
-                            $rid = $r->createConversation($this->msg->getFromuser(), $uid);
-                            #error_log("Got chat id $rid");
+                                # Get/create the chat room between the two users.
+                                #error_log("Create chat between " . $this->msg->getFromuser() . " and " . $uid);
+                                $r = new ChatRoom($this->dbhr, $this->dbhm);
+                                $rid = $r->createConversation($this->msg->getFromuser(), $uid);
+                                #error_log("Got chat id $rid");
 
-                            if ($rid) {
-                                # And now add our text into the chat room as a message.  This will notify them.
-                                $m = new ChatMessage($this->dbhr, $this->dbhm);
-                                $mid = $m->create($rid, $this->msg->getFromuser(), $textbody, ChatMessage::TYPE_INTERESTED, $this->msg->getID(), FALSE);
-                                #error_log("Created chat message $mid");
+                                if ($rid) {
+                                    # And now add our text into the chat room as a message.  This will notify them.
+                                    $m = new ChatMessage($this->dbhr, $this->dbhm);
+                                    $mid = $m->create($rid, 
+                                        $this->msg->getFromuser(), 
+                                        $textbody, 
+                                        $this->msg->getModmail() ? ChatMessage::TYPE_MODMAIL : ChatMessage::TYPE_INTERESTED, 
+                                        $this->msg->getID(), 
+                                        FALSE);
+                                    #error_log("Created chat message $mid");
+                                }
                             }
                         }
                     }

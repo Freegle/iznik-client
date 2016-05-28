@@ -343,7 +343,7 @@ define([
             p.then(function(self) {
                 self.$('.timeago').timeago();
 
-                var chat = Iznik.Session.chats.get(this.model.get('chat').id);
+                var chat = Iznik.Session.chats.get(self.model.get('chat').id);
                 self.listenTo(chat, 'change:unseen', self.updateUnread);
 
                 self.updateUnread();

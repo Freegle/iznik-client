@@ -2,6 +2,7 @@
 $scriptstart = microtime(false);
 date_default_timezone_set('UTC');
 session_start();
+$_SESSION['writable'] = TRUE;
 define( 'BASE_DIR', dirname(__FILE__) . '/..' );
 require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
