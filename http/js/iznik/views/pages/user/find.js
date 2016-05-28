@@ -214,7 +214,8 @@ define([
             var memberofs = Iznik.Session.get('groups');
             var member = false;
             var tojoin = null;
-            _.each(memberofs, function(memberof) {
+            console.log("Member ofs", memberofs);
+            memberofs.each(function(memberof) {
                 console.log("Check member", memberof);
                 var msggroups = self.model.get('groups');
                 _.each(msggroups, function(msggroup) {
@@ -224,7 +225,7 @@ define([
                         member = true;
                     }
                 });
-            })
+            });
 
             if (!member) {
                 // We're not a member of any groups on which this message appears.  Join one.

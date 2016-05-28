@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/message/Message.php');
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
 $at = 0;
 
-$s = new Search($dbhr, $dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid');
+$s = new Search($dbhr, $dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid', NULL);
 
 do {
     $found = FALSE;

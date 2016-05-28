@@ -19,6 +19,7 @@ class Search
     private $table;
     private $idatt;
     private $sortatt;
+    private $sortlim;
     private $wordtab;
     private $wordcache = [];
 
@@ -30,7 +31,7 @@ class Search
         'freegle', 'freecycle', 'for'
     );
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $table, $idatt, $sortatt, $wordtab, $filtatt)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $table, $idatt, $sortatt, $wordtab, $filtatt, $sortlim)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -39,6 +40,7 @@ class Search
         $this->sortatt = $sortatt;
         $this->wordtab = $wordtab;
         $this->filtatt = $filtatt;
+        $this->sortlim = $sortlim;
     }
 
     private function getWords($string)
@@ -240,6 +242,8 @@ class Search
         } else {
             $filtfilt = "";
         }
+
+        $filtfilt = ($this->sortlim) ? "$filtfilt AND {$this->sortatt} <= -{$this->sortlim}" : $filtfilt;
 
         # We get search results from different ways of searching.  That means we need to return a context that
         # tracks where we got to on the different sources of info.

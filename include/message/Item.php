@@ -16,7 +16,7 @@ class Item extends Entity
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->fetch($dbhr, $dbhm, $id, 'items', 'item', $this->publicatts);
-        $this->s = new Search($dbhr, $dbhm, 'items_index', 'itemid', 'popularity', 'words', 'categoryid');
+        $this->s = new Search($dbhr, $dbhm, 'items_index', 'itemid', 'popularity', 'words', 'categoryid', NULL);
     }
 
     /**
