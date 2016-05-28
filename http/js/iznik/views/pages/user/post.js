@@ -202,7 +202,7 @@ define([
                         }
 
                         if (data.autoUpload || (data.autoUpload !== false &&
-                            $(self).fileupload('option', 'autoUpload'))) {
+                            $(this).fileupload('option', 'autoUpload'))) {
                             data.process().done(function () {
                                 data.submit();
                             });

@@ -1907,6 +1907,10 @@ class Message
             $textbody = $matches[1] . $matches[2];
         }
 
+        # Or we might have some headers
+        $textbody = preg_replace('/^From:.*?$/mi', '', $textbody);
+        $textbody = preg_replace('/^Sent:.*?$/mi', '', $textbody);
+
         #error_log("Pruned text to $textbody");
         return(trim($textbody));
     }
@@ -2243,25 +2247,8 @@ class Message
                 }
             }
 
-            # Now construct the actual message.
-            $headers = [
-                "From" => $fromuser->getName() . " <$fromemail>",
-                "To" => $g->getGroupEmail(),
-                "Subject" => $this->subject,
-                "Date" => date(DateTime::RFC2822),
-                "Message-Id" => "<$messageid>",
-                "X-Freegle-MsgId" => $this->id,
-                "X-Freegle-UserId" => $fromuser->getId()
-            ];
-
             $txtbody = $this->textbody;
             $htmlbody = "<p>{$this->textbody}</p>";
-
-            $message = new Mail_mime();
-            $message->setParam('head_charset', 'UTF-8');
-            $message->setParam('text_charset', 'UTF-8');
-            $message->setParam('html_charset', 'UTF-8');
-            $message->setParam('text_encoding', '7bit');
 
             $atts = $this->getAttachments();
 
@@ -2286,33 +2273,43 @@ class Message
 
             $htmlbody = str_replace("\r\n", "<br>", $htmlbody);
 
-            $message->setTXTBody($txtbody);
-            $message->setHTMLBody($htmlbody);
             $this->setPrivate('textbody', $txtbody);
             $this->setPrivate('htmlbody', $htmlbody);
 
-            $body = $message->get();
-            $hdrs = $message->headers($headers);
-            $msg = '';
-            foreach ($hdrs as $key => $val) {
-                $msg .= "$key: $val\r\n";
+            # Now construct the actual message to send.
+            try {
+                $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
+                $transport = Swift_SpoolTransport::newInstance($spool);
+                $mailer = Swift_Mailer::newInstance($transport);
+
+                $message = Swift_Message::newInstance()
+                    ->setSubject($this->subject)
+                    ->setFrom([$fromemail => $fromuser->getName()])
+                    ->setTo([$g->getGroupEmail()])
+                    ->setDate(time())
+                    ->setId($messageid)
+                    ->setBody($txtbody)
+                    ->addPart($htmlbody, 'text/html');
+
+                # We add some headers so that if we receive this back, we can identify it as a mod mail.
+                $headers = $message->getHeaders();
+                $headers->addTextHeader('X-Iznik-MsgId', $this->id);
+                $headers->addTextHeader('X-Iznik-From-User', $fromuser->getId());
+
+                # Store away the constructed message.
+                $this->setPrivate('message', $message->toString());
+
+                $mailer->send($message);
+
+                # This message is not a draft any more, it's pending.
+                $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $this->id ]);
+                $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
+
+                $rc = TRUE;
+            } catch (Exception $e) {
+                error_log("Send failed with " . $e->getMessage());
+                $rc = FALSE;
             }
-
-            $msg .= "\r\n\r\n$body";
-
-            # Store away the constructed message.
-            $this->setPrivate('message', $msg);
-
-            # Logging
-            $atts = $this->getPublic();
-
-            $this->mailf($fromemail, $g->getGroupEmail(), $hdrs, $body);
-
-            # This message is not a draft any more, it's pending.
-            $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $this->id ]);
-            $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
-
-            $rc = TRUE;
         }
 
         return($rc);
