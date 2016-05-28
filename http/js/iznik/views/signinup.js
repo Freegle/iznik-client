@@ -14,6 +14,7 @@ define([
             'click .js-loginNative': 'showNative',
             'click .js-signin': 'signin',
             'click .js-signup': 'signup',
+            'click .js-register': 'register',
             'click .js-loginYahoo': 'yahoologin',
             'click .js-loginFB': 'fblogin',
             'click .js-forgot': 'lostPassword',
@@ -37,10 +38,16 @@ define([
             }
         },
 
+        register: function(e) {
+            this.$('.js-registerhide').hide();
+            this.$('.js-signinerror').hide();
+            this.$('.js-registershow').fadeIn('slow');
+            this.$('.js-email').focus();
+        },
+
         signin: function () {
             var self = this;
             self.$('.js-signinerror').hide();
-            console.log("Signin");
 
             try {
                 localStorage.setItem('myemail', self.$('.js-signinform .js-email').val());
@@ -80,12 +87,11 @@ define([
             var self = this;
             self.$('.js-signinerror').hide();
             $.ajax({
-                type: "POST",
-                url: API + "user_register",
+                type: "PUT",
+                url: API + "user",
                 data: {
-                    'email': self.$('.js-signupform .js-email').val(),
-                    'password': self.$('.js-signupform .js-password').val(),
-                    'name': self.$('.js-signupform .js-firstname').val() + ' ' + self.$('.js-signupform .js-lastname').val()
+                    'email': self.$('.js-email').val(),
+                    'password': self.$('.js-password').val()
                 },
                 success: function (ret) {
                     console.log("Register", ret);

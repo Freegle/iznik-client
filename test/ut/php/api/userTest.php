@@ -51,6 +51,57 @@ class userAPITest extends IznikAPITestCase {
     public function __construct() {
     }
 
+    public function testRegister() {
+        error_log(__METHOD__);
+        
+        $email = 'test2@test.com';
+
+        # Invalid
+        $ret = $this->call('user', 'PUT', [
+            'email' => $email
+        ]);
+        assertEquals(1, $ret['ret']);
+
+        $ret = $this->call('user', 'PUT', [
+            'password' => 'wibble'
+        ]);
+        assertEquals(1, $ret['ret']);
+        
+        # Register successfully
+        error_log("Register expect success");
+        $ret = $this->call('user', 'PUT', [
+            'email' => $email,
+            'password' => 'wibble'
+        ]);
+        error_log("Expect success returned " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        assertNotNull($id);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $id
+        ]);
+        error_log(var_export($ret, TRUE));
+        assertEquals($email, $ret['user']['emails'][0]['email']);
+
+        # Register with email already taken and wrong password
+        $ret = $this->call('user', 'PUT', [
+            'email' => $email,
+            'password' => 'wibble2'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Register with same email and pass
+        $ret = $this->call('user', 'PUT', [
+            'email' => $email,
+            'password' => 'wibble'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+    
     public function testDeliveryType() {
         error_log(__METHOD__);
 

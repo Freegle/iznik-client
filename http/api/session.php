@@ -72,8 +72,10 @@ function session() {
 
             if ($password && $email) {
                 # Native login via username and password
+                $ret = array('ret' => 2, 'status' => "We don't know that email address.  If you're new, please Sign Up.");
                 $possid = $user->findByEmail($email);
                 if ($possid) {
+                    $ret = array('ret' => 3, 'status' => "The password is wrong.  Maybe you've forgotten it?");
                     $u = new User($dbhr, $dbhm, $possid);
                     if ($u->login($password)) {
                         $ret = array('ret' => 0, 'status' => 'Success');

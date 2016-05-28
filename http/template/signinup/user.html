@@ -18,7 +18,7 @@
                             <img class="clickme js-loginYahoo signinbutton" src="/images/signinbuttons/yahoo.png"/>
                         </div>
                     </div>
-                    <div class="col-sm-6 text-center">
+                    <div class="col-sm-6 text-center topspace">
                         <div class="js-signinform">
                             <div class="form-group">
                                 <input type="email" name="email" class="form-control js-email" placeholder="Your email address">
@@ -27,9 +27,14 @@
                                 <input type="password" name="password" class="form-control js-password" maxlength="40"
                                        placeholder="Password">
                             </div>
-                            <button class="btn btn-lg btn-block btn-success botspace js-signin">Sign In</button>
-                            <a class="topspace" class="js-forgot">I forgot my password</a>
-                            <p class="topspace">New freegler?  <a href="#" class="js-signup">Register</a></p>
+                            <div class="js-registerhide">
+                                <button class="btn btn-lg btn-block btn-success botspace js-signin">Sign In</button>
+                                <a class="topspace" class="js-forgot">I forgot my password</a>
+                                <p class="topspace">New freegler?  <span class="fakelink js-register">Sign Up</span></p>
+                            </div>
+                            <div class="js-registershow" style="display: none">
+                                <button class="btn btn-lg btn-block btn-success botspace js-signup">Sign Up</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -58,14 +63,18 @@
                             <input type="password" name="password" class="form-control js-password" maxlength="40"
                                    placeholder="Password">
                         </div>
-                        <button class="btn btn-lg btn-block btn-success botspace js-signin">Sign In</button>
-                        <a class="topspace" class="js-forgot">I forgot my password</a>
-                        <p class="topspace">New freegler?  <a href="#" class="js-signup">Register</a></p>
+                        <div class="js-registerhide">
+                            <button class="btn btn-lg btn-block btn-success botspace js-signin">Sign In</button>
+                            <a class="topspace" class="js-forgot">I forgot my password</a>
+                            <p class="topspace">New freegler?  <span class="fakelink js-signup">Sign Up</span></p>
+                        </div>
+                        <div class="js-registershow">
+                            <button class="btn btn-lg btn-block btn-success botspace js-signup">Sign Up</button>
+                        </div>
                     </div>
                 </div>
-                <div class="row tbspace js-native" style="display:none;">
+                <div class="row tbspace">
                     <div class="alert alert-danger js-signinerror" style="display:none;">
-                        <strong>Error!</strong>
                         <span class="js-errmsg"></span>
                     </div>
                 </div>

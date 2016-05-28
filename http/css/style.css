@@ -426,6 +426,12 @@ body {
     background: #CCFFFF !important;
 }
 
+.fakelink {
+    color: #337ab7;
+    text-decoration: none;
+    cursor: pointer;
+}
+
 .clickme {
     cursor: pointer;
 }
@@ -875,6 +881,10 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 
 .white, .white a {
     color: #fff;
+}
+
+.black, .black a {
+    color: black;
 }
 
 .caretdropdown {

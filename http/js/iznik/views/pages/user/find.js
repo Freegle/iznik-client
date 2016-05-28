@@ -98,6 +98,30 @@ define([
                         },
                         collection: self.collection
                     });
+                    
+                    self.listenTo(self.collectionView, 'add', function(modelView) {
+                        // We might have been trying to reply to a message.
+                        //
+                        // Listening to the collectionView means that we'll find this, eventually, if we are infinite
+                        // scrolling.
+                        try {
+                            var replyto = localStorage.setItem('replyto');
+                            var thisid = modelView.model.get('id');
+                            
+                            console.log("Check for reply", replyto, thisid);
+                            
+                            if (replyto == thisid) {
+                                var replytext = localStorage.setItem('replytext');
+
+                                if (replyto) {
+                                    console.log("Scroll to");
+                                    $('html, body').animate({
+                                        scrollTop: modelView.$el.offset().top
+                                    }, 2000);
+                                }
+                            }
+                        } catch (e) {}
+                    })
 
                     self.collectionView.render();
 
@@ -210,28 +234,43 @@ define([
         send: function() {
             var self = this;
 
-            // When we reply to a message on a group, we join the group if we're not already a member.
-            var memberofs = Iznik.Session.get('groups');
-            var member = false;
-            var tojoin = null;
-            console.log("Member ofs", memberofs);
-            memberofs.each(function(memberof) {
-                console.log("Check member", memberof);
-                var msggroups = self.model.get('groups');
-                _.each(msggroups, function(msggroup) {
-                    console.log("Check msg", msggroup);
-                    tojoin = msggroup.groupid;
-                    if (memberof.id = msggroup.groupid) {
-                        member = true;
-                    }
-                });
+            // Save off details of our reply.
+            try {
+                localStorage.setItem('replyto', self.model.get('id'));
+                localStorage.setItem('replytext', self.$('.js-replytext').val());
+            } catch (e) {}
+
+            // If we're not already logged in, we want to be.
+            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                // When we reply to a message on a group, we join the group if we're not already a member.
+                var memberofs = Iznik.Session.get('groups');
+                var member = false;
+                var tojoin = null;
+                if (memberofs) {
+                    console.log("Member ofs", memberofs);
+                    memberofs.each(function(memberof) {
+                        console.log("Check member", memberof);
+                        var msggroups = self.model.get('groups');
+                        _.each(msggroups, function(msggroup) {
+                            console.log("Check msg", msggroup);
+                            tojoin = msggroup.groupid;
+                            if (memberof.id = msggroup.groupid) {
+                                member = true;
+                            }
+                        });
+                    });
+                }
+
+                if (!member) {
+                    // We're not a member of any groups on which this message appears.  Join one.
+                } else {
+                    self.startChat();
+                }
             });
 
-            if (!member) {
-                // We're not a member of any groups on which this message appears.  Join one.
-            } else {
-                self.startChat();
-            }
+            Iznik.Session.forceLogin({
+                modtools: false
+            });
         },
 
         render: function() {

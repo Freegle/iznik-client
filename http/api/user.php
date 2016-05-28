@@ -55,6 +55,72 @@ function user() {
             break;
         }
 
+        case 'PUT': {
+            $email = presdef('email', $_REQUEST, NULL);
+            $password = presdef('password', $_REQUEST, NULL);
+
+            $ret = ['ret' => 1, 'status' => 'Invalid parameters'];
+
+            if ($email && $password) {
+                $id = $u->findByEmail($email);
+
+                if ($id) {
+                    # This user already exists.  If we are trying to register again with the same password, then
+                    # the user is probably just a bit confused, but it's the same person - so treat this as a success.
+                    # So try to login.
+                    $u = new User($dbhr, $dbhm, $id);
+                    $rc = $u->login($password);
+
+                    if ($rc) {
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'id' => $id
+                        ];
+                    } else {
+                        $ret = [
+                            'ret' => 2,
+                            'status' => "That's the wrong password.",
+                            'id' => $id
+                        ];
+                    }
+                } else {
+                    session_reopen();
+                    $id = $u->create(NULL, NULL, NULL, "Registered");
+
+                    $ret = [
+                        'ret' => 3,
+                        'status' => 'User create failed, please try later'
+                    ];
+
+                    if ($id) {
+                        # We created the user.  Add their email and log in.
+                        $rc = $u->addEmail($email);
+
+                        if ($rc) {
+                            $rc = $u->addLogin(User::LOGIN_NATIVE, $id, $password);
+
+                            if ($rc) {
+                                session_reopen();
+                                $rc = $u->login($password);
+
+                                if ($rc) {
+                                    $_SESSION['id'] = $id;
+                                    $ret = [
+                                        'ret' => 0,
+                                        'status' => 'Success',
+                                        'id' => $id
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            break;
+        }
+
         case 'PATCH': {
             $u = new User($dbhr, $dbhm, $id);
             $p = new Plugin($dbhr, $dbhm);
