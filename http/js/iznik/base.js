@@ -152,9 +152,8 @@ define([
             },
 
             waitDOM: function(self) {
+                console.log("In DOM WAIT", self);
                 // Some libraries we use don't work properly until the view element is in the DOM.
-                var self = this;
-
                 function pollRecursive() {
                     return self.$el.closest('body').length > 0 ?
                         Promise.resolve(true) :
@@ -193,10 +192,12 @@ define([
                     if (!self.template) {
                         // We don't have a template.  We can render.
                         resolve(self.ourRender.call(self));
+                        self.trigger('rendered');
                     } else {
                         // We have a template.  We need to fetch it.
                         templateFetch(self.template).then(function() {
                             resolve(self.ourRender.call(self));
+                            self.trigger('rendered');
                         })
                     }
                 })
@@ -211,9 +212,12 @@ define([
             waitDOM: function(self, cb) {
                 // Sometimes, we need to wait until our rendering has completed and an element is in the DOM.  We
                 // do this in a rather clunky polling way, as it's not idiomatic with promises.
+                console.log("waitDOM", self);
                 if (self.$el.closest('body').length > 0) {
-                    cb.call(self);
+                    console.log("Already there");
+                    cb.call(self, self);
                 } else {
+                    console.log("Start timer");
                     window.setTimeout(self.waitDOM, 50, self, cb);
                 }
             },

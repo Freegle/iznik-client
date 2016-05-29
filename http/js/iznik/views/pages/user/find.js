@@ -98,29 +98,29 @@ define([
                         },
                         collection: self.collection
                     });
-                    
+
+                    // We might have been trying to reply to a message.
+                    //
+                    // Listening to the collectionView means that we'll find this, eventually, if we are infinite
+                    // scrolling.
                     self.listenTo(self.collectionView, 'add', function(modelView) {
-                        // We might have been trying to reply to a message.
-                        //
-                        // Listening to the collectionView means that we'll find this, eventually, if we are infinite
-                        // scrolling.
                         try {
-                            var replyto = localStorage.setItem('replyto');
+                            var replyto = localStorage.getItem('replyto');
+                            var replytext = localStorage.getItem('replytext');
                             var thisid = modelView.model.get('id');
                             
-                            console.log("Check for reply", replyto, thisid);
-                            
                             if (replyto == thisid) {
-                                var replytext = localStorage.setItem('replytext');
+                                // Clear the local storage, so that we don't get stuck here.
+                                // localStorage.removeItem('replyto');
+                                // localStorage.removeItem('replytext');
 
-                                if (replyto) {
-                                    console.log("Scroll to");
-                                    $('html, body').animate({
-                                        scrollTop: modelView.$el.offset().top
-                                    }, 2000);
-                                }
+                                // This event happens before the view has been rendered.  Wait for that.
+                                self.listenToOnce(modelView, 'rendered', function() {
+                                    modelView.expand.call(modelView);
+                                    modelView.setReply.call(modelView, replytext);
+                                });
                             }
-                        } catch (e) {}
+                        } catch (e) {console.log("Failed", e)}
                     })
 
                     self.collectionView.render();
@@ -263,6 +263,7 @@ define([
 
                 if (!member) {
                     // We're not a member of any groups on which this message appears.  Join one.
+                    console.log("Not a member yet, need to join");
                 } else {
                     self.startChat();
                 }

@@ -32,6 +32,26 @@ define([
             }
         },
 
+        expand: function() {
+            this.$('.js-caretdown').click();
+        },
+
+        setReply: function(text) {
+            var self = this;
+            this.$('.js-replytext').val(text);
+
+            $('html, body').animate({
+                    scrollTop: self.$('.js-replytext').offset().top
+                },
+                2000,
+                function() {
+                    // Now send it.
+                    console.log("Now send", self.$('.js-send'));
+                    self.$('.js-send').click();
+                }
+            );
+        },
+
         carettoggle: function() {
             this.expanded = !this.expanded;
             if (this.expanded) {
@@ -81,7 +101,6 @@ define([
                 });
             }
 
-            console.log("Unread count", unread);
             if (unread > 0) {
                 this.$('.js-unreadcount').html(unread);
                 this.$('.js-unreadcountholder').show();
