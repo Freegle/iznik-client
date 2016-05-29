@@ -366,7 +366,7 @@ define([
         }
     });
 
-    Iznik.Views.Chat.Minimised = Iznik.View.extend({
+    Iznik.Views.Chat.Minimised = Iznik.View.Timeago.extend({
         template: 'chat_minimised',
 
         tagName: 'li',
@@ -394,7 +394,7 @@ define([
         },
 
         render: function() {
-            var p = Iznik.View.prototype.render.call(this);
+            var p = Iznik.View.Timeago.prototype.render.call(this);
             p.then(function(self) {
                 self.updateCount();
 
@@ -649,13 +649,14 @@ define([
             }
 
             self.listenTo(self.messages, 'add', _.bind(function() {
-                _.defer(this.scrollBottom);
+                _.delay(this.scrollBottom, 2000);
             }, self));
 
             // We fetch the messages when restoring - no need before then.
             self.messages.fetch().then(function() {
                 // We've just opened this chat - so we have had a decent chance to see any unread messages.
                 self.messageFocus();
+                _.delay(this.scrollBottom, 2000);
 
                 self.trigger('restored');
             });
@@ -843,7 +844,7 @@ define([
             self.messages = new Iznik.Collections.Chat.Messages({
                 roomid: self.model.get('id')
             });
-            
+
             var p = Iznik.View.prototype.render.call(self);
             p.then(function(self) {
                 if (!self.options.modtools) {

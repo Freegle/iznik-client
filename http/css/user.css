@@ -310,6 +310,17 @@ h1,h2,h3,h4 {
     background-color: #4895DD;
 }
 
+
+#js-notifchat ul, #js-notifchat li {
+    color: black;
+    background-color: #edeef1;
+}
+
+#js-notifchat li {
+    border: 1px solid grey;
+    padding: 2px;
+}
+
 .chat-name {
     background-color: #4895DD;
 }

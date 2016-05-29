@@ -1067,6 +1067,10 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     overflow-x: hidden;
 }
 
+.chat-min-username {
+    color: #000080;
+}
+
 .chat-window {
     background: white;
     box-shadow: 1px 3px 5px 3px rgba(0, 0, 0, 0.4);
@@ -1291,6 +1295,10 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 
     .botspace {
         margin-bottom: 7px !important;
+    }
+
+    #notifchatdropdown {
+        min-width: 400px;
     }
 }
 
