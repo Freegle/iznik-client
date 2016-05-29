@@ -31,7 +31,7 @@ class Search
         'freegle', 'freecycle', 'for'
     );
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $table, $idatt, $sortatt, $wordtab, $filtatt, $sortlim)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $table, $idatt, $sortatt, $wordtab, $filtatt, $sortlim = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;

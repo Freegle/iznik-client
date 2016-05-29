@@ -44,6 +44,7 @@ class messagesTest extends IznikAPITestCase {
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -432,6 +433,7 @@ class messagesTest extends IznikAPITestCase {
 
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
