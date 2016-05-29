@@ -767,9 +767,21 @@ class Group extends Entity
     }
 
     public function getConfirmKey() {
-        $key = randstr(32);
-        $sql = "UPDATE groups SET confirmkey = ? WHERE id = ?;";
-        $rc = $this->dbhm->preExec($sql, [ $key, $this->id ]);
+        $key = NULL;
+
+        # Don't reset the key each time, otherwise we can have timing windows where the key is reset, thereby
+        # invalidating an invitation which is in progress.
+        $groups = $this->dbhr->preQuery("SELECT confirmkey FROM groups WHERE id = ?;" , [ $this->id ]);
+        foreach ($groups as $group) {
+            $key = $group['confirmkey'];
+        }
+
+        if (!$key) {
+            $key = randstr(32);
+            $sql = "UPDATE groups SET confirmkey = ? WHERE id = ?;";
+            $rc = $this->dbhm->preExec($sql, [ $key, $this->id ]);
+        }
+
         return($key);
     }
 

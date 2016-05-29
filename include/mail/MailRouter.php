@@ -193,7 +193,7 @@ class MailRouter
                             }
                         }
 
-                        # Key is single use
+                        # Key is single use after a successful confirm.
                         $this->dbhm->preExec("UPDATE groups SET confirmkey = NULL WHERE id = ?;", [$groupid]);
                     }
                 }

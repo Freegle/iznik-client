@@ -835,7 +835,11 @@ define([
     
         fail: function() {
             this.$('.glyphicon-refresh').removeClass('glyphicon-refresh rotate').addClass('glyphicon-warning-sign');
-            window.IznikPlugin.collection.at(0).retry();
+            var work = window.IznikPlugin.collection.at(0);
+
+            if (work) {
+                work.retry();
+            }
         },
     
         succeed: function() {

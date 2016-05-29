@@ -39,7 +39,7 @@ if (preg_match('/MODERATE -- (.*) posted to (.*)/', $msg, $matches)) {
     $rc = $r->route();
 } else if (stripos($envfrom, "@returns.groups.yahoo.com") !== FALSE ||
     stripos($envfrom, "notify@yahoogroups.com") !== FALSE ||
-    (stripos($envto, USER_DOMAIN) !== FALSE && stripos($msg, 'Reply-To: confirm-invite') !== FALSE) ||
+    (($envto == MODERATOR_EMAIL || stripos($envto, USER_DOMAIN) !== FALSE) && stripos($msg, 'Reply-To: confirm-invite') !== FALSE) ||
     stripos($envto, "modconfirm-") !== FALSE) {
     # This is a system message.
     error_log("From Yahoo System");
