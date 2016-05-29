@@ -840,6 +840,10 @@ define([
 
             self.$el.css('visibility', 'hidden');
 
+            self.messages = new Iznik.Collections.Chat.Messages({
+                roomid: self.model.get('id')
+            });
+            
             var p = Iznik.View.prototype.render.call(self);
             p.then(function(self) {
                 if (!self.options.modtools) {
@@ -887,10 +891,6 @@ define([
                     }
                 } catch (e) {
                 }
-
-                self.messages = new Iznik.Collections.Chat.Messages({
-                    roomid: self.model.get('id')
-                });
 
                 self.messageViews = new Backbone.CollectionView({
                     el: self.$('.js-messages'),

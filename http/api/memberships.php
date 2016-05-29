@@ -5,6 +5,7 @@ function memberships() {
     $me = whoAmI($dbhr, $dbhm);
 
     $userid = intval(presdef('userid', $_REQUEST, NULL));
+
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
     $role = presdef('role', $_REQUEST, NULL);
     $email = presdef('email', $_REQUEST, NULL);
@@ -58,10 +59,11 @@ function memberships() {
                         $proceed = TRUE;
                     } else if ($groupid && ($me->isModOrOwner($groupid) || ($userid && $userid == $me->getId()))) {
                         # Get just one.  We can get this if we're a mod or it's our own.
+                        error_log("Get just one");
                         $groupids[] = $groupid;
                         $limit = $userid ? 1 : $limit;
                         $proceed = TRUE;
-                    } else {
+                    } else if ($me->isModerator()) {
                         # No group was specified - use the current memberships, if we have any, excluding those that our
                         # preferences say shouldn't be in.
                         #
@@ -131,12 +133,22 @@ function memberships() {
 
             case 'PUT': {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
-                if ($u && $me && $me->isModOrOwner($groupid) && $email) {
-                    # We can add them, but not as someone higher than us.
+
+                # We might have been passed a userid; if not, then assume we're acting on ourselves.
+                $userid = $userid ? $userid : ($me ? $me->getId() : NULL);
+                $u = new User($dbhr, $dbhm, $userid);
+
+                if ($u && $me && $u->getId() && $me->getId()) {
+                    # If this isn't us, we can add them, but not as someone with higher permissions than us.
                     $role = $u->roleMin($role, $me->getRole($groupid));
 
-                    # Get the emailid.  This will add it if absent.
-                    $emailid = $u->addEmail($email);
+                    if ($email) {
+                        # Get the emailid we'd like to use on this group.  This will add it if absent.
+                        $emailid = $u->addEmail($email);
+                    } else {
+                        # We've not asked to use a specific email address.  Just use our preferred one.
+                        $emailid = $u->getAnEmailId();
+                    }
 
                     $u->addMembership($groupid, $role, $emailid);
 

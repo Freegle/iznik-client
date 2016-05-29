@@ -52,23 +52,21 @@ class membershipsAPITest extends IznikAPITestCase {
     public function testAdd() {
         error_log(__METHOD__);
 
-        # Shouldn't be able to add as non-member or member
+        # Should be able to add (i.e. join) as a non-member or a member.
         $ret = $this->call('memberships', 'PUT', [
             'groupid' => $this->groupid,
             'userid' => $this->uid2,
-            'role' => 'Member',
-            'email' => 'test2@test.com'
+            'role' => 'Member'
         ]);
-        assertEquals(2, $ret['ret']);
+        assertEquals(0, $ret['ret']);
 
-        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MEMBER));
         $ret = $this->call('memberships', 'PUT', [
             'groupid' => $this->groupid,
             'userid' => $this->uid2,
             'role' => 'Member',
             'email' => 'test2@test.com'
         ]);
-        assertEquals(2, $ret['ret']);
+        assertEquals(0, $ret['ret']);
 
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
         $ret = $this->call('memberships', 'PUT', [
@@ -123,15 +121,10 @@ class membershipsAPITest extends IznikAPITestCase {
         error_log(__METHOD__);
 
         # Shouldn't be able to get as non-member or member
-        $ret = $this->call('memberships', 'PUT', [
-            'groupid' => $this->groupid,
-            'userid' => $this->uid2,
-            'role' => 'Member',
-            'email' => 'test2@test.com'
-        ]);
         $ret = $this->call('memberships', 'GET', [
             'groupid' => $this->groupid
         ]);
+        error_log("Got memberships " . var_export($ret, TRUE));
         assertEquals(2, $ret['ret']);
 
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MEMBER));

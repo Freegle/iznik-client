@@ -38,16 +38,29 @@ define([
 
         setReply: function(text) {
             var self = this;
+
+            try {
+                // Clear the local storage, so that we don't get stuck here.
+                localStorage.removeItem('replyto');
+                localStorage.removeItem('replytext');
+            } catch (e) {}
+
             this.$('.js-replytext').val(text);
+
+            // We might get called back twice because of the html, body selector (which we need for browser compatibility)
+            // so make sure we only actually click send once.
+            self.readyToSend = true;
 
             $('html, body').animate({
                     scrollTop: self.$('.js-replytext').offset().top
                 },
                 2000,
                 function() {
-                    // Now send it.
-                    console.log("Now send", self.$('.js-send'));
-                    self.$('.js-send').click();
+                    if (self.readyToSend) {
+                        // Now send it.
+                        self.readyToSend = false;
+                        self.$('.js-send').click();
+                    }
                 }
             );
         },

@@ -110,10 +110,6 @@ define([
                             var thisid = modelView.model.get('id');
                             
                             if (replyto == thisid) {
-                                // Clear the local storage, so that we don't get stuck here.
-                                // localStorage.removeItem('replyto');
-                                // localStorage.removeItem('replytext');
-
                                 // This event happens before the view has been rendered.  Wait for that.
                                 self.listenToOnce(modelView, 'rendered', function() {
                                     modelView.expand.call(modelView);
@@ -200,6 +196,9 @@ define([
             // We start a conversation with the sender.
             var self = this;
 
+            self.wait = new Iznik.Views.PleaseWait();
+            self.wait.render();
+
             $.ajax({
                 type: 'PUT',
                 url: API + 'chat/rooms',
@@ -223,6 +222,7 @@ define([
                                     var chatmodel = Iznik.Session.chats.get(chatid);
                                     var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
                                     chatView.restore();
+                                    self.wait.close();
                                 });
                             }
                         });
@@ -234,14 +234,23 @@ define([
         send: function() {
             var self = this;
 
-            // Save off details of our reply.
             try {
+                // Save off details of our reply.  This is so that when we do a force login and may have to sign up or
+                // log in, which can cause a page refresh, we will repopulate this data during the render.
                 localStorage.setItem('replyto', self.model.get('id'));
                 localStorage.setItem('replytext', self.$('.js-replytext').val());
             } catch (e) {}
 
             // If we're not already logged in, we want to be.
             self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                // Now we're logged in we no longer need the local storage memory, because we've put it back into
+                // the DOM.
+                try {
+                    // Clear the local storage, so that we don't get stuck here.
+                    localStorage.removeItem('replyto');
+                    localStorage.removeItem('replytext');
+                } catch (e) {}
+
                 // When we reply to a message on a group, we join the group if we're not already a member.
                 var memberofs = Iznik.Session.get('groups');
                 var member = false;
@@ -253,7 +262,6 @@ define([
                         var msggroups = self.model.get('groups');
                         _.each(msggroups, function(msggroup) {
                             console.log("Check msg", msggroup);
-                            tojoin = msggroup.groupid;
                             if (memberof.id = msggroup.groupid) {
                                 member = true;
                             }
@@ -262,8 +270,29 @@ define([
                 }
 
                 if (!member) {
-                    // We're not a member of any groups on which this message appears.  Join one.
+                    // We're not a member of any groups on which this message appears.  Join one.  Doesn't much
+                    // matter which.
                     console.log("Not a member yet, need to join");
+                    var tojoin = self.model.get('groups')[0].id;
+                    $.ajax({
+                        url: API + 'memberships',
+                        type: 'PUT',
+                        data: {
+                            groupid : tojoin
+                        }, success: function(ret) {
+                            if (ret.ret == 0) {
+                                // We're now a member of the group.  Fetch the message back, because we'll see more
+                                // info about it now.
+                                self.model.fetch().then(function() {
+                                    self.startChat();
+                                })
+                            } else {
+                                // TODO
+                            }
+                        }, error: function() {
+                            // TODO
+                        }
+                    })
                 } else {
                     self.startChat();
                 }

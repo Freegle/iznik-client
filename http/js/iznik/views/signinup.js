@@ -40,9 +40,9 @@ define([
 
         register: function(e) {
             this.$('.js-registerhide').hide();
-            this.$('.js-signinerror').hide();
+            this.$('.js-signinerror')
             this.$('.js-registershow').fadeIn('slow');
-            this.$('.js-email').focus();
+            this.$('.js-firstname').focus();
         },
 
         signin: function () {
@@ -90,6 +90,8 @@ define([
                 type: "PUT",
                 url: API + "user",
                 data: {
+                    'firstname': self.$('.js-firstname').val(),
+                    'lastname': self.$('.js-lastname').val(),
                     'email': self.$('.js-email').val(),
                     'password': self.$('.js-password').val()
                 },

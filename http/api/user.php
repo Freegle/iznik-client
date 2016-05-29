@@ -58,6 +58,8 @@ function user() {
         case 'PUT': {
             $email = presdef('email', $_REQUEST, NULL);
             $password = presdef('password', $_REQUEST, NULL);
+            $firstname = presdef('firstname', $_REQUEST, NULL);
+            $lastname = presdef('lastname', $_REQUEST, NULL);
 
             $ret = ['ret' => 1, 'status' => 'Invalid parameters'];
 
@@ -86,7 +88,7 @@ function user() {
                     }
                 } else {
                     session_reopen();
-                    $id = $u->create(NULL, NULL, NULL, "Registered");
+                    $id = $u->create($firstname, $lastname, NULL, "Registered");
 
                     $ret = [
                         'ret' => 3,

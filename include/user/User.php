@@ -225,6 +225,12 @@ class User extends Entity
         return(count($emails) == 0 ? NULL : $emails[0]['email']);
     }
 
+    public function getAnEmailId() {
+        $emails = $this->dbhr->preQuery("SELECT id FROM users_emails WHERE userid = ? ORDER BY preferred DESC;",
+            [$this->id]);
+        return(count($emails) == 0 ? NULL : $emails[0]['id']);
+    }
+
     public function isMember($groupid) {
         $membs = $this->dbhr->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ?;", [ $this->id, $groupid ]);
         return(count($membs) > 0);
