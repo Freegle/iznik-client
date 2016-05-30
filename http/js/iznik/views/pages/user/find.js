@@ -245,74 +245,81 @@ define([
         
         send: function() {
             var self = this;
+            var replytext = self.$('.js-replytext').val();
 
-            try {
-                // Save off details of our reply.  This is so that when we do a force login and may have to sign up or
-                // log in, which can cause a page refresh, we will repopulate this data during the render.
-                localStorage.setItem('replyto', self.model.get('id'));
-                localStorage.setItem('replytext', self.$('.js-replytext').val());
-            } catch (e) {}
-
-            // If we're not already logged in, we want to be.
-            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                // Now we're logged in we no longer need the local storage memory, because we've put it back into
-                // the DOM.
+            if (replytext.length == 0) {
+                self.$('.js-replytext').addClass('error-border').focus();
+            } else {
+                self.$('.js-replytext').removeClass('error-border');
+                
                 try {
-                    // Clear the local storage, so that we don't get stuck here.
-                    localStorage.removeItem('replyto');
-                    localStorage.removeItem('replytext');
+                    // Save off details of our reply.  This is so that when we do a force login and may have to sign up or
+                    // log in, which can cause a page refresh, we will repopulate this data during the render.
+                    localStorage.setItem('replyto', self.model.get('id'));
+                    localStorage.setItem('replytext', replytext);
                 } catch (e) {}
 
-                // When we reply to a message on a group, we join the group if we're not already a member.
-                var memberofs = Iznik.Session.get('groups');
-                var member = false;
-                var tojoin = null;
-                if (memberofs) {
-                    console.log("Member ofs", memberofs);
-                    memberofs.each(function(memberof) {
-                        console.log("Check member", memberof);
-                        var msggroups = self.model.get('groups');
-                        _.each(msggroups, function(msggroup) {
-                            console.log("Check msg", msggroup);
-                            if (memberof.id = msggroup.groupid) {
-                                member = true;
-                            }
-                        });
-                    });
-                }
+                // If we're not already logged in, we want to be.
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    // Now we're logged in we no longer need the local storage memory, because we've put it back into
+                    // the DOM.
+                    try {
+                        // Clear the local storage, so that we don't get stuck here.
+                        localStorage.removeItem('replyto');
+                        localStorage.removeItem('replytext');
+                    } catch (e) {}
 
-                if (!member) {
-                    // We're not a member of any groups on which this message appears.  Join one.  Doesn't much
-                    // matter which.
-                    console.log("Not a member yet, need to join");
-                    var tojoin = self.model.get('groups')[0].id;
-                    $.ajax({
-                        url: API + 'memberships',
-                        type: 'PUT',
-                        data: {
-                            groupid : tojoin
-                        }, success: function(ret) {
-                            if (ret.ret == 0) {
-                                // We're now a member of the group.  Fetch the message back, because we'll see more
-                                // info about it now.
-                                self.model.fetch().then(function() {
-                                    self.startChat();
-                                })
-                            } else {
+                    // When we reply to a message on a group, we join the group if we're not already a member.
+                    var memberofs = Iznik.Session.get('groups');
+                    var member = false;
+                    var tojoin = null;
+                    if (memberofs) {
+                        console.log("Member ofs", memberofs);
+                        memberofs.each(function(memberof) {
+                            console.log("Check member", memberof);
+                            var msggroups = self.model.get('groups');
+                            _.each(msggroups, function(msggroup) {
+                                console.log("Check msg", msggroup);
+                                if (memberof.id = msggroup.groupid) {
+                                    member = true;
+                                }
+                            });
+                        });
+                    }
+
+                    if (!member) {
+                        // We're not a member of any groups on which this message appears.  Join one.  Doesn't much
+                        // matter which.
+                        console.log("Not a member yet, need to join");
+                        var tojoin = self.model.get('groups')[0].id;
+                        $.ajax({
+                            url: API + 'memberships',
+                            type: 'PUT',
+                            data: {
+                                groupid : tojoin
+                            }, success: function(ret) {
+                                if (ret.ret == 0) {
+                                    // We're now a member of the group.  Fetch the message back, because we'll see more
+                                    // info about it now.
+                                    self.model.fetch().then(function() {
+                                        self.startChat();
+                                    })
+                                } else {
+                                    // TODO
+                                }
+                            }, error: function() {
                                 // TODO
                             }
-                        }, error: function() {
-                            // TODO
-                        }
-                    })
-                } else {
-                    self.startChat();
-                }
-            });
+                        })
+                    } else {
+                        self.startChat();
+                    }
+                });
 
-            Iznik.Session.forceLogin({
-                modtools: false
-            });
+                Iznik.Session.forceLogin({
+                    modtools: false
+                });
+            }
         },
 
         render: function() {

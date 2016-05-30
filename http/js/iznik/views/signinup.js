@@ -69,6 +69,8 @@ define([
                         // We're logged in.  Reload this page, and now that we are logged in the route
                         // should behave differently.
                         window.location.reload();
+                    } else if (parseInt(ret.ret) == 2) {
+                        self.$('.js-unknown').fadeIn('slow');
                     } else {
                         self.$('.js-signinerror .js-errmsg').html(ret.status);
                         self.$('.js-signinerror').fadeIn('slow');
@@ -96,7 +98,6 @@ define([
                     'password': self.$('.js-password').val()
                 },
                 success: function (ret) {
-                    console.log("Register", ret);
                     if (parseInt(ret.ret) == 0) {
                         // We're logged in.  Reload this page, and now that we are logged in the route
                         // should behave differently.
