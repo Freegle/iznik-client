@@ -2,6 +2,23 @@ var API = '/api/';
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
+
+function panicReload() {
+    // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
+    // reload from scratch.
+    console.error("Panic and reload");
+    try {
+        // If we have a service worker, tell it to clear its cache in case we have bad scripts.
+        navigator.serviceWorker.controller.postMessage({
+            type: 'clearcache'
+        });
+    } catch (e) {}
+
+    window.setTimeout(function() {
+        window.location.reload();
+    }, 10000);
+}
+
 requirejs.onError = function (err) {
     console.log("Require Error", err);
     var mods = err.requireModules;
@@ -19,9 +36,7 @@ requirejs.onError = function (err) {
         //
         // In all cases, reloading the page will help.  Delay slightly to avoid hammering the server.
         console.error("One we care about");
-        window.setTimeout(function() {
-            window.location.reload();
-        }, 10000);
+        panicReload();
     }
 };
 
@@ -31,6 +46,12 @@ require([
     'backbone',
     'iznik/router'
 ], function($, _, Backbone) {
+    if (!Backbone) {
+        // Something has gone unpleasantly wrong.
+        console.error("Backbone failed to fetch");
+        panicReload();
+    }
+
     Backbone.emulateJSON = true;
     
     // We have a busy indicator.

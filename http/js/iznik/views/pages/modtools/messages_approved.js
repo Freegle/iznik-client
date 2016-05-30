@@ -183,8 +183,8 @@ define([
                 var matched = self.model.get('matchedon');
                 if (matched) {
                     self.$('.js-subject span').each(function () {
-                        if (self.$el.html().toLowerCase().indexOf(matched.word) != -1) {
-                            self.$el.addClass('searchmatch');
+                        if ($(this).html().toLowerCase().indexOf(matched.word) != -1) {
+                            $(this).addClass('searchmatch');
                         }
                     });
                 }

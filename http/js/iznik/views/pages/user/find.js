@@ -192,6 +192,11 @@ define([
             this.events = _.extend(this.events, Iznik.Views.User.Message.prototype.events);
         },
 
+        wordify: function (str) {
+            str = str.replace(/\b(\w*)/g, "<span>$1</span>");
+            return (str);
+        },
+
         startChat: function() {
             // We start a conversation with the sender.
             var self = this;
@@ -322,6 +327,22 @@ define([
             this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapmarker.gif');
 
             p = Iznik.Views.User.Message.prototype.render.call(this);
+
+            p.then(function() {
+                // We handle the subject as a special case rather than a template expansion.  We might be doing a search, in
+                // which case we want to highlight the matched words.  So we split out the subject string into a sequence of
+                // spans, which then allows us to highlight any matched ones.
+                self.$('.js-subject').html(self.wordify(self.model.get('subject')));
+                var matched = self.model.get('matchedon');
+                console.log("MAtched", matched, self.$('.js-subject'));
+                if (matched) {
+                    self.$('.js-subject span').each(function () {
+                        if ($(this).html().toLowerCase().indexOf(matched.word) != -1) {
+                            $(this).addClass('searchmatch');
+                        }
+                    });
+                }
+            })
 
             return(p);
         }

@@ -56,41 +56,43 @@ request.onsuccess = function() {
                 .then(cache => cache.addAll(opts.staticCacheItems));
         }
 
-        if (request2.result) {
-            lastVersion = request2.result.value;
-            console.log("Retrieved version", lastVersion);
+        lastVersion = request2.result ? request2.result.value : null;
+        console.log("Retrieved version", lastVersion);
 
-            if (currentVersion != lastVersion) {
-                console.log("Version changed");
-                caches.keys().then(function (cacheKeys) {
-                        // We want to delete everything.
-                        console.log("Cache to delete", cacheKeys);
-                        cacheKeys.map(function (oldKey) {
-                        console.log("Delete", oldKey);
-                        caches.delete(oldKey);
+        if (currentVersion != lastVersion) {
+            console.log("Version changed");
+            caches.keys().then(function (cacheKeys) {
+                    // We want to delete everything.
+                    console.log("Cache to delete", cacheKeys);
+                    cacheKeys.map(function (oldKey) {
+                    console.log("Delete", oldKey);
+                    caches.delete(oldKey);
 
-                        var request = db.transaction(['swdata'], 'readwrite')
-                            .objectStore('swdata')
-                            .put({id: 'version', value: currentVersion});
+                    var request = db.transaction(['swdata'], 'readwrite')
+                        .objectStore('swdata')
+                        .put({id: 'version', value: currentVersion});
 
-                        request.onsuccess = function (e) {
-                            console.log("Saved new version", currentVersion);
-                        };
+                    request.onsuccess = function (e) {
+                        console.log("Saved new version", currentVersion);
+                    };
 
-                        request.onerror = function (e) {
-                            console.error("Failed to save new version", e);
-                            e.preventDefault();
-                        };
+                    request.onerror = function (e) {
+                        console.error("Failed to save new version", e);
+                        e.preventDefault();
+                    };
 
-                        // Now precache anything we want.
-                        preCache(cacheConfig);
-                    });
+                    // Now precache anything we want.
+                    preCache(cacheConfig);
                 });
-            } else {
-                // The version is the same.  Make sure we have anything we need in the cache.
-                console.log("Version unchanged");
-                preCache(cacheConfig);
-            }
+            });
+        } else {
+            // The version is the same.  Make sure we have anything we need in the cache.
+            console.log("Version unchanged");
+            preCache(cacheConfig);
+        }
+
+        request2.onerror = function(event) {
+            console.log("Get version error", event);
         }
     }
 };
@@ -128,6 +130,18 @@ self.addEventListener('message', function(event) {
     console.log("Message type", event.data.type);
     
     switch(event.data.type) {
+        case 'clearcache': {
+            console.log("Clear cache");
+            caches.keys().then(function (cacheKeys) {
+                // We want to delete everything.
+                console.log("Cache to delete", cacheKeys);
+                cacheKeys.map(function (oldKey) {
+                    caches.delete(oldKey);
+                });
+            });
+            break;
+        }
+
         case 'subscription': {
             // We have been passed our push notification subscription, which we may use to authenticate ourselves
             // to the server when processing notifications.
@@ -304,7 +318,7 @@ function fetchFromCache(event) {
             throw Error(event.request.url + ' not found in cache');
         }
 
-        // console.log("SW found in cache", event.request.url);
+        //console.log("SW found in cache", event.request.url, response);
         response.fromCache = true;
 
         return response;

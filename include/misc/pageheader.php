@@ -81,9 +81,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 
                 try {
                     localStorage.setItem('version', version);
-                } catch (e) {
-                }
-                ;
+                } catch (e) {};
 
                 console.log("Versions", lastversion, version);
 
