@@ -167,13 +167,20 @@ define([
                     });
                 }
 
-                self.$('.js-search').typeahead({
+                self.typeahead = self.$('.js-search').typeahead({
                     minLength: 2,
                     hint: false,
                     highlight: true
                 }, {
                     name: 'items',
                     source: self.itemSource
+                });
+
+                self.waitDOM(self, function() {
+                    // TODO This doesn't work for Firefox - not sure why.
+                    if (!self.options.search) {
+                        self.typeahead.focus();
+                    }
                 });
             });
 
