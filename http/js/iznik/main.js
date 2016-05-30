@@ -16,7 +16,7 @@ function panicReload() {
 
     window.setTimeout(function() {
         window.location.reload();
-    }, 10000);
+    }, 1);
 }
 
 requirejs.onError = function (err) {

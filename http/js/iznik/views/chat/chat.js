@@ -648,28 +648,47 @@ define([
             } catch (e) {
             }
 
-            self.listenTo(self.messages, 'add', _.bind(function() {
-                _.delay(this.scrollBottom, 2000);
-            }, self));
-
             // We fetch the messages when restoring - no need before then.
             self.messages.fetch().then(function() {
                 // We've just opened this chat - so we have had a decent chance to see any unread messages.
                 self.messageFocus();
-                _.delay(this.scrollBottom, 2000);
-
                 self.trigger('restored');
             });
         },
 
+        scrollTimer: null,
+        scrollTo: 0,
+        
         scrollBottom: function() {
+            // Tried using .animate(), but it seems to be too expensive for the browser, so leave that for now.
             var self = this;
-            _.delay(function() {
             var msglist = self.$('.js-messages');
             var height = msglist[0].scrollHeight;
+
+            if (self.scrollTimer && self.scrollTo < height) {
+                // We have a timer outstanding to scroll to somewhere less far down that we now want to.  No point
+                // in doing that.
+                // console.log("Clear old scroll timer",  self.model.get('id'), self.scrollTo, height);
+                clearTimeout(self.scrollTimer);
+                self.scrollTimer = null;
+            }
+            
+            // We want to scroll immediately, and add a fallback a few seconds later for when things haven't quite
+            // finished rendering yet.
             msglist.scrollTop(height);
-            console.log("Scroll to ", height);
-            }, 1000);
+            // console.log("Scroll now to ", self.model.get('id'), height);
+
+            if (!self.scrollTimer) {
+                // We don't already have a fallback scroll running.
+                self.scrollTo = height;
+                self.scrollTimer = setTimeout(_.bind(function() {
+                    // console.log("Scroll later", this);
+                    var msglist = this.$('.js-messages');
+                    var height = msglist[0].scrollHeight;
+                    msglist.scrollTop(height);
+                    // console.log("Scroll later to ", this.model.get('id'), height);
+                }, self), 5000);
+            }
         },
 
         dragend: function(event, el, opt) {
@@ -904,8 +923,13 @@ define([
                     }
                 });
 
-                self.messages.on('add', function () {
-                    self.scrollBottom();
+                // As new messages are added, we want to show them.  This also means when we first render, we'll
+                // scroll down to the latest messages.
+                self.listenTo(self.messageViews, 'add', function(modelView) {
+                    self.listenToOnce(modelView, 'rendered', function() {
+                        self.scrollBottom();
+                        // _.delay(_.bind(self.scrollBottom, self), 5000);
+                    });
                 });
 
                 self.messageViews.render();
@@ -941,6 +965,9 @@ define([
 
     Iznik.Views.Chat.Message = Iznik.View.extend({
         render: function() {
+            var self = this;
+            var p;
+
             if (this.model.get('id')) {
                 // Insert some wbrs to allow us to word break long words (e.g. URLs).
                 var message = this.model.get('message');
@@ -965,12 +992,18 @@ define([
                 }
 
                 this.template = tpl;
-                Iznik.View.prototype.render.call(this).then(function(self) {
+                p = Iznik.View.prototype.render.call(this);
+                p.then(function(self) {
                     self.$('.timeago').timeago();
                     self.$('.timeago').show();
                     self.$el.fadeIn('slow');
+                    console.log("Rendered", self);
                 });
+            } else {
+                p = resolvedPromise(this);
             }
+
+            return(p);
         }
     });
 

@@ -334,7 +334,6 @@ define([
                 // spans, which then allows us to highlight any matched ones.
                 self.$('.js-subject').html(self.wordify(self.model.get('subject')));
                 var matched = self.model.get('matchedon');
-                console.log("MAtched", matched, self.$('.js-subject'));
                 if (matched) {
                     self.$('.js-subject span').each(function () {
                         if ($(this).html().toLowerCase().indexOf(matched.word) != -1) {

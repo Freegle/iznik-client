@@ -457,5 +457,20 @@ class messagesTest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testSpecial() {
+        error_log(__METHOD__);
+
+        $ret = $this->call('messages', 'GET', [
+            'messagetype' => 'Offer',
+            'search' => 'software',
+            'subaction' => 'searchmess',
+            'nearlocation' => 7166781
+        ]);
+        error_log("Returned" . var_export($ret, true));
+
+        error_log(__METHOD__ . " end");
+    }
+
 }
 

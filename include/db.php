@@ -180,7 +180,7 @@ class LoggedPDO {
         }
 
         if ($this->errorLog) {
-            error_log($_REQUEST['call'] . " " . ((microtime(true) - $start) * 1000) . "ms for $sql " . var_export($params, TRUE));
+            error_log(presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for $sql " . var_export($params, TRUE));
         }
 
         return($ret);

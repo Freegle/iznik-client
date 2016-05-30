@@ -264,43 +264,46 @@ class Search
                 $this->processResults($results, $batch, $word, 'Exact', Search::WeightExact);
             }
 
-            if (strlen($word) >= 2) {
-                # Check for starts matches with two characters
-                $startq = pres('StartsWith', $context) ? " AND {$this->sortatt} > {$context['StartsWith']} " : "";
-                $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsStartsWith($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
-                #error_log($sql . "{$this->sortatt} {$this->idatt}");
-                $batch = $this->dbhr->preQuery($sql, [
-                    $this->sortatt,
-                    $this->idatt
-                ]);
-                $this->processResults($results, $batch, $word, 'StartsWith', Search::WeightStartsWith);
-            }
-
-            if (strlen($word) > 2) {
-                # Ignore short words.  We search for two other kinds of word matches
-                # - a sounds like
-                # - a distance using
-                #
-                # Add in sounds like.  We add these in because it's quick, and some of the extra matches might be
-                # better matches overall than some of the ones we already have.
-                $startq = pres('SoundsLike', $context) ? " AND {$this->sortatt} > {$context['SoundsLike']} " : "";
-                $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsSoundsLike($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
-                $batch = $this->dbhr->preQuery($sql, [
-                    $this->sortatt,
-                    $this->idatt
-                ]);
-                $this->processResults($results, $batch, $word, 'SoundsLike', Search::WeightSoundsLike);
-
-                if (count($results) < $limit * Search::Comfort) {
-                    # We still didn't find enough to be comfortable that we have a decent set of matches.
-                    # Search for typos.  This is slow, so we need to stick a limit on it.
-                    $startq = pres('Typo', $context) ? " AND {$this->sortatt} > {$context['Typo']} " : "";
-                    $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsTypo($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+            # If we found an exact match on the word, there's no need to check for other options.
+            if (count($results) == 0) {
+                if (strlen($word) >= 2) {
+                    # Check for starts matches with two characters
+                    $startq = pres('StartsWith', $context) ? " AND {$this->sortatt} > {$context['StartsWith']} " : "";
+                    $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsStartsWith($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                    #error_log($sql . "{$this->sortatt} {$this->idatt}");
                     $batch = $this->dbhr->preQuery($sql, [
                         $this->sortatt,
                         $this->idatt
                     ]);
-                    $this->processResults($results, $batch, $word, 'Typo', Search::WeightTypo);
+                    $this->processResults($results, $batch, $word, 'StartsWith', Search::WeightStartsWith);
+                }
+
+                if (strlen($word) > 2) {
+                    # Ignore short words.  We search for two other kinds of word matches
+                    # - a sounds like
+                    # - a distance using
+                    #
+                    # Add in sounds like.  We add these in because it's quick, and some of the extra matches might be
+                    # better matches overall than some of the ones we already have.
+                    $startq = pres('SoundsLike', $context) ? " AND {$this->sortatt} > {$context['SoundsLike']} " : "";
+                    $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsSoundsLike($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                    $batch = $this->dbhr->preQuery($sql, [
+                        $this->sortatt,
+                        $this->idatt
+                    ]);
+                    $this->processResults($results, $batch, $word, 'SoundsLike', Search::WeightSoundsLike);
+
+                    if (count($results) < $limit * Search::Comfort) {
+                        # We still didn't find enough to be comfortable that we have a decent set of matches.
+                        # Search for typos.  This is slow, so we need to stick a limit on it.
+                        $startq = pres('Typo', $context) ? " AND {$this->sortatt} > {$context['Typo']} " : "";
+                        $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsTypo($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                        $batch = $this->dbhr->preQuery($sql, [
+                            $this->sortatt,
+                            $this->idatt
+                        ]);
+                        $this->processResults($results, $batch, $word, 'Typo', Search::WeightTypo);
+                    }
                 }
             }
         }
