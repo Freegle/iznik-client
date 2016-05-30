@@ -326,6 +326,8 @@ define([
             // Static map custom markers don't support SSL.
             this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapmarker.gif');
 
+            // Hide until we've got a bit into the render otherwise the border shows.
+            this.$el.css('visibility', 'hidden');
             p = Iznik.Views.User.Message.prototype.render.call(this);
 
             p.then(function() {
@@ -341,6 +343,7 @@ define([
                         }
                     });
                 }
+                self.$el.css('visibility', 'visible');
             })
 
             return(p);

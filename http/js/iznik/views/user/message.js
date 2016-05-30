@@ -140,30 +140,30 @@ define([
             }
         },
 
-        stripGumf: function() {
-            var textbody = this.model.get('textbody');
+        stripGumf: function(property) {
+            var text = this.model.get(property);
 
-            if (textbody) {
-                // console.log("Strip photo", textbody);
+            if (text) {
+                // console.log("Strip photo", text);
                 // Strip photo links - we should have those as attachments.
-                textbody = textbody.replace(/You can see a photo[\s\S]*?jpg/, '');
-                textbody = textbody.replace(/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/\d*/, '');
-                textbody = textbody.replace(/You can see photos here[\s\S]*?jpg/m, '');
-                textbody = textbody.replace(/https:\/\/direct.*jpg/m, '');
+                text = text.replace(/You can see a photo[\s\S]*?jpg/, '');
+                text = text.replace(/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/\d*/, '');
+                text = text.replace(/You can see photos here[\s\S]*?jpg/m, '');
+                text = text.replace(/https:\/\/direct.*jpg/m, '');
 
                 // FOPs
-                textbody = textbody.replace(/Fair Offer Policy applies \(see https:\/\/[^]*\)/, '');
+                text = text.replace(/Fair Offer Policy applies \(see https:\/\/[^]*\)/, '');
 
                 // Footers
-                textbody = textbody.replace(/--[\s\S]*Get Freegling[\s\S]*book/m, '');
+                text = text.replace(/--[\s\S]*Get Freegling[\s\S]*book/m, '');
 
-                textbody = textbody.trim();
-                // console.log("Stripped photo", textbody);
+                text = text.trim();
+                // console.log("Stripped photo", text);
             } else {
-                textbody = '';
+                text = '';
             }
 
-            this.model.set('textbody', textbody);
+            this.model.set(property, text);
         },
 
         render: function() {
@@ -175,7 +175,14 @@ define([
                 self.$el.hide();
             }
 
-            this.stripGumf();
+            this.stripGumf('textbody');
+
+            // The server will have returned us a snippet.  But if we've stripped out the gumf and we have something
+            // short, use that instead.
+            var tb = this.model.get('textbody');
+            if (tb.length < 60) {
+                this.model.set('snippet', tb);
+            }
 
             var p = Iznik.View.prototype.render.call(self);
             p.then(function() {

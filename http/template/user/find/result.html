@@ -1,4 +1,4 @@
-<div class="nomargin panel panel-success">
+<div class="nomargin panel panel-success fadein">
     <div class="panel-heading nopad">
         <a class="nodecor js-caret row" data-toggle="collapse" href="#result-{{id}}">
             <div class="col-xs-7">
@@ -10,6 +10,12 @@
                     <!--</span>-->
                     <!--<% } %>-->
                     <div class="js-groups" />
+                </div>
+                <div class="hidden-xs js-snippet">
+                    <% if (obj.snippet) { %>
+                    <h4 class="nomargin">{{snippet}}...</h4>
+                    <h4 class="black">Read more >></h4>
+                    <% } %>
                 </div>
             </div>
             <div class="col-xs-2">
@@ -33,11 +39,11 @@
                 </button>
             </div>
         </a>
-        <div class="row">
+        <div class="row hidden-sm hidden-md hidden-lg">
             <div class="col-xs-12">
                 <% if (obj.snippet) { %>
                 <a class="nodecor js-caret row" data-toggle="collapse" href="#result-{{id}}">
-                    <h3 class="padleft js-snippet">{{snippet}}... <span class="black">Read more >></span></h3>
+                    <h3 class="padleft nomargin js-snippet">{{snippet}}... <span class="black">Read more >></span></h3>
                 </a>
                 <% } %>
             </div>
