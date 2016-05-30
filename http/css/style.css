@@ -1036,6 +1036,7 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     color: white;
     background-color: #4895DD;
     padding: 5px;
+    word-break: break-all;
 }
 
 .chat-minimised-name {

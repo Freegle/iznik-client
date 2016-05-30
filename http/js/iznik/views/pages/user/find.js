@@ -251,7 +251,7 @@ define([
                 self.$('.js-replytext').addClass('error-border').focus();
             } else {
                 self.$('.js-replytext').removeClass('error-border');
-                
+
                 try {
                     // Save off details of our reply.  This is so that when we do a force login and may have to sign up or
                     // log in, which can cause a page refresh, we will repopulate this data during the render.

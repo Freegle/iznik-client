@@ -1,6 +1,14 @@
 <div class="row-fluid js-chatheader">
     <div class="chat-name">
         <img src="/images/wingrip.png" class="clickme pull-left js-grip">&nbsp;
+        <div class="pull-right">
+            <div class="js-minimise inline padleft padright" title="Minimise this chat. It'll still show in your chat list" >
+                <div class="clickme glyphicon glyphicon-minus"/>
+            </div>
+            <!--<% if (!obj.group) { %>-->
+            <!--<div class="clickme inline glyphicon glyphicon-remove js-remove" title="Remove this chat.  It won't show in your chat list." />-->
+            <!--<% } %>-->
+        </div>
         {{name}}
         <span class="js-count badge badge-unread" style="display: none;"></span>
         &nbsp;
@@ -10,15 +18,6 @@
             <% } else { %>
             <div class="glyphicon glyphicon-lock" title="This chat is private." />
             <% } %>
-        </div>
-
-        <div class="pull-right">
-            <div class="js-minimise inline padleft padright" title="Minimise this chat. It'll still show in your chat list" >
-                <div class="clickme glyphicon glyphicon-minus"/>
-            </div>
-            <!--<% if (!obj.group) { %>-->
-            <!--<div class="clickme inline glyphicon glyphicon-remove js-remove" title="Remove this chat.  It won't show in your chat list." />-->
-            <!--<% } %>-->
         </div>
     </div>
     <% if (obj.description) { %>

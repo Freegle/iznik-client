@@ -370,6 +370,7 @@ define([
         template: 'chat_minimised',
 
         tagName: 'li',
+        className: 'clickme',
 
         events: {
             'click': 'click'
@@ -997,7 +998,6 @@ define([
                     self.$('.timeago').timeago();
                     self.$('.timeago').show();
                     self.$el.fadeIn('slow');
-                    console.log("Rendered", self);
                 });
             } else {
                 p = resolvedPromise(this);

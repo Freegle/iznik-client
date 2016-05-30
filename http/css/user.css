@@ -306,10 +306,13 @@ h1,h2,h3,h4 {
 }
 
 #notifchatdropdown {
-    color: white;
-    background-color: #4895DD;
+    color: black !important;
+    background-color: #edeef1 !important;
 }
 
+#notifchatdropdown li {
+    border-bottom: solid 1px black;
+}
 
 #js-notifchat ul, #js-notifchat li {
     color: black;

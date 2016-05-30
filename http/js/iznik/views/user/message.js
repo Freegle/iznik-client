@@ -7,7 +7,7 @@ define([
     'iznik/views/chat/chat'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Message = Iznik.View.extend({
-        className: "panel panel-info marginbotsm botspace",
+        className: "marginbotsm botspace fadein",
 
         events: {
             'click .js-caret': 'carettoggle',
@@ -241,13 +241,14 @@ define([
                             modelView: Iznik.Views.User.Message.Reply,
                             modelViewOptions: {
                                 collection: self.replies,
-                                message: self.model
+                                message: self.model,
+                                offers: self.options.offers
                             },
                             collection: self.replies
                         });
 
                         self.repliesView.render();
-                        
+
                         // We might have been asked to open up one of these messages because we're showing the corresponding
                         // chat.
                         if (self.options.chatid ) {
@@ -279,6 +280,9 @@ define([
 
                 // If the number of promises changes, then we want to update what we display.
                 self.listenTo(self.model, 'change:promisecount', self.render);
+
+                // By adding this at the end we avoid border flicker.
+                self.$el.addClass('panel panel-info');
             });
 
             return(p);
@@ -318,6 +322,7 @@ define([
         dm: function() {
             var self = this;
             require(['iznik/views/chat/chat'], function(ChatHolder) {
+                console.log("Open chat to", self.model.get('user').id);
                 ChatHolder().openChat(self.model.get('user').id);
             })
         },
@@ -389,6 +394,7 @@ define([
                 self.listenToOnce(chat, 'change:unseen', self.render);
                 self.model.set('unseen', chat.get('unseen'));
                 self.model.set('message', self.options.message.toJSON2());
+                self.model.set('me', Iznik.Session.get('me'));
                 p = Iznik.View.prototype.render.call(self).then(function() {
                     self.$('.timeago').timeago();
                 });
@@ -426,18 +432,20 @@ define([
         render: function() {
             var self = this;
             this.listenToOnce(this, 'confirmed', this.promised);
-            this.open(this.template);
+            var p = this.open(this.template);
+            p.then(function() {
+                var msgid = self.model.get('message').id;
 
-            var msgid = self.model.get('message').id;
+                self.options.offers.each(function(offer) {
+                    self.$('.js-offers').append('<option value="' + offer.get('id') + '" />');
+                    self.$('.js-offers option:last').html(offer.get('subject'));
+                });
 
-            this.options.offers.each(function(offer) {
-                self.$('.js-offers').append('<option value="' + offer.get('id') + '" />');
-                self.$('.js-offers option:last').html(offer.get('subject'));
+                self.$('.js-offers').val(msgid);
+
             });
 
-            self.$('.js-offers').val(msgid);
-
-            return(this);
+            return(p);
         }
     });
 });

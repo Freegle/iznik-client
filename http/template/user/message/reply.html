@@ -1,9 +1,16 @@
 <div class="row-fluid panel">
     <div class="panel-body">
         <div class="nopad col-xs-9">
+            <% if (user.id != me.id) { %>
             {{user.displayname}}<br />
             <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" ></abbr>
-            <span class="js-chat text-muted">{{snippet}}...<em>more&nbsp;>></em></span>
+            <% } else { %>
+            You replied to yourself<br />
+            <% } %>
+            <span class="js-chat text-muted">{{snippet}}...</span><br />
+            <% if (user.id != me.id) { %>
+            <span class="js-chat black">Read more&nbsp;>></span>
+            <% } %>
         </div>
         <li class="col-xs-3 nopad">
             <ul class="list-unstyled pull-right">
@@ -14,7 +21,7 @@
                         <% } %>
                     </div>
                 </li>
-                <% if (message.type == 'Offer' && message.mine) { %>
+                <% if (message.type == 'Offer' && message.mine && user.id != me.id) { %>
                     <% if (obj.promised) { %>
                     <li class="btn btn-warning btn-sm js-renege nopad" title="Remove promise">
                         <div class="glyphicons glyphicons-remove-circle glyphicon-larger" />

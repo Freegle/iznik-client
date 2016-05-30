@@ -28,7 +28,6 @@ define([
                         });
 
                         m.fetch().then(function() {
-                            console.log("Got message", m);
                             var v = new Iznik.Views.User.Home.Reply({
                                 model: m
                             });
@@ -318,6 +317,7 @@ define([
         },
 
         dm: function() {
+            console.log("DM");
             var self = this;
             require(['iznik/views/chat/chat'], function(ChatHolder) {
                 var chatmodel = Iznik.Session.chats.get(self.model.get('chat').id);

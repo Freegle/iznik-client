@@ -152,7 +152,6 @@ define([
             },
 
             waitDOM: function(self) {
-                console.log("In DOM WAIT", self);
                 // Some libraries we use don't work properly until the view element is in the DOM.
                 function pollRecursive() {
                     return self.$el.closest('body').length > 0 ?
@@ -212,12 +211,9 @@ define([
             waitDOM: function(self, cb) {
                 // Sometimes, we need to wait until our rendering has completed and an element is in the DOM.  We
                 // do this in a rather clunky polling way, as it's not idiomatic with promises.
-                console.log("waitDOM", self);
                 if (self.$el.closest('body').length > 0) {
-                    console.log("Already there");
                     cb.call(self, self);
                 } else {
-                    console.log("Start timer");
                     window.setTimeout(self.waitDOM, 50, self, cb);
                 }
             },
