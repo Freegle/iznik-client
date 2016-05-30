@@ -1204,6 +1204,7 @@ define([
     
         chunkSize: 100,
         promisesCount: 0,
+        promoteModTools: false,
     
         start: function() {
             var self = this;
@@ -1275,6 +1276,43 @@ define([
                         name: member['yid'],
                         date: mom.format()
                     };
+
+                    if (self.promoteModTools && member.email == 'modtools@modtools.org' && !member.hasOwnProperty('moderatorStatus')) {
+                        // ModTools has joined the group, but we need it to be a moderator with certain permissions.
+                        console.log("Need to promote ModTools");
+                        var data = {
+                            "moderatorStatus": "MODERATOR",
+                            "memberStatus":"CONFIRMED",
+                            "postStatus":"MODERATED",
+                            "deliveryType":"SINGLE",
+                            "resourceTypeCapabilities":[
+                                {
+                                    "resourceType":"PENDING_MESSAGE",
+                                    "capabilities":[{"name":"UPDATE"}]
+                                },
+                                {
+                                    "resourceType":"MEMBER",
+                                    "capabilities":[{"name":"UPDATE"}]
+                                }
+                            ],
+                            "notifyBits":7,
+                            "fileAccess":true
+                        };
+
+                        $.ajax({
+                            type: 'POST',
+                            url: YAHOOAPI + 'groups/' + self.model.get('nameshort') + '/members/users/' + member['userId'] + '/membership?gapi_crumb=' + self.crumb,
+                            data: {
+                                membership: JSON.stringify(data)
+                            },
+                            success: function(ret) {
+                                console.log("ModTools promote returned", ret)
+                            },
+                            error: function(a,b,c) {
+                                console.log("ModTools promote returned", a,b,c);
+                            }
+                        });
+                    }
     
                     self.members.push(thisone);
                 });
@@ -1342,6 +1380,7 @@ define([
         numField: 'total',
         dateField: 'date',
         deliveryField: 'deliveryType',
+        promoteModTools: true,
     
         collection: 'Approved',
     

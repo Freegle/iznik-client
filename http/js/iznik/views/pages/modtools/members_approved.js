@@ -7,6 +7,7 @@ define([
     'iznik/base',
     "iznik/modtools",
     'iznik/views/pages/pages',
+    "iznik/views/pages/modtools/messages",
     'iznik/views/infinite',
     'iznik/views/group/select'
 ], function($, _, Backbone, moment, saveAs, Iznik) {
