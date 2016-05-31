@@ -89,7 +89,7 @@ define([
             // with things rapidly - in conjunction with use of the appcache it means that we don't need any server
             // interactions before we can start rendering the page.
             self.testing = true;
-            // try {
+            try {
                 var sess = localStorage.getItem('session');
 
                 if (sess) {
@@ -108,9 +108,9 @@ define([
                     self.loggedIn = true;
                     self.trigger('isLoggedIn', true);
                 }
-            // } catch (e) {
-            //     console.error("testLoggedIn exception", e.message);
-            // }
+            } catch (e) {
+                console.error("testLoggedIn exception", e.message);
+            }
 
             // Now we may or may not have already triggered, but we still want to refresh our data from the server.  This
             // means we are loosely up to date.  It also means that if we have been logged out on the server side, we'll
@@ -128,6 +128,9 @@ define([
                         try {
                             localStorage.setItem('session', JSON.stringify(ret));
                             lastasked = localStorage.getItem('lastAskedPush');
+
+                            // We use this to decide whether to show sign up or sign in.
+                            localStorage.setItem('signedinever', true);
                         } catch (e) {
                         }
                         self.set(ret);

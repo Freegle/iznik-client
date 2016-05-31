@@ -2059,7 +2059,9 @@ class Message
                         $aloc = $matches[2];
 
                         # Check if it's a good location.
+                        error_log("Check loc $aloc");
                         $locs = $l->search($aloc, $groupid, 1);
+                        error_log(var_export($locs, TRUE));
 
                         if (count($locs) == 1) {
                             # Take the name we found, which may be better than the one we have, if only in capitalisation.

@@ -232,7 +232,6 @@ class Location extends Entity
                 # First we do a simple match.  If the location is correct, that will find it quickly.
                 $term2 = $this->dbhr->quote($this->canon($term));
                 $sql = "SELECT locations.* FROM locations $exclgroup WHERE canon = $term2 AND gridid IN (" . implode(',', $gridids) . ") $exclude ORDER BY LENGTH(canon) ASC, popularity DESC LIMIT $limit;";
-                #error_log("Simple match $sql");
                 $locs = $this->dbhr->query($sql);
 
                 foreach ($locs as $loc) {

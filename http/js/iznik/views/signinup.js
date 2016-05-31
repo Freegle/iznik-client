@@ -15,6 +15,7 @@ define([
             'click .js-signin': 'signin',
             'click .js-signup': 'signup',
             'click .js-register': 'register',
+            'click .js-already': 'already',
             'click .js-loginYahoo': 'yahoologin',
             'click .js-loginFB': 'fblogin',
             'click .js-forgot': 'lostPassword',
@@ -40,9 +41,16 @@ define([
 
         register: function(e) {
             this.$('.js-registerhide').hide();
-            this.$('.js-signinerror')
+            this.$('.js-signinerror').hide();
             this.$('.js-registershow').fadeIn('slow');
             this.$('.js-firstname').focus();
+        },
+
+        already: function(e) {
+            this.$('.js-registershow').hide();
+            this.$('.js-signinerror').hide();
+            this.$('.js-registerhide').fadeIn('slow');
+            this.$('.js-email').focus();
         },
 
         signin: function () {
@@ -185,34 +193,45 @@ define([
         render: function () {
             var self = this;
             this.template = this.options.modtools ? "signinup_modtools" : "signinup_user";
-            this.open(this.template, null);
-            this.$('.js-native').hide();
+            var p = this.open(this.template, null);
+            p.then(function() {
+                self.$('.js-native').hide();
 
-            try {
-                var email = localStorage.getItem('nativeemail');
-                if (email) {
-                    self.$('.js-email').val(email);
-                }
-            } catch (e) {
-            }
+                try {
+                    var email = localStorage.getItem('nativeemail');
+                    if (email) {
+                        self.$('.js-email').val(email);
+                    }
 
-            // We have to load the FB API now because otherwise when we click on the login button, we can't load
-            // it synchronously, and therefore the login popup would get blocked by the browser.
-            var FBLoad = new Iznik.Views.FBLoad();
-            self.listenToOnce(FBLoad, 'fbloaded', function () {
-                if (!FBLoad.isDisabled()) {
-                    self.$('.js-loginFB').removeClass('signindisabled');
+                    var ever = localStorage.getItem('signedinever');
+                    if (ever) {
+                        self.already();
+                    } else {
+                        self.register();
+                    }
+
+                } catch (e) {
                 }
+
+                // We have to load the FB API now because otherwise when we click on the login button, we can't load
+                // it synchronously, and therefore the login popup would get blocked by the browser.
+                var FBLoad = new Iznik.Views.FBLoad();
+                self.listenToOnce(FBLoad, 'fbloaded', function () {
+                    if (!FBLoad.isDisabled()) {
+                        self.$('.js-loginFB').removeClass('signindisabled');
+                    }
+                });
+                FBLoad.render();
+
+                // Load the Google API
+                var GoogleLoad = new Iznik.Views.GoogleLoad();
+
+                // We have a custom signin button which needs googleising.
+                GoogleLoad.signInButton('gConnect');
+                
             });
-            FBLoad.render();
 
-            // Load the Google API
-            var GoogleLoad = new Iznik.Views.GoogleLoad();
-
-            // We have a custom signin button which needs googleising.
-            GoogleLoad.signInButton('gConnect');
-
-            return (this);
+            return (p);
         }
     });
 
