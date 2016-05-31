@@ -3,10 +3,10 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/views/modal',
     'iznik/facebook',
+    'iznik/views/modal',
     'iznik/google'
-], function($, _, Backbone, Iznik) {
+], function($, _, Backbone, Iznik, FBLoad) {
     Iznik.Views.SignInUp = Iznik.Views.Modal.extend({
         className: "signinup",
 
@@ -215,13 +215,12 @@ define([
 
                 // We have to load the FB API now because otherwise when we click on the login button, we can't load
                 // it synchronously, and therefore the login popup would get blocked by the browser.
-                var FBLoad = new Iznik.Views.FBLoad();
-                self.listenToOnce(FBLoad, 'fbloaded', function () {
-                    if (!FBLoad.isDisabled()) {
+                self.listenToOnce(FBLoad(), 'fbloaded', function () {
+                    if (!FBLoad().isDisabled()) {
                         self.$('.js-loginFB').removeClass('signindisabled');
                     }
                 });
-                FBLoad.render();
+                FBLoad().render();
 
                 // Load the Google API
                 var GoogleLoad = new Iznik.Views.GoogleLoad();

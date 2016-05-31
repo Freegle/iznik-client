@@ -25,9 +25,7 @@ define([
         },
 
         locChange: function() {
-            console.log("loc change");
             var loc = this.$('.js-postcode').typeahead('val');
-            console.log("Loc is ", loc);
 
             var self = this;
 
@@ -37,7 +35,6 @@ define([
                 data: {
                     typeahead: loc
                 }, success: function(ret) {
-                    console.log("Get loc", ret);
                     if (ret.ret == 0) {
                         self.recordLocation(ret.locations[0], true);
                     }
@@ -48,11 +45,8 @@ define([
         recordLocation: function(location, changegroup) {
             var self = this;
 
-            console.log("Compare location", this.$('.js-postcode').typeahead('val'), location.name, location);
-
             if (this.$('.js-postcode').typeahead('val') != location.name && changegroup) {
                 // We've changed location.  We might need to change group too.
-                console.log("Location changed");
                 try {
                     localStorage.removeItem('myhomegroup');
                 } catch (e) {}

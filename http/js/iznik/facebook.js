@@ -18,14 +18,18 @@ define([
 
         render: function () {
             var self = this;
+            // console.log("Render FBLoad");
 
             if (self.FBLoaded) {
+                // console.log("Already loaded");
                 this.trigger('fbloaded');
             } else if ((!self.FBLoaded) && (!self.FBLoading)) {
+                // console.log("Load FB API");
                 self.FBLoading = true;
 
                 // The load might fail if we have a blocker.  The only way to deal with this is via a timeout.
                 self.timeout = window.setTimeout(function () {
+                    // console.log("Timeout");
                     self.FBLoading = false;
                     self.FBLoaded = true;
                     self.FBDisabled = true;
@@ -43,6 +47,7 @@ define([
                 }(document, 'script', 'facebook-jssdk'));
 
                 window.fbAsyncInit = function () {
+                    // console.log("FB asyncInit");
                     self.FBLoading = false;
                     self.FBLoaded = true;
 
@@ -54,14 +59,29 @@ define([
                         });
 
                         self.trigger('fbloaded');
+                        // console.log("FB Loaded");
                     } catch (e) {
                         console.log("Facebook init failed");
                         console.log(e);
                     }
                 }
             } else {
-                //console.log("FB still loading...");
+                // console.log("FB still loading...");
             }
         }
     });
+
+    // This is a singleton view.
+    var instance;
+    console.log("FBLoad current instance", instance);
+
+    return function(options) {
+        console.log("FBLoad");
+        if (!instance) {
+            console.log("Create instance");
+            instance = new Iznik.Views.FBLoad(options);
+        }
+
+        return instance;
+    }
 });
