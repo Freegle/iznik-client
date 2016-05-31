@@ -709,17 +709,17 @@ define([
                 fields: self.fields
             });
 
-            self.form.render().then(function() {
-                // Make it full width.
-                self.$('label').remove();
-                self.$('.col-sm-8').removeClass('col-sm-8').addClass('col-sm-12');
+            self.form.render();
+            
+            // Make it full width.
+            self.$('label').remove();
+            self.$('.col-sm-8').removeClass('col-sm-8').addClass('col-sm-12');
 
-                // Layout messes up a bit.
-                self.$('.form-group').addClass('clearfix');
+            // Layout messes up a bit.
+            self.$('.form-group').addClass('clearfix');
 
-                // Turn on spell-checking
-                self.$('textarea, input:text').attr('spellcheck', true);
-            });
+            // Turn on spell-checking
+            self.$('textarea, input:text').attr('spellcheck', true);
         },
 
         render: function() {

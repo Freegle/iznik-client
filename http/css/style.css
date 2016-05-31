@@ -254,6 +254,10 @@ body {
     margin-top: 0px;
 }
 
+.margbotsm {
+    margin-bottom: 5px;
+}
+
 .padbotnone {
     padding-bottom: 0px !important;
 }
