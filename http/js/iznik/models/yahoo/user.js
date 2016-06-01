@@ -6,8 +6,10 @@ define([
 ], function($, _, Backbone, Iznik) {
         Iznik.Models.Yahoo.User = Iznik.Model.extend({
         url: function() {
+            // Yahoo's client usually puts e.g. memberType=CONFIRMED in, but by omitting this we conveniently search
+            // all members, including pending, which is actually what we want.
             var url = YAHOOAPI + "search/groups/" + this.get('group') +
-                    "/members?memberType=CONFIRMED&start=1&count=1&sortBy=name&sortOrder=asc&query=" +
+                    "/members?start=1&count=1&sortBy=name&sortOrder=asc&query=" +
                     this.get('email') + "&chrome=raw";
             return(url);
         },
@@ -93,6 +95,8 @@ define([
                         subscriptionStatus: 'BANNED'
                     }
                 ];
+
+                console.log("Ban", JSON.stringify(members));
 
                 new majax({
                     type: "PUT",

@@ -286,6 +286,7 @@ define([
                 }
     
                 var url = "https://groups.yahoo.com/neo/groups/" + groupname + crumblocation + "?" + Math.random();
+                console.log("Get crumb", url);
     
                 $.ajax({
                     type: "GET",
@@ -2056,7 +2057,7 @@ define([
     Iznik.Views.Plugin.Yahoo.BanApprovedMember = Iznik.Views.Plugin.SubView.extend({
         template: 'plugin_member_approved_ban',
     
-        crumbLocation: "/members/ban",
+        crumbLocation: "/members/all",
     
         server: true,
     
@@ -2075,6 +2076,7 @@ define([
             mod.fetch().then(function() {
                 // Unfortunately the fetch of the model will have trashed our crumb.
                 console.log("Refetch crumb", self.crumb);
+                self.crumbLocation = '/members/ban';
                 window.IznikPlugin.getCrumb(self.model.get('group').nameshort, self.crumbLocation, function() {
                     console.log("Fetched new crumb", self.crumb);
                     self.listenToOnce(mod, 'bansucceeded', self.succeed);
