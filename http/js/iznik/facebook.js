@@ -73,12 +73,9 @@ define([
 
     // This is a singleton view.
     var instance;
-    console.log("FBLoad current instance", instance);
 
     return function(options) {
-        console.log("FBLoad");
         if (!instance) {
-            console.log("Create instance");
             instance = new Iznik.Views.FBLoad(options);
         }
 

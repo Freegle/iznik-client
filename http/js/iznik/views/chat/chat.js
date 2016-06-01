@@ -169,6 +169,7 @@ define([
 
                         // We use this later to see if we need to shrink.
                         totalOuter += css.width + css['margin-left'] + css['margin-right'];
+                        // console.log("Chat width", css.width, css['margin-left'], css['margin-right']);
                         totalWidth += css.width;
                         totalMax++;
 
@@ -348,10 +349,10 @@ define([
 
                             Iznik.minimisedChats.render();
                             Iznik.Session.trigger('chatsfetched');
-                        })
 
-                        self.organise();
-                        self.showMin();
+                            self.organise();
+                            self.showMin();
+                        })
                     });
 
                     // Now ensure we are told about new messages.
@@ -425,14 +426,16 @@ define([
 
         removed: false,
 
+        minimised: true,
+
         rosterUpdatedAt: 0,
 
         keyUp: function(e) {
             var self = this;
             if (e.which === 13) {
-                self.$('.js-message').prop('disabled', true);
                 var message = this.$('.js-message').val();
                 if (message.length > 0) {
+                    self.$('.js-message').prop('disabled', true);
                     self.listenToOnce(this.model, 'sent', function(id) {
                         self.model.set('lastmsgseen', id);
                         self.model.set('unseen', 0);
@@ -552,7 +555,7 @@ define([
                 self.$el.hide();
             });
             this.minimised = true;
-            this.options.organise();
+            this.waitDOM(self, self.options.organise);
             this.options.updateCounts();
 
             self.updateRoster('Away', self.noop);
@@ -614,6 +617,7 @@ define([
                 lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
 
                 if (lpwidth) {
+                    console.log("Restore chat width to", lpwidth);
                     self.$('.js-leftpanel').width(lpwidth);
                 }
             } catch (e) {}
@@ -633,7 +637,7 @@ define([
 
             // Restore the window first, so it feels zippier.
             self.setSize();
-            self.options.organise();
+            this.waitDOM(self, self.options.organise);
             this.options.updateCounts();
 
             _.defer(function() {

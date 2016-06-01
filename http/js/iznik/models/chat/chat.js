@@ -36,8 +36,15 @@ define([
 
         model: Iznik.Models.Chat.Room,
 
-        comparator: function(item) {
-            return - (new Date(item.get('lastdate')).getTime());
+        comparator: function(a, b) {
+            // Sort by date of last message, if exists.
+            if (!a.get('lastdate')) {
+                return 1
+            } else if (!b.get('lastdate')) {
+                return -1
+            } else {
+                return (new Date(b.get('lastdate')).getTime()) - new Date(a.get('lastdate')).getTime()
+            }
         },
 
         parse: function(ret) {

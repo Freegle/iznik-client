@@ -1066,8 +1066,8 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 }
 
 #js-notifchat ul, #js-notifchat li {
-    color: white;
-    background-color: #4895DD;
+    color: black;
+    background-color: #edeef1;
 }
 
 #js-notifchat li {
