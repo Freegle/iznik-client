@@ -146,10 +146,6 @@
     background-color: white !important;
 }
 
-.navbar-collapse.in {
-    background-color: darkgreen !important;
-}
-
 @media (min-width: 768px) {
     .navbar-dropdown-text {
         display: none;
