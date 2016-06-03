@@ -293,7 +293,7 @@ class Message
             $headers->addTextHeader('X-Iznik-ModMail', $modmail);
 
             if ($bcc) {
-                $message->setBcc($bcc);
+                $message->setBcc(explode(',', $bcc));
             }
 
             $mailer->send($message);
@@ -301,6 +301,7 @@ class Message
             error_log(session_id() . " mailed " . microtime(true));
         } catch (Exception $e) {
             error_log("Send failed with " . $e->getMessage());
+            mail("log@ehibbert.org.uk", "Email send failed", $e->getMessage());
         }
     }
 
