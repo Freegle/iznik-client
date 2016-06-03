@@ -136,50 +136,62 @@ define([
     });
 
     // Please wait popup.  Need to avoid nesting issues.
-    var waitModals = [];
+    var waitCount = 0;
+    var waitOpen = null;
 
     Iznik.Views.PleaseWait = Iznik.Views.Modal.extend({
         template: 'wait',
 
         timeout: null,
+        isOpen : false,
 
         render: function() {
             var self = this;
-            this.waitCount = waitModals.length;
-            waitModals.push(this);
-            console.log("Start wait");
+            waitCount++;
+            console.log("Start wait", waitCount);
 
-            if (this.waitCount == 0) {
-                this.timeout = setTimeout(function() {
+            this.timeout = setTimeout(function() {
+                self.timeout = null;
+
+                if (!waitOpen) {
+                    // We don't have a modal open.  Open ours.
                     console.log("Open wait");
-                    self.timeout = null;
+                    waitOpen = self;
                     self.open(self.template);
-                }, self.options.timeout ? self.options.timeout : 3000);
-            }
+                }
+            }, self.options.timeout ? self.options.timeout : 3000);
 
             return(resolvedPromise(this));
         },
 
         close: function() {
-            console.log("Close wait");
-            if (this.waitCount == 0) {
-                // We opened a modal; close it.
-                if (this.timeout) {
-                    console.log("Still timer");
-                    clearTimeout(this.timeout);
-                } else {
-                    console.log("Close it");
-                    Iznik.Views.Modal.prototype.close.call(this);
-                }
+            if (this.timeout) {
+                console.log("Still timer");
+                clearTimeout(this.timeout);
             }
 
-            waitModals = _.without(waitModals, this);
+            waitCount--;
+            console.log("Waits open", waitCount);
 
-            if (waitModals.length > 0) {
-                // We have more queued.
-                var first = _.first(waitModals);
-                first.render();
+            if (waitCount === 0 && waitOpen) {
+                // We don't need any more open.
+                console.log("Close open one");
+                Iznik.Views.Modal.prototype.close.call(waitOpen);
             }
         }
     });
+    //
+    // for (var i = 0; i < 10; i++) {
+    //     setTimeout(function() {
+    //         console.log("Open one")
+    //         var v = new Iznik.Views.PleaseWait({
+    //             timeout: Math.random() * 10000 + 5000
+    //         })
+    //         v.render();
+    //         setTimeout(function() {
+    //             console.log("Close one");
+    //             v.close();
+    //         },  Math.random() * 20000 + 5000);
+    //     }, Math.random() * 10000 + 5000);
+    // }
 });
