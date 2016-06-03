@@ -229,7 +229,7 @@ define([
             });
         },
 
-        userFindWhatIsIt: function () {
+        userFindWhatIsIt: function() {
             var self = this;
 
             require(["iznik/views/pages/user/find"], function() {

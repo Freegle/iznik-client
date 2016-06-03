@@ -59,7 +59,11 @@ define([
         },
 
         render: function () {
-            var p = Iznik.Views.Page.prototype.render.call(this);
+            var p = Iznik.Views.Page.prototype.render.call(this, {
+                model: new Iznik.Model({
+                    item: this.options.item
+                })
+            });
             p.then(function(self) {
                 if (self.options.search) {
                     self.$('h1').hide();
@@ -160,10 +164,11 @@ define([
                             } else {
                                 self.$('.js-none').hide();
                             }
-                            self.$('.js-wanted').fadeIn('slow');
 
-                            self.$('.js-postwantd').fadeIn('slow');
+                            self.$('.js-postwanted').show().addClass('fadein');
                         }
+                    }).then(function() {
+                        self.$('.js-postwanted').css('display');
                     });
                 }
 

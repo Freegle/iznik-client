@@ -152,10 +152,6 @@ define([
             var self = this;
             
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
-                if (self.options.item) {
-                    self.$('.js-items').val(self.options.item);
-                }
-
                 self.$('.js-items').tagsinput({
                     freeInput: true,
                     trimValue: true,
@@ -166,6 +162,11 @@ define([
                         source: self.itemSource
                     }
                 });
+
+                if (self.options.item) {
+                    console.log("Want", self.options.item);
+                    self.$('.js-items').tagsinput('add', self.options.item);
+                }
 
                 // CollectionView handles adding/removing for us.
                 self.photos = new Iznik.Collection();

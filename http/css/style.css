@@ -1102,7 +1102,7 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     height: 300px;
     width: 300px;
     bottom: 0;
-    animation: chatIn 3s;
+    animation: chatIn 2s;
     transform-origin: right bottom;
 }
 
