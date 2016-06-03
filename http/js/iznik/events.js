@@ -1,8 +1,9 @@
 define([
     'jquery',
     'underscore',
-    'iznik/diff'
-], function($, _, JsDiff) {
+    'iznik/diff',
+    'css-selector-generator'
+], function($, _, JsDiff, CssSelectorGenerator) {
     // We track the mouse, keyboard and DOM activity on the client, and periodically upload it to the server.  This allows
     // us to replay sessions and see what happened, which is invaluable for diagnosing problems and helping users with
     // issues.
@@ -10,9 +11,13 @@ define([
     var eventQueue = [];
     var flushTimerRunning;
 
-    function trackEvent(target, event, posX, posY, data) {
+    function trackEvent(target, event, posX, posY, data, timestamp) {
+        if (!timestamp) {
+            timestamp = (new Date()).getTime();
+        }
+
         var data = {
-            timestamp: (new Date()).getTime(),
+            timestamp: timestamp,
             route: location.pathname + location.hash,
             target: target,
             event: event,
@@ -61,9 +66,51 @@ define([
             lastDOMtime: 0,
 
             checkDOM: function () {
+                var self = this;
+
                 // Use innerHTML as we don't put classes on body, and it allows us to restore the content within
                 // a div when replaying.
                 var dom = $('body')[0].innerHTML;
+                // console.log("DOM initially", dom.length);
+
+                // Get the DOM with all the values.
+                //
+                // Create a copy of the body outside the DOM
+                // Fill in all the values
+                // Get it back.
+                //
+                // We don't want to do this on the actual body as this might trigger events.
+                var clone = $('body').clone();
+                $('input, select, textarea').each(function() {
+                    var $this = $(this);
+                    var val = $this.val();
+
+                    if (val) {
+                        var path = self.getPath($this);
+                        path = path.replace('html>body>', '');
+                        var copy = clone.find(path);
+
+                        if ($this.is("[type='radio']") || $this.is("[type='checkbox']")) {
+                            if ($this.prop("checked")) {
+                                copy.attr("checked", "checked");
+                            } else {
+                                copy.removeAttr("checked");
+                            }
+                        } else {
+                            if ($this.is("select")) {
+                                copy.find(":selected").attr("selected", "selected");
+                            } else {
+                                copy.attr("value", $this.val());
+                            }
+                        }
+
+                        // console.log("Set copy input", path, copy.length, val);
+                        $(copy).val(val);
+                    }
+                });
+                dom = clone.html();
+                // console.log("Dom now", dom.length);
+
                 var type;
 
                 if (!this.lastDOM) {
@@ -99,15 +146,17 @@ define([
 
                 if (strdiff.length > 80) {
                     // 80 is the "no differences" text.
-                    trackEvent('window', 'DOM-' + type, null, null, strdiff);
+                    //
+                    // We log these with the same timestamp so that they are replayed seamlessly.
+                    var timestamp = (new Date()).getTime();
+                    trackEvent('window', 'DOM-' + type, null, null, strdiff, timestamp);
                     this.lastDOM = dom;
 
                     // Rewriting the DOM may lose input values which were set post-page-load (most of 'em).
-                    // However this doesn't seem to work very well, and it's also quite expensive.
-                    // $('input').each(function() {
+                    // $('input, select, textarea').each(function() {
                     //     var val = $(this).val();
                     //     if (val) {
-                    //         trackEvent(self.getPath($(this)), 'input', e.pageX, e.pageY, val);
+                    //         trackEvent(self.getPath($(this)), 'input', null, null, val, timestamp);
                     //     }
                     // });
                 }
@@ -125,6 +174,11 @@ define([
             },
 
             getPath: function (node) {
+                if (!this.selgen) {
+                    this.selgen = new CssSelectorGenerator;
+                }
+
+                return(this.selgen.getSelector(node.get(0)));
                 var path = '';
                 if (node[0].id) return "#" + node[0].id;
                 while (node.length) {

@@ -113,203 +113,214 @@ define([
 
         playEvent: function() {
             var self = this;
-            var start = (new Date()).getTime();
 
-            // Determine how long the replay has taken compared to the original session, which tells us if our
-            // replay is lagging.
-            var event = self.replayEvents[self.eventIndex++];
-            var lag = (start - this.replayStart) - ((new Date(event.clienttimestamp)) - self.clientStart);
-            lag = lag < 0 ? 0 : lag;
-            // console.log("playEvent", self.eventIndex, event.clienttimestamp, start - this.replayStart, (new Date(event.clienttimestamp)) - self.clientStart, lag);
+            do {
+                var keepgoing = false;
 
-            // Adjust window size if necessary.
-            var currHeight = $(window).height();
-            var currWidth = $(window).width();
+                var start = (new Date()).getTime();
 
-            if (currHeight != event.viewy || currWidth != event.viewx) {
-                if (event.viewx != self.lastWindowWidth &&
-                    event.viewy != self.lastWindowHeight) {
-                    // Although we try to resize the window, we may not get what we asked for - window.open tends to
-                    // open without the bookmark bar, for example.  No point repeatedly trying to resize unless
-                    // it's changed, especially as resizing the canvas clears it.
-                    window.resizeTo(event.viewx, event.viewy);
-                    self.lastWindowWidth = event.viewx;
-                    self.lastWindowHeight = event.viewy;
+                // Determine how long the replay has taken compared to the original session, which tells us if our
+                // replay is lagging.
+                var event = self.replayEvents[self.eventIndex++];
+                var lag = (start - this.replayStart) - ((new Date(event.clienttimestamp)) - self.clientStart);
+                lag = lag < 0 ? 0 : lag;
+                // console.log("playEvent", self.eventIndex, event.clienttimestamp, start - this.replayStart, (new Date(event.clienttimestamp)) - self.clientStart, lag);
 
-                    var canvas = document.getElementById('replayCanvas');
-                    canvas.width = event.viewx;
-                    canvas.height = event.viewy;
-                }
-            }
+                // Adjust window size if necessary.
+                var currHeight = $(window).height();
+                var currWidth = $(window).width();
 
-            // Update time and progress
-            self.progress();
+                if (currHeight != event.viewy || currWidth != event.viewx) {
+                    if (event.viewx != self.lastWindowWidth &&
+                        event.viewy != self.lastWindowHeight) {
+                        // Although we try to resize the window, we may not get what we asked for - window.open tends to
+                        // open without the bookmark bar, for example.  No point repeatedly trying to resize unless
+                        // it's changed, especially as resizing the canvas clears it.
+                        window.resizeTo(event.viewx, event.viewy);
+                        self.lastWindowWidth = event.viewx;
+                        self.lastWindowHeight = event.viewy;
 
-            switch (event.event) {
-                case 'DOM-f':
-                {
-                    // Full DOM replace.
-                    self.replaceDOM(event.data);
-                    break;
+                        var canvas = document.getElementById('replayCanvas');
+                        canvas.width = event.viewx;
+                        canvas.height = event.viewy;
+                    }
                 }
 
-                case 'DOM-d':
-                {
-                    // Diff on current DOM.
-                    if (self.currentDOM) {
-                        var newdom = JsDiff.applyPatch(self.currentDOM, event.data);
-                        if (newdom) {
-                            self.replaceDOM(newdom);
+                // Update time and progress
+                self.progress();
+
+                switch (event.event) {
+                    case 'DOM-f':
+                    {
+                        // Full DOM replace.
+                        self.replaceDOM(event.data);
+                        break;
+                    }
+
+                    case 'DOM-d':
+                    {
+                        // Diff on current DOM.
+                        if (self.currentDOM) {
+                            var newdom = JsDiff.applyPatch(self.currentDOM, event.data);
+                            if (newdom) {
+                                self.replaceDOM(newdom);
+                            }
                         }
+
+                        break;
                     }
 
-                    break;
-                }
-
-                case 'scroll': {
-                    $('body').scrollTo(parseInt(event.data));
-                    break;
-                }
-
-                case 'click':
-                case 'focus': {
-                    // Don't actually click - just draw on the canvas to illustrate it.
-                    var canvas = document.getElementById('replayCanvas');
-                    var context = canvas.getContext('2d');
-                    var x = Math.round(parseInt(event.posx));
-                    var y = Math.round(parseInt(event.posy));
-
-                    function drawClick(context, x, y, oldradius, newradius, grow) {
-                        return (function () {
-                            // console.log("Draw click at", x, y);
-                            if (oldradius) {
-                                // Wipe any previous one.
-                                var old = context.globalCompositeOperation;
-                                context.globalCompositeOperation = "destination-out";
-                                context.beginPath();
-                                context.arc(x, y, oldradius + 10, 0, Math.PI * 2, true);
-                                context.fillStyle = "rgba(0,0,0,1)";
-                                context.fill();
-                                context.globalCompositeOperation = old;
-                            }
-
-                            // Draw the new one.
-                            context.beginPath();
-                            context.arc(x, y, newradius, 0, Math.PI * 2, true);
-                            context.fillStyle = 'red';
-                            context.fill();
-
-                            if (grow) {
-                                if (newradius < 20) {
-                                    window.setTimeout(drawClick(context, x, y, newradius, newradius + 1, true), 100);
-                                } else {
-                                    window.setTimeout(drawClick(context, x, y, newradius + 1, newradius, false), 100);
-                                }
-                            } else {
-                                if (newradius > 0) {
-                                    window.setTimeout(drawClick(context, x, y, newradius, newradius - 1, false), 100);
-                                }
-                            }
-                        });
+                    case 'scroll': {
+                        $('body').scrollTo(parseInt(event.data));
+                        break;
                     }
 
-                    drawClick(context, x, y, 0, 0, true)();
-
-                    break;
-                }
-
-                case 'mousemove': {
-                    // Mouse track - draw a line from the last one, then wipe it after a while.
-                    if (self.lastMouseX && self.lastMouseY) {
+                    case 'click':
+                    case 'focus': {
+                        // Don't actually click - just draw on the canvas to illustrate it.
                         var canvas = document.getElementById('replayCanvas');
                         var context = canvas.getContext('2d');
-                        context.beginPath();
-                        context.moveTo(self.lastMouseX, self.lastMouseY);
-                        context.lineTo(event.posx, event.posy);
-                        context.lineWidth = 5;
-                        context.globalAlpha = 0.5;
-                        context.strokeStyle = 'red';
-                        context.stroke();
+                        var x = Math.round(parseInt(event.posx));
+                        var y = Math.round(parseInt(event.posy));
 
-                        function wipe(context, lastMouseX, lastMouseY, posx, posy) {
+                        function drawClick(context, x, y, oldradius, newradius, grow) {
                             return (function () {
-                                //console.log("Wipe", lastMouseX, lastMouseY, posx, posy);
-                                var old = context.globalCompositeOperation;
-                                context.globalCompositeOperation = "destination-out";
-                                context.strokeStyle = "rgba(0,0,0,1)";
-                                context.beginPath();
-                                context.moveTo(lastMouseX, lastMouseY);
-                                context.lineTo(posx, posy);
-                                context.lineWidth = 10;
-                                context.globalAlpha = 1;
-                                context.stroke();
+                                // console.log("Draw click at", x, y);
+                                if (oldradius) {
+                                    // Wipe any previous one.
+                                    var old = context.globalCompositeOperation;
+                                    context.globalCompositeOperation = "destination-out";
+                                    context.beginPath();
+                                    context.arc(x, y, oldradius + 10, 0, Math.PI * 2, true);
+                                    context.fillStyle = "rgba(0,0,0,1)";
+                                    context.fill();
+                                    context.globalCompositeOperation = old;
+                                }
 
-                                context.globalCompositeOperation = old;
+                                // Draw the new one.
+                                context.beginPath();
+                                context.arc(x, y, newradius, 0, Math.PI * 2, true);
+                                context.fillStyle = 'red';
+                                context.fill();
+
+                                if (grow) {
+                                    if (newradius < 20) {
+                                        window.setTimeout(drawClick(context, x, y, newradius, newradius + 1, true), 100);
+                                    } else {
+                                        window.setTimeout(drawClick(context, x, y, newradius + 1, newradius, false), 100);
+                                    }
+                                } else {
+                                    if (newradius > 0) {
+                                        window.setTimeout(drawClick(context, x, y, newradius, newradius - 1, false), 100);
+                                    }
+                                }
                             });
                         }
 
-                        window.setTimeout(wipe(context, self.lastMouseX, self.lastMouseY, event.posx, event.posy), 5000);
+                        drawClick(context, x, y, 0, 0, true)();
+
+                        break;
                     }
 
-                    self.lastMouseX = event.posx;
-                    self.lastMouseY = event.posy;
+                    case 'mousemove': {
+                        // Mouse track - draw a line from the last one, then wipe it after a while.
+                        if (self.lastMouseX && self.lastMouseY) {
+                            var canvas = document.getElementById('replayCanvas');
+                            var context = canvas.getContext('2d');
+                            context.beginPath();
+                            context.moveTo(self.lastMouseX, self.lastMouseY);
+                            context.lineTo(event.posx, event.posy);
+                            context.lineWidth = 5;
+                            context.globalAlpha = 0.5;
+                            context.strokeStyle = 'red';
+                            context.stroke();
 
-                    break;
-                }
+                            function wipe(context, lastMouseX, lastMouseY, posx, posy) {
+                                return (function () {
+                                    //console.log("Wipe", lastMouseX, lastMouseY, posx, posy);
+                                    var old = context.globalCompositeOperation;
+                                    context.globalCompositeOperation = "destination-out";
+                                    context.strokeStyle = "rgba(0,0,0,1)";
+                                    context.beginPath();
+                                    context.moveTo(lastMouseX, lastMouseY);
+                                    context.lineTo(posx, posy);
+                                    context.lineWidth = 10;
+                                    context.globalAlpha = 1;
+                                    context.stroke();
 
-                case 'input': {
-                    var target = event.target.replace('html>body', '#replayContent');
-                    $(target).focus();
-                    $(target).val(event.data);
-                    console.log("Trigger", event.data, target);
+                                    context.globalCompositeOperation = old;
+                                });
+                            }
 
-                    break;
-                }
-            }
-
-            if (self.pauseAt == self.eventIndex) {
-                // We wanted to play forwards to here and then stop.
-                self.pauseAt = null;
-                self.pause();
-                $('#replayHeader').removeClass('showclicked');
-                self.replaceDOM(self.currentDOM);
-            } else if (!self.paused) {
-                if (self.eventIndex < self.replayEvents.length) {
-                    if (!self.timerRunning) {
-                        // See when the next event is due, which might be immediately if we took a while to replay.
-                        var diff = parseInt(event.clientdiff);
-
-                        if (lag > diff) {
-                            // We're lagging - the loop will keep going.
-                            diff = 0;
-                        } else {
-                            diff -= lag - 50;
-
-                            // If we don't yet have a DOM or we're running to a pause, we want to speed it up.
-                            diff = self.currentDOM ? diff : 0;
-                            diff = self.pauseAt ? 0 : diff;
+                            window.setTimeout(wipe(context, self.lastMouseX, self.lastMouseY, event.posx, event.posy), 5000);
                         }
 
-                        // If we're fast forwarding, there's no delay.
-                        diff = self.fastForward ? 0 : diff;
+                        self.lastMouseX = event.posx;
+                        self.lastMouseY = event.posy;
 
-                        if (diff > 5000) {
-                            // Don't wait too long.  Adjust the replay start time so that our lagging calculations
-                            // still work.
-                            self.replayStart += diff - 5000;
-                            diff = 5000;
-                        }
-
-                        self.timerRunning = true;
-                        // console.log("playEvent", event.clienttimestamp, event.event, diff);
-                        window.setTimeout(_.bind(self.playNext, self), diff);
+                        break;
                     }
-                } else {
-                    self.finished();
-                }
-            }
 
-            // console.log("Replayed", event.clienttimestamp, (new Date()).getTime() - start);
+                    case 'input': {
+                        var target = event.target.replace('html>body', '#replayContent');
+                        $(target).focus();
+                        $(target).val(event.data);
+                        // console.log("Trigger", event.data, target);
+
+                        break;
+                    }
+                }
+
+                if (self.pauseAt == self.eventIndex) {
+                    // We wanted to play forwards to here and then stop.
+                    self.pauseAt = null;
+                    self.pause();
+                    $('#replayHeader').removeClass('showclicked');
+                    self.replaceDOM(self.currentDOM);
+                } else if (!self.paused) {
+                    if (self.eventIndex < self.replayEvents.length) {
+                        if (!self.timerRunning) {
+                            // See when the next event is due, which might be immediately if we took a while to replay.
+                            var diff = parseInt(event.clientdiff);
+
+                            if (diff == 0) {
+                                // This is a case where we want to keep replaying without a break.  It's used, for
+                                // example, where we get a DOM dump and then set the inputs.
+                                keepgoing = true;
+                            } else {
+                                if (lag > diff) {
+                                    // We're lagging - the loop will keep going.
+                                    diff = 0;
+                                } else {
+                                    diff -= lag - 50;
+
+                                    // If we don't yet have a DOM or we're running to a pause, we want to speed it up.
+                                    diff = self.currentDOM ? diff : 0;
+                                    diff = self.pauseAt ? 0 : diff;
+                                }
+
+                                // If we're fast forwarding, there's no delay.
+                                diff = self.fastForward ? 0 : diff;
+
+                                if (diff > 5000) {
+                                    // Don't wait too long.  Adjust the replay start time so that our lagging calculations
+                                    // still work.
+                                    self.replayStart += diff - 5000;
+                                    diff = 5000;
+                                }
+
+                                self.timerRunning = true;
+                                // console.log("playEvent", event.clienttimestamp, event.event, diff);
+                                window.setTimeout(_.bind(self.playNext, self), diff);
+                            }
+                        }
+                    } else {
+                        self.finished();
+                    }
+                }
+
+                // console.log("Replayed", event.clienttimestamp, (new Date()).getTime() - start);
+            } while (keepgoing);
         },
 
         playNext: function() {
