@@ -98,7 +98,9 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
                     console.log("Got SW registrations", registrations);
                     for (var registration in registrations) {
                         console.log("Registration", registration);
-                        registration.unregister()
+                        if (registration) {
+                            registration.unregister();
+                        }
                     }
                 });
             }

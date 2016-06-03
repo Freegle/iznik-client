@@ -286,7 +286,7 @@ define([
                 }
     
                 var url = "https://groups.yahoo.com/neo/groups/" + groupname + crumblocation + "?" + Math.random();
-                console.log("Get crumb", url);
+                // console.log("Get crumb", url);
     
                 $.ajax({
                     type: "GET",
@@ -542,7 +542,8 @@ define([
                                     }));
                                     break;
                                 }
-    
+
+                                case 'BanPendingMember':
                                 case 'BanApprovedMember': {
                                     if (!cantban) {
                                         self.collection.add(new Iznik.Models.Plugin.Work({
