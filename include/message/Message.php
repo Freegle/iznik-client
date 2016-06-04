@@ -1671,7 +1671,7 @@ class Message
                         # Or we might be deleting a pending or spam message, in which case it may also need rejecting on Yahoo.
                         if ($group['yahooreject']) {
                             # We can trigger rejection by email - do so.
-                            $this->mailer($me, TRUE, $group['yahooapprove'], $group['yahooapprove'], NULL, MODERATOR_EMAIL, MODERATOR_EMAIL, "My name is Iznik and I reject this message", "");
+                            $this->mailer($me, TRUE, $group['yahooreject'], $group['yahooreject'], NULL, MODERATOR_EMAIL, MODERATOR_EMAIL, "My name is Iznik and I reject this message", "");
                         }
 
                         if ($group['yahoopendingid']) {
