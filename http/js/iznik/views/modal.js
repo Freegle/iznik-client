@@ -138,6 +138,7 @@ define([
     // Please wait popup.  Need to avoid nesting issues.
     var waitCount = 0;
     var waitOpen = null;
+    var waitPromise = null;
 
     Iznik.Views.PleaseWait = Iznik.Views.Modal.extend({
         template: 'wait',
@@ -157,7 +158,7 @@ define([
                     // We don't have a modal open.  Open ours.
                     console.log("Open wait");
                     waitOpen = self;
-                    self.open(self.template);
+                    waitPromise = self.open(self.template);
                 }
             }, self.options.timeout ? self.options.timeout : 3000);
 
@@ -174,9 +175,12 @@ define([
             console.log("Waits open", waitCount);
 
             if (waitCount === 0 && waitOpen) {
-                // We don't need any more open.
-                console.log("Close open one");
-                Iznik.Views.Modal.prototype.close.call(waitOpen);
+                // We don't need any more open.  But this one might not quite have rendered yet, so we need to wait.
+                console.log("Close open one", waitOpen);
+                waitPromise.then(function() {
+                    console.log("Open rendered");
+                    Iznik.Views.Modal.prototype.close.call(waitOpen);
+                });
             }
         }
     });

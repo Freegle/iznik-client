@@ -44,7 +44,12 @@ define([
         modtools: false,
 
         events: {
-            'click .js-signin': 'signin'
+            'click .js-signin': 'signin',
+            'click .js-notifchat': 'refreshChats',
+        },
+
+        refreshChats: function() {
+
         },
 
         home: function () {
@@ -59,8 +64,13 @@ define([
         },
 
         logout: function() {
-            console.log("logout");
             logout();
+        },
+
+        refreshChats: function() {
+            Iznik.Session.chats.fetch({
+                remove: false
+            });
         },
 
         render: function (options) {

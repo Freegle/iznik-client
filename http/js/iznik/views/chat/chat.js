@@ -191,7 +191,7 @@ define([
 
                 // console.log("Checked height", (new Date()).getMilliseconds() - start);
 
-                var max = window.innerWidth;
+                var max = window.innerWidth - 50;
 
                 // console.log("Consider width", totalOuter, max);
 
@@ -199,7 +199,7 @@ define([
                     // The chat windows we have open are too wide.  Make them narrower.
                     var reduceby = Math.round((totalOuter - max) / totalMax + 0.5);
                     // console.log("Chats too wide", max, totalOuter, totalWidth, reduceby);
-                    var width = (Math.round(totalWidth / totalMax + 0.5) - reduceby);
+                    var width = (Math.floor(totalWidth / totalMax + 0.5) - reduceby);
                     // console.log("New width", width);
 
                     Iznik.activeChats.viewManager.each(function(chat) {
@@ -229,6 +229,8 @@ define([
                         }
                     }
                 });
+            } else {
+                console.log("No chats to organise");
             }
             
             // The drop-down menu needs to be scrollable, and so we put a max-height on it.
@@ -989,10 +991,10 @@ define([
                 var tpl;
 
                 switch (this.model.get('type')) {
-                    case 'ModMail': tpl = 'chat_modmail'; break;
-                    case 'Interested': tpl = 'chat_interested'; break;
-                    case 'Promised': tpl = 'chat_promised'; break;
-                    case 'Reneged': tpl = 'chat_reneged'; break;
+                    case 'ModMail': tpl = this.model.get('refmsg') ? 'chat_modmail' : 'chat_message'; break;
+                    case 'Interested': tpl = this.model.get('refmsg') ? 'chat_interested' : 'chat_message'; break;
+                    case 'Promised': tpl = this.model.get('refmsg') ? 'chat_promised' : 'chat_message'; break;
+                    case 'Reneged': tpl = this.model.get('refmsg') ? 'chat_reneged' : 'chat_message'; break;
                     default: tpl = 'chat_message'; break;
                 }
 

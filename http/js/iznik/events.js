@@ -65,6 +65,66 @@ define([
             lastDOM: null,
             lastDOMtime: 0,
 
+            getWithValues: function() {
+                // We're saving off the full DOM.  What we get from innerHTML doesn't have any values in it which
+                // were changed post initial insertion.  So we need to get the DOM with all the values.
+                //
+                // We only need to do this in the 'f' case, as there will be other input tracking events which
+                // will mean the delta case works out ok.
+                //
+                // Create a copy of the body outside the DOM
+                // Fill in all the values
+                // Get it back.
+                //
+                // We don't want to do this on the actual body as this might trigger events.
+                //
+                // It's tempting to use getPath to find a selector, then find that in the clone.  But getPath
+                // isn't very efficient on large DOMs.  So we save off all the vals, then go through the clone,
+                // where they will appear in the same order, setting them.
+                var clone = $('body').clone();
+                var vals = [];
+                $('input, select, textarea').each(function() {
+                    vals.push($(this).val());
+                });
+
+                console.log("Saved vals", vals);
+
+                // Now go through and set them in the copy.
+                clone.find('input, select, textarea').each(function() {
+                    var val = vals.shift();
+                    var $this = $(this);
+
+                    if (val) {
+                        if ($this.is("[type='radio']") || $this.is("[type='checkbox']")) {
+                            if (val) {
+                                $this.attr("checked", "checked");
+                            } else {
+                                $this.removeAttr("checked");
+                            }
+                        } else {
+                            if ($this.is("select")) {
+                                $this.find("option").each(function() {
+                                    if ($(this).val() == val) {
+                                        $(this).attr("selected", "selected");
+                                    }
+                                });
+                            } else {
+                                $this.attr("value", val);
+                            }
+                        }
+                    }
+                });
+
+                // var vals2 = [];
+                // clone.find('input, select, textarea').each(function() {
+                //     vals2.push($(this).val());
+                // });
+                //
+                // console.log("Restored vals", vals2);
+
+                return(clone.html());
+            },
+
             checkDOM: function () {
                 var self = this;
 
@@ -72,46 +132,8 @@ define([
                 // a div when replaying.
                 var dom = $('body')[0].innerHTML;
                 // console.log("DOM initially", dom.length);
-
-                // Get the DOM with all the values.
-                //
-                // Create a copy of the body outside the DOM
-                // Fill in all the values
-                // Get it back.
-                //
-                // We don't want to do this on the actual body as this might trigger events.
-                var clone = $('body').clone();
-                $('input, select, textarea').each(function() {
-                    var $this = $(this);
-                    var val = $this.val();
-
-                    if (val) {
-                        var path = self.getPath($this);
-                        path = path.replace('html>body>', '');
-                        var copy = clone.find(path);
-
-                        if ($this.is("[type='radio']") || $this.is("[type='checkbox']")) {
-                            if ($this.prop("checked")) {
-                                copy.attr("checked", "checked");
-                            } else {
-                                copy.removeAttr("checked");
-                            }
-                        } else {
-                            if ($this.is("select")) {
-                                copy.find(":selected").attr("selected", "selected");
-                            } else {
-                                copy.attr("value", $this.val());
-                            }
-                        }
-
-                        // console.log("Set copy input", path, copy.length, val);
-                        $(copy).val(val);
-                    }
-                });
-                dom = clone.html();
-                // console.log("Dom now", dom.length);
-
                 var type;
+                var now = (new Date()).getTime();
 
                 if (!this.lastDOM) {
                     // We've not captured the DOM yet
@@ -121,6 +143,11 @@ define([
                     if (dom.length == this.lastDOM.length) {
                         // Very probably, this is exactly the same.  Save some CPU.
                         return;
+                    } else if (now - this.lastDOMtime > 30000) {
+                        // We save it regularly to handle the case where it gets messed up and would otherwise never
+                        // recover.
+                        type = 'f';
+                        strdiff = dom;
                     } else if (dom.length / this.lastDOM.length < 0.75 || dom.length / this.lastDOM.length > 1.25) {
                         // The two must be pretty different.  Just track the whole thing.
                         //console.log("Don't even bother with a diff", dom.length, this.lastDOM.length);
@@ -128,20 +155,24 @@ define([
                         strdiff = dom;
                     } else {
                         var strdiff = JsDiff.createTwoFilesPatch('o', 'n', this.lastDOM, dom);
-                        var now = (new Date()).getTime();
 
-                        if (strdiff.length > dom.length || now - this.lastDOMtime > 30000) {
+                        if (strdiff.length > dom.length) {
                             // Not worth tracking the diff, as the diff is bigger than the whole thing, or it's been
                             // a while.  The second is to help us recover from weirdnesses by providing a periodic
                             // reset, which also helps when playing forwards.
                             type = 'f';
                             strdiff = dom;
-                            this.lastDOMtime = now;
                         } else {
                             type = 'd';
                         }
                         //console.log("DOM diff", strdiff, strdiff.length);
                     }
+                }
+
+                if (type == 'f') {
+                    this.lastDOMtime = now;
+                    strdiff = this.getWithValues();
+                    // console.log("Dom now", dom.length);
                 }
 
                 if (strdiff.length > 80) {
@@ -175,7 +206,13 @@ define([
 
             getPath: function (node) {
                 if (!this.selgen) {
-                    this.selgen = new CssSelectorGenerator;
+                    // We don't want to generate selectors based on classes, because we make very heavy use of them,
+                    // and the library will do a querySelectorAll call to see if the selector it has generated is
+                    // unique, which would match a lot of elements and hence cause us to crawl.  Similarly for large
+                    // documents, the tag is not efficient.
+                    this.selgen = new CssSelectorGenerator({
+                        selectors: ['id', 'nthchild']
+                    });
                 }
 
                 return(this.selgen.getSelector(node.get(0)));

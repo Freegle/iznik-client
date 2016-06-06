@@ -49,7 +49,7 @@ class MessageCollection
         }
     }
 
-    function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL) {
+    function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL, $recentonly = FALSE) {
         $msgids = [];
 
         if ($this->collection == MessageCollection::DRAFT) {
@@ -75,7 +75,7 @@ class MessageCollection
             #
             # This fits with Yahoo's policy on deleting pending activity.
             $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
-            $oldest = $this->collection == MessageCollection::SPAM ? " AND messages.date >= '$mysqltime' " : '';
+            $oldest = ($recentonly || $this->collection == MessageCollection::SPAM) ? " AND messages.date >= '$mysqltime' " : '';
 
             $ctx = [ 'Date' => NULL, 'id' ];
 
@@ -92,7 +92,7 @@ class MessageCollection
             }
 
             $sql = "SELECT msgid AS id, date FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC, messages.id DESC LIMIT $limit";
-            #error_log("Messages get $sql, {$this->collection}");
+            error_log("Messages get $sql, {$this->collection}");
 
             $msglist = $this->dbhr->preQuery($sql, [
                 $this->collection

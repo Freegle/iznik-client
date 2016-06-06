@@ -91,7 +91,10 @@ define([
                     // We haven't fetched anything for this group yet.
                     self.lastFetched = null;
                     self.context = null;
-                    self.fetch();
+                    
+                    self.fetch({
+                        groupid: self.selected > 0 ? self.selected : null
+                    });
                 });
 
                 // Render after the listen to as they are called during render.

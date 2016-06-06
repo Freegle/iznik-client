@@ -179,7 +179,9 @@ define([
             var self = this;
 
             require(["iznik/views/pages/user/find"], function() {
-                var page = new Iznik.Views.User.Pages.Find.Search();
+                var page = new Iznik.Views.User.Pages.Find.Search({
+                    browse: true
+                });
                 self.loadRoute({page: page});
             });
         },

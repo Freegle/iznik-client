@@ -12,7 +12,7 @@ define([
         template: "user_find_whereami"
     });
 
-    Iznik.Views.User.Pages.Find.Search = Iznik.Views.Page.extend({
+    Iznik.Views.User.Pages.Find.Search = Iznik.Views.Infinite.extend({
         template: "user_find_search",
 
         events: {
@@ -64,8 +64,14 @@ define([
                     item: this.options.item
                 })
             });
+
             p.then(function(self) {
+                self.collection = null;
+                
+                var data;
+
                 if (self.options.search) {
+                    // We've searched for something - we're showing the results.
                     self.$('h1').hide();
                     self.$('.js-search').val(self.options.search);
 
@@ -85,24 +91,55 @@ define([
                         collection: 'Approved'
                     });
 
-                    self.collectionView = new Backbone.CollectionView({
-                        el: self.$('.js-list'),
-                        modelView: Iznik.Views.User.SearchResult,
-                        modelViewOptions: {
-                            collection: self.collection,
-                            page: self
-                        },
-                        visibleModelsFilter: function(model) {
-                            // Only show a search result for an offer which has not been taken.
-                            var taken = _.where(model.get('related'), {
-                                type: 'Taken'
+                    data = {
+                        messagetype: 'Offer',
+                        nearlocation: mylocation ? mylocation.id : null,
+                        search: self.options.search,
+                        subaction: 'searchmess'
+                    };
+                } else {
+                    // We've not searched yet.
+                    console.log("Not searched");
+                    var mygroups = Iznik.Session.get('groups');
+
+                    if (mygroups.length > 0) {
+                        self.$('.js-browse').show();
+
+                        self.collection = new Iznik.Collections.Message(null, {
+                            modtools: false,
+                            collection: 'Approved'
+                        });
+                    }
+                    
+                    data = {};
+                }
+
+                self.collectionView = new Backbone.CollectionView({
+                    el: self.$('.js-list'),
+                    modelView: Iznik.Views.User.SearchResult,
+                    modelViewOptions: {
+                        collection: self.collection,
+                        page: self
+                    },
+                    visibleModelsFilter: function(model) {
+                        var thetype = model.get('type');
+
+                        if (thetype != 'Offer' && thetype != 'Wanted') {
+                            // Not interested in this type of message.
+                            return(false);
+                        } else {
+                            // Only show a search result for an offer which has not been taken or wanted not received.
+                            var paired = _.where(model.get('related'), {
+                                type: thetype == 'Offer' ? 'Taken' : 'Received'
                             });
 
-                            return (taken.length == 0);
-                        },
-                        collection: self.collection
-                    });
+                            return (paired.length == 0);
+                        }
+                    },
+                    collection: self.collection
+                });
 
+                if (self.collection) {
                     // We might have been trying to reply to a message.
                     //
                     // Listening to the collectionView means that we'll find this, eventually, if we are infinite
@@ -112,7 +149,7 @@ define([
                             var replyto = localStorage.getItem('replyto');
                             var replytext = localStorage.getItem('replytext');
                             var thisid = modelView.model.get('id');
-                            
+
                             if (replyto == thisid) {
                                 // This event happens before the view has been rendered.  Wait for that.
                                 self.listenToOnce(modelView, 'rendered', function() {
@@ -125,50 +162,40 @@ define([
 
                     self.collectionView.render();
 
-                    var v = new Iznik.Views.PleaseWait();
-                    v.render();
-
-                    self.collection.fetch({
+                    self.fetch({
                         remove: true,
-                        data: {
-                            messagetype: 'Offer',
-                            nearlocation: mylocation ? mylocation.id : null,
-                            search: self.options.search,
-                            subaction: 'searchmess'
-                        },
-                        success: function (collection) {
-                            v.close();
-                            var some = false;
+                        data: data
+                    }).then(function () {
+                        var some = false;
 
-                            collection.each(function(msg) {
-                                // Get the zoom level for maps and put it somewhere easier.
-                                var zoom = 8;
-                                var groups = msg.get('groups');
-                                if (groups.length > 0) {
-                                    zoom = groups[0].settings.map.zoom;
-                                }
-                                msg.set('zoom', zoom);
-                                var related = msg.get('related');
+                        self.collection.each(function(msg) {
+                            // Get the zoom level for maps and put it somewhere easier.
+                            var zoom = 8;
+                            var groups = msg.get('groups');
+                            if (groups.length > 0) {
+                                zoom = groups[0].settings.map.zoom;
+                            }
+                            msg.set('zoom', zoom);
+                            var related = msg.get('related');
 
-                                var taken = _.where(related, {
-                                    type: 'Taken'
-                                });
-
-                                if (taken.length == 0) {
-                                    some = true;
-                                }
+                            var taken = _.where(related, {
+                                type: 'Taken'
                             });
 
-                            if (!some) {
-                                self.$('.js-none').fadeIn('slow');
-                            } else {
-                                self.$('.js-none').hide();
+                            if (taken.length == 0) {
+                                some = true;
                             }
+                        });
 
+                        if (!some) {
+                            self.$('.js-none').fadeIn('slow');
+                        } else {
+                            self.$('.js-none').hide();
+                        }
+
+                        if (self.options.search) {
                             self.$('.js-postwanted').show().addClass('fadein');
                         }
-                    }).then(function() {
-                        self.$('.js-postwanted').css('display');
                     });
                 }
 
@@ -194,7 +221,7 @@ define([
     });
 
     Iznik.Views.User.SearchResult = Iznik.Views.User.Message.extend({
-        template: 'user_find_result',
+        template: 'user_find_message',
 
         events: {
             'click .js-send': 'send'

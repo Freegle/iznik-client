@@ -239,7 +239,10 @@ define([
                     });
 
                     self.collectionView.render();
-                    self.fetch();
+
+                    self.fetch({
+                        groupid: self.selected > 0 ? self.selected : null
+                    });
                 });
 
                 // Render after the listen to as they are called during render.

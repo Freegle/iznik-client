@@ -57,7 +57,10 @@ define([
                     // We haven't fetched anything for this group yet.
                     self.lastFetched = null;
                     self.context = null;
-                    self.fetch();
+                    
+                    self.fetch({
+                        groupid: self.selected > 0 ? self.selected : null
+                    });
                 });
 
                 // Render after the listen to as they are called during render.
@@ -94,10 +97,6 @@ define([
 
             var v = new Iznik.Views.ModTools.StdMessage.Edit({
                 model: this.model
-            });
-
-            this.listenToOnce(this.model, 'editsucceeded', function () {
-                self.render();
             });
 
             v.render();
@@ -297,9 +296,6 @@ define([
 
                     // If the message is held or released, we re-render, showing the appropriate buttons.
                     self.listenToOnce(self.model, 'change:heldby', self.render);
-
-                    // If the message is edited, we also re-render to show the new info.
-                    self.listenTo(self.model, 'editsucceeded', self.render);
                 });
 
                 self.$('.timeago').timeago();

@@ -1087,6 +1087,8 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     padding: 0px;
     overflow-y: auto;
     overflow-x: hidden;
+    text-shadow: 0 0 0 rgba(0, 0, 0, 0.59);
+    -webkit-font-smoothing: antialiased;
 }
 
 .chat-min-username {
