@@ -99,8 +99,14 @@ define([
                 model: this.model
             });
 
+            this.listenToOnce(this.model, 'editsucceeded', function () {
+                self.render();
+            });
+
             v.render();
         },
+
+        renderProto: null,
 
         render: function () {
             var self = this;
@@ -112,9 +118,14 @@ define([
                 self.model.set('mapzoom', group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 12);
             });
 
-            var p = Iznik.Views.ModTools.Message.prototype.render.call(self);
-            p.then(function(self) {
+            // We might already be rendering if we get two render calls in quick succession.
+            if (!self.renderProto) {
+                self.renderProto = Iznik.Views.ModTools.Message.prototype.render.call(self);;
+            }
+
+            self.renderProto.then(function(self) {
                 // Set the suggested subject here to avoid escaping issues.  Highlight it if it's different
+                self.renderProto = null;
                 var sugg = self.model.get('suggestedsubject');
                 if (sugg && sugg.toLocaleLowerCase() != self.model.get('subject').toLocaleLowerCase()) {
                     self.$('.js-subject').closest('.input-group').addClass('subjectdifference');
@@ -306,7 +317,7 @@ define([
                 });
             });
 
-            return (p);
+            return (self.renderProto ? self.renderProto : resolvedPromise(self));
         }
     });
 
