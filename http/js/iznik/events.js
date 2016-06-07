@@ -87,7 +87,7 @@ define([
                     vals.push($(this).val());
                 });
 
-                console.log("Saved vals", vals);
+                // console.log("Saved vals", vals);
 
                 // Now go through and set them in the copy.
                 clone.find('input, select, textarea').each(function() {

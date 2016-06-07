@@ -180,10 +180,13 @@ define([
                 waitPromise.then(function() {
                     console.log("Open rendered");
                     Iznik.Views.Modal.prototype.close.call(waitOpen);
+                    waitOpen = null;
                 });
             }
         }
     });
+
+    // Test code.
     //
     // for (var i = 0; i < 10; i++) {
     //     setTimeout(function() {

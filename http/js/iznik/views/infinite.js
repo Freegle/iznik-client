@@ -9,6 +9,7 @@ define([
         fetching: null,
         fetchData: {},
         fetchPromise: null,
+        listening: false,
 
         fetch: function (data) {
             var self = this;
@@ -42,63 +43,67 @@ define([
 
                     var v = new Iznik.Views.PleaseWait();
                     v.render().then(function() {
-                        self.collectionView.on('add', function (modelView) {
-                            self.$('.js-none').hide();
+                        if (!self.listening) {
+                            self.collectionView.on('add', function (modelView) {
+                                self.$('.js-none').hide();
 
-                            var pos = modelView.collection.indexOf(modelView.model);
-                            //console.log("Added", pos, modelView.collection.length);
+                                var pos = modelView.collection.indexOf(modelView.model);
+                                console.log("Added", pos, modelView.collection.length);
 
-                            if (pos + 1 == modelView.collection.length) {
-                                // self is the last one.
-                                //console.log("Last one", modelView.el, jQuery.contains(document.documentElement, modelView.el));
+                                if (pos + 1 == modelView.collection.length) {
+                                    // self is the last one.
+                                    console.log("Last one", modelView.el, jQuery.contains(document.documentElement, modelView.el));
 
-                                // Waypoints allow us to see when we have scrolled to the bottom.
-                                if (self.lastWaypoint) {
-                                    //console.log("Destroy last");
-                                    self.lastWaypoint.destroy();
-                                }
+                                    // Waypoints allow us to see when we have scrolled to the bottom.
+                                    if (self.lastWaypoint) {
+                                        console.log("Destroy last");
+                                        self.lastWaypoint.destroy();
+                                    }
 
-                                self.lastWaypoint = new Waypoint({
-                                    element: modelView.el,
-                                    handler: function (direction) {
-                                        if (direction == 'down') {
-                                            if (modelView.collection.length > 3) {
-                                                $('.js-scrolltop').removeClass('hidden');
-                                                $('.js-scrolltop').click(function () {
-                                                    $('html,body').animate({scrollTop: 0}, 'slow', function () {
-                                                        $('.js-scrolltop').addClass('hidden');
+                                    self.lastWaypoint = new Waypoint({
+                                        element: modelView.el,
+                                        handler: function (direction) {
+                                            if (direction == 'down') {
+                                                if (modelView.collection.length > 3) {
+                                                    $('.js-scrolltop').removeClass('hidden');
+                                                    $('.js-scrolltop').click(function () {
+                                                        $('html,body').animate({scrollTop: 0}, 'slow', function () {
+                                                            $('.js-scrolltop').addClass('hidden');
+                                                        });
                                                     });
-                                                });
+                                                }
+
+                                                // We have scrolled to the last view.  Fetch more as long as we've not switched
+                                                // away to another page.
+                                                if (jQuery.contains(document.documentElement, modelView.el)) {
+                                                    console.log("Scrolled to last, fetch");
+                                                    self.fetch();
+                                                }
                                             }
-
-                                            // We have scrolled to the last view.  Fetch more as long as we've not switched
-                                            // away to another page.
-                                            if (jQuery.contains(document.documentElement, modelView.el)) {
-                                                //console.log("Fetch");
-                                                self.fetch();
-                                            }
-                                        }
-                                    },
-                                    offset: '99%' // Fire as soon as self view becomes visible
-                                });
-                            }
-                        });
-
-                        self.collectionView.on('remove', function () {
-                            if (self.collectionView.collection.length == 0) {
-                                self.$('.js-none').fadeIn('slow');
-                                $('.js-scrolltop').addClass('hidden');
-
-                                console.log("Consider waypoint remove", self.lastWaypoint);
-                                if (self.lastWaypoint) {
-                                    console.log("Remove waypoint");
-                                    self.lastWaypoint.destroy();
+                                        },
+                                        offset: '99%' // Fire as soon as self view becomes visible
+                                    });
                                 }
-                            }
-                        });
+                            });
 
-                        // Fetch more - and leave the old ones in the collection
-                        console.log("Fetch vs", self.selected, self.lastFetched, true);
+                            self.collectionView.on('remove', function () {
+                                if (self.collectionView.collection.length == 0) {
+                                    self.$('.js-none').fadeIn('slow');
+                                    $('.js-scrolltop').addClass('hidden');
+
+                                    // console.log("Consider waypoint remove", self.lastWaypoint);
+                                    if (self.lastWaypoint) {
+                                        // console.log("Remove waypoint");
+                                        self.lastWaypoint.destroy();
+                                    }
+                                }
+                            });
+
+                            self.listening = true;
+                        }
+
+                        // Fetch more - and leave the old ones in the collection unless we're fetching another group.
+                        // console.log("Fetch vs", self.selected, self.lastFetched);
                         self.collection.fetch({
                             data: data,
                             remove: self.selected != self.lastFetched,
@@ -107,6 +112,7 @@ define([
 
                                 self.$('.js-loading').addClass('hidden');
                                 self.fetching = null;
+                                self.fetchPromise = null;
                                 self.lastFetched = self.selected;
                                 self.context = response.context;
 
@@ -117,11 +123,12 @@ define([
                                     self.$('.js-none').hide();
                                 }
 
-                                console.log("Fetched");
+                                // console.log("Fetched");
                                 resolve();
                             }, 
                             error: function() {
                                 console.log("Fetch error");
+                                self.fetchPromise = null;
                                 reject();
                             }
                         });
