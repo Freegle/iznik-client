@@ -254,6 +254,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 error_log("API call $call worked after $apicallretries");
             }
 
+            # We don't want to cache things in our session cache beyond this call.
+            $_SESSION['cache'] = [];
+
             if (BROWSERTRACKING && (presdef('type', $_REQUEST, NULL) != 'GET') &&
                 (gettype($ret) == 'array' && !array_key_exists('nolog', $ret))) {
                 # Save off the API call and result, except for the (very frequent) event tracking calls.  Don't

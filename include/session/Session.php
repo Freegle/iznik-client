@@ -80,9 +80,11 @@ function whoAmI(LoggedPDO $dbhr, $dbhm, $writeaccess = false)
         $ret = new User($dbhr, $dbhm, $id);
     }
 
-    # We cache some information for the duration of a call.  Usually we'll have called session_write_close so
-    # this won't get written to the actual session anyway, but it's a convenient place to store things.
-    $_SESSION['cache'] = [];
+    if (!pres('cache', $_SESSION)) {
+        # We cache some information for the duration of a call.  Usually we'll have called session_write_close so
+        # this won't get written to the actual session anyway, but it's a convenient place to store things.
+        $_SESSION['cache'] = [];
+    }
 
     if (!$writeaccess) {
         # Release write access on the session to allow multiple AJAX requests to
@@ -103,6 +105,12 @@ class Session {
     private $dbhr;
     private $dbhm;
     private $id;
+
+    public static function clearSessionCache() {
+        # We cache some information for the duration of a call.  Usually we'll have called session_write_close so
+        # this won't get written to the actual session anyway, but it's a convenient place to store things.
+        $_SESSION['cache'] = [];
+    }
 
     public function getUserId() {
         $sql = "SELECT userid FROM sessions WHERE id = ?;";

@@ -356,41 +356,48 @@ define([
 
         render: function() {
             var self = this;
-            var p = null;
-            var mylocation = null;
-            try {
-                mylocation = localStorage.getItem('mylocation');
+            var p;
 
-                if (mylocation) {
-                    mylocation = JSON.parse(mylocation);
+            if (self.rendered) {
+                p = resolvedPromise(self);
+            } else {
+                self.rendered = true;
+                console.log("Render", this.model.get('id'));
+                var mylocation = null;
+                try {
+                    mylocation = localStorage.getItem('mylocation');
+
+                    if (mylocation) {
+                        mylocation = JSON.parse(mylocation);
+                    }
+                } catch (e) {
                 }
-            } catch (e) {
+
+                this.model.set('mylocation', mylocation);
+
+                // Static map custom markers don't support SSL.
+                this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapmarker.gif');
+
+                // Hide until we've got a bit into the render otherwise the border shows.
+                this.$el.css('visibility', 'hidden');
+                p = Iznik.Views.User.Message.prototype.render.call(this);
+
+                p.then(function() {
+                    // We handle the subject as a special case rather than a template expansion.  We might be doing a search, in
+                    // which case we want to highlight the matched words.  So we split out the subject string into a sequence of
+                    // spans, which then allows us to highlight any matched ones.
+                    self.$('.js-subject').html(self.wordify(self.model.get('subject')));
+                    var matched = self.model.get('matchedon');
+                    if (matched) {
+                        self.$('.js-subject span').each(function () {
+                            if ($(this).html().toLowerCase().indexOf(matched.word) != -1) {
+                                $(this).addClass('searchmatch');
+                            }
+                        });
+                    }
+                    self.$el.css('visibility', 'visible');
+                })
             }
-
-            this.model.set('mylocation', mylocation);
-
-            // Static map custom markers don't support SSL.
-            this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapmarker.gif');
-
-            // Hide until we've got a bit into the render otherwise the border shows.
-            this.$el.css('visibility', 'hidden');
-            p = Iznik.Views.User.Message.prototype.render.call(this);
-
-            p.then(function() {
-                // We handle the subject as a special case rather than a template expansion.  We might be doing a search, in
-                // which case we want to highlight the matched words.  So we split out the subject string into a sequence of
-                // spans, which then allows us to highlight any matched ones.
-                self.$('.js-subject').html(self.wordify(self.model.get('subject')));
-                var matched = self.model.get('matchedon');
-                if (matched) {
-                    self.$('.js-subject span').each(function () {
-                        if ($(this).html().toLowerCase().indexOf(matched.word) != -1) {
-                            $(this).addClass('searchmatch');
-                        }
-                    });
-                }
-                self.$el.css('visibility', 'visible');
-            })
 
             return(p);
         }

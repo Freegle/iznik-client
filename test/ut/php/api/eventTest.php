@@ -82,6 +82,8 @@ EOT
         $sessid = $ret['session'];
         error_log("Got session $sessid");
 
+        $this->waitBackground();
+
         # Can't get it back without being a sysadmin.
         $ret = $this->call('event', 'GET', [
             'sessionid' => $sessid

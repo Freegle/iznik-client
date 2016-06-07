@@ -67,48 +67,63 @@ class MessageCollection
             }
         } else {
             $typeq = $types ? (" AND `type` IN (" . implode(',', $types) . ") ") : '';
+
+            # At the moment we only support ordering by arrival DESC.
             $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
-            $dateq = $ctx == NULL ? ' 1=1 ' : (" (messages.date < $date OR messages.date = $date AND messages.id < " . $this->dbhr->quote($ctx['id']) . ") ");
+            $dateq = $ctx == NULL ? ' 1=1 ' : (" (messages_groups.arrival < $date OR messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ") ");
 
             # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
             # See also Group.
             #
             # This fits with Yahoo's policy on deleting pending activity.
             $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
-            $oldest = ($recentonly || $this->collection == MessageCollection::SPAM) ? " AND messages.date >= '$mysqltime' " : '';
+            $oldest = ($recentonly || $this->collection == MessageCollection::SPAM) ? " AND messages_groups.arrival >= '$mysqltime' " : '';
 
-            $ctx = [ 'Date' => NULL, 'id' ];
-
+            # We may have some groups to filter by.
             $groupq = count($groupids) > 0 ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
 
-            # At the moment we only support ordering by date DESC.
-            #
-            # If we have a set of users, then it is more efficient to get the relevant messages first (because there
-            # are few and it's well-indexed).
+            # We have a complicated set of different queries we can do.  This is because we want to make sure that
+            # the query is as fast as possible, which means:
+            # - access as few tables as we need to
+            # - use multicolumn indexes
             if ($userids) {
-                $seltab = "(SELECT id, date, fromuser, deleted, `type` FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
+                # We only query on a small set of userids, so it's more efficient to get the list of messages from them
+                # first.
+                $seltab = "(SELECT id, arrival, fromuser, deleted, `type` FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
+                $sql = "SELECT msgid AS id, messages.arrival FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC LIMIT $limit";
+            } else if (count($groupids) > 0) {
+                # The messages_groups table has a multi-column index which makes it quick to find the relevant messages.
+                if ($typeq != '') {
+                    # We need to touch the messages table to find this.
+                    $sql = "SELECT id, messages.arrival FROM messages INNER JOIN (SELECT msgid FROM messages_groups WHERE 1=1 $groupq AND collection = ? AND messages_groups.deleted = 0 AND $dateq $oldest ORDER BY arrival DESC, msgid DESC LIMIT $limit) t ON messages.id = t.msgid AND messages.deleted IS NULL $typeq;";
+                } else {
+                    # We can do it all from messages_groups.
+                    $sql = "SELECT msgid as id, arrival FROM messages_groups WHERE 1=1 $groupq AND collection = ? AND messages_groups.deleted = 0 AND $dateq $oldest ORDER BY arrival DESC LIMIT $limit;";
+                }
             } else {
-                $seltab = "messages";
+                # We are not searching within a specific group, so we have no choice but to do a larger join.
+                $sql = "SELECT msgid AS id, messages.arrival FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC LIMIT $limit";
             }
 
-            $sql = "SELECT msgid AS id, date FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.date DESC, messages.id DESC LIMIT $limit";
-            error_log("Messages get $sql, {$this->collection}");
+            #error_log("Messages get $sql, {$this->collection}");
 
             $msglist = $this->dbhr->preQuery($sql, [
                 $this->collection
             ]);
 
-            # Get an array of just the message ids.
+            # Get an array of just the message ids.  Save off context for next time.
+            $ctx = [ 'Date' => NULL, 'id' => PHP_INT_MAX ];
+
             foreach ($msglist as $msg) {
                 $msgids[] = ['id' => $msg['id']];
 
-                $thisepoch = strtotime($msg['date']);
+                $thisepoch = strtotime($msg['arrival']);
 
                 if ($ctx['Date'] == NULL || $thisepoch < $ctx['Date']) {
                     $ctx['Date'] = $thisepoch;
                 }
 
-                $ctx['id'] = $msg['id'];
+                $ctx['id'] = min($msg['id'], $ctx['id']);
             }
         }
 

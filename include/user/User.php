@@ -57,9 +57,11 @@ class User extends Entity
         if ($id) {
             if (pres('cache', $_SESSION) && $id == pres('id', $_SESSION)) {
                 # We're getting our own user.  This is very common, even within a single API call, so cache it.
+                #error_log(session_id() . " got me? " . var_export(pres('me', $_SESSION['cache']), TRUE));
                 if (!pres('me', $_SESSION['cache'])) {
                     parent::fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts, FALSE);
-                    $_SESSION['cache']['me'] = $this->user;
+                    #$_SESSION['cache']['me'] = $this->user;
+                    #error_log(session_id() . " stored me " . $_SESSION['cache']['me']);
                 } else {
                     parent::fetch($dbhr, $dbhm, NULL, 'users', 'user', $this->publicatts, FALSE);
                     $this->id = $id;
@@ -857,6 +859,8 @@ class User extends Entity
 
     public function setRole($role, $groupid) {
         $me = whoAmI($this->dbhr, $this->dbhm);
+        
+        Session::clearSessionCache();
 
         $l = new Log($this->dbhr, $this->dbhm);
         $l->log([
@@ -2157,5 +2161,14 @@ class User extends Entity
         $url = $p === FALSE ? ("https://$domain$url?u=$id&k=$key") : ("https://" . SITE_HOST . "$url&u=$id&k=$key");
 
         return($url);
+    }
+
+    public function setPrivate($att, $val) {
+        if (presdef('id', $_SESSION, NULL) == $this->id) {
+            # We cache our user details in our session
+            Session::clearSessionCache();
+        }
+        
+        parent::setPrivate($att, $val);
     }
 }

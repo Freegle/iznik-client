@@ -225,30 +225,46 @@ class Alert extends Entity
             foreach ($emails as $email) {
                 try {
                     error_log("check {$email['email']} real " . realEmail($email['email']));
+
                     if (realEmail($email['email'])) {
-                        $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, userid, emailid, `type`) VALUES (?,?,?,?,?);",
-                            [
-                                $this->id,
-                                $groupid,
-                                $mod['userid'],
-                                $email['id'],
-                                Alert::TYPE_MODEMAIL
-                            ]
-                        );
-                        $trackid = $this->dbhm->lastInsertId();
-                        $html = alert_tpl(
-                            $g->getPrivate('nameshort'),
-                            $u->getName(),
-                            USER_SITE,
-                            USERLOGO,
-                            $this->alert['subject'],
-                            $this->alert['html'],
-                            NULL, # Should be $u->getUnsubLink(USER_SITE, $mod['userid']) once we go live TODO ,
-                            'https://' . USER_SITE . "/alert/viewed/$trackid",
-                            'https://' . USER_SITE . "/beacon/$trackid");
-                        $msg = $this->constructMessage($email['email'], $u->getName(), $from, $this->alert['subject'], $this->alert['text'], $html);
-                        $mailer->send($msg);
-                        $done++;
+                        # We don't want to send to a personal email if they've already clicked from that email - even
+                        # if it was on another group.  This is because some people are on many groups, with many emails,
+                        # and this can flood them.  They may get a copy via the owner address, though.
+                        $sql = "SELECT id, response FROM alerts_tracking WHERE userid = ? AND alertid = ? AND emailid = ?;";
+                        $previous = $this->dbhr->preQuery($sql, [ $mod['userid'], $this->id, $email['id']]);
+                        $gotprevious = FALSE;
+                        foreach ($previous as $prev) {
+                            if ($prev['response'] == 'Read' || $prev['response'] == 'Clicked') {
+                                error_log("...already got response");
+                                $gotprevious = TRUE;
+                            }
+                        }
+
+                        if (!$gotprevious) {
+                            $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, userid, emailid, `type`) VALUES (?,?,?,?,?);",
+                                [
+                                    $this->id,
+                                    $groupid,
+                                    $mod['userid'],
+                                    $email['id'],
+                                    Alert::TYPE_MODEMAIL
+                                ]
+                            );
+                            $trackid = $this->dbhm->lastInsertId();
+                            $html = alert_tpl(
+                                $g->getPrivate('nameshort'),
+                                $u->getName(),
+                                USER_SITE,
+                                USERLOGO,
+                                $this->alert['subject'],
+                                $this->alert['html'],
+                                NULL, # Should be $u->getUnsubLink(USER_SITE, $mod['userid']) once we go live TODO ,
+                                'https://' . USER_SITE . "/alert/viewed/$trackid",
+                                'https://' . USER_SITE . "/beacon/$trackid");
+                            $msg = $this->constructMessage($email['email'], $u->getName(), $from, $this->alert['subject'], $this->alert['text'], $html);
+                            $mailer->send($msg);
+                            $done++;
+                        }
                     }
                 } catch (Exception $e) {
                     error_log("Failed with " . $e->getMessage());

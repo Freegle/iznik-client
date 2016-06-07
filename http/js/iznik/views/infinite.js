@@ -16,10 +16,10 @@ define([
 
             if (self.fetchPromise && self.fetching == self.selected) {
                 // We are already fetching what we need to be.
-                console.log("Already fetching");
+                // console.log("Already fetching");
                 return(self.fetchPromise);
             } else {
-                console.log("Not already fetching");
+                // console.log("Not already fetching");
                 self.fetching = self.selected;
                 self.fetchPromise = new Promise(function(resolve, reject) {
                     if (data) {
@@ -46,44 +46,6 @@ define([
                         if (!self.listening) {
                             self.collectionView.on('add', function (modelView) {
                                 self.$('.js-none').hide();
-
-                                var pos = modelView.collection.indexOf(modelView.model);
-                                console.log("Added", pos, modelView.collection.length);
-
-                                if (pos + 1 == modelView.collection.length) {
-                                    // self is the last one.
-                                    console.log("Last one", modelView.el, jQuery.contains(document.documentElement, modelView.el));
-
-                                    // Waypoints allow us to see when we have scrolled to the bottom.
-                                    if (self.lastWaypoint) {
-                                        console.log("Destroy last");
-                                        self.lastWaypoint.destroy();
-                                    }
-
-                                    self.lastWaypoint = new Waypoint({
-                                        element: modelView.el,
-                                        handler: function (direction) {
-                                            if (direction == 'down') {
-                                                if (modelView.collection.length > 3) {
-                                                    $('.js-scrolltop').removeClass('hidden');
-                                                    $('.js-scrolltop').click(function () {
-                                                        $('html,body').animate({scrollTop: 0}, 'slow', function () {
-                                                            $('.js-scrolltop').addClass('hidden');
-                                                        });
-                                                    });
-                                                }
-
-                                                // We have scrolled to the last view.  Fetch more as long as we've not switched
-                                                // away to another page.
-                                                if (jQuery.contains(document.documentElement, modelView.el)) {
-                                                    console.log("Scrolled to last, fetch");
-                                                    self.fetch();
-                                                }
-                                            }
-                                        },
-                                        offset: '99%' // Fire as soon as self view becomes visible
-                                    });
-                                }
                             });
 
                             self.collectionView.on('remove', function () {
@@ -103,11 +65,53 @@ define([
                         }
 
                         // Fetch more - and leave the old ones in the collection unless we're fetching another group.
-                        // console.log("Fetch vs", self.selected, self.lastFetched);
+                        // console.log("Fetch vs", self.selected, self.lastFetched, self.selected != self.lastFetched);
                         self.collection.fetch({
                             data: data,
                             remove: self.selected != self.lastFetched,
                             success: function (collection, response, options) {
+
+                                // We want find last one, so that we can tell when we've scrolled to it.  We might
+                                // be using visibleModelsFilter, so we need to watch for that class.
+                                // console.log("Look for last", self.collectionView);
+                                var last = self.collectionView.$el.find("li:not('.not-visible'):last");
+                                // console.log("Last visible", last);
+
+                                if (last.length > 0) {
+                                    // Waypoints allow us to see when we have scrolled to the bottom.
+                                    if (self.lastWaypoint) {
+                                        // console.log("Destroy last");
+                                        self.lastWaypoint.destroy();
+                                    }
+
+                                    // console.log("Set up waypoint for", last.get(0));
+                                    self.lastWaypoint = new Waypoint({
+                                        element: last.get(0),
+                                        handler: function (direction) {
+                                            if (direction == 'down') {
+                                                if (self.collection.length > 3) {
+                                                    $('.js-scrolltop').removeClass('hidden');
+                                                    $('.js-scrolltop').click(function () {
+                                                        $('html,body').animate({scrollTop: 0}, 'slow', function () {
+                                                            $('.js-scrolltop').addClass('hidden');
+                                                        });
+                                                    });
+                                                }
+
+                                                // We have scrolled to the last view.  Fetch more as long as we've not switched
+                                                // away to another page.
+                                                // console.log("Scrolled to last", last.closest('body').length);
+                                                if (last.closest('body').length > 0) {
+                                                    // console.log("Scrolled to last, fetch");
+                                                    self.fetch();
+                                                }
+                                            }
+                                        },
+                                        offset: '99%' // Fire as soon as self view becomes visible
+                                    });
+                                }
+
+                                // console.log("Fetched");
                                 v.close();
 
                                 self.$('.js-loading').addClass('hidden');
