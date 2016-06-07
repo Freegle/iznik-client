@@ -40,38 +40,9 @@ function event() {
 
             if ($me && $me->isAdminOrSupport()) {
                 $sessionid = presdef('sessionid', $_REQUEST, NULL);
-                $ret = array('ret' => 1, 'status' => 'Session not found');
-
-                # Get the first client timestamp.
-                $sql = "SELECT clienttimestamp FROM logs_events WHERE sessionid = ? ORDER BY id ASC LIMIT 1;";
-                $firsts = $dbhr->preQuery($sql, [
-                    $sessionid
-                ]);
-
-                foreach ($firsts as $first) {
-                    $sql = "SELECT *, TIMESTAMPDIFF(MICROSECOND, ?, clienttimestamp) / 1000 AS clientdiff FROM logs_events WHERE sessionid = ? ORDER BY clienttimestamp ASC;";
-                    $events = $dbhr->preQuery($sql, [
-                        $first['clienttimestamp'],
-                        $sessionid
-                    ]);
-
-                    $last = null;
-
-                    # Convert the differences into relative diffs between the items.
-                    foreach ($events as &$item) {
-                        $thisone = $item['clientdiff'];
-
-                        if ($last) {
-                            $item['clientdiff'] = floatval($item['clientdiff']) - $last;
-                        } else {
-                            $item['clientdiff'] = floatval(0);
-                        }
-
-                        $last = $thisone;
-                    }
-
-                    $ret = array('ret' => 0, 'status' => 'Success', 'events' => $events);
-                }
+                $p = new Events($dbhr, $dbhm);
+                $events = $p->get($sessionid);
+                $ret = !$events ? ['ret' => 1, 'status' => 'Session not found'] : ['ret' => 0, 'status' => 'Success', 'events' => $events];
             }
 
             break;
