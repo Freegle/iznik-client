@@ -19,36 +19,44 @@ if (!isset($_SESSION)) {
     session_start();
 }
 
+$sessionPrepared = FALSE;
+
 function prepareSession($dbhr, $dbhm) {
-    if (!pres('id', $_SESSION)) {
-        $userid = NULL;
+    # We only want to do the prepare once per session.
+    global $sessionPrepared;
 
-        if (array_key_exists(COOKIE_NAME, $_COOKIE)) {
-            # Check our cookie to see if it's a valid session
-            $cookie = json_decode($_COOKIE[COOKIE_NAME], true);
-            #error_log("Cookie " . var_export($cookie, TRUE));
+    if (!$sessionPrepared) {
+        $sessionPrepared = TRUE;
+        if (!pres('id', $_SESSION)) {
+            $userid = NULL;
 
-            if ((array_key_exists('id', $cookie)) &&
-                (array_key_exists('series', $cookie)) &&
-                (array_key_exists('token', $cookie))
-            ) {
-                $s = new Session($dbhr, $dbhm);
-                $userid = $s->verify($cookie['id'], $cookie['series'], $cookie['token']);
-            }
-        }
+            if (array_key_exists(COOKIE_NAME, $_COOKIE)) {
+                # Check our cookie to see if it's a valid session
+                $cookie = json_decode($_COOKIE[COOKIE_NAME], true);
+                #error_log("Cookie " . var_export($cookie, TRUE));
 
-        if (!$userid) {
-            # We might not have a cookie, but we might have push credentials.  This happens when we are logged out
-            # on the client but get a notification.  That is sufficient to log us in.
-            $pushcreds = presdef('pushcreds', $_REQUEST, NULL);
-            #error_log("No session, pushcreds $pushcreds " . var_exporT($_REQUEST, TRUE));
-            if ($pushcreds) {
-                $sql = "SELECT * FROM users_push_notifications WHERE subscription = ?;";
-                $pushes = $dbhr->preQuery($sql, [$pushcreds]);
-                foreach ($pushes as $push) {
+                if ((array_key_exists('id', $cookie)) &&
+                    (array_key_exists('series', $cookie)) &&
+                    (array_key_exists('token', $cookie))
+                ) {
                     $s = new Session($dbhr, $dbhm);
-                    #error_log("Log in as {$push['userid']}");
-                    $s->create($push['userid']);
+                    $userid = $s->verify($cookie['id'], $cookie['series'], $cookie['token']);
+                }
+            }
+
+            if (!$userid) {
+                # We might not have a cookie, but we might have push credentials.  This happens when we are logged out
+                # on the client but get a notification.  That is sufficient to log us in.
+                $pushcreds = presdef('pushcreds', $_REQUEST, NULL);
+                #error_log("No session, pushcreds $pushcreds " . var_exporT($_REQUEST, TRUE));
+                if ($pushcreds) {
+                    $sql = "SELECT * FROM users_push_notifications WHERE subscription = ?;";
+                    $pushes = $dbhr->preQuery($sql, [$pushcreds]);
+                    foreach ($pushes as $push) {
+                        $s = new Session($dbhr, $dbhm);
+                        #error_log("Log in as {$push['userid']}");
+                        $s->create($push['userid']);
+                    }
                 }
             }
         }
@@ -230,6 +238,7 @@ function session_reopen() {
         ini_set('session.use_cookies', false);
         ini_set('session.cache_limiter', null);
         @session_start(); // Reopen the (previously closed) session for writing.
+        error_log("Session_reopen");
     } catch (Exception $e) {
         # Trap the warning if this is called multiple times.
     }
