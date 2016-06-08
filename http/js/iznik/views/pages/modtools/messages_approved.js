@@ -14,6 +14,8 @@ define([
 
         template: "modtools_messages_approved_main",
 
+        retField: 'messages',
+
         events: {
             'click .js-searchmess': 'searchmess',
             'keyup .js-searchtermmess': 'keyupmess',

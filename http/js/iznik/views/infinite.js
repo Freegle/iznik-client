@@ -70,45 +70,46 @@ define([
                             data: data,
                             remove: self.selected != self.lastFetched,
                             success: function (collection, response, options) {
+                                if (response.hasOwnProperty(self.retField) && response[self.retField].length > 0) {
+                                    // We want find last one, so that we can tell when we've scrolled to it.  We might
+                                    // be using visibleModelsFilter, so we need to watch for that class.
+                                    // console.log("Look for last", self.collectionView);
+                                    var last = self.collectionView.$el.find("li:not('.not-visible'):last");
+                                    // console.log("Last visible", last);
 
-                                // We want find last one, so that we can tell when we've scrolled to it.  We might
-                                // be using visibleModelsFilter, so we need to watch for that class.
-                                // console.log("Look for last", self.collectionView);
-                                var last = self.collectionView.$el.find("li:not('.not-visible'):last");
-                                // console.log("Last visible", last);
+                                    if (last.length > 0) {
+                                        // Waypoints allow us to see when we have scrolled to the bottom.
+                                        if (self.lastWaypoint) {
+                                            // console.log("Destroy last");
+                                            self.lastWaypoint.destroy();
+                                        }
 
-                                if (last.length > 0) {
-                                    // Waypoints allow us to see when we have scrolled to the bottom.
-                                    if (self.lastWaypoint) {
-                                        // console.log("Destroy last");
-                                        self.lastWaypoint.destroy();
-                                    }
-
-                                    // console.log("Set up waypoint for", last.get(0));
-                                    self.lastWaypoint = new Waypoint({
-                                        element: last.get(0),
-                                        handler: function (direction) {
-                                            if (direction == 'down') {
-                                                if (self.collection.length > 3) {
-                                                    $('.js-scrolltop').removeClass('hidden');
-                                                    $('.js-scrolltop').click(function () {
-                                                        $('html,body').animate({scrollTop: 0}, 'slow', function () {
-                                                            $('.js-scrolltop').addClass('hidden');
+                                        // console.log("Set up waypoint for", last.get(0));
+                                        self.lastWaypoint = new Waypoint({
+                                            element: last.get(0),
+                                            handler: function (direction) {
+                                                if (direction == 'down') {
+                                                    if (self.collection.length > 3) {
+                                                        $('.js-scrolltop').removeClass('hidden');
+                                                        $('.js-scrolltop').click(function () {
+                                                            $('html,body').animate({scrollTop: 0}, 'slow', function () {
+                                                                $('.js-scrolltop').addClass('hidden');
+                                                            });
                                                         });
-                                                    });
-                                                }
+                                                    }
 
-                                                // We have scrolled to the last view.  Fetch more as long as we've not switched
-                                                // away to another page.
-                                                // console.log("Scrolled to last", last.closest('body').length);
-                                                if (last.closest('body').length > 0) {
-                                                    // console.log("Scrolled to last, fetch");
-                                                    self.fetch();
+                                                    // We have scrolled to the last view.  Fetch more as long as we've not switched
+                                                    // away to another page.
+                                                    // console.log("Scrolled to last", last.closest('body').length);
+                                                    if (last.closest('body').length > 0) {
+                                                        // console.log("Scrolled to last, fetch");
+                                                        self.fetch();
+                                                    }
                                                 }
-                                            }
-                                        },
-                                        offset: '99%' // Fire as soon as self view becomes visible
-                                    });
+                                            },
+                                            offset: '99%' // Fire as soon as self view becomes visible
+                                        });
+                                    }
                                 }
 
                                 // console.log("Fetched");

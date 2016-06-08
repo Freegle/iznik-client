@@ -13,7 +13,8 @@ require_once(IZNIK_BASE . '/include/utils.php');
 # it hard to mock PDOs.
 
 $dbconfig = array (
-    'host' => '127.0.0.1',
+    'host' => SQLHOST,
+    'port' => SQLPORT,
     'user' => SQLUSER,
     'pass' => SQLPASSWORD,
     'database' => SQLDB
@@ -415,7 +416,7 @@ class LoggedPDO {
 # Don't use persistent connections as they don't play nice - PDO can use a connection which was already
 # closed.  It's possible that our retrying would handle this ok, but we should only rely on that if
 # we've tested it better and we need the perf gain.
-$dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8";
+$dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port']};dbname={$dbconfig['database']};charset=utf8";
 
 $dbhr = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

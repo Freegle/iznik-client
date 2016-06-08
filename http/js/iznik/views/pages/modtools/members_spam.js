@@ -16,6 +16,8 @@ define([
 
         template: "modtools_members_spam_main",
 
+        retField: 'spammers',
+
         render: function () {
             var p = Iznik.Views.Page.prototype.render.call(this);
             p.then(function(self) {

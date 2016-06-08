@@ -14,6 +14,8 @@ define([
 
         template: "modtools_messages_pending_main",
 
+        retField: 'messages',
+
         render: function () {
             var p = Iznik.Views.Page.prototype.render.call(this);
             p.then(function(self) {

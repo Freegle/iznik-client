@@ -16,6 +16,8 @@ define([
 
         template: "modtools_members_approved_main",
 
+        retField: 'members',
+
         events: {
             'click .js-search': 'search',
             'keyup .js-searchterm': 'keyup',

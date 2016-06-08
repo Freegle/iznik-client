@@ -14,6 +14,8 @@ define([
 
         template: "modtools_members_pending_main",
 
+        retField: 'members',
+
         events: {
             'click .js-search': 'search',
             'keyup .js-searchterm': 'keyup'

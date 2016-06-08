@@ -102,7 +102,7 @@ define([
                     console.log("Not searched");
                     var mygroups = Iznik.Session.get('groups');
 
-                    if (mygroups.length > 0) {
+                    if (mygroups && mygroups.length > 0) {
                         self.$('.js-browse').show();
 
                         self.collection = new Iznik.Collections.Message(null, {
