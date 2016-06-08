@@ -215,8 +215,10 @@ define([
                 self.attsRendered = [];
                 self.$('.js-attlist').empty();
                 _.each(self.model.get('attachments'), function (att) {
+                    var mod = new Iznik.Model(att);
+                    mod.set('subject', self.model.get('subject'));
                     var v = new Iznik.Views.User.Message.Photo({
-                        model: new Iznik.Model(att)
+                        model: mod
                     });
                     v.render().then(function(v) {
                         if (!self.attsRendered[att.id]) {
@@ -305,7 +307,25 @@ define([
     Iznik.Views.User.Message.Photo = Iznik.View.extend({
         tagName: 'li',
 
-        template: 'user_message_photo'
+        events: {
+            'click': 'zoom'
+        },
+        
+        template: 'user_message_photo',
+
+        zoom: function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var v = new Iznik.Views.User.Message.PhotoZoom({
+                model: this.model
+            });
+            v.render();
+        }
+    });
+
+    Iznik.Views.User.Message.PhotoZoom = Iznik.Views.Modal.extend({
+        template: 'user_message_photozoom'
     });
 
     Iznik.Views.User.Message.Reply = Iznik.View.extend({

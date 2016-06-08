@@ -135,7 +135,6 @@ define([
             } else {
                 self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                     if (loggedIn) {
-                        $('body').addClass('bodyback');
                         require(["iznik/views/pages/user/home"], function() {
                             var page = new Iznik.Views.User.Pages.Home({
                                 chatid: chatid
@@ -188,8 +187,6 @@ define([
 
         userSearched: function (query) {
             var self = this;
-
-            $('body').addClass('bodyback');
 
             require(["iznik/views/pages/user/find"], function() {
                 var page = new Iznik.Views.User.Pages.Find.Search({

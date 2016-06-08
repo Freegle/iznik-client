@@ -162,6 +162,11 @@ define([
                             var loggedOutOnly = $('.js-loggedoutonly');
 
                             if (loggedIn) {
+                                if (!self.modtools) {
+                                    // For user pages, we add our background if we're logged in.
+                                    $('body').addClass('bodyback');
+                                }
+                                
                                 loggedInOnly.removeClass('reallyHide');
                                 loggedOutOnly.addClass('reallyHide');
 

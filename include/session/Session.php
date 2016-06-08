@@ -238,7 +238,6 @@ function session_reopen() {
         ini_set('session.use_cookies', false);
         ini_set('session.cache_limiter', null);
         @session_start(); // Reopen the (previously closed) session for writing.
-        error_log("Session_reopen");
     } catch (Exception $e) {
         # Trap the warning if this is called multiple times.
     }

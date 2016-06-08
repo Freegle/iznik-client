@@ -111,6 +111,11 @@ define([
                                             },
                                             offset: '99%' // Fire as soon as self view becomes visible
                                         });
+                                    } else {
+                                        // We were returned some values, but it looks like we've filtered them all out.
+                                        // So fetch the next lot.
+                                        self.fetchPromise = null;
+                                        self.fetch();
                                     }
                                 }
 
