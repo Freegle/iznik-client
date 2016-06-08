@@ -230,7 +230,7 @@ define([
                         });
 
                         v.render().then(function (v) {
-                            self.$('.js-yahoo').append(v.el);
+                            self.$('.js-yahoo').html(v.el);
                         });
                     });
 
