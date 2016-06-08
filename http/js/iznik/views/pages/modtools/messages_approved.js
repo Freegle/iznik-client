@@ -311,14 +311,14 @@ define([
                 });
 
                 // Add any attachments.
+                self.$('.js-attlist').empty();
                 _.each(self.model.get('attachments'), function (att) {
                     var v = new Iznik.Views.ModTools.Message.Photo({
                         model: new Iznik.Model(att)
                     });
 
-                    v.render().then(function (v) {
-                        self.$('.js-attlist').append(v.el);
-                    })
+                    v.render();
+                    self.$('.js-attlist').append(v.el);
                 });
 
                 self.addOtherInfo();

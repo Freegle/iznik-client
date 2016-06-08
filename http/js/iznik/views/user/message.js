@@ -196,27 +196,16 @@ define([
                     self.$('.panel-collapse').collapse('hide');
                 }
 
-                // There is an unpleasant problem here with our async render.  CollectionView can call render()
-                // more than once, as it is entitled to do.  Because of the order in which the promise callbacks
-                // get executed, we can clear out the groups (and also the atts below), and then process the callbacks,
-                // which means we can render and append more than once - so we get duplicate group entries.  To avoid
-                // this, we save off which ones we have rendered in this object, and check it before appending.
                 var groups = self.model.get('groups');
-                self.groupsRendered = [];
                 self.$('.js-groups').empty();
                 _.each(groups, function(group) {
                     var v = new Iznik.Views.User.Message.Group({
                         model: new Iznik.Model(group)
                     });
-                    v.render().then(function(v) {
-                        if (!self.groupsRendered[group.id]) {
-                            self.groupsRendered[group.id] = true;
-                            self.$('.js-groups').append(v.el);
-                        }
-                    });
+                    v.render();
+                    self.$('.js-groups').append(v.el);
                 });
 
-                self.attsRendered = [];
                 self.$('.js-attlist').empty();
                 _.each(self.model.get('attachments'), function (att) {
                     var mod = new Iznik.Model(att);
@@ -224,12 +213,8 @@ define([
                     var v = new Iznik.Views.User.Message.Photo({
                         model: mod
                     });
-                    v.render().then(function(v) {
-                        if (!self.attsRendered[att.id]) {
-                            self.attsRendered[att.id] = true;
-                            self.$('.js-attlist').append(v.el);
-                        }
-                    });
+                    v.render();
+                    self.$('.js-attlist').append(v.el);
                 });
 
                 if (self.$('.js-replies').length > 0) {
@@ -473,9 +458,8 @@ define([
         }
     });
 
-
     Iznik.Views.User.Message.Replyable = Iznik.Views.User.Message.extend({
-        template: 'user_find_message',
+        template: 'user_message_replyable',
 
         events: {
             'click .js-send': 'send'
