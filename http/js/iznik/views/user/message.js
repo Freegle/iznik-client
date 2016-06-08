@@ -153,6 +153,10 @@ define([
 
                 // FOPs
                 text = text.replace(/Fair Offer Policy applies \(see https:\/\/[^]*\)/, '');
+                text = text.replace(/Fair Offer Policy:[\s\S]*?reply./, '');
+
+                // App footer
+                text = text.replace(/Freegle app.*[0-9]$/m, '');
 
                 // Footers
                 text = text.replace(/--[\s\S]*Get Freegling[\s\S]*book/m, '');
