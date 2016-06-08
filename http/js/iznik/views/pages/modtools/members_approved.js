@@ -173,7 +173,7 @@ define([
         },
 
         render: function () {
-            var p = Iznik.Views.Page.prototype.render.call(this);
+            var p = Iznik.Views.Infinite.prototype.render.call(this);
             p.then(function(self) {
                 var v = new Iznik.Views.Help.Box();
                 v.template = 'modtools_members_approved_help';

@@ -2,9 +2,10 @@ define([
     'jquery',
     'underscore',
     'backbone',
-    'iznik/base'
+    'iznik/base',
+    'iznik/views/pages/pages'
 ], function($, _, Backbone, Iznik) {
-    Iznik.Views.Infinite = Iznik.View.extend({
+    Iznik.Views.Infinite = Iznik.Views.Page.extend({
         context: null,
         fetching: null,
         fetchData: {},
@@ -70,12 +71,13 @@ define([
                             data: data,
                             remove: self.selected != self.lastFetched,
                             success: function (collection, response, options) {
+                                console.log("Check response", self.retField, response);
                                 if (response.hasOwnProperty(self.retField) && response[self.retField].length > 0) {
                                     // We want find last one, so that we can tell when we've scrolled to it.  We might
                                     // be using visibleModelsFilter, so we need to watch for that class.
-                                    // console.log("Look for last", self.collectionView);
+                                    console.log("Look for last", self.collectionView);
                                     var last = self.collectionView.$el.find("li:not('.not-visible'):last");
-                                    // console.log("Last visible", last);
+                                    console.log("Last visible", last);
 
                                     if (last.length > 0) {
                                         // Waypoints allow us to see when we have scrolled to the bottom.

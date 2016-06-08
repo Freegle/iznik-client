@@ -45,7 +45,7 @@ define([
 
         events: {
             'click .js-signin': 'signin',
-            'click .js-notifchat': 'refreshChats',
+            'click .js-notifchat': 'refreshChats'
         },
 
         refreshChats: function() {

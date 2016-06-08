@@ -15,6 +15,8 @@ define([
     Iznik.Views.User.Pages.Find.Search = Iznik.Views.Infinite.extend({
         template: "user_find_search",
 
+        retField: 'messages',
+
         events: {
             'click #searchbutton': 'doSearch',
             'keyup .js-search': 'keyup'
@@ -59,7 +61,7 @@ define([
         },
 
         render: function () {
-            var p = Iznik.Views.Page.prototype.render.call(this, {
+            var p = Iznik.Views.Infinite.prototype.render.call(this, {
                 model: new Iznik.Model({
                     item: this.options.item
                 })
@@ -99,7 +101,6 @@ define([
                     };
                 } else {
                     // We've not searched yet.
-                    console.log("Not searched");
                     var mygroups = Iznik.Session.get('groups');
 
                     if (mygroups && mygroups.length > 0) {
@@ -362,7 +363,6 @@ define([
                 p = resolvedPromise(self);
             } else {
                 self.rendered = true;
-                console.log("Render", this.model.get('id'));
                 var mylocation = null;
                 try {
                     mylocation = localStorage.getItem('mylocation');

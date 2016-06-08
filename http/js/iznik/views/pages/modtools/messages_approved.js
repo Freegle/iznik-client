@@ -72,7 +72,7 @@ define([
         },
 
         render: function () {
-            var p = Iznik.Views.Page.prototype.render.call(this);
+            var p = Iznik.Views.Infinite.prototype.render.call(this);
             p.then(function(self) {
                 // The type of collection we're using depends on whether we're searching.  It controls how we fetch.
                 if (self.options.searchmess) {
