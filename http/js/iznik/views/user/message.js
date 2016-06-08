@@ -472,4 +472,187 @@ define([
             return(p);
         }
     });
+
+
+    Iznik.Views.User.Message.Replyable = Iznik.Views.User.Message.extend({
+        template: 'user_find_message',
+
+        events: {
+            'click .js-send': 'send'
+        },
+
+        initialize: function(){
+            this.events = _.extend(this.events, Iznik.Views.User.Message.prototype.events);
+        },
+
+        wordify: function (str) {
+            str = str.replace(/\b(\w*)/g, "<span>$1</span>");
+            return (str);
+        },
+
+        startChat: function() {
+            // We start a conversation with the sender.
+            var self = this;
+
+            self.wait = new Iznik.Views.PleaseWait();
+            self.wait.render();
+
+            $.ajax({
+                type: 'PUT',
+                url: API + 'chat/rooms',
+                data: {
+                    userid: self.model.get('fromuser').id
+                }, success: function(ret) {
+                    if (ret.ret == 0) {
+                        var chatid = ret.id;
+                        var msg = self.$('.js-replytext').val();
+
+                        $.ajax({
+                            type: 'POST',
+                            url: API + 'chat/rooms/' + chatid + '/messages',
+                            data: {
+                                message: msg,
+                                refmsgid: self.model.get('id')
+                            }, complete: function() {
+                                // Ensure the chat is opened, which shows the user what will happen next.
+                                Iznik.Session.chats.fetch().then(function() {
+                                    self.$('.js-replybox').slideUp();
+                                    var chatmodel = Iznik.Session.chats.get(chatid);
+                                    var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
+                                    chatView.restore();
+                                    self.wait.close();
+                                });
+                            }
+                        });
+                    }
+                }
+            })
+        },
+
+        send: function() {
+            var self = this;
+            var replytext = self.$('.js-replytext').val();
+
+            if (replytext.length == 0) {
+                self.$('.js-replytext').addClass('error-border').focus();
+            } else {
+                self.$('.js-replytext').removeClass('error-border');
+
+                try {
+                    // Save off details of our reply.  This is so that when we do a force login and may have to sign up or
+                    // log in, which can cause a page refresh, we will repopulate this data during the render.
+                    localStorage.setItem('replyto', self.model.get('id'));
+                    localStorage.setItem('replytext', replytext);
+                } catch (e) {}
+
+                // If we're not already logged in, we want to be.
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    // Now we're logged in we no longer need the local storage memory, because we've put it back into
+                    // the DOM.
+                    try {
+                        // Clear the local storage, so that we don't get stuck here.
+                        localStorage.removeItem('replyto');
+                        localStorage.removeItem('replytext');
+                    } catch (e) {}
+
+                    // When we reply to a message on a group, we join the group if we're not already a member.
+                    var memberofs = Iznik.Session.get('groups');
+                    var member = false;
+                    var tojoin = null;
+                    if (memberofs) {
+                        console.log("Member ofs", memberofs);
+                        memberofs.each(function(memberof) {
+                            console.log("Check member", memberof);
+                            var msggroups = self.model.get('groups');
+                            _.each(msggroups, function(msggroup) {
+                                console.log("Check msg", msggroup);
+                                if (memberof.id = msggroup.groupid) {
+                                    member = true;
+                                }
+                            });
+                        });
+                    }
+
+                    if (!member) {
+                        // We're not a member of any groups on which this message appears.  Join one.  Doesn't much
+                        // matter which.
+                        console.log("Not a member yet, need to join");
+                        var tojoin = self.model.get('groups')[0].id;
+                        $.ajax({
+                            url: API + 'memberships',
+                            type: 'PUT',
+                            data: {
+                                groupid : tojoin
+                            }, success: function(ret) {
+                                if (ret.ret == 0) {
+                                    // We're now a member of the group.  Fetch the message back, because we'll see more
+                                    // info about it now.
+                                    self.model.fetch().then(function() {
+                                        self.startChat();
+                                    })
+                                } else {
+                                    // TODO
+                                }
+                            }, error: function() {
+                                // TODO
+                            }
+                        })
+                    } else {
+                        self.startChat();
+                    }
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: false
+                });
+            }
+        },
+
+        render: function() {
+            var self = this;
+            var p;
+
+            if (self.rendered) {
+                p = resolvedPromise(self);
+            } else {
+                self.rendered = true;
+                var mylocation = null;
+                try {
+                    mylocation = localStorage.getItem('mylocation');
+
+                    if (mylocation) {
+                        mylocation = JSON.parse(mylocation);
+                    }
+                } catch (e) {
+                }
+
+                this.model.set('mylocation', mylocation);
+
+                // Static map custom markers don't support SSL.
+                this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapmarker.gif');
+
+                // Hide until we've got a bit into the render otherwise the border shows.
+                this.$el.css('visibility', 'hidden');
+                p = Iznik.Views.User.Message.prototype.render.call(this);
+
+                p.then(function() {
+                    // We handle the subject as a special case rather than a template expansion.  We might be doing a search, in
+                    // which case we want to highlight the matched words.  So we split out the subject string into a sequence of
+                    // spans, which then allows us to highlight any matched ones.
+                    self.$('.js-subject').html(self.wordify(self.model.get('subject')));
+                    var matched = self.model.get('matchedon');
+                    if (matched) {
+                        self.$('.js-subject span').each(function () {
+                            if ($(this).html().toLowerCase().indexOf(matched.word) != -1) {
+                                $(this).addClass('searchmatch');
+                            }
+                        });
+                    }
+                    self.$el.css('visibility', 'visible');
+                })
+            }
+
+            return(p);
+        }
+    });
 });

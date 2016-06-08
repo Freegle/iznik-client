@@ -89,6 +89,7 @@ define([
             "give/whatisit": "userGiveWhatIsIt",
             "give/whoami": "userGiveWhoAmI",
             "give/whatnext": "userGiveWhatNext",
+            "mygroups": "userMyGroups",
             "newuser": "newUser",
             "unsubscribe(/:id)": "unsubscribe",
             "post": "userHome", // legacy route
@@ -260,6 +261,15 @@ define([
 
             require(["iznik/views/pages/user/find"], function() {
                 var page = new Iznik.Views.User.Pages.Find.WhatNext();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userMyGroups: function () {
+            var self = this;
+
+            require(["iznik/views/pages/user/mygroups"], function() {
+                var page = new Iznik.Views.User.Pages.MyGroups();
                 self.loadRoute({page: page});
             });
         },
