@@ -60,7 +60,9 @@ function messages() {
 
             $ret = [
                 'ret' => 0,
-                'status' => 'Success'
+                'status' => 'Success',
+                'searchgroups' => $groups,
+                'searchgroup' => $groupid
             ];
 
             switch ($subaction) {

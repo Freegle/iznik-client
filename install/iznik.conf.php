@@ -42,6 +42,9 @@ define('MOD_SITE', 'modtools.org');
 $host = $_SERVER && array_key_exists('HTTP_HOST', $_SERVER) ? $_SERVER['HTTP_HOST'] : 'iznik.modtools.org';
 define('SITE_HOST', $host);
 
+# Where we send event tracking.
+define('EVENT_HOST', 'dev.ilovefreegle.org');
+
 switch($host) {
     case 'iznik.modtools.org':
         define('SITE_NAME', 'Iznik');

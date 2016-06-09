@@ -23,6 +23,7 @@ define([
                 // console.log("Not already fetching");
                 self.fetching = self.selected;
                 self.fetchPromise = new Promise(function(resolve, reject) {
+                    console.log("Fetch data", self.fetchData, data);
                     if (data) {
                         // We were passed some data to use on the fetch.  Save it for future fetches when we need to
                         // scroll.
@@ -71,13 +72,13 @@ define([
                             data: data,
                             remove: self.selected != self.lastFetched,
                             success: function (collection, response, options) {
-                                console.log("Check response", self.retField, response);
+                                // console.log("Check response", self.retField, response);
                                 if (response.hasOwnProperty(self.retField) && response[self.retField].length > 0) {
                                     // We want find last one, so that we can tell when we've scrolled to it.  We might
                                     // be using visibleModelsFilter, so we need to watch for that class.
-                                    console.log("Look for last", self.collectionView);
+                                    // console.log("Look for last", self.collectionView);
                                     var last = self.collectionView.$el.find("li:not('.not-visible'):last");
-                                    console.log("Last visible", last);
+                                    // console.log("Last visible", last);
 
                                     if (last.length > 0) {
                                         // Waypoints allow us to see when we have scrolled to the bottom.
@@ -104,7 +105,7 @@ define([
                                                     // away to another page.
                                                     // console.log("Scrolled to last", last.closest('body').length);
                                                     if (last.closest('body').length > 0) {
-                                                        // console.log("Scrolled to last, fetch");
+                                                        // console.log("Still in DOM, fetch");
                                                         self.fetch();
                                                     }
                                                 }

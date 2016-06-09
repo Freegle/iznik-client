@@ -39,8 +39,10 @@ define([
             var currQueue = eventQueue;
             eventQueue = [];
 
+            var eventhost = $('meta[name=iznikevent]').attr("content");
+
             $.ajax({
-                url: API + 'event',
+                url: 'https://' + eventhost + API + 'event',
                 type: 'POST',
                 data: {
                     'events': currQueue
