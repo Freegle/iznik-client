@@ -119,7 +119,8 @@ define([
                     from: self.$('.js-mailfrom').val(),
                     subject: self.$('.js-mailsubj').val(),
                     text: self.$('.js-mailtext').val(),
-                    html: tinyMCE.activeEditor.getContent({format: 'raw'})
+                    html: tinyMCE.activeEditor.getContent({format: 'raw'}),
+                    askclick: self.$('.js-askclick').val()
                 }, success: function (ret) {
                     if (ret.ret == 0) {
                         self.$('.js-mailsuccess').fadeIn('slow');

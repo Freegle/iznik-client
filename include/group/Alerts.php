@@ -28,11 +28,11 @@ class Alert extends Entity
         $this->log = new Log($dbhr, $dbhm);
     }
 
-    public function create($groupid, $from, $to, $subject, $text, $html) {
+    public function create($groupid, $from, $to, $subject, $text, $html, $askclick) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO alerts (`groupid`, `from`, `to`, `subject`, `text`, `html`) VALUES (?,?,?,?,?,?);", [
-            $groupid, $from, $to, $subject, $text, $html
+        $rc = $this->dbhm->preExec("INSERT INTO alerts (`groupid`, `from`, `to`, `subject`, `text`, `html`, `askclick`) VALUES (?,?,?,?,?,?,?);", [
+            $groupid, $from, $to, $subject, $text, $html, $askclick
         ]);
 
         if ($rc) {
@@ -259,9 +259,16 @@ class Alert extends Entity
                                 $this->alert['subject'],
                                 $this->alert['html'],
                                 NULL, # Should be $u->getUnsubLink(USER_SITE, $mod['userid']) once we go live TODO ,
-                                'https://' . USER_SITE . "/alert/viewed/$trackid",
+                                $this->alert['askclick'] ? 'https://' . USER_SITE . "/alert/viewed/$trackid" : NULL,
                                 'https://' . USER_SITE . "/beacon/$trackid");
-                            $msg = $this->constructMessage($email['email'], $u->getName(), $from, $this->alert['subject'], $this->alert['text'], $html);
+
+                            $text = $this->alert['text'];
+                            if ($this->alert['askclick']) {
+                                $text .=  "\r\n\r\nPlease click to confirm you got this:\r\n\r\n" .
+                                    'https://' . USER_SITE . "/alert/viewed/$trackid";
+                            }
+
+                            $msg = $this->constructMessage($email['email'], $u->getName(), $from, $this->alert['subject'], $text, $html);
                             $mailer->send($msg);
                             $done++;
                         }
@@ -293,10 +300,16 @@ class Alert extends Entity
                     $this->alert['subject'],
                     $this->alert['html'],
                     NULL,
-                    'https://' . USER_SITE . "/alert/viewed/$trackid",
+                    $this->alert['askclick'] ? 'https://' . USER_SITE . "/alert/viewed/$trackid" : NULL,
                     'https://' . USER_SITE . "/beacon/$trackid");
 
-                $msg = $this->constructMessage($g->getModsEmail(), $toname, $from, $this->alert['subject'], $this->alert['text'], $html);
+                $text = $this->alert['text'];
+                if ($this->alert['askclick']) {
+                    $text .=  "\r\n\r\nPlease click to confirm you got this:\r\n\r\n" .
+                        'https://' . USER_SITE . "/alert/viewed/$trackid";
+                }
+
+                $msg = $this->constructMessage($g->getModsEmail(), $toname, $from, $this->alert['subject'], $text, $html);
                 $mailer->send($msg);
                 $done++;
             } catch (Exception $e) {
