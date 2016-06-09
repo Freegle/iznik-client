@@ -16,6 +16,12 @@ define([
 
         retField: 'messages',
 
+        countsChanged: function() {
+            this.groupSelect.render({
+                selected: this.selected
+            });
+        },
+
         render: function () {
             var p = Iznik.Views.Infinite.prototype.render.call(this);
             p.then(function(self) {
@@ -72,8 +78,8 @@ define([
 
                 // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
                 // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
-                self.listenTo(Iznik.Session, 'pendingcountschanged', _.bind(self.groupSelect.render, self.groupSelect));
-                self.listenTo(Iznik.Session, 'pendingcountsotherchanged', _.bind(self.groupSelect.render, self.groupSelect));
+                self.listenTo(Iznik.Session, 'pendingcountschanged', _.bind(self.countsChanged, self));
+                self.listenTo(Iznik.Session, 'pendingcountsotherchanged', _.bind(self.countsChanged, self));
             });
 
             return(p);

@@ -18,6 +18,12 @@ define([
 
         retField: 'spammers',
 
+        countsChanged: function() {
+            this.groupSelect.render({
+                selected: this.selected
+            });
+        },
+
         render: function () {
             var p = Iznik.Views.Infinite.prototype.render.call(this);
             p.then(function(self) {
@@ -74,8 +80,8 @@ define([
 
                 // If we detect that the pending counts have changed on the server, refetch the members so that we add/remove
                 // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
-                self.listenTo(Iznik.Session, 'approvedmemberscountschanged', _.bind(self.groupSelect.render, self.groupSelect));
-                self.listenTo(Iznik.Session, 'approvedmembersothercountschanged', _.bind(self.groupSelect.render, self.groupSelect));
+                self.listenTo(Iznik.Session, 'approvedmemberscountschanged', _.bind(self.countsChanged, self));
+                self.listenTo(Iznik.Session, 'approvedmembersothercountschanged', _.bind(self.countsChanged, self));
 
                 // We seem to need to redelegate
                 self.delegateEvents();

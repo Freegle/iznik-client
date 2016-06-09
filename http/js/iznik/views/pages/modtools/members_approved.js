@@ -26,6 +26,12 @@ define([
             'click .js-exportyahoo': 'exportYahoo'
         },
 
+        countsChanged: function() {
+            this.groupSelect.render({
+                selected: this.selected
+            });
+        },
+
         keyup: function (e) {
             // Search on enter.
             if (e.which == 13) {
@@ -254,8 +260,8 @@ define([
 
                 // If we detect that the pending counts have changed on the server, refetch the members so that we add/remove
                 // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
-                self.listenTo(Iznik.Session, 'approvedmemberscountschanged', _.bind(self.groupSelect.render, self.groupSelect));
-                self.listenTo(Iznik.Session, 'approvedmembersothercountschanged', _.bind(self.groupSelect.render, self.groupSelect));
+                self.listenTo(Iznik.Session, 'approvedmemberscountschanged', _.bind(self.countsChanged, self));
+                self.listenTo(Iznik.Session, 'approvedmembersothercountschanged', _.bind(self.countsChanged, self));
 
                 // We seem to need to redelegate
                 self.delegateEvents();

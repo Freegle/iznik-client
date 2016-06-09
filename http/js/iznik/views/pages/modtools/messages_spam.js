@@ -16,6 +16,12 @@ define([
 
         retField: 'messages',
 
+        countsChanged: function() {
+            this.groupSelect.render({
+                selected: this.selected
+            });
+        },
+
         render: function () {
             var p = Iznik.Views.Infinite.prototype.render.call(this);
             p.then(function(self) {
@@ -73,8 +79,8 @@ define([
                 // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
                 // appropriately.
                 self.listenTo(Iznik.Session, 'spamcountschanged', _.bind(self.fetch, self));
-                self.listenTo(Iznik.Session, 'spamcountschanged', _.bind(self.groupSelect.render, self.groupSelect));
-                self.listenTo(Iznik.Session, 'spamcountsotherchanged', _.bind(self.groupSelect.render, self.groupSelect));
+                self.listenTo(Iznik.Session, 'spamcountschanged', _.bind(self.countsChanged, self));
+                self.listenTo(Iznik.Session, 'spamcountsotherchanged', _.bind(self.countsChanged, self));
             });
             
             return(p);
