@@ -151,17 +151,6 @@ define([
                 }
             },
 
-            waitDOM: function(self) {
-                // Some libraries we use don't work properly until the view element is in the DOM.
-                function pollRecursive() {
-                    return self.$el.closest('body').length > 0 ?
-                        Promise.resolve(true) :
-                        Promise.delay(50).then(pollRecursive);
-                }
-
-                return pollRecursive();
-            },
-
             ourRender: function() {
                 if (this.model) {
                     this.$el.html(window.template(this.template)(this.model.toJSON2()));

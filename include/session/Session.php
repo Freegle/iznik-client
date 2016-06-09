@@ -22,7 +22,7 @@ if (!isset($_SESSION)) {
 $sessionPrepared = FALSE;
 
 function prepareSession($dbhr, $dbhm) {
-    # We only want to do the prepare once per session.
+    # We only want to do the prepare once, otherwise we will generate many headers.
     global $sessionPrepared;
 
     if (!$sessionPrepared) {

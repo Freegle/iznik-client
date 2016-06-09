@@ -224,7 +224,8 @@ class dbTest extends IznikTestCase {
         # Now a failure in the return code
         error_log("query returns false");
         $dbconfig = array (
-            'host' => '127.0.0.1',
+            'host' => SQLHOST,
+            'port' => SQLPORT,
             'user' => SQLUSER,
             'pass' => SQLPASSWORD,
             'database' => SQLDB
@@ -350,13 +351,14 @@ class dbTest extends IznikTestCase {
         # we notice if the server dies during a transaction; PDO is suspect in this area.
 
         $dbconfig = array (
-            'host' => '127.0.0.1',
+            'host' => SQLHOST,
+            'port' => SQLPORT,
             'user' => SQLUSER,
             'pass' => SQLPASSWORD,
             'database' => SQLDB
         );
 
-        $dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8";
+        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port']};dbname={$dbconfig['database']};charset=utf8";
 
         $dbhm = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -375,6 +377,7 @@ class dbTest extends IznikTestCase {
         $connid = $ps[0]['connid'];
         error_log("ConnID is $connid");
 
+        # Kill thread from a different connection, under the feet of the other one.
         $this->dbhr->exec("KILL $connid;");
 
         try {
@@ -400,7 +403,8 @@ class dbTest extends IznikTestCase {
         error_log(__METHOD__);
 
         $dbconfig = array (
-            'host' => '127.0.0.1',
+            'host' => SQLHOST,
+            'port' => SQLPORT,
             'user' => SQLUSER,
             'pass' => SQLPASSWORD,
             'database' => SQLDB
@@ -422,7 +426,13 @@ class dbTest extends IznikTestCase {
 
         $rc = $this->dbhm->preExec('INSERT INTO test VALUES ();');
         assertEquals(1, $rc);
-        $ids = $this->dbhm->preQuery('SELECT * FROM test WHERE id > ?;', array(0));
+
+        error_log("Select with read");
+        $ids = $this->dbhr->preQuery('SELECT * FROM test WHERE id > ?;', array(0));
+        assertEquals(1, count($ids));
+
+        # Select again to exercise cache.
+        $ids = $this->dbhr->preQuery('SELECT * FROM test WHERE id > ?;', array(0));
         assertEquals(1, count($ids));
 
         error_log(__METHOD__ . " end");

@@ -374,7 +374,11 @@ class sessionTest extends IznikAPITestCase
         
         $ret = $this->call('session', 'GET', []);
         assertEquals(1, $ret['ret']);
-        
+
+        # Normally this would be in a separate API call, so we need to override here.
+        global $sessionPrepared;
+        $sessionPrepared = FALSE;
+
         # Now log in using our creds
         $ret = $this->call('session', 'GET', [
             'pushcreds' => 'test'

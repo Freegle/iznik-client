@@ -37,6 +37,7 @@ class Notifications
     public function add($userid, $type, $val) {
         $sql = "INSERT IGNORE INTO users_push_notifications (`userid`, `type`, `subscription`) VALUES (?, ?, ?);";
         $rc = $this->dbhm->preExec($sql, [ $userid, $type, $val ]);
+        Session::clearSessionCache();
         return($rc);
     }
 

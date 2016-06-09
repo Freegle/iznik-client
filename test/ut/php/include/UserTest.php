@@ -204,13 +204,13 @@ class userTest extends IznikTestCase {
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = new User($this->dbhm, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
         $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = $id;");
         $eid = $u->addEmail('test@test.com');
         assertGreaterThan(0, $eid);
         $u->setPrivate('yahooUserId', 1);
-        $u = new User($this->dbhr, $this->dbhm, $id);
+        $u = new User($this->dbhm, $this->dbhm, $id);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
         assertEquals($u->getRole($group1), User::ROLE_NONMEMBER);
         assertFalse($u->isModOrOwner($group1));
@@ -279,7 +279,7 @@ class userTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
         list($mid, $already) = $m->save();
-        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        $m = new Message($this->dbhm, $this->dbhm, $mid);
 
         $u->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         assertEquals($u->getRole($group1), User::ROLE_MODERATOR);
@@ -405,7 +405,8 @@ class userTest extends IznikTestCase {
         $u2->addMembership($group3, User::ROLE_MODERATOR);
 
         $dbconfig = array (
-            'host' => '127.0.0.1',
+            'host' => SQLHOST,
+            'port' => SQLPORT,
             'user' => SQLUSER,
             'pass' => SQLPASSWORD,
             'database' => SQLDB

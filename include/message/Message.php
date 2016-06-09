@@ -1098,11 +1098,14 @@ class Message
                 }
 
                 $userid = $u->create(NULL, NULL, $name, "Incoming message #{$this->id} from {$this->fromaddr} on $groupname");
+
+                # Use the m handle to make sure we find it later.
+                $this->dbhr = $this->dbhm;
             }
 
             if ($userid) {
                 # We have a user.
-                $u = new User($this->dbhr, $this->dbhm, $userid);
+                $u = new User($this->dbhm, $this->dbhm, $userid);
 
                 # We might not have this yahoo user id associated with this user.
                 if ($yahoouid) {

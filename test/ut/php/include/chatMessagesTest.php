@@ -74,7 +74,8 @@ class chatMessagesTest extends IznikTestCase {
         error_log(__METHOD__);
 
         $dbconfig = array (
-            'host' => '127.0.0.1',
+            'host' => SQLHOST,
+            'port' => SQLPORT,
             'user' => SQLUSER,
             'pass' => SQLPASSWORD,
             'database' => SQLDB

@@ -14,7 +14,7 @@ function endsWith(haystack, str) {
 }
 
 function log(msg) {
-    Application.console.log("ModTools: " + msg);
+    console.log("ModTools: " + msg);
 }
 
 var httpRequestObserver =
@@ -91,7 +91,7 @@ var httpRequestObserver =
                         log("Type of args after parse 2 is " + typeof args);
 
                         log("Parsed");
-                        Application.console.log(args);
+                        console.log(args);
                         log("Reencode " + JSON.stringify(args));
 
                         // Suspend the original request to make sure it doesn't complete
