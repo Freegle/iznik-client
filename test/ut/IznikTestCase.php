@@ -36,6 +36,8 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
         $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = '1';");
         $this->dbhm->preExec("DELETE FROM users WHERE firstname = 'Test' AND lastname = 'User';");
         $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE subscription = 'Test';");
+        $this->dbhm->preExec("DELETE FROM users_emails WHERE users_emails.backwards LIKE 'moc.tset%';");
+        $this->dbhm->preExec("DELETE FROM users_emails WHERE userid IS NULL;");
         
         if (defined('_SESSION')) {
             unset($_SESSION['id']);
@@ -56,6 +58,8 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
 
     protected function tearDown() {
         parent::tearDown ();
+
+        @session_destroy();
     }
 
     public function __construct() {

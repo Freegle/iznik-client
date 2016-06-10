@@ -53,7 +53,13 @@ class DBResults implements Iterator {
     public function checkValid($lastmodop) {
         # We are passed the time of the last mod op on this session, if any.  If that is later than this
         # time, we assume our cache is invalid.
-        $valid = !$lastmodop || floatval($lastmodop) < $this->time;
+        #
+        # If we've not had any mod ops on this session then assume all our results are invalid.  This is
+        # because we might (for example) create a user with an email address, cache a search for that email,
+        # delete the user, delete the session, start a new session, search for that email address and get
+        # a result back, which would be wrong.  Ok, that's not really an example, it's what the UT does
+        # all the time.
+        $valid = $lastmodop && floatval($lastmodop) < $this->time;
         #error_log("Check valid " . microtime(TRUE) . " vs " . $this->time . " and $lastmodop = $valid");
         return($valid);
     }
@@ -234,7 +240,11 @@ class LoggedPDO {
             $gotcache = FALSE;
             $cachekey = $this->cacheKey($sql, $params);
 
-            if ($this->readonly) {
+            if (preg_match('/INSERT|REPLACE|UPDATE|DELETE/', $sql)) {
+                # Ok, this is a modification op.  Zap our SQL cache.
+                #error_log("Invalidate cache with $sql");
+                $rc = $this->getRedis()->setex($this->sessionKey(), LoggedPDO::CACHE_EXPIRY, microtime(TRUE));
+            } else if ($this->readonly) {
                 # This is a readonly connection, so it's acceptable for the data to be slightly out of date.  We can
                 # query our redis cache.
                 $this->cachequeries++;
@@ -297,13 +307,6 @@ class LoggedPDO {
 
                 #error_log("Time to query cache " . (microtime(true) - $cachestart));
                 $this->cachetime += microtime(true) - $cachestart;
-            } else {
-                # This is a connection on which we expect modification ops.  See if this is one.
-                if (preg_match('/INSERT|REPLACE|UPDATE|DELETE/', $sql)) {
-                    # Ok, this is a modification op.  Zap our SQL cache.
-                    #error_log("Invalidate cache with $sql");
-                    $rc = $this->getRedis()->setex($this->sessionKey(), LoggedPDO::CACHE_EXPIRY, microtime(TRUE));
-                }
             }
 
             if (!$gotcache) {
@@ -420,6 +423,9 @@ class LoggedPDO {
 
                 if ($ret !== FALSE) {
                     $worked = true;
+
+                    # This is a modification op, so clear our cache.
+                    $this->getRedis()->setex($this->sessionKey(), LoggedPDO::CACHE_EXPIRY, microtime(TRUE));
                 } else {
                     $msg = var_export($this->errorInfo(), true);
                     $try++;

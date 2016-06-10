@@ -25,8 +25,7 @@ function prepareSession($dbhr, $dbhm) {
     # We only want to do the prepare once, otherwise we will generate many headers.
     global $sessionPrepared;
 
-    if (!$sessionPrepared) {
-        $sessionPrepared = TRUE;
+    if (!$sessionPrepared || TRUE) {
         if (!pres('id', $_SESSION)) {
             $userid = NULL;
 

@@ -220,8 +220,6 @@ class Group extends Entity
         $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Added']));
         $addq = $ctx == NULL ? '' : (" AND (memberships.added < $date OR memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ") ");
         # TODO We ought to search on firstname/lastname too, and handle word splits.  But this is sufficient for ModTools.
-        $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("$search%") . " OR users.yahooid LIKE " . $this->dbhr->quote("$search%") .  " OR memberships_yahoo.yahooAlias LIKE " . $this->dbhr->quote("$search%") . ") ");
-        $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : $searchq;
         $groupq = $groupids ? " memberships.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
         $ypsq = $yps ? (" AND memberships_yahoo.yahooPostingStatus = " . $this->dbhr->quote($yps)) : '';
         $ydtq = $ydt ? (" AND memberships_yahoo.yahooDeliveryType = " . $this->dbhr->quote($ydt)) : '';
@@ -240,7 +238,32 @@ class Group extends Entity
             }
         }
 
-        $sql = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, memberships_yahoo.yahooAlias, memberships_yahoo.yahooPostingStatus, memberships_yahoo.yahooDeliveryType, memberships_yahoo.yahooapprove, memberships_yahoo.yahooreject, memberships_yahoo.joincomment FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid LEFT JOIN users_emails ON memberships.userid = users_emails.userid INNER JOIN users ON users.id = memberships.userid WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
+        $sqlpref = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, memberships_yahoo.yahooAlias, 
+              memberships_yahoo.yahooPostingStatus, memberships_yahoo.yahooDeliveryType, memberships_yahoo.yahooapprove, 
+              memberships_yahoo.yahooreject, memberships_yahoo.joincomment FROM memberships 
+              LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid 
+              LEFT JOIN users_emails ON memberships.userid = users_emails.userid 
+              INNER JOIN users ON users.id = memberships.userid";
+
+        if ($search) {
+            # We're searching.  It turns out to be more efficient to get the userids using the indexes, and then
+            # get the rest of the stuff we need.
+            $q = $this->dbhr->quote("$search%");
+            $sql = "$sqlpref 
+              WHERE users.id IN (SELECT * FROM (
+                (SELECT userid FROM users_emails WHERE email LIKE $q) UNION
+                (SELECT id FROM users WHERE fullname LIKE $q) UNION
+                (SELECT id FROM users WHERE yahooid LIKE $q) UNION
+                (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)
+              ) t) AND 
+              $groupq $collectionq $addq $ypsq $ydtq";
+        } else {
+            $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : '';
+            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq";
+        }
+
+        $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
+
         $members = $this->dbhr->preQuery($sql);
 
         $ctx = [ 'Added' => NULL ];

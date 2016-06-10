@@ -270,7 +270,7 @@ function memberships() {
                             $synctime = presdef('synctime', $_REQUEST, ISODate("@" . time()));
                             error_log("Member sync for " . $g->getPrivate('nameshort') . " $last, $time ago");
 
-                            if (($time > 600 && $collection == MessageCollection::APPROVED) ||
+                            if (($time > 600000 && $collection == MessageCollection::APPROVED) ||
                                 ($collection != MessageCollection::APPROVED)) {
                                 $ret = $g->setMembers($members, $collection, $synctime);
                             } else {

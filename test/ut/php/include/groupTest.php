@@ -32,6 +32,7 @@ class groupTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM users WHERE yahooUserId = '-testyahoouserid';");
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.backwards LIKE 'moc.tset%';");
+        $dbhm->preExec("DELETE FROM users_emails WHERE users_emails.backwards LIKE 'moc.tset%';");
     }
 
     protected function tearDown() {
@@ -154,6 +155,8 @@ class groupTest extends IznikTestCase {
             ]
         ], MembershipCollection::APPROVED);
         assertEquals(0, $rc['ret']);
+
+        error_log("Before merge " . var_export($g->getMembers(), TRUE));
 
         $this->dbhm->preExec("UPDATE users_emails SET preferred = 1 WHERE email IN ('test1@test.com', 'test2@test.com')");
 

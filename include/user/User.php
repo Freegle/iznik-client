@@ -361,7 +361,7 @@ class User extends Entity
 
             if (count($emails) == 0) {
                 $sql = "INSERT IGNORE INTO users_emails (userid, email, preferred, canon, backwards) VALUES (?, ?, ?, ?, ?)";
-                $this->dbhm->preExec($sql,
+                $rc = $this->dbhm->preExec($sql,
                     [$this->id, $email, $primary, $canon, strrev($canon)]);
                 $rc = $this->dbhm->lastInsertId();
 

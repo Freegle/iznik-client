@@ -36,6 +36,8 @@ class dbTest extends IznikTestCase {
         $rc = $this->dbhm->exec('DROP TABLE test;');
         assertEquals(0, $rc);
 
+        @session_destroy();
+
         parent::tearDown ();
     }
 
@@ -56,6 +58,7 @@ class dbTest extends IznikTestCase {
             1 => null,
             2 => null
         ], $this->dbhm->getErrorInfo($sth));
+        $this->dbhm->setErrorLog(FALSE);
 
         error_log(__METHOD__ . " end");
     }
