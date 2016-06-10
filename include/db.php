@@ -115,7 +115,7 @@ class LoggedPDO {
     protected $_db;
     private $inTransaction = FALSE;
     private $tries = 10;
-    public $errorLog = FALSE;
+    public  $errorLog = TRUE;
     private $lastInsert = NULL;
     private $transactionStart = NULL;
     private $dbwaittime = 0;

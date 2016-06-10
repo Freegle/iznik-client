@@ -412,7 +412,7 @@ class userTest extends IznikTestCase {
             'database' => SQLDB
         );
 
-        $dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8";
+        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port']};dbname={$dbconfig['database']};charset=utf8";
 
         $mock = $this->getMockBuilder('LoggedPDO')
             ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(

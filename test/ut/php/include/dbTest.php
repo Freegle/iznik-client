@@ -234,7 +234,7 @@ class dbTest extends IznikTestCase {
             'database' => SQLDB
         );
 
-        $dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8";
+        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port']};dbname={$dbconfig['database']};charset=utf8";
 
         $mock = $this->getMockBuilder('LoggedPDO')
             ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
@@ -308,7 +308,8 @@ class dbTest extends IznikTestCase {
         # Now a failure in the return code
         error_log("query returns false");
         $dbconfig = array (
-            'host' => '127.0.0.1',
+            'host' => SQLHOST,
+            'port' => SQLPORT,
             'user' => SQLUSER,
             'pass' => SQLPASSWORD,
             'database' => SQLDB
@@ -413,7 +414,7 @@ class dbTest extends IznikTestCase {
             'database' => SQLDB
         );
 
-        $dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8";
+        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port']};dbname={$dbconfig['database']};charset=utf8";
 
         assertNotNull($this->dbhm->__construct($dsn, $dbconfig['user'], $dbconfig['pass'], array(
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
@@ -457,13 +458,14 @@ class dbTest extends IznikTestCase {
         error_log(__METHOD__);
 
         $dbconfig = array (
-            'host' => '127.0.0.1',
+            'host' => SQLHOST,
+            'port' => SQLPORT,
             'user' => SQLUSER,
             'pass' => SQLPASSWORD,
             'database' => SQLDB
         );
 
-        $dsn = "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8";
+        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port']};dbname={$dbconfig['database']};charset=utf8";
 
         # We mock up the query to throw an exception, to test retries.
         #
