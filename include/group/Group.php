@@ -2,6 +2,7 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
+require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 
 class Group extends Entity
@@ -341,6 +342,26 @@ class Group extends Entity
         return($yahoorole);
     }
 
+    public function queueSetMembers($members, $synctime) {
+        # This is used for Approved members only, and will be picked up by a background script which calls
+        # setMembers.  This is used to move this expensive processing off the application server.
+        $this->dbhm->preExec("REPLACE INTO memberships_yahoo_dump (groupid, members, lastupdated, synctime) VALUES (?,?,NOW(),?);", [$this->id, json_encode($members), $synctime]);
+    }
+
+    public function processSetMembers() {
+        # This is called from the background script.  It's serialised, so we don't need to worry about other
+        # copies.
+        $sql = "SELECT * FROM memberships_yahoo_dump WHERE lastprocessed IS NULL OR lastupdated > lastprocessed;";
+        $groups = $this->dbhr->preQuery($sql);
+
+        foreach ($groups as $group) {
+            $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+            error_log("Sync group " . $g->getPrivate('nameshort'));
+            $g->setMembers(json_decode($group['members'], TRUE),  MembershipCollection::APPROVED, $group['synctime']);
+            $this->dbhm->preExec("UPDATE memberships_yahoo_dump SET lastprocessed = NOW() WHERE groupid = ?;", [ $group['groupid']]);
+        }
+    }
+
     public function setMembers($members, $collection, $synctime = NULL) {
         # This is used to set the whole of the membership list for a group.  It's only used when the group is
         # mastered on Yahoo, rather than by us.
@@ -426,8 +447,6 @@ class Group extends Entity
                     #
                     # Don't flag it as a primary email otherwise we might override the one we have.
                     $memb['emailid'] = $u->addEmail($memb['email'], 0, FALSE);
-
-                    $u = new User($this->dbhr, $this->dbhm, $uid);
 
                     if (pres('yahooUserId', $memb)) {
                         $u->setPrivate('yahooUserId', $memb['yahooUserId']);
@@ -643,7 +662,6 @@ class Group extends Entity
             if ($collection == MessageCollection::APPROVED) {
                 # Record the sync.
                 $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [$this->id]);
-                $this->dbhm->preExec("REPLACE INTO memberships_yahoo_dump (groupid, members) VALUES (?,?);", [$this->id, json_encode($members)]);
             }
         } catch (Exception $e) {
             $ret = [ 'ret' => 2, 'status' => "Sync failed with " . $e->getMessage() ];

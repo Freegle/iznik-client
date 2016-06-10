@@ -363,6 +363,10 @@ class membershipsAPITest extends IznikAPITestCase {
             'members' => $members
         ]);
         assertEquals(0, $ret['ret']);
+        
+        # Fake background job.
+        $g = new Group($this->dbhr, $this->dbhm);
+        $g->processSetMembers();
 
         $ret = $this->call('memberships', 'GET', []);
 
@@ -792,11 +796,13 @@ class membershipsAPITest extends IznikAPITestCase {
             ];
         };
 
+        error_log("Do PATCH");
         $ret = $this->call('memberships', 'PATCH', [
             'groupid' => $this->groupid,
             'members' => $members
         ]);
         assertEquals(0, $ret['ret']);
+        error_log("Done PATCH");
 
         $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ?;";
         $counts = $this->dbhr->preQuery($sql, [ $this->groupid ]);

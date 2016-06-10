@@ -71,7 +71,6 @@ function filterResult(&$array, $skip = NULL) {
             unset($array[$key]);
         } else if (is_array($val)) {
             #error_log("Recurse $key");
-            $thisone = $val;
             filterResult($val);
             $array[$key] = $val;
         } else if ((array_key_exists($key, $array)) && (gettype($val) == 'string') && (strlen($val) == 0)) {

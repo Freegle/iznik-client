@@ -115,7 +115,7 @@ class LoggedPDO {
     protected $_db;
     private $inTransaction = FALSE;
     private $tries = 10;
-    public  $errorLog = TRUE;
+    public  $errorLog = FALSE;
     private $lastInsert = NULL;
     private $transactionStart = NULL;
     private $dbwaittime = 0;
@@ -291,7 +291,7 @@ class LoggedPDO {
                                     $cached->setQuerying(true);
                                     $tocache = gzcompress(serialize($cached));
                                     $cachestart = microtime(true);
-                                    $rc = $this->cache->setex($cachekey, LoggedPDO::CACHE_EXPIRY, $tocache);
+                                    $rc = $this->getRedis()->setex($cachekey, LoggedPDO::CACHE_EXPIRY, $tocache);
                                     $this->cachetime += microtime(true) - $cachestart;
                                     #error_log("Time to refresh expired cache " . (microtime(true) - $cachestart));
                                     #if ($rc) {
@@ -337,7 +337,7 @@ class LoggedPDO {
                             #error_log("Consider store $cachekey " . strlen($tocache));
                             if (strlen($tocache) < LoggedPDO::CACHE_MAX_SIZE) {
                                 $cachestart = microtime(true);
-                                $this->cache->setex($cachekey, LoggedPDO::CACHE_EXPIRY, $tocache);
+                                $this->getRedis()->setex($cachekey, LoggedPDO::CACHE_EXPIRY, $tocache);
                                 $this->cachetime += microtime(true) - $cachestart;
                             }
                         }

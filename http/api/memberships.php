@@ -262,20 +262,27 @@ function memberships() {
                         }
 
                         if ($members !== NULL) {
-                            # Check when the last member sync was.  If it's within the last few minutes, don't
-                            # bother resyncing.  This helps with the case where the client times out waiting, and
-                            # then retries forever but the sync has actually happened.
-                            $last = $g->getPrivate('lastyahoomembersync');
-                            $time = strtotime('now') - strtotime($last);
                             $synctime = presdef('synctime', $_REQUEST, ISODate("@" . time()));
-                            error_log("Member sync for " . $g->getPrivate('nameshort') . " $last, $time ago");
 
-                            if (($time > 600000 && $collection == MessageCollection::APPROVED) ||
-                                ($collection != MessageCollection::APPROVED)) {
-                                $ret = $g->setMembers($members, $collection, $synctime);
+                            if ($collection == MembershipCollection::APPROVED) {
+                                # Check when the last member sync was.  If it's within the last few minutes, don't
+                                # bother resyncing.  This helps with the case where the client times out waiting, and
+                                # then retries forever but the sync has actually happened.
+                                $last = $g->getPrivate('lastyahoomembersync');
+                                $time = strtotime('now') - strtotime($last);
+                                error_log("Member sync for " . $g->getPrivate('nameshort') . " $last, $time ago");
+
+                                if ($time > 600) {
+                                    # It's been a little while since we did this.  Queue it (the actual sync happens
+                                    # in a background script).
+                                    $g->queueSetMembers($members, $synctime);
+                                } else {
+                                    $ret = [ 'ret' => 0, 'status' => 'Ignore member sync as happened recently'];
+                                    error_log("Ignore member sync for " . $g->getPrivate('nameshort') . " as last sync at $last");
+                                }
                             } else {
-                                $ret = [ 'ret' => 0, 'status' => 'Ignore member sync as happened recently'];
-                                error_log("Ignore member sync for " . $g->getPrivate('nameshort') . " as last sync at $last");
+                                # For other collections, which aren't large, we do the work inline.
+                                $ret = $g->setMembers($members, $collection, $synctime);
                             }
                         }
                     }

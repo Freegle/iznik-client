@@ -11,8 +11,6 @@ require_once(IZNIK_BASE . '/include/misc/Image.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/include/misc/Search.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
-require_once('Mail.php');
-require_once('Mail/mime.php');
 
 use GeoIp2\Database\Reader;
 
