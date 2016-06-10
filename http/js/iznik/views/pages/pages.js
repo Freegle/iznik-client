@@ -240,14 +240,14 @@ define([
 
                 // Highlight current page if any.
                 self.$('a').each(function () {
-                    var href = $(self).attr('href');
-                    $(self).closest('li').removeClass('active');
+                    var href = $(this).attr('href');
+                    $(this).closest('li').removeClass('active');
 
                     if (href == window.location.pathname) {
-                        $(self).closest('li').addClass('active');
+                        $(this).closest('li').addClass('active');
 
                         // Force reload on click, which doesn't happen by default.
-                        $(self).click(function () {
+                        $(this).click(function () {
                             Backbone.history.loadUrl(href);
                         });
                     }
