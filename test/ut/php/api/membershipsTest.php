@@ -765,7 +765,7 @@ class membershipsAPITest extends IznikAPITestCase {
     public function testLarge() {
         error_log(__METHOD__);
 
-        $size = 30;
+        $size = 30000;
 
         assertTrue($this->user->login('testpw'));
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_OWNER));
@@ -803,6 +803,9 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         error_log("Done PATCH");
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $g->processSetMembers();
 
         $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ?;";
         $counts = $this->dbhr->preQuery($sql, [ $this->groupid ]);

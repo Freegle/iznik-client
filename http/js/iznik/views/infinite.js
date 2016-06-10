@@ -23,7 +23,7 @@ define([
                 // console.log("Not already fetching");
                 self.fetching = self.selected;
                 self.fetchPromise = new Promise(function(resolve, reject) {
-                    console.log("Fetch data", self.fetchData, data);
+                    // console.log("Fetch data", self.fetchData, data);
                     if (data) {
                         // We were passed some data to use on the fetch.  Save it for future fetches when we need to
                         // scroll.
