@@ -90,6 +90,7 @@ define([
             "give/whoami": "userGiveWhoAmI",
             "give/whatnext": "userGiveWhatNext",
             "mygroups": "userMyGroups",
+            "settings": "userSettings",
             "newuser": "newUser",
             "unsubscribe(/:id)": "unsubscribe",
             "post": "userHome", // legacy route
@@ -270,6 +271,15 @@ define([
 
             require(["iznik/views/pages/user/mygroups"], function() {
                 var page = new Iznik.Views.User.Pages.MyGroups();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userSettings: function () {
+            var self = this;
+
+            require(["iznik/views/pages/user/settings"], function() {
+                var page = new Iznik.Views.User.Pages.Settings();
                 self.loadRoute({page: page});
             });
         },
