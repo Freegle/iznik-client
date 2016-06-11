@@ -886,6 +886,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id
         ]);
         assertEquals('Test edit', $ret['message']['textbody']);
+        error_log("After text edit " . var_export($ret, TRUE));
 
         $ret = $this->call('message', 'PUT', [
             'id' => $id,
@@ -893,6 +894,7 @@ class messageAPITest extends IznikAPITestCase
             'htmlbody' => 'Test edit'
         ]);
         assertEquals(0, $ret['ret']);
+        error_log("After HTML edit " . var_export($ret, TRUE));
 
         $ret = $this->call('message', 'GET', [
             'id' => $id

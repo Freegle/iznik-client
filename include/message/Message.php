@@ -125,9 +125,8 @@ class Message
         $text .= "Text body changed to len " . strlen($textbody);
         $text .= " HTML body changed to len " . strlen($htmlbody);
 
-        # Make sure we have a value, otherwise we might return a missing body.
+        # Make sure we have a text value, otherwise we might return a missing body.
         $textbody = strlen($textbody) == 0 ? ' ' : $textbody;
-        $htmlbody = strlen($htmlbody) == 0 ? ' ' : $htmlbody;
 
         $this->log->log([
             'type' => Log::TYPE_MESSAGE,
@@ -995,44 +994,46 @@ class Message
         $this->textbody = $Parser->getMessageBody('text');
         $this->htmlbody = $Parser->getMessageBody('html');
 
-        # The HTML body might contain images as img tags, rather than actual attachments.  Extract these too.
-        $doc = new DOMDocument();
-        @$doc->loadHTML($this->htmlbody);
-        $imgs = $doc->getElementsByTagName('img');
+        if ($this->htmlbody) {
+            # The HTML body might contain images as img tags, rather than actual attachments.  Extract these too.
+            $doc = new DOMDocument();
+            @$doc->loadHTML($this->htmlbody);
+            $imgs = $doc->getElementsByTagName('img');
 
-        /* @var DOMNodeList $imgs */
-        foreach ($imgs as $img) {
-            $src = $img->getAttribute('src');
+            /* @var DOMNodeList $imgs */
+            foreach ($imgs as $img) {
+                $src = $img->getAttribute('src');
 
-            # We only want to get images from http or https to avoid the security risk of fetching a local file.
-            #
-            # Wait for 120 seconds to fetch.  We don't want to wait forever, but we see occasional timeouts from Yahoo
-            # at 60 seconds.
-            #
-            # We don't want Yahoo's megaphone images - they're just generic footer images.
-            if ((stripos($src, 'http://') === 0 || stripos($src, 'https://') === 0) &&
-                (stripos($src, 'https://s.yimg.com/ru/static/images/yg/img/megaphone') === FALSE)
-            ) {
-                #error_log("Get inline image $src");
-                $ctx = stream_context_create(array('http' =>
-                    array(
-                        'timeout' => 120
-                    )
-                ));
-                
-                $data = @file_get_contents($src, false, $ctx);
-                
-                if ($data) {
-                    # Try to convert to an image.  If it's not an image, this will fail.
-                    $img = new Image($data);
+                # We only want to get images from http or https to avoid the security risk of fetching a local file.
+                #
+                # Wait for 120 seconds to fetch.  We don't want to wait forever, but we see occasional timeouts from Yahoo
+                # at 60 seconds.
+                #
+                # We don't want Yahoo's megaphone images - they're just generic footer images.
+                if ((stripos($src, 'http://') === 0 || stripos($src, 'https://') === 0) &&
+                    (stripos($src, 'https://s.yimg.com/ru/static/images/yg/img/megaphone') === FALSE)
+                ) {
+                    #error_log("Get inline image $src");
+                    $ctx = stream_context_create(array('http' =>
+                        array(
+                            'timeout' => 120
+                        )
+                    ));
 
-                    if ($img->img) {
-                        $newdata = $img->getData(100);
+                    $data = @file_get_contents($src, false, $ctx);
 
-                        # Ignore small images - Yahoo adds small ones as (presumably) a tracking mechanism, and also their
-                        # logo.
-                        if ($newdata && $img->width() > 50 && $img->height() > 50) {
-                            $this->inlineimgs[] = $newdata;
+                    if ($data) {
+                        # Try to convert to an image.  If it's not an image, this will fail.
+                        $img = new Image($data);
+
+                        if ($img->img) {
+                            $newdata = $img->getData(100);
+
+                            # Ignore small images - Yahoo adds small ones as (presumably) a tracking mechanism, and also their
+                            # logo.
+                            if ($newdata && $img->width() > 50 && $img->height() > 50) {
+                                $this->inlineimgs[] = $newdata;
+                            }
                         }
                     }
                 }

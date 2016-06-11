@@ -4,7 +4,8 @@ define([
     'backbone',
     'iznik/base',
     'iznik/diff',
-    "iznik/modtools"
+    "iznik/modtools",
+    "jquery.scrollTo"
 ], function($, _, Backbone, Iznik, JsDiff) {
     Iznik.Views.ModTools.Pages.Replay = Iznik.View.extend({
         modtools: true,

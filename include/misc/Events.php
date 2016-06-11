@@ -18,6 +18,7 @@ class Events {
         $posy = $posy ? $posy : 'NULL';
         $hashvalue = $data ? md5($data) : NULL;
         $datahash = $data ? ("'" . $hashvalue . "'") : 'NULL';
+        $dataq = $data ? $this->dbhr->quote($data) : 'NULL';
         $datasameas = 'NULL';
         $id = $id ? $id : 'NULL';
 
@@ -42,7 +43,7 @@ class Events {
 
         $lastip = presdef('REMOTE_ADDR', $_SERVER, 'NULL');
 
-        $sql = "INSERT IGNORE INTO logs_events (`userid`, `sessionid`, `timestamp`, `clienttimestamp`, `route`, `target`, `event`, `posx`, `posy`, `viewx`, `viewy`, `data`, `datahash`, `datasameas`, `ip`) VALUES ($id, " . $this->dbhr->quote($sessid) . ", CURTIME(3), FROM_UNIXTIME($timestamp), " . $this->dbhr->quote($route) . ", " . $this->dbhr->quote($target) . ", " . $this->dbhr->quote($action) . ", $posx, $posy, $viewx, $viewy, " . $this->dbhr->quote($data) . ", $datahash, $datasameas, " . $this->dbhr->quote($lastip) . ");";
+        $sql = "INSERT IGNORE INTO logs_events (`userid`, `sessionid`, `timestamp`, `clienttimestamp`, `route`, `target`, `event`, `posx`, `posy`, `viewx`, `viewy`, `data`, `datahash`, `datasameas`, `ip`) VALUES ($id, " . $this->dbhr->quote($sessid) . ", CURTIME(3), FROM_UNIXTIME($timestamp), " . $this->dbhr->quote($route) . ", " . $this->dbhr->quote($target) . ", " . $this->dbhr->quote($action) . ", $posx, $posy, $viewx, $viewy, $dataq, $datahash, $datasameas, " . $this->dbhr->quote($lastip) . ");";
         try {
             # If anything goes wrong, we're not that interested - we can lose events, and if we return errors the
             # client will retry.
