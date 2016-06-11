@@ -13,6 +13,7 @@ function user() {
     $action = presdef('action', $_REQUEST, NULL);
     $suspectcount = array_key_exists('suspectcount', $_REQUEST) ? intval($_REQUEST['suspectcount']) : NULL;
     $suspectreason = presdef('suspectreason', $_REQUEST, NULL);
+    $settings = presdef('settings', $_REQUEST, NULL);
 
     if (!$id && $yahooUserId) {
         # We don't know our unique ID, but we do know the Yahoo one. Find it.

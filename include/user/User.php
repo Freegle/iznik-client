@@ -896,7 +896,7 @@ class User extends Entity
     public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE) {
         $atts = parent::getPublic();
 
-        $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [];
+        $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [ 'dummy' => TRUE ];
         $me = whoAmI($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
 

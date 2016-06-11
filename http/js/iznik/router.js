@@ -270,8 +270,12 @@ define([
             var self = this;
 
             require(["iznik/views/pages/user/mygroups"], function() {
-                var page = new Iznik.Views.User.Pages.MyGroups();
-                self.loadRoute({page: page});
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.User.Pages.MyGroups();
+                    self.loadRoute({page: page});
+                });
+
+                Iznik.Session.forceLogin();
             });
         },
 
@@ -279,8 +283,12 @@ define([
             var self = this;
 
             require(["iznik/views/pages/user/settings"], function() {
-                var page = new Iznik.Views.User.Pages.Settings();
-                self.loadRoute({page: page});
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.User.Pages.Settings();
+                    self.loadRoute({page: page});
+                });
+
+                Iznik.Session.forceLogin();
             });
         },
 

@@ -64,6 +64,7 @@ define([
                 // Save space.
                 delete l.groupsnear;
 
+                Iznik.Session.setSetting('mylocation', l);
                 localStorage.setItem('mylocation', JSON.stringify(l))
             } catch (e) {};
 
@@ -148,6 +149,11 @@ define([
                 try {
                     // See if we know where we are from last time.
                     var mylocation = localStorage.getItem('mylocation');
+                    
+                    if (!mylocation) {
+                        mylocation = Iznik.Session.getSetting('mylocation', null);
+                    }
+                    
                     var postcode = JSON.parse(mylocation).name;
 
                     if (mylocation) {

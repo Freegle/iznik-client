@@ -446,6 +446,36 @@ define([
             return (settings);
         },
 
+        getSetting: function(key, def) {
+            // Gets a user setting
+            if (this.loggedIn) {
+                // We are logged in.
+                var me = Iznik.Session.get('me');
+                var settings = me.settings;
+                if (settings.hasOwnProperty(key)) {
+                    return(settings[key]);
+                } else {
+                    return(def);
+                }
+            } else {
+                // Just return default.
+                return(def);
+            }
+        },
+
+        setSetting: function(key, val) {
+            var me = Iznik.Session.get('me');
+            me.settings[key] = val;
+            console.log("setSetting", typeof me.settings, key, val, me);
+            this.set('me', me);
+            Iznik.Session.save({
+                id: me.id,
+                settings: me.settings
+            }, {
+                patch: true
+            });
+        },
+
         isAdminOrSupport: function () {
             var me = this.get('me');
             return (me && (me.systemrole == 'Admin' || me.systemrole == 'Support'));
