@@ -130,6 +130,8 @@ define([
             });
         },
 
+        rendering: null,
+
         render: function () {
             var self = this;
 
@@ -140,66 +142,73 @@ define([
                 self.model.set('mapzoom', group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 12);
             });
 
-            var p = Iznik.Views.ModTools.Message.prototype.render.call(self);
-            p.then(function(self) {
-                _.each(self.model.get('groups'), function (group, index, list) {
-                    var mod = new Iznik.Model(group);
+            if (!self.rendering) {
+                self.rendering = new Promise(function(resolve, reject) {
+                    var p = Iznik.Views.ModTools.Message.prototype.render.call(self);
+                    p.then(function(self) {
+                        _.each(self.model.get('groups'), function (group, index, list) {
+                            var mod = new Iznik.Model(group);
 
-                    // Add in the message, because we need some values from that
-                    mod.set('message', self.model.toJSON());
+                            // Add in the message, because we need some values from that
+                            mod.set('message', self.model.toJSON());
 
-                    var v = new Iznik.Views.ModTools.Message.Spam.Group({
-                        model: mod
-                    });
-                    v.render().then(function (v) {
-                        self.$('.js-grouplist').append(v.el);
-                    });
+                            var v = new Iznik.Views.ModTools.Message.Spam.Group({
+                                model: mod
+                            });
+                            v.render().then(function (v) {
+                                self.$('.js-grouplist').append(v.el);
+                            });
 
-                    var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
-                    mod.set('groupid', group.id);
-                    var v = new Iznik.Views.ModTools.User({
-                        model: mod
-                    });
+                            var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
+                            mod.set('groupid', group.id);
+                            var v = new Iznik.Views.ModTools.User({
+                                model: mod
+                            });
 
-                    v.render().then(function (v) {
-                        self.$('.js-user').append(v.el);
-                    });
+                            v.render().then(function (v) {
+                                self.$('.js-user').append(v.el);
+                            });
 
-                    // The Yahoo part of the user
-                    var mod = IznikYahooUsers.findUser({
-                        email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
-                        group: group.nameshort,
-                        groupid: group.id
-                    });
+                            // The Yahoo part of the user
+                            var mod = IznikYahooUsers.findUser({
+                                email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
+                                group: group.nameshort,
+                                groupid: group.id
+                            });
 
-                    mod.fetch().then(function () {
-                        var v = new Iznik.Views.ModTools.Yahoo.User({
-                            model: mod
+                            mod.fetch().then(function () {
+                                var v = new Iznik.Views.ModTools.Yahoo.User({
+                                    model: mod
+                                });
+                                v.render().then(function (v) {
+                                    self.$('.js-yahoo').html(v.el);
+                                });
+                            });
                         });
-                        v.render().then(function (v) {
-                            self.$('.js-yahoo').html(v.el);
+
+                        self.addOtherInfo();
+
+                        // Add any attachments.
+                        self.$('.js-attlist').empty();
+                        _.each(self.model.get('attachments'), function (att) {
+                            var v = new Iznik.Views.ModTools.Message.Photo({
+                                model: new Iznik.Model(att)
+                            });
+
+                            v.render();
+                            self.$('.js-attlist').append(v.el);
                         });
+
+                        self.$('.timeago').timeago();
+                        self.$el.fadeIn('slow');
+
+                        resolve();
+                        self.rendering = null;
                     });
                 });
+            }
 
-                self.addOtherInfo();
-
-                // Add any attachments.
-                self.$('.js-attlist').empty();
-                _.each(self.model.get('attachments'), function (att) {
-                    var v = new Iznik.Views.ModTools.Message.Photo({
-                        model: new Iznik.Model(att)
-                    });
-
-                    v.render();
-                    self.$('.js-attlist').append(v.el);
-                });
-
-                self.$('.timeago').timeago();
-                self.$el.fadeIn('slow');
-            });
-
-            return (p);
+            return (self.rendering);
         }
     });
 

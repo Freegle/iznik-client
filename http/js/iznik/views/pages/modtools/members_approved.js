@@ -279,120 +279,129 @@ define([
         },
 
         render: function () {
-            var p = Iznik.Views.ModTools.Member.prototype.render.call(this);
-            p.then(function(self) {
-                var now = new moment();
-                var mom = new moment(self.model.get('joined'));
-                var age = now.diff(mom, 'days');
-                self.$('.js-joined').html(mom.format('llll'));
+            var self = this;
 
-                if (age <= 31) {
-                    // Flag recent joiners.
-                    self.$('.js-joined').addClass('error');
-                }
+            if (!self.rendering) {
+                self.rendering = new Promise(function(resolve, reject) {
+                    var p = Iznik.Views.ModTools.Member.prototype.render.call(self);
+                    p.then(function(self) {
+                        var now = new moment();
+                        var mom = new moment(self.model.get('joined'));
+                        var age = now.diff(mom, 'days');
+                        self.$('.js-joined').html(mom.format('llll'));
 
-                self.addOtherInfo();
+                        if (age <= 31) {
+                            // Flag recent joiners.
+                            self.$('.js-joined').addClass('error');
+                        }
 
-                // Get the group from the session
-                var group = Iznik.Session.getGroup(self.model.get('groupid'));
+                        self.addOtherInfo();
 
-                // Our user.  In memberships the id is that of the member, so we need to get the userid.
-                var mod = self.model.clone();
-                mod.set('id', self.model.get('userid'));
-                var v = new Iznik.Views.ModTools.User({
-                    model: mod
-                });
+                        // Get the group from the session
+                        var group = Iznik.Session.getGroup(self.model.get('groupid'));
 
-                v.render().then(function(v) {
-                    self.$('.js-user').html(v.el);
-                })
-
-                // Delay getting the Yahoo info slightly to improve apparent render speed.
-                _.delay(function () {
-                    // The Yahoo part of the user
-                    var mod = IznikYahooUsers.findUser({
-                        email: self.model.get('email'),
-                        group: group.get('nameshort'),
-                        groupid: group.get('id')
-                    });
-
-                    mod.fetch().then(function () {
-                        // We don't want to show the Yahoo joined date because we have our own.
-                        mod.unset('date');
-                        var v = new Iznik.Views.ModTools.Yahoo.User({
+                        // Our user.  In memberships the id is that of the member, so we need to get the userid.
+                        var mod = self.model.clone();
+                        mod.set('id', self.model.get('userid'));
+                        var v = new Iznik.Views.ModTools.User({
                             model: mod
                         });
 
                         v.render().then(function(v) {
-                            self.$('.js-yahoo').html(v.el);
+                            self.$('.js-user').html(v.el);
                         })
-                    });
-                }, 200);
 
-                // Add the default standard actions.
-                var configs = Iznik.Session.get('configs');
-                var sessgroup = Iznik.Session.get('groups').get(group.id);
-                var config = configs.get(sessgroup.get('configid'));
+                        // Delay getting the Yahoo info slightly to improve apparent render speed.
+                        _.delay(function () {
+                            // The Yahoo part of the user
+                            var mod = IznikYahooUsers.findUser({
+                                email: self.model.get('email'),
+                                group: group.get('nameshort'),
+                                groupid: group.get('id')
+                            });
 
-                // Save off the groups in the member ready for the standard message
-                // TODO Hacky.  Should we split the StdMessage.Button code into one for members and one for messages?
-                self.model.set('groups', [group.attributes]);
-                self.model.set('fromname', self.model.get('displayname'));
-                self.model.set('fromaddr', self.model.get('email'));
-                self.model.set('fromuser', self.model);
-
-                new Iznik.Views.ModTools.StdMessage.Button({
-                    model: new Iznik.Model({
-                        title: 'Mail',
-                        action: 'Leave Approved Member',
-                        member: self.model,
-                        config: config
-                    })
-                }).render().then(function(v) {
-                    self.$('.js-stdmsgs').append(v.el);
-
-                    if (config) {
-                        // Add the other standard messages, in the order requested.
-                        var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
-                        var anyrare = false;
-
-                        _.each(sortmsgs, function (stdmsg) {
-                            if (_.contains(['Leave Approved Member', 'Delete Approved Member'], stdmsg.action)) {
-                                stdmsg.groups = [group];
-                                stdmsg.member = self.model;
-                                var v = new Iznik.Views.ModTools.StdMessage.Button({
-                                    model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
-                                    config: config
+                            mod.fetch().then(function () {
+                                // We don't want to show the Yahoo joined date because we have our own.
+                                mod.unset('date');
+                                var v = new Iznik.Views.ModTools.Yahoo.User({
+                                    model: mod
                                 });
-
-                                if (stdmsg.rarelyused) {
-                                    anyrare = true;
-                                }
 
                                 v.render().then(function(v) {
-                                    self.$('.js-stdmsgs').append(v.el);
+                                    self.$('.js-yahoo').html(v.el);
+                                })
+                            });
+                        }, 200);
 
-                                    if (stdmsg.rarelyused) {
-                                        $(v.el).hide();
+                        // Add the default standard actions.
+                        var configs = Iznik.Session.get('configs');
+                        var sessgroup = Iznik.Session.get('groups').get(group.id);
+                        var config = configs.get(sessgroup.get('configid'));
+
+                        // Save off the groups in the member ready for the standard message
+                        // TODO Hacky.  Should we split the StdMessage.Button code into one for members and one for messages?
+                        self.model.set('groups', [group.attributes]);
+                        self.model.set('fromname', self.model.get('displayname'));
+                        self.model.set('fromaddr', self.model.get('email'));
+                        self.model.set('fromuser', self.model);
+
+                        new Iznik.Views.ModTools.StdMessage.Button({
+                            model: new Iznik.Model({
+                                title: 'Mail',
+                                action: 'Leave Approved Member',
+                                member: self.model,
+                                config: config
+                            })
+                        }).render().then(function(v) {
+                            self.$('.js-stdmsgs').append(v.el);
+
+                            if (config) {
+                                // Add the other standard messages, in the order requested.
+                                var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
+                                var anyrare = false;
+
+                                _.each(sortmsgs, function (stdmsg) {
+                                    if (_.contains(['Leave Approved Member', 'Delete Approved Member'], stdmsg.action)) {
+                                        stdmsg.groups = [group];
+                                        stdmsg.member = self.model;
+                                        var v = new Iznik.Views.ModTools.StdMessage.Button({
+                                            model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
+                                            config: config
+                                        });
+
+                                        if (stdmsg.rarelyused) {
+                                            anyrare = true;
+                                        }
+
+                                        v.render().then(function(v) {
+                                            self.$('.js-stdmsgs').append(v.el);
+
+                                            if (stdmsg.rarelyused) {
+                                                $(v.el).hide();
+                                            }
+                                        });
                                     }
                                 });
+
+                                if (!anyrare) {
+                                    self.$('.js-rarelyholder').hide();
+                                }
                             }
+
+                            self.$('.timeago').timeago();
+
+                            self.listenToOnce(self.model, 'removed', function () {
+                                self.$el.fadeOut('slow');
+                            });
+
+                            resolve();
+                            self.rendering = null;
                         });
-
-                        if (!anyrare) {
-                            self.$('.js-rarelyholder').hide();
-                        }
-                    }
-
-                    self.$('.timeago').timeago();
-
-                    self.listenToOnce(self.model, 'removed', function () {
-                        self.$el.fadeOut('slow');
                     });
                 });
-            });
+            }
 
-            return (p);
+            return (self.rendering);
         }
     });
 });

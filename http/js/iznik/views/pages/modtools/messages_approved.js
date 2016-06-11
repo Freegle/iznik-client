@@ -176,6 +176,8 @@ define([
             'click .js-spam': 'spam'
         },
 
+        rendering: null,
+
         render: function () {
             var self = this;
             self.model.set('mapicon', window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif');
@@ -185,158 +187,167 @@ define([
                 self.model.set('mapzoom', group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 12);
             });
 
-            var p = Iznik.Views.ModTools.Message.prototype.render.call(self);
-            p.then(function(self) {
-                // We handle the subject as a special case rather than a template expansion.  We might be doing a search, in
-                // which case we want to highlight the matched words.  So we split out the subject string into a sequence of
-                // spans, which then allows us to highlight any matched ones.
-                self.$('.js-subject').html(self.wordify(self.model.get('subject')));
-                var matched = self.model.get('matchedon');
-                if (matched) {
-                    self.$('.js-subject span').each(function () {
-                        if ($(this).html().toLowerCase().indexOf(matched.word) != -1) {
-                            $(this).addClass('searchmatch');
-                        }
-                    });
-                }
-
-                _.each(self.model.get('groups'), function (group) {
-                    var mod = new Iznik.Model(group);
-
-                    // Add in the message, because we need some values from that
-                    mod.set('message', self.model.toJSON());
-
-                    var v = new Iznik.Views.ModTools.Message.Approved.Group({
-                        model: mod
-                    });
-                    v.render().then(function (v) {
-                        self.$('.js-grouplist').append(v.el);
-                    });
-
-                    mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
-                    mod.set('groupid', group.id);
-                    v = new Iznik.Views.ModTools.User({
-                        model: mod
-                    });
-
-                    v.render().then(function (v) {
-                        self.$('.js-user').html(v.el);
-                    });
-
-                    // The Yahoo part of the user
-                    mod = IznikYahooUsers.findUser({
-                        email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
-                        group: group.nameshort,
-                        groupid: group.id
-                    });
-
-                    mod.fetch().then(function () {
-                        var v = new Iznik.Views.ModTools.Yahoo.User({
-                            model: mod
-                        });
-
-                        v.render().then(function (v) {
-                            self.$('.js-yahoo').html(v.el);
-                        });
-                    });
-
-                    // Add the default standard actions.
-                    var configs = Iznik.Session.get('configs');
-                    var sessgroup = Iznik.Session.get('groups').get(group.id);
-
-                    if (sessgroup) {
-                        var config = configs.get(sessgroup.get('configid'));
-
-                        new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new Iznik.Model({
-                                title: 'Reply',
-                                action: 'Leave Approved Message',
-                                message: self.model,
-                                config: config
-                            })
-                        }).render().then(function (v) {
-                            self.$('.js-stdmsgs').append(v.el);
-                        });
-
-                        new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new Iznik.Model({
-                                title: 'Delete',
-                                action: 'Delete Approved Message',
-                                message: self.model,
-                                config: config
-                            })
-                        }).render().then(function (v) {
-                            self.$('.js-stdmsgs').append(v.el);
-                        });
-
-                        new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new Iznik.Model({
-                                title: 'Spam',
-                                action: 'Spam',
-                                message: self.model
-                            })
-                        }).render().then(function (v) {
-                            self.$('.js-stdmsgs').append(v.el);
-                        });
-
-                        if (config) {
-                            self.checkMessage(config);
-                            self.showRelated();
-
-                            // Add the other standard messages, in the order requested.
-                            var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
-                            var anyrare = false;
-
-                            _.each(sortmsgs, function (stdmsg) {
-                                if (_.contains(['Leave Approved Message', 'Delete Approved Message'], stdmsg.action)) {
-                                    stdmsg.message = self.model;
-                                    var v = new Iznik.Views.ModTools.StdMessage.Button({
-                                        model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
-                                        config: config
-                                    });
-
-                                    if (stdmsg.rarelyused) {
-                                        anyrare = true;
-                                    }
-
-                                    v.render().then(function(v) {
-                                        self.$('.js-stdmsgs').append(v.el);
-
-                                        if (stdmsg.rarelyused) {
-                                            $(v.el).hide();
-                                        }
-                                    });
+            if (!self.rendering) {
+                self.rendering = new Promise(function(resolve, reject) {
+                    var p = Iznik.Views.ModTools.Message.prototype.render.call(self);
+                    p.then(function(self) {
+                        // We handle the subject as a special case rather than a template expansion.  We might be doing a search, in
+                        // which case we want to highlight the matched words.  So we split out the subject string into a sequence of
+                        // spans, which then allows us to highlight any matched ones.
+                        self.$('.js-subject').html(self.wordify(self.model.get('subject')));
+                        var matched = self.model.get('matchedon');
+                        if (matched) {
+                            self.$('.js-subject span').each(function () {
+                                if ($(this).html().toLowerCase().indexOf(matched.word) != -1) {
+                                    $(this).addClass('searchmatch');
                                 }
                             });
-
-                            if (!anyrare) {
-                                self.$('.js-rarelyholder').hide();
-                            }
                         }
-                    }
-                });
 
-                // Add any attachments.
-                self.$('.js-attlist').empty();
-                _.each(self.model.get('attachments'), function (att) {
-                    var v = new Iznik.Views.ModTools.Message.Photo({
-                        model: new Iznik.Model(att)
+                        self.$('.js-grouplist').empty();
+
+                        _.each(self.model.get('groups'), function (group) {
+                            var mod = new Iznik.Model(group);
+
+                            // Add in the message, because we need some values from that
+                            mod.set('message', self.model.toJSON());
+
+                            var v = new Iznik.Views.ModTools.Message.Approved.Group({
+                                model: mod
+                            });
+                            v.render().then(function (v) {
+                                self.$('.js-grouplist').append(v.el);
+                            });
+
+                            mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
+                            mod.set('groupid', group.id);
+                            v = new Iznik.Views.ModTools.User({
+                                model: mod
+                            });
+
+                            v.render().then(function (v) {
+                                self.$('.js-user').html(v.el);
+                            });
+
+                            // The Yahoo part of the user
+                            mod = IznikYahooUsers.findUser({
+                                email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
+                                group: group.nameshort,
+                                groupid: group.id
+                            });
+
+                            mod.fetch().then(function () {
+                                var v = new Iznik.Views.ModTools.Yahoo.User({
+                                    model: mod
+                                });
+
+                                v.render().then(function (v) {
+                                    self.$('.js-yahoo').html(v.el);
+                                });
+                            });
+
+                            // Add the default standard actions.
+                            var configs = Iznik.Session.get('configs');
+                            var sessgroup = Iznik.Session.get('groups').get(group.id);
+
+                            if (sessgroup) {
+                                var config = configs.get(sessgroup.get('configid'));
+
+                                new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Model({
+                                        title: 'Reply',
+                                        action: 'Leave Approved Message',
+                                        message: self.model,
+                                        config: config
+                                    })
+                                }).render().then(function (v) {
+                                    self.$('.js-stdmsgs').append(v.el);
+                                });
+
+                                new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Model({
+                                        title: 'Delete',
+                                        action: 'Delete Approved Message',
+                                        message: self.model,
+                                        config: config
+                                    })
+                                }).render().then(function (v) {
+                                    self.$('.js-stdmsgs').append(v.el);
+                                });
+
+                                new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Model({
+                                        title: 'Spam',
+                                        action: 'Spam',
+                                        message: self.model
+                                    })
+                                }).render().then(function (v) {
+                                    self.$('.js-stdmsgs').append(v.el);
+                                });
+
+                                if (config) {
+                                    self.checkMessage(config);
+                                    self.showRelated();
+
+                                    // Add the other standard messages, in the order requested.
+                                    var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
+                                    var anyrare = false;
+
+                                    _.each(sortmsgs, function (stdmsg) {
+                                        if (_.contains(['Leave Approved Message', 'Delete Approved Message'], stdmsg.action)) {
+                                            stdmsg.message = self.model;
+                                            var v = new Iznik.Views.ModTools.StdMessage.Button({
+                                                model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
+                                                config: config
+                                            });
+
+                                            if (stdmsg.rarelyused) {
+                                                anyrare = true;
+                                            }
+
+                                            v.render().then(function(v) {
+                                                self.$('.js-stdmsgs').append(v.el);
+
+                                                if (stdmsg.rarelyused) {
+                                                    $(v.el).hide();
+                                                }
+                                            });
+                                        }
+                                    });
+
+                                    if (!anyrare) {
+                                        self.$('.js-rarelyholder').hide();
+                                    }
+                                }
+                            }
+                        });
+
+                        // Add any attachments.
+                        self.$('.js-attlist').empty();
+                        _.each(self.model.get('attachments'), function (att) {
+                            var v = new Iznik.Views.ModTools.Message.Photo({
+                                model: new Iznik.Model(att)
+                            });
+
+                            v.render();
+                            self.$('.js-attlist').append(v.el);
+                        });
+
+                        self.addOtherInfo();
+
+                        self.$('.timeago').timeago();
+
+                        self.listenToOnce(self.model, 'deleted', function () {
+                            self.$el.fadeOut('slow')
+                        });
                     });
 
-                    v.render();
-                    self.$('.js-attlist').append(v.el);
+                    resolve();
+                    self.rendering = null;
                 });
+            }
 
-                self.addOtherInfo();
-
-                self.$('.timeago').timeago();
-
-                self.listenToOnce(self.model, 'deleted', function () {
-                    self.$el.fadeOut('slow')
-                });
-            });
-
-            return (p);
+            return (self.rendering);
         }
     });
 

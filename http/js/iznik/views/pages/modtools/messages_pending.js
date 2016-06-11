@@ -114,7 +114,7 @@ define([
             v.render();
         },
 
-        renderProto: null,
+        rendering: null,
 
         render: function () {
             var self = this;
@@ -126,206 +126,208 @@ define([
                 self.model.set('mapzoom', group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 12);
             });
 
-            // We might already be rendering if we get two render calls in quick succession.
-            if (!self.renderProto) {
-                self.renderProto = Iznik.Views.ModTools.Message.prototype.render.call(self);;
-            }
+            if (!self.rendering) {
+                self.rendering = new Promise(function(resolve, reject) {
+                    var p = Iznik.Views.ModTools.Message.prototype.render.call(self);
+                    p.then(function(self) {
+                        // Set the suggested subject here to avoid escaping issues.  Highlight it if it's different
+                        var sugg = self.model.get('suggestedsubject');
+                        if (sugg && sugg.toLocaleLowerCase() != self.model.get('subject').toLocaleLowerCase()) {
+                            self.$('.js-subject').closest('.input-group').addClass('subjectdifference');
+                        } else {
+                            self.$('.js-subject').closest('.input-group').removeClass('subjectdifference');
+                        }
 
-            self.renderProto.then(function(self) {
-                // Set the suggested subject here to avoid escaping issues.  Highlight it if it's different
-                self.renderProto = null;
-                var sugg = self.model.get('suggestedsubject');
-                if (sugg && sugg.toLocaleLowerCase() != self.model.get('subject').toLocaleLowerCase()) {
-                    self.$('.js-subject').closest('.input-group').addClass('subjectdifference');
-                } else {
-                    self.$('.js-subject').closest('.input-group').removeClass('subjectdifference');
-                }
+                        self.$('.js-subject').val(sugg ? sugg : self.model.get('subject'));
 
-                self.$('.js-subject').val(sugg ? sugg : self.model.get('subject'));
+                        _.each(self.model.get('groups'), function (group) {
+                            var mod = new Iznik.Model(group);
 
-                _.each(self.model.get('groups'), function (group) {
-                    var mod = new Iznik.Model(group);
+                            // Add in the message, because we need some values from that
+                            mod.set('message', self.model.toJSON());
 
-                    // Add in the message, because we need some values from that
-                    mod.set('message', self.model.toJSON());
-
-                    var v = new Iznik.Views.ModTools.Message.Pending.Group({
-                        model: mod
-                    });
-                    v.render().then(function (v) {
-                        self.$('.js-grouplist').append(v.el);
-                    })
-
-                    var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
-                    mod.set('groupid', group.id);
-                    var v = new Iznik.Views.ModTools.User({
-                        model: mod
-                    });
-
-                    v.render().then(function (v) {
-                        self.$('.js-user').html(v.el);
-                    });
-
-                    // The Yahoo part of the user
-                    var fromemail = self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr');
-                    var mod = IznikYahooUsers.findUser({
-                        email: fromemail,
-                        group: group.nameshort,
-                        groupid: group.id
-                    });
-
-                    mod.fetch().then(function () {
-                        var v = new Iznik.Views.ModTools.Yahoo.User({
-                            model: mod
-                        });
-                        v.render().then(function (v) {
-                            self.$('.js-yahoo').html(v.el);
-                        });
-                    });
-
-                    self.addOtherInfo();
-
-                    // Add any attachments.
-                    self.$('.js-attlist').empty();
-                    _.each(self.model.get('attachments'), function (att) {
-                        var v = new Iznik.Views.ModTools.Message.Photo({
-                            model: new Iznik.Model(att)
-                        });
-                        
-                        v.render();
-                        self.$('.js-attlist').append(v.el);
-                    });
-
-                    // Add the default standard actions.
-                    var configs = Iznik.Session.get('configs');
-                    var sessgroup = Iznik.Session.get('groups').get(group.id);
-                    var config = configs.get(sessgroup.get('configid'));
-
-                    if (!_.isUndefined(config) &&
-                        config.get('subjlen') &&
-                        self.model.get('suggestedsubject') &&
-                        (self.model.get('suggestedsubject').length > config.get('subjlen'))) {
-                        // This subject is too long, and we want to flag that.
-                        self.$('.js-subject').closest('.input-group').addClass('subjectdifference');
-                    }
-
-                    if (self.model.get('heldby')) {
-                        // Message is held - just show Release button.
-                        new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new Iznik.Model({
-                                title: 'Release',
-                                action: 'Release',
-                                message: self.model,
-                                config: config
+                            var v = new Iznik.Views.ModTools.Message.Pending.Group({
+                                model: mod
+                            });
+                            v.render().then(function (v) {
+                                self.$('.js-grouplist').append(v.el);
                             })
-                        }).render().then(function (v) {
-                            self.$('.js-stdmsgs').append(v.el);
-                        });
-                    } else {
-                        // Message is not held - we see all buttons.
-                        new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new Iznik.Model({
-                                title: 'Approve',
-                                action: 'Approve',
-                                message: self.model,
-                                config: config
-                            })
-                        }).render().then(function (v) {
-                            self.$('.js-stdmsgs').append(v.el);
-                        });
 
-                        new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new Iznik.Model({
-                                title: 'Reject',
-                                action: 'Reject',
-                                message: self.model,
-                                config: config
-                            })
-                        }).render().then(function (v) {
-                            self.$('.js-stdmsgs').append(v.el);
-                        });
+                            var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
+                            mod.set('groupid', group.id);
+                            var v = new Iznik.Views.ModTools.User({
+                                model: mod
+                            });
 
-                        new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new Iznik.Model({
-                                title: 'Delete',
-                                action: 'Delete',
-                                message: self.model,
-                                config: config
-                            })
-                        }).render().then(function (v) {
-                            self.$('.js-stdmsgs').append(v.el);
-                        });
+                            v.render().then(function (v) {
+                                self.$('.js-user').html(v.el);
+                            });
 
-                        new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new Iznik.Model({
-                                title: 'Hold',
-                                action: 'Hold',
-                                message: self.model,
-                                config: config
-                            })
-                        }).render().then(function (v) {
-                            self.$('.js-stdmsgs').append(v.el);
-                        });
+                            // The Yahoo part of the user
+                            var fromemail = self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr');
+                            var mod = IznikYahooUsers.findUser({
+                                email: fromemail,
+                                group: group.nameshort,
+                                groupid: group.id
+                            });
 
-                        new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new Iznik.Model({
-                                title: 'Spam',
-                                action: 'Spam',
-                                message: self.model
-                            })
-                        }).render().then(function (v) {
-                            self.$('.js-stdmsgs').append(v.el);
-                        });
-                    }
+                            mod.fetch().then(function () {
+                                var v = new Iznik.Views.ModTools.Yahoo.User({
+                                    model: mod
+                                });
+                                v.render().then(function (v) {
+                                    self.$('.js-yahoo').html(v.el);
+                                });
+                            });
 
-                    if (config) {
-                        self.checkMessage(config);
-                        self.showRelated();
+                            self.addOtherInfo();
 
-                        // Add the other standard messages, in the order requested.
-                        var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
-                        var anyrare = false;
-
-                        _.each(sortmsgs, function (stdmsg) {
-                            if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
-                                stdmsg.message = self.model;
-                                var v = new Iznik.Views.ModTools.StdMessage.Button({
-                                    model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
-                                    config: config
+                            // Add any attachments.
+                            self.$('.js-attlist').empty();
+                            _.each(self.model.get('attachments'), function (att) {
+                                var v = new Iznik.Views.ModTools.Message.Photo({
+                                    model: new Iznik.Model(att)
                                 });
 
-                                if (stdmsg.rarelyused) {
-                                    anyrare = true;
-                                }
+                                v.render();
+                                self.$('.js-attlist').append(v.el);
+                            });
 
-                                v.render().then(function(v) {
+                            // Add the default standard actions.
+                            var configs = Iznik.Session.get('configs');
+                            var sessgroup = Iznik.Session.get('groups').get(group.id);
+                            var config = configs.get(sessgroup.get('configid'));
+
+                            if (!_.isUndefined(config) &&
+                                config.get('subjlen') &&
+                                self.model.get('suggestedsubject') &&
+                                (self.model.get('suggestedsubject').length > config.get('subjlen'))) {
+                                // This subject is too long, and we want to flag that.
+                                self.$('.js-subject').closest('.input-group').addClass('subjectdifference');
+                            }
+
+                            if (self.model.get('heldby')) {
+                                // Message is held - just show Release button.
+                                new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Model({
+                                        title: 'Release',
+                                        action: 'Release',
+                                        message: self.model,
+                                        config: config
+                                    })
+                                }).render().then(function (v) {
                                     self.$('.js-stdmsgs').append(v.el);
+                                });
+                            } else {
+                                // Message is not held - we see all buttons.
+                                new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Model({
+                                        title: 'Approve',
+                                        action: 'Approve',
+                                        message: self.model,
+                                        config: config
+                                    })
+                                }).render().then(function (v) {
+                                    self.$('.js-stdmsgs').append(v.el);
+                                });
 
-                                    if (stdmsg.rarelyused) {
-                                        $(v.el).hide();
-                                    }
+                                new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Model({
+                                        title: 'Reject',
+                                        action: 'Reject',
+                                        message: self.model,
+                                        config: config
+                                    })
+                                }).render().then(function (v) {
+                                    self.$('.js-stdmsgs').append(v.el);
+                                });
+
+                                new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Model({
+                                        title: 'Delete',
+                                        action: 'Delete',
+                                        message: self.model,
+                                        config: config
+                                    })
+                                }).render().then(function (v) {
+                                    self.$('.js-stdmsgs').append(v.el);
+                                });
+
+                                new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Model({
+                                        title: 'Hold',
+                                        action: 'Hold',
+                                        message: self.model,
+                                        config: config
+                                    })
+                                }).render().then(function (v) {
+                                    self.$('.js-stdmsgs').append(v.el);
+                                });
+
+                                new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Model({
+                                        title: 'Spam',
+                                        action: 'Spam',
+                                        message: self.model
+                                    })
+                                }).render().then(function (v) {
+                                    self.$('.js-stdmsgs').append(v.el);
                                 });
                             }
+
+                            if (config) {
+                                self.checkMessage(config);
+                                self.showRelated();
+
+                                // Add the other standard messages, in the order requested.
+                                var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
+                                var anyrare = false;
+
+                                _.each(sortmsgs, function (stdmsg) {
+                                    if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
+                                        stdmsg.message = self.model;
+                                        var v = new Iznik.Views.ModTools.StdMessage.Button({
+                                            model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
+                                            config: config
+                                        });
+
+                                        if (stdmsg.rarelyused) {
+                                            anyrare = true;
+                                        }
+
+                                        v.render().then(function(v) {
+                                            self.$('.js-stdmsgs').append(v.el);
+
+                                            if (stdmsg.rarelyused) {
+                                                $(v.el).hide();
+                                            }
+                                        });
+                                    }
+                                });
+
+                                if (!anyrare) {
+                                    self.$('.js-rarelyholder').hide();
+                                }
+                            }
+
+                            // If the message is held or released, we re-render, showing the appropriate buttons.
+                            self.listenToOnce(self.model, 'change:heldby', self.render);
                         });
 
-                        if (!anyrare) {
-                            self.$('.js-rarelyholder').hide();
-                        }
-                    }
+                        self.$('.timeago').timeago();
+                        self.$el.fadeIn('slow');
 
-                    // If the message is held or released, we re-render, showing the appropriate buttons.
-                    self.listenToOnce(self.model, 'change:heldby', self.render);
+                        self.listenToOnce(self.model, 'approved rejected deleted', function () {
+                            self.$el.fadeOut('slow');
+                        });
+
+                        resolve();
+                        self.rendering = null;
+                    });
                 });
+            }
 
-                self.$('.timeago').timeago();
-                self.$el.fadeIn('slow');
-
-                self.listenToOnce(self.model, 'approved rejected deleted', function () {
-                    self.$el.fadeOut('slow');
-                });
-            });
-
-            return (self.renderProto ? self.renderProto : resolvedPromise(self));
+            return (self.rendering);
         }
     });
 

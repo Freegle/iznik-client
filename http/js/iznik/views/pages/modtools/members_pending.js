@@ -132,189 +132,195 @@ define([
 
         render: function () {
             var self = this;
-            var p = null;
 
-            var groupid = self.model.get('groupid');
-            var group = Iznik.Session.getGroup(groupid);
-            if (group) {
-                self.model.set('group', group.attributes);
-                p = Iznik.Views.ModTools.Member.prototype.render.call(self);
-                p.then(function(self) {
-                    var mom = new moment(self.model.get('joined'));
+            if (!self.rendering) {
+                self.rendering = new Promise(function(resolve, reject) {
+                    var groupid = self.model.get('groupid');
+                    var group = Iznik.Session.getGroup(groupid);
+                    if (group) {
+                        self.model.set('group', group.attributes);
+                        var p = Iznik.Views.ModTools.Member.prototype.render.call(self);
+                        p.then(function(self) {
+                            var mom = new moment(self.model.get('joined'));
 
-                    var now = new moment();
+                            var now = new moment();
 
-                    self.$('.js-joined').html(mom.format('llll'));
+                            self.$('.js-joined').html(mom.format('llll'));
 
-                    if (now.diff(mom, 'days') <= 31) {
-                        self.$('.js-joined').addClass('error');
-                    }
+                            if (now.diff(mom, 'days') <= 31) {
+                                self.$('.js-joined').addClass('error');
+                            }
 
-                    self.addOtherInfo();
+                            self.addOtherInfo();
 
-                    // Our user.  In memberships the id is that of the member, so we need to get the userid.
-                    var mod = self.model.clone();
-                    mod.set('id', self.model.get('userid'));
-                    var v = new Iznik.Views.ModTools.User({
-                        model: mod
-                    });
-
-                    v.render().then(function(v) {
-                        self.$('.js-user').html(v.el);
-                    })
-
-                    // No remove button for pending members.
-                    self.$('.js-remove').closest('li').hide();
-
-                    // Delay getting the Yahoo info slightly to improve apparent render speed.
-                    _.delay(function () {
-                        // The Yahoo part of the user
-                        var mod = IznikYahooUsers.findUser({
-                            email: self.model.get('email'),
-                            group: group.get('nameshort'),
-                            groupid: group.get('id')
-                        });
-
-                        mod.fetch().then(function () {
-                            // We don't want to show the Yahoo joined date because we have our own.
-                            mod.unset('date');
-                            var v = new Iznik.Views.ModTools.Yahoo.User({
+                            // Our user.  In memberships the id is that of the member, so we need to get the userid.
+                            var mod = self.model.clone();
+                            mod.set('id', self.model.get('userid'));
+                            var v = new Iznik.Views.ModTools.User({
                                 model: mod
                             });
+
                             v.render().then(function(v) {
-                                self.$('.js-yahoo').html(v.el);
+                                self.$('.js-user').html(v.el);
                             })
-                        });
-                    }, 200);
 
-                    // Add the default standard actions.
-                    var configs = Iznik.Session.get('configs');
-                    var sessgroup = Iznik.Session.get('groups').get(group.id);
-                    var config = configs.get(sessgroup.get('configid'));
+                            // No remove button for pending members.
+                            self.$('.js-remove').closest('li').hide();
 
-                    // Save off the groups in the member ready for the standard message
-                    // TODO Hacky.  Should we split the StdMessage.Button code into one for members and one for messages?
-                    self.model.set('groups', [group.attributes]);
-                    self.model.set('fromname', self.model.get('displayname'));
-                    self.model.set('fromaddr', self.model.get('email'));
-                    self.model.set('fromuser', self.model);
+                            // Delay getting the Yahoo info slightly to improve apparent render speed.
+                            _.delay(function () {
+                                // The Yahoo part of the user
+                                var mod = IznikYahooUsers.findUser({
+                                    email: self.model.get('email'),
+                                    group: group.get('nameshort'),
+                                    groupid: group.get('id')
+                                });
 
-                    if (self.model.get('heldby')) {
-                        // Message is held - just show Release button.
-                        new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new Iznik.Model({
-                                title: 'Release',
-                                action: 'Release',
-                                message: self.model,
-                                config: config
-                            })
-                        }).render().then(function(v) {
-                            self.$('.js-stdmsgs').append(v.el);
-                        });
-                    } else {
-                        new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new Iznik.Model({
-                                title: 'Approve',
-                                action: 'Approve Member',
-                                member: self.model,
-                                config: config
-                            })
-                        }).render().then(function(v) {
-                            self.$('.js-stdmsgs').append(v.el);
-                        });
-
-                        new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new Iznik.Model({
-                                title: 'Mail',
-                                action: 'Leave Member',
-                                member: self.model,
-                                config: config
-                            })
-                        }).render().then(function(v) {
-                            self.$('.js-stdmsgs').append(v.el);
-                        });
-
-                        new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new Iznik.Model({
-                                title: 'Delete',
-                                action: 'Delete Member',
-                                member: self.model,
-                                config: config
-                            })
-                        }).render().then(function(v) {
-                            self.$('.js-stdmsgs').append(v.el);
-                        });
-
-                        new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new Iznik.Model({
-                                title: 'Reject',
-                                action: 'Reject Member',
-                                member: self.model,
-                                config: config
-                            })
-                        }).render().then(function(v) {
-                            self.$('.js-stdmsgs').append(v.el);
-                        });
-
-                        new Iznik.Views.ModTools.StdMessage.Button({
-                            model: new Iznik.Model({
-                                title: 'Hold',
-                                action: 'Hold',
-                                message: self.model,
-                                config: config
-                            })
-                        }).render().then(function(v) {
-                            self.$('.js-stdmsgs').append(v.el);
-                        });
-
-                        if (config) {
-                            // Add the other standard messages, in the order requested.
-                            var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
-                            var anyrare = false;
-
-                            _.each(sortmsgs, function (stdmsg) {
-                                if (_.contains(['Leave Member', 'Reject Member', 'Approve Member'], stdmsg.action)) {
-                                    stdmsg.groups = [group];
-                                    stdmsg.member = self.model;
-                                    var v = new Iznik.Views.ModTools.StdMessage.Button({
-                                        model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
-                                        config: config
+                                mod.fetch().then(function () {
+                                    // We don't want to show the Yahoo joined date because we have our own.
+                                    mod.unset('date');
+                                    var v = new Iznik.Views.ModTools.Yahoo.User({
+                                        model: mod
                                     });
-
-                                    if (stdmsg.rarelyused) {
-                                        anyrare = true;
-                                    }
-
                                     v.render().then(function(v) {
-                                        self.$('.js-stdmsgs').append(v.el);
+                                        self.$('.js-yahoo').html(v.el);
+                                    })
+                                });
+                            }, 200);
 
-                                        if (stdmsg.rarelyused) {
-                                            $(v.el).hide();
+                            // Add the default standard actions.
+                            var configs = Iznik.Session.get('configs');
+                            var sessgroup = Iznik.Session.get('groups').get(group.id);
+                            var config = configs.get(sessgroup.get('configid'));
+
+                            // Save off the groups in the member ready for the standard message
+                            // TODO Hacky.  Should we split the StdMessage.Button code into one for members and one for messages?
+                            self.model.set('groups', [group.attributes]);
+                            self.model.set('fromname', self.model.get('displayname'));
+                            self.model.set('fromaddr', self.model.get('email'));
+                            self.model.set('fromuser', self.model);
+
+                            if (self.model.get('heldby')) {
+                                // Message is held - just show Release button.
+                                new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Model({
+                                        title: 'Release',
+                                        action: 'Release',
+                                        message: self.model,
+                                        config: config
+                                    })
+                                }).render().then(function(v) {
+                                    self.$('.js-stdmsgs').append(v.el);
+                                });
+                            } else {
+                                new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Model({
+                                        title: 'Approve',
+                                        action: 'Approve Member',
+                                        member: self.model,
+                                        config: config
+                                    })
+                                }).render().then(function(v) {
+                                    self.$('.js-stdmsgs').append(v.el);
+                                });
+
+                                new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Model({
+                                        title: 'Mail',
+                                        action: 'Leave Member',
+                                        member: self.model,
+                                        config: config
+                                    })
+                                }).render().then(function(v) {
+                                    self.$('.js-stdmsgs').append(v.el);
+                                });
+
+                                new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Model({
+                                        title: 'Delete',
+                                        action: 'Delete Member',
+                                        member: self.model,
+                                        config: config
+                                    })
+                                }).render().then(function(v) {
+                                    self.$('.js-stdmsgs').append(v.el);
+                                });
+
+                                new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Model({
+                                        title: 'Reject',
+                                        action: 'Reject Member',
+                                        member: self.model,
+                                        config: config
+                                    })
+                                }).render().then(function(v) {
+                                    self.$('.js-stdmsgs').append(v.el);
+                                });
+
+                                new Iznik.Views.ModTools.StdMessage.Button({
+                                    model: new Iznik.Model({
+                                        title: 'Hold',
+                                        action: 'Hold',
+                                        message: self.model,
+                                        config: config
+                                    })
+                                }).render().then(function(v) {
+                                    self.$('.js-stdmsgs').append(v.el);
+                                });
+
+                                if (config) {
+                                    // Add the other standard messages, in the order requested.
+                                    var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
+                                    var anyrare = false;
+
+                                    _.each(sortmsgs, function (stdmsg) {
+                                        if (_.contains(['Leave Member', 'Reject Member', 'Approve Member'], stdmsg.action)) {
+                                            stdmsg.groups = [group];
+                                            stdmsg.member = self.model;
+                                            var v = new Iznik.Views.ModTools.StdMessage.Button({
+                                                model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
+                                                config: config
+                                            });
+
+                                            if (stdmsg.rarelyused) {
+                                                anyrare = true;
+                                            }
+
+                                            v.render().then(function(v) {
+                                                self.$('.js-stdmsgs').append(v.el);
+
+                                                if (stdmsg.rarelyused) {
+                                                    $(v.el).hide();
+                                                }
+                                            });
                                         }
                                     });
+
+                                    if (!anyrare) {
+                                        self.$('.js-rarelyholder').hide();
+                                    }
                                 }
+                            }
+
+                            // If the member is held or released, we re-render, showing the appropriate buttons.
+                            self.listenToOnce(self.model, 'change:heldby', self.render);
+
+                            self.$('.timeago').timeago();
+
+                            self.listenToOnce(self.model, 'deleted removed rejected approved', function () {
+                                self.$el.fadeOut('slow');
                             });
 
-                            if (!anyrare) {
-                                self.$('.js-rarelyholder').hide();
-                            }
-                        }
+                            resolve();
+                            self.rendering = null;
+                        });
+                    } else {
+                        console.log("Unexpected member", self.model);
                     }
-
-                    // If the member is held or released, we re-render, showing the appropriate buttons.
-                    self.listenToOnce(self.model, 'change:heldby', self.render);
-
-                    self.$('.timeago').timeago();
-
-                    self.listenToOnce(self.model, 'deleted removed rejected approved', function () {
-                        self.$el.fadeOut('slow');
-                    });
                 });
-            } else {
-                console.log("Unexpected member", self.model);
             }
 
-            return (p);
+            return (self.rendering);
         }
     });
 });
