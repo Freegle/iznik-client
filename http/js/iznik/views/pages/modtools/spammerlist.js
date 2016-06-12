@@ -204,7 +204,10 @@ define([
 
             self.model.set('type', self.options.type);
             var p = Iznik.Views.ModTools.Member.Spam.prototype.render.call(self);
-            p.then(function(self) {
+            p.then(function() {
+                var user = self.model.get('user');
+                var usermod = new Iznik.Model(user);
+
                 if (Iznik.Session.isAdmin()) {
                     self.$('.js-adminonly').removeClass('hidden');
                 }
@@ -217,7 +220,7 @@ define([
                 self.$('.js-added').html(mom.format('ll'));
 
                 var v = new Iznik.Views.ModTools.User({
-                    model: new Iznik.Models.ModTools.User(self.model.get('user'))
+                    model: new Iznik.Models.ModTools.User(user)
                 });
 
                 v.render().then(function (v) {
@@ -226,33 +229,45 @@ define([
 
                 // No point duplicating spammer info
                 self.$('.js-spammerinfo').hide();
+                console.log("Spammember", user);
 
                 // Add any other emails
                 self.$('.js-otheremails').empty();
-                var selfemail = self.model.get('user').email;
-                _.each(self.model.get('user').otheremails, function (email) {
+                var selfemail = user.email;
+                _.each(user.otheremails, function (email) {
                     if (email.email != selfemail) {
                         var mod = new Iznik.Model(email);
                         var v = new Iznik.Views.ModTools.Message.OtherEmail({
                             model: mod
                         });
                         v.render().then(function (v) {
-                            self.$('.js-otheremails').html(v.el);
+                            self.$('.js-otheremails').append(v.el);
                         });
                     }
                 });
 
+                self.$('.js-memberof').empty();
+                _.each(user.memberof, function (group) {
+                    var mod = new Iznik.Model(group);
+                    var v = new Iznik.Views.ModTools.Member.Of({
+                        model: mod,
+                        user: usermod
+                    });
+                    v.render().then(function (v) {
+                        self.$('.js-memberof').append(v.el);
+                    });
+                });
+
                 self.$('.js-applied').empty();
-                _.each(self.model.get('user').applied, function (group) {
+                _.each(user.applied, function (group) {
                     var mod = new Iznik.Model(group);
                     var v = new Iznik.Views.ModTools.Member.Applied({
                         model: mod
                     });
                     v.render().then(function (v) {
-                        self.$('.js-applied').html(v.el);
+                        self.$('.js-applied').append(v.el);
                     });
                 });
-
 
                 self.$('.timeago').timeago();
 

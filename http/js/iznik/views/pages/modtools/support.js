@@ -400,7 +400,7 @@ define([
                         user: self.model
                     });
                     v.render().then(function (v) {
-                        self.$('.js-memberof').html(v.el);
+                        self.$('.js-memberof').append(v.el);
                     });
                 });
 
@@ -411,7 +411,7 @@ define([
                         model: mod
                     });
                     v.render().then(function (v) {
-                        self.$('.js-applied').html(v.el);
+                        self.$('.js-applied').append(v.el);
                     });
                 });
 

@@ -5,12 +5,12 @@
                 <div class="row-fluid">
                     <div class="col-md-4">
                         <div class="ellipsis">
-                            <div class="glyphicon glyphicon-envelope" />&nbsp;<% if (obj.email) { %>{{email}}<% } else { %><em>Email on group not known</em><% } %>
+                            <div class="glyphicon glyphicon-envelope" />&nbsp;<% if (user.email) { %>{{user.email}}<% } else { %><em>Email on group not known</em><% } %>
                         </div>
                     </div>
                     <div class="col-md-5">
                         <div class="ellipsis">
-                            <div class="glyphicon glyphicon-user" />&nbsp;<% if (obj.displayname && displayname.trim().length > 0) { %>{{displayname}}<% } else { %><em>Blank name</em><% } %> <% if (obj.yahooid) { %>({{yahooid}}<% if (obj.yahooAlias && obj.yahooAlias != obj.yahooid) { %> aka {{yahooAlias}}<% } %>)<% } %>
+                            <div class="glyphicon glyphicon-user" />&nbsp;<% if (user.displayname && user.displayname.trim().length > 0) { %>{{user.displayname}}<% } else { %><em>Blank name</em><% } %> <% if (obj.yahooid) { %>({{yahooid}}<% if (obj.yahooAlias && obj.yahooAlias != obj.yahooid) { %> aka {{yahooAlias}}<% } %>)<% } %>
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -44,6 +44,7 @@
                     <div class="panel panel-default">
                         <div class="panel-body small">
                             <div class="js-user"></div>
+                            <div class="js-memberof" />
                             <div class="js-applied" />
                         </div>
                     </div>
