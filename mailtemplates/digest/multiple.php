@@ -1,7 +1,7 @@
 <?php
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function chat_notify($domain, $logo, $fromname, $reply, $htmlsummary, $unsub) {
+function digest_multiple($available, $unavailable, $domain, $logo, $subject, $fromname, $reply, $unsub) {
     $siteurl = "https://$domain";
 
     $html = <<<EOT
@@ -9,7 +9,7 @@ function chat_notify($domain, $logo, $fromname, $reply, $htmlsummary, $unsub) {
 <html>
 <head>
 
-    <title>$fromname</title>
+    <title>$subject</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <!--[if !mso]><!-->
@@ -69,20 +69,15 @@ function chat_notify($domain, $logo, $fromname, $reply, $htmlsummary, $unsub) {
                         <table width="100%" cellpadding="0" cellspacing="0" border="0" class="container">
                             <tr>
                                 <td width="100%" class="mobile" style="font-family:arial; font-size:12px; line-height:18px;">
-
-                                    <!-- Start Wrapper  -->
                                     <table width="95%" cellpadding="0" cellspacing="0" border="0" class="wrapper" bgcolor="#FFFFFF">
                                         <tr>
                                             <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
                                         </tr>
                                         <tr>
                                             <td align="center">
-
-                                                <!-- Start Container  -->
                                                 <table width="95%" cellpadding="0" cellspacing="0" border="0" class="container">
                                                     <tr>
                                                         <td class="mobile" align="center" valign="top">
-                                                            <!-- Start Content -->
                                                             <table class="mobileOff" width="120" cellpadding="0" cellspacing="0" border="0" class="container" align="left">
                                                                 <tr>
                                                                     <td width="120" style="font-size:12px; line-height:18px;">
@@ -98,76 +93,28 @@ function chat_notify($domain, $logo, $fromname, $reply, $htmlsummary, $unsub) {
                                                                     <td height="20" style="font-size:10px; line-height:10px;" >
                                                                 </tr>
                                                             </table>
-                                                            <!-- Start Content -->
                                                         </td>
                                                         <td class="mobile" align="center" valign="top">
-
-                                                            <!-- Start Content -->
                                                             <table width="100%" cellpadding="0" cellspacing="0" border="0" class="container" align="right">
                                                                 <tr>
-                                                                    <td width="100%" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:20px; line-height:26px; font-weight:bold;">
-                                                                        $fromname wrote:
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
-                                                                </tr>
-                                                                <tr>
-                                                                    <td width="100%" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:14px; line-height:20px;">
-                                                                        $htmlsummary                                                                     
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
-                                                                </tr>
-                                                                <tr>
-                                                                    <td width="100%" class="mobile" style="font-size:14px; line-height:20px;">
-
-                                                                        <!-- Start Button -->
-                                                                        <table class="button" width="50%" cellpadding="0" cellspacing="0" align="left" border="0">
-                                                                            <tr>
-                                                                                <td width="50%" height="36" bgcolor="#377615" align="center" valign="middle"
-                                                                                    style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
-                                                                                        line-height:18px; border-radius:3px;">
-                                                                                    <a href="$reply" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Reply</a>
-                                                                                </td>
-                                                                            </tr>
-                                                                        </table>
-                                                                        <!-- End Button -->
-
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td height="20" style="color: grey; font-size:11px; line-height:18px;">
-                                                                        You can reply to this message by email - but it works better if you
-                                                                        use the button.
-                                                                    </td>
-                                                                </tr>    
-                                                                <tr>
-                                                                    <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
+                                                                    $msghtml
                                                                 </tr>
                                                             </table>
-                                                            <!-- Start Content -->
-
                                                         </td>
                                                     </tr>
                                                 </table>
-                                                <!-- Start Container  -->
                                             </td>
                                         </tr>
                                     </table>
-                                    <!-- End Wrapper  -->
                                 </td>
                             </tr>
                         </table>
-                        <!-- Start Container  -->
                     </td>
                 </tr>
                 <tr>
-                    <td height="10" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
+                    <td height="10" style="font-size:10px; line-height:10px;"> </td>
                 </tr>
            </table>
-            <!-- End Wrapper  -->
 EOT;
 
     $html .= footer($unsub);
@@ -176,7 +123,6 @@ EOT;
        </td>
        </tr>
 </table>
-<!-- End Background -->
 
 </body>
 </html>

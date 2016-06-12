@@ -1047,7 +1047,6 @@ define([
                                                                 data: data,
                                                                 context: self,
                                                                 success: function (ret) {
-                                                                    console.log("Message put returned", ret);
                                                                     if (ret.ret == 0) {
                                                                         missing.deferred.resolve();
                                                                     } else {

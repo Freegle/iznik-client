@@ -131,6 +131,7 @@ define([
                 }
             });
 
+            console.log("Consider set of select", self.options.selected);
             if (self.options.hasOwnProperty('selected') && self.options.selected) {
                 self.dropdown.setIndexByValue(self.options.selected);
             } else {

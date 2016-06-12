@@ -229,7 +229,6 @@ define([
 
                 // No point duplicating spammer info
                 self.$('.js-spammerinfo').hide();
-                console.log("Spammember", user);
 
                 // Add any other emails
                 self.$('.js-otheremails').empty();

@@ -17,9 +17,7 @@ define([
         retField: 'messages',
 
         countsChanged: function() {
-            this.groupSelect.render({
-                selected: this.selected
-            });
+            this.groupSelect.render();
         },
 
         render: function () {

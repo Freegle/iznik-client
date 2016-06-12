@@ -22,9 +22,7 @@ define([
         },
 
         countsChanged: function() {
-            this.groupSelect.render({
-                selected: this.selected
-            });
+            this.groupSelect.render();
         },
 
         keyup: function (e) {

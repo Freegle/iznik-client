@@ -24,9 +24,7 @@ define([
         },
 
         countsChanged: function() {
-            this.groupSelect.render({
-                selected: this.selected
-            });
+            this.groupSelect.render();
         },
 
         keyupmess: function (e) {
