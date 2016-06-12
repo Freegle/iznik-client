@@ -63,7 +63,8 @@ define([
                     Give: {}
                 },
                 Home: {},
-                Message: {}
+                Message: {},
+                Settings: {}
             },
             Group: {},
             Chat: {},

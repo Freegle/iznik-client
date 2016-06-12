@@ -1,12 +1,13 @@
 <phpunit>
     <testsuites>
         <testsuite name="Unit Tests">
-            <directory>test/ut/php/</directory>
+            <directory>test/ut/php</directory>
         </testsuite>
     </testsuites>
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">include</directory>
+            <directory suffix=".php">/http/api</directory>
+            <directory suffix=".php">/include</directory>
             <exclude>
                 <directory suffix=".php">lib</directory>
             </exclude>

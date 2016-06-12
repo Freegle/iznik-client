@@ -6,6 +6,9 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/mail/MailRouter.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 
+$tusage = NULL;
+$rusage = NULL;
+
 # Get envelope sender and recipient
 $envfrom = getenv('SENDER');
 $envto = getenv('RECIPIENT');
@@ -51,4 +54,5 @@ if (preg_match('/MODERATE -- (.*) posted to (.*)/', $msg, $matches)) {
     $rc = $r->route();
 }
 
+error_log("CPU cost " . getCpuUsage());
 fwrite($logh, "Route returned $rc");

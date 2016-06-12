@@ -1,17 +1,46 @@
 <div class="js-help" />
-<form>
-    <div class="form-group">
-        <label for="location">My postcode</label>
-        <span class="help-block">We won't share your full postcode with anyone else.</span>
-        <div class="row">
-            <div class="col-sm-6">
-                <input type="text" id="location" class="form-control js-postcode" placeholder="The full postcode where you live"/>
-            </div>
-            <div class="col-sm-6">
-                <div class="btn btn-primary js-geoloconly js-getloc">
-                    <div class="glyphicon glyphicon-map-marker" />&nbsp;Find my location
+<div class="panel-group" id="accordion">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                Your Personal Information
+            </h4>
+        </div>
+        <div class="panel-body">
+            <form>
+                <div class="form-group">
+                    <label for="location">Your postcode</label>
+                    <span class="help-block">We won't share your full postcode with anyone else.</span>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <input type="text" id="location" class="form-control js-postcode" placeholder="The full postcode where you live"/>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="btn btn-primary js-geoloconly js-getloc">
+                                <div class="glyphicon glyphicon-map-marker" />&nbsp;Find my location
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
-</form>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                Your Mail Settings
+            </h4>
+        </div>
+        <div class="panel-body">
+            <div class="form-group" data-toggle="tooltip" data-placement="top">
+                <label for="onholiday">Pause mail</label>
+                <span class="help-block">You can pause all mails for a while, for example if you're on holiday.  Click to change.</span>
+                <input type="checkbox" id="onholiday" class="js-switch js-onholiday"/>
+                <label for="until" class="js-until" >&nbsp;until&nbsp;</label>
+                <input type="text" id="until" class="js-onholidaytill datepicker js-save" />
+            </div>
+            <span class="help-block">You can also change the settings for each of your groups.</span>
+            <ul class="list-unstyled js-mailgroups" />
+        </div>
+    </div>
+</div>

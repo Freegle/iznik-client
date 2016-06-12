@@ -830,7 +830,7 @@ class User extends Entity
 
     public function getGroupSettings($groupid) {
 
-        $sql = "SELECT settings, role FROM memberships WHERE userid = ? AND groupid = ?;";
+        $sql = "SELECT settings, role, emailfrequency FROM memberships WHERE userid = ? AND groupid = ?;";
         $sets = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
 
         # Defaults match memberships ones in Group.php.
@@ -858,6 +858,8 @@ class User extends Entity
                     $settings[$key] = $val;
                 }
             }
+
+            $settings['emailfrequency'] = $set['emailfrequency'];
         }
 
         return($settings);

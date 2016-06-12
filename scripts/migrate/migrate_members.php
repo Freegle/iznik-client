@@ -55,7 +55,7 @@ if (1==1) {
     ));
 
     error_log("Migrate FD memberships");
-    $groups = $dbhfd->query("SELECT * FROM groups WHERE grouppublish = 1 AND groupname LIKE '%berko%';");
+    $groups = $dbhfd->query("SELECT * FROM groups WHERE grouppublish = 1;");
     $groupcount = 0;
 
     foreach ($groups as $group) {
@@ -71,7 +71,7 @@ if (1==1) {
         if ($gid) {
             $g = new Group($dbhr, $dbhm, $gid);
 
-            $users = $dbhfd->query("SELECT * FROM users WHERE groupid = {$group['groupid']} AND deletedfromyahoo = 0;");
+            $users = $dbhfd->query("SELECT * FROM users WHERE groupid = {$group['groupid']} AND deletedfromyahoo = 0 AND useremail = 'edward@ehibbert.org.uk';");
             $count = 0;
             foreach ($users as $user) {
                 try {
@@ -129,7 +129,8 @@ if (1==1) {
                         }
                     }
 
-                    $u->setMembershipAtt($gid, 'emailfrequency', $user['digest'] ? $user['maxdigestdelay'] : 0);
+                    $dig = $user['digest'] ? $user['maxdigestdelay'] : 0;
+                    $u->setMembershipAtt($gid, 'emailfrequency', $dig);
 
                     $count++;
                     if ($count % 1000 == 0) {

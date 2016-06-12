@@ -2,7 +2,7 @@
 export MESSAGE_ID
 echo "Message ID " $MESSAGE_ID >> /tmp/iznik_incoming.out
 cd /var/www/iznik
-nice php -q /var/www/iznik/scripts/incoming/incoming.php >> /tmp/iznik_incoming.out 2>&1
+nice php /var/www/iznik/scripts/incoming/incoming.php >> /tmp/iznik_incoming.out 2>&1
 rc=$?;
 echo "`date` Returned $rc for " $MESSAGE_ID >> /tmp/iznik_incoming.out
 
