@@ -339,6 +339,10 @@ class User extends Entity
             $email = $matches[1] . $matches[3];
         }
 
+        # Remove dots, which are ignored by gmail and can therefore be used to give the appearance of separate
+        # emails.
+        $email = str_replace('.', '', $email);
+
         return($email);
     }
 
