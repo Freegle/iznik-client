@@ -117,6 +117,7 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
         $msg = preg_replace('/Date\:.*0000/', 'Date: removed', $msg);
         $msg = preg_replace('/Message-ID\:.*?>/', 'Message-ID: removed', $msg);
         $msg = preg_replace('/_swift_v4.*_/', '_canonicalised_', $msg);
+        $msg = preg_replace('/msgid=.*?\&/', '', $msg);
         return($msg);
     }
 }

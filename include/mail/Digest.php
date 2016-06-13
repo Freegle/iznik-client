@@ -80,10 +80,9 @@ class Digest
                 foreach ($tracks as $track) {
                     # Find the cut-off time for the earliest message we want to include.  If we've not sent anything for this
                     # group/frequency before then ensure we don't send anything older than a day.
-                    $oldest = " AND arrival >= '" . date("Y-m-d H:i:s", strtotime("48 hours ago")) . "'";
+                    $oldest = " AND arrival >= '" . date("Y-m-d H:i:s", strtotime("24 hours ago")) . "'";
                     $msgidq = $track['msgid'] ? " AND msgid > {$track['msgid']} " : '';
 
-                    error_log("Prepare messages");
                     $sql = "SELECT msgid, yahooapprovedid FROM messages_groups WHERE groupid = ? AND collection = ? AND deleted = 0 $oldest $msgidq ORDER BY msgid ASC;";
                     $messages = $this->dbhr->preQuery($sql, [
                         $groupid,
@@ -97,7 +96,6 @@ class Digest
                     foreach ($messages as $message) {
                         $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
                         $subjects[$message['msgid']] = $m->getSubject();
-                        error_log("Add message " . $m->getSubject());
 
                         $atts = $m->getPublic(FALSE, TRUE, TRUE);
 
@@ -110,7 +108,7 @@ class Digest
                         $groups = $atts['groups'];
                         foreach ($groups as $group) {
                             if ($group['groupid'] == $groupid) {
-                                $approvedid = $group['yahooapprovedid'];
+                                $atts['yahooapprovedid'] = $group['yahooapprovedid'];
                             }
                         }
 
@@ -118,7 +116,7 @@ class Digest
                             if (count($atts['related']) == 0) {
                                 $available[] = $atts;
                             } else {
-                                $unavailable = $atts;
+                                $unavailable[] = $atts;
                             }
                         }
                     }
@@ -156,32 +154,59 @@ class Digest
                             ];
                         }
                     } else {
-                        # TODO
-                        # Build up the HTML for the message(s) in it.
+                        # Build up the HTML for the message(s) in it.  We add a teaser of items to make it more
+                        # interesting.
+                        $textsumm = '';
                         $availablehtml = '';
+                        $availablesumm = '';
+                        $subject = "[{$gatts['namedisplay']}] What's New (" . count($available) . " message" .
+                            (count($available) == 1 ? ')' : 's)');
+                        $subjinfo = '';
 
                         foreach ($available as $msg) {
-                            $availablehtml .= digest_message($msg);
+                            $availablehtml .= $msghtml = digest_message($msg, $msg['yahooapprovedid'], $fdgroupid);
+                            $textsumm .= $msg['subject'] . ":\r\nhttps://direct.ilovefreegle.org/login.php?action=mygroups&subaction=displaypost&msgid={$msg['id']}&groupid=$fdgroupid&digest=$fdgroupid\r\n\r\n";
+                            $availablesumm .= $msg['subject'] . '<br />';
+
+                            if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
+                                $item = trim($matches[2]);
+
+                                if (strlen($item) < 25 && strlen($subjinfo) < 50) {
+                                    $subjinfo = $subjinfo == '' ? $item : "$subjinfo, $item";
+                                }
+                            }
+                        }
+
+                        if ($subjinfo) {
+                            $subject .= " - $subjinfo";
                         }
 
                         $unavailablehtml = '';
 
                         foreach ($unavailable as $msg) {
-                            $unavailablehtml .= digest_message($msg);
+                            $unavailablehtml .= digest_message($msg, $msg['yahooapprovedid'], $fdgroupid);
+                            $textsumm .= $msg['subject'] . " (post completed, no longer active)\r\n";
                         }
 
-                        $html = digest_multiple($availablehtml, $unavailablehtml, USER_DOMAIN, USERLOGO, $msg['subject'], $msg['fromname'], $msg['fromaddr'], "{{unsubscribe}}");
-                        // TODO Could we do something better?
-                        $text = 'This is a digest of mails.  Please read the HTML version.  If you cannot read that, then please switch to getting emails immediately, which will allow you to see the text version of each mail.';
+                        $html = digest_multiple($availablehtml,
+                            $availablesumm,
+                            $unavailablehtml,
+                            USER_DOMAIN,
+                            USERLOGO,
+                            $gatts['namedisplay'],
+                            $subject,
+                            $gatts['namedisplay'],
+                            $g->getModsEmail()
+                        );
 
                         $tosend[] = [
-                            'subject' => '', // TODO
+                            'subject' => $subject,
                             'from' => $g->getModsEmail(),
                             'fromname' => $gatts['namedisplay'],
                             'replyto' => $g->getModsEmail(),
                             'replytoname' => $gatts['namedisplay'],
                             'html' => $html,
-                            'text' => $text
+                            'text' => $textsumm
                         ];
                     }
 
@@ -195,11 +220,10 @@ class Digest
                     # TODO This isn't that well indexed in the table.
                     $replacements = [];
 
-                    error_log("Find users");
                     $sql = "SELECT userid FROM memberships WHERE groupid = ? AND emailallowed = 1 AND emailfrequency = ? ORDER BY userid ASC;";
                     $users = $this->dbhr->preQuery($sql,
                         [ $groupid, $frequency ]);
-                    error_log("Prepare users");
+
                     foreach ($users as $user) {
                         $u = new User($this->dbhr, $this->dbhm, $user['userid']);
                         $emails = $u->getEmails();
@@ -221,8 +245,6 @@ class Digest
                         }
                     }
 
-                    error_log("Prepared users");
-
                     if (count($replacements) > 0) {
                         # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
                         # rather than lose it.
@@ -238,7 +260,6 @@ class Digest
 
                         # We're decorating using the information we collected earlier.  So we create one copy of
                         # the message, with replacement strings, and many recipients.
-                        error_log("Replacements " . var_export($replacements, TRUE));
                         $decorator = new Swift_Plugins_DecoratorPlugin($replacements);
                         $mailer->registerPlugin($decorator);
 

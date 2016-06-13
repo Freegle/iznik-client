@@ -34,22 +34,28 @@ EOT;
         </tr>
         <tr>
             <td colspan="2">
-                <table class="button" width="200" cellpadding="0" cellspacing="10" align="left" border="0">
-                    <tr>
-                        <td width="50%" height="24" bgcolor="#377615" align="center" valign="middle"
+                <table class="button" width="300" cellpadding="0" cellspacing="0" align="left" border="0">
+                    <tr>                  
+                        <td width="45%" height="24" bgcolor="#377615" align="center" valign="middle"
                             style="font-family: Century Gothic, Arial, sans-serif; font-size: 12px; color: #ffffff;
                                 line-height:18px; border-radius:3px;">
                             <a href="$replyweb" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Reply&nbsp;via&nbsp;Web&nbsp;</a>
                         </td>
-                        <td width="50%" height="24" bgcolor="#377615" align="center" valign="middle"
+                        <td width="10%">&nbsp;</td>
+                        <td width="45%" height="24" bgcolor="#377615" align="center" valign="middle"
                             style="font-family: Century Gothic, Arial, sans-serif; font-size: 12px; color: #ffffff;
                                 line-height:18px; border-radius:3px;">
                             <a href="$replyemail" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Reply&nbsp;via&nbsp;Email&nbsp;</a>
                         </td>
                     </tr>
-                </table>           
+                </table>    
             </td>
         </tr>
+        <tr>
+            <td colspan="2">
+                <font color=gray><hr></font>
+            </td>
+        </tr>        
     </table>
 EOT;
     

@@ -8,5 +8,5 @@ $groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE `type` = 'Free
 $d = new Digest($dbhr, $dbhm);
 
 foreach ($groups as $group) {
-    $d->send($group['id'], Digest::IMMEDIATE);
+    $d->send($group['id'], Digest::HOUR1);
 }
