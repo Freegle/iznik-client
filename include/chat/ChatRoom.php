@@ -28,6 +28,7 @@ class ChatRoom extends Entity
 
     # This can be overridden in UT.
     public function constructMessage(User $u, $id, $toname, $to, $fromname, $from, $subject, $text, $html) {
+        $_SERVER['SERVER_NAME'] = USER_DOMAIN;
         $message = Swift_Message::newInstance()
             ->setSubject($subject)
             ->setFrom([$from => $fromname])

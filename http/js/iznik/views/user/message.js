@@ -141,6 +141,7 @@ define([
         },
 
         stripGumf: function(property) {
+            // We have the same function in PHP in Message.php; keep them in sync.
             var text = this.model.get(property);
 
             if (text) {
@@ -152,7 +153,7 @@ define([
                 text = text.replace(/https:\/\/direct.*jpg/m, '');
 
                 // FOPs
-                text = text.replace(/Fair Offer Policy applies \(see https:\/\/[^]*\)/, '');
+                text = text.replace(/Fair Offer Policy applies \(see https:\/\/[\s\S]*\)/, '');
                 text = text.replace(/Fair Offer Policy:[\s\S]*?reply./, '');
 
                 // App footer
@@ -160,6 +161,10 @@ define([
 
                 // Footers
                 text = text.replace(/--[\s\S]*Get Freegling[\s\S]*book/m, '');
+                text = text.replace(/--[\s\S]*Get Freegling[\s\S]*org[\s\S]*?<\/a>/m, '');
+
+                // Redundant line breaks
+                text = text.replace(/(?:(?:\r\n|\r|\n)\s*){2}/s, "\n\n");
 
                 text = text.trim();
                 // console.log("Stripped photo", text);

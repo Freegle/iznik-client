@@ -368,6 +368,40 @@ class Message
 
         return($role);
     }
+    
+    public function stripGumf() {
+        # We have the same function in views/user/message.js; keep thenm in sync.
+        $text = $this->getTextbody();
+
+        if ($text) {
+            // console.log("Strip photo", text);
+            // Strip photo links - we should have those as attachments.
+            $text = preg_replace('/You can see a photo[\s\S]*?jpg/', '', $text);
+            $text = preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/\d*/', '', $text);
+            $text = preg_replace('/You can see photos here[\s\S]*?jpg/m', '', $text);
+            $text = preg_replace('/https:\/\/direct.*jpg/m', '', $text);
+
+            // FOPs
+            $text = preg_replace('/Fair Offer Policy applies \(see https:\/\/[\s\S]*\)/', '', $text);
+            $text = preg_replace('/Fair Offer Policy:[\s\S]*?reply./', '', $text);
+
+            // App footer
+            $text = preg_replace('/Freegle app.*[0-9]$/m', '', $text);
+
+            // Footers
+            $text = preg_replace('/--[\s\S]*Get Freegling[\s\S]*book/m', '', $text);
+            $text = preg_replace('/--[\s\S]*Get Freegling[\s\S]*org[\s\S]*?<\/a>/m', '', $text);
+
+            // Redundant line breaks.
+            $text = preg_replace('/(?:(?:\r\n|\r|\n)\s*){2}/s', "\n\n", $text);
+
+            $text = trim($text);
+        } else {
+            $text = '';
+        }
+        
+        return($text);
+    }
 
     public function getPublic($messagehistory = TRUE, $related = TRUE, $seeall = FALSE) {
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -379,19 +413,19 @@ class Message
             $ret[$att] = $this->$att;
         }
 
-        if ($role == User::ROLE_MEMBER || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+        if ($role == User::ROLE_MEMBER || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
             foreach ($this->memberAtts as $att) {
                 $ret[$att] = $this->$att;
             }
         }
 
-        if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+        if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
             foreach ($this->moderatorAtts as $att) {
                 $ret[$att] = $this->$att;
             }
         }
 
-        if ($role == User::ROLE_OWNER) {
+        if ($role == User::ROLE_OWNER || $seeall) {
             foreach ($this->ownerAtts as $att) {
                 $ret[$att] = $this->$att;
             }

@@ -51,38 +51,27 @@ function chat_notify($domain, $logo, $fromname, $reply, $htmlsummary, $unsub) {
 
 </head>
 <body marginwidth="0" marginheight="0" leftmargin="0" topmargin="0" style="background-color:#F7F5EB; font-family:Arial,serif; margin:0; padding:0; min-width: 100%; -webkit-text-size-adjust:none; -ms-text-size-adjust:none;">
-
-<!-- Start Background -->
 <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F7F5EB">
     <tr>
         <td width="100%" valign="top" align="center">
-
-            <!-- Start Wrapper  -->
             <table width="95%" cellpadding="0" cellspacing="0" border="0" class="wrapper" bgcolor="#FFFFFF">
                 <tr>
                     <td height="10" style="font-size:10px; line-height:10px;">   </td><!-- Spacer -->
                 </tr>
                 <tr>
                     <td align="center">
-
-                        <!-- Start Container  -->
                         <table width="100%" cellpadding="0" cellspacing="0" border="0" class="container">
                             <tr>
                                 <td width="100%" class="mobile" style="font-family:arial; font-size:12px; line-height:18px;">
-
-                                    <!-- Start Wrapper  -->
                                     <table width="95%" cellpadding="0" cellspacing="0" border="0" class="wrapper" bgcolor="#FFFFFF">
                                         <tr>
                                             <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
                                         </tr>
                                         <tr>
                                             <td align="center">
-
-                                                <!-- Start Container  -->
                                                 <table width="95%" cellpadding="0" cellspacing="0" border="0" class="container">
                                                     <tr>
                                                         <td class="mobile" align="center" valign="top">
-                                                            <!-- Start Content -->
                                                             <table class="mobileOff" width="120" cellpadding="0" cellspacing="0" border="0" class="container" align="left">
                                                                 <tr>
                                                                     <td width="120" style="font-size:12px; line-height:18px;">
@@ -98,11 +87,8 @@ function chat_notify($domain, $logo, $fromname, $reply, $htmlsummary, $unsub) {
                                                                     <td height="20" style="font-size:10px; line-height:10px;" >
                                                                 </tr>
                                                             </table>
-                                                            <!-- Start Content -->
                                                         </td>
                                                         <td class="mobile" align="center" valign="top">
-
-                                                            <!-- Start Content -->
                                                             <table width="100%" cellpadding="0" cellspacing="0" border="0" class="container" align="right">
                                                                 <tr>
                                                                     <td width="100%" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:20px; line-height:26px; font-weight:bold;">
@@ -122,8 +108,6 @@ function chat_notify($domain, $logo, $fromname, $reply, $htmlsummary, $unsub) {
                                                                 </tr>
                                                                 <tr>
                                                                     <td width="100%" class="mobile" style="font-size:14px; line-height:20px;">
-
-                                                                        <!-- Start Button -->
                                                                         <table class="button" width="50%" cellpadding="0" cellspacing="0" align="left" border="0">
                                                                             <tr>
                                                                                 <td width="50%" height="36" bgcolor="#377615" align="center" valign="middle"
@@ -133,8 +117,6 @@ function chat_notify($domain, $logo, $fromname, $reply, $htmlsummary, $unsub) {
                                                                                 </td>
                                                                             </tr>
                                                                         </table>
-                                                                        <!-- End Button -->
-
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
@@ -147,27 +129,21 @@ function chat_notify($domain, $logo, $fromname, $reply, $htmlsummary, $unsub) {
                                                                     <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
                                                                 </tr>
                                                             </table>
-                                                            <!-- Start Content -->
-
                                                         </td>
                                                     </tr>
                                                 </table>
-                                                <!-- Start Container  -->
                                             </td>
                                         </tr>
                                     </table>
-                                    <!-- End Wrapper  -->
                                 </td>
                             </tr>
                         </table>
-                        <!-- Start Container  -->
                     </td>
                 </tr>
                 <tr>
-                    <td height="10" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
+                    <td height="10" style="font-size:10px; line-height:10px;"> </td>
                 </tr>
            </table>
-            <!-- End Wrapper  -->
 EOT;
 
     $html .= footer($unsub);

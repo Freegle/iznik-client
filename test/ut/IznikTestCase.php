@@ -17,7 +17,7 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
 
     public static $unique = 1;
 
-    private function tidy() {
+    public function tidy() {
         $this->dbhm->preExec("DELETE FROM messages WHERE fromaddr = ?;", ['test@test.com' ]);
         $this->dbhm->preExec("DELETE FROM messages WHERE fromaddr = ?;", ['sender@example.net' ]);
         $this->dbhm->preExec("DELETE FROM messages WHERE fromaddr = ? OR fromip = ?;", ['from@test.com', '1.2.3.4']);
@@ -111,6 +111,13 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
 
         error_log("Failed to find log $type $subtype in " . var_export($logs, TRUE));
         return(NULL);
+    }
+
+    public function canonMessage($msg) {
+        $msg = preg_replace('/Date\:.*0000/', 'Date: removed', $msg);
+        $msg = preg_replace('/Message-ID\:.*?>/', 'Message-ID: removed', $msg);
+        $msg = preg_replace('/_swift_v4.*_/', '_canonicalised_', $msg);
+        return($msg);
     }
 }
 

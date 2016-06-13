@@ -71,7 +71,7 @@ if (1==1) {
         if ($gid) {
             $g = new Group($dbhr, $dbhm, $gid);
 
-            $users = $dbhfd->query("SELECT * FROM users WHERE groupid = {$group['groupid']} AND deletedfromyahoo = 0 AND useremail = 'edward@ehibbert.org.uk';");
+            $users = $dbhfd->query("SELECT * FROM users WHERE groupid = {$group['groupid']} AND deletedfromyahoo = 0;");
             $count = 0;
             foreach ($users as $user) {
                 try {

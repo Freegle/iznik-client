@@ -44,10 +44,11 @@ class Digest
     public function sendOne($mailer, $message) {
         $mailer->send($message);
     }
-    
+
     public function send($groupid, $frequency) {
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = new Group($this->dbhr, $this->dbhm, $groupid);
         $gatts = $g->getPublic();
+        $sent = 0;
 
         if ($gatts['type'] == Group::GROUP_FREEGLE) {
             # We only send digests for Freegle groups.
@@ -68,7 +69,7 @@ class Digest
             }
 
             if ($fdgroupid) {
-                error_log($g->getPrivate('nameshort') . " send emails for $frequency");
+                error_log("#$groupid " . $g->getPrivate('nameshort') . " send emails for $frequency");
 
                 # Make sure we have a tracking entry.
                 $sql = "INSERT IGNORE INTO groups_digests (groupid, frequency) VALUES (?, ?);";
@@ -79,12 +80,11 @@ class Digest
                 foreach ($tracks as $track) {
                     # Find the cut-off time for the earliest message we want to include.  If we've not sent anything for this
                     # group/frequency before then ensure we don't send anything older than a day.
-                    $oldest = " AND messages.arrival >= '" . date("Y-m-d H:i:s", strtotime("24 hours ago")) . "'";
+                    $oldest = " AND arrival >= '" . date("Y-m-d H:i:s", strtotime("48 hours ago")) . "'";
                     $msgidq = $track['msgid'] ? " AND msgid > {$track['msgid']} " : '';
 
                     error_log("Prepare messages");
                     $sql = "SELECT msgid, yahooapprovedid FROM messages_groups WHERE groupid = ? AND collection = ? AND deleted = 0 $oldest $msgidq ORDER BY msgid ASC;";
-                    error_log($sql);
                     $messages = $this->dbhr->preQuery($sql, [
                         $groupid,
                         MessageCollection::APPROVED,
@@ -97,8 +97,23 @@ class Digest
                     foreach ($messages as $message) {
                         $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
                         $subjects[$message['msgid']] = $m->getSubject();
+                        error_log("Add message " . $m->getSubject());
 
-                        $atts = $m->getPublic(FALSE, TRUE);
+                        $atts = $m->getPublic(FALSE, TRUE, TRUE);
+
+                        # Strip out the clutter associated with various ways of posting.
+                        $atts['textbody'] = $m->stripGumf();
+
+                        # We need the approved ID on Yahoo for migration links.
+                        # TODO remove in time.
+                        $atts['yahooapprovedid'] = NULL;
+                        $groups = $atts['groups'];
+                        foreach ($groups as $group) {
+                            if ($group['groupid'] == $groupid) {
+                                $approvedid = $group['yahooapprovedid'];
+                            }
+                        }
+
                         if ($atts['type'] == Message::TYPE_OFFER || $atts['type'] == Message::TYPE_WANTED) {
                             if (count($atts['related']) == 0) {
                                 $available[] = $atts;
@@ -117,11 +132,21 @@ class Digest
                             # For immediate messages, which we send out as they arrive, we can set them to reply to
                             # the original sender.  We include only the text body of the message, because we
                             # wrap it up inside our own HTML.
-                            $msghtml = digest_message($msg);
-                            $html = digest_single($msghtml, USER_DOMAIN, USERLOGO, $msg['subject'], $msg['fromname'], $msg['fromaddr'], "{{unsubscribe}}");
+                            #
+                            # Anything that is per-group is passed in as a parameter here.  Anything that is or might
+                            # become per-user is in the template as a {{...}} substitution.
+                            $msghtml = digest_message($msg, $msg['yahooapprovedid'], $fdgroupid);
+                            $html = digest_single($msghtml,
+                                USER_DOMAIN,
+                                USERLOGO,
+                                $gatts['namedisplay'],
+                                $msg['subject'],
+                                $msg['fromname'],
+                                $msg['fromaddr']
+                            );
 
                             $tosend[] = [
-                                'subject' => $msg['subject'],
+                                'subject' => '[' . $gatts['namedisplay'] . "] {$msg['subject']}",
                                 'from' => $msg['fromaddr'],
                                 'fromname' => $msg['fromname'],
                                 'replyto' => $msg['fromaddr'],
@@ -171,14 +196,16 @@ class Digest
                     $replacements = [];
 
                     error_log("Find users");
-                    $users = $this->dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND emailallowed = 1 AND emailfrequency = ? ORDER BY userid ASC;");
+                    $sql = "SELECT userid FROM memberships WHERE groupid = ? AND emailallowed = 1 AND emailfrequency = ? ORDER BY userid ASC;";
+                    $users = $this->dbhr->preQuery($sql,
+                        [ $groupid, $frequency ]);
                     error_log("Prepare users");
                     foreach ($users as $user) {
                         $u = new User($this->dbhr, $this->dbhm, $user['userid']);
                         $emails = $u->getEmails();
 
                         if (count($emails) > 0) {
-                            $email = $emails[0];
+                            $email = $emails[0]['email'];
                             error_log("...$email");
 
                             # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
@@ -187,7 +214,9 @@ class Digest
                                 '{{unsubscribe}}' => 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email),
                                 '{{email}}' => $email,
                                 '{{frequency}}' => $this->freqText[$frequency],
-                                '{{noemail}}' => 'digestoff-' . $user['userid'] . "@" . USER_DOMAIN
+                                '{{noemail}}' => 'digestoff-' . $user['userid'] . "@" . USER_DOMAIN,
+                                '{{post}}' => "https://direct.ilovefreegle.org/login.php?action=post&groupid=$groupid&digest=$groupid",
+                                '{{visit}}' => "https://direct.ilovefreegle.org/login.php?action=mygroups&subaction=displaygroup&groupid=$groupid&digest=$groupid"
                             ];
                         }
                     }
@@ -207,29 +236,37 @@ class Digest
 
                         $mailer = Swift_Mailer::newInstance($transport);
 
-                        # We're decorating using the information we collected earlier.
+                        # We're decorating using the information we collected earlier.  So we create one copy of
+                        # the message, with replacement strings, and many recipients.
+                        error_log("Replacements " . var_export($replacements, TRUE));
                         $decorator = new Swift_Plugins_DecoratorPlugin($replacements);
                         $mailer->registerPlugin($decorator);
 
+                        $_SERVER['SERVER_NAME'] = USER_DOMAIN;
                         foreach ($tosend as $msg) {
-                            # Now send it
                             $message = Swift_Message::newInstance()
                                 ->setSubject($msg['subject'])
                                 ->setFrom([$msg['from'] => $msg['fromname']])
-                                ->setReturnPath(NOREPLY_ADDR)
+                                ->setReturnPath('bounce@direct.ilovefreegle.org')
                                 ->setReplyTo($msg['replyto'], $msg['replytoname'])
-                                #->setTo([$to => $toname])
-                                ->setTo(['log@ehibbert.org.uk' => '{{toname}}'])
                                 ->setBody($msg['text'])
                                 ->addPart($msg['html'], 'text/html');
                             $headers = $message->getHeaders();
                             $headers->addTextHeader('List-Unsubscribe', '<mailto:{{unsubscribe}}>');
 
+                            foreach ($replacements as $email => $rep) {
+                                $message->addTo($email, $rep['{{toname}}']);
+                            }
+
                             $this->sendOne($mailer, $message);
                         }
+
+                        $sent += count($tosend);
                     }
                 }
             }
         }
+
+        return($sent);
     }
 }

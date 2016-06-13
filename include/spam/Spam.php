@@ -219,6 +219,8 @@ class Spam {
     public function listSpammers($collection, $search, &$context) {
         # We exclude anyone who isn't a User (e.g. mods, support, admin) so that they don't appear on the list and
         # get banned.
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $seeall = $me && $me->isAdminOrSupport();
         $collectionq = ($collection ? " AND collection = '$collection'" : '');
         $startq = $context ? (" AND spam_users.id <  " . intval($context['id']) . " ") : '';
         $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") . ") ");
@@ -229,7 +231,7 @@ class Spam {
 
         foreach ($spammers as &$spammer) {
             $u = new User($this->dbhr, $this->dbhm, $spammer['userid']);
-            $spammer['user'] = $u->getPublic(NULL, TRUE, TRUE);
+            $spammer['user'] = $u->getPublic(NULL, TRUE, $seeall);
             $spammer['user']['email'] = $u->getEmailPreferred();
 
             $emails = $u->getEmails();
