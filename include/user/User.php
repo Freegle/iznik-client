@@ -1102,25 +1102,23 @@ class User extends Entity
             $visible = $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT;
             $memberof = [];
 
-            if (!$visible) {
-                # Check the groups.
-                $sql = "SELECT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
-                $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
-                foreach ($groups as $group) {
-                    $role = $me ? $me->getRole($group['groupid']) : User::ROLE_NONMEMBER;
-                    $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+            # Check the groups.
+            $sql = "SELECT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
+            $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
+            foreach ($groups as $group) {
+                $role = $me ? $me->getRole($group['groupid']) : User::ROLE_NONMEMBER;
+                $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
 
-                    $memberof[] = [
-                        'id' => $group['groupid'],
-                        'namedisplay' => $name,
-                        'added' => ISODate($group['added']),
-                        'collection' => $group['collection'],
-                        'emailid' => $group['emailid']
-                    ];
+                $memberof[] = [
+                    'id' => $group['groupid'],
+                    'namedisplay' => $name,
+                    'added' => ISODate($group['added']),
+                    'collection' => $group['collection'],
+                    'emailid' => $group['emailid']
+                ];
 
-                    if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
-                        $visible = TRUE;
-                    }
+                if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
+                    $visible = TRUE;
                 }
             }
 

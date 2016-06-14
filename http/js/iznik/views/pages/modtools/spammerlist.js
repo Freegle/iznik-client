@@ -202,80 +202,86 @@ define([
         render: function () {
             var self = this;
 
-            self.model.set('type', self.options.type);
-            var p = Iznik.Views.ModTools.Member.Spam.prototype.render.call(self);
-            p.then(function() {
-                var user = self.model.get('user');
-                var usermod = new Iznik.Model(user);
+            if (!self.rendering) {
+                self.rendering = new Promise(function (resolve, reject) {
+                    self.model.set('type', self.options.type);
+                    var p = Iznik.Views.ModTools.Member.Spam.prototype.render.call(self);
+                    p.then(function () {
+                        var user = self.model.get('user');
+                        var usermod = new Iznik.Model(user);
 
-                if (Iznik.Session.isAdmin()) {
-                    self.$('.js-adminonly').removeClass('hidden');
-                }
+                        if (Iznik.Session.isAdmin()) {
+                            self.$('.js-adminonly').removeClass('hidden');
+                        }
 
-                if (Iznik.Session.isAdminOrSupport()) {
-                    self.$('.js-adminsupportonly').removeClass('hidden');
-                }
+                        if (Iznik.Session.isAdminOrSupport()) {
+                            self.$('.js-adminsupportonly').removeClass('hidden');
+                        }
 
-                var mom = new moment(self.model.get('added'));
-                self.$('.js-added').html(mom.format('ll'));
+                        var mom = new moment(self.model.get('added'));
+                        self.$('.js-added').html(mom.format('ll'));
 
-                var v = new Iznik.Views.ModTools.User({
-                    model: new Iznik.Models.ModTools.User(user)
-                });
-
-                v.render().then(function (v) {
-                    self.$('.js-user').html(v.el);
-                });
-
-                // No point duplicating spammer info
-                self.$('.js-spammerinfo').hide();
-
-                // Add any other emails
-                self.$('.js-otheremails').empty();
-                var selfemail = user.email;
-                _.each(user.otheremails, function (email) {
-                    if (email.email != selfemail) {
-                        var mod = new Iznik.Model(email);
-                        var v = new Iznik.Views.ModTools.Message.OtherEmail({
-                            model: mod
+                        var v = new Iznik.Views.ModTools.User({
+                            model: new Iznik.Models.ModTools.User(user)
                         });
+
                         v.render().then(function (v) {
-                            self.$('.js-otheremails').append(v.el);
+                            self.$('.js-user').html(v.el);
                         });
-                    }
-                });
 
-                self.$('.js-memberof').empty();
-                _.each(user.memberof, function (group) {
-                    var mod = new Iznik.Model(group);
-                    var v = new Iznik.Views.ModTools.Member.Of({
-                        model: mod,
-                        user: usermod
+                        // No point duplicating spammer info
+                        self.$('.js-spammerinfo').hide();
+
+                        // Add any other emails
+                        self.$('.js-otheremails').empty();
+                        var selfemail = user.email;
+                        _.each(user.otheremails, function (email) {
+                            if (email.email != selfemail) {
+                                var mod = new Iznik.Model(email);
+                                var v = new Iznik.Views.ModTools.Message.OtherEmail({
+                                    model: mod
+                                });
+                                v.render().then(function (v) {
+                                    self.$('.js-otheremails').append(v.el);
+                                });
+                            }
+                        });
+
+                        self.$('.js-memberof').empty();
+                        _.each(user.memberof, function (group) {
+                            var mod = new Iznik.Model(group);
+                            var v = new Iznik.Views.ModTools.Member.Of({
+                                model: mod,
+                                user: usermod
+                            });
+                            v.render().then(function (v) {
+                                self.$('.js-memberof').append(v.el);
+                            });
+                        });
+
+                        self.$('.js-applied').empty();
+                        _.each(user.applied, function (group) {
+                            var mod = new Iznik.Model(group);
+                            var v = new Iznik.Views.ModTools.Member.Applied({
+                                model: mod
+                            });
+                            v.render().then(function (v) {
+                                self.$('.js-applied').append(v.el);
+                            });
+                        });
+
+                        self.$('.timeago').timeago();
+
+                        self.listenToOnce(self.model, 'deleted removed', function () {
+                            self.$el.fadeOut('slow');
+                        });
+
+                        resolve();
                     });
-                    v.render().then(function (v) {
-                        self.$('.js-memberof').append(v.el);
-                    });
                 });
+            }
 
-                self.$('.js-applied').empty();
-                _.each(user.applied, function (group) {
-                    var mod = new Iznik.Model(group);
-                    var v = new Iznik.Views.ModTools.Member.Applied({
-                        model: mod
-                    });
-                    v.render().then(function (v) {
-                        self.$('.js-applied').append(v.el);
-                    });
-                });
-
-                self.$('.timeago').timeago();
-
-                self.listenToOnce(self.model, 'deleted removed', function () {
-                    self.$el.fadeOut('slow');
-                });
-            });
-
-            return (p);
+            return (self.rendering);
         }
     });
 });
