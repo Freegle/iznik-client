@@ -4,9 +4,21 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/mail/Digest.php');
 
-$groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' and nameshort like '%ribble%';");
+$opts = getopt('i:');
+
+if (count($opts) < 1) {
+    echo "Usage: hhvm digest.php -i <interval>\n";
+} else {
+    $interval = $opts['i'];
+}
+
+$lockh = lockScript(basename(__FILE__) . "-$interval");
+
+$groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' and nameshort like '%edinbu%';");
 $d = new Digest($dbhr, $dbhm);
 
 foreach ($groups as $group) {
-    $d->send($group['id'], Digest::HOUR1);
+    $d->send($group['id'], $interval);
 }
+
+unlockScript($lockh);

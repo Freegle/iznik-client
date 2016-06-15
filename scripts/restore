@@ -14,4 +14,8 @@ innobackupex --apply-log /archive/mysql
 chown -R mysql:mysql /archive/mysql
 /etc/init.d/mysql start
 maxdate=`mysql --execute="use iznik; SELECT MAX(arrival) FROM messages;" | grep -`
-echo "Restored"| mail -s "RESTORE: DB restored on hub upto $maxdate" $EMAIL
+if [ $? == 0 ]; then
+    echo "Restored"| mail -s "RESTORE: DB restored on archive" $EMAIL
+else
+    cat /tmp/restore.out | mail -s "RESTORE: FAILED on hub" $EMAIL
+fi

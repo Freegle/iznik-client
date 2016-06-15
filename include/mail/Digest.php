@@ -78,6 +78,9 @@ class Digest
                 $sql = "SELECT * FROM groups_digests WHERE groupid = ? AND frequency = ?;";
                 $tracks = $this->dbhr->preQuery($sql, [ $groupid, $frequency ]);
                 foreach ($tracks as $track) {
+                    $sql = "UPDATE groups_digests SET started = NOW() WHERE groupid = ? AND frequency = ?;";
+                    $this->dbhm->preExec($sql, [$groupid, $frequency]);
+
                     # Find the cut-off time for the earliest message we want to include.  If we've not sent anything for this
                     # group/frequency before then ensure we don't send anything older than a day.
                     $oldest = " AND arrival >= '" . date("Y-m-d H:i:s", strtotime("24 hours ago")) . "'";
@@ -92,8 +95,11 @@ class Digest
                     $subjects = [];
                     $available = [];
                     $unavailable = [];
+                    $maxmsg = 0;
 
                     foreach ($messages as $message) {
+                        $maxmsg = max($maxmsg, $message['msgid']);
+
                         $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
                         $subjects[$message['msgid']] = $m->getSubject();
 
@@ -210,79 +216,90 @@ class Digest
                         ];
                     }
 
-                    # We might have stopped partway through a previous run; if so, then userid will record where we were
-                    # upto.
-                    $upto = intval($track['userid']);
-                    # TODO Save and honour this.
+                    error_log("Got " . count($tosend) . " messages max $maxmsg");
+                    if ($maxmsg > 0) {
+                        # Now find the users we want to send to on this group for this frequency.  We build up an array of
+                        # the substitutions we need.
+                        # TODO This isn't that well indexed in the table.
+                        $replacements = [];
 
-                    # Now find the users we want to send to on this group for this frequency.  We build up an array of
-                    # the substitutions we need.
-                    # TODO This isn't that well indexed in the table.
-                    $replacements = [];
+                        $sql = "SELECT userid FROM memberships WHERE groupid = ? AND emailallowed = 1 AND emailfrequency = ? ORDER BY userid ASC;";
+                        $users = $this->dbhr->preQuery($sql,
+                            [ $groupid, $frequency ]);
 
-                    $sql = "SELECT userid FROM memberships WHERE groupid = ? AND emailallowed = 1 AND emailfrequency = ? ORDER BY userid ASC;";
-                    $users = $this->dbhr->preQuery($sql,
-                        [ $groupid, $frequency ]);
+                        foreach ($users as $user) {
+                            $u = new User($this->dbhr, $this->dbhm, $user['userid']);
+                            $emails = $u->getEmails();
 
-                    foreach ($users as $user) {
-                        $u = new User($this->dbhr, $this->dbhm, $user['userid']);
-                        $emails = $u->getEmails();
+                            if (count($emails) > 0) {
+                                $email = $emails[0]['email'];
+                                error_log("...$email");
 
-                        if (count($emails) > 0) {
-                            $email = $emails[0]['email'];
-                            error_log("...$email");
-
-                            # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
-                            $replacements[$email] = [
-                                '{{toname}}' => $u->getName(),
-                                '{{unsubscribe}}' => 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email),
-                                '{{email}}' => $email,
-                                '{{frequency}}' => $this->freqText[$frequency],
-                                '{{noemail}}' => 'digestoff-' . $user['userid'] . "@" . USER_DOMAIN,
-                                '{{post}}' => "https://direct.ilovefreegle.org/login.php?action=post&groupid=$groupid&digest=$groupid",
-                                '{{visit}}' => "https://direct.ilovefreegle.org/login.php?action=mygroups&subaction=displaygroup&groupid=$groupid&digest=$groupid"
-                            ];
+                                # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
+                                $replacements[$email] = [
+                                    '{{toname}}' => $u->getName(),
+                                    '{{unsubscribe}}' => 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email),
+                                    '{{email}}' => $email,
+                                    '{{frequency}}' => $this->freqText[$frequency],
+                                    '{{noemail}}' => 'digestoff-' . $user['userid'] . "@" . USER_DOMAIN,
+                                    '{{post}}' => "https://direct.ilovefreegle.org/login.php?action=post&groupid=$groupid&digest=$groupid",
+                                    '{{visit}}' => "https://direct.ilovefreegle.org/login.php?action=mygroups&subaction=displaygroup&groupid=$groupid&digest=$groupid"
+                                ];
+                            }
                         }
-                    }
 
-                    if (count($replacements) > 0) {
-                        # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
-                        # rather than lose it.
-                        $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
-                        $spooltrans = Swift_SpoolTransport::newInstance($spool);
-                        $smtptrans = Swift_SmtpTransport::newInstance("localhost");
-                        $transport = Swift_FailoverTransport::newInstance([
-                            $smtptrans,
-                            $spooltrans
-                        ]);
+                        error_log("Got " . count($replacements) . " users");
+                        if (count($replacements) > 0) {
+                            # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
+                            # rather than lose it.
+                            $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
+                            $spooltrans = Swift_SpoolTransport::newInstance($spool);
+                            $smtptrans = Swift_SmtpTransport::newInstance("localhost");
+                            $transport = Swift_FailoverTransport::newInstance([
+                                $smtptrans,
+                                $spooltrans
+                            ]);
 
-                        $mailer = Swift_Mailer::newInstance($transport);
+                            $mailer = Swift_Mailer::newInstance($transport);
 
-                        # We're decorating using the information we collected earlier.  So we create one copy of
-                        # the message, with replacement strings, and many recipients.
-                        $decorator = new Swift_Plugins_DecoratorPlugin($replacements);
-                        $mailer->registerPlugin($decorator);
+                            # We're decorating using the information we collected earlier.  So we create one copy of
+                            # the message, with replacement strings, and many recipients.
+                            $decorator = new Swift_Plugins_DecoratorPlugin($replacements);
+                            $mailer->registerPlugin($decorator);
 
-                        $_SERVER['SERVER_NAME'] = USER_DOMAIN;
-                        foreach ($tosend as $msg) {
-                            $message = Swift_Message::newInstance()
-                                ->setSubject($msg['subject'])
-                                ->setFrom([$msg['from'] => $msg['fromname']])
-                                ->setReturnPath('bounce@direct.ilovefreegle.org')
-                                ->setReplyTo($msg['replyto'], $msg['replytoname'])
-                                ->setBody($msg['text'])
-                                ->addPart($msg['html'], 'text/html');
-                            $headers = $message->getHeaders();
-                            $headers->addTextHeader('List-Unsubscribe', '<mailto:{{unsubscribe}}>');
+                            # We don't want to send mails with too many recipients.  This plugin breaks it up.
+                            $mailer->registerPlugin(new Swift_Plugins_AntiFloodPlugin(900));
 
-                            foreach ($replacements as $email => $rep) {
-                                $message->addTo($email, $rep['{{toname}}']);
+                            $_SERVER['SERVER_NAME'] = USER_DOMAIN;
+                            foreach ($tosend as $msg) {
+                                $message = Swift_Message::newInstance()
+                                    ->setSubject($msg['subject'])
+                                    ->setFrom([$msg['from'] => $msg['fromname']])
+                                    ->setReturnPath('bounce@direct.ilovefreegle.org')
+                                    ->setReplyTo($msg['replyto'], $msg['replytoname'])
+                                    ->setBody($msg['text'])
+                                    ->addPart($msg['html'], 'text/html');
+                                $headers = $message->getHeaders();
+                                $headers->addTextHeader('List-Unsubscribe', '<mailto:{{unsubscribe}}>');
+
+                                foreach ($replacements as $email => $rep) {
+                                    $message->addTo($email, $rep['{{toname}}']);
+                                }
+
+                                $this->sendOne($mailer, $message);
                             }
 
-                            $this->sendOne($mailer, $message);
+                            $sent += count($tosend);
                         }
 
-                        $sent += count($tosend);
+                        if ($maxmsg > 0) {
+                            # Record the message we got upto.
+                            $sql = "UPDATE groups_digests SET msgid = ? WHERE groupid = ? AND frequency = ?;";
+                            $this->dbhm->preExec($sql, [$maxmsg, $groupid, $frequency]);
+                        }
+
+                        $sql = "UPDATE groups_digests SET ended = NOW() WHERE groupid = ? AND frequency = ?;";
+                        $this->dbhm->preExec($sql, [$groupid, $frequency]);
                     }
                 }
             }
