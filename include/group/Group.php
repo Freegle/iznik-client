@@ -371,6 +371,8 @@ class Group extends Entity
                 error_log("Sync failed with " . $e->getMessage());
                 mail("log@ehibbert.org.uk", "Membership sync failed on " . $g->getPrivate('nameshort'), $e->getMessage());
             }
+
+            $count++;
         }
     }
 
