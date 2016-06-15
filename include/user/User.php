@@ -612,7 +612,7 @@ class User extends Entity
 
             $one['mysettings'] = $this->getGroupSettings($group['groupid']);
 
-            # We only need to bother finding out how much work there is if we are interested in seeing it.
+            # We only need finding out how much work there is if we are interested in seeing it.
             $showmessages = !array_key_exists('showmessages', $one['mysettings']) || $one['mysettings']['showmessages'];
             $showmembers = !array_key_exists('showmembers', $one['mysettings']) || $one['mysettings']['showmembers'];
 

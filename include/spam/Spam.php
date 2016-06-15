@@ -189,20 +189,6 @@ class Spam {
         }
     }
 
-    public function workCount() {
-        $count = 0;
-
-        $me = whoAmI($this->dbhr, $this->dbhm);
-
-        if ($me) {
-            $sql = "SELECT COUNT(DISTINCT(users.id)) AS count FROM users INNER JOIN memberships ON users.suspectcount > 0 AND users.id = memberships.userid AND memberships.groupid IN (SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner'));";
-            $counts = $this->dbhr->preQuery($sql, [ $me->getId() ]);
-            $count = $counts[0]['count'];
-        }
-
-        return($count);
-    }
-
     public function collectionCount($collection) {
         $sql = "SELECT COUNT(*) AS count FROM spam_users WHERE collection = ?;";
         $counts = $this->dbhr->preQuery($sql, [ $collection ]);

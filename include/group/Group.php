@@ -172,10 +172,15 @@ class Group extends Entity
                 $this->id,
                 MembershipCollection::PENDING
             ])[0]['count'] : 0,
+            'spammembers' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users INNER JOIN memberships ON memberships.groupid = ? AND memberships.userid = users.id WHERE suspectcount > 0;", [
+                $this->id
+            ])[0]['count'],
             'plugin' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM plugin WHERE groupid = ?;", [
                 $this->id
             ])[0]['count']
         ];
+
+        error_log($this->group['nameshort'] . " spammembers " . $ret['spammembers']);
 
         return($ret);
     }
