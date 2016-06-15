@@ -120,14 +120,18 @@ function session() {
                 $password = presdef('password', $_REQUEST, NULL);
                 $key = presdef('key', $_REQUEST, NULL);
 
-                if ($fullname) {
-                    $me->setPrivate('fullname', $fullname);
-                }
                 if ($firstname) {
                     $me->setPrivate('firstname', $firstname);
                 }
                 if ($lastname) {
                     $me->setPrivate('lastname', $lastname);
+                }
+                if ($fullname) {
+                    # Fullname is what we set from the client.  Zap the first/last names so that people who change
+                    # their name for privacy reasons are respected.
+                    $me->setPrivate('fullname', $fullname);
+                    $me->setPrivate('firstname', NULL);
+                    $me->setPrivate('lastname', NULL);
                 }
 
                 $settings = presdef('settings', $_REQUEST, NULL);

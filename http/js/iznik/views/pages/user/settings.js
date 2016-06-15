@@ -18,7 +18,9 @@ define([
         },
 
         events: {
-            'switchChange.bootstrapSwitch .js-onholiday': 'onholiday'
+            'switchChange.bootstrapSwitch .js-onholiday': 'onholiday',
+            'keyup .js-name': 'nameChange',
+            'keyup .js-email': 'emailChange'
         },
 
         onholiday: function() {
@@ -30,6 +32,61 @@ define([
                 this.$('.js-onholidaytill').val('1970-01-01T00:00:00Z');
                 this.$('.js-onholidaytill').hide();
                 this.$('.js-until').hide();
+            }
+        },
+
+        nameChange: function(e) {
+            var self = this;
+            self.$('.js-name').removeClass('error-border');
+            if (e.which === 13) {
+                var name = this.$('.js-name').val();
+                if (name.length > 0) {
+                    var me = Iznik.Session.get('me');
+                    me.displayname = name;
+                    Iznik.Session.set('me', me);
+                    try {
+                        localStorage.removeItem('session');
+                    } catch (e) {};
+
+                    Iznik.Session.save({
+                        id: me.id,
+                        displayname: name
+                    }, {
+                        patch: true
+                    }).then(function() {
+                        self.$('.js-nameok').fadeIn();
+                    });
+                } else {
+                    self.$('.js-name').addClass('error-border');
+                    self.$('.js-name').focus();
+                }
+            }
+        },
+
+        emailChange: function(e) {
+            self.$('.js-email').removeClass('error-border');
+            if (e.which === 13) {
+                var email= this.$('.js-email').val();
+                if (email.length > 0 && isValidEmailAddress(email)) {
+                    var me = Iznik.Session.get('me');
+                    me.email = email;
+                    Iznik.Session.set('me', me);
+                    try {
+                        localStorage.removeItem('session');
+                    } catch (e) {};
+
+                    Iznik.Session.save({
+                        id: me.id,
+                        email: email
+                    }, {
+                        patch: true
+                    }).then(function() {
+                        self.$('.js-emailok').fadeIn();
+                    });
+                } else {
+                    self.$('.js-email').addClass('error-border');
+                    self.$('.js-email').focus();
+                }
             }
         },
 
@@ -56,12 +113,15 @@ define([
                     format: 'D, dd MM yyyy'
                 });
 
+                var me = Iznik.Session.get('me');
+                self.$('.js-name').val(me.displayname)
+                self.$('.js-email').val(me.email)
+
                 var onholiday = Iznik.Session.getSetting('onholidaytill');
                 self.$('.js-onholiday').prop('checked', onholiday != undefined);
                 self.onholiday();
 
                 self.groupscoll = Iznik.Session.get('groups');
-                console.log("Groups", Iznik.Session.get('groups'), self.groupscoll);
                 self.collectionView = new Backbone.CollectionView({
                     el: self.$('.js-mailgroups'),
                     modelView: Iznik.Views.User.Settings.Group,
