@@ -358,12 +358,19 @@ class Group extends Entity
         # copies.
         $sql = "SELECT * FROM memberships_yahoo_dump WHERE lastprocessed IS NULL OR lastupdated > lastprocessed;";
         $groups = $this->dbhr->preQuery($sql);
+        $count = 0;
 
         foreach ($groups as $group) {
-            $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
-            error_log("Sync group " . $g->getPrivate('nameshort'));
-            $g->setMembers(json_decode($group['members'], TRUE),  MembershipCollection::APPROVED, $group['synctime']);
-            $this->dbhm->preExec("UPDATE memberships_yahoo_dump SET lastprocessed = NOW() WHERE groupid = ?;", [ $group['groupid']]);
+            try {
+                # Use master for sync to avoid caching, which can break our sync process.
+                $g = new Group($this->dbhm, $this->dbhm, $group['groupid']);
+                error_log("Sync group " . $g->getPrivate('nameshort') . " $count / " . count($groups));
+                $g->setMembers(json_decode($group['members'], TRUE),  MembershipCollection::APPROVED, $group['synctime']);
+                $this->dbhm->preExec("UPDATE memberships_yahoo_dump SET lastprocessed = NOW() WHERE groupid = ?;", [ $group['groupid']]);
+            } catch (Exception $e) {
+                error_log("Sync failed with " . $e->getMessage());
+                mail("log@ehibbert.org.uk", "Membership sync failed on " . $g->getPrivate('nameshort'), $e->getMessage());
+            }
         }
     }
 

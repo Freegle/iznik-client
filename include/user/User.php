@@ -1288,6 +1288,7 @@ class User extends Entity
     }
 
     public function merge($id1, $id2, $reason) {
+        error_log("Merge $id1, $id2, $reason"); ;
         # We want to merge two users.  At present we just merge the memberships, comments, emails and logs; we don't try to
         # merge any conflicting settings.
         #
