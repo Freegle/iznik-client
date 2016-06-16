@@ -265,12 +265,13 @@ class Spam {
         $spammers = $this->dbhr->preQuery($sql, [ Spam::TYPE_SPAMMER ]);
 
         foreach ($spammers as $spammer) {
-            error_log("Found spammer " . var_export($spammer, TRUE));
+            error_log("Found spammer {$spammer['userid']}");
             $g = new Group($this->dbhr, $this->dbhm, $spammer['groupid']);
             $spamcheck = $g->getSetting('spammers', [ 'check' => 1, 'remove' => 1]);
+            error_log("Spam check " . var_export($spamcheck, TRUE));
             if ($spamcheck['check'] && $spamcheck['remove']) {
                 $u = new User($this->dbhr, $this->dbhm, $spammer['userid']);
-                error_log("Found spammer {$spammer['userid']}");
+                error_log("Remove spammer {$spammer['userid']}");
                 $u->removeMembership($spammer['groupid'], TRUE, TRUE);
                 $count++;
             }

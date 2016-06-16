@@ -64,9 +64,11 @@ class Alert extends Entity
             ->setSubject($subject)
             ->setFrom([$from])
             ->setTo([$to => $toname])
-            #->setTo(['log@ehibbert.org.uk'])
-            ->setBody($text)
-            ->addPart($html, 'text/html');
+            ->setBody($text);
+
+        if ($html && strlen($html) > 10) {
+            $message->addPart($html, 'text/html');
+        }
 
         return($message);
     }

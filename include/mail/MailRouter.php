@@ -8,6 +8,7 @@ require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
+require_once(IZNIK_BASE . '/include/mail/Digest.php');
 require_once(IZNIK_BASE . '/lib/spamc.php');
 
 # This class routes an incoming message
@@ -134,27 +135,34 @@ class MailRouter
             $this->msg = $msg;
         }
 
+        $to = $this->msg->getEnvelopeto();
+        $from = $this->msg->getEnvelopefrom();
+        $replyto = $this->msg->getHeader('reply-to');
+
         if ($this->msg->getSource() == Message::YAHOO_SYSTEM) {
             $ret = MailRouter::DROPPED;
 
             # This is a message which is from Yahoo's system, rather than a message for a group.
-            $to = $this->msg->getEnvelopeto();
-            $from = $this->msg->getEnvelopefrom();
-            $replyto = $this->msg->getHeader('reply-to');
 
-            if ($log) { error_log("To is $to"); }
+            if ($log) {
+                error_log("To is $to");
+            }
 
-            if (preg_match('/modconfirm-(.*)-(.*)-(.*)@/', $to, $matches) !== FALSE && count($matches) == 4) {
+            if (preg_match('/modconfirm-(.*)-(.*)-(.*)@/', $to, $matches) === 1) {
                 # This purports to be a mail to confirm moderation status on Yahoo.
                 $groupid = $matches[1];
                 $userid = $matches[2];
                 $key = $matches[3];
-                if ($log) { error_log("Confirm moderation status for $userid on $groupid using $key"); }
+                if ($log) {
+                    error_log("Confirm moderation status for $userid on $groupid using $key");
+                }
 
                 # Get the first header.  This is added by our local EXIM and therefore can't be faked by a remote
                 # system.  Check that it comes from Yahoo.
                 $rcvd = $this->msg->getHeader('received');
-                if ($log) { error_log("Headers " . var_export($rcvd, true)); }
+                if ($log) {
+                    error_log("Headers " . var_export($rcvd, true));
+                }
 
                 if (preg_match('/from .*yahoo\.com \(/', $rcvd)) {
                     # See if we can find the group with this key.  If not then we just drop it - it's either a fake
@@ -162,7 +170,9 @@ class MailRouter
                     $sql = "SELECT id FROM groups WHERE id = ? AND confirmkey = ?;";
                     $groups = $this->dbhr->preQuery($sql, [$groupid, $key]);
 
-                    if ($log) { error_log("Check key $key for group $groupid"); }
+                    if ($log) {
+                        error_log("Check key $key for group $groupid");
+                    }
 
                     foreach ($groups as $group) {
                         # The confirm looks valid.  Promote this user.  We only promote to moderator because we can't
@@ -170,25 +180,35 @@ class MailRouter
                         $u = new User($this->dbhr, $this->dbhm, $userid);
 
                         if ($u->getPublic()['id'] == $userid) {
-                            if ($log) { error_log("Userid $userid is valid"); }
+                            if ($log) {
+                                error_log("Userid $userid is valid");
+                            }
                             $role = $u->getRole($groupid, FALSE);
-                            if ($log) { error_log("Role is $role"); }
+                            if ($log) {
+                                error_log("Role is $role");
+                            }
 
                             if ($role == User::ROLE_NONMEMBER) {
                                 # We aren't a member yet.  Add ourselves.
                                 #
                                 # We don't know which email we use but it'll get set on the next sync.
-                                if ($log) { error_log("Not a member yet"); }
+                                if ($log) {
+                                    error_log("Not a member yet");
+                                }
                                 $u->addMembership($groupid, User::ROLE_MODERATOR, NULL);
                                 $ret = MailRouter::TO_SYSTEM;
                             } else if ($role == User::ROLE_MEMBER) {
                                 # We're already a member.  Promote.
-                                if ($log) { error_log("We were a member, promote"); }
+                                if ($log) {
+                                    error_log("We were a member, promote");
+                                }
                                 $u->setRole(User::ROLE_MODERATOR, $groupid);
                                 $ret = MailRouter::TO_SYSTEM;
                             } else {
                                 # Mod or owner.  Don't demote owner to a mod!
-                                if ($log) { error_log("Already a mod/owner, no action"); }
+                                if ($log) {
+                                    error_log("Already a mod/owner, no action");
+                                }
                                 $ret = MailRouter::TO_SYSTEM;
                             }
                         }
@@ -197,9 +217,11 @@ class MailRouter
                         $this->dbhm->preExec("UPDATE groups SET confirmkey = NULL WHERE id = ?;", [$groupid]);
                     }
                 }
-            } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) !== FALSE && count($matches) == 4) {
+            } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
                 # This is a request by Yahoo to confirm a subscription for one of our members.  We always do that.
-                if ($log) { error_log("Confirm subscription"); }
+                if ($log) {
+                    error_log("Confirm subscription");
+                }
 
                 for ($i = 0; $i < 10; $i++) {
                     # Yahoo is sluggish - sending the confirm multiple times helps.
@@ -216,9 +238,11 @@ class MailRouter
                 ]);
 
                 $ret = MailRouter::TO_SYSTEM;
-            } else if ($replyto && preg_match('/confirm-invite-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) !== FALSE && count($matches) == 4) {
+            } else if ($replyto && preg_match('/confirm-invite-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
                 # This is an invitation by Yahoo to join a group, triggered by us in triggerYahooApplication.
-                if ($log) { error_log("Confirm invitation"); }
+                if ($log) {
+                    error_log("Confirm invitation");
+                }
 
                 for ($i = 0; $i < 10; $i++) {
                     # Yahoo is sluggish - sending the confirm multiple times helps.
@@ -235,7 +259,7 @@ class MailRouter
                 ]);
 
                 $ret = MailRouter::TO_SYSTEM;
-            } else if ($replyto && preg_match('/(.*)-acceptsub(.*)@yahoogroups.co.*/', $replyto, $matches) !== FALSE && count($matches) == 3) {
+            } else if ($replyto && preg_match('/(.*)-acceptsub(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
                 # This is a notification that a member has applied to the group.
                 #
                 # TODO There are some slight timing windows in the code below:
@@ -243,7 +267,9 @@ class MailRouter
                 #
                 # The user could also be approved/rejected elsewhere - but that'll sort itself out when we do a sync,
                 # or worst case a mod will handle it.
-                if ($log) { error_log("Member applied to group"); }
+                if ($log) {
+                    error_log("Member applied to group");
+                }
                 $ret = MailRouter::DROPPED;
                 $all = $this->msg->getMessage();
                 $approve = $replyto;
@@ -329,12 +355,16 @@ class MailRouter
                 }
             } else if (preg_match('/New (.*) member/', $this->msg->getSubject(), $matches)) {
                 $nameshort = $matches[1];
-                if ($log) { error_log("New member joined $nameshort"); }
+                if ($log) {
+                    error_log("New member joined $nameshort");
+                }
                 $all = $this->msg->getMessage();
 
                 if (preg_match('/^(.*) joined your/m', $all, $matches)) {
                     $email = $matches[1];
-                    if ($log) { error_log("Email is $email"); }
+                    if ($log) {
+                        error_log("Email is $email");
+                    }
                     $g = new Group($this->dbhr, $this->dbhm);
                     $gid = $g->findByShortName($nameshort);
 
@@ -344,7 +374,9 @@ class MailRouter
 
                         if ($uid) {
                             # We have the user and the group.  Mark the membership as no longer pending (if
-                            if ($log) { error_log("Found them $uid"); }
+                            if ($log) {
+                                error_log("Found them $uid");
+                            }
                             $u = new User($this->dbhr, $this->dbhm, $uid);
 
                             $u->markYahooApproved($gid);
@@ -361,11 +393,15 @@ class MailRouter
                 # we haven't got the new member notification in the previous arm (which we might
                 # not).  It means that we are already a member, so we can treat it as a confirmation.
                 $nameshort = $matches[1];
-                if ($log) { error_log("Request to join $nameshort"); }
+                if ($log) {
+                    error_log("Request to join $nameshort");
+                }
                 $all = $this->msg->getMessage();
 
                 if (preg_match('/Because you are already a member/m', $all, $matches)) {
-                    if ($log) { error_log("Already a member"); }
+                    if ($log) {
+                        error_log("Already a member");
+                    }
                     $g = new Group($this->dbhr, $this->dbhm);
                     $gid = $g->findByShortName($nameshort);
 
@@ -375,7 +411,9 @@ class MailRouter
 
                         if ($uid) {
                             # We have the user and the group.  Mark the membership as no longer pending.
-                            if ($log) { error_log("Found them $uid"); }
+                            if ($log) {
+                                error_log("Found them $uid");
+                            }
                             $u = new User($this->dbhr, $this->dbhm, $uid);
                             $u->markYahooApproved($gid);
 
@@ -386,6 +424,17 @@ class MailRouter
                         $ret = MailRouter::TO_SYSTEM;
                     }
                 }
+            }
+        } else if (preg_match('/digestoff-(.*)-(.*)@/', $to, $matches) == 1) {
+            # Request to turn email off.
+            $uid = intval($matches[1]);
+            $groupid = intval($matches[2]);
+
+            if ($uid && $groupid) {
+                $d = new Digest($this->dbhr, $this->dbhm);
+                $d->off($uid, $groupid);
+
+                $ret = MailRouter::TO_SYSTEM;
             }
         } else {
             if (!$notspam) {

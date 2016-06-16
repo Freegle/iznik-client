@@ -49,6 +49,7 @@ class Log
     const SUBTYPE_YAHOO_APPLIED = 'YahooApplied';
     const SUBTYPE_YAHOO_CONFIRMED = 'YahooConfirmed';
     const SUBTYPE_YAHOO_JOINED = 'YahooJoined';
+    const SUBTYPE_MAILOFF = 'MailOff';
 
     function __construct($dbhr, $dbhm)
     {

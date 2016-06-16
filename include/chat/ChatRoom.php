@@ -22,7 +22,8 @@ class ChatRoom extends Entity
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
-        $this->fetch($dbhr, $dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
+        # Always use the master, because cached results mess up presence.
+        $this->fetch($dbhm, $dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
         $this->log = new Log($dbhr, $dbhm);
     }
 

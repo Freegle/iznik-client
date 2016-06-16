@@ -286,7 +286,11 @@ class Message
 
             # We add some headers so that if we receive this back, we can identify it as a mod mail.
             $headers = $message->getHeaders();
-            $headers->addTextHeader('X-Iznik-From-User', $user->getId());
+
+            if ($user) {
+                $headers->addTextHeader('X-Iznik-From-User', $user->getId());
+            }
+
             $headers->addTextHeader('X-Iznik-ModMail', $modmail);
 
             if ($bcc) {
@@ -391,6 +395,7 @@ class Message
             // Footers
             $text = preg_replace('/--[\s\S]*Get Freegling[\s\S]*book/m', '', $text);
             $text = preg_replace('/--[\s\S]*Get Freegling[\s\S]*org[\s\S]*?<\/a>/m', '', $text);
+            $text = preg_replace('/This message was sent via Freegle Direct[\s\S]*/m', '', $text);
 
             // Redundant line breaks.
             $text = preg_replace('/(?:(?:\r\n|\r|\n)\s*){2}/s', "\n\n", $text);

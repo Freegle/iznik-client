@@ -353,10 +353,11 @@ class Group extends Entity
         $this->dbhm->preExec("REPLACE INTO memberships_yahoo_dump (groupid, members, lastupdated, synctime) VALUES (?,?,NOW(),?);", [$this->id, json_encode($members), $synctime]);
     }
 
-    public function processSetMembers() {
+    public function processSetMembers($groupid = NULL) {
         # This is called from the background script.  It's serialised, so we don't need to worry about other
         # copies.
-        $sql = "SELECT * FROM memberships_yahoo_dump WHERE lastprocessed IS NULL OR lastupdated > lastprocessed;";
+        $groupq = $groupid ? " OR groupid = $groupid" : '';
+        $sql = "SELECT * FROM memberships_yahoo_dump WHERE lastprocessed IS NULL OR lastupdated > lastprocessed AND (backgroundok = 1 $groupq);";
         $groups = $this->dbhr->preQuery($sql);
         $count = 0;
 

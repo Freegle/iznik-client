@@ -27,7 +27,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM users WHERE yahooid LIKE '-testid%';");
         $dbhm->preExec("DELETE FROM users WHERE yahooUserId LIKE '-testid%';");
-        $dbhm->preExec("DELETE FROM users_emails WHERE backwards LIKE 'moc.tset%';");
+        $dbhm->preExec("DELETE FROM users_emails WHERE backwards LIKE 'moctset%';");
 
         $this->group = new Group($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
@@ -805,7 +805,7 @@ class membershipsAPITest extends IznikAPITestCase {
         error_log("Done PATCH");
 
         $g = new Group($this->dbhr, $this->dbhm);
-        $g->processSetMembers();
+        $g->processSetMembers($this->groupid);
 
         $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ?;";
         $counts = $this->dbhr->preQuery($sql, [ $this->groupid ]);

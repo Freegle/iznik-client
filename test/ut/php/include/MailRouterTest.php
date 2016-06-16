@@ -1074,5 +1074,33 @@ class MailRouterTest extends IznikTestCase {
         
         error_log(__METHOD__ . " end");
     }
+
+    public function testMailOff() {
+        error_log(__METHOD__);
+
+        # Create the sending user
+        $u = new User($this->dbhm, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        error_log("Created user $uid");
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        $u->addMembership($gid);
+
+        $u->setMembershipAtt($gid, 'emailallowed', 1);
+        $u->setMembershipAtt($gid, 'emailfrequency', 24);
+
+        # Turn off by email
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'from@test.com', "digestoff-$uid-$gid@" . USER_DOMAIN, $msg);
+        assertNotNull($id);
+        $rc = $r->route();
+        assertEquals($rc, MailRouter::TO_SYSTEM);
+
+        assertEquals(0, $u->getMembershipAtt($gid, 'emailallowed'));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

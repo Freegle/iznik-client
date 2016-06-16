@@ -505,6 +505,17 @@ class User extends Entity
         return(count($membs) > 0);
     }
 
+    public function getMembershipAtt($groupid, $att) {
+        $sql = "SELECT * FROM memberships WHERE groupid = ? AND userid = ?;";
+        $val = NULL;
+        $membs = $this->dbhr->preQuery($sql , [ $groupid, $this->id ]);
+        foreach ($membs as $memb) {
+            $val = presdef($att, $memb, NULL);
+        }
+
+        return($val);
+    }
+
     public function setMembershipAtt($groupid, $att, $val) {
         $sql = "UPDATE memberships SET $att = ? WHERE groupid = ? AND userid = ?;";
         $rc = $this->dbhm->preExec($sql, [
@@ -535,9 +546,10 @@ class User extends Entity
         # Trigger removal of any Yahoo memberships first.
         $sql = "SELECT email FROM users_emails LEFT JOIN memberships_yahoo ON users_emails.id = memberships_yahoo.emailid INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND memberships.groupid = ? WHERE users_emails.userid = ?;";
         $emails = $this->dbhr->preQuery($sql, [ $groupid, $this->id ]);
-        #error_log("$sql, $groupid, {$this->id}");
+        error_log("$sql, $groupid, {$this->id}");
 
         foreach ($emails as $email) {
+            error_log("Remove #$groupid {$email['email']}");
             if ($ban) {
                 $type = 'BanApprovedMember';
             } else {

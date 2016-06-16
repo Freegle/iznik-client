@@ -40,7 +40,7 @@ class digestTest extends IznikTestCase {
 
         # Mock the actual send
         $mock = $this->getMockBuilder('Digest')
-            ->setConstructorArgs([$this->dbhr, $this->dbhm])
+            ->setConstructorArgs([$this->dbhm, $this->dbhm])
             ->setMethods(array('sendOne'))
             ->getMock();
         $mock->method('sendOne')->will($this->returnCallback(function($mailer, $message) {
@@ -49,7 +49,7 @@ class digestTest extends IznikTestCase {
 
         # Create a group with a message on it.
         $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_FREEGLE);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
@@ -68,7 +68,7 @@ class digestTest extends IznikTestCase {
         $u->addMembership($gid);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
         $u->setMembershipAtt($gid, 'emailallowed', 1);
-        assertGreaterThan(0, $u->addEmail('test2@test.com'));
+        assertGreaterThan(0, $u->addEmail('test@' . USER_DOMAIN));
 
         # Now test.
         assertEquals(1, $mock->send($gid, Digest::IMMEDIATE));
@@ -85,7 +85,7 @@ class digestTest extends IznikTestCase {
 
         # Create a group with a message on it.
         $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_FREEGLE);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
@@ -104,7 +104,7 @@ class digestTest extends IznikTestCase {
         $u->addMembership($gid);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
         $u->setMembershipAtt($gid, 'emailallowed', 1);
-        assertGreaterThan(0, $u->addEmail('test@blackhole.io'));
+        assertGreaterThan(0, $u->addEmail('test@' . USER_DOMAIN));
 
         # Now test.
         assertEquals(1, $d->send($gid, Digest::IMMEDIATE));
@@ -129,7 +129,7 @@ class digestTest extends IznikTestCase {
 
         # Create a group with two messages on it, one taken.
         $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_FREEGLE);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
@@ -167,7 +167,7 @@ class digestTest extends IznikTestCase {
         $u->addMembership($gid);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::HOUR1);
         $u->setMembershipAtt($gid, 'emailallowed', 1);
-        assertGreaterThan(0, $u->addEmail('test2@test.com'));
+        assertGreaterThan(0, $u->addEmail('test@' . USER_DOMAIN));
 
         # Now test.
         assertEquals(1, $mock->send($gid, Digest::HOUR1));

@@ -24,7 +24,7 @@ function handle($dbhr, $dbhm, $u, $realmail, $user) {
         # But it doesn't.
         error_log("Add $realmail} to {$user['id']} {$user['email']}");
         $u = new User($dbhr, $dbhm, $user['id']);
-        $u->addEmail($realmail, 0, FALSE);
+        $rc = $u->addEmail($realmail, 0, FALSE);
 
         if ($rc) {
             $u->setPrivate('gotrealemail', 1);

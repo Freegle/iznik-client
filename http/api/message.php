@@ -209,7 +209,10 @@ function message() {
                         $r->route($m, TRUE);
                         break;
                     case 'Spam':
-                        $m->spam($groupid);
+                        # Don't trust normal mods to categories this correctly.
+                        if ($me->isAdminOrSupport()) {
+                            $m->spam($groupid);
+                        }
                         break;
                     case 'JoinAndPost':
                         # This is the mainline case for someone posting a message.  We find the nearest group, sign

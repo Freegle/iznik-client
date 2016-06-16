@@ -14,7 +14,8 @@ if (count($opts) < 1) {
 
 $lockh = lockScript(basename(__FILE__) . "-$interval");
 
-$groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' and nameshort like '%edinbu%';");
+# We only send digests for Freegle groups.
+$groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE `type` = 'Freegle';");
 $d = new Digest($dbhr, $dbhm);
 
 foreach ($groups as $group) {
