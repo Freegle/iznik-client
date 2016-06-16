@@ -10,6 +10,7 @@ define([
     var lastEventTimestamp = null;
     var eventQueue = [];
     var flushTimerRunning;
+    var sessionCookie = null;
 
     function trackEvent(target, event, posX, posY, data, timestamp) {
         if (!timestamp) {
@@ -41,13 +42,33 @@ define([
 
             var eventhost = $('meta[name=iznikevent]').attr("content");
 
+            // We will typically be posting to another domain, to avoid delaying requests on the main
+            // domain because of event tracking (the per host connection limit).  This means that our
+            // session from the main domain won't be inherited unless we set it manually.  It's the same
+            // system under the covers, so the session is still valid.
+            if (!sessionCookie) {
+                JSON.stringify
+                try {
+                    var sess = localStorage.getItem('session');
+                    if (sess) {
+                        sess = JSON.parse(sess);
+                        sessionCookie = sess.session;
+                        console.log("Got session from local", sessionCookie);
+                    }
+                } catch (e) {console.log(e.message)};
+            }
+
             $.ajax({
                 url: 'https://' + eventhost + API + 'event',
                 type: 'POST',
                 data: {
+                    'api_key': sessionCookie,
                     'events': currQueue
                 }, success: function(ret) {
                     if (ret.ret === 0) {
+                        // Save the cookie
+                        sessionCookie = ret.session;
+
                         if (!flushTimerRunning) {
                             flushTimerRunning = true;
                             window.setTimeout(flushEventQueue, 5000);
