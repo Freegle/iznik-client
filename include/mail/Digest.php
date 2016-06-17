@@ -259,7 +259,6 @@ class Digest
                     # Now find the users we want to send to on this group for this frequency.  We build up an array of
                     # the substitutions we need.
                     # TODO This isn't that well indexed in the table.
-                    error_log("#$groupid Got " . count($tosend) . " messages max $maxmsg");
                     $replacements = [];
 
                     $sql = "SELECT userid FROM memberships WHERE groupid = ? AND emailallowed = 1 AND emailfrequency = ? ORDER BY userid ASC;";
@@ -297,8 +296,8 @@ class Digest
                         }
                     }
 
-                    error_log("Got " . count($replacements) . " users");
                     if (count($replacements) > 0) {
+                        error_log("#$groupid " . count($tosend) . " messages max $maxmsg to " . count($replacements) . " users");
                         # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
                         # rather than lose it.
                         $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");

@@ -30,6 +30,9 @@ define('FBAPP_SECRET', 'zzz');
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');
 
+# Host to monitor
+define('MONIT_HOST', 'zzz');
+
 # You can force all user activity onto a test group
 define('USER_GROUP_OVERRIDE', 'FreeglePlayground');
 
