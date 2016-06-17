@@ -112,7 +112,7 @@ class Digest
             $sql = "INSERT IGNORE INTO groups_digests (groupid, frequency) VALUES (?, ?);";
             $this->dbhm->preExec($sql, [ $groupid, $frequency ]);
 
-            $sql = "SELECT * FROM groups_digests WHERE groupid = ? AND frequency = ?;";
+            $sql = "SELECT TIMESTAMPDIFF(HOUR, started, NOW()) AS timeago, groups_digests.* FROM groups_digests WHERE  groupid = ? AND frequency = ? HAVING frequency = -1 OR timeago > frequency;";
             $tracks = $this->dbhr->preQuery($sql, [ $groupid, $frequency ]);
             foreach ($tracks as $track) {
                 $sql = "UPDATE groups_digests SET started = NOW() WHERE groupid = ? AND frequency = ?;";
@@ -196,7 +196,7 @@ class Digest
                             'text' => $msg['textbody']
                         ];
                     }
-                } else {
+                } else if (count($available) + count($unavailable) > 0) {
                     # Build up the HTML for the message(s) in it.  We add a teaser of items to make it more
                     # interesting.
                     $textsumm = '';
@@ -270,7 +270,7 @@ class Digest
 
                         if (count($emails) > 0) {
                             $email = $emails[0]['email'];
-                            $membershipmail = $u->getEmailForYahooGroup($groupid);
+                            $membershipmail = $u->getEmailForYahooGroup($groupid)['email'];
 
                             # We don't want to send out mails to users who are members directly on Yahoo, only
                             # for ones which have joined through this platform or its predecessor.
@@ -285,8 +285,8 @@ class Digest
                                     '{{email}}' => $email,
                                     '{{frequency}}' => $this->freqText[$frequency],
                                     '{{noemail}}' => 'digestoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
-                                    '{{post}}' => "https://direct.ilovefreegle.org/login.php?action=post&groupid=$groupid&digest=$groupid",
-                                    '{{visit}}' => "https://direct.ilovefreegle.org/login.php?action=mygroups&subaction=displaygroup&groupid=$groupid&digest=$groupid"
+                                    '{{post}}' => "https://direct.ilovefreegle.org/login.php?action=post&groupid=$fdgroupid&digest=$fdgroupid",
+                                    '{{visit}}' => "https://direct.ilovefreegle.org/login.php?action=mygroups&subaction=displaygroup&groupid=$fdgroupid&digest=$fdgroupid"
                                 ];
                             }
                         }
@@ -341,10 +341,10 @@ class Digest
                         $sql = "UPDATE groups_digests SET msgid = ? WHERE groupid = ? AND frequency = ?;";
                         $this->dbhm->preExec($sql, [$maxmsg, $groupid, $frequency]);
                     }
-
-                    $sql = "UPDATE groups_digests SET ended = NOW() WHERE groupid = ? AND frequency = ?;";
-                    $this->dbhm->preExec($sql, [$groupid, $frequency]);
                 }
+
+                $sql = "UPDATE groups_digests SET ended = NOW() WHERE groupid = ? AND frequency = ?;";
+                $this->dbhm->preExec($sql, [$groupid, $frequency]);
             }
         }
  
