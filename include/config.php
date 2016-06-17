@@ -21,8 +21,8 @@ if (!defined('IZNIK_BASE')) {
     require_once('/etc/iznik.conf');
 
     # There are some historical domains.
-    #define('OURDOMAINS', USER_DOMAIN . ",direct.ilovefreegle.org,republisher.freegle.in");
-    define('OURDOMAINS', USER_DOMAIN);
+    define('OURDOMAINS', USER_DOMAIN . ",direct.ilovefreegle.org,republisher.freegle.in");
+    #define('OURDOMAINS', USER_DOMAIN);
 
     if (!defined('MINIFY')) {
         define('MINIFY', FALSE);

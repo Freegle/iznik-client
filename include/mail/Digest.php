@@ -106,16 +106,17 @@ class Digest
         }
 
         if ($fdgroupid) {
-            error_log("#$groupid " . $g->getPrivate('nameshort') . " send emails for $frequency");
+            #error_log("#$groupid " . $g->getPrivate('nameshort') . " send emails for $frequency");
 
             # Make sure we have a tracking entry.
             $sql = "INSERT IGNORE INTO groups_digests (groupid, frequency) VALUES (?, ?);";
             $this->dbhm->preExec($sql, [ $groupid, $frequency ]);
 
             $sql = "SELECT TIMESTAMPDIFF(HOUR, started, NOW()) AS timeago, groups_digests.* FROM groups_digests WHERE  groupid = ? AND frequency = ? HAVING frequency = -1 OR timeago IS NULL OR timeago > frequency;";
+            #error_log("Look for groups to process $sql, $groupid, $frequency");
             $tracks = $this->dbhr->preQuery($sql, [ $groupid, $frequency ]);
             foreach ($tracks as $track) {
-                error_log("Gotcha");
+                #error_log("Start group $groupid");
                 $sql = "UPDATE groups_digests SET started = NOW() WHERE groupid = ? AND frequency = ?;";
                 $this->dbhm->preExec($sql, [$groupid, $frequency]);
 
@@ -254,11 +255,11 @@ class Digest
                     ];
                 }
 
-                error_log("Got " . count($tosend) . " messages max $maxmsg");
                 if ($maxmsg > 0) {
                     # Now find the users we want to send to on this group for this frequency.  We build up an array of
                     # the substitutions we need.
                     # TODO This isn't that well indexed in the table.
+                    error_log("#$groupid Got " . count($tosend) . " messages max $maxmsg");
                     $replacements = [];
 
                     $sql = "SELECT userid FROM memberships WHERE groupid = ? AND emailallowed = 1 AND emailfrequency = ? ORDER BY userid ASC;";
@@ -273,10 +274,11 @@ class Digest
                             $email = $emails[0]['email'];
 
                             # The group might or might not be on Yahoo.
-                            $membershipmail = $g->getPrivate('onyahoo') ? $u->getEmailForYahooGroup($groupid)[1]: $email;
+                            $membershipmail = $g->getPrivate('onyahoo') ? $u->getEmailForYahooGroup($groupid, TRUE)[1]: $email;
 
                             # We don't want to send out mails to users who are members directly on Yahoo, only
                             # for ones which have joined through this platform or its predecessor.
+                            error_log("Consider email $membershipmail");
                             if (stripos($membershipmail, USER_DOMAIN) !== FALSE ||
                                 stripos($membershipmail, 'fbuser') !== FALSE) {
                                 error_log("...$email");
@@ -330,7 +332,7 @@ class Digest
                             $headers->addTextHeader('List-Unsubscribe', '<mailto:{{unsubscribe}}>');
 
                             foreach ($replacements as $email => $rep) {
-                                $message->addBcc($email, $rep['{{toname}}']);
+                                $message->addBcc($email);
                             }
 
                             $this->sendOne($mailer, $message);

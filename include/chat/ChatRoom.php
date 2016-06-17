@@ -33,11 +33,13 @@ class ChatRoom extends Entity
         $message = Swift_Message::newInstance()
             ->setSubject($subject)
             ->setFrom([$from => $fromname])
-            #->setTo([$to => $toname])
-            ->setTo(['log@ehibbert.org.uk' => $toname])
+            ->setTo([$to => $toname])
             ->setBody($text)
             ->addPart($html, 'text/html');
         $headers = $message->getHeaders();
+
+        $message->addTo('log@ehibbert.org.uk');
+
         $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $id));
 
         return($message);
@@ -430,6 +432,7 @@ class ChatRoom extends Entity
         if (count($ret) === 0) {
             # All messages for this chat have, in fact, been seen.  Record this so that we don't re-examine this
             # chat.
+            error_log("All messages now seen.");
             $sql = "UPDATE chat_messages SET seenbyall = 1 WHERE chatid = ? AND id >= ?;";
             $this->dbhm->preExec($sql, [ $this->id, $lastseenbyall ]);
         }
@@ -447,7 +450,7 @@ class ChatRoom extends Entity
         $chatq = $chatid ? " AND chatid = $chatid " : '';
         $modq = $user ? 0 : 1;
         $sql = "SELECT DISTINCT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= '$start' AND seenbyall = 0 AND modtools = $modq $chatq;";
-        #error_log("$sql $start");
+        #error_log("$sql");
         $chats = $this->dbhr->preQuery($sql, [ $start ]);
         $notified = 0;
 
@@ -456,12 +459,14 @@ class ChatRoom extends Entity
 
         foreach ($chats as $chat) {
             # Different members of the chat might have seen different messages.
+            error_log("Check chat {$chat['chatid']}");
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
             $chatatts = $r->getPublic();
             $lastseen = $r->lastSeenByAll();
             $notseenby = $r->getMembersNotSeen($lastseen ? $lastseen : 0, $chatatts['lastmsg'], $age);
 
             foreach ($notseenby as $member) {
+                #error_log("Not seen {$member['userid']}");
                 # Now we have a member who has not seen all of the messages in this chat.  Find the other one.
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
                 $otheru = new User($this->dbhr, $this->dbhm, $other);

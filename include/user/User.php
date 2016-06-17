@@ -2027,15 +2027,12 @@ class User extends Entity
 
     public function inventEmail() {
         # An invented email is one on our domain that doesn't give away too much detail, but isn't just a string of
-        # numbers (ideally).  We may already have one - either on USER_DOMAIN, or for legacy emails on
-        # direct.ilovefreegle.org or republisher.freegle.in.
+        # numbers (ideally).  We may already have one.
         $email = NULL;
         $emails = $this->getEmails();
         foreach ($emails as $thisemail) {
-            foreach (explode(',', OURDOMAINS) as $domain) {
-                if (strpos($thisemail['email'], $domain) !== FALSE) {
-                    $email = $thisemail['email'];
-                }
+            if (strpos($thisemail['email'], USER_DOMAIN ) !== FALSE) {
+                $email = $thisemail['email'];
             }
         }
 

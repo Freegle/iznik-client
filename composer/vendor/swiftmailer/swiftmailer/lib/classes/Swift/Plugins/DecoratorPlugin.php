@@ -86,10 +86,10 @@ class Swift_Plugins_DecoratorPlugin implements Swift_Events_SendListener, Swift_
         $to = $message->getTo();
         $bcc = $message->getBcc();
 
-        if ($to && bcc) {
-            $to = array_merge($to, $bcc);
+        if ($to && $bcc) {
+            $to = array_merge($to, array_keys($bcc));
         } else if ($bcc) {
-            $to = $bcc;
+            $to = array_keys($bcc);
         }
 
         $address = array_shift($to);
