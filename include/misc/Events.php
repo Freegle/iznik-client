@@ -35,7 +35,7 @@ class Events {
             foreach ($logs as $log) {
                 $cmp = strcmp($log['data'], $data);
                 if ($cmp == 0) {
-                    $data = NULL;
+                    $dataq = 'NULL';
                     $datasameas = $log['id'];
                     break;
                 }
