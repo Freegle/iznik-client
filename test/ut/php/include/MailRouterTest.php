@@ -549,7 +549,7 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::FAILURE, $rc);
 
-        # Make the spamc check itself fail
+        # Make the spamc check itself fail - should still go through.
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $mock = $this->getMockBuilder('spamc')
             ->disableOriginalConstructor()
@@ -560,7 +560,7 @@ class MailRouterTest extends IznikTestCase {
 
         $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::FAILURE, $rc);
+        assertEquals(MailRouter::APPROVED, $rc);
 
         # Make the geo lookup throw an exception, which it does for unknown IPs
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -596,7 +596,7 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::FAILURE, $rc);
 
-        # Make the spamc check itself fail
+        # Make the spamc check itself fail - should still go through.
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $mock = $this->getMockBuilder('spamc')
             ->disableOriginalConstructor()
@@ -607,7 +607,7 @@ class MailRouterTest extends IznikTestCase {
 
         $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::FAILURE, $rc);
+        assertEquals(MailRouter::APPROVED, $rc);
 
         error_log(__METHOD__ . " end");
     }

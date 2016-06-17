@@ -686,12 +686,12 @@ class userTest extends IznikTestCase {
     public function testCanon() {
         error_log(__METHOD__);
 
-        assertEquals('test@test.com', User::canonMail('test@test.com'));
-        assertEquals('test@test.com', User::canonMail('test+fake@test.com'));
-        assertEquals('test@user.trashnothing.com', User::canonMail('test-g1@user.trashnothing.com'));
-        assertEquals('test@user.trashnothing.com', User::canonMail('test-x1@user.trashnothing.com'));
-        assertEquals('test-x1@user.trashnothing.com', User::canonMail('test-x1-x2@user.trashnothing.com'));
-        assertEquals('app+test@proxymail.facebook.com', User::canonMail('app+test@proxymail.facebook.com'));
+        assertEquals('test@testcom', User::canonMail('test@test.com'));
+        assertEquals('test@testcom', User::canonMail('test+fake@test.com'));
+        assertEquals('test@usertrashnothingcom', User::canonMail('test-g1@user.trashnothing.com'));
+        assertEquals('test@usertrashnothingcom', User::canonMail('test-x1@user.trashnothing.com'));
+        assertEquals('test-x1@usertrashnothingcom', User::canonMail('test-x1-x2@user.trashnothing.com'));
+        assertEquals('app+test@proxymailfacebookcom', User::canonMail('app+test@proxymail.facebook.com'));
 
         error_log(__METHOD__ . " end");
     }

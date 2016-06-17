@@ -209,9 +209,13 @@ function message() {
                         $r->route($m, TRUE);
                         break;
                     case 'Spam':
-                        # Don't trust normal mods to categories this correctly.
+                        # Don't trust normal mods to categorise this correctly.  Often they will mark a message from
+                        # a scammer trying to extort as spam, though the message itself is ok.  This tends to poison
+                        # our filter.
                         if ($me->isAdminOrSupport()) {
                             $m->spam($groupid);
+                        } else {
+                            $m->delete("Categorised as spam by moderator");
                         }
                         break;
                     case 'JoinAndPost':

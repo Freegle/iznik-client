@@ -112,9 +112,10 @@ class Digest
             $sql = "INSERT IGNORE INTO groups_digests (groupid, frequency) VALUES (?, ?);";
             $this->dbhm->preExec($sql, [ $groupid, $frequency ]);
 
-            $sql = "SELECT TIMESTAMPDIFF(HOUR, started, NOW()) AS timeago, groups_digests.* FROM groups_digests WHERE  groupid = ? AND frequency = ? HAVING frequency = -1 OR timeago > frequency;";
+            $sql = "SELECT TIMESTAMPDIFF(HOUR, started, NOW()) AS timeago, groups_digests.* FROM groups_digests WHERE  groupid = ? AND frequency = ? HAVING frequency = -1 OR timeago IS NULL OR timeago > frequency;";
             $tracks = $this->dbhr->preQuery($sql, [ $groupid, $frequency ]);
             foreach ($tracks as $track) {
+                error_log("Gotcha");
                 $sql = "UPDATE groups_digests SET started = NOW() WHERE groupid = ? AND frequency = ?;";
                 $this->dbhm->preExec($sql, [$groupid, $frequency]);
 
@@ -221,7 +222,7 @@ class Digest
                     }
 
                     if ($subjinfo) {
-                        $subject .= " - $subjinfo";
+                        $subject .= " - $subjinfo...";
                     }
 
                     $unavailablehtml = '';
@@ -270,7 +271,9 @@ class Digest
 
                         if (count($emails) > 0) {
                             $email = $emails[0]['email'];
-                            $membershipmail = $u->getEmailForYahooGroup($groupid)['email'];
+
+                            # The group might or might not be on Yahoo.
+                            $membershipmail = $g->getPrivate('onyahoo') ? $u->getEmailForYahooGroup($groupid)[1]: $email;
 
                             # We don't want to send out mails to users who are members directly on Yahoo, only
                             # for ones which have joined through this platform or its predecessor.

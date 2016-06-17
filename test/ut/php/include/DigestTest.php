@@ -50,6 +50,7 @@ class digestTest extends IznikTestCase {
         # Create a group with a message on it.
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 0);
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
@@ -65,10 +66,12 @@ class digestTest extends IznikTestCase {
         # Create a user on that group who wants immediate delivery.
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u->addMembership($gid);
+        $eid = $u->addEmail('test@' . USER_DOMAIN);
+        error_log("Created user $uid email $eid");
+        assertGreaterThan(0, $eid);
+        $u->addMembership($gid, $eid);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
         $u->setMembershipAtt($gid, 'emailallowed', 1);
-        assertGreaterThan(0, $u->addEmail('test@' . USER_DOMAIN));
 
         # Now test.
         assertEquals(1, $mock->send($gid, Digest::IMMEDIATE));
@@ -86,6 +89,7 @@ class digestTest extends IznikTestCase {
         # Create a group with a message on it.
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 0);
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
@@ -130,6 +134,7 @@ class digestTest extends IznikTestCase {
         # Create a group with two messages on it, one taken.
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 0);
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);

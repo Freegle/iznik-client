@@ -81,7 +81,17 @@ class Swift_Plugins_DecoratorPlugin implements Swift_Events_SendListener, Swift_
     {
         $message = $evt->getMessage();
         $this->_restoreMessage($message);
-        $to = array_keys($message->getTo());
+
+        # EH fix to handle BCC recipients as well as To.
+        $to = $message->getTo();
+        $bcc = $message->getBcc();
+
+        if ($to && bcc) {
+            $to = array_merge($to, $bcc);
+        } else if ($bcc) {
+            $to = $bcc;
+        }
+
         $address = array_shift($to);
         if ($replacements = $this->getReplacementsFor($address)) {
             $body = $message->getBody();
