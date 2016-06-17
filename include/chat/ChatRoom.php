@@ -349,6 +349,7 @@ class ChatRoom extends Entity
         $n = new Notifications($this->dbhr, $this->dbhm);
 
         foreach ($roster as $rost) {
+            error_log("Poke {$rost['userid']} for {$this->id}");
             $n->poke($rost['userid'], $data);
             $count++;
         }

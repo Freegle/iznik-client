@@ -511,6 +511,45 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    function testDelayedPending() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        error_log("First copy on $gid");
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
+
+        # Send to approved first.
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id1 = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $r->route();
+
+        $m = new Message($this->dbhr, $this->dbhm, $id1);
+        error_log(var_export($m->getPublic(), TRUE));
+        assertEquals(MessageCollection::APPROVED, $m->getPublic()['groups'][0]['collection']);
+
+        # Now to pending, which is possible Yahoo is slow.
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id2 = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $r->route();
+
+        assertEquals($id1, $id2);
+        $m = new Message($this->dbhr, $this->dbhm, $id1);
+        error_log(var_export($m->getPublic(), TRUE));
+        assertEquals(MessageCollection::APPROVED, $m->getPublic()['groups'][0]['collection']);
+//        $m->delete("UT");
+//
+//        $p = new Plugin($this->dbhr, $this->dbhm);
+//        $work = $p->get($gid);
+//        error_log("Work " . var_export($work, TRUE));
+//        $data = json_decode($work[0]['data'], TRUE);
+//        assertEquals('DeletePendingMessage', $data['type']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testSpamIP() {
         error_log(__METHOD__);
 

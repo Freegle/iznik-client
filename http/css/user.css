@@ -524,3 +524,8 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 .tt-menu .tt-suggestion p {
     margin: 0;
 }
+
+.message-reply {
+    border: 1px lightgrey solid;
+    border-radius: 2px;
+}

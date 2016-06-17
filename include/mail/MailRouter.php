@@ -105,9 +105,13 @@ class MailRouter
     }
 
     # Public for UT
-    public function markPending() {
-        # Set the message as pending.
-        $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Pending' WHERE msgid = ?;", [ $this->msg->getID() ]);
+    public function markPending($force) {
+        # Set the message as pending. Unless we're forced, we can only do this for incoming messages; this is to
+        # handle the case where a message is approved, and then we get a pending notification for it later.
+        #
+        # The force is to allow us to move from Spam to Pending.
+        $overq = $force ? '' : " AND collection = 'Incoming' ";
+        $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Pending' WHERE msgid = ? $overq;", [ $this->msg->getID() ]);
 
         # Notify mods of new work
         $groups = $this->msg->getGroups();
@@ -528,7 +532,7 @@ class MailRouter
 
                     if ($this->msg->getSource() == Message::YAHOO_PENDING) {
                         if ($log) { error_log("Mark as pending"); }
-                        if ($this->markPending()) {
+                        if ($this->markPending($notspam)) {
                             $ret = MailRouter::PENDING;
                         }
                     } else if ($this->msg->getSource() == Message::YAHOO_APPROVED) {

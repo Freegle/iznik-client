@@ -483,8 +483,8 @@ class Message
         }
 
         if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $this->fromuser == $myid)) {
-            # Add count of replies.
-            $sql = "SELECT DISTINCT userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? ORDER BY lastdate DESC LIMIT 1;";
+            # Add replies.
+            $sql = "SELECT DISTINCT t.* FROM chat_messages INNER JOIN (SELECT userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
             $replies = $this->dbhr->preQuery($sql, [ $this->id ]);
             $ret['replies'] = [];
             foreach ($replies as $reply) {
@@ -1306,14 +1306,15 @@ class Message
         # Reduce the size of the message source
         $this->message = $this->pruneMessage();
 
-        # A message we are saving as approved may previously have been in the system, for example as pending.  When it
-        # comes back to us, it might not be the same.  This can happen if a message is handled on another system,
-        # e.g. moderated directly on Yahoo.  So, we look for this messageid (modified to be per-group as above), and
-        # if we find it, then we update the message data.  Then we can return that old copy as our message rather
-        # than save another.
+        $oldid = NULL;
+
+        # A message we are saving as approved may previously have been in the system:
+        # - a message we receive as approved will usually have been here as pending
+        # - a message we receive as pending may have been here as approved if it was approved elsewhere before it
+        #   reached is.
         $already = FALSE;
         $this->id = NULL;
-        $oldid = $this->updateEarlierCopies($approvedby);
+        $oldid = $this->checkEarlierCopies($approvedby);
 
         if ($oldid) {
             # Existing message.
@@ -1748,7 +1749,7 @@ class Message
         return($rc);
     }
 
-    public function updateEarlierCopies($approvedby) {
+    public function checkEarlierCopies($approvedby) {
         # We don't need a transaction for this - transactions aren't great for scalability and worst case we
         # leave a spurious message around which a mod will handle.
         $ret = NULL;
@@ -1778,7 +1779,7 @@ class Message
             # We want to see the message on the group even if it's been deleted, otherwise we'll go ahead and try
             # to re-add it and get an exception.
             $oldgroups = $m->getGroups(TRUE);
-            #error_log("Compare groups $this->groupid vs " . var_export($oldgroups, TRUE));
+            error_log("Compare groups $this->groupid vs " . var_export($oldgroups, TRUE));
             if (!in_array($this->groupid, $oldgroups)) {
                 // This code is here for future handling of the same message on multiple groups, but since we
                 // currently make the message id per-group, we can't reach it.  Keep it for later use but don't
@@ -1828,59 +1829,66 @@ class Message
                 }
             }
 
-            # Other atts which we want the latest version of.
-            foreach (['date', 'subject', 'message', 'textbody', 'htmlbody'] as $att) {
-                $oldval = $m->getPrivate($att);
-                $newval = $this->getPrivate($att);
-
-                if (!$oldval || ($newval && $oldval != $newval)) {
-                    $changed .= ' $att';
-                    #error_log("Update messages for $att, value len " . strlen($oldval) . " vs " . strlen($newval));
-                    $m->setPrivate($att, $newval);
-                }
-            }
-
-            # We might need a new suggested subject, and mapping.
-            $m->setPrivate('suggestedsubject', NULL);
-            $m->suggestedsubject = $m->suggestSubject($this->groupid, $this->subject);
-
-            # Our new message may have a different set of attachments from the old one, or none.  Take the new lot.
+            # For pending messages which come back to us as approved, it might not be the same.
+            # This can happen if a message is handled on another system, e.g. moderated directly on Yahoo.
             #
-            # If we crash halfway through we might lose attachments.  Acceptable given the rarity.
-            $rc = $this->dbhm->preExec("DELETE FROM messages_attachments WHERE msgid = ?;", [ $msg['id'] ]);
-            $this->saveAttachments($msg['id']);
+            # For approved messages which only reach us as pending later, we don't want to change the approved
+            # version.
+            if ($this->source == Message::YAHOO_APPROVED) {
+                # Other atts which we want the latest version of.
+                foreach (['date', 'subject', 'message', 'textbody', 'htmlbody'] as $att) {
+                    $oldval = $m->getPrivate($att);
+                    $newval = $this->getPrivate($att);
 
-            $changed = ($rc != count($this->attachments)) ? ' attachments' : $changed;
+                    if (!$oldval || ($newval && $oldval != $newval)) {
+                        $changed .= ' $att';
+                        #error_log("Update messages for $att, value len " . strlen($oldval) . " vs " . strlen($newval));
+                        $m->setPrivate($att, $newval);
+                    }
+                }
 
-            # We might have new approvedby info.
-            $rc = $this->dbhm->preExec("UPDATE messages_groups SET approvedby = ? WHERE msgid = ? AND groupid = ? AND approvedby IS NULL;",
-                [
-                    $approvedby,
-                    $msg['id'],
-                    $this->groupid
-                ]);
+                # We might need a new suggested subject, and mapping.
+                $m->setPrivate('suggestedsubject', NULL);
+                $m->suggestedsubject = $m->suggestSubject($this->groupid, $this->subject);
 
-            $changed = $rc ? ' approvedby' : $changed;
+                # Our new message may have a different set of attachments from the old one, or none.  Take the new lot.
+                #
+                # If we crash halfway through we might lose attachments.  Acceptable given the rarity.
+                $rc = $this->dbhm->preExec("DELETE FROM messages_attachments WHERE msgid = ?;", [ $msg['id'] ]);
+                $this->saveAttachments($msg['id']);
 
-            # This message might have moved from pending to approved.
-            if ($m->getSource() == Message::YAHOO_PENDING && $this->getSource() == Message::YAHOO_APPROVED) {
-                $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Approved' WHERE msgid = ? AND groupid = ?;", [
-                    $msg['id'],
-                    $this->groupid
-                ]);
-                $changed = TRUE;
-            }
+                $changed = ($rc != count($this->attachments)) ? ' attachments' : $changed;
 
-            if ($changed != '') {
-                $me = whoAmI($this->dbhr, $this->dbhm);
+                # We might have new approvedby info.
+                $rc = $this->dbhm->preExec("UPDATE messages_groups SET approvedby = ? WHERE msgid = ? AND groupid = ? AND approvedby IS NULL;",
+                    [
+                        $approvedby,
+                        $msg['id'],
+                        $this->groupid
+                    ]);
 
-                $this->log->log([
-                    'type' => Log::TYPE_MESSAGE,
-                    'subtype' => Log::SUBTYPE_EDIT,
-                    'msgid' => $msg['id'],
-                    'byuser' => $me ? $me->getId() : NULL,
-                    'text' => "Updated from new incoming message ($changed)"
-                ]);
+                $changed = $rc ? ' approvedby' : $changed;
+
+                # This message might have moved from pending to approved.
+                if ($m->getSource() == Message::YAHOO_PENDING && $this->getSource() == Message::YAHOO_APPROVED) {
+                    $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Approved' WHERE msgid = ? AND groupid = ?;", [
+                        $msg['id'],
+                        $this->groupid
+                    ]);
+                    $changed = TRUE;
+                }
+
+                if ($changed != '') {
+                    $me = whoAmI($this->dbhr, $this->dbhm);
+
+                    $this->log->log([
+                        'type' => Log::TYPE_MESSAGE,
+                        'subtype' => Log::SUBTYPE_EDIT,
+                        'msgid' => $msg['id'],
+                        'byuser' => $me ? $me->getId() : NULL,
+                        'text' => "Updated from new incoming message ($changed)"
+                    ]);
+                }
             }
         }
 

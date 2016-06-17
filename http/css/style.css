@@ -875,6 +875,13 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     background-color: transparent;
 }
 
+.badge-notify{
+    background:red;
+    position:relative;
+    top: -18px !important;
+    left: -20px !important;
+}
+
 .faded {
     opacity: 0.3;
 }

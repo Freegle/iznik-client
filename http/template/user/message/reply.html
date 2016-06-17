@@ -1,6 +1,6 @@
 <div class="row-fluid panel">
     <div class="panel-body">
-        <div class="nopad col-xs-9">
+        <div class="nopad col-xs-8">
             <% if (user.id != me.id) { %>
             {{user.displayname}}<br />
             <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" ></abbr>
@@ -12,23 +12,30 @@
             <span class="js-chat black">Read more&nbsp;>></span>
             <% } %>
         </div>
-        <li class="col-xs-3 nopad">
-            <ul class="list-unstyled pull-right">
-                <li class="btn btn-primary btn-sm js-chat nopad" title="Chat to {{user.displayname}}">
-                    <div class="glyphicons glyphicons-conversation glyphicon-larger">
+        <li class="col-xs-4 nopad">
+            <ul class="list-unstyled list-inline pull-right">
+                <li>
+                    <div  class="btn btn-primary js-chat" title="Chat to {{user.displayname}}">
                         <% if (unseen != 0) { %>
                         <span class="badge badge-unread">{{unseen}}</span>
+                        <% } else { %>
+                        <div class="glyphicons glyphicons-conversation vcenter" />
                         <% } %>
+                        &nbsp;Chat
                     </div>
                 </li>
                 <% if (message.type == 'Offer' && message.mine && user.id != me.id) { %>
                     <% if (obj.promised) { %>
-                    <li class="btn btn-warning btn-sm js-renege nopad" title="Remove promise">
-                        <div class="glyphicons glyphicons-remove-circle glyphicon-larger" />
+                    <li>
+                        <div class="btn btn-warning js-renege" title="Remove promise">
+                            <div class="glyphicons glyphicons-remove-circle vcenter" />&nbsp;Remove
+                        </div>
                     </li>
                     <% } else { %>
-                    <li class="btn btn-success btn-sm js-promise nopad" title="Promise it to {{user.displayname}}">
-                        <div class="glyphicons glyphicons-handshake glyphicon-larger" />
+                    <li>
+                        <div class="btn btn-success js-promise" title="Promise it to {{user.displayname}}">
+                            <div class="glyphicons glyphicons-handshake vcenter" />&nbsp;Promise
+                        </div>
                     </li>
                     <% } %>
                 <% } %>

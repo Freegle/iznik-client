@@ -328,6 +328,8 @@ define([
 
         template: 'user_message_reply',
 
+        className: 'message-reply',
+
         events: {
             'click .js-chat': 'dm',
             'click .js-promise': 'promise',
