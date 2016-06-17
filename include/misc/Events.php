@@ -30,7 +30,7 @@ class Events {
             # one, then can flag this entry as having the same data as that one.  This helps a lot, because we only have
             # a finite set of pages, and some of them are static, so our periodic DOM-f events would otherwise generate
             # a lot of data.
-            $sql = "SELECT * FROM logs_events WHERE datahash = ? LIMIT 10;";
+            $sql = "SELECT * FROM logs_events WHERE datahash = ? AND data IS NOT NULL LIMIT 10;";
             $logs = $this->dbhr->preQuery($sql, [ $hashvalue ]);
             foreach ($logs as $log) {
                 $cmp = strcmp($log['data'], $data);

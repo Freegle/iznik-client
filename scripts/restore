@@ -16,7 +16,7 @@ chown -R mysql:mysql /archive/mysql
 sleep 300
 maxdate=`mysql --execute="use iznik; SELECT MAX(arrival) FROM messages;" | grep -`
 if [ $? == 0 ]; then
-    cat /tmp/restore.out | mail -s "RESTORE: DB restored on archive" $EMAIL
+    cat /tmp/restore.out | mail -s "RESTORE: DB restored on archive update $maxdate" $EMAIL
 else
     cat /tmp/restore.out | mail -s "RESTORE: FAILED on hub" $EMAIL
 fi
