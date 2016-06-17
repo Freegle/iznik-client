@@ -270,11 +270,12 @@ class Digest
 
                         if (count($emails) > 0) {
                             $email = $emails[0]['email'];
+                            $membershipmail = $u->getEmailForYahooGroup($groupid);
 
                             # We don't want to send out mails to users who are members directly on Yahoo, only
                             # for ones which have joined through this platform or its predecessor.
-                            if (stripos($email, USER_DOMAIN) !== FALSE ||
-                                stripos($email, 'fbuser') !== FALSE) {
+                            if (stripos($membershipmail, USER_DOMAIN) !== FALSE ||
+                                stripos($membershipmail, 'fbuser') !== FALSE) {
                                 error_log("...$email");
 
                                 # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
@@ -326,7 +327,7 @@ class Digest
                             $headers->addTextHeader('List-Unsubscribe', '<mailto:{{unsubscribe}}>');
 
                             foreach ($replacements as $email => $rep) {
-                                $message->addTo($email, $rep['{{toname}}']);
+                                $message->addBcc($email, $rep['{{toname}}']);
                             }
 
                             $this->sendOne($mailer, $message);

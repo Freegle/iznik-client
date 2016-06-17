@@ -47,7 +47,6 @@ define([
             // session from the main domain won't be inherited unless we set it manually.  It's the same
             // system under the covers, so the session is still valid.
             if (!sessionCookie) {
-                JSON.stringify
                 try {
                     var sess = localStorage.getItem('session');
                     if (sess) {

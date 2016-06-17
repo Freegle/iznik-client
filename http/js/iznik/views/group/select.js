@@ -64,24 +64,24 @@ define([
         inDOM: function() {
             var self = this;
 
-            if (self.options.hasOwnProperty('id') && !self.options.hasOwnProperty('selected')) {
+            if (self.id) {
                 // We have a specified id.  We try to remember this in local storage
                 try {
                     self.persist = true;
-                    self.options.selected = localStorage.getItem('groupselect.' + self.options.id);
+                    self.options.selected = localStorage.getItem('groupselect.' + self.id);
                 } catch (e) {}
+            } else {
+                self.id = id = "gs" + groupSelectIdCounter++;
             }
-
-            var id = "gs" + groupSelectIdCounter++;
 
             self.options = _.extend({}, {
                 systemWide: false,
                 all: true,
-                id: id
+                id: self.id
             }, this.options);
 
             // The library needs the element to have an id
-            self.$el.prop('id', self.options.id);
+            self.$el.prop('id', self.id);
 
             if (self.dropdown) {
                 // Remove old values.
@@ -141,7 +141,7 @@ define([
                 if (self.persist) {
                     // We want to try to save the selected value in local storage to restore next time.
                     try {
-                        self.options.selected = localStorage.setItem('groupselect.' + self.options.id,
+                        self.options.selected = localStorage.setItem('groupselect.' + self.id,
                             self.dropdown.value);
                     } catch (e) {
                     }
@@ -162,6 +162,8 @@ define([
 
         render: function() {
             var self = this;
+
+            self.id  = self.options.hasOwnProperty('id') ? self.options.id : null;
 
             // We hide the raw select now otherwise it shows briefly.  We set visibility on the dropdown once it's built.
             self.$el.css('visibility', 'hidden');

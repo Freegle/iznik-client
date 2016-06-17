@@ -129,7 +129,7 @@ class spamc
         $fp = fsockopen($this->host, $this->port, $this->errno, $this->errstr, $this->timeout);
         if (!$fp) {
             //return array('ERROR'=>"$errstr ($errno)");
-            $this->err = $this->errstr." (".$thius->errno.")";
+            $this->err = $this->errstr." (".$this->errno.")";
             return false;
         }
 

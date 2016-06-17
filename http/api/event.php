@@ -30,6 +30,8 @@ function event() {
                         $p->record($myid, $sessid, $route, $target, $action, $timestamp, $posx, $posy, $viewx, $viewy, $data);
                     }
                 }
+
+                $p->flush();
             }
 
             $ret = array('ret' => 0, 'status' => 'Success', 'nolog' => TRUE);

@@ -509,10 +509,9 @@ class MailRouter
                             }
                         }
                     } else {
-                        # We have failed to check that this is spam.  Record the failure.
-                        error_log("Failed to check spam");
-                        $this->msg->recordFailure('Spam Assassin check failed');
-                        $ret = MailRouter::FAILURE;
+                        # We have failed to check that this is spam.  Record the failure but carry on.
+                        error_log("Failed to check spam " . $this->spamc->err);
+                        $this->msg->recordFailure('Spam Assassin check failed ' . $this->spamc->err);
                     }
                 }
             }

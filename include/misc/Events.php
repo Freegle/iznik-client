@@ -6,6 +6,9 @@ class Events {
     private $dbhr;
     private $dbhm;
 
+    const QUEUE=100000;
+    private $queue = '';
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm) {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -39,15 +42,22 @@ class Events {
             }
         }
 
-        $data = $data ? $data : 'NULL';
-
         $lastip = presdef('REMOTE_ADDR', $_SERVER, 'NULL');
 
         $sql = "INSERT IGNORE INTO logs_events (`userid`, `sessionid`, `timestamp`, `clienttimestamp`, `route`, `target`, `event`, `posx`, `posy`, `viewx`, `viewy`, `data`, `datahash`, `datasameas`, `ip`) VALUES ($id, " . $this->dbhr->quote($sessid) . ", CURTIME(3), FROM_UNIXTIME($timestamp), " . $this->dbhr->quote($route) . ", " . $this->dbhr->quote($target) . ", " . $this->dbhr->quote($action) . ", $posx, $posy, $viewx, $viewy, $dataq, $datahash, $datasameas, " . $this->dbhr->quote($lastip) . ");";
+        $this->queue .= $sql;
+
+        if (strlen($this->queue) > Events::QUEUE) {
+            $this->flush();
+        }
+    }
+
+    public function flush() {
         try {
             # If anything goes wrong, we're not that interested - we can lose events, and if we return errors the
             # client will retry.
-            $this->dbhm->background($sql);
+            $this->dbhm->background($this->queue);
+            $this->queue = '';
         } catch (Exception $e) {}
     }
 

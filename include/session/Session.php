@@ -176,7 +176,8 @@ class Session {
         );
 
         #error_log("Create cookie " . json_encode($ss));
-        # Set the cookie which means the client will remember and use this.
+        # Set the cookie which means the client will remember and use this.  This also means we don't
+        # need a high PHP session lifetime, because this cookie will allow us to log back in.
         @setcookie(COOKIE_NAME, json_encode($ss), time() + 60 * 60 * 24 * 30, '/', $_SERVER['HTTP_HOST'],
             false, true);
 
