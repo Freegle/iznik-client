@@ -123,7 +123,7 @@ class digestTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testMultiple() {
+    public function testMultipleMails() {
         error_log(__METHOD__);
 
         # Mock the actual send

@@ -310,39 +310,38 @@ class Digest
 
                         $mailer = Swift_Mailer::newInstance($transport);
 
-                        # We're decorating using the information we collected earlier.  So we create one copy of
-                        # the message, with replacement strings, and many recipients.
+                        # We're decorating using the information we collected earlier.  However the decorator doesn't
+                        # copy with sending to multiple recipients properly (headers just get decorated with the first
+                        # recipient) so we create a message for each recipient.
                         $decorator = new Swift_Plugins_DecoratorPlugin($replacements);
                         $mailer->registerPlugin($decorator);
 
-                        # We don't want to send mails with too many recipients.  This plugin breaks it up.
+                        # We don't want to send too many mails before we reconnect.  This plugin breaks it up.
                         $mailer->registerPlugin(new Swift_Plugins_AntiFloodPlugin(900));
 
                         $_SERVER['SERVER_NAME'] = USER_DOMAIN;
                         foreach ($tosend as $msg) {
-                            $message = Swift_Message::newInstance()
-                                ->setSubject($msg['subject'])
-                                ->setFrom([$msg['from'] => $msg['fromname']])
-                                ->setReturnPath('bounce@direct.ilovefreegle.org')
-                                ->setReplyTo($msg['replyto'], $msg['replytoname'])
-                                ->setBody($msg['text'])
-                                ->addPart($msg['html'], 'text/html');
-                            $headers = $message->getHeaders();
-                            $headers->addTextHeader('List-Unsubscribe', '<mailto:{{mailoff}}>, <{{unsubscribe}}>');
-
                             foreach ($replacements as $email => $rep) {
+                                $message = Swift_Message::newInstance()
+                                    ->setSubject($msg['subject'])
+                                    ->setFrom([$msg['from'] => $msg['fromname']])
+                                    ->setReturnPath('bounce@direct.ilovefreegle.org')
+                                    ->setReplyTo($msg['replyto'], $msg['replytoname'])
+                                    ->setBody($msg['text'])
+                                    ->addPart($msg['html'], 'text/html');
+                                $headers = $message->getHeaders();
+                                $headers->addTextHeader('List-Unsubscribe', '<mailto:{{mailoff}}>, <{{unsubscribe}}>');
+
                                 try {
                                     $message->addBcc($email);
+                                    $this->sendOne($mailer, $message);
+                                    $sent++;
                                 } catch (Exception $e) {
 
                                     error_log($email . " skipped with " . $e->getMessage());
                                 }
                             }
-
-                            $this->sendOne($mailer, $message);
                         }
-
-                        $sent += count($tosend);
                     }
 
                     if ($maxmsg > 0) {

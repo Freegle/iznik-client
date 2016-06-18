@@ -362,6 +362,11 @@ class LoggedPDO {
                         # It's a Percona deadlock - retry.
                         $try++;
                         $msg = $e->getMessage();
+                    } else if (stripos($e->getMessage(), 'has gone away') !== FALSE) {
+                        # Try re-opening the connection.
+                        $try++;
+                        $this->_db = NULL;
+                        $this->_db = new PDO($this->dsn, $this->username, $this->password);
                     } else {
                         $msg = "Non-deadlock DB Exception " . $e->getMessage() . " $sql";
                         error_log($msg);

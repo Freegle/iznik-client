@@ -10,8 +10,8 @@ if (count($opts) < 1) {
     echo "Usage: hhvm digest.php -i <interval> (-m mod -v val)\n";
 } else {
     $interval = $opts['i'];
-    $mod = $opts['m'] ? $opts['m'] : 1;
-    $val = $opts['v'] ? $opts['v'] : 0;
+    $mod = presdef('m', $opts, 1);
+    $val = presdef('v', $opts, 0);
 }
 
 $lockh = lockScript(basename(__FILE__) . "-$interval-m$mod-v$val");
