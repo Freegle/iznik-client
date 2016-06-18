@@ -8,7 +8,7 @@ function event() {
         case 'POST':
             $events = array_key_exists('events', $_REQUEST) ? $_REQUEST['events'] : NULL;
 
-            if ($events) {
+            if ($events && FALSE) {
                 $p = new Events($dbhr, $dbhm);
 
                 $me = whoAmI($dbhr, $dbhm);
