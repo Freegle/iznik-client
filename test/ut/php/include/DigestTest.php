@@ -72,7 +72,6 @@ class digestTest extends IznikTestCase {
         assertGreaterThan(0, $eid);
         $u->addMembership($gid, User::ROLE_MEMBER, $eid);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
-        $u->setMembershipAtt($gid, 'emailallowed', 1);
 
         # Now test.
         assertEquals(1, $mock->send($gid, Digest::IMMEDIATE));
@@ -112,7 +111,6 @@ class digestTest extends IznikTestCase {
         assertGreaterThan(0, $eid);
         $u->addMembership($gid, User::ROLE_MEMBER, $eid);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
-        $u->setMembershipAtt($gid, 'emailallowed', 1);
 
         # Now test.
         assertEquals(1, $d->send($gid, Digest::IMMEDIATE));
@@ -179,7 +177,6 @@ class digestTest extends IznikTestCase {
         assertGreaterThan(0, $eid);
         $u->addMembership($gid, User::ROLE_MEMBER, $eid);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::HOUR1);
-        $u->setMembershipAtt($gid, 'emailallowed', 1);
 
         # Now test.
         assertEquals(1, $mock->send($gid, Digest::HOUR1));

@@ -1126,7 +1126,6 @@ class MailRouterTest extends IznikTestCase {
         $gid = $g->create("testgroup1", Group::GROUP_REUSE);
         $u->addMembership($gid);
 
-        $u->setMembershipAtt($gid, 'emailallowed', 1);
         $u->setMembershipAtt($gid, 'emailfrequency', 24);
 
         # Turn off by email
@@ -1136,8 +1135,6 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull($id);
         $rc = $r->route();
         assertEquals($rc, MailRouter::TO_SYSTEM);
-
-        assertEquals(0, $u->getMembershipAtt($gid, 'emailallowed'));
 
         error_log(__METHOD__ . " end");
     }

@@ -299,6 +299,9 @@ class Message
 
             $mailer->send($message);
 
+            # Stop the transport, otherwise the message doesn't get sent until the UT script finishes.
+            $mailer->getTransport()->stop();
+
             error_log(session_id() . " mailed " . microtime(true));
         } catch (Exception $e) {
             error_log("Send failed with " . $e->getMessage());
@@ -2334,7 +2337,12 @@ class Message
             # Now construct the actual message to send.
             try {
                 $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
-                $transport = Swift_SpoolTransport::newInstance($spool);
+                $spooltrans = Swift_SpoolTransport::newInstance($spool);
+                $smtptrans = Swift_SmtpTransport::newInstance("localhost");
+                $transport = Swift_FailoverTransport::newInstance([
+                    $smtptrans,
+                    $spooltrans
+                ]);
                 $mailer = Swift_Mailer::newInstance($transport);
 
                 $message = Swift_Message::newInstance()

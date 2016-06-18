@@ -322,7 +322,6 @@ class Group extends Entity
             $thisone['role'] = $u->getRole($member['groupid']);
             $thisone['joincomment'] = $member['joincomment'];
             $thisone['emailfrequency'] = $member['emailfrequency'];
-            $thisone['emailallowed'] = $member['emailallowed'] ? TRUE : FALSE;
 
             $thisone['heldby'] = $member['heldby'];
 

@@ -48,7 +48,7 @@ class Digest
 
     public function off($uid, $groupid) {
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        $u->setMembershipAtt($groupid, 'emailallowed', 0);
+        $u->setMembershipAtt($groupid, 'emailfrequency', 0);
         $g = new Group($this->dbhr, $this->dbhm, $groupid);
         $groupname = $g->getPublic()['namedisplay'];
 
@@ -261,7 +261,7 @@ class Digest
                     # TODO This isn't that well indexed in the table.
                     $replacements = [];
 
-                    $sql = "SELECT userid FROM memberships WHERE groupid = ? AND emailallowed = 1 AND emailfrequency = ? ORDER BY userid ASC;";
+                    $sql = "SELECT userid FROM memberships WHERE groupid = ? AND emailfrequency = ? ORDER BY userid ASC;";
                     $users = $this->dbhr->preQuery($sql,
                         [ $groupid, $frequency ]);
 

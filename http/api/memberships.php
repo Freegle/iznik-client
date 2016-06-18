@@ -14,7 +14,6 @@ function memberships() {
     $ctx = presdef('context', $_REQUEST, NULL);
     $settings = presdef('settings', $_REQUEST, NULL);
     $emailfrequency = presdef('emailfrequency', $_REQUEST, NULL);
-    $emailallowed = array_key_exists('emailallowed', $_REQUEST) ? filter_var($_REQUEST['emailallowed'], FILTER_VALIDATE_BOOLEAN) : FALSE;;
 
     # TODO jQuery won't send an empty array, so we have a hack to ensure we can empty out the pending members.  What's
     # the right way to do this?
@@ -298,10 +297,6 @@ function memberships() {
                         
                         if ($emailfrequency !== NULL) {
                             $rc &= $u->setMembershipAtt($groupid, 'emailfrequency', intval($emailfrequency));
-                        }
-
-                        if ($emailallowed !== NULL) {
-                            $rc &= $u->setMembershipAtt($groupid, 'emailallowed', $emailallowed ? 1 : 0);
                         }
 
                         $ret = $rc ? [ 'ret' => 0, 'status' => 'Success' ] : [ 'ret' => 2, 'status' => 'Set failed' ];

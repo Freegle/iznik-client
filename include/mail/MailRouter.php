@@ -126,7 +126,7 @@ class MailRouter
 
     public function route($msg = NULL, $notspam = FALSE) {
         $ret = NULL;
-        $log = FALSE;
+        $log = TRUE;
 
         # We route messages to one of the following destinations:
         # - to a handler for system messages
@@ -393,7 +393,9 @@ class MailRouter
                     }
                 }
             } else if (preg_match('/Request to join (.*)/', $this->msg->getSubject(), $matches)) {
-                # We get this if we respond to the confirmation multiple times (which we do) and
+                # Mainline path for an approval.
+                #
+                # We also get this if we respond to the confirmation multiple times (which we do) and
                 # we haven't got the new member notification in the previous arm (which we might
                 # not).  It means that we are already a member, so we can treat it as a confirmation.
                 $nameshort = $matches[1];
@@ -402,9 +404,10 @@ class MailRouter
                 }
                 $all = $this->msg->getMessage();
 
-                if (preg_match('/Because you are already a member/m', $all, $matches)) {
+                if (preg_match('/Because you are already a member/m', $all, $matches) ||
+                    preg_match('/has approved your request for membership/m', $all, $matches)) {
                     if ($log) {
-                        error_log("Already a member");
+                        error_log("Now or already a member");
                     }
                     $g = new Group($this->dbhr, $this->dbhm);
                     $gid = $g->findByShortName($nameshort);

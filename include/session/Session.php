@@ -151,7 +151,6 @@ class Session {
         # we want to allow login on as many devices as the user wants.  So look for an existing cookie, and use that
         # if present; otherwise create one.
         $sessions = $this->dbhm->preQuery("SELECT * FROM sessions WHERE userid = ?", [ $userid ]);
-        error_log("Look for previous session " . count($sessions));
 
         if (count($sessions) > 0) {
             # We already have one.
@@ -161,6 +160,7 @@ class Session {
             }
 
             $this->id = $session['id'];
+            $id = $this->id;
         } else {
             # Generate a new series and token.
             #
@@ -180,7 +180,7 @@ class Session {
             $this->id = $id;
         }
 
-        #error_log("Logged in as $userid");
+        session_reopen();
         $_SESSION['id'] = $userid;
         $_SESSION['logged_in'] = TRUE;
 

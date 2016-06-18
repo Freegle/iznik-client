@@ -271,8 +271,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $ret = $this->call('memberships', 'PATCH', [
             'groupid' => $this->groupid,
             'userid' => $this->uid,
-            'emailfrequency' => 8,
-            'emailallowed' => 0
+            'emailfrequency' => 8
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -282,7 +281,6 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(8, $ret['member']['emailfrequency']);
-        assertEquals(TRUE, $ret['member']['emailallowed']);
         
         assertEquals(1, $this->user2->addMembership($this->groupid, User::ROLE_MEMBER));
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
