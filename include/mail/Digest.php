@@ -328,14 +328,14 @@ class Digest
                                 ->setBody($msg['text'])
                                 ->addPart($msg['html'], 'text/html');
                             $headers = $message->getHeaders();
-                            $headers->addTextHeader('List-Unsubscribe', '<mailto:{{unsubscribe}}>');
+                            $headers->addTextHeader('List-Unsubscribe', '<mailto:{{mailoff}}>, <{{unsubscribe}}>');
 
                             foreach ($replacements as $email => $rep) {
                                 try {
                                     $message->addBcc($email);
                                 } catch (Exception $e) {
-                                    # TODO Treat this as a bad email
-                                    error_log('...' . $email . " skipped");
+
+                                    error_log($email . " skipped with " . $e->getMessage());
                                 }
                             }
 
