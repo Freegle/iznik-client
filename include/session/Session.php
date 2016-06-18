@@ -147,23 +147,38 @@ class Session {
     }
 
     public function create($userid) {
-        # Destroy any existing sessions.
-        $this->destroy($userid);
+        # If we wanted to only allow login from a single device/browser, we'd destroy cookies at this point.  But
+        # we want to allow login on as many devices as the user wants.  So look for an existing cookie, and use that
+        # if present; otherwise create one.
+        $sessions = $this->dbhm->preQuery("SELECT * FROM sessions WHERE userid = ?", [ $userid ]);
+        error_log("Look for previous session " . count($sessions));
 
-        # Generate a new series and token.
-        $series = devurandom_rand();
-        $token  = devurandom_rand();
-        $thash  = sha1($token);
+        if (count($sessions) > 0) {
+            # We already have one.
+            foreach ($sessions as $session) {
+                $series = $session['series'];
+                $thash = $session['token'];
+            }
 
-        $sql = "REPLACE INTO sessions (`userid`, `series`, `token`) VALUES (?,?,?);";
-        $this->dbhm->preExec($sql, [
-            $userid,
-            $series,
-            $thash
-        ]);
+            $this->id = $session['id'];
+        } else {
+            # Generate a new series and token.
+            #
+            # TODO SHA1 is no longer brilliantly secure.
+            $series = devurandom_rand();
+            $token  = devurandom_rand();
+            $thash  = sha1($token);
 
-        $id = $this->dbhm->lastInsertId();
-        $this->id = $id;
+            $sql = "REPLACE INTO sessions (`userid`, `series`, `token`) VALUES (?,?,?);";
+            $this->dbhm->preExec($sql, [
+                $userid,
+                $series,
+                $thash
+            ]);
+
+            $id = $this->dbhm->lastInsertId();
+            $this->id = $id;
+        }
 
         #error_log("Logged in as $userid");
         $_SESSION['id'] = $userid;
@@ -197,11 +212,9 @@ class Session {
 
         /** @noinspection PhpUnusedLocalVariableInspection */
         foreach ($sessions as $session) {
-            # Remove it and create a new one, which will be returned in a cookie.
-            # This means that our cookies are one-use only.
-            #error_log("Found it, create new");
+            # Leave the cookie in existence.  This is a bit less secure, but it does mean that we can frequently
+            # use the cookie to recover a session when the PHP session is no longer there.
             $userid = $session['userid'];
-            $this->create($userid);
             $_SESSION['id'] = $userid;
             $_SESSION['logged_in'] = TRUE;
             return($userid);
@@ -215,6 +228,8 @@ class Session {
     }
 
     public function destroy($userid) {
+        # Deleting the cookie will mean that we can no longer use this cookie to sign in on any device - which means
+        # that if you log out on one device, the others will get logged out too (once the PHP session goes, anyway).
         #error_log(var_export($this->dbhr, true));
         session_reopen();
 

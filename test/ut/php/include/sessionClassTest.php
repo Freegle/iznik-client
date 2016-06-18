@@ -95,6 +95,15 @@ class sessionClassTest extends IznikTestCase {
         assertTrue($_SESSION['logged_in']);
         assertEquals($id, $_SESSION['id']);
 
+        # ...repeatedly
+        $_SESSION['id'] = NULL;
+        $_COOKIE[COOKIE_NAME] = json_encode($ret);
+        global $sessionPrepared;
+        $sessionPrepared = FALSE;
+        prepareSession($this->dbhm, $this->dbhm);
+        assertTrue($_SESSION['logged_in']);
+        assertEquals($id, $_SESSION['id']);
+
         # But not if the session has gone.
         $s->destroy($id);
         $_SESSION['logged_in'] = FALSE;
