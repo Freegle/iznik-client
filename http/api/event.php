@@ -15,23 +15,27 @@ function event() {
                 $myid = $me ? $me->getId() : NULL;
                 $sessid = session_id();
 
-                foreach ($events as $event) {
-                    $route = presdef('route', $event, NULL);
-                    $target = presdef('target', $event, NULL);
-                    $action = presdef('event', $event, NULL);
-                    $viewx = array_key_exists('viewx', $event) ? intval($event['viewx']) : NULL;
-                    $viewy = array_key_exists('viewy', $event) ? intval($event['viewy']) : NULL;
-                    $timestamp  = array_key_exists('timestamp', $event) ? intval($event['timestamp']) : NULL;
-                    $posx = array_key_exists('posX', $event) ? floatval($event['posX']) : NULL;
-                    $posy = array_key_exists('posY', $event) ? floatval($event['posY']) : NULL;
-                    $data = presdef('data', $event, NULL);
+                # The client shouldn't send us more than this; if it does, then something's wrong, so just quietly
+                # drop the data rather than attempt to process something which might be huge.
+                if (count($events) < 1000) {
+                    foreach ($events as $event) {
+                        $route = presdef('route', $event, NULL);
+                        $target = presdef('target', $event, NULL);
+                        $action = presdef('event', $event, NULL);
+                        $viewx = array_key_exists('viewx', $event) ? intval($event['viewx']) : NULL;
+                        $viewy = array_key_exists('viewy', $event) ? intval($event['viewy']) : NULL;
+                        $timestamp  = array_key_exists('timestamp', $event) ? intval($event['timestamp']) : NULL;
+                        $posx = array_key_exists('posX', $event) ? floatval($event['posX']) : NULL;
+                        $posy = array_key_exists('posY', $event) ? floatval($event['posY']) : NULL;
+                        $data = presdef('data', $event, NULL);
 
-                    if ($route !== NULL) {
-                        $p->record($myid, $sessid, $route, $target, $action, $timestamp, $posx, $posy, $viewx, $viewy, $data);
+                        if ($route !== NULL) {
+                            $p->record($myid, $sessid, $route, $target, $action, $timestamp, $posx, $posy, $viewx, $viewy, $data);
+                        }
                     }
-                }
 
-                $p->flush();
+                    $p->flush();
+                }
             }
 
             $ret = array('ret' => 0, 'status' => 'Success', 'nolog' => TRUE);

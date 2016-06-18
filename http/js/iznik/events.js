@@ -40,41 +40,45 @@ define([
             var currQueue = eventQueue;
             eventQueue = [];
 
-            var eventhost = $('meta[name=iznikevent]').attr("content");
+            // If we have too much data, throw it away.
+            if (eventQueue.length < 1000) {
 
-            // We will typically be posting to another domain, to avoid delaying requests on the main
-            // domain because of event tracking (the per host connection limit).  This means that our
-            // session from the main domain won't be inherited unless we set it manually.  It's the same
-            // system under the covers, so the session is still valid.
-            if (!sessionCookie) {
-                try {
-                    var sess = localStorage.getItem('session');
-                    if (sess) {
-                        sess = JSON.parse(sess);
-                        sessionCookie = sess.session;
-                        console.log("Got session from local", sessionCookie);
-                    }
-                } catch (e) {console.log(e.message)};
-            }
+                var eventhost = $('meta[name=iznikevent]').attr("content");
 
-            $.ajax({
-                url: 'https://' + eventhost + API + 'event',
-                type: 'POST',
-                data: {
-                    'api_key': sessionCookie,
-                    'events': currQueue
-                }, success: function(ret) {
-                    if (ret.ret === 0) {
-                        // Save the cookie
-                        sessionCookie = ret.session;
+                // We will typically be posting to another domain, to avoid delaying requests on the main
+                // domain because of event tracking (the per host connection limit).  This means that our
+                // session from the main domain won't be inherited unless we set it manually.  It's the same
+                // system under the covers, so the session is still valid.
+                if (!sessionCookie) {
+                    try {
+                        var sess = localStorage.getItem('session');
+                        if (sess) {
+                            sess = JSON.parse(sess);
+                            sessionCookie = sess.session;
+                            console.log("Got session from local", sessionCookie);
+                        }
+                    } catch (e) {console.log(e.message)};
+                }
 
-                        if (!flushTimerRunning) {
-                            flushTimerRunning = true;
-                            window.setTimeout(flushEventQueue, 5000);
+                $.ajax({
+                    url: 'https://' + eventhost + API + 'event',
+                    type: 'POST',
+                    data: {
+                        'api_key': sessionCookie,
+                        'events': currQueue
+                    }, success: function(ret) {
+                        if (ret.ret === 0) {
+                            // Save the cookie
+                            sessionCookie = ret.session;
+
+                            if (!flushTimerRunning) {
+                                flushTimerRunning = true;
+                                window.setTimeout(flushEventQueue, 5000);
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         } else if (!flushTimerRunning) {
             flushTimerRunning = true;
             window.setTimeout(flushEventQueue, 5000);

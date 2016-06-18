@@ -222,9 +222,22 @@ class User extends Entity
     }
 
     public function getEmailPreferred() {
-        $emails = $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? AND preferred = 1;",  
+        # This gets the email address which we think the user actually uses.  So we pay attention to:
+        # - the preferred flag, which gets set by end user action
+        # - the date added, as most recently added emails are most likely to be right
+        # - exclude our own invented mails
+        $emails = $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, added DESC;",  
             [$this->id]);
-        return(count($emails) == 0 ? NULL : $emails[0]['email']);
+        $ret = NULL;
+
+        foreach ($emails as $email) {
+            if (!ourDomain($email['email'])) {
+                $ret = $email['email'];
+                break;
+            } 
+        }
+        
+        return($ret);
     }
 
     public function getAnEmailId() {
@@ -1098,9 +1111,7 @@ class User extends Entity
         if ($me && $this->id == $me->getId()) {
             # Add in private attributes for our own entry.
             $atts['emails'] = $me->getEmails();
-
-            # The emails are returned with the preferred one first, so we don't need a separate call to get that.
-            $atts['email'] = count($atts['emails']) > 0 ? $atts['emails'][0]['email'] : NULL;
+            $atts['email'] = $me->getEmailPreferred();
         }
 
         if ($comments) {
@@ -1577,10 +1588,7 @@ class User extends Entity
             list ($eid, $to) = $this->getEmailForYahooGroup($groupid);
 
             if (!$to) {
-                $mails = $this->getEmails();
-                if (count($mails) > 0) {
-                    $to = $mails[0]['email'];
-                }
+                $to = $this->getEmailPreferred();
             }
 
             if ($to) {

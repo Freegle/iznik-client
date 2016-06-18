@@ -59,8 +59,8 @@ class Digest
             'groupid' => $groupid
         ]);
 
-        $emails = $u->getEmails();
-        if (count($emails) > 0) {
+        $email = $u->getEmailPreferred();
+        if ($email) {
             $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
             $spooltrans = Swift_SpoolTransport::newInstance($spool);
             $smtptrans = Swift_SmtpTransport::newInstance("localhost");
@@ -77,7 +77,7 @@ class Digest
                 ->setSubject("Email Change Confirmation")
                 ->setFrom([NOREPLY_ADDR => 'Do Not Reply'])
                 ->setReturnPath('bounce@direct.ilovefreegle.org')
-                ->setTo([ $emails[0]['email'] => $u->getName() ])
+                ->setTo([ $email => $u->getName() ])
                 ->setBody("We've turned your emails off on $groupname.")
                 ->addPart($html, 'text/html');
 
@@ -255,7 +255,7 @@ class Digest
                     ];
                 }
 
-                if ($maxmsg > 0) {
+                if (count($tosend) > 0) {
                     # Now find the users we want to send to on this group for this frequency.  We build up an array of
                     # the substitutions we need.
                     # TODO This isn't that well indexed in the table.
@@ -267,20 +267,20 @@ class Digest
 
                     foreach ($users as $user) {
                         $u = new User($this->dbhr, $this->dbhm, $user['userid']);
-                        $emails = $u->getEmails();
 
-                        if (count($emails) > 0) {
-                            $email = $emails[0]['email'];
+                        # We are only interested in sending digests to users for whom we have a preferred address -
+                        # otherwise where would we send them?
+                        $email = $u->getEmailPreferred();
 
+                        if ($email) {
                             # The group might or might not be on Yahoo.
                             $membershipmail = $g->getPrivate('onyahoo') ? $u->getEmailForYahooGroup($groupid, TRUE)[1]: $email;
 
                             # We don't want to send out mails to users who are members directly on Yahoo, only
                             # for ones which have joined through this platform or its predecessor.
-                            error_log("Consider email $membershipmail");
-                            if (stripos($membershipmail, USER_DOMAIN) !== FALSE ||
-                                stripos($membershipmail, 'fbuser') !== FALSE) {
-                                error_log("...$email");
+                            #error_log("Consider email $membershipmail");
+                            if (ourDomain($membershipmail)) {
+                                #error_log("...$email");
 
                                 # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
                                 $replacements[$email] = [
@@ -297,7 +297,7 @@ class Digest
                     }
 
                     if (count($replacements) > 0) {
-                        error_log("#$groupid " . count($tosend) . " messages max $maxmsg to " . count($replacements) . " users");
+                        error_log("#$groupid {$gatts['nameshort']} " . count($tosend) . " messages max $maxmsg to " . count($replacements) . " users");
                         # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
                         # rather than lose it.
                         $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
@@ -331,7 +331,12 @@ class Digest
                             $headers->addTextHeader('List-Unsubscribe', '<mailto:{{unsubscribe}}>');
 
                             foreach ($replacements as $email => $rep) {
-                                $message->addBcc($email);
+                                try {
+                                    $message->addBcc($email);
+                                } catch (Exception $e) {
+                                    # TODO Treat this as a bad email
+                                    error_log('...' . $email . " skipped");
+                                }
                             }
 
                             $this->sendOne($mailer, $message);

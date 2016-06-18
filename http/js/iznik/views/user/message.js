@@ -163,6 +163,7 @@ define([
                 text = text.replace(/--[\s\S]*Get Freegling[\s\S]*book/m, '');
                 text = text.replace(/--[\s\S]*Get Freegling[\s\S]*org[\s\S]*?<\/a>/m, '');
                 text = text.replace(/This message was sent via Freegle Direct[\s\S]*/m, '');
+                text = text.replace(/\[Non-text portions of this message have been removed\]/m, '');
 
                 // Redundant line breaks
                 text = text.replace(/(?:(?:\r\n|\r|\n)\s*){2}/m, "\n\n");

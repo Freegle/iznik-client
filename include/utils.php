@@ -440,3 +440,17 @@ function realEmail($email) {
         stripos($email, 'modtools.org') === FALSE
     );
 }
+
+function ourDomain($email) {
+    $ourdomains = explode(',', OURDOMAINS);
+
+    $ours = FALSE;
+    foreach ($ourdomains as $domain) {
+        if (stripos($email, '@' . $domain) !== FALSE) {
+            $ours = TRUE;
+            break;
+        }
+    }
+
+    return($ours);
+}

@@ -526,11 +526,11 @@ class ChatRoom extends Entity
 
                 # We ask them to reply to an email address which will direct us back to this chat.
                 $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
-                $to = $thisu->getEmails()[0];
+                $to = $thisu->getEmailPreferred();
 
-                $message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to['email'], $fromname, $replyto, $subject, $textsummary, $html);
+                $message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to, $fromname, $replyto, $subject, $textsummary, $html);
                 try {
-                    error_log($to['email'] . " " . $subject);
+                    error_log($to . " " . $subject);
                     $mailer->send($message);
 
                     $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
