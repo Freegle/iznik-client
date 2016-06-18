@@ -311,6 +311,7 @@ class Group extends Entity
                 'showmembers' => 1,
                 'pushnotify' => 1
             ];
+
             $thisone['settings']['configid'] = $member['configid'];
             $thisone['email'] = $email;
             $thisone['groupid'] = $member['groupid'];
@@ -320,6 +321,8 @@ class Group extends Entity
             $thisone['yahooAlias'] = $member['yahooAlias'];
             $thisone['role'] = $u->getRole($member['groupid']);
             $thisone['joincomment'] = $member['joincomment'];
+            $thisone['emailfrequency'] = $member['emailfrequency'];
+            $thisone['emailallowed'] = $member['emailallowed'] ? TRUE : FALSE;
 
             $thisone['heldby'] = $member['heldby'];
 

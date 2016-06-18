@@ -13,6 +13,8 @@ function memberships() {
     $search = presdef('search', $_REQUEST, NULL);
     $ctx = presdef('context', $_REQUEST, NULL);
     $settings = presdef('settings', $_REQUEST, NULL);
+    $emailfrequency = presdef('emailfrequency', $_REQUEST, NULL);
+    $emailallowed = array_key_exists('emailallowed', $_REQUEST) ? filter_var($_REQUEST['emailallowed'], FILTER_VALIDATE_BOOLEAN) : FALSE;;
 
     # TODO jQuery won't send an empty array, so we have a hack to ensure we can empty out the pending members.  What's
     # the right way to do this?
@@ -59,7 +61,6 @@ function memberships() {
                         $proceed = TRUE;
                     } else if ($groupid && ($me->isModOrOwner($groupid) || ($userid && $userid == $me->getId()))) {
                         # Get just one.  We can get this if we're a mod or it's our own.
-                        error_log("Get just one");
                         $groupids[] = $groupid;
                         $limit = $userid ? 1 : $limit;
                         $proceed = TRUE;
@@ -289,7 +290,21 @@ function memberships() {
 
                     if ($me->isModOrOwner($groupid) || $me->getId() == $userid) {
                         # We can change settings for a user if we're a mod or they are our own
-                        $ret = $u->setGroupSettings($groupid, $settings);
+                        $rc = TRUE;
+                        
+                        if ($settings) {
+                            $rc &= $u->setGroupSettings($groupid, $settings);
+                        } 
+                        
+                        if ($emailfrequency !== NULL) {
+                            $rc &= $u->setMembershipAtt($groupid, 'emailfrequency', intval($emailfrequency));
+                        }
+
+                        if ($emailallowed !== NULL) {
+                            $rc &= $u->setMembershipAtt($groupid, 'emailallowed', $emailallowed ? 1 : 0);
+                        }
+
+                        $ret = $rc ? [ 'ret' => 0, 'status' => 'Success' ] : [ 'ret' => 2, 'status' => 'Set failed' ];
                     }
                 }
 

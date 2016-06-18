@@ -142,6 +142,33 @@ define([
     Iznik.Views.User.Settings.Group = Iznik.View.extend({
         template: "user_settings_group",
 
+        events: {
+            'change .js-frequency': 'changeFreq'
+        },
+
+        changeFreq: function() {
+            var self = this;
+            var me = Iznik.Session.get('me');
+            var data = {
+                userid: me.id,
+                groupid: self.model.get('id'),
+                emailfrequency: self.$('.js-frequency').val()
+            };
+
+            console.log("Settings change data", data);
+
+            $.ajax({
+                url: API + 'memberships',
+                type: 'PATCH',
+                data: data,
+                success: function(ret) {
+                    if (ret.ret === 0) {
+                        self.$('.js-ok').removeClass('hidden');
+                    }
+                }
+            });
+        },
+
         render: function() {
             var self = this;
             Iznik.View.prototype.render.call(this).then(function() {

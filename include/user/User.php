@@ -530,6 +530,7 @@ class User extends Entity
     }
 
     public function setMembershipAtt($groupid, $att, $val) {
+        Session::clearSessionCache();
         $sql = "UPDATE memberships SET $att = ? WHERE groupid = ? AND userid = ?;";
         $rc = $this->dbhm->preExec($sql, [
             $val,
@@ -842,19 +843,12 @@ class User extends Entity
     }
 
     public function setGroupSettings($groupid, $settings) {
-        if ($settings) {
-            $sql = "UPDATE memberships SET settings = ? WHERE userid = ? AND groupid = ?;";
-            $this->dbhm->preExec($sql, [
-                json_encode($settings),
-                $this->id,
-                $groupid
-            ]);
-        }
-
-        return([
-            'ret' => 0,
-            'status' => 'Success'
-        ]);
+        $sql = "UPDATE memberships SET settings = ? WHERE userid = ? AND groupid = ?;";
+        return($this->dbhm->preExec($sql, [
+            json_encode($settings),
+            $this->id,
+            $groupid
+        ]));
     }
 
     public function getGroupSettings($groupid) {
