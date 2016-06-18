@@ -8,12 +8,13 @@ function event() {
         case 'POST':
             $events = array_key_exists('events', $_REQUEST) ? $_REQUEST['events'] : NULL;
 
-            if ($events && FALSE) {
+            if ($events) {
                 $p = new Events($dbhr, $dbhm);
 
                 $me = whoAmI($dbhr, $dbhm);
                 $myid = $me ? $me->getId() : NULL;
                 $sessid = session_id();
+                #$start = microtime(TRUE);
 
                 # The client shouldn't send us more than this; if it does, then something's wrong, so just quietly
                 # drop the data rather than attempt to process something which might be huge.
@@ -36,6 +37,8 @@ function event() {
 
                     $p->flush();
                 }
+
+                #error_log("Record of " . count($events) . " took " . (microtime(TRUE) - $start));
             }
 
             $ret = array('ret' => 0, 'status' => 'Success', 'nolog' => TRUE);
