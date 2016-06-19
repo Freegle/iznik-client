@@ -280,18 +280,23 @@ class Digest
                             # for ones which have joined through this platform or its predecessor.
                             #error_log("Consider email $membershipmail");
                             if (ourDomain($membershipmail)) {
+                                # We might be on holiday.
                                 #error_log("...$email");
+                                $hol = $u->getPrivate('onholidaytill');
+                                $till = $hol ? strtotime($hol) : 0;
 
-                                # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
-                                $replacements[$email] = [
-                                    '{{toname}}' => $u->getName(),
-                                    '{{unsubscribe}}' => 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email),
-                                    '{{email}}' => $email,
-                                    '{{frequency}}' => $this->freqText[$frequency],
-                                    '{{noemail}}' => 'digestoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
-                                    '{{post}}' => "https://direct.ilovefreegle.org/login.php?action=post&groupid=$fdgroupid&digest=$fdgroupid",
-                                    '{{visit}}' => "https://direct.ilovefreegle.org/login.php?action=mygroups&subaction=displaygroup&groupid=$fdgroupid&digest=$fdgroupid"
-                                ];
+                                if (time() > $till) {
+                                    # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
+                                    $replacements[$email] = [
+                                        '{{toname}}' => $u->getName(),
+                                        '{{unsubscribe}}' => 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email),
+                                        '{{email}}' => $email,
+                                        '{{frequency}}' => $this->freqText[$frequency],
+                                        '{{noemail}}' => 'digestoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
+                                        '{{post}}' => "https://direct.ilovefreegle.org/login.php?action=post&groupid=$fdgroupid&digest=$fdgroupid",
+                                        '{{visit}}' => "https://direct.ilovefreegle.org/login.php?action=mygroups&subaction=displaygroup&groupid=$fdgroupid&digest=$fdgroupid"
+                                    ];
+                                }
                             }
                         }
                     }

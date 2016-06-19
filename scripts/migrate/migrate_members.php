@@ -132,6 +132,9 @@ if (1==1) {
                     $dig = $user['digest'] ? $user['maxdigestdelay'] : 0;
                     $u->setMembershipAtt($gid, 'emailfrequency', $dig);
 
+                    $hol = $user['onholidaytill'];
+                    $hol = ($hol && $hol != '0000-00-00') ? $hol : NULL;
+
                     $count++;
                     if ($count % 1000 == 0) {
                         error_log("...$count");

@@ -29,6 +29,15 @@ define([
             });
         },
 
+        save: function(attrs, options) {
+            // Clear any locally cached copy.
+            try {
+                localStorage.removeItem('session');
+            } catch (e) {};
+            
+            Backbone.Model.prototype.save.call(this, attrs, options);
+        },
+
         updateCounts: function () {
             this.testLoggedIn();
         },

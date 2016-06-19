@@ -26,12 +26,6 @@ class sessionClassTest extends IznikTestCase {
         $_SESSION['id'] = NULL;
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-
-        @session_destroy();
-    }
-
     public function __construct() {
     }
 

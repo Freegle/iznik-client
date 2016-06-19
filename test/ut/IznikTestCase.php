@@ -59,6 +59,9 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
 
     protected function tearDown() {
         parent::tearDown ();
+        try {
+            @session_reopen();
+        } catch (Exception $e) {}
 
         @session_destroy();
     }

@@ -35,12 +35,6 @@ abstract class IznikAPITestCase extends IznikTestCase {
         $dbhm->preExec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';");
     }
 
-    protected function tearDown() {
-        parent::tearDown ();
-
-        @session_destroy();
-    }
-
     public function __construct() {
     }
 

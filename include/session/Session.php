@@ -15,8 +15,8 @@ if (pres('api_key', $_REQUEST)) {
     session_id($_REQUEST['api_key']);
 }
 
-if (!isset($_SESSION)) {
-    session_start();
+if (session_id() == '') {
+    @session_start();
 }
 
 $sessionPrepared = FALSE;
@@ -25,7 +25,11 @@ function prepareSession($dbhr, $dbhm) {
     # We only want to do the prepare once, otherwise we will generate many headers.
     global $sessionPrepared;
 
-    if (!$sessionPrepared || TRUE) {
+    if (session_id() == '') {
+        @session_start();
+    }
+
+    if (!$sessionPrepared) {
         if (!pres('id', $_SESSION)) {
             $userid = NULL;
 
@@ -76,9 +80,6 @@ function whoAmI(LoggedPDO $dbhr, $dbhm, $writeaccess = false)
 {
     prepareSession($dbhr, $dbhm);
 
-    # Tempting to cache user info in the session, but we would then have to
-    # update or invalidate it when anything changes.  That is a fertile source
-    # of bugs.
     $id = pres('id', $_SESSION);
     $ret = NULL;
 
@@ -115,7 +116,9 @@ class Session {
 
     public static function clearSessionCache() {
         # We cache some information for the duration of a call.  Usually we'll have called session_write_close so
-        # this won't get written to the actual session anyway, but it's a convenient place to store things.
+        # this won't get written to the actual session anyway, but it's a convenient place to store things.  When
+        # clearing it we need to get write access in case there is actually something in the session.
+        session_reopen();
         $_SESSION['cache'] = [];
     }
 

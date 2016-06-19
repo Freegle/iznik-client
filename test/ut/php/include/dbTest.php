@@ -35,9 +35,6 @@ class dbTest extends IznikTestCase {
     protected function tearDown() {
         $rc = $this->dbhm->exec('DROP TABLE test;');
         assertEquals(0, $rc);
-
-        @session_destroy();
-
         parent::tearDown ();
     }
 

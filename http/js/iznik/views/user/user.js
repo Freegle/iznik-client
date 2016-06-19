@@ -4,7 +4,9 @@ define([
     'backbone',
     'moment',
     'iznik/base',
-    'iznik/views/modal'
+    'iznik/views/modal',
+    'bootstrap-switch',
+    'bootstrap-datepicker'
 ], function($, _, Backbone, moment, Iznik) {
         Iznik.Views.ModTools.User = Iznik.View.extend({
         template: 'modtools_user_user',
@@ -767,6 +769,44 @@ define([
             this.open(this.template);
 
             return (this);
+        }
+    });
+
+    Iznik.Views.ModTools.User.Freegle = Iznik.View.extend({
+        template: 'modtools_freegle_user',
+
+        render: function () {
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function (self) {
+                self.$('.js-emailfrequency').val(self.model.get('emailfrequency'));
+
+                self.$('.datepicker').datepicker({
+                    format: 'D, dd MM yyyy',
+                    startDate: '0d',
+                    endDate: '+30d'
+                });
+
+                var onholiday = Iznik.Session.get('me').onholidaytill;
+
+                self.$(".js-switch").bootstrapSwitch({
+                    onText: 'Paused',
+                    offText: 'On',
+                    state: onholiday != undefined
+                });
+
+                self.$('select').selectpicker();
+
+                if (onholiday != undefined) {
+                    self.$('.js-onholidaytill').show();
+                    self.$('.js-emailfrequency').hide();
+                    self.$('.datepicker').datepicker('setUTCDate', new Date(onholiday));
+                } else {
+                    self.$('.js-onholidaytill').hide();
+                    self.$('.js-emailfrequency').show();
+                }
+            });
+
+            return(p);
         }
     });
 });

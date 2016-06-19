@@ -9,7 +9,8 @@ define([
     'iznik/views/pages/pages',
     "iznik/views/pages/modtools/messages",
     'iznik/views/infinite',
-    'iznik/views/group/select'
+    'iznik/views/group/select',
+    "iznik/views/user/user"
 ], function($, _, Backbone, moment, saveAs, Iznik) {
     Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Infinite.extend({
         modtools: true,
@@ -307,6 +308,14 @@ define([
 
                         v.render().then(function(v) {
                             self.$('.js-user').html(v.el);
+                        })
+
+                        var v = new Iznik.Views.ModTools.User.Freegle({
+                            model: mod
+                        });
+
+                        v.render().then(function(v) {
+                            self.$('.js-freegleinfo').append(v.el);
                         })
 
                         // Delay getting the Yahoo info slightly to improve apparent render speed.

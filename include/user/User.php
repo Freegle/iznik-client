@@ -47,32 +47,32 @@ class User extends Entity
     {
         $this->log = new Log($dbhr, $dbhm);
         $this->notif = new Notifications($dbhr, $dbhm);
-        # Don't cache this - too many users to flood the query cache.
-        $this->fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts, FALSE);
+        
+        $this->fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts);
     }
 
     # Override fetch for caching purposes.
-    function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts, $cache = TRUE)
+    function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts)
     {
         if ($id) {
             if (pres('cache', $_SESSION) && $id == pres('id', $_SESSION)) {
                 # We're getting our own user.  This is very common, even within a single API call, so cache it.
                 #error_log(session_id() . " got me? " . var_export(pres('me', $_SESSION['cache']), TRUE));
                 if (!pres('me', $_SESSION['cache'])) {
-                    parent::fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts, FALSE);
-                    #$_SESSION['cache']['me'] = $this->user;
+                    parent::fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts);
+                    $_SESSION['cache']['me'] = $this->user;
                     #error_log(session_id() . " stored me " . $_SESSION['cache']['me']);
                 } else {
-                    parent::fetch($dbhr, $dbhm, NULL, 'users', 'user', $this->publicatts, FALSE);
+                    parent::fetch($dbhr, $dbhm, NULL, 'users', 'user', $this->publicatts);
                     $this->id = $id;
                     $this->user = $_SESSION['cache']['me'];
                 }
             } else {
                 # Some other user - just fetch.
-                parent::fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts, FALSE);
+                parent::fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts);
             }
         } else {
-            parent::fetch($dbhr, $dbhm, NULL, 'users', 'user', $this->publicatts, FALSE);
+            parent::fetch($dbhr, $dbhm, NULL, 'users', 'user', $this->publicatts);
         }
     }
 
@@ -1106,6 +1106,12 @@ class User extends Entity
             # Add in private attributes for our own entry.
             $atts['emails'] = $me->getEmails();
             $atts['email'] = $me->getEmailPreferred();
+        }
+
+        if ($me && $me->isModerator()) {
+            # Mods can see email settings, no matter which group.
+            $atts['emailallowed'] = $this->user['emailallowed'];
+            $atts['onholidaytill'] = $this->user['onholidaytill'] ? ISODate($this->user['onholidaytill']) : NULL;
         }
 
         if ($comments) {

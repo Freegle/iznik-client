@@ -4,7 +4,8 @@ require_once(IZNIK_BASE . '/mailtemplates/modtools/verifymail.php');
 function session() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    # Don't want to use cached information when looking at our own session.
+    $me = whoAmI($dbhm, $dbhm);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -171,6 +172,12 @@ function session() {
                 if ($password) {
                     $me->addLogin(User::LOGIN_NATIVE, $me->getId(), $password);
                 }
+
+                if (array_key_exists('onholidaytill', $_REQUEST)) {
+                    $me->setPrivate('onholidaytill', $_REQUEST['onholidaytill']);
+                }
+
+                Session::clearSessionCache();
             }
             break;
         }

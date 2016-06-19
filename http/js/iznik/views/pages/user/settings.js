@@ -19,19 +19,45 @@ define([
 
         events: {
             'switchChange.bootstrapSwitch .js-onholiday': 'onholiday',
+            'changeDate .js-onholidaytill': 'onholidaytill',
             'keyup .js-name': 'nameChange',
             'keyup .js-email': 'emailChange'
         },
 
+        onholidaytill: function() {
+            var me = Iznik.Session.get('me');
+            var till = this.$('.js-onholidaytill').datepicker('getUTCDates');
+            till = (new Date(Date.parse(till)).toISOString());
+            this.$('.js-onholidaytill').datepicker('hide');
+
+            Iznik.Session.save({
+                id: me.id,
+                onholidaytill: till
+            }, {
+                patch: true
+            });
+        },
+
         onholiday: function() {
-            if (this.$('.js-onholiday').prop('checked')) {
+            var me = Iznik.Session.get('me');
+            var till = me.onholidaytill ? new Date(me.onholidaytill) : new Date();
+            console.log("On holiday till", till, me);
+            if (this.$('.js-switch').bootstrapSwitch('state')) {
                 this.$('.js-onholidaytill').show();
                 this.$('.js-until').show();
-                this.$('.js-onholidaytill').datepicker('update', new Date());
+                this.$('.js-onholidaytill').datepicker('update', till);
             } else {
                 this.$('.js-onholidaytill').val('1970-01-01T00:00:00Z');
                 this.$('.js-onholidaytill').hide();
                 this.$('.js-until').hide();
+                console.log("Not on holiday - clear");
+
+                Iznik.Session.save({
+                    id: me.id,
+                    onholidaytill: null
+                }, {
+                    patch: true
+                });
             }
         },
 
@@ -44,10 +70,6 @@ define([
                     var me = Iznik.Session.get('me');
                     me.displayname = name;
                     Iznik.Session.set('me', me);
-                    try {
-                        localStorage.removeItem('session');
-                    } catch (e) {};
-
                     Iznik.Session.save({
                         id: me.id,
                         displayname: name
@@ -71,10 +93,6 @@ define([
                     var me = Iznik.Session.get('me');
                     me.email = email;
                     Iznik.Session.set('me', me);
-                    try {
-                        localStorage.removeItem('session');
-                    } catch (e) {};
-
                     Iznik.Session.save({
                         id: me.id,
                         email: email
@@ -104,21 +122,24 @@ define([
                     self.$('.js-help').html(v.el);
                 });
 
-                self.$(".js-switch").bootstrapSwitch({
-                    onText: 'Mails Paused',
-                    offText: 'Mails On'
-                });
                 self.$('abbr.timeago').timeago();
                 self.$('.datepicker').datepicker({
-                    format: 'D, dd MM yyyy'
+                    format: 'D, dd MM yyyy',
+                    startDate: '0d',
+                    endDate: '+30d'
                 });
 
                 var me = Iznik.Session.get('me');
-                self.$('.js-name').val(me.displayname)
-                self.$('.js-email').val(me.email)
+                console.log("Settings me ", JSON.parse(JSON.stringify(me)));
+                self.$('.js-name').val(me.displayname);
+                self.$('.js-email').val(me.email);
 
-                var onholiday = Iznik.Session.getSetting('onholidaytill');
-                self.$('.js-onholiday').prop('checked', onholiday != undefined);
+                console.log("On holiday?", me.onholidaytill, me.onholidaytill != undefined);
+                self.$(".js-switch").bootstrapSwitch({
+                    onText: 'Mails Paused',
+                    offText: 'Mails On',
+                    state: me.onholidaytill != undefined
+                });
                 self.onholiday();
 
                 self.groupscoll = Iznik.Session.get('groups');
