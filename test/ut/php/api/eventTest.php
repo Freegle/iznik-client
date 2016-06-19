@@ -80,7 +80,7 @@ EOT
         assertEquals(0, $ret['ret']);
 
         $sessid = $ret['session'];
-        error_log("Got session $sessid");
+        error_log("Got session $sessid " . var_export($ret, TRUE));
 
         $this->waitBackground();
 
@@ -102,6 +102,7 @@ EOT
         $ret = $this->call('event', 'GET', [
             'sessionid' => $sessid
         ]);
+        if ($ret['ret'] == 1) { exit(-1); }
         assertEquals(0, $ret['ret']);
         assertEquals(2, count($ret['events']));
         assertEquals($ret['events'][0]['data'], $ret['events'][1]['data']);

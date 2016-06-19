@@ -15,18 +15,24 @@ if (pres('api_key', $_REQUEST)) {
     session_id($_REQUEST['api_key']);
 }
 
-if (session_id() == '') {
-    @session_start();
+if (!isset($_SESSION)) {
+    session_start();
 }
 
+#error_log("Session " . session_id() . " logged in? " . presdef('id', $_SESSION, NULL));
 $sessionPrepared = FALSE;
 
 function prepareSession($dbhr, $dbhm) {
     # We only want to do the prepare once, otherwise we will generate many headers.
     global $sessionPrepared;
 
-    if (session_id() == '') {
-        @session_start();
+    # We need to also be prepared to do a session_start here, because if we're running in the UT then the session_start
+    # above will happen once at the start of the test, when the script is first included, and we will later on destroy
+    # it.
+    #error_log("prepare " . isset($_SESSION) . " id " . session_id());
+    if (!isset($_SESSION) || session_id() == '') {
+        #error_log("prepare start");
+        session_start();
     }
 
     if (!$sessionPrepared) {
@@ -82,10 +88,12 @@ function whoAmI(LoggedPDO $dbhr, $dbhm, $writeaccess = false)
 
     $id = pres('id', $_SESSION);
     $ret = NULL;
+    #error_log("whoAmI  $id in " . session_id());
 
     if ($id) {
         # We are logged in.  Get our details
         $ret = new User($dbhr, $dbhm, $id);
+        #error_log("Found " . $ret->getId());
     }
 
     if (!pres('cache', $_SESSION)) {
@@ -160,10 +168,11 @@ class Session {
             foreach ($sessions as $session) {
                 $series = $session['series'];
                 $thash = $session['token'];
+                $this->id = $session['id'];
             }
 
-            $this->id = $session['id'];
             $id = $this->id;
+            #error_log("Already got a session $id");
         } else {
             # Generate a new series and token.
             #
@@ -181,11 +190,13 @@ class Session {
 
             $id = $this->dbhm->lastInsertId();
             $this->id = $id;
+            #error_log("Created session $id");
         }
 
         session_reopen();
         $_SESSION['id'] = $userid;
         $_SESSION['logged_in'] = TRUE;
+        #error_log("Logged in as $userid in " . session_id());
 
         $ss = array(
             'id' => $id,

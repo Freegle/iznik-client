@@ -517,6 +517,10 @@ class LoggedPDO {
         return($this->inTransaction) ;
     }
 
+    public function setAttribute($attr, $val) {
+        return($this->_db->setAttribute($attr, $val));
+    }
+
     public function quote($str) {
         return($this->_db->quote($str));
     }

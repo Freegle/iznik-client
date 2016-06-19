@@ -11,6 +11,9 @@ use Pheanstalk\Pheanstalk;
 
 $lockh = lockScript(basename(__FILE__));
 
+$dbhm->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, TRUE);
+
+
 try {
     $pheanstalk = new Pheanstalk('127.0.0.1');
 
