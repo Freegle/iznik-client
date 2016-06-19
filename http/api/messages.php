@@ -100,10 +100,6 @@ function messages() {
 
                         $msgs = $m->search($search, $ctx, $limit, NULL, $groups);
                         list($groups, $msgs) = $c->fillIn($msgs, $limit, $messagetype, NULL);
-                        
-                        if ($nearlocation) {
-                            # Now that we have found the 
-                        }
                     }
 
                     break;

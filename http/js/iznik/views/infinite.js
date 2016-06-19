@@ -23,14 +23,15 @@ define([
                 // console.log("Not already fetching");
                 self.fetching = self.selected;
                 self.fetchPromise = new Promise(function(resolve, reject) {
-                    // console.log("Fetch data", self.fetchData, data);
                     if (data) {
                         // We were passed some data to use on the fetch.  Save it for future fetches when we need to
                         // scroll.
                         self.fetchData = data;
+                        // console.log("Infinite fetch data passed", data);
                     } else {
                         // We weren't - but we might have some saved.
                         data = self.fetchData ? self.fetchData : {};
+                        // console.log("Infinite fetch data from saved", data);
                     }
 
                     self.$('.js-loading').removeClass('hidden');
@@ -67,7 +68,7 @@ define([
                         }
 
                         // Fetch more - and leave the old ones in the collection unless we're fetching another group.
-                        // console.log("Fetch vs", self.selected, self.lastFetched, self.selected != self.lastFetched);
+                        // console.log("Fetch vs", self.selected, self.lastFetched, self.selected != self.lastFetched, data);
                         self.collection.fetch({
                             data: data,
                             remove: self.selected != self.lastFetched,

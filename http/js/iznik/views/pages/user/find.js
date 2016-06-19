@@ -163,10 +163,8 @@ define([
 
                     self.collectionView.render();
 
-                    self.fetch({
-                        remove: true,
-                        data: data
-                    }).then(function () {
+                    data.remove = true;
+                    self.fetch(data).then(function () {
                         var some = false;
 
                         self.collection.each(function(msg) {
