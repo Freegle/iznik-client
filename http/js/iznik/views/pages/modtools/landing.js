@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     "iznik/modtools",
+    "iznik/views/pages/modtools/settings",
     'iznik/views/pages/pages'
 ], function($, _, Backbone, Iznik) {
         Iznik.Views.ModTools.Pages.Landing = Iznik.Views.Page.extend({
@@ -150,6 +151,12 @@ define([
                     v.render().then(function(v) {
                         self.$('.js-groupselect').html(v.el);
                     });
+
+                    // Add any warnings to prompt action.
+                    var v = new Iznik.Views.ModTools.Settings.ActionRequired();
+                    v.render().then(function() {
+                        self.$('.js-settingsaction').html(v.el);
+                    })
                 });
 
                 return(p);

@@ -1270,6 +1270,11 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     margin-left: 15px;
 }
 
+.profile {
+    width: 100px !important;
+    height: 100px !important;
+}
+
 @media only screen and (min-width : 768px) {
     .row.vdivide [class*='col-']:not(:last-child):after {
         background: red;

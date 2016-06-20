@@ -169,6 +169,23 @@ class groupAPITest extends IznikAPITestCase {
         ]);
         assertEquals(12, $ret['group']['settings']['mapzoom']);
 
+        # Profile
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+        $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
+        $attid = $a->create(NULL, 'image/jpeg', $data);
+        assertNotNull($attid);
+
+        $ret = $this->call('group', 'PATCH', [
+            'id' => $this->groupid,
+            'profile' => $attid
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('group', 'GET', [
+            'id' => $this->groupid
+        ]);
+        assertNotFalse(strpos($ret['group']['profile'], $attid));
+
         error_log(__METHOD__ . " end");
     }
 

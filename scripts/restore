@@ -4,6 +4,7 @@ EMAIL=geek-alerts@ilovefreegle.org
 # Restore the last backup into MySQL.  For use on the archive server.
 /etc/init.d/mysql stop
 killall -9 mysqld
+sleep 10
 rm -r /archive/mysql
 mkdir /archive/mysql
 cd /archive/backups

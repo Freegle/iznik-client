@@ -53,6 +53,7 @@ function group() {
 
             case 'PATCH': {
                 $settings = presdef('settings', $_REQUEST, NULL);
+                $profile = intval(presdef('profile', $_REQUEST, NULL));
 
                 $ret = [
                     'ret' => 1,
@@ -73,6 +74,23 @@ function group() {
 
                         if ($settings) {
                             $g->setSettings($settings);
+                        }
+
+                        if ($profile) {
+                            # Set the profile picture.  Rescale if need be to 200x200 to save space in the DB and,
+                            # more importantly, download time.
+                            $g->setPrivate('profile', $profile);
+                            $a = new Attachment($dbhr, $dbhm, $profile, Attachment::TYPE_GROUP);
+                            $data = $a->getData();
+                            $i = new Image($data);
+                            
+                            if ($i->width() > 200 || $i->height() > 200) {
+                                $i->scale(200, 200);
+                                $data = $i->getData(100);
+                                $a->setPrivate('data', $data);
+                            }
+
+                            $a->setPrivate('groupid', $id);
                         }
                     }
                 }

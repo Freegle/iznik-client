@@ -9,7 +9,8 @@ class Group extends Entity
 {
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'logo',
-        'onyahoo', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'lat', 'lng');
+        'onyahoo', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'lat', 'lng',
+        'profile', 'cover');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
@@ -201,6 +202,10 @@ class Group extends Entity
         foreach (['trial', 'licensed', 'licenseduntil'] as $datefield) {
             $atts[$datefield] = $atts[$datefield] ? ISODate($atts[$datefield]) : NULL;
         }
+
+        # Images
+        $atts['profile'] = $atts['profile'] ? Attachment::getPath($atts['profile'], Attachment::TYPE_GROUP) : NULL;
+        $atts['cover'] = $atts['cover'] ? Attachment::getPath($atts['cover'], Attachment::TYPE_GROUP) : NULL;
 
         return($atts);
     }

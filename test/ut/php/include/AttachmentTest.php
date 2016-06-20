@@ -23,7 +23,6 @@ class AttachmentTest extends IznikTestCase {
     }
 
     protected function tearDown() {
-        parent::tearDown ();
     }
 
     public function __construct() {
@@ -50,17 +49,17 @@ class AttachmentTest extends IznikTestCase {
         error_log(__METHOD__);
 
         $data = file_get_contents('images/chair.jpg');
-        $a = new Attachment($this->dbhr, $this->dbhm);
+        $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
         $attid1 = $a->create(NULL, 'image/jpeg', $data);
         assertNotNull($attid1);
 
         $data = file_get_contents('images/chair.jpg');
-        $a = new Attachment($this->dbhr, $this->dbhm);
+        $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
         $attid2 = $a->create(NULL, 'image/jpeg', $data);
         assertNotNull($attid1);
 
-        $a1 = new Attachment($this->dbhr, $this->dbhm, $attid1);
-        $a2 = new Attachment($this->dbhr, $this->dbhm, $attid2);
+        $a1 = new Attachment($this->dbhr, $this->dbhm, $attid1, Attachment::TYPE_GROUP);
+        $a2 = new Attachment($this->dbhr, $this->dbhm, $attid2, Attachment::TYPE_GROUP);
         assertEquals($a1->getHash(), $a2->getHash());
 
         error_log(__METHOD__ . " end");

@@ -342,7 +342,7 @@ define([
 
         modtools: function () {
             var self = this;
-            require(['iznik/views/dashboard', "iznik/views/pages/modtools/landing"], function() {
+            require(['iznik/views/dashboard', "iznik/views/pages/user/settings", "iznik/views/pages/modtools/landing"], function() {
                 self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                     var page = new Iznik.Views.ModTools.Pages.Landing();
                     self.loadRoute({page: page, modtools: true});

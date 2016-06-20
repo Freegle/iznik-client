@@ -154,7 +154,8 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 
         # Save it and check they show up as attachments
         list($id, $already) = $m->save();
-        $atts = Attachment::getById($this->dbhr, $this->dbhm, $id);
+        $a = new Attachment($this->dbhr, $this->dbhm);
+        $atts = $a->getById($id);
         assertEquals(2, count($atts));
 
         $m->delete();
@@ -170,7 +171,8 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 
         # Save it and check they don't show up as attachments
         list($id, $already) = $m->save();
-        $atts = Attachment::getById($this->dbhr, $this->dbhm, $id);
+        $a = new Attachment($this->dbhr, $this->dbhm);
+        $atts = $a->getById($id);        
         assertEquals(0, count($atts));
 
         error_log(__METHOD__ . " end");

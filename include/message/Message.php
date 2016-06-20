@@ -798,7 +798,8 @@ class Message
 
     # Get attachments which have been saved
     public function getAttachments() {
-        $atts = Attachment::getById($this->dbhr, $this->dbhm, $this->getID());
+        $a = new Attachment($this->dbhr, $this->dbhm);
+        $atts = $a->getById($this->getID());
         return($atts);
     }
 
@@ -2317,7 +2318,7 @@ class Message
                 $count = 0;
 
                 foreach ($atts as $att) {
-                    $path = "https://" . IMAGE_DOMAIN . $att->getPath();
+                    $path = "https://" . IMAGE_DOMAIN . Attachment::getPath($att->getId());
                     $txtbody .= "$path\r\n";
                     $htmlbody .= '<td><a href="' . $path . '" target="_blank"><img width="200px" src="' . $path . '" /></a></td>';
 

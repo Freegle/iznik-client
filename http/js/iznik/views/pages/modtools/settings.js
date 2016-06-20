@@ -6,6 +6,7 @@ define([
     'wicket-gmap3',
     'moment',
     'iznik/base',
+    'fileupload',
     'backform',
     'gmaps',
     'maplabel',
@@ -370,6 +371,54 @@ define([
                     });
     
                     self.groupForm.render();
+
+                    // The appearance.
+                    var profile = group.get('profile');
+                    self.$('.js-profile').attr('src', profile ? profile : "http://placehold.it/200x200");
+
+                    // Simple file upload without progress bar or error handling - mods can live with that.
+                    self.$('.js-profileupload').fileupload({
+                        // Enable image resizing, except for Android and Opera,
+                        // which actually support image resizing, but fail to
+                        // send Blob objects via XHR requests:
+                        url: API + 'upload?group=1',
+                        disableImageResize: /Android(?!.*Chrome)|Opera/.test(window.navigator.userAgent),
+                        imageMaxWidth: 200,
+                        imageMaxHeight: 200,
+                        acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
+                        dataType: 'json',
+                        add: function (e, data) {
+                            data.process().done(function () {
+                                data.submit();
+                            });
+                        },
+                        done: function (e, data) {
+                            console.log("Done", data);
+                            if (data.result.files.length > 0) {
+                                _.each(data.result.files, function (file) {
+                                    $.ajax({
+                                        type: 'PUT',
+                                        url: API + 'image?group=1',
+                                        data: {
+                                            filename: file.name
+                                        }, success: function (ret) {
+                                            console.log("Uploaded", ret);
+                                            if (ret.ret === 0) {
+                                                group.set('profile', ret.id);
+                                                group.save({
+                                                    id: group.get('id'),
+                                                    profile: ret.id
+                                                }, {
+                                                    patch: true
+                                                });
+                                                self.$('.js-profile').attr('src', ret.path);
+                                            }
+                                        }
+                                    });
+                                });
+                            }
+                        }
+                    });
 
                     // Layout messes up a bit for radio buttons.
                     self.groupForm.$(':radio').closest('.form-group').addClass('clearfix');
@@ -845,6 +894,7 @@ define([
                     personalForm.render();
 
                     var configs = Iznik.Session.get('configs');
+                    self.$('.js-configselect').empty();
                     configs.each(function(config) {
                         self.$('.js-configselect').append('<option value=' + config.get('id') + '>' +
                             $('<div />').text(config.get('name')).html() + '</option>');
@@ -1772,6 +1822,43 @@ define([
                     });
                 });
             });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.ModTools.Settings.ActionRequired = Iznik.View.extend({
+        template: 'modtools_settings_actionrequired',
+        
+        render: function() {
+            var self = this;
+            var p;
+            var missingProfile = [];
+            var groups = Iznik.Session.get('groups');
+            groups.each(function(group) {
+                if (group.get('type') == 'Freegle' && !group.get('profile')) {
+                    missingProfile.push(group.get('namedisplay'));
+                }
+            });
+
+            if (missingProfile.length > 0) {
+                var p = Iznik.View.prototype.render.call(this);
+                require(['jquery-show-first'], function() {
+                    p.then(function (self) {
+                        _.each(missingProfile, function(missing) {
+                            self.$('.js-grouplist').append('<div>' + missing + '</div>');
+                        });
+                        self.$('.js-grouplist').showFirst({
+                            controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                            count: 5
+                        });
+
+                        self.$('.js-profile').fadeIn('slow');
+                    });
+                });
+            } else {
+                p = resolvedPromise(this);
+            }
 
             return(p);
         }
