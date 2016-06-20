@@ -1836,7 +1836,8 @@ define([
             var missingProfile = [];
             var groups = Iznik.Session.get('groups');
             groups.each(function(group) {
-                if (group.get('type') == 'Freegle' && !group.get('profile')) {
+                var role = group.get('role');
+                if (group.get('type') == 'Freegle' && (role == 'Moderator' || role == 'Owner') && !group.get('profile')) {
                     missingProfile.push(group.get('namedisplay'));
                 }
             });
