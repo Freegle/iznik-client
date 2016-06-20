@@ -43,10 +43,12 @@ class Attachment
         return $this->contentType;
     }
 
-    public static function getPath($id, $type = Attachment::TYPE_MESSAGE) {
+    public static function getPath($id, $type = Attachment::TYPE_MESSAGE, $thumb = FALSE) {
         # We serve up our attachment names as though they are files.
         # When these are fetched it will go through image.php
         $name = $type == Attachment::TYPE_MESSAGE ? 'img' : 'gimg';
+        $name = $thumb ? "t$name" : $name;
+
         return("https://" . IMAGE_DOMAIN . "/{$name}_$id.jpg");
     }
 
@@ -58,7 +60,8 @@ class Attachment
 
         if (stripos($this->contentType, 'image') !== FALSE) {
             # It's an image.  That's the only type we support.
-            $ret['path'] = Attachment::getPath($this->id);
+            $ret['path'] = Attachment::getPath($this->id, $this->type);
+            $ret['paththumb'] = Attachment::getPath($this->id, $this->type, TRUE);
         }
 
         return($ret);
