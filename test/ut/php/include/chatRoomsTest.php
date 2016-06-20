@@ -110,8 +110,10 @@ class chatRoomsTest extends IznikTestCase {
         $u = new User($this->dbhr, $this->dbhm);
         $u1 = $u->create(NULL, NULL, "Test User 1");
         $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
         $u2 = $u->create(NULL, NULL, "Test User 2");
         $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $id = $r->createConversation($u1, $u2);
@@ -130,7 +132,7 @@ class chatRoomsTest extends IznikTestCase {
         error_log("Created chat message $cm");
         
         $r = $this->getMockBuilder('ChatRoom')
-            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('mailer'))
             ->getMock();
         
@@ -140,13 +142,15 @@ class chatRoomsTest extends IznikTestCase {
         
         assertEquals(1, $r->notifyByEmail($id, TRUE, 0));
 
-        # Now pretend we've seen the messages.  Shouldn't notify as we've seen them, and should end up flagging the
-        # message as seen by all.
-        $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = $msgid WHERE chatid = $id;");
-        $r->expects($this->never())->method('mailer');
-        assertEquals(0, $r->notifyByEmail($id, TRUE));
+        # Now pretend we've seen the messages.  Should flag the message as seen by all.
+        $r->updateRoster($u1, $cm, ChatRoom::STATUS_ONLINE);
+        $r->updateRoster($u2, $cm, ChatRoom::STATUS_ONLINE);
         $m = new ChatMessage($this->dbhr, $this->dbhm, $cm);
         assertEquals(1, $m->getPrivate('seenbyall'));
+
+        # Shouldn't notify as we've seen them.
+        $r->expects($this->never())->method('mailer');
+        assertEquals(0, $r->notifyByEmail($id, TRUE));
 
         # Once more for luck - this time won't even check this chat.
         assertEquals(0, $r->notifyByEmail($id), TRUE);

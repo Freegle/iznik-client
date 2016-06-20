@@ -75,7 +75,7 @@ define([
 
         model: Iznik.Models.Chat.Message,
 
-        comparator: 'timestamp',
+        comparator: 'id',
 
         parse: function(ret) {
             var msgs = ret.chatmessages;

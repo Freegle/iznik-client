@@ -73,6 +73,8 @@ function filterResult(&$array, $skip = NULL) {
             #error_log("Recurse $key");
             filterResult($val);
             $array[$key] = $val;
+        } else if (is_bool($val)) {
+            # Nothing to do - it's fine.
         } else if ((array_key_exists($key, $array)) && (gettype($val) == 'string') && (strlen($val) == 0)) {
             # There is no value here worth returning.
             unset($val);

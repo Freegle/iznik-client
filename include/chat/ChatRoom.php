@@ -38,6 +38,7 @@ class ChatRoom extends Entity
             ->addPart($html, 'text/html');
         $headers = $message->getHeaders();
 
+        # TODO
         $message->addTo('log@ehibbert.org.uk');
 
         $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $id));
@@ -302,6 +303,21 @@ class ChatRoom extends Entity
                 FALSE);
 
             #error_log("UPDATE chat_roster SET lastmsgseen = $lastmsgseen WHERE chatid = {$this->id} AND userid = $userid AND (lastmsgseen IS NULL OR lastmsgseen < $lastmsgseen);");
+            # Now we want to check whether to check whether this message has been seen by everyone in this chat.  If it
+            # has, we flag it as seen by all, which speeds up our checking for which email notifications to send out.
+            $sql = "SELECT COUNT(*) AS count FROM chat_roster WHERE chatid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);";
+            error_log("Check for unseen $sql, {$this->id}, $lastmsgseen");
+
+            $unseens = $this->dbhm->preQuery($sql,
+                [
+                    $this->id,
+                    $lastmsgseen
+                ]);
+
+            if ($unseens[0]['count'] == 0) {
+                $sql = "UPDATE chat_messages SET seenbyall = 1 WHERE chatid = ? AND id <= ?;";
+                $this->dbhm->preExec($sql, [ $this->id, $lastmsgseen ]);
+            }
         }
 
         $this->dbhm->preExec("UPDATE chat_roster SET date = NOW(), status = ? WHERE chatid = ? AND userid = ?;",
@@ -423,18 +439,24 @@ class ChatRoom extends Entity
             $users = $this->dbhr->preQuery($sql, [ $this->id, $lastmessage, $lastmessage ]);
             foreach ($users as $user) {
                 if (!$user['lastmsgseen'] || $user['lastmsgseen'] < $lastseenbyall) {
-                    # We've not seen any messages, or seen some but not this one.
-                    $ret[] = [ 'userid' => $user['userid'], 'lastmsgseen' => $user['lastmsgseen'] ];
+                    # TODO
+                    # At the moment, we only want to send chaseups to users who are testing the new site.  Check if
+                    # they have a suitable email.
+                    $u = new User($this->dbhr, $this->dbhm, $user['userid']);
+                    $emails = $u->getEmails();
+                    $newsite = FALSE;
+                    foreach ($emails as $email) {
+                        if (stripos($email['email'], USER_DOMAIN) !== FALSE) {
+                            $newsite = TRUE;
+                        }
+                    }
+
+                    if ($newsite) {
+                        # We've not seen any messages, or seen some but not this one.
+                        $ret[] = [ 'userid' => $user['userid'], 'lastmsgseen' => $user['lastmsgseen'] ];
+                    }
                 }
             }
-        }
-
-        if (count($ret) === 0) {
-            # All messages for this chat have, in fact, been seen.  Record this so that we don't re-examine this
-            # chat.
-            error_log("All messages now seen.");
-            $sql = "UPDATE chat_messages SET seenbyall = 1 WHERE chatid = ? AND id >= ?;";
-            $this->dbhm->preExec($sql, [ $this->id, $lastseenbyall ]);
         }
 
         return($ret);

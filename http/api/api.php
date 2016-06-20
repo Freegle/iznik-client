@@ -248,7 +248,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 $ret['cachequeries'] = $dbhr->getCacheQueries();
                 $ret['cachehits'] = $dbhr->getCacheHits();
 
+                error_log("Pre-filter " . var_export($ret, TRUE));
                 filterResult($ret);
+                error_log("Post-filter " . var_export($ret, TRUE));
                 $str = json_encode($ret);
                 echo $str;
             }
