@@ -1283,6 +1283,16 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     height: 100px !important;
 }
 
+.profilesm {
+    width: 60px !important;
+    height: 60px !important;
+}
+
+.profilexs {
+    width: 40px !important;
+    height: 40px !important;
+}
+
 @media only screen and (min-width : 768px) {
     .row.vdivide [class*='col-']:not(:last-child):after {
         background: red;
