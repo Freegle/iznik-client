@@ -16,6 +16,11 @@ function canon($name) {
         'recyclegiftingmidsussex' => 'burgess hill',
         'st_albans' => 'st. albans',
         'ashfield dc' => 'ashfield',
+        'freebleayr' => 'ayr',
+        'nwleicestershirefreegle' => 'E. Mids. North West Leicestershire',
+        'newham-reuse-group' => 'newham',
+        'axe-seat-n-lyme-freegle' => 'ax, seat n lyme',
+        'falkirk_free2go' => 'falkirk',
         'wos' => 'westcliff on sea',
              ] as $key => $val) {
         $name = str_ireplace($key, $val, $name);
@@ -49,7 +54,7 @@ if ($kml) {
             $p = strpos($kname, ':');
             $kname = $p ? trim(substr($kname, $p + 1)) : $kname;
 
-            error_log("Compare " . canon($name) . ", " . canon($kname) . " = " . strcmp(canon($name), canon($kname)));
+            #error_log("Compare " . canon($name) . ", " . canon($kname) . " = " . strcmp(canon($name), canon($kname)));
 
             if (strcmp(canon($name), canon($kname)) === 0) {
                 $poly = $kgroup->Polygon;
@@ -64,7 +69,7 @@ if ($kml) {
             error_log("...$name not found " . ($group['poly'] ? ", got guess" : ", no guess"));
             $notfound++;
         } else {
-            error_log("...found");
+            #error_log("...found");
             $found++;
 
             if ($poly) {
