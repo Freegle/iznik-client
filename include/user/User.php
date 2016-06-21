@@ -560,10 +560,10 @@ class User extends Entity
         # Trigger removal of any Yahoo memberships first.
         $sql = "SELECT email FROM users_emails LEFT JOIN memberships_yahoo ON users_emails.id = memberships_yahoo.emailid INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND memberships.groupid = ? WHERE users_emails.userid = ?;";
         $emails = $this->dbhr->preQuery($sql, [ $groupid, $this->id ]);
-        error_log("$sql, $groupid, {$this->id}");
+        #error_log("$sql, $groupid, {$this->id}");
 
         foreach ($emails as $email) {
-            error_log("Remove #$groupid {$email['email']}");
+            #error_log("Remove #$groupid {$email['email']}");
             if ($ban) {
                 $type = 'BanApprovedMember';
             } else {
@@ -572,11 +572,27 @@ class User extends Entity
 
             # It would be odd for them to be on Yahoo with no email but handle it anyway.
             if ($email['email']) {
+                $g = new Group($this->dbhr, $this->dbhm, $groupid);
                 $p = new Plugin($this->dbhr, $this->dbhm);
                 $p->add($groupid, [
                     'type' => $type,
                     'email' => $email['email']
                 ]);
+                
+                if (ourDomain($email['email'])) {
+                    # This is an email address we host, so we can email an unsubscribe request.  We do both this and
+                    # the plugin work because Yahoo is as flaky as all get out.
+                    for ($i = 0; $i < 10; $i++) {
+                        list ($transport, $mailer) = getMailer();
+                        $message = Swift_Message::newInstance()
+                            ->setSubject('Please release me')
+                            ->setFrom([$email['email']])
+                            ->setTo($g->getGroupUnsubscribe())
+                            ->setDate(time())
+                            ->setBody('Let me go');
+                        $mailer->send($message);
+                    }
+                }
             }
         }
 
@@ -2090,7 +2106,7 @@ class User extends Entity
         $g = new Group($this->dbhr, $this->dbhm, $groupid);
         $email = $this->inventEmail();
         $emailid = $this->addEmail($email, 0);
-//        error_log("Added email $email id $emailid");
+        #error_log("Added email $email id $emailid");
 
         # Set up a pending membership - will be converted to approved when we process the approval notification.
         $this->addMembership($groupid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING);
@@ -2099,7 +2115,14 @@ class User extends Entity
 
         # Yahoo is not very reliable; if we subscribe multiple times it seems to be more likely to react.
         for ($i = 0; $i < 10; $i++) {
-            mail($g->getPrivate('nameshort') . "-subscribe@yahoogroups.com", "Please let me join", "Pretty please", $headers, "-f$email");
+            list ($transport, $mailer) = getMailer();
+            $message = Swift_Message::newInstance()
+                ->setSubject('Please let me join')
+                ->setFrom([$email])
+                ->setTo($g->getGroupSubscribe())
+                ->setDate(time())
+                ->setBody('Pretty please');
+            $mailer->send($message);
         }
 
         $this->log->log([

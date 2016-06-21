@@ -164,9 +164,41 @@ define([
         template: "user_settings_group",
 
         events: {
-            'change .js-frequency': 'changeFreq'
+            'change .js-frequency': 'changeFreq',
+            'click .js-leave': 'leave'
         },
 
+        leave: function() {
+            var self = this;
+            var v = new Iznik.Views.Confirm({
+                model: self.model
+            });
+            v.template = 'user_settings_leave';
+
+            self.listenToOnce(v, 'confirmed', function() {
+                $.ajax({
+                    url: API + 'memberships',
+                    type: 'DELETE',
+                    data: {
+                        userid: self.model.get('id'),
+                        groupid: self.model.get('groupid')
+                    }, success: function(ret) {
+                        if (ret.ret == 0) {
+                            // Refresh the session to pick up the loss of our group.
+                            self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                                self.$el.fadeOut('slow');
+                                self.model.trigger('removed');
+                            });
+                            
+                            Iznik.Session.testLoggedIn();
+                        }
+                    }
+                });
+            });
+
+            v.render();
+        },
+        
         changeFreq: function() {
             var self = this;
             var me = Iznik.Session.get('me');

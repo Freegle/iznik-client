@@ -21,7 +21,7 @@ $start = time();
 $total = 0;
 
 # We only send digests for Freegle groups.
-$groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' AND MOD(id, ?) = ? ORDER BY LOWER(nameshort) ASC;", [ $mod, $val ]);
+$groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' AND onhere = 1 AND MOD(id, ?) = ? ORDER BY LOWER(nameshort) ASC;", [ $mod, $val ]);
 $d = new Digest($dbhr, $dbhm);
 
 foreach ($groups as $group) {

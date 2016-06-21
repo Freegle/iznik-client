@@ -297,8 +297,6 @@ define([
             } else {
                 $('#js-notifchat').hide();
             }
-
-            $('#js-notifications').hide();
         },
 
         render: function() {

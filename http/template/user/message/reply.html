@@ -13,6 +13,7 @@
             <% } %>
         </div>
         <li class="col-xs-4 nopad">
+            <% if (user.id != me.id) { %>
             <ul class="list-unstyled list-inline pull-right">
                 <li>
                     <div  class="btn btn-primary js-chat" title="Chat to {{user.displayname}}">
@@ -40,6 +41,7 @@
                     <% } %>
                 <% } %>
             </ul>
+            <% } %>
         </div>
     </div>
 </div>

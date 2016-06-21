@@ -214,7 +214,7 @@ function memberships() {
 
             case 'DELETE': {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
-                if ($u && $me && $me->isModOrOwner($groupid)) {
+                if ($u && $me && ($me->isModOrOwner($groupid) || $userid == $me->getId())) {
                     # We can remove them, but not if they are someone higher than us.
                     $myrole = $me->getRole($groupid);
                     if ($myrole == $u->roleMax($myrole, $u->getRole($groupid))) {

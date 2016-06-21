@@ -208,8 +208,7 @@ class Alert extends Entity
     }
 
     public function mailMods($groupid) {
-        $transport = Swift_SmtpTransport::newInstance();
-        $mailer = Swift_Mailer::newInstance($transport);
+        list ($transport, $mailer) = getMailer();
         $done = 0;
 
         # Mail the mods individually

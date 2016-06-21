@@ -274,7 +274,7 @@
     background-repeat: repeat-x;
     border-color: #006b50 #006b50 hsl(165, 100%, 16%);
     color: black !important;
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.33);
+    text-shadow: none !important;
     -webkit-font-smoothing: antialiased;
 }
 

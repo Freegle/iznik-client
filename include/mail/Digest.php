@@ -61,16 +61,7 @@ class Digest
 
         $email = $u->getEmailPreferred();
         if ($email) {
-            $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
-            $spooltrans = Swift_SpoolTransport::newInstance($spool);
-            $smtptrans = Swift_SmtpTransport::newInstance("localhost");
-            $transport = Swift_FailoverTransport::newInstance([
-                $smtptrans,
-                $spooltrans
-            ]);
-
-            $mailer = Swift_Mailer::newInstance($transport);
-
+            list ($transport, $mailer) = getMailer();
             $html = digest_off(USER_DOMAIN, USERLOGO, $groupname);
 
             $message = Swift_Message::newInstance()
@@ -273,13 +264,29 @@ class Digest
                         $email = $u->getEmailPreferred();
 
                         if ($email) {
-                            # The group might or might not be on Yahoo.
-                            $membershipmail = $g->getPrivate('onyahoo') ? $u->getEmailForYahooGroup($groupid, TRUE)[1]: $email;
+                            $sendit = TRUE;
 
-                            # We don't want to send out mails to users who are members directly on Yahoo, only
-                            # for ones which have joined through this platform or its predecessor.
-                            #error_log("Consider email $membershipmail");
-                            if (ourDomain($membershipmail)) {
+                            if ($g->getPrivate('onyahoo')) {
+                                # We don't want to send out mails to users who are members directly on Yahoo, only
+                                # for ones which have joined through this platform or its predecessor.
+                                #
+                                # However we can't look in our Yahoo group membership table to check the email they use
+                                # for membership, because we can't be sure that we have an up to date membership sync,
+                                # because that relies on mods using ModTools.
+                                #
+                                # Therefore we check whether this user has any emails which we host.  That tells us
+                                # whether they've joined any groups via our platform, which tells us whether it's
+                                # reasonable to send them emails.
+                                $sendit = FALSE;
+                                $emails = $u->getEmails();
+                                foreach ($emails as $anemail) {
+                                    if (ourDomain($anemail['email'])) {
+                                        $sendit = TRUE;
+                                    }
+                                }
+                            }
+
+                            if ($sendit) {
                                 # We might be on holiday.
                                 #error_log("...$email");
                                 $hol = $u->getPrivate('onholidaytill');
@@ -305,16 +312,8 @@ class Digest
                         error_log("#$groupid {$gatts['nameshort']} " . count($tosend) . " messages max $maxmsg to " . count($replacements) . " users");
                         # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
                         # rather than lose it.
-                        $spool = new Swift_FileSpool(IZNIK_BASE . "/spool");
-                        $spooltrans = Swift_SpoolTransport::newInstance($spool);
-                        $smtptrans = Swift_SmtpTransport::newInstance("localhost");
-                        $transport = Swift_FailoverTransport::newInstance([
-                            $smtptrans,
-                            $spooltrans
-                        ]);
-
-                        $mailer = Swift_Mailer::newInstance($transport);
-
+                        list ($transport, $mailer) = getMailer();
+                        
                         # We're decorating using the information we collected earlier.  However the decorator doesn't
                         # copy with sending to multiple recipients properly (headers just get decorated with the first
                         # recipient) so we create a message for each recipient.

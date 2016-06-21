@@ -110,7 +110,8 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_OWNER));
         $ret = $this->call('memberships', 'DELETE', [
             'groupid' => $this->groupid,
-            'userid' => $this->uid2
+            'userid' => $this->uid2,
+            'dedup' => true
         ]);
         assertEquals(0, $ret['ret']);
 

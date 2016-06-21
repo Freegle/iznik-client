@@ -476,9 +476,8 @@ class ChatRoom extends Entity
         $chats = $this->dbhr->preQuery($sql, [ $start ]);
         $notified = 0;
 
-        $transport = Swift_SmtpTransport::newInstance();
-        $mailer = Swift_Mailer::newInstance($transport);
-
+        list ($transport, $mailer) = getMailer();
+        
         foreach ($chats as $chat) {
             # Different members of the chat might have seen different messages.
             error_log("Check chat {$chat['chatid']}");
