@@ -373,7 +373,8 @@ define([
         template: 'chat_minimised',
 
         tagName: 'li',
-        className: 'clickme',
+
+        className: 'clickme padleftsm',
 
         events: {
             'click': 'click'
@@ -422,6 +423,7 @@ define([
             'click .js-minimise, touchstart .js-minimise': 'minimise',
             'focus .js-message': 'messageFocus',
             'click .js-promise': 'promise',
+            'click .js-send': 'send',
             'keyup .js-message': 'keyUp',
             'change .js-status': 'status'
         },
@@ -435,26 +437,30 @@ define([
         keyUp: function(e) {
             var self = this;
             if (e.which === 13) {
-                var message = this.$('.js-message').val();
-                if (message.length > 0) {
-                    self.$('.js-message').prop('disabled', true);
-                    self.listenToOnce(this.model, 'sent', function(id) {
-                        self.model.set('lastmsgseen', id);
-                        self.model.set('unseen', 0);
-                        self.options.updateCounts();
-
-                        self.$('.js-message').val('');
-                        self.$('.js-message').prop('disabled', false);
-                        self.$('.js-message').focus();
-                        self.messageFocus();
-                        self.messages.fetch().then();
-                    });
-                    this.model.send(message);
-                }
-
+                this.send();
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
+            }
+        },
+
+        send: function() {
+            var self = this;
+            var message = this.$('.js-message').val();
+            if (message.length > 0) {
+                self.$('.js-message').prop('disabled', true);
+                self.listenToOnce(this.model, 'sent', function(id) {
+                    self.model.set('lastmsgseen', id);
+                    self.model.set('unseen', 0);
+                    self.options.updateCounts();
+
+                    self.$('.js-message').val('');
+                    self.$('.js-message').prop('disabled', false);
+                    self.$('.js-message').focus();
+                    self.messageFocus();
+                    self.messages.fetch().then();
+                });
+                this.model.send(message);
             }
         },
 
@@ -576,15 +582,28 @@ define([
             // console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
             this.$('.js-leftpanel, .js-roster').height(newHeight);
 
+            var width = self.$el.width();
+
             if (self.model.get('group')) {
                 // Group chats have a roster.
                 var lpwidth = self.$('.js-leftpanel').width();
-                lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
+                lpwidth = self.$el.width() - 60 < lpwidth ? (width - 60) : lpwidth;
                 lpwidth = Math.max(self.$el.width() - 250, lpwidth);
                 self.$('.js-leftpanel').width(lpwidth);
             } else {
                 // Conversations don't.
                 self.$('.js-leftpanel').width('100%');
+            }
+
+            self.checkSmall(width);
+        },
+
+        checkSmall: function(width) {
+            console.log("Chat width", width);
+            if (width < 640) {
+                this.$el.addClass('chatsmall');
+            } else {
+                this.$el.removeClass('chatsmall');
             }
         },
 
@@ -613,6 +632,7 @@ define([
                     // console.log("Set size", width, height);
                     self.$el.height(height);
                     self.$el.width(width);
+                    self.checkSmall(width);
                 }
 
                 var lpwidth = localStorage.getItem('chat-' + self.model.get('id') + '-lp');

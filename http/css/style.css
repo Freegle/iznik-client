@@ -1062,6 +1062,14 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     width: 100%;
 }
 
+.chat-footer .btn {
+    max-height: 34px !important;
+}
+
+.chatsmall .chathidesmall {
+    display: none !important;
+}
+
 #chatHolder {
     position:fixed;
     bottom:0;
@@ -1131,7 +1139,7 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     flex-direction: row;
     border: 1px solid silver;
     overflow: hidden;
-    background-color: #edeef1;
+    background-color: #f3f0da;
 }
 
 .chat-messages-panel {
