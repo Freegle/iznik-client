@@ -42,6 +42,8 @@ define([
 
     Iznik.Views.Page = Iznik.View.extend({
         modtools: false,
+        
+        footer: false,
 
         events: {
             'click .js-signin': 'signin',
@@ -156,17 +158,28 @@ define([
                         self.$el.html(window.template(tpl)(Iznik.Session.toJSON2()));
                         $('.js-pageContent').append(self.$el);
 
+                        if (self.footer) {
+                            console.log("Show footer");
+                            var v = new Iznik.Views.Page.Footer();
+                            v.render().then(function() {
+                                $('body').addClass('Site');
+                                $('body').append(v.$el);
+                            });
+                        } else {
+                            console.log("Don't show footer");
+                        }
+
                         // Show anything which should or shouldn't be visible based on login status.
                         self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                             var loggedInOnly = $('.js-loggedinonly');
                             var loggedOutOnly = $('.js-loggedoutonly');
 
+                            if (!self.modtools) {
+                                // For user pages, we add our background if we're logged in.
+                                $('body').addClass('bodyback');
+                            }
+
                             if (loggedIn) {
-                                if (!self.modtools) {
-                                    // For user pages, we add our background if we're logged in.
-                                    $('body').addClass('bodyback');
-                                }
-                                
                                 loggedInOnly.removeClass('reallyHide');
                                 loggedOutOnly.addClass('reallyHide');
 
@@ -205,7 +218,7 @@ define([
                         $('.js-logout').click(function() {
                             logout();
                         });
-
+                        
                         resolve(self);
                     });
                 });
@@ -350,4 +363,10 @@ define([
             });
         }
     });
+
+    Iznik.Views.Page.Footer = Iznik.View.extend({
+        tagName: 'footer',
+        className: 'footer',
+        template: 'footer'
+    })
 });
