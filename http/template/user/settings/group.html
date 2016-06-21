@@ -2,7 +2,7 @@
     <div class="col-sm-4">
         {{namedisplay}}
     </div>
-    <div class="col-sm-2">
+    <div class="col-sm-3">
         <select class="form-control js-frequency">
             <option value="-1">Immediately</option>
             <option value="1">Every hour</option>
@@ -17,7 +17,13 @@
         <div class="glyphicon glyphicon-ok-sign success hidden js-ok" />
     </div>
     <div class="col-sm-2">
-        <div class="btn btn-white js-leave">
+        <div class="btn btn-white  <% if (role == 'Moderator' || role == 'Owner') { %>faded<% } else { %>js-leave<% } %>">
             <div class="glyphicon glyphicon-trash">&nbsp;Leave Group</div>
+        </div>
+    </div>
+    <div class="col-sm-1">
+        <% if (role == 'Moderator' || role == 'Owner') { %>
+        <div class="glyphicons glyphicons-crown" />
+        <% } %>
     </div>
 </div>

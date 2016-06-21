@@ -597,7 +597,6 @@ define([
         },
 
         checkSmall: function(width) {
-            console.log("Chat width", width);
             if (width < 640) {
                 this.$el.addClass('chatsmall');
             } else {

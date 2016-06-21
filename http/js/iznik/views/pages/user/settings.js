@@ -180,8 +180,8 @@ define([
                     url: API + 'memberships',
                     type: 'DELETE',
                     data: {
-                        userid: self.model.get('id'),
-                        groupid: self.model.get('groupid')
+                        userid: Iznik.Session.get('id'),
+                        groupid: self.model.get('id')
                     }, success: function(ret) {
                         if (ret.ret == 0) {
                             // Refresh the session to pick up the loss of our group.

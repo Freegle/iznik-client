@@ -6,21 +6,27 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/misc/Stats.php');
 
-$dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port']};dbname=republisher;charset=utf8";
-
-$dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => FALSE
-));
-
-$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle'");
-
+$noton = '';
+$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND onhere = 0 AND onyahoo = 1 AND nameshort NOT LIKE '%playground%' ORDER BY LOWER(nameshort);");
 foreach ($groups as $group) {
-    $fdgroups = $dbhold->query("SELECT * FROM groups WHERE groupname LIKE '%{$group['nameshort']}%';");
-    $onhere = FALSE;
-    foreach ($fdgroups as $fdgroup) {
-        $onhere = TRUE;
-    }
-    error_log("{$group['nameshort']} $onhere");
-    $dbhm->preExec("UPDATE groups set onhere = ? WHERE id = ?;", [ $onhere, $group['id']]);
+    $noton .= $group['nameshort'] . "\r\n";
 }
+
+$notactive = '';
+$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND onhere = 1 AND DATEDIFF(NOW(), lastyahoomembersync) > 7 AND nameshort NOT LIKE '%playground%' ORDER BY LOWER(nameshort);");
+foreach ($groups as $group) {
+    $last = $group['lastyahoomembersync'] ? date("Y-m-d", strtotime($group['lastyahoomembersync'])) : 'never';
+    $notactive .= $group['nameshort'] . " last syncd $last\r\n";
+}
+
+list ($transport, $mailer) = getMailer();
+$message = Swift_Message::newInstance()
+    ->setSubject('Summary of inactive groups')
+    ->setFrom(GEEKS_ADDR)
+    ->setTo('log@ehibbert.org.uk')
+    ->setCc(GEEKS_ADDR)
+    ->setDate(time())
+    ->setBody(
+        "The following groups are using Freegle Direct but have not been moderated using the plugin in the last 7 days:\r\n\r\n$notactive\r\n\r\nThe following groups are not on Freegle Direct yet:\r\n\r\n$noton"
+    );
+$mailer->send($message);
