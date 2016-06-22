@@ -55,7 +55,7 @@ define([
                         if (sess) {
                             sess = JSON.parse(sess);
                             sessionCookie = sess.session;
-                            console.log("Got session from local", sessionCookie);
+                            // console.log("Got session from local", sessionCookie);
                         }
                     } catch (e) {console.log(e.message)};
                 }

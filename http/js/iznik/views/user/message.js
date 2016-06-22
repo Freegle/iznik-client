@@ -215,13 +215,13 @@ define([
                 });
 
                 self.$('.js-attlist').empty();
-                _.each(self.model.get('attachments'), function (att) {
-                    var mod = new Iznik.Model(att);
-                    mod.set('subject', self.model.get('subject'));
-                    var v = new Iznik.Views.User.Message.Photo({
-                        model: mod
-                    });
-                    v.render();
+                var photos = self.model.get('attachments');
+
+                var v = new Iznik.Views.User.Message.Photos({
+                    collection: new Iznik.Collection(photos),
+                    subject: self.model.get('subject')
+                });
+                v.render().then(function() {
                     self.$('.js-attlist').append(v.el);
                 });
 
@@ -323,6 +323,61 @@ define([
 
     Iznik.Views.User.Message.PhotoZoom = Iznik.Views.Modal.extend({
         template: 'user_message_photozoom'
+    });
+
+    Iznik.Views.User.Message.Photos = Iznik.View.extend({
+        template: 'user_message_photos',
+
+        offset: 0,
+
+        nextPhoto: function() {
+            var self = this;
+            self.currentPhoto.fadeOut('slow', function() {
+                console.log("Fadeout", self.currentPhoto, self.offset);
+                self.offset++;
+                self.offset = self.offset % self.photos.length;
+                self.currentPhoto = self.photos[self.offset];
+                self.currentPhoto.fadeIn('slow', function() {
+                    _.delay(_.bind(self.nextPhoto, self), 10000);
+                })
+            })
+        },
+
+        render: function() {
+            var self = this;
+            var len = self.collection.length;
+
+            // If we have multiple photos, then we cycle through each of them, fading in and out.  This reduces the
+            // screen space, but still allows people to see all of them.
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function() {
+                self.photos = [];
+                self.collection.each(function(att) {
+                    att.set('subject', self.options.subject);
+
+                    var v = new Iznik.Views.User.Message.Photo({
+                        model: att
+                    });
+                    v.render().then(function() {
+                        self.$('.js-photos').append(v.$el);
+                    });
+
+                    self.photos.push(v.$el);
+
+                    if (self.photos.length > 1) {
+                        v.$el.hide();
+                    } else {
+                        self.currentPhoto = v.$el;
+                    }
+                });
+
+                if (self.photos.length > 1) {
+                    _.delay(_.bind(self.nextPhoto, self), 10000);
+                }
+            });
+
+            return(p);
+        }
     });
 
     Iznik.Views.User.Message.Reply = Iznik.View.extend({

@@ -25,10 +25,7 @@ define([
 
     // Promise polyfill for older browsers or IE11 which has less excuse.
     if (typeof window.Promise !== 'function') {
-        console.log("Promise polyfill");
         require('es6-promise').polyfill();
-    } else {
-        console.log("Got Promise");
     }
 
     var Iznik = {

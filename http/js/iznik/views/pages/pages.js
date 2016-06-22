@@ -159,14 +159,11 @@ define([
                         $('.js-pageContent').append(self.$el);
 
                         if (self.footer) {
-                            console.log("Show footer");
                             var v = new Iznik.Views.Page.Footer();
                             v.render().then(function() {
                                 $('body').addClass('Site');
                                 $('body').append(v.$el);
                             });
-                        } else {
-                            console.log("Don't show footer");
                         }
 
                         // Show anything which should or shouldn't be visible based on login status.
