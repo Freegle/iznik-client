@@ -9,7 +9,10 @@ require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/include/mail/Digest.php');
-require_once(IZNIK_BASE . '/lib/spamc.php');
+
+if (!class_exists('spamc')) {
+    require_once(IZNIK_BASE . '/lib/spamc.php');
+}
 
 # This class routes an incoming message
 class MailRouter
