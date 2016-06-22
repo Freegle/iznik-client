@@ -187,7 +187,7 @@ function session() {
             $id = pres('id', $_SESSION);
             if ($id) {
                 $s = new Session($dbhr, $dbhm);
-                $s->destroy($id);
+                $s->destroy($id, NULL);
             }
 
             $ret = array('ret' => 0, 'status' => 'Success');

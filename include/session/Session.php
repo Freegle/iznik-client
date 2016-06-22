@@ -236,22 +236,24 @@ class Session {
 
         # We failed to verify.  If the ID and series are present, then it is likely to be
         # a theft.  Delete any existing sessions.  If they aren't, then the delete won't do anything.
-        $this->destroy($id);
+        $this->destroy($id, $series);
 
         return(NULL);
     }
 
-    public function destroy($userid) {
+    public function destroy($userid, $series) {
         # Deleting the cookie will mean that we can no longer use this cookie to sign in on any device - which means
         # that if you log out on one device, the others will get logged out too (once the PHP session goes, anyway).
         #error_log(var_export($this->dbhr, true));
         session_reopen();
 
         if ($userid) {
-            $sql = "DELETE FROM sessions WHERE userid = ?;";
-            $this->dbhm->preExec($sql, [
-                $userid
-            ]);
+            # If we're doing an explicit logout we're called with a null $series and want to zap all sessions for this
+            # user.  Otherwise we only want to delete the session with this series, otherwise a failed login for this
+            # user would log out other users.
+            $sql = $series ? "DELETE FROM sessions WHERE userid = ? AND series = ?;" : "DELETE FROM sessions WHERE userid = ?;";
+            $parms = $series ? [ $userid, $series ] : [ $userid ];
+            $this->dbhm->preExec($sql, $parms);
         }
 
         $_SESSION['id'] = NULL;

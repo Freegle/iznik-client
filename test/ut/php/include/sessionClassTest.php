@@ -99,7 +99,7 @@ class sessionClassTest extends IznikTestCase {
         assertEquals($id, $_SESSION['id']);
 
         # But not if the session has gone.
-        $s->destroy($id);
+        $s->destroy($id, NULL);
         $_SESSION['logged_in'] = FALSE;
         prepareSession($this->dbhm, $this->dbhm);
         assertFalse($_SESSION['logged_in']);
