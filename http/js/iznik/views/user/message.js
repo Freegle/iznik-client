@@ -149,7 +149,7 @@ define([
                 // Strip photo links - we should have those as attachments.
                 text = text.replace(/You can see a photo[\s\S]*?jpg/, '');
                 text = text.replace(/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/\d*/, '');
-                text = text.replace(/You can see photos here[\s\S]*?jpg/m, '');
+                text = text.replace(/You can see photos here[\s\S]*jpg/m, '');
                 text = text.replace(/https:\/\/direct.*jpg/m, '');
 
                 // FOPs

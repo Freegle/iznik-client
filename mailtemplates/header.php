@@ -35,13 +35,6 @@ function mail_header()
 
     </style>
 
-    <!--[if gte mso 15]>
-    <style type="text/css">
-        table { font-size:1px; line-height:0; mso-margin-top-alt:1px;mso-line-height-rule: exactly; }
-        * { mso-line-height-rule: exactly; }
-    </style>
-    <![endif]-->
-
 </head>
 <body marginwidth="0" marginheight="0" leftmargin="0" topmargin="0" style="background-color:#F7F5EB; font-family:Arial,serif; margin:0; padding:0; min-width: 100%; -webkit-text-size-adjust:none; -ms-text-size-adjust:none;">
 EOT;

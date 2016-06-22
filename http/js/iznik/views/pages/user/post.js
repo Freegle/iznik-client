@@ -128,8 +128,11 @@ define([
 
         uploadFailed: function() {
             var self = this;
-            self.pleaseWait.close();
-            self.pleaseWait = null;
+            if (self.pleaseWait) {
+                self.pleaseWait.close();
+                self.pleaseWait = null;
+            }
+
             self.$('.js-uploading').addClass('hidden');
             self.$('.js-uploadfailed').removeClass('hidden');
         },

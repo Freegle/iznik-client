@@ -26,7 +26,7 @@ function digest_message($msg, $msgid, $fdgroupid) {
 EOT;
     if (count($msg['attachments']) > 0) {
         # Just put the first one in.
-        $html .= '<img style="border-radius:3px; margin:0; padding:0; border:none; display:block; max-width: 125px; max-height: 125px;" src="' . $msg['attachments'][0]['paththumb'] . '" />';
+        $html .= '<img style="border-radius:3px; margin:0; padding:0; border:none; display:block;" width="125" src="' . $msg['attachments'][0]['paththumb'] . '" />';
     }
 
     $html .= <<<EOT

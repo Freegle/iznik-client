@@ -12,25 +12,24 @@ if (count($opts) < 1) {
     $interval = $opts['i'];
     $mod = presdef('m', $opts, 1);
     $val = presdef('v', $opts, 0);
+    
+    $lockh = lockScript(basename(__FILE__) . "-$interval-m$mod-v$val");
+
+    error_log("Start digest for $interval groupid % $mod = $val at " . date("Y-m-d H:i:s"));
+    $start = time();
+    $total = 0;
+
+    # We only send digests for Freegle groups.
+    $groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' AND onhere = 1 AND MOD(id, ?) = ? ORDER BY LOWER(nameshort) ASC;", [$mod, $val]);
+    $d = new Digest($dbhr, $dbhm);
+
+    foreach ($groups as $group) {
+        $total += $d->send($group['id'], $interval);
+    }
+
+    $duration = time() - $start;
+
+    error_log("Finish digest for $interval at " . date("Y-m-d H:i:s") . ", sent $total mails in $duration seconds");
+
+    unlockScript($lockh);
 }
-
-$lockh = lockScript(basename(__FILE__) . "-$interval-m$mod-v$val");
-
-error_log("Start digest for $interval groupid % $mod = $val at " . date("Y-m-d H:i:s"));
-$start = time();
-$total = 0;
-
-# We only send digests for Freegle groups.
-$groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' AND onhere = 1 AND MOD(id, ?) = ? ORDER BY LOWER(nameshort) ASC;", [ $mod, $val ]);
-$d = new Digest($dbhr, $dbhm);
-
-foreach ($groups as $group) {
-    $total += $d->send($group['id'], $interval);
-}
-
-$duration = time() - $start;
-
-error_log("Finish digest for $interval at " . date("Y-m-d H:i:s") . ", sent $total mails in $duration seconds");
-
-
-unlockScript($lockh);

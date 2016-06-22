@@ -52,7 +52,7 @@ EOT;
                                                             </td>    
                                                             <td>
                                                                 <p>You've received this mail because you're a member of <a href="{{visit}}">$groupname</a>.</p>
-                                                                <table>
+                                                                <table width="100%">
                                                                     <tr>
                                                                         <td>
                                                                             <table class="button" width="90%" cellpadding="0" cellspacing="0" align="left" border="0">

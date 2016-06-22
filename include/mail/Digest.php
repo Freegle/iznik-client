@@ -76,7 +76,7 @@ class Digest
         }
     }
 
-    public function send($groupid, $frequency) {
+    public function send($groupid, $frequency, $ccto = NULL) {
         $g = new Group($this->dbhr, $this->dbhm, $groupid);
         $gatts = $g->getPublic();
         $sent = 0;
@@ -333,6 +333,11 @@ class Digest
                                     ->setReplyTo($msg['replyto'], $msg['replytoname'])
                                     ->setBody($msg['text'])
                                     ->addPart($msg['html'], 'text/html');
+
+                                #if ($ccto) {
+                                #    $message->addCc('');
+                                #}
+
                                 $headers = $message->getHeaders();
                                 $headers->addTextHeader('List-Unsubscribe', '<mailto:{{mailoff}}>, <{{unsubscribe}}>');
 

@@ -68,7 +68,7 @@ class Search
     private function getWordIdExact($word) {
         $id = NULL;
         $sql = "SELECT id FROM {$this->wordtab} WHERE `word` = ?;";
-        $words = $this->dbhr->preQuery($sql, [
+        $words = $this->dbhm->preQuery($sql, [
             $word
         ]);
 
@@ -78,7 +78,7 @@ class Search
 
         if (!$id) {
             # Not found - add it
-            $sql = "INSERT INTO {$this->wordtab} (`word`, `firstthree`, `soundex`) VALUES (?,?, SUBSTRING(SOUNDEX(?), 1, 10));";
+            $sql = "INSERT INTO {$this->wordtab} (`word`, `firstthree`, `soundex`) VALUES (?,?, SUBSTRING(SOUNDEX(?), 1, 10)) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);";
             $rc = $this->dbhm->preExec($sql, [
                 $word,
                 substr($word, 0, 3),
