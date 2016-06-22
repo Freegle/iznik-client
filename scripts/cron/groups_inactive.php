@@ -23,7 +23,7 @@ list ($transport, $mailer) = getMailer();
 $message = Swift_Message::newInstance()
     ->setSubject('Summary of inactive groups')
     ->setFrom(GEEKS_ADDR)
-    ->setTo('log@ehibbert.org.uk')
+    ->setTo(MENTORS_ADDR)
     ->setCc(GEEKS_ADDR)
     ->setDate(time())
     ->setBody(

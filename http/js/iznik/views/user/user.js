@@ -794,7 +794,9 @@ define([
                     state: onholiday != undefined
                 });
 
-                self.$('select').selectpicker();
+                _.defer(function() {
+                    self.$('select').selectpicker();
+                });
 
                 if (onholiday != undefined) {
                     self.$('.js-onholidaytill').show();
