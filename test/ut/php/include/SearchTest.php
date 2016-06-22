@@ -201,11 +201,16 @@ class searchTest extends IznikTestCase
         error_log(__METHOD__ . " end");
     }
 
-    public function testSofa() {
-        $s = new Search($this->dbhr, $this->dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid');
-        $ctx = NULL;
-        var_dump($s->search("sofa", $ctx, 10, NULL, [ 21354 ]));
-    }
+//    public function testSpecial() {
+//        $s = new Search($this->dbhr, $this->dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid');
+//        $ctx = NULL;
+//
+//        $ress = $s->search("basket", $ctx, 100, NULL, [ 21467 ]);
+//        foreach ($ress as $res) {
+//            $m = new Message($this->dbhr, $this->dbhm, $res['id']);
+//            error_log("#{$res['id']} " . $m->getSubject());
+//        }
+//    }
 
     public function testNewportPagnell() {
         $s = new Search($this->dbhr, $this->dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid');
