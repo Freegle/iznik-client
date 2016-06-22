@@ -21,6 +21,7 @@ function canon($name) {
         'newham-reuse-group' => 'newham',
         'axe-seat-n-lyme-freegle' => 'ax, seat n lyme',
         'falkirk_free2go' => 'falkirk',
+        'freegle_seleicestershire' => 'south east leicestershire',
         'wos' => 'westcliff on sea',
              ] as $key => $val) {
         $name = str_ireplace($key, $val, $name);
