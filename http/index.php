@@ -42,7 +42,7 @@ if ($uid && $key) {
 
 $default = TRUE;
 
-if (!pres('id', $_SESSION)) {
+if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {
     # We're not logged in.  Check if we can pre-render some HTML to make us appear fast.  The user can gawp at our
     # amazing speed, and while they do so, the JS on the client can catch up and do the actual render.
     $url = "https://" . $_SERVER['HTTP_HOST'] . presdef('REQUEST_URI', $_SERVER, '');

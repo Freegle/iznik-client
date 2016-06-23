@@ -158,6 +158,8 @@ define([
                         self.$el.html(window.template(tpl)(Iznik.Session.toJSON2()));
                         $('.js-pageContent').append(self.$el);
 
+                        $('#footer').remove();
+
                         if (self.footer) {
                             var v = new Iznik.Views.Page.Footer();
                             v.render().then(function() {
@@ -174,6 +176,8 @@ define([
                             if (!self.modtools && !self.noback) {
                                 // For user pages, we add our background if we're logged in.
                                 $('body').addClass('bodyback');
+                            } else {
+                                $('body').removeClass('bodyback');
                             }
 
                             if (loggedIn) {
@@ -362,6 +366,7 @@ define([
     });
 
     Iznik.Views.Page.Footer = Iznik.View.extend({
+        id: 'footer',
         tagName: 'footer',
         className: 'footer',
         template: 'footer'

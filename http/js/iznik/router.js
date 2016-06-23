@@ -754,8 +754,8 @@ define([
     // We can flag anchors as not to be handled via Backbone using data-realurl
     $(document).on('click', 'a:not([data-realurl]):not([data-toggle])', function (evt) {
         // Only trigger for our own anchors, except selectpicker which relies on #.
-        // console.log("a click", $(this), $(this).parents('#bodyEnvelope').length);
-        if ($(this).parents('#bodyEnvelope').length > 0 &&
+        console.log("a click", $(this), $(this).parents('#bodyEnvelope').length);
+        if (($(this).parents('#bodyEnvelope').length > 0 || $(this).parents('footer').length > 0) &&
             $(this).parents('.selectpicker').length == 0) {
             evt.preventDefault();
             evt.stopPropagation();
