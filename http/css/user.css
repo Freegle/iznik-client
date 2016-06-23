@@ -548,3 +548,19 @@ fieldset[disabled] .twitter-typeahead .tt-input {
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0.13);
     cursor:pointer;
 }
+
+#social {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+}
+
+#social img {
+    padding: 3px;
+    width: 50px;
+}
+
+#social img:hover {
+    -webkit-filter: grayscale(100%);
+    filter: grayscale(100%);
+}

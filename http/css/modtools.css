@@ -587,6 +587,9 @@ body, #bodyContent {
     height: 50px !important;
 }
 
+.social {
+    display: none !important;
+}
 
 /*==================================================
 =            Bootstrap 3 Media Queries             =
