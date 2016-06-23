@@ -270,18 +270,26 @@ class Digest
                                 # We don't want to send out mails to users who are members directly on Yahoo, only
                                 # for ones which have joined through this platform or its predecessor.
                                 #
-                                # However we can't look in our Yahoo group membership table to check the email they use
-                                # for membership, because we can't be sure that we have an up to date membership sync,
-                                # because that relies on mods using ModTools.
+                                # We can check this in the Yahoo group membership table to check the email they use
+                                # for membership.  However it might not be up to date because that relies on mods
+                                # using ModTools.
                                 #
-                                # Therefore we check whether this user has any emails which we host.  That tells us
-                                # whether they've joined any groups via our platform, which tells us whether it's
-                                # reasonable to send them emails.
-                                $sendit = FALSE;
-                                $emails = $u->getEmails();
-                                foreach ($emails as $anemail) {
-                                    if (ourDomain($anemail['email'])) {
-                                        $sendit = TRUE;
+                                # So if we don't find anything in there, then we check whether this user has any
+                                # emails which we host.  That tells us whether they've joined any groups via our
+                                # platform, which tells us whether it's reasonable to send them emails.
+                                $membershipmail = $u->getEmailForYahooGroup($groupid, TRUE)[1];
+
+                                if ($membershipmail) {
+                                    # We know the membership they have on Yahoo.  Send a digest if it's one of ours.
+                                    $sendit = ourDomain($membershipmail);
+                                } else {
+                                    # Use email for them having any of ours as an approximation.
+                                    $sendit = FALSE;
+                                    $emails = $u->getEmails();
+                                    foreach ($emails as $anemail) {
+                                        if (ourDomain($anemail['email'])) {
+                                            $sendit = TRUE;
+                                        }
                                     }
                                 }
                             }
