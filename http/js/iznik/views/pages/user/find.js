@@ -19,6 +19,7 @@ define([
 
         events: {
             'click #searchbutton': 'doSearch',
+            'typeahead:select .js-search': 'doSearch',
             'keyup .js-search': 'keyup'
         },
 
