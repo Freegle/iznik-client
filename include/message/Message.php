@@ -298,7 +298,7 @@ class Message
             $mailer->send($message);
 
             # Stop the transport, otherwise the message doesn't get sent until the UT script finishes.
-            $mailer->getMailer()->stop();
+            $transport->stop();
 
             error_log(session_id() . " mailed " . microtime(true));
         } catch (Exception $e) {

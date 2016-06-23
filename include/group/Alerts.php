@@ -97,15 +97,15 @@ class Alert extends Entity
 
             $groups = $this->dbhr->preQuery("SELECT id, nameshort FROM groups $groupq;");
             $complete = count($groups) == 0;
-            error_log("Count " . count($groups) . " done $done");
+            #error_log("Count " . count($groups) . " done $done");
 
             foreach ($groups as $group) {
-                error_log("...{$alert['id']} -> {$group['nameshort']}");
+                #error_log("...{$alert['id']} -> {$group['nameshort']}");
                 $done += $a->mailMods($group['id']);
 
                 if ($groupid) {
                     # This is to a specific group.  We are now done.
-                    error_log("Specific group $groupid");
+                    #error_log("Specific group $groupid");
                     $complete = TRUE;
                 } else {
                     # This is for multiple groups.
