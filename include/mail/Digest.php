@@ -277,7 +277,7 @@ class Digest
                                 # So if we don't find anything in there, then we check whether this user has any
                                 # emails which we host.  That tells us whether they've joined any groups via our
                                 # platform, which tells us whether it's reasonable to send them emails.
-                                $membershipmail = $u->getEmailForYahooGroup($groupid, TRUE)[1];
+                                $membershipmail = $u->getEmailForYahooGroup($groupid, FALSE)[1];
 
                                 if ($membershipmail) {
                                     # We know the membership they have on Yahoo.  Send a digest if it's one of ours.
