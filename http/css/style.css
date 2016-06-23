@@ -49,6 +49,11 @@
     display: block;
 }
 
+.text-larger {
+    font-weight: bold !important;
+    font-size: 20px !important;
+}
+
 .topspace {
     margin-top: 10px !important;
 }
@@ -1155,6 +1160,10 @@ body {
     padding: 10px;
 }
 
+.footer .btn {
+    width: 130px !important;;
+}
+
 @media (--break-lg) {
     .Site-content {
         padding-top: var(--space-lg);
@@ -1167,8 +1176,13 @@ body {
 .Site-content--full {
     padding: 0;
 }
+
 .Site-content--full::after {
     content: none;
+}
+
+.bootstrap-tagsinput .twitter-typeahead, .bootstrap-tagsinput .twitter-typeahead input {
+    width: 100% !important;
 }
 
 /*==================================================

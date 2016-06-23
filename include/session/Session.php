@@ -26,16 +26,18 @@ function prepareSession($dbhr, $dbhm) {
     # We only want to do the prepare once, otherwise we will generate many headers.
     global $sessionPrepared;
 
-    # We need to also be prepared to do a session_start here, because if we're running in the UT then the session_start
-    # above will happen once at the start of the test, when the script is first included, and we will later on destroy
-    # it.
-    #error_log("prepare " . isset($_SESSION) . " id " . session_id());
-    if (!isset($_SESSION) || session_id() == '') {
-        #error_log("prepare start");
-        session_start();
-    }
-
     if (!$sessionPrepared) {
+        $sessionPrepared = TRUE;
+
+        # We need to also be prepared to do a session_start here, because if we're running in the UT then the session_start
+        # above will happen once at the start of the test, when the script is first included, and we will later on destroy
+        # it.
+        #error_log("prepare " . isset($_SESSION) . " id " . session_id());
+        if (!isset($_SESSION) || session_id() == '') {
+            #error_log("prepare start");
+            session_start();
+        }
+
         if (!pres('id', $_SESSION)) {
             $userid = NULL;
 
