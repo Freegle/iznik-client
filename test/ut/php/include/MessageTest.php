@@ -194,6 +194,7 @@ class messageTest extends IznikTestCase {
 
         # Test variants which should all get corrected to the same value
         assertEquals($goodsubj, $m->suggestSubject($gid, $goodsubj));
+        assertEquals($goodsubj, $m->suggestSubject($gid, "OFFER:Test (High Street)"));
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test (High Street)"));
         assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR - Test  - (High Street)"));
         error_log("--1");
