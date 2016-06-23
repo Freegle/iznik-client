@@ -1126,14 +1126,13 @@ html {
     min-height: 100%;
 }
 body {
-    margin-bottom: 60px;
+    margin-bottom: 80px;
 }
 
 .footer {
     position: absolute;
     bottom: 0;
     width: 100%;
-    height: 60px;
     background: rgba(243,240,218,0);
     background: -moz-linear-gradient(top, rgba(243,240,218,0) 0%, rgba(243,240,218,1) 100%);
     background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(243,240,218,0)), color-stop(100%, rgba(243,240,218,1)));
@@ -1190,6 +1189,10 @@ body {
     .botspace {
         margin-bottom: 5px !important;
     }
+
+    .footer {
+        height: 40px;
+    }
 }
 
 /* Extra Small Devices, Phones */
@@ -1213,6 +1216,10 @@ body {
 
     #notifchatdropdown {
         min-width: 400px;
+    }
+
+    .footer {
+        height: 80px;
     }
 }
 

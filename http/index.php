@@ -57,7 +57,7 @@ if (!pres('id', $_SESSION)) {
 
 if ($default) {
 ?>
-        <body style="background-colour: #dff2d1;">
+        <body style="height: 100vh; background-colour: #dff2d1;">
             <noscript>
                 <h1>Please enable Javascript</h1>
 

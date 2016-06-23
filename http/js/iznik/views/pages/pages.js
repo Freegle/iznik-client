@@ -171,7 +171,7 @@ define([
                             var loggedInOnly = $('.js-loggedinonly');
                             var loggedOutOnly = $('.js-loggedoutonly');
 
-                            if (!self.modtools) {
+                            if (!self.modtools && !self.noback) {
                                 // For user pages, we add our background if we're logged in.
                                 $('body').addClass('bodyback');
                             }

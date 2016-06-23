@@ -96,6 +96,12 @@ define([
             "post": "userHome", // legacy route
             "chat/:id": "userChat",
             "alert/viewed/:id": "alertViewed",
+            "about": "userAbout",
+            "terms": "userTerms",
+            "privacy": "userPrivacy",
+            "disclaimer": "userDisclaimer",
+            "donate": "userDonate",
+            "contact": "userContact",
             "*path": "userHome"
         },
 
@@ -122,6 +128,7 @@ define([
 
                 // Hide the page loader, which might still be there.
                 $('#pageloader').remove();
+                $('body').css('height', '');
 
                 routeOptions.page.render();
             }
@@ -667,6 +674,60 @@ define([
                 Iznik.Session.forceLogin({
                     modtools: true
                 });
+            });
+        },
+
+        userAbout: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/landing"], function() {
+                var page = new Iznik.Views.User.Pages.Landing.About();
+                self.loadRoute({page: page});
+            });
+        },
+        
+        userTerms: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/landing"], function() {
+                var page = new Iznik.Views.User.Pages.Landing.Terms();
+                self.loadRoute({page: page});
+            });
+        },
+        
+        userPrivacy: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/landing"], function() {
+                var page = new Iznik.Views.User.Pages.Landing.Privacy();
+                self.loadRoute({page: page});
+            });
+        },
+        
+        userDisclaimer: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/landing"], function() {
+                var page = new Iznik.Views.User.Pages.Landing.Disclaimer();
+                self.loadRoute({page: page});
+            });
+        },
+        
+        userDonate: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/landing"], function() {
+                var page = new Iznik.Views.User.Pages.Landing.Donate();
+                self.loadRoute({page: page});
+            });
+        },
+        
+        userContact: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/landing"], function() {
+                var page = new Iznik.Views.User.Pages.Landing.Contact();
+                self.loadRoute({page: page});
             });
         }
     });

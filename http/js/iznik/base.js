@@ -57,7 +57,8 @@ define([
             User: {
                 Pages: {
                     Find: {},
-                    Give: {}
+                    Give: {},
+                    Landing: {}
                 },
                 Home: {},
                 Message: {},
