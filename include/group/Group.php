@@ -189,8 +189,6 @@ class Group extends Entity
             ])[0]['count']
         ];
 
-        error_log($this->group['nameshort'] . " spammembers " . $ret['spammembers']);
-
         return($ret);
     }
 

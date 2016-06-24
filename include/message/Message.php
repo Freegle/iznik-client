@@ -2201,7 +2201,22 @@ class Message
     }
 
     public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL) {
-        return($this->s->search($string, $context, $limit, $restrict, $groups));
+        $ret = $this->s->search($string, $context, $limit, $restrict, $groups);
+
+        if (count($ret) > 0) {
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me ? $me->getId() : NULL;
+            $maxid = $ret[0]['id'];
+
+            $this->dbhm->preExec("INSERT INTO users_searches (userid, maxmsg, term) VALUES (?,?,?) ON DUPLICATE KEY UPDATE maxmsg = GREATEST(maxmsg, ?);", [
+                $myid,
+                $maxid,
+                $string,
+                $maxid
+            ]);
+        }
+
+        return($ret);
     }
 
     public function mailf($fromemail, $toemail, $hdrs, $body) {
