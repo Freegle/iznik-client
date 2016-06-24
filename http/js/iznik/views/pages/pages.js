@@ -151,6 +151,13 @@ define([
                         } else {
                             $('.js-supporters').show();
                         }
+                    } else {
+                        // Put bottom left links in.
+                        $('#botleft').remove();
+                        var v = new Iznik.Views.User.Botleft();
+                        v.render().then(function() {
+                            $('body').append(v.$el);
+                        })
                     }
 
                     // Put self page in
@@ -370,5 +377,11 @@ define([
         tagName: 'footer',
         className: 'footer',
         template: 'footer'
+    })
+
+    Iznik.Views.User.Botleft = Iznik.View.extend({
+        id: 'botleft',
+        className: 'padleft hidden-sm',
+        template: 'user_botleft'
     })
 });

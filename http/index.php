@@ -73,14 +73,6 @@ if ($default) {
                 <div id="bodyContent" class="nopad">
                 </div>
             </div>
-            <div id="social" class="hidden-sm">
-                <a href="https://www.facebook.com/Freegle/" alt="Facebook" title="Facebook" data-realurl="true" target="_blank">
-                    <img src="/images/social/facebook.png" />
-                </a>
-                <a href="https://twitter.com/thisisfreegle" alt="Twitter" title="Twitter" data-realurl="true" target="_blank">
-                    <img src="/images/social/twitter.png" />
-                </a>
-            </div>
         </body>
 <?php
 }
