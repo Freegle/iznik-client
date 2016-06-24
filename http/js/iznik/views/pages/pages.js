@@ -151,7 +151,7 @@ define([
                         } else {
                             $('.js-supporters').show();
                         }
-                    } else {
+                    } else if (!self.footer) {
                         // Put bottom left links in.
                         $('#botleft').remove();
                         var v = new Iznik.Views.User.Botleft();
