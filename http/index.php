@@ -48,8 +48,7 @@ if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {
     $url = "https://" . $_SERVER['HTTP_HOST'] . presdef('REQUEST_URI', $_SERVER, '');
     $pages = $dbhr->preQuery("SELECT * FROM prerender WHERE url = ?;", [ $url ]);
 
-    if (count($pages) > 0) {
-        ?><!-- Pre-rendered --><?php
+    if (count($pages) > 0 && $pages[0]['html']) {
         echo $pages[0]['html'];
         $default = FALSE;
     }
@@ -57,7 +56,7 @@ if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {
 
 if ($default) {
 ?>
-        <body style="height: 100vh; background-colour: #dff2d1;">
+        <body style="background-colour: #dff2d1;">
             <noscript>
                 <h1>Please enable Javascript</h1>
 
@@ -73,8 +72,9 @@ if ($default) {
                 <div id="bodyContent" class="nopad">
                 </div>
             </div>
+            <div id="botleft" />
         </body>
 <?php
 }
 ?>
-</html>
+    </html>

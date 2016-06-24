@@ -151,15 +151,21 @@ define([
                         } else {
                             $('.js-supporters').show();
                         }
-                    } else if (!self.footer) {
-                        // Put bottom left links in.
-                        $('#botleft').remove();
-                        var v = new Iznik.Views.User.Botleft();
-                        v.render().then(function() {
-                            $('body').append(v.$el);
-                        })
-                    }
+                    } else {
+                        $('#botleft').empty();
+                        
+                        if (!self.footer) {
+                            // Put bottom left links in.
+                            var v = new Iznik.Views.User.Botleft();
+                            v.render();
+                            $('#botleft').append(v.$el);
+                        }
 
+                        var v = new Iznik.Views.User.Social();
+                        v.render();
+                        $('#botleft').append(v.$el);
+                    }
+                    
                     // Put self page in
                     templateFetch(self.template).then(function(tpl) {
                         self.$el.html(window.template(tpl)(Iznik.Session.toJSON2()));
@@ -377,11 +383,16 @@ define([
         tagName: 'footer',
         className: 'footer',
         template: 'footer'
-    })
+    });
 
     Iznik.Views.User.Botleft = Iznik.View.extend({
-        id: 'botleft',
         className: 'padleft hidden-sm',
         template: 'user_botleft'
-    })
+    });
+    
+    Iznik.Views.User.Social = Iznik.View.extend({
+        id: 'social',
+        className: 'padleft hidden-sm',
+        template: 'user_social'
+    })    
 });

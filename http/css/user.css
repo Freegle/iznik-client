@@ -549,7 +549,7 @@ fieldset[disabled] .twitter-typeahead .tt-input {
     cursor:pointer;
 }
 
-#botleft {
+#botleft, {
     position: fixed;
     bottom: 0;
     left: 0;
