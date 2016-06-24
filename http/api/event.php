@@ -11,8 +11,7 @@ function event() {
             if ($events) {
                 $p = new Events($dbhr, $dbhm);
 
-                $me = whoAmI($dbhr, $dbhm);
-                $myid = $me ? $me->getId() : NULL;
+                $userid = presdef('userid', $_REQUEST, NULL);
                 $sessid = session_id();
                 #$start = microtime(TRUE);
 
@@ -31,7 +30,7 @@ function event() {
                         $data = presdef('data', $event, NULL);
 
                         if ($route !== NULL) {
-                            $p->record($myid, $sessid, $route, $target, $action, $timestamp, $posx, $posy, $viewx, $viewy, $data);
+                            $p->record($userid, $sessid, $route, $target, $action, $timestamp, $posx, $posy, $viewx, $viewy, $data);
                         }
                     }
 

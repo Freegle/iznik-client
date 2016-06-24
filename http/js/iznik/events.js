@@ -17,6 +17,9 @@ define([
             timestamp = (new Date()).getTime();
         }
 
+        var me = Iznik.Session.get('me');
+        var myid = me ? me.id : null;
+
         var data = {
             timestamp: timestamp,
             route: location.pathname + location.hash,
@@ -26,7 +29,8 @@ define([
             viewy: $(window).outerHeight(),
             posX: posX,
             posY: posY,
-            data: data
+            data: data,
+            userid: myid
         };
 
         eventQueue.push(data);
