@@ -22,6 +22,7 @@ define([
             'click .js-logs': 'logs',
             'click .js-remove': 'remove',
             'click .js-ban': 'ban',
+            'click .js-purge': 'purge',
             'click .js-addcomment': 'addComment',
             'click .js-spammer': 'spammer',
             'click .js-whitelist': 'whitelist'
@@ -171,6 +172,31 @@ define([
                         userid: self.model.get('id'),
                         groupid: self.model.get('groupid'),
                         ban: true
+                    }, success: function(ret) {
+                        if (ret.ret == 0) {
+                            self.$el.fadeOut('slow');
+                            self.model.trigger('removed');
+                        }
+                    }
+                });
+            });
+
+            v.render();
+        },
+            
+        purge: function() {
+            var self = this;
+            var v = new Iznik.Views.Confirm({
+                model: self.model
+            });
+            v.template = 'modtools_members_purgeconfirm';
+
+            self.listenToOnce(v, 'confirmed', function() {
+                $.ajax({
+                    url: API + 'user',
+                    type: 'DELETE',
+                    data: {
+                        id: self.model.get('userid')
                     }, success: function(ret) {
                         if (ret.ret == 0) {
                             self.$el.fadeOut('slow');

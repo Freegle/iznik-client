@@ -1262,6 +1262,10 @@ class User extends Entity
         return($sessions);
     }
 
+    public function isAdmin() {
+        return($this->user['systemrole'] == User::SYSTEMROLE_ADMIN);
+    }
+
     public function isAdminOrSupport() {
         return($this->user['systemrole'] == User::SYSTEMROLE_ADMIN || $this->user['systemrole'] == User::SYSTEMROLE_SUPPORT);
     }

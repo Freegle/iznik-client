@@ -199,6 +199,15 @@ function user() {
                 }
             }
         }
+
+        case 'DELETE': {
+            $u = new User($dbhr, $dbhm, $id);
+            $ret = ['ret' => 2, 'status' => 'Permission denied'];
+            if ($me && $me->isAdmin()) {
+                $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                $u->delete();
+            }
+        }
     }
 
     return($ret);

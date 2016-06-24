@@ -245,5 +245,26 @@ class userAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testDelete() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+
+        $ret = $this->call('user', 'DELETE', [
+            'id' => $uid
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
+
+        $ret = $this->call('user', 'DELETE', [
+            'id' => $uid
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
