@@ -388,6 +388,8 @@ define([
         },
 
         addLog: function(log) {
+            var self = this;
+
             var v = new Iznik.Views.ModTools.User.LogEntry({
                 model: new Iznik.Model(log)
             });
