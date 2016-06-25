@@ -386,13 +386,13 @@ define([
     });
 
     Iznik.Views.User.Botleft = Iznik.View.extend({
-        className: 'padleft hidden-sm',
+        className: 'padleft hidden-sm hidden-xs',
         template: 'user_botleft'
     });
     
     Iznik.Views.User.Social = Iznik.View.extend({
         id: 'social',
-        className: 'padleft hidden-sm',
+        className: 'padleft hidden-sm hidden-xs',
         template: 'user_social'
     })    
 });
