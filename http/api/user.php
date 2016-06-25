@@ -131,7 +131,9 @@ function user() {
 
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
+            error_log("Owner? " . $me->isModOrOwner($groupid) . " admin " . $me->isAdminOrSupport());
             if ($u && $me && ($me->isModOrOwner($groupid) || $me->isAdminOrSupport())) {
+                error_log("ok");
                 if ($suspectcount !== NULL) {
                     $u->setPrivate('suspectcount', $suspectcount);
                     $u->setPrivate('suspectreason', $suspectreason);
@@ -182,6 +184,8 @@ function user() {
                     'status' => 'Success'
                 ];
             }
+            
+            break;
         }
 
         case 'POST': {
@@ -198,6 +202,8 @@ function user() {
                         break;
                 }
             }
+
+            break;
         }
 
         case 'DELETE': {
