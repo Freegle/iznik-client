@@ -665,8 +665,8 @@ class messageAPITest extends IznikAPITestCase
         $g = new Group($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
-        $msg = file_get_contents('msgs/spam');
-        $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
+        $origmsg = file_get_contents('msgs/spam');
+        $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $origmsg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from1@test.com', 'to@test.com', $msg);
@@ -727,6 +727,31 @@ class messageAPITest extends IznikAPITestCase
         ]);
         $msgs = $ret['messages'];
         assertEquals(0, count($msgs));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'Spam'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Pending should be empty.
+        $ret = $this->call('messages', 'GET', [
+            'groupid' => $group1,
+            'collection' => 'Pending'
+        ]);
+        $msgs = $ret['messages'];
+        assertEquals(0, count($msgs));
+
+        # Again as admin
+        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
+
+        $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $origmsg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_PENDING, 'from1@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,

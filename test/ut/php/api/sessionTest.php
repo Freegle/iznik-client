@@ -133,8 +133,7 @@ class sessionTest extends IznikAPITestCase
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $ret = $this->call('session', 'POST', [
             'email' => 'test@test.com',
-            'password' => 'testpw',
-            'onholidaytill' => ISODate('@' . time())
+            'password' => 'testpw'
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -150,6 +149,7 @@ class sessionTest extends IznikAPITestCase
             'settings' => json_encode(['test' => 1]),
             'displayname' => "Testing User",
             'email' => 'test2@test.com',
+            'onholidaytill' => ISODate('@' . time()),
             'notifications' => [
                 'push' => [
                     'type' => 'Google',

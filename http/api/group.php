@@ -152,37 +152,6 @@ function group() {
 
                         break;
                     }
-
-                    case 'Alert': {
-                        $from = presdef('from', $_REQUEST, NULL);
-                        $subject = presdef('subject', $_REQUEST, NULL);
-                        $textbody = presdef('textbody', $_REQUEST, NULL);
-                        $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
-
-                        $ret = [
-                            'ret' => 1,
-                            'status' => 'Not logged in',
-                        ];
-
-                        switch ($from) {
-                            case 'info': $from = INFO_ADDR; break;
-                            case 'support': $from = SUPPORT_ADDR; break;
-                            case 'geeks': $from = GEEKS_ADDR; break;
-                            case 'board': $from = BOARD_ADDR; break;
-                            case 'mentors': $from = MENTORS_ADDR; break;
-                            case 'newgroups': $from = NEWGROUPS_ADDR; break;
-                            
-                            default: $from = NULL; break;
-                        }
-
-                        if ($me && $me->isAdminOrSupport() && $from && $subject && $textbody && $htmlbody) {
-                            $g->alert($from, $subject, $textbody, $htmlbody);
-                            $ret = [
-                                'ret' => 0,
-                                'status' => 'Success',
-                            ];
-                        }
-                    }
                 }
 
                 break;
