@@ -475,7 +475,12 @@ define([
 
             // Open a window of the appropriate size, and also in with an URL which will cause us to pick up the
             // correct stylesheet.
-            window.open((this.model.get('modtools') ? '/modtools' : '') + '/replay/' + this.model.get('id'), 'Session Replay', 'width=' + width + ', height=' + height + ', top=' + ((window.innerHeight - height) / 2) + ', left=' + ((window.innerWidth - width) / 2));
+            var modsess = this.model.get('modtools');
+            var modsite = $('meta[name=iznikmodsite]').attr("content");
+            var usersite = $('meta[name=iznikusersite]').attr("content");
+            
+            var pref = "https://" + (modsess ? modsite : usersite) + (modsess ? '/modtools' : '');
+            window.open(pref + '/replay/' + this.model.get('id'), 'Session Replay', 'width=' + width + ', height=' + height + ', top=' + ((window.innerHeight - height) / 2) + ', left=' + ((window.innerWidth - width) / 2));
         },
 
         render: function() {

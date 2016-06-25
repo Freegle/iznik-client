@@ -146,6 +146,8 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <meta name="iznikchat" content="<?php echo CHAT_HOST; ?>">
     <meta name="iznikevent" content="<?php echo EVENT_HOST; ?>">
     <meta name="iznikusergroupoverride" content="<?php echo USER_GROUP_OVERRIDE; ?>">
+    <meta name="iznikusersite" content="<?php echo USER_SITE; ?>">
+    <meta name="iznikmodsite" content="<?php echo MOD_SITE; ?>">
     
     <!-- And then some custom styles for our different apps -->
     <?php
