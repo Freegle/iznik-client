@@ -359,10 +359,10 @@ define([
 
                 v.render().then(function (v) {
                     self.$('.js-user').html(v.el);
-                });
 
-                // We are not in the context of a specific group here, so the general remove/ban buttons don't make sense.
-                self.$('.js-ban, .js-remove').closest('li').remove();
+                    // We are not in the context of a specific group here, so the general remove/ban buttons don't make sense.
+                    self.$('.js-ban, .js-remove').closest('li').remove();
+                });
 
                 // Add any emails
                 self.$('.js-otheremails').empty();

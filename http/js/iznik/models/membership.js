@@ -147,6 +147,13 @@ define([
         parse: function(ret) {
             // Save off the return in case we need any info from it, e.g. context for searches.
             this.ret = ret;
+
+            // Link in the groups.
+            _.each(ret.members, function(member) {
+                if (ret.groups[member.groupid]) {
+                    member.group = ret.groups[member.groupid];
+                }
+            })  
             return(ret.members);
         }
     });

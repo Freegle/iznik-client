@@ -1,5 +1,5 @@
 <span class="text-muted warning">
     <small>
-        <% if (collection == 'Pending') { %>Pending on<% } else if (collection == 'Spam') { %>Spam on <% } else { %>On<% } %> {{namedisplay}} from <abbr class="timeago" title="{{added}}"/> <% if (obj.email) { %>using {{email}}<% } %>
+        <% if (collection == 'Pending') { %>Pending on<% } else if (collection == 'Spam') { %>Spam on <% } else { %>On<% } %> {{namedisplay}} from <abbr class="timeago" title="{{added}}"/> <% if (obj.email) { %>using {{email}}<% } %>&nbsp;<div class="clickme glyphicon glyphicon-trash js-remove" />
     </small>
 </span>

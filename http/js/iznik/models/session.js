@@ -485,6 +485,19 @@ define([
             });
         },
 
+        isModeratorOf: function(groupid) {
+            // Support have moderator rights.
+            var me = this.get('me');
+            if (me) {
+                if (me.systemrole == 'Admin' || me.systemrole == 'Support') {
+                    return(true);
+                }
+
+                var groups = this.getGroup(groupid);
+                return(group.role == 'Owner' || group.role == 'Moderator');
+            }
+        },
+
         isAdminOrSupport: function () {
             var me = this.get('me');
             return (me && (me.systemrole == 'Admin' || me.systemrole == 'Support'));

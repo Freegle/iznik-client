@@ -8,7 +8,7 @@ define([
     'bootstrap-switch',
     'bootstrap-datepicker'
 ], function($, _, Backbone, moment, Iznik) {
-        Iznik.Views.ModTools.User = Iznik.View.extend({
+    Iznik.Views.ModTools.User = Iznik.View.extend({
         template: 'modtools_user_user',
 
         events: {
@@ -592,6 +592,41 @@ define([
     Iznik.Views.ModTools.Member.Of = Iznik.View.extend({
         template: 'modtools_member_of',
         
+        events: {
+            'click .js-remove': 'remove'
+        },
+    
+        remove: function() {
+            var self = this;
+
+            console.log("Remove", self.options.user);
+
+            if (self.options.user.get('systemrole') == 'User') {
+                var v = new Iznik.Views.Confirm({
+                    model: self.options.user
+                });
+                v.template = 'modtools_members_removeconfirm';
+
+                self.listenToOnce(v, 'confirmed', function() {
+                    $.ajax({
+                        url: API + 'memberships',
+                        type: 'DELETE',
+                        data: {
+                            userid: self.options.user.get('userid'),
+                            groupid: self.options.user.get('groupid')
+                        }, success: function(ret) {
+                            if (ret.ret == 0) {
+                                self.$el.fadeOut('slow');
+                                self.options.user.trigger('removed');
+                            }
+                        }
+                    });
+                });
+
+                v.render();
+            }
+        },
+        
         render: function() {
             var self = this;
             var emails = this.options.user.get('emails');
@@ -605,6 +640,11 @@ define([
 
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
+
+                if (Iznik.Session.isModeratorOf(self.model.get('groupid'))) {
+                    self.$('.js-remove').removeClass('hidden');
+                }
+                
                 self.$('.timeago').timeago();
             });
 
