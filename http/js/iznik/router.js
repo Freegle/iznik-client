@@ -78,7 +78,9 @@ define([
             "modtools/settings/confirmmail/(:key)": "confirmMail",
             "modtools/settings": "settings",
             "modtools/support": "support",
+            "modtools/sessions": "sessions",
             "modtools/replay/(:id)": "replay",
+            "replay/(:id)": "replay",
             "find/whereami": "userFindWhereAmI",
             "find/search/(:search)": "userSearched",
             "find/search": "userSearch",
@@ -661,6 +663,20 @@ define([
             });
         },
 
+        sessions: function() {
+            var self = this;
+            require(["iznik/views/pages/modtools/replay"], function () {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.Sessions();
+                    self.loadRoute({page: page, modtools: true});
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+        
         replay: function(sessionid) {
             var self = this;
             require(["iznik/views/pages/modtools/replay"], function () {

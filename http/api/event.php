@@ -49,8 +49,14 @@ function event() {
             if ($me && $me->isAdminOrSupport()) {
                 $sessionid = presdef('sessionid', $_REQUEST, NULL);
                 $p = new Events($dbhr, $dbhm);
-                $events = $p->get($sessionid);
-                $ret = !$events ? ['ret' => 1, 'status' => 'Session not found'] : ['ret' => 0, 'status' => 'Success', 'events' => $events];
+
+                if ($sessionid) {
+                    # Fetching a session.
+                    $events = $p->get($sessionid);
+                    $ret = !$events ? ['ret' => 1, 'status' => 'Session not found'] : ['ret' => 0, 'status' => 'Success', 'events' => $events];
+                } else {
+                    $ret = [ 'ret' => 0, 'status' => 'Success', 'sessions' => $p->listSessions() ];
+                }
             }
 
             break;

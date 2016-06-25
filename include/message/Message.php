@@ -801,7 +801,7 @@ class Message
         return($atts);
     }
 
-    private function keywords() {
+    private static function keywords() {
         # We try various mis-spellings, and Welsh.  This is not to suggest that Welsh is a spelling error.
         return([
             Message::TYPE_OFFER => [
@@ -2206,14 +2206,17 @@ class Message
         if (count($ret) > 0) {
             $me = whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : NULL;
-            $maxid = $ret[0]['id'];
 
-            $this->dbhm->preExec("INSERT INTO users_searches (userid, maxmsg, term) VALUES (?,?,?) ON DUPLICATE KEY UPDATE maxmsg = GREATEST(maxmsg, ?);", [
-                $myid,
-                $maxid,
-                $string,
-                $maxid
-            ]);
+            if ($myid) {
+                $maxid = $ret[0]['id'];
+
+                $this->dbhm->preExec("INSERT INTO users_searches (userid, maxmsg, term) VALUES (?,?,?) ON DUPLICATE KEY UPDATE maxmsg = GREATEST(maxmsg, ?);", [
+                    $myid,
+                    $maxid,
+                    $string,
+                    $maxid
+                ]);
+            }
         }
 
         return($ret);

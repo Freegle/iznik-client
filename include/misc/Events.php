@@ -61,6 +61,38 @@ class Events {
             $this->queue = '';
         } catch (Exception $e) {}
     }
+    
+    public function listSessions() {
+        $sql = "SELECT DISTINCT(sessionid) FROM logs_events WHERE ip IS NOT NULL ORDER BY id DESC;";
+        $sessions = $this->dbhr->preQuery($sql);
+        $ret = [];
+        
+        foreach ($sessions as $session) {
+            $sessid = $session['sessionid'];
+            $thisone = [
+                'id' => $sessid
+            ];
+
+            $sql = "SELECT MAX(route) AS route, MAX(ip) AS ip, MAX(userid) AS userid, MIN(timestamp) AS start, MAX(timestamp) AS end, sessionid FROM logs_events WHERE sessionid = ?;";
+            $sessions = $this->dbhr->preQuery($sql, [ $sessid ]);
+            foreach ($sessions as $session) {
+                $thisone['ip'] = $session['ip'];
+                $thisone['modtools'] = strpos($session['route'], 'modtools') !== FALSE;
+
+                if ($session['userid']) {
+                    $u = new User($this->dbhr, $this->dbhm, $session['userid']);
+                    $thisone['user'] = $u->getPublic(NULL, FALSE);
+                }
+
+                $thisone['start'] = ISODate($session['start']);
+                $thisone['end'] = ISODate($session['end']);
+
+                $ret[] = $thisone;
+            }
+        }
+        
+        return($ret);
+    }
 
     public function get($sessionid) {
         $events = NULL;

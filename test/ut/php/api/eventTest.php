@@ -26,6 +26,7 @@ class eventsAPITest extends IznikAPITestCase
 
     protected function tearDown()
     {
+        error_log("Tear_down");
         parent::tearDown();
     }
 
@@ -90,6 +91,10 @@ EOT
         ]);
         assertEquals(2, $ret['ret']);
 
+        $ret = $this->call('event', 'GET', [
+        ]);
+        assertEquals(2, $ret['ret']);
+
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
@@ -102,10 +107,25 @@ EOT
         $ret = $this->call('event', 'GET', [
             'sessionid' => $sessid
         ]);
-        if ($ret['ret'] == 1) { exit(-1); }
         assertEquals(0, $ret['ret']);
         assertEquals(2, count($ret['events']));
         assertEquals($ret['events'][0]['data'], $ret['events'][1]['data']);
+
+        $ret = $this->call('event', 'GET', [
+        ]);
+
+        error_log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertGreaterThan(1, count($ret['sessions']));
+        $found = FALSE;
+
+        foreach ($ret['sessions'] as $session) {
+            if ($session['id'] == $sessid) {
+                $found = TRUE;
+            }
+        }
+
+        assertTrue($found);
 
         error_log(__METHOD__ . " end");
     }

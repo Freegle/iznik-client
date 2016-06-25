@@ -2,11 +2,47 @@ define([
     'jquery',
     'underscore',
     'backbone',
+    'moment',
     'iznik/base',
     'iznik/diff',
     "iznik/modtools",
+    'iznik/views/pages/pages',
     "jquery.scrollTo"
-], function($, _, Backbone, Iznik, JsDiff) {
+], function($, _, Backbone, moment, Iznik, JsDiff) {
+    Iznik.Views.ModTools.Pages.Sessions = Iznik.Views.Page.extend({
+        modtools: true,
+        template: "modtools_replay_sessions",
+
+        render: function() {
+            var self = this;
+            
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function() {
+                var v = new Iznik.Views.PleaseWait();
+                v.render().then(function() {
+                    $.ajax({
+                        url: API + 'event',
+                        type: 'GET',
+                        success: function (ret) {
+                            v.close();
+                            if (ret.ret == 0) {
+                                _.each(ret.sessions, function (session) {
+                                    var v = new Iznik.Views.ModTools.Pages.Replay.Session({
+                                        model: new Iznik.Model(session)
+                                    });
+                                    v.render();
+                                    self.$('.js-sessions').append(v.$el);
+                                });
+                            }
+                        }
+                    })
+                });
+            });
+
+            return(p);
+        }
+    });
+
     Iznik.Views.ModTools.Pages.Replay = Iznik.View.extend({
         modtools: true,
 
@@ -161,7 +197,7 @@ define([
                     case 'DOM-d':
                     {
                         // Diff on current DOM.
-                        if (self.currentDOM) {
+                        if (self.currentDOM && !_.isUndefined(event.data) ) {
                             var newdom = JsDiff.applyPatch(self.currentDOM, event.data);
                             if (newdom) {
                                 self.replaceDOM(newdom);
@@ -425,5 +461,32 @@ define([
             return(p);
         }
     });
+
+    Iznik.Views.ModTools.Pages.Replay.Session = Iznik.View.extend({
+        template: "modtools_replay_session",
+
+        events: {
+            'click .js-play': 'play'
+        },
+
+        play: function() {
+            var width = window.innerWidth * 0.66 ;
+            var height = width * window.innerHeight / window.innerWidth ;
+
+            // Open a window of the appropriate size, and also in with an URL which will cause us to pick up the
+            // correct stylesheet.
+            window.open((this.model.get('modtools') ? '/modtools' : '') + '/replay/' + this.model.get('id'), 'Session Replay', 'width=' + width + ', height=' + height + ', top=' + ((window.innerHeight - height) / 2) + ', left=' + ((window.innerWidth - width) / 2));
+        },
+
+        render: function() {
+            var self = this;
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function(self) {
+                self.$('.js-time').html((new moment(self.model.get('start'))).format('DD-MMM-YY HH:mm') + ' - ' + (new moment(self.model.get('end'))).format('DD-MMM-YY HH:mm'));
+            });
+
+            return(p);
+        }
+    })
 });
 

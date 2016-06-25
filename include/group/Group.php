@@ -442,7 +442,6 @@ class Group extends Entity
                     $emailid = $emailinfo ? $emailinfo['userid'] : NULL;
 
                     $reason = "SetMembers {$this->group['nameshort']} - YahooId " . presdef('yahooid', $memb, '') . " = $yuid, YahooUserId " . presdef('yahooUserId', $memb, '') . " = $yiduid, Email {$memb['email']} = $emailid";
-                    error_log("$reason");
 
                     # Now merge any different ones.
                     if ($emailid && $yuid && $emailid != $yuid) {
@@ -533,7 +532,7 @@ class Group extends Entity
                 set_time_limit(60);
 
                 $member = $members[$count];
-                error_log("Update member " . var_export($member, TRUE));
+                #error_log("Update member " . var_export($member, TRUE));
 
                 if (pres('uid', $member)) {
                     $tried++;
@@ -617,7 +616,7 @@ class Group extends Entity
                         }
 
                         # Record that this membership still exists by deleting their id from the temp table
-                        error_log("Delete from syncdelete " . var_export($member, TRUE));
+                        #error_log("Delete from syncdelete " . var_export($member, TRUE));
                         $sql = "DELETE FROM syncdelete WHERE emailid = {$member['emailid']};";
                         $bulksql .= $sql;
 
@@ -626,9 +625,9 @@ class Group extends Entity
                             # and fail the count below.  Or we'll have incorrect settings until the next sync, but
                             # that's ok - better than failing it.
                             #error_log($bulksql);
-                            error_log("Execute batch $count {$this->group['nameshort']}");
+                            #error_log("Execute batch $count {$this->group['nameshort']}");
                             $this->dbhm->exec($bulksql);
-                            error_log("Executed batch $count {$this->group['nameshort']}");
+                            #error_log("Executed batch $count {$this->group['nameshort']}");
                             $bulksql = '';
                         }
                     }

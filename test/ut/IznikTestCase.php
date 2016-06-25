@@ -48,11 +48,18 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
     protected function setUp() {
         parent::setUp ();
 
+        error_reporting(E_ALL);
+
+
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
         $this->tidy();
+
+        @session_destroy();
+        @session_start();
+        $_SESSION['POSTLASTDATA'] = NULL;
 
         set_time_limit(600);
     }
@@ -60,10 +67,10 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
     protected function tearDown() {
         parent::tearDown ();
         try {
-            @session_reopen();
-        } catch (Exception $e) {}
-
-        @session_destroy();
+            @session_destroy();
+        } catch (Exception $e) {
+            error_log("Session exception " . $e->getMessage());
+        }
     }
 
     public function __construct() {
