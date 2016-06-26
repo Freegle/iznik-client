@@ -1954,7 +1954,7 @@ class Message
         #
         # On Sat, May 14, 2016 at 2:19 PM, Edward Hibbert <
         # notify-5147-16226909@users.ilovefreegle.org> wrote:
-        if (preg_match('/(.*)^On.*wrote\:$(.*)/ms', $textbody, $matches)) {
+        if (preg_match('/(.*)On.*wrote\:$(.*)/ms', $textbody, $matches)) {
             $textbody = $matches[1] . $matches[2];
         }
 
@@ -1966,6 +1966,10 @@ class Message
         # Or we might have some headers
         $textbody = preg_replace('/^From:.*?$/mi', '', $textbody);
         $textbody = preg_replace('/^Sent:.*?$/mi', '', $textbody);
+
+        # Get rid of sigs
+        $textbody = preg_replace('Sent from my iPhone', '', $textbody);
+        $textbody = preg_replace('Sent from EE', '', $textbody);
 
         #error_log("Pruned text to $textbody");
         return(trim($textbody));

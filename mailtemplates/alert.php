@@ -98,7 +98,7 @@ EOT;
     $html .= <<<EOT
                                                                 </tr>
                                                                 <tr>
-                                                                    <td width="100%" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:14px; line-height:20px;">
+                                                                    <td width="100%" align="left" class="htmlsummary mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:14px; line-height:20px;">
                                                                         $htmlsummary                                                                     
                                                                     </td>
                                                                 </tr>

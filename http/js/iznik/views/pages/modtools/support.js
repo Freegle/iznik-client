@@ -110,6 +110,10 @@ define([
 
         sendAlert: function () {
             var self = this;
+            var html = tinyMCE.activeEditor.getContent({format: 'raw'});
+
+            // If we've not put anything in the HTML version we get some placeholder HTML.
+            html = html == '<p><br data-mce-bogus="1"></p>' ? null : html;
 
             $.ajax({
                 type: 'PUT',
@@ -119,7 +123,7 @@ define([
                     from: self.$('.js-mailfrom').val(),
                     subject: self.$('.js-mailsubj').val(),
                     text: self.$('.js-mailtext').val(),
-                    html: tinyMCE.activeEditor.getContent({format: 'raw'}),
+                    html: html,
                     askclick: self.$('.js-askclick').val()
                 }, success: function (ret) {
                     if (ret.ret == 0) {

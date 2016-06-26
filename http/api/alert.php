@@ -60,7 +60,7 @@ function alert() {
                 $to = presdef('to', $_REQUEST, 'Mods');
                 $subject = presdef('subject', $_REQUEST, NULL);
                 $text = presdef('text', $_REQUEST, NULL);
-                $html = presdef('html', $_REQUEST, NULL);
+                $html = presdef('html', $_REQUEST, nl2br($text));
                 $groupid = presdef('groupid', $_REQUEST, NULL);
                 $groupid = $groupid == 'AllFreegle' ? NULL : intval($groupid);
                 $askclick = intval(presdef('askclick', $_REQUEST, 0));
