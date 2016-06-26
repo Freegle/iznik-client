@@ -73,11 +73,13 @@ class Events {
                 'id' => $sessid
             ];
 
-            $sql = "SELECT MAX(route) AS route, MAX(ip) AS ip, MAX(userid) AS userid, MIN(timestamp) AS start, MAX(timestamp) AS end, sessionid FROM logs_events WHERE sessionid = ?;";
+            $sql = "SELECT MAX(viewx) AS viewx, MAX(viewy) AS viewy, MAX(route) AS route, MAX(ip) AS ip, MAX(userid) AS userid, MIN(timestamp) AS start, MAX(timestamp) AS end, sessionid FROM logs_events WHERE sessionid = ?;";
             $sessions = $this->dbhr->preQuery($sql, [ $sessid ]);
             foreach ($sessions as $session) {
                 $thisone['ip'] = $session['ip'];
                 $thisone['modtools'] = strpos($session['route'], 'modtools') !== FALSE;
+                $thisone['viewx'] = $session['viewx'];
+                $thisone['viewy'] = $session['viewy'];
 
                 if ($session['userid']) {
                     $u = new User($this->dbhr, $this->dbhm, $session['userid']);

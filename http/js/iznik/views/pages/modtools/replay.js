@@ -487,7 +487,12 @@ define([
             var self = this;
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
-                self.$('.js-time').html((new moment(self.model.get('start'))).format('DD-MMM-YY HH:mm') + ' - ' + (new moment(self.model.get('end'))).format('DD-MMM-YY HH:mm'));
+                var start = new moment(self.model.get('start'));
+                var end = new moment(self.model.get('end'));
+                var diff = end.diff(start);
+                var duration = moment.duration(diff).humanize();
+
+                self.$('.js-time').html(start.format('DD-MMM-YY HH:mm') + ', ' + duration);
             });
 
             return(p);
