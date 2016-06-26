@@ -368,8 +368,7 @@ class Group extends Entity
     public function processSetMembers($groupid = NULL) {
         # This is called from the background script.  It's serialised, so we don't need to worry about other
         # copies.
-        $groupq = $groupid ? " OR groupid = $groupid" : '';
-        $sql = "SELECT * FROM memberships_yahoo_dump WHERE lastprocessed IS NULL OR lastupdated > lastprocessed AND (backgroundok = 1 $groupq);";
+        $sql = $groupid ? "SELECT * FROM memberships_yahoo_dump WHERE groupid = $groupid;" : "SELECT * FROM memberships_yahoo_dump WHERE lastprocessed IS NULL OR lastupdated > lastprocessed AND backgroundok = 1;";
         $groups = $this->dbhr->preQuery($sql);
         $count = 0;
 
@@ -377,7 +376,7 @@ class Group extends Entity
             try {
                 # Use master for sync to avoid caching, which can break our sync process.
                 $g = new Group($this->dbhm, $this->dbhm, $group['groupid']);
-                error_log("Sync group " . $g->getPrivate('nameshort') . " $count / " . count($groups));
+                error_log("Sync group " . $g->getPrivate('nameshort') . " $count / " . count($groups) . " time {$group['synctime']}");
                 $g->setMembers(json_decode($group['members'], TRUE),  MembershipCollection::APPROVED, $group['synctime']);
                 $this->dbhm->preExec("UPDATE memberships_yahoo_dump SET lastprocessed = NOW() WHERE groupid = ?;", [ $group['groupid']]);
             } catch (Exception $e) {
@@ -409,7 +408,7 @@ class Group extends Entity
             'status' => 'Success'
         ];
 
-        $synctime = $synctime ? $synctime : ISODate("@" . time());
+        $synctime = $synctime ? $synctime : date("Y-m-d H:i:s", time());
 
         # Really don't want to remove all members by mistake, so don't allow it.
         if (!$members && $collection == MembershipCollection::APPROVED) { return($ret); }
@@ -518,9 +517,11 @@ class Group extends Entity
             # just joined.
             $mysqltime = date("Y-m-d H:i:s", strtotime($synctime));
             $this->dbhm->preExec("DROP TEMPORARY TABLE IF EXISTS syncdelete; CREATE TEMPORARY TABLE syncdelete (emailid INT UNSIGNED, PRIMARY KEY idkey(emailid));");
-            $this->dbhm->preExec("INSERT INTO syncdelete (SELECT DISTINCT memberships_yahoo.emailid FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid WHERE groupid = ? AND memberships_yahoo.collection = '$collection' AND memberships_yahoo.added < '$mysqltime');", [
-                $this->id
-            ]);
+            $sql = "INSERT INTO syncdelete (SELECT DISTINCT memberships_yahoo.emailid FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid WHERE groupid = {$this->id} AND memberships_yahoo.collection = '$collection' AND memberships_yahoo.added < '$mysqltime');";
+            $this->dbhm->preExec($sql);
+
+            #$resid = $this->dbhm->preQuery("SELECT memberships_yahoo.id, emailid FROM memberships_yahoo WHERE emailid IN (SELECT emailid FROM syncdelete);");
+            #error_log("Syncdelete at start" . var_export($resid, TRUE));
 
             $bulksql = '';
             $tried = 0;
@@ -552,6 +553,7 @@ class Group extends Entity
                         $this->id, 
                         $member['emailid']
                     ]);
+                    #error_log("$sql, {$member['uid']}, {$this->id}, {$member['emailid']}");
                     
                     $new = count($yahoomembs) == 0;
 

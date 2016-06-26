@@ -306,7 +306,7 @@ class ChatRoom extends Entity
             # Now we want to check whether to check whether this message has been seen by everyone in this chat.  If it
             # has, we flag it as seen by all, which speeds up our checking for which email notifications to send out.
             $sql = "SELECT COUNT(*) AS count FROM chat_roster WHERE chatid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);";
-            error_log("Check for unseen $sql, {$this->id}, $lastmsgseen");
+            #error_log("Check for unseen $sql, {$this->id}, $lastmsgseen");
 
             $unseens = $this->dbhm->preQuery($sql,
                 [
