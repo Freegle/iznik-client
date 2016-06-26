@@ -59,11 +59,7 @@ class StdMessage extends Entity
 
     public function setAttributes($settings) {
         $me = whoAmI($this->dbhr, $this->dbhm);
-        foreach ($this->settableatts as $att) {
-            if (array_key_exists($att, $settings)) {
-                $this->setPrivate($att, $settings[$att]);
-            }
-        }
+        parent::setAttributes($settings);
 
         $this->log->log([
             'type' => Log::TYPE_STDMSG,

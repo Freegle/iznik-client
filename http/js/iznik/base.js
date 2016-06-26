@@ -34,7 +34,8 @@ define([
             Yahoo: {},
             Plugin: {},
             Message: {},
-            Chat: {}
+            Chat: {},
+            User: {}
         },
         Views: {
             ModTools: {
@@ -73,7 +74,8 @@ define([
             Members: {},
             ModTools: {},
             Chat: {},
-            Yahoo: {}
+            Yahoo: {},
+            User: {}
         }
     };
 

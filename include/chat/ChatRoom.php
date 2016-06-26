@@ -153,15 +153,6 @@ class ChatRoom extends Entity
         return($id);
     }
 
-    public function setAttributes($settings) {
-        $me = whoAmI($this->dbhr, $this->dbhm);
-        foreach ($this->settableatts as $att) {
-            if (array_key_exists($att, $settings)) {
-                $this->setPrivate($att, $settings[$att]);
-            }
-        }
-    }
-
     public function getPublic() {
         $ret = $this->getAtts($this->publicatts);
 

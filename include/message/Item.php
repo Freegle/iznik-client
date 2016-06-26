@@ -52,14 +52,6 @@ class Item extends Entity
         $this->s->add($this->id, $this->item['name'], $this->item['popularity'], NULL);
     }
 
-    public function setAttributes($settings) {
-        foreach ($this->settableatts as $att) {
-            if (array_key_exists($att, $settings)) {
-                $this->setPrivate($att, $settings[$att]);
-            }
-        }
-    }
-
     public function typeahead($query) {
         $ctx = NULL;
         $results = $this->s->search($query, $ctx, 10);

@@ -6,6 +6,7 @@ require_once(IZNIK_BASE . '/include/misc/plugin.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
+require_once(IZNIK_BASE . '/include/user/Search.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
@@ -2209,13 +2210,8 @@ class Message
 
             if ($myid) {
                 $maxid = $ret[0]['id'];
-
-                $this->dbhm->preExec("INSERT INTO users_searches (userid, maxmsg, term) VALUES (?,?,?) ON DUPLICATE KEY UPDATE maxmsg = GREATEST(maxmsg, ?);", [
-                    $myid,
-                    $maxid,
-                    $string,
-                    $maxid
-                ]);
+                $s = new UserSearch($this->dbhr, $this->dbhm);
+                $s->create($myid, $maxid, $string);
             }
         }
 

@@ -96,4 +96,12 @@ class Entity
             }
         }
     }
+
+    public function setAttributes($settings) {
+        foreach ($this->settableatts as $att) {
+            if (array_key_exists($att, $settings)) {
+                $this->setPrivate($att, $settings[$att]);
+            }
+        }
+    }
 }

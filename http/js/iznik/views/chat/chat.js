@@ -308,10 +308,11 @@ define([
             if ($('#chatHolder').length == 0) {
                 self.$el.css('visibility', 'hidden');
 
+                Iznik.Session.chats = new Iznik.Collections.Chat.Rooms();
+                
                 p = Iznik.View.prototype.render.call(self).then(function(self) {
                     $("#bodyEnvelope").append(self.$el);
 
-                    Iznik.Session.chats = new Iznik.Collections.Chat.Rooms();
                     Iznik.Session.chats.fetch({
                         data: {
                             modtools: self.options.modtools

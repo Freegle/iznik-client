@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'iznik/models/message',
+    'iznik/models/user/search',
     'iznik/views/pages/pages',
     'iznik/views/user/message'
 ], function($, _, Backbone, Iznik) {
@@ -172,6 +173,23 @@ define([
                             }
                         }
                     });
+                });
+
+                // Searches
+                self.searches = new Iznik.Collections.User.Search();
+
+                self.searchView = new Backbone.CollectionView({
+                    el: self.$('.js-searchlist'),
+                    modelView: Iznik.Views.User.Home.Search,
+                    collection: self.searches
+                });
+
+                self.searchView.render();
+
+                self.searches.fetch().then(function() {
+                    if (self.searches.length > 0) {
+                        self.$('.js-searchrow').fadeIn('slow');
+                    }
                 });
             });
 
@@ -350,6 +368,37 @@ define([
             });
 
             return(p);
+        }
+    });
+
+    Iznik.Views.User.Home.Search = Iznik.View.extend({
+        template: "user_home_search",
+
+        tagName: 'li',
+
+        events: {
+            'click .js-delete': 'delete',
+            'click .js-search': 'search'
+        },
+
+        search: function() {
+            Router.navigate('/find/search/' + encodeURIComponent(this.model.get('term')), true);
+        },
+
+        delete: function() {
+            var self = this;
+            $.ajax({
+                url: API + 'usersearch',
+                type: 'DELETE',
+                data: {
+                    id: self.model.get('id')
+                },
+                success: function(ret) {
+                    if (ret.ret == 0) {
+                        self.$el.fadeOut('slow');
+                    }
+                }
+            });
         }
     });
 });
