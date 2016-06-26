@@ -37,6 +37,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
         $this->uid2 = $u->create(NULL, NULL, 'Test User');
+        assertNotNull($this->uid);
         $this->user2 = new User($this->dbhr, $this->dbhm, $this->uid2);
         $this->user2->addEmail('tes2t@test.com');
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
