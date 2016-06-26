@@ -123,9 +123,16 @@ define([
                     var matches = [];
                     _.each(ret.locations, function(location) {
                         matches.push(location.name);
-                    })
+                    });
 
                     asyncResults(matches);
+
+                    if (matches.length == 0) {
+                        self.$('.js-postcode').tooltip({'trigger':'focus', 'title': 'Please use a valid UK postcode'});
+                        self.$('.js-postcode').tooltip('show');
+                    } else {
+                        self.$('.js-postcode').tooltip('hide');
+                    }
                 }
             })
         },
@@ -143,7 +150,7 @@ define([
                     highlight: true
                 }, {
                     name: 'postcodes',
-                    source: self.postcodeSource
+                    source: _.bind(self.postcodeSource, self)
                 });
 
                 try {
