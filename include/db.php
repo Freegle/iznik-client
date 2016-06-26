@@ -165,7 +165,20 @@ class LoggedPDO {
         $this->readonly = $readonly;
         $this->readconn = $readconn;
 
-        $this->_db = new PDO($dsn, $username, $password, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
+        # Try a few times to get a connection to make us resilient to errors.
+        $gotit = FALSE;
+        $count = 0;
+
+        do {
+            try {
+                $this->_db = new PDO($dsn, $username, $password, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
+                $gotit = TRUE;
+            } catch (Exception $e) {
+                sleep(1);
+                $count++;
+            }
+        } while (!$gotit && $count < 30);
+        
         $this->dbwaittime += microtime(true) - $start;
 
         $this->cache = NULL;

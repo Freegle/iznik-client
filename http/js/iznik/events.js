@@ -17,9 +17,6 @@ define([
             timestamp = (new Date()).getTime();
         }
 
-        var me = Iznik.Session.get('me');
-        var myid = me ? me.id : null;
-
         var data = {
             timestamp: timestamp,
             route: location.pathname + location.hash,
@@ -30,7 +27,6 @@ define([
             posX: posX,
             posY: posY,
             data: data,
-            userid: myid
         };
 
         eventQueue.push(data);
@@ -64,12 +60,16 @@ define([
                     } catch (e) {console.log(e.message)};
                 }
 
+                var me = Iznik.Session.get('me');
+                var myid = me ? me.id : null;
+
                 $.ajax({
                     url: 'https://' + eventhost + API + 'event',
                     type: 'POST',
                     data: {
-                        'api_key': sessionCookie,
-                        'events': currQueue
+                        api_key: sessionCookie,
+                        userid: myid,
+                        events: currQueue
                     }, success: function(ret) {
                         if (ret.ret === 0) {
                             // Save the cookie
