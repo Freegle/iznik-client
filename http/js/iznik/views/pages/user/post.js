@@ -133,7 +133,6 @@ define([
                 self.pleaseWait = null;
             }
 
-            self.$('.js-uploading').addClass('hidden');
             self.$('.js-uploadfailed').removeClass('hidden');
         },
 
@@ -187,11 +186,6 @@ define([
 
                 self.$('.js-upload').fileupload({
                     url: API + 'upload',
-                    // Enable image resizing, except for Android and Opera,
-                    // which actually support image resizing, but fail to
-                    // send Blob objects via XHR requests:
-                    disableImageResize: /Android(?!.*Chrome)|Opera/
-                        .test(window.navigator.userAgent),
                     imageMaxWidth: 800,
                     imageMaxHeight: 800,
                     acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
@@ -261,7 +255,6 @@ define([
                     fail: self.uploadFailed,
                     progressall: function (e, data) {
                         self.$('.js-addprompt').addClass('hidden');
-                        self.$('.js-uploading').removeClass('hidden');
                         var progress = parseInt(data.loaded / data.total * 100, 10);
 
                         self.pleaseWait.$('.js-progress .progress-bar').css(

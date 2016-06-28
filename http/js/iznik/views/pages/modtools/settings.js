@@ -378,11 +378,7 @@ define([
 
                     // Simple file upload without progress bar or error handling - mods can live with that.
                     self.$('.js-profileupload').fileupload({
-                        // Enable image resizing, except for Android and Opera,
-                        // which actually support image resizing, but fail to
-                        // send Blob objects via XHR requests:
                         url: API + 'upload?group=1',
-                        disableImageResize: /Android(?!.*Chrome)|Opera/.test(window.navigator.userAgent),
                         imageMaxWidth: 200,
                         imageMaxHeight: 200,
                         acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
