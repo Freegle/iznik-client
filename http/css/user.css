@@ -569,3 +569,11 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 #botleft a {
     color: grey !important;
 }
+
+.maparea .tooltip, .maparea .tooltip-arrow, .maparea .tooltip-inner {
+    background-color: #1d6607 !important;;
+}
+
+.grouplist {
+    max-height: 400px !important;
+}

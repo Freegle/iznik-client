@@ -1,0 +1,19 @@
+<div class="row">
+    <div class="col-xs-2 img-smallerthumbnail nopad margleft">
+        <% if (obj.profile) { %>
+            <img class="img-thumbnail img-rounded" src="{{profile}}" alt="{{namedisplay}}" />
+        <% } else { %>
+            <img class="img-thumbnail img-rounded faded" src="/images/user_logo.png" alt="{{namedisplay}}" />
+        <% } %>
+    </div>
+    <div class="col-xs-6">
+        <a href="/explore/{{id}}">{{namedisplay}}</a>
+    </div>
+    <div class="col-xs-2">
+        <a href="/explore/{{id}}">
+            <span class="btn btn-white">
+                <span class="glyphicons glyphicons-eye-open" />&nbsp;Explore
+            </span>
+        </a>
+    </div>
+</div>

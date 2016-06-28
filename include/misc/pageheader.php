@@ -137,7 +137,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <link rel="stylesheet" href="/js/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css">
     <link rel="stylesheet" href="/css/dd.css">
 
-    <link rel="stylesheet" type="text/css" href="/css/style.css?a=44">
+    <link rel="stylesheet" type="text/css" href="/css/style.css?a=45">
     <!--[if lt IE 9]>
     <link rel="stylesheet" type="text/css" href="/css/ie-only.css">
     <![endif]-->
@@ -154,7 +154,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
         ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=2"><?php
     } else {
-        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=26"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=29"><?php
     }
     ?>
 

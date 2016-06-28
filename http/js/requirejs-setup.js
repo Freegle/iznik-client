@@ -27,6 +27,7 @@ requirejs.config({
         "gmaps": {
             exports: "google"
         },
+        "richMarker": [ "gmaps" ],
         "waypoints": {
             deps: [ "jquery" ],
             exports: 'Waypoint'

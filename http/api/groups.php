@@ -12,17 +12,10 @@ function groups() {
             $grouptype = presdef('grouptype', $_REQUEST, NULL);
 
             $ret = [
-                'ret' => 1,
-                'status' => 'Not logged in as appropriate user',
+                'ret' => 0,
+                'status' => 'Success',
+                'groups' => $g->listByType($grouptype)
             ];
-
-            if ($me && $me->isAdminOrSupport()) {
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success',
-                    'groups' => $g->listByType($grouptype)
-                ];
-            }
         }
     }
 

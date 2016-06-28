@@ -93,6 +93,7 @@ define([
             "give/whatnext": "userGiveWhatNext",
             "mygroups": "userMyGroups",
             "settings": "userSettings",
+            "explore": "userExplore",
             "newuser": "newUser",
             "unsubscribe(/:id)": "unsubscribe",
             "post": "userHome", // legacy route
@@ -298,6 +299,15 @@ define([
                 });
 
                 Iznik.Session.forceLogin();
+            });
+        },
+
+        userExplore: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/explore"], function() {
+                var page = new Iznik.Views.User.Pages.Explore();
+                self.loadRoute({page: page});
             });
         },
 
