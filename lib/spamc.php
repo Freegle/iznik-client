@@ -105,13 +105,14 @@ class spamc
 
     private function _parseHeader($line) {
         preg_match('/^(SPAMD\/)(\d*\.\d*)\s(\d*)\s(.*)/', $line, $matches);
-        if ($matches && $matches[1] == 'SPAMD/') { // okay, we talked to a spamd server
+        if ($matches && count($matches) >= 5 && $matches[1] == 'SPAMD/') { // okay, we talked to a spamd server
             $this->result = array('VERSION'=>$matches[2],
                 'RESPONSE_CODE'=>$matches[3],
                 'RESPONSE_STRING'=>$matches[4]);
             return true;
         } else {
             $this->err = $this->result['RESPONSE_STRING']."(".$this->result['RESPONSE_CODE'].")";
+            error_log("Spam check failed " . $this->err);
             return false;
         }
 

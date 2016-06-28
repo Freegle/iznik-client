@@ -194,7 +194,7 @@ function session() {
 
             # Try to remove any persistent session cookie, though it would not be valid
             # even if presented.
-            @setcookie(COOKIE_NAME, '', time() - 3600);
+            @setcookie(COOKIE_NAME, '', time() - 3600, '/', COOKIE_DOMAIN, false, true);
 
             # Destroy the PHP session
             try {

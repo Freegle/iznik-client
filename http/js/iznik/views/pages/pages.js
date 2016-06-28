@@ -121,6 +121,8 @@ define([
                         $('#js-notifchat').hide();
                     }
 
+                    $('#botleft').empty();
+
                     if (self.modtools) {
                         // ModTools menu and sidebar.
                         new Iznik.Views.ModTools.LeftMenu().render().then(function(m) {
@@ -152,8 +154,6 @@ define([
                             $('.js-supporters').show();
                         }
                     } else {
-                        $('#botleft').empty();
-                        
                         if (!self.footer) {
                             // Put bottom left links in.
                             var v = new Iznik.Views.User.Botleft();

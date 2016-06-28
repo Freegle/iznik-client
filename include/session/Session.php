@@ -70,6 +70,10 @@ function prepareSession($dbhr, $dbhm) {
                     }
                 }
             }
+        } else {
+            # We are logged in.  Make sure the client has the cookie.
+            $s = new Session($dbhr, $dbhm);
+            $s->returnCookie($_SESSION['id']);
         }
     }
 }
@@ -209,7 +213,7 @@ class Session {
         #error_log("Create cookie " . json_encode($ss));
         # Set the cookie which means the client will remember and use this.  This also means we don't
         # need a high PHP session lifetime, because this cookie will allow us to log back in.
-        @setcookie(COOKIE_NAME, json_encode($ss), time() + 60 * 60 * 24 * 30, '/', $_SERVER['HTTP_HOST'],
+        @setcookie(COOKIE_NAME, json_encode($ss), time() + 60 * 60 * 24 * 30, '/', COOKIE_DOMAIN,
             false, true);
 
         return ($ss);
@@ -260,6 +264,23 @@ class Session {
 
         $_SESSION['id'] = NULL;
         $_SESSION['logged_in'] = FALSE;
+    }
+
+    public function returnCookie($userid) {
+        $sql = "SELECT * FROM sessions WHERE userid = ?;";
+        $sessions = $this->dbhr->preQuery($sql, [ $userid ]);
+        foreach ($sessions as $session) {
+            $ss = array(
+                'id' => $session['id'],
+                'series' => $session['series'],
+                'token' => sha1($session['token'])
+            );
+
+            @setcookie(COOKIE_NAME, json_encode($ss), time() + 60 * 60 * 24 * 30, '/', COOKIE_DOMAIN,
+                false, true);
+
+            break;
+        }
     }
 }
 
