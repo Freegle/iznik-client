@@ -29,12 +29,12 @@
 }
 
 .navbar-fixed-top {
-    height: 61px;
+    height: 66px;
     top: 0px;
 }
 
 .pageContent, .rightSidebar {
-    top: 61px;
+    top: 66px;
 }
 
 .inlineblock {

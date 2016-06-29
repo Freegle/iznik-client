@@ -25,6 +25,8 @@
     color: #000080 !important
 }
 
+.navbar-custom .navbar-collapse,
+.navbar-custom .navbar-form,
 .navbar-custom {
     background-color: hsl(131, 100%, 9%) !important;
     background-repeat: repeat-x;
@@ -61,6 +63,7 @@
     color: #c0c0c0;
     background-color: transparent;
 }
+
 .navbar-custom .navbar-nav > .active > a,
 .navbar-custom .navbar-nav > .active > a:hover,
 .navbar-custom .navbar-nav > .active > a:focus {
@@ -88,11 +91,6 @@
 }
 .navbar-custom .navbar-toggle .icon-bar {
     background-color: #cccccc;
-}
-.navbar-custom .navbar-collapse,
-.navbar-custom .navbar-form {
-    border-color: #377615;
-    background-color: #377615;
 }
 .navbar-custom .navbar-nav > .dropdown > a:hover .caret,
 .navbar-custom .navbar-nav > .dropdown > a:focus .caret {
