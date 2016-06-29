@@ -147,23 +147,28 @@ define([
             if (self.myGroupForm) {
                 self.myGroupForm.undelegateEvents();
             }
+
             if (self.groupForm) {
                 self.groupForm.undelegateEvents();
             }
-    
+
+            if (self.groupAppearanceForm) {
+                self.groupAppearanceForm.undelegateEvents();
+            }
+
             if (self.selected > 0) {
-                var group = new Iznik.Models.Group({
+                self.group = new Iznik.Models.Group({
                     id: self.selected
                 });
     
-                group.fetch().then(function() {
+                self.group.fetch().then(function() {
                     // Add license info
                     var text;
-                    if (group.get('licenserequired')) {
-                        if (!group.get('licensed')) {
-                            text = '<div class="alert alert-warning">This group is using a trial license for 30 days from <abbr class="timeago" title="' + group.get('trial') + '"></abbr>.</div>'
+                    if (self.group.get('licenserequired')) {
+                        if (!self.group.get('licensed')) {
+                            text = '<div class="alert alert-warning">This group is using a trial license for 30 days from <abbr class="timeago" title="' + self.group.get('trial') + '"></abbr>.</div>'
                         } else {
-                            var mom = new moment(group.get('licenseduntil'));
+                            var mom = new moment(self.group.get('licenseduntil'));
                             text = 'This group is licensed until ' + mom.format('ll') + '.';
                         }
     
@@ -253,7 +258,7 @@ define([
                     });
     
                     // The global group settings.
-                    self.groupModel = new Iznik.Model(group.get('settings'));
+                    self.groupModel = new Iznik.Model(self.group.get('settings'));
     
                     if (!self.groupModel.get('map')) {
                         self.groupModel.set('map', {
@@ -358,7 +363,7 @@ define([
                             'submit': function(e) {
                                 e.preventDefault();
                                 var newdata = self.groupModel.toJSON();
-                                group.save({
+                                self.group.save({
                                     'settings': newdata
                                 }, {
                                     patch: true,
@@ -373,7 +378,7 @@ define([
                     self.groupForm.render();
 
                     // The appearance.
-                    var profile = group.get('profile');
+                    var profile = self.group.get('profile');
                     self.$('.js-profile').attr('src', profile ? profile : "http://placehold.it/200x200");
 
                     // Simple file upload without progress bar or error handling - mods can live with that.
@@ -389,7 +394,6 @@ define([
                             });
                         },
                         done: function (e, data) {
-                            console.log("Done", data);
                             if (data.result.files.length > 0) {
                                 _.each(data.result.files, function (file) {
                                     $.ajax({
@@ -398,11 +402,10 @@ define([
                                         data: {
                                             filename: file.name
                                         }, success: function (ret) {
-                                            console.log("Uploaded", ret);
                                             if (ret.ret === 0) {
-                                                group.set('profile', ret.id);
-                                                group.save({
-                                                    id: group.get('id'),
+                                                self.group.set('profile', ret.id);
+                                                self.group.save({
+                                                    id: self.group.get('id'),
                                                     profile: ret.id
                                                 }, {
                                                     patch: true
@@ -416,10 +419,45 @@ define([
                         }
                     });
 
+                    self.groupAppearanceForm = new Backform.Form({
+                        el: $('#groupappearanceform'),
+                        model: self.group,
+                        fields: [
+                            {
+                                name: 'tagline',
+                                label: 'Tagline for your group',
+                                control: 'input',
+                                helpMessage: 'This should be short and snappy.  Include some local reference that people in your area will feel connected to.',
+                            },
+                            {
+                                control: 'button',
+                                label: 'Save changes',
+                                type: 'submit',
+                                extraClasses: [ 'btn-success topspace botspace' ]
+                            }
+                        ],
+                        events: {
+                            'submit': function(e) {
+                                e.preventDefault();
+                                self.group.save({
+                                    'tagline': self.group.get('tagline')
+                                }, {
+                                    patch: true,
+                                    success: _.bind(self.success, self),
+                                    error: self.error
+                                });
+                                return(false);
+                            }
+                        }
+                    });
+
+                    self.groupAppearanceForm.render();
+                    $('#groupappearanceform input[name=tagline]').attr('maxlength', 120);
+
                     // Layout messes up a bit for radio buttons.
                     self.groupForm.$(':radio').closest('.form-group').addClass('clearfix');
 
-                    if (group.get('type') == 'Freegle') {
+                    if (self.group.get('type') == 'Freegle') {
                         self.$('.js-freegleonly').show();
                     } else {
                         self.$('.js-freegleonly').hide();
@@ -1833,7 +1871,8 @@ define([
             var groups = Iznik.Session.get('groups');
             groups.each(function(group) {
                 var role = group.get('role');
-                if (group.get('type') == 'Freegle' && (role == 'Moderator' || role == 'Owner') && !group.get('profile')) {
+                if (group.get('type') == 'Freegle' && (role == 'Moderator' || role == 'Owner') &&
+                    (!group.get('profile') || !group.get('tagline'))) {
                     missingProfile.push(group.get('namedisplay'));
                 }
             });

@@ -1126,7 +1126,6 @@ class User extends Entity
 
         if ($me && $me->isModerator()) {
             # Mods can see email settings, no matter which group.
-            $atts['emailallowed'] = $this->user['emailallowed'];
             $atts['onholidaytill'] = $this->user['onholidaytill'] ? ISODate($this->user['onholidaytill']) : NULL;
         }
 

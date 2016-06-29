@@ -232,6 +232,9 @@ define([
                             grouptype: 'Freegle'
                         }
                     }).then(function() {
+                        $('.js-numgroups').html(self.collection.length);
+                        $('.js-groupsumm').css('visibility', 'visible');
+                        $('.js-groupsumm').fadeIn('slow');
                         self.fetched = true;
                         self.updateMap();
                     });
@@ -245,50 +248,14 @@ define([
     });
 
     Iznik.Views.Map.Group = Iznik.View.extend({
-        className: '',
-
-        infowindow: null,
-
         template: 'user_explore_group',
 
         events: {
             'click' : 'showDetails'
         },
 
-        initialize: function(options) {
-            this.options = options;
-        },
-
-        join: function() {
-            this.trigger('join', this);
-        },
-
         showDetails: function() {
-            var self = this;
-
-            // People might want to know we've opened this one, to close others.
-            self.trigger('opened', self);
-
-            self.infowindow = new google.maps.InfoWindow({
-                content: window.template('map_info')(self.model.toJSON2()),
-                disableAutoPan : true
-            });
-
-            self.infowindow.open(self.options.map, self.options.marker);
-
-            // Add event handler for buttons - can only do this once it's added to the DOM.
-            _.defer(function() {
-                console.log("Find choose", self.$('.js-mapresultchoose:last'));
-                $('.js-mapresultjoin:last').click(function() {
-                    self.join();
-                });
-            });
-        },
-
-        close: function() {
-            if (this.infowindow) {
-                this.infowindow.close();
-            }
+            Router.navigate('/explore/' + this.model.get('id'), true);
         }
     });
 

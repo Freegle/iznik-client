@@ -92,6 +92,14 @@ function group() {
 
                             $a->setPrivate('groupid', $id);
                         }
+
+                        # Other settable attributes
+                        foreach (['tagline'] as $att) {
+                            $val = presdef($att, $_REQUEST, NULL);
+                            if ($val) {
+                                $g->setPrivate($att, $val);
+                            }
+                        }
                     }
                 }
             }

@@ -1968,8 +1968,8 @@ class Message
         $textbody = preg_replace('/^Sent:.*?$/mi', '', $textbody);
 
         # Get rid of sigs
-        $textbody = preg_replace('Sent from my iPhone', '', $textbody);
-        $textbody = preg_replace('Sent from EE', '', $textbody);
+        $textbody = str_replace('Sent from my iPhone', '', $textbody);
+        $textbody = str_replace('Sent from EE', '', $textbody);
 
         #error_log("Pruned text to $textbody");
         return(trim($textbody));

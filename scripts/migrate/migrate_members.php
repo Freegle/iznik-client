@@ -71,7 +71,11 @@ if (1==1) {
         if ($gid) {
             $g = new Group($dbhr, $dbhm, $gid);
 
-            $users = $dbhfd->query("SELECT * FROM users WHERE groupid = {$group['groupid']} AND deletedfromyahoo = 0;");
+            # Only add users who have joined recently.  This means we won't readd old members that have not been
+            # removed from Iznik yet because there hasn't been a member sync.
+            $mysqltime = date ("Y-m-d", strtotime("48 hours ago"));
+
+            $users = $dbhfd->query("SELECT * FROM users WHERE groupid = {$group['groupid']} AND dateinserted >= '$mysqltime' AND deletedfromyahoo = 0;");
             $count = 0;
             foreach ($users as $user) {
                 try {
@@ -132,7 +136,7 @@ if (1==1) {
                     $dig = $user['digest'] ? $user['maxdigestdelay'] : 0;
                     $u->setMembershipAtt($gid, 'emailfrequency', $dig);
 
-                    $hol = $user['onholidaytill'];
+                    $hol = presdef('onholidaytill', $user, NULL);
                     $hol = ($hol && $hol != '0000-00-00') ? $hol : NULL;
 
                     $count++;
