@@ -4,7 +4,13 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 
-$pages = $dbhr->preQuery("SELECT id, url FROM prerender WHERE HOUR(TIMEDIFF(NOW(), retrieved)) >= 4;");
+# We want to pre-cache all Freegle groups.
+$groups = $dbhr->preQuery("SELECT id FROM groups WHERE type = 'Freegle' AND publish = 1;");
+foreach ($groups as $group) {
+    $dbhm->preExec("INSERT IGNORE INTO prerender (url) VALUES (?);", [ "https://" . USER_SITE . "/explore/{$group['id']} "]);
+}
+
+$pages = $dbhr->preQuery("SELECT id, url FROM prerender WHERE html IS NULL OR HOUR(TIMEDIFF(NOW(), retrieved)) >= 4;");
 foreach ($pages as $page) {
     $url = $page['url'] . "?nocache=1";
     error_log($url);

@@ -1,0 +1,35 @@
+<div class="panel panel-white">
+    <div class="row">
+        <% if (obj.profile) { %>
+        <div class="col-xs-2">
+            <img src="{{obj.profile}}" class="img-thumbnail img-rounded" />
+        </div>
+        <% } %>
+        <div class="col-xs-10">
+            <h1>
+                {{namedisplay}}
+            </h1>
+            <p class="text-larger">{{obj.tagline}}</p>
+            <div class="text-muted">
+                <span class="js-founded">
+                    Founded <span class="js-foundeddate" />.
+                </span>
+                <span class="js-membercount" /> current freeglers.
+            </div>
+        </div>
+    </div>
+</div>
+<div class="js-none text-muted" style="display: none">
+    There are no messages in this group at the moment.
+</div>
+<div class="row-fluid">
+    <div class="col-md-12 nopad">
+        <ul class="topspace list-unstyled js-list">
+        </ul>
+    </div>
+</div>
+<div class="row js-loading hidden">
+    <div class="col-xs-12 text-center">
+        <img src="/images/pageloader.gif">
+    </div>
+</div>

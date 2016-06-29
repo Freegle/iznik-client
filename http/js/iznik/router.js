@@ -93,6 +93,7 @@ define([
             "give/whatnext": "userGiveWhatNext",
             "mygroups": "userMyGroups",
             "settings": "userSettings",
+            "explore/:id": "userExploreGroup",
             "explore": "userExplore",
             "newuser": "newUser",
             "unsubscribe(/:id)": "unsubscribe",
@@ -299,6 +300,17 @@ define([
                 });
 
                 Iznik.Session.forceLogin();
+            });
+        },
+
+        userExploreGroup: function(id) {
+            var self = this;
+
+            require(["iznik/views/pages/user/explore"], function() {
+                var page = new Iznik.Views.User.Pages.ExploreGroup({
+                    id: id
+                });
+                self.loadRoute({page: page});
             });
         },
 

@@ -110,7 +110,12 @@ define([
                     // Save and restore the minimised chats which would otherwise get zapped.
                     var chats = $('#notifchatdropdown').children().detach();
 
+                    if (self.title) {
+                        window.document.title = self.title;
+                    }
+
                     $('#bodyContent').html(window.template(tpl));
+
                     $('.js-pageContent').html(self.$el);
 
                     $('#notifchatdropdown').html(chats);
@@ -168,7 +173,13 @@ define([
                     
                     // Put self page in
                     templateFetch(self.template).then(function(tpl) {
-                        self.$el.html(window.template(tpl)(Iznik.Session.toJSON2()));
+                        if (self.model) {
+                            self.$el.html(window.template(tpl)(self.model.toJSON2()));
+                        } else {
+                            // Default is that we pass the session as the model.
+                            self.$el.html(window.template(tpl)(Iznik.Session.toJSON2()));
+                        }
+
                         $('.js-pageContent').append(self.$el);
 
                         $('#footer').remove();

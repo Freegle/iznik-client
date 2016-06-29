@@ -333,7 +333,6 @@ define([
         nextPhoto: function() {
             var self = this;
             self.currentPhoto.fadeOut('slow', function() {
-                console.log("Fadeout", self.currentPhoto, self.offset);
                 self.offset++;
                 self.offset = self.offset % self.photos.length;
                 self.currentPhoto = self.photos[self.offset];

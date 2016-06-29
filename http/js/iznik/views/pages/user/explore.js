@@ -3,13 +3,16 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'moment',
     'iznik/views/pages/pages',
     'iznik/views/pages/user/pages',
+    'iznik/views/pages/user/group',
+    'iznik/views/user/message',
     'iznik/models/group',
     'gmaps',
     'richMarker',
     'jquery.geocomplete'
-], function ($, _, Backbone, Iznik) {
+], function ($, _, Backbone, Iznik, moment) {
     Iznik.Views.User.Pages.Explore = Iznik.Views.Page.extend({
         template: 'user_explore_main',
         
@@ -261,5 +264,62 @@ define([
 
     Iznik.Views.Map.GroupText = Iznik.View.extend({
         template: 'user_explore_grouptext'
+    });
+
+    Iznik.Views.User.Pages.ExploreGroup = Iznik.Views.User.Pages.Group.extend({
+        template: 'user_explore_single',
+
+        filter: function(model) {
+            // Show all OFFERs and WANTEDs.
+            var thetype = model.get('type');
+            return(thetype == 'Offer' || thetype == 'Wanted');
+        },
+
+        render: function () {
+            var self = this;
+            self.model = new Iznik.Models.Group({ id: self.options.id });
+            var p = self.model.fetch();
+            p.then(function() {
+                self.title = self.model.get('namedisplay');
+                Iznik.Views.User.Pages.Group.prototype.render.call(self).then(function () {
+                    self.$('.js-membercount').html(self.model.get('membercount').toLocaleString());
+
+                    var founded = self.model.get('founded');
+                    if (founded) {
+                        var m = new moment(founded);
+                        self.$('.js-foundeddate').html(m.format('Do MMMM, YYYY'));
+                        self.$('.js-founded').show();
+                    }
+
+                    self.collection = new Iznik.Collections.Message(null, {
+                        modtools: false,
+                        collection: 'Approved',
+                        groupid: self.options.id
+                    });
+
+                    self.collectionView = new Backbone.CollectionView({
+                        el: self.$('.js-list'),
+                        modelView: Iznik.Views.User.Message.Replyable,
+                        modelViewOptions: {
+                            collection: self.collection,
+                            page: self
+                        },
+                        collection: self.collection,
+                        visibleModelsFilter: _.bind(self.filter, self)
+                    });
+
+                    self.collectionView.render();
+
+                    // Add a type selector.  The parent class has an event and method to re-render if we change that.
+                    self.$('.js-type').selectpicker();
+                    self.$('.js-type').selectPersist();
+
+                    // Get some messages
+                    self.refetch();
+                });
+            });
+
+            return (p);
+        }
     });
 });

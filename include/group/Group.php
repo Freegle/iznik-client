@@ -200,6 +200,7 @@ class Group extends Entity
         $atts['lastyahoomembersync'] = ISODate($this->group['lastyahoomembersync']);
         $atts['lastyahoomessagesync'] = ISODate($this->group['lastyahoomessagesync']);
         $atts['settings'] = array_merge($this->defaultSettings, json_decode($atts['settings'], true));
+        $atts['founded'] = ISODate($this->group['founded']);
 
         $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = {$this->id} AND role IN ('Owner', 'Moderator');";
         $counts = $this->dbhr->preQuery($sql);
