@@ -92,6 +92,7 @@
 .navbar-custom .navbar-collapse,
 .navbar-custom .navbar-form {
     border-color: #377615;
+    background-color: #377615;
 }
 .navbar-custom .navbar-nav > .dropdown > a:hover .caret,
 .navbar-custom .navbar-nav > .dropdown > a:focus .caret {
