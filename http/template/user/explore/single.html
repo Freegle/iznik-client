@@ -5,7 +5,11 @@
             <img src="{{obj.profile}}" class="img-thumbnail img-rounded" />
         </div>
         <% } %>
+        <% if (obj.profile) { %>
+        <div class="col-xs-8">
+        <% } else { %>
         <div class="col-xs-10">
+        <% } %>
             <h1>
                 {{namedisplay}}
             </h1>
@@ -15,6 +19,15 @@
                     Founded <span class="js-foundeddate" />.
                 </span>
                 <span class="js-membercount" /> current freeglers.
+            </div>
+        </div>
+        <div class="col-xs-2">
+            <br />
+            <div class="btn btn-success pull-right margright js-join" style="display: none;">
+                <div class="glyphicon glyphicon-plus" /><span class="topspace">&nbsp;Join</span>
+            </div>
+            <div class="btn btn-white pull-right margright js-leave" style="display: none;">
+                <div class="glyphicon glyphicon-trash" /><span class="topspace">&nbsp;Leave</span>
             </div>
         </div>
     </div>

@@ -93,6 +93,7 @@ define([
             "give/whatnext": "userGiveWhatNext",
             "mygroups": "userMyGroups",
             "settings": "userSettings",
+            "explore/:id/join": "userJoinGroup",
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
             "newuser": "newUser",
@@ -296,6 +297,22 @@ define([
             require(["iznik/views/pages/user/settings"], function() {
                 self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                     var page = new Iznik.Views.User.Pages.Settings();
+                    self.loadRoute({page: page});
+                });
+
+                Iznik.Session.forceLogin();
+            });
+        },
+
+        userJoinGroup: function(id) {
+            var self = this;
+
+            require(["iznik/views/pages/user/explore"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.User.Pages.ExploreGroup({
+                        id: id,
+                        join: true
+                    });
                     self.loadRoute({page: page});
                 });
 

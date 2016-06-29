@@ -269,10 +269,35 @@ define([
     Iznik.Views.User.Pages.ExploreGroup = Iznik.Views.User.Pages.Group.extend({
         template: 'user_explore_single',
 
+        events: {
+            'click .js-join': 'join'
+        },
+
+        join: function() {
+            Router.navigate('/explore/' + this.model.get('id') + '/join', true);
+        },
+
         filter: function(model) {
             // Show all OFFERs and WANTEDs.
             var thetype = model.get('type');
             return(thetype == 'Offer' || thetype == 'Wanted');
+        },
+
+        showHideJoin: function() {
+            var self = this;
+
+            var role = self.model.get('myrole');
+            console.log("Role", role);
+
+            if (role == 'Non-member') {
+                self.$('.js-join').show();
+                self.$('.js-leave').hide();
+            } else {
+                self.$('.js-join').hide();
+                self.$('.js-leave').show();
+            }
+
+            Iznik.Session.testLoggedIn();
         },
 
         render: function () {
@@ -316,6 +341,27 @@ define([
 
                     // Get some messages
                     self.refetch();
+
+                    if (self.options.join) {
+                        var group = Iznik.Session.get(self.model.get('id'));
+
+                        if (group) {
+                            // Already a member.
+                            self.showHideJoin();
+                        } else {
+                            $.ajax({
+                                url: API + 'memberships',
+                                type: 'PUT',
+                                data: {
+                                    groupid: self.model.get('id')
+                                }, complete: function () {
+                                    self.showHideJoin();
+                                }
+                            });
+                        }
+                    } else {
+                        self.showHideJoin();
+                    }
                 });
             });
 
