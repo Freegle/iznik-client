@@ -474,15 +474,18 @@ define([
 
         setSetting: function(key, val) {
             var me = Iznik.Session.get('me');
-            me.settings[key] = val;
-            // console.log("setSetting", typeof me.settings, key, val, me);
-            this.set('me', me);
-            Iznik.Session.save({
-                id: me.id,
-                settings: me.settings
-            }, {
-                patch: true
-            });
+
+            if (me) {
+                me.settings[key] = val;
+                // console.log("setSetting", typeof me.settings, key, val, me);
+                this.set('me', me);
+                Iznik.Session.save({
+                    id: me.id,
+                    settings: me.settings
+                }, {
+                    patch: true
+                });
+            }
         },
 
         isModeratorOf: function(groupid) {

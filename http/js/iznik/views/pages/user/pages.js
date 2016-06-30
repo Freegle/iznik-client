@@ -4,14 +4,25 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/pages/pages',
-    'typeahead'
+    'typeahead',
+    'jquery.scrollTo'
 ], function($, _, Backbone, Iznik) {
         Iznik.Views.User.Pages.WhereAmI = Iznik.Views.Page.extend({
         events: {
+            'focus .tt-input': 'scrollTo',
             'click .js-getloc': 'getLocation',
             'change .js-homegroup': 'changeHomeGroup',
             'typeahead:change .js-postcode': 'locChange',
             'click .tt-suggestion': 'locChange'
+        },
+
+        scrollTo: function() {
+            // Make sure they can see the typeahead by scrolling.  Delay because an on-screen keyboard might open.
+            var self = this;
+            _.delay(function() {
+                var top = self.$('.tt-input').offset().top ;
+                $('body').scrollTo(top - $('.navbar').height(), 'slow');
+            }, 2000);
         },
 
         getLocation: function() {
@@ -44,6 +55,7 @@ define([
 
         recordLocation: function(location, changegroup) {
             var self = this;
+            // console.log("Record location ", this.$('.js-postcode').typeahead('val'), location.name, changegroup);
 
             if (this.$('.js-postcode').typeahead('val') != location.name && changegroup) {
                 // We've changed location.  We might need to change group too.
@@ -66,7 +78,9 @@ define([
 
                 Iznik.Session.setSetting('mylocation', l);
                 localStorage.setItem('mylocation', JSON.stringify(l))
-            } catch (e) {};
+            } catch (e) {
+                console.log("Exception", e.message);
+            };
 
             var groups = self.$('.js-groups');
 
