@@ -161,6 +161,16 @@ define([
                                 self.$('.js-user').html(v.el);
                             });
 
+                            // The FD settings.
+                            var v = new Iznik.Views.ModTools.User.FreegleMembership({
+                                model: new Iznik.Model(self.model.get('fromuser')),
+                                groupid: group.id
+                            });
+
+                            v.render().then(function(v) {
+                                self.$('.js-freegleinfo').append(v.el);
+                            });
+
                             // The Yahoo part of the user
                             var fromemail = self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr');
                             var mod = IznikYahooUsers.findUser({

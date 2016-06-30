@@ -1152,7 +1152,8 @@ class User extends Entity
                     'namedisplay' => $name,
                     'added' => ISODate($group['added']),
                     'collection' => $group['collection'],
-                    'emailid' => $group['emailid']
+                    'emailid' => $group['emailid'],
+                    'emailfrequency' => $group['emailfrequency']
                 ];
 
                 if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
@@ -1187,7 +1188,8 @@ class User extends Entity
                     'namedisplay' => $name,
                     'added' => ISODate($group['added']),
                     'collection' => $group['collection'],
-                    'emailid' => $group['emailid']
+                    'emailid' => $group['emailid'],
+                    'emailfrequency' => $group['emailfrequency']
                 ];
 
                 if ($group['lat'] && $group['lng']) {

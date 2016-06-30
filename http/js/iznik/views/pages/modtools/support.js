@@ -368,6 +368,14 @@ define([
                     self.$('.js-ban, .js-remove').closest('li').remove();
                 });
 
+                var v = new Iznik.Views.ModTools.User.Freegle({
+                    model: self.model
+                });
+
+                v.render().then(function(v) {
+                    self.$('.js-freegleinfo').append(v.el);
+                })
+
                 // Add any emails
                 self.$('.js-otheremails').empty();
                 _.each(self.model.get('otheremails'), function (email) {

@@ -840,7 +840,7 @@ define([
         }
     });
 
-    Iznik.Views.ModTools.User.Freegle = Iznik.View.extend({
+    Iznik.Views.ModTools.Member.Freegle = Iznik.View.extend({
         template: 'modtools_freegle_user',
 
         render: function () {
@@ -873,6 +873,27 @@ define([
                 } else {
                     self.$('.js-onholidaytill').hide();
                     self.$('.js-emailfrequency').show();
+                }
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.ModTools.User.FreegleMembership = Iznik.Views.ModTools.Member.Freegle.extend({
+        // This view finds the appopriate group in a user, then renders that membership.
+        render: function() {
+            var self = this;
+            var memberof = this.model.get('memberof');
+            var membership = null;
+            var p = resolvedPromise(self);
+
+            _.each(memberof, function(member) {
+                if (self.options.groupid == member.id) {
+                    // This is the membership we're after
+                    var mod = new Iznik.Model(member);
+                    self.model = mod;
+                    p = Iznik.Views.ModTools.Member.Freegle.prototype.render.call(self);
                 }
             });
 

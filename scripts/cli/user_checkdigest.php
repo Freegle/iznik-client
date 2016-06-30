@@ -18,6 +18,7 @@ if (count($opts) < 2) {
     $gid = $g->findByShortName($groupname);
 
     if ($gid) {
+        error_log("Found group #$gid");
         $g = new Group($dbhr, $dbhm, $gid);
         $u = new User($dbhr, $dbhm);
         $uid = $u->findByEmail($email);
@@ -35,7 +36,7 @@ if (count($opts) < 2) {
 
                 }
 
-                $membershipmail = $u->getEmailForYahooGroup($gid, FALSE)[1];
+                $membershipmail = $u->getEmailForYahooGroup($gid, TRUE)[1];
 
                 if ($membershipmail) {
                     # We know the membership they have on Yahoo.  Send a digest if it's one of ours.

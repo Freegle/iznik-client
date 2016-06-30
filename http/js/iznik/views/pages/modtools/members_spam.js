@@ -202,6 +202,14 @@ define([
                             self.$('.js-user').html(v.el);
                         });
 
+                        var v = new Iznik.Views.ModTools.Member.Freegle({
+                            model: mod
+                        });
+
+                        v.render().then(function(v) {
+                            self.$('.js-freegleinfo').append(v.el);
+                        })
+
                         // No report spammer button here.
                         //
                         // Auto remove and ban may be turned off, so leave those buttons.

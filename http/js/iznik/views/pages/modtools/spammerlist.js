@@ -229,6 +229,14 @@ define([
                             self.$('.js-user').html(v.el);
                         });
 
+                        var v = new Iznik.Views.ModTools.User.Freegle({
+                            model: mod
+                        });
+
+                        v.render().then(function(v) {
+                            self.$('.js-freegleinfo').append(v.el);
+                        })
+
                         // No point duplicating spammer info
                         self.$('.js-spammerinfo').hide();
 
