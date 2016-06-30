@@ -179,9 +179,10 @@ class Digest
                             $msg['fromaddr']
                         );
 
+                        # We have to send from the mods email, because of DMARC.
                         $tosend[] = [
                             'subject' => '[' . $gatts['namedisplay'] . "] {$msg['subject']}",
-                            'from' => $msg['fromaddr'],
+                            'from' => $g->getModsEmail(),
                             'fromname' => $msg['fromname'],
                             'replyto' => $msg['fromaddr'],
                             'replytoname' => $msg['fromname'],
