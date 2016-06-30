@@ -77,6 +77,5 @@ if (count($opts) < 2) {
     } else {
         error_log("Failed to find group $groupname");
     }
-
 }
 

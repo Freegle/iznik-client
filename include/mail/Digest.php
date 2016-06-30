@@ -103,9 +103,10 @@ class Digest
             $sql = "INSERT IGNORE INTO groups_digests (groupid, frequency) VALUES (?, ?);";
             $this->dbhm->preExec($sql, [ $groupid, $frequency ]);
 
-            $sql = "SELECT TIMESTAMPDIFF(HOUR, started, NOW()) AS timeago, groups_digests.* FROM groups_digests WHERE  groupid = ? AND frequency = ? HAVING frequency = -1 OR timeago IS NULL OR timeago > frequency;";
+            $sql = "SELECT TIMESTAMPDIFF(MINUTE, started, NOW()) AS timeago, groups_digests.* FROM groups_digests WHERE  groupid = ? AND frequency = ? HAVING frequency = -1 OR timeago IS NULL OR timeago >= frequency * 60;";
             #error_log("Look for groups to process $sql, $groupid, $frequency");
             $tracks = $this->dbhr->preQuery($sql, [ $groupid, $frequency ]);
+
             foreach ($tracks as $track) {
                 #error_log("Start group $groupid");
                 $sql = "UPDATE groups_digests SET started = NOW() WHERE groupid = ? AND frequency = ?;";
