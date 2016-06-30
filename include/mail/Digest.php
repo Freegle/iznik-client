@@ -117,7 +117,7 @@ class Digest
                 $oldest = " AND arrival >= '" . date("Y-m-d H:i:s", strtotime("24 hours ago")) . "'";
                 $msgidq = $track['msgid'] ? " AND msgid > {$track['msgid']} " : '';
 
-                $sql = "SELECT msgid, yahooapprovedid FROM messages_groups WHERE groupid = ? AND collection = ? AND deleted = 0 $oldest $msgidq ORDER BY msgid ASC;";
+                $sql = "SELECT msgid, arrival, yahooapprovedid FROM messages_groups WHERE groupid = ? AND collection = ? AND deleted = 0 $oldest $msgidq ORDER BY msgid ASC;";
                 $messages = $this->dbhr->preQuery($sql, [
                     $groupid,
                     MessageCollection::APPROVED,
@@ -127,9 +127,13 @@ class Digest
                 $available = [];
                 $unavailable = [];
                 $maxmsg = 0;
+                $maxdate = NULL;
 
                 foreach ($messages as $message) {
-                    $maxmsg = max($maxmsg, $message['msgid']);
+                    if ($message['msgid'] > $maxmsg) {
+                        $maxmsg = $message['msgid'];
+                        $maxdate = $message['arrival'];
+                    }
 
                     $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
                     $subjects[$message['msgid']] = $m->getSubject();
@@ -353,6 +357,7 @@ class Digest
 
                                 try {
                                     $message->addBcc($email);
+                                    error_log("...$email");
                                     $this->sendOne($mailer, $message);
                                     $sent++;
                                 } catch (Exception $e) {
@@ -365,8 +370,8 @@ class Digest
 
                     if ($maxmsg > 0) {
                         # Record the message we got upto.
-                        $sql = "UPDATE groups_digests SET msgid = ? WHERE groupid = ? AND frequency = ?;";
-                        $this->dbhm->preExec($sql, [$maxmsg, $groupid, $frequency]);
+                        $sql = "UPDATE groups_digests SET msgid = ?, msgdate = ? WHERE groupid = ? AND frequency = ?;";
+                        $this->dbhm->preExec($sql, [$maxmsg, $maxdate, $groupid, $frequency]);
                     }
                 }
 
