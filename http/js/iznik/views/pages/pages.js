@@ -253,6 +253,10 @@ define([
         }
     });
 
+    Iznik.Views.LocalStorage = Iznik.Views.Page.extend({
+        template: "localstorage"
+    });
+
     Iznik.Views.User.Pages.NotFound = Iznik.Views.Page.extend({
         template: "notfound"
     });

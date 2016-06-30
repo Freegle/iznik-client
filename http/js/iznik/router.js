@@ -59,6 +59,7 @@ define([
         },
 
         routes: {
+            "localstorage": "localstorage",
             "yahoologin": "yahoologin",
             "modtools": "modtools",
             "modtools/supporters": "supporters",
@@ -139,6 +140,14 @@ define([
             }
              
             loadPage();
+        },
+
+        localstorage: function () {
+            var self = this;
+            require(["iznik/views/pages/pages"], function() {
+                var page = new Iznik.Views.LocalStorage();
+                self.loadRoute({page: page});
+            });
         },
 
         userHome: function (chatid) {
@@ -794,6 +803,14 @@ define([
         Backbone.history.start({
             pushState: true
         });
+        
+        // See if we have local storage enabled; we need it
+        try {
+            localStorage.setItem('lsenabled', true);
+        } catch (e) {
+            // We don't.
+            Router.navigate('/localstorage', true);
+        }
     } catch (e) {
         // We've got an uncaught exception.
         // TODO Log it to the server.
