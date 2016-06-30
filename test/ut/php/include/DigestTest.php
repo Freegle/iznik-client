@@ -50,6 +50,7 @@ class digestTest extends IznikTestCase {
         # Create a group with a message on it.
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 1);
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
@@ -84,17 +85,18 @@ class digestTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Actual send for coverage.
-        $d = new Digest($this->dbhr, $this->dbhm);
+        $d = new Digest($this->dbhm, $this->dbhm);
 
         # Create a group with a message on it.
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = new Group($this->dbhm, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 1);
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
 
-        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $r = new MailRouter($this->dbhm, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
         assertNotNull($id);
         error_log("Created message $id");
@@ -103,7 +105,7 @@ class digestTest extends IznikTestCase {
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
         # and a real one to get the digest.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = new User($this->dbhm, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
@@ -112,11 +114,26 @@ class digestTest extends IznikTestCase {
         $u->addMembership($gid, User::ROLE_MEMBER, $eid);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
 
+        # And another who only has a membership on Yahoo and therefore shouldn't get one.
+        $u2 = new User($this->dbhm, $this->dbhm);
+        $uid2 = $u2->create(NULL, NULL, 'Test User');
+        $u2->addEmail('test2@blackhole.io');
+        error_log("Created user $uid2");
+        $u2->addMembership($gid, User::ROLE_MEMBER);
+        $u2->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
+
         # Now test.
         assertEquals(1, $d->send($gid, Digest::IMMEDIATE));
 
         # Again - nothing to send.
         assertEquals(0, $d->send($gid, Digest::IMMEDIATE));
+
+        # Now add one of our emails to the second user.  Because we've not sync'd this group, we will decide to send
+        # an email.
+        error_log("Now with our email");
+        $eid2 = $u2->addEmail('test2@' . USER_DOMAIN);
+        $this->dbhm->preExec("DELETE FROM groups_digests WHERE groupid = ?;", [ $gid ]);
+        assertEquals(2, $d->send($gid, Digest::IMMEDIATE));
 
         error_log(__METHOD__ . " end");
     }

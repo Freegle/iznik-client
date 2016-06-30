@@ -24,12 +24,12 @@ if (count($opts) < 2) {
         $uid = $u->findByEmail($email);
 
         if ($uid) {
-            # This logic here is similar to that in Digest::send.
+            # This logic here is similar to that in Digest::send, but with more logging.
             $u = new User($dbhr, $dbhm, $uid);
             $email = $u->getEmailPreferred();
             error_log("Found user #$uid with preferred email $email");
             if ($email) {
-                $sendit = TRUE;
+                $sendit = FALSE;
 
                 if ($g->getPrivate('onyahoo')) {
                     error_log("Group is on Yahoo");
@@ -39,19 +39,30 @@ if (count($opts) < 2) {
                 $membershipmail = $u->getEmailForYahooGroup($gid, TRUE)[1];
 
                 if ($membershipmail) {
-                    # We know the membership they have on Yahoo.  Send a digest if it's one of ours.
+                    # They have a membership on Yahoo with one of our addresses.
                     error_log("Got membership mail $membershipmail");
-                    $sendit = ourDomain($membershipmail);
+                    $sendit = TRUE;
                     error_log("...ours? $sendit");
                 } else {
-                    # Use email for them having any of ours as an approximation.
-                    $sendit = FALSE;
-                    $emails = $u->getEmails();
-                    foreach ($emails as $anemail) {
-                        error_log("...check email {$anemail['email']}");
-                        if (ourDomain($anemail['email'])) {
-                            error_log("...ours");
-                            $sendit = TRUE;
+                    # They don't have a membership on Yahoo with one of our addresses.  If we have sync'd our
+                    # membership fairly recently, then we can rely on that and it means that we shouldn't send
+                    # it.
+                    $lastsync = $g->getPrivate('lastyahoomembersync');
+                    $lastsync = $lastsync ? strtotime($lastsync) : NULL;
+                    $age = $lastsync ? ((time() - $lastsync) / 3600) : NULL;
+                    error_log("Last sync hours ago $age");
+
+                    if (!$age || $age > 7 * 24) {
+                        # We don't have a recent sync, because the mods aren't using ModTools regularly.
+                        #
+                        # Use email for them having any of ours as an approximation.
+                        $emails = $u->getEmails();
+                        foreach ($emails as $anemail) {
+                            error_log("...check email {$anemail['email']}");
+                            if (ourDomain($anemail['email'])) {
+                                error_log("...ours");
+                                $sendit = TRUE;
+                            }
                         }
                     }
                 }

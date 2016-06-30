@@ -264,13 +264,15 @@ class Digest
 
                     foreach ($users as $user) {
                         $u = new User($this->dbhr, $this->dbhm, $user['userid']);
+                        #error_log("Consider user {$user['userid']}");
 
                         # We are only interested in sending digests to users for whom we have a preferred address -
                         # otherwise where would we send them?
                         $email = $u->getEmailPreferred();
+                        #error_log("Preferred $email");
 
                         if ($email) {
-                            $sendit = TRUE;
+                            $sendit = FALSE;
 
                             if ($g->getPrivate('onyahoo')) {
                                 # We don't want to send out mails to users who are members directly on Yahoo, only
@@ -284,17 +286,29 @@ class Digest
                                 # emails which we host.  That tells us whether they've joined any groups via our
                                 # platform, which tells us whether it's reasonable to send them emails.
                                 $membershipmail = $u->getEmailForYahooGroup($groupid, TRUE)[1];
+                                #error_log("Membership mail $membershipmail");
 
                                 if ($membershipmail) {
-                                    # We know the membership they have on Yahoo.  Send a digest if it's one of ours.
-                                    $sendit = ourDomain($membershipmail);
+                                    # They have a membership on Yahoo with one of our addresses.
+                                    $sendit = TRUE;
                                 } else {
-                                    # Use email for them having any of ours as an approximation.
-                                    $sendit = FALSE;
-                                    $emails = $u->getEmails();
-                                    foreach ($emails as $anemail) {
-                                        if (ourDomain($anemail['email'])) {
-                                            $sendit = TRUE;
+                                    # They don't have a membership on Yahoo with one of our addresses.  If we have sync'd our
+                                    # membership fairly recently, then we can rely on that and it means that we shouldn't send
+                                    # it.
+                                    $lastsync = $g->getPrivate('lastyahoomembersync');
+                                    $lastsync = $lastsync ? strtotime($lastsync) : NULL;
+                                    $age = $lastsync ? ((time() - $lastsync) / 3600) : NULL;
+
+                                    if (!$age || $age > 7 * 24) {
+                                        # We don't have a recent sync, because the mods aren't using ModTools regularly.
+                                        #
+                                        # Use email for them having any of ours as an approximation.
+                                        $emails = $u->getEmails();
+                                        foreach ($emails as $anemail) {
+                                            #error_log("Check {$anemail['email']}");
+                                            if (ourDomain($anemail['email'])) {
+                                                $sendit = TRUE;
+                                            }
                                         }
                                     }
                                 }
