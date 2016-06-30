@@ -17,7 +17,12 @@ define([
         template: 'user_explore_main',
         
         events: {
-            'click .js-getloc': 'getLocation'
+            'click .js-getloc': 'getLocation',
+            'click .js-locbtn': 'locButton'
+        },
+
+        locButton: function() {
+            this.$('.js-location').trigger('geocode');
         },
 
         getLocation: function() {
