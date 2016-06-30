@@ -229,7 +229,7 @@ define([
                             self.$('.js-user').html(v.el);
                         });
 
-                        var v = new Iznik.Views.ModTools.User.Freegle({
+                        var v = new Iznik.Views.ModTools.User.FreegleMembership({
                             model: mod
                         });
 

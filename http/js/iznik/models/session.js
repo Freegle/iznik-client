@@ -493,8 +493,8 @@ define([
                     return(true);
                 }
 
-                var groups = this.getGroup(groupid);
-                return(group.role == 'Owner' || group.role == 'Moderator');
+                var group = this.getGroup(groupid);
+                return(group && (group.role == 'Owner' || group.role == 'Moderator'));
             }
         },
 

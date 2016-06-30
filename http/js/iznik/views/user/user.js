@@ -601,8 +601,6 @@ define([
         remove: function() {
             var self = this;
 
-            console.log("Remove", self.options.user);
-
             if (self.options.user.get('systemrole') == 'User') {
                 var v = new Iznik.Views.Confirm({
                     model: self.options.user
@@ -642,7 +640,6 @@ define([
 
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
-
                 if (Iznik.Session.isModeratorOf(self.model.get('groupid'))) {
                     self.$('.js-remove').removeClass('hidden');
                 }

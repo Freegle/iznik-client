@@ -8,6 +8,7 @@ define([
     'iznik/views/pages/pages',
     'iznik/views/pages/modtools/messages_approved',
     'iznik/models/user/alert',
+    'iznik/views/user/user',
     'tinymce'
 ], function($, _, Backbone, Iznik, moment) {
     Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
@@ -368,7 +369,7 @@ define([
                     self.$('.js-ban, .js-remove').closest('li').remove();
                 });
 
-                var v = new Iznik.Views.ModTools.User.Freegle({
+                var v = new Iznik.Views.ModTools.User.FreegleMembership({
                     model: self.model
                 });
 
