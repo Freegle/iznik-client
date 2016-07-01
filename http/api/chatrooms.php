@@ -9,6 +9,8 @@ function chatrooms() {
     $userid = intval(presdef('userid', $_REQUEST, NULL));
     $r = new ChatRoom($dbhr, $dbhm, $id);
     $chattypes = presdef('chattypes', $_REQUEST, [ ChatRoom::TYPE_USER2USER ]);
+    $chattype = presdef('chattype', $_REQUEST, ChatRoom::TYPE_USER2USER);
+    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -48,13 +50,21 @@ function chatrooms() {
             if ($me) {
                 $ret = ['ret' => 2, 'status' => 'Bad parameters'];
 
-                if ($userid) {
-                    $id = $r->createConversation($myid, $userid);
+                error_log("Create $chattype");
+                switch ($chattype) {
+                    case ChatRoom::TYPE_USER2USER:
+                        if ($userid) {
+                            $id = $r->createConversation($myid, $userid);
+                        }
+                        break;
+                    case ChatRoom::TYPE_USER2MOD:
+                        $id = $r->createUser2Mod($myid, $groupid);
+                        break;
+                }
 
-                    $ret = ['ret' => 3, 'status' => 'Create failed'];
-                    if ($id) {
-                        $ret = ['ret' => 0, 'status' => 'Success', 'id' => $id];
-                    }
+                $ret = ['ret' => 3, 'status' => 'Create failed'];
+                if ($id) {
+                    $ret = ['ret' => 0, 'status' => 'Success', 'id' => $id];
                 }
             }
             break;

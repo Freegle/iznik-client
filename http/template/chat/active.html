@@ -13,9 +13,11 @@
         <span class="js-count badge badge-unread" style="display: none;"></span>
         &nbsp;
         <div class="js-privacy inline">
-            <% if (obj.group) { %>
-            <div class="glyphicon <% if (obj.modonly) { %>glyphicon-lock<% } else { %>glyphicon-globe<% } %>" title="This chat is <% if (obj.modonly) { %>restricted<% } else { %>public<% } %> to <% if (obj.modonly) { %>moderators<% } else { %>members<% } %> of {{group.namedisplay}}." />
-            <% } else { %>
+            <% if (chattype == 'User2User') { %>
+            <div class="glyphicon glyphicon-lock" title="This chat is private." />
+            <% } else if (chattype == 'Mod2Mod') { %>
+            <div class="glyphicon glyphicon-lock" title="This chat is restricted to moderators of {{group.namedisplay}}." />
+            <% } else if (chattype == 'User2Mod') { %>
             <div class="glyphicon glyphicon-lock" title="This chat is private." />
             <% } %>
         </div>
@@ -53,10 +55,12 @@
                 <span class="glyphicons glyphicons-chevron-right" />
                 <span class="chathidesmall vcenter">&nbsp;Send</span>
             </span>
+            <% if (chattype == 'User2User') { %>
             <span class="clickme btn btn-sm btn-success js-promise" title="Promise an item to this person" id="chat-promise-{{id}}">
                 <span class="glyphicons glyphicons-handshake" />
                 <span class="chathidesmall vcenter">&nbsp;Promise</span>
             </span>
+            <% } %>
         </span>
     </div>
 </div>

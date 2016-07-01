@@ -58,7 +58,7 @@ class ChatRoom extends Entity
         $this->dbhm = $dbhm;
     }
 
-    public function createGroupChat($name, $gid = NULL) {
+    public function createGroupChat($name, $gid) {
         try {
             $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (name, chattype, groupid) VALUES (?,?,?)", [
                 $name,
@@ -158,7 +158,70 @@ class ChatRoom extends Entity
         return($id);
     }
 
-    public function getPublic() {
+    public function createUser2Mod($user1, $groupid) {
+        $id = NULL;
+
+        # We use a transaction to close timing windows.
+        $this->dbhm->beginTransaction();
+
+        # Find any existing chat.
+        $sql = "SELECT id FROM chat_rooms WHERE user1 = ? AND groupid = ? AND chattype = ? FOR UPDATE;";
+        $chats = $this->dbhm->preQuery($sql, [
+            $user1,
+            $groupid,
+            ChatRoom::TYPE_USER2MOD
+        ]);
+
+        $rollback = TRUE;
+
+        if (count($chats) > 0) {
+            # We have an existing chat.  That'll do nicely.
+            $id = $chats[0]['id'];
+        } else {
+            # We don't.  Create one.
+            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (user1, groupid, chattype) VALUES (?,?,?)", [
+                $user1,
+                $groupid,
+                ChatRoom::TYPE_USER2MOD
+            ]);
+
+            if ($rc) {
+                # We created one.  We'll commit below.
+                $id = $this->dbhm->lastInsertId();
+                $rollback = FALSE;
+            }
+        }
+
+        if ($rollback) {
+            # We might have worked above or failed; $id is set accordingly.
+            $this->dbhm->rollBack();
+        } else {
+            # We want to commit, and return an id if that worked.
+            $rc = $this->dbhm->commit();
+            $id = $rc ? $id : NULL;
+        }
+
+        if ($id) {
+            $this->fetch($this->dbhr, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
+
+            # Now the conversation exists, set presence.
+            #
+            # Start off with the user online.
+            $this->updateRoster($user1, NULL, ChatRoom::STATUS_ONLINE);
+
+            # Poke the group mods to let them know to pick up the new chat
+            $n = new Notifications($this->dbhr, $this->dbhm);
+            
+            $n->pokeGroupMods($groupid, [
+                'newroom' => $this->id
+            ]);
+        }
+
+        return($id);
+    }
+
+    public function getPublic()
+    {
         $ret = $this->getAtts($this->publicatts);
 
         if (pres('groupid', $ret)) {
@@ -166,7 +229,7 @@ class ChatRoom extends Entity
             unset($ret['groupid']);
             $ret['group'] = $g->getPublic();
         }
-        
+
         if (pres('user1', $ret)) {
             # This is a conversation between two people.   
             $u = new User($this->dbhr, $this->dbhm, $ret['user1']);
@@ -174,7 +237,7 @@ class ChatRoom extends Entity
             $ctx = NULL;
             $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
         }
-        
+
         if (pres('user2', $ret)) {
             # This is a conversation between two people.   
             $u = new User($this->dbhr, $this->dbhm, $ret['user2']);
@@ -188,11 +251,21 @@ class ChatRoom extends Entity
 
         $ret['unseen'] = $this->unseenForUser($myid);
 
-        if (!pres('name', $ret)) {
-            # If this is not a named chat then we invent the name; we use the name of the user who isn't us, because
-            # that's who we're chatting to.
-            $ret['name'] = ($ret['user1']['id'] != $myid) ? $ret['user1']['displayname'] :
-                $ret['user2']['displayname'];
+        # The name we return is not the one we created it with, which is internal.
+        switch ($this->chatroom['chattype']) {
+            case ChatRoom::TYPE_USER2USER:
+                # We use the name of the user who isn't us, because that's who we're chatting to.
+                $ret['name'] = ($ret['user1']['id'] != $myid) ? $ret['user1']['displayname'] :
+                    $ret['user2']['displayname'];
+                break;
+            case ChatRoom::TYPE_USER2MOD:
+                # If we started it, we're chatting to the group volunteers; otherwise to the user.
+                $ret['name'] = $ret['user1']['id'] == $myid ? "{$ret['group']['namedisplay']} Volunteers" : "{$ret['user1']['displayname']} on {$ret['group']['nameshort']}";
+                break;
+            case ChatRoom::TYPE_MOD2MOD:
+                # Mods chatting to each other.
+                $ret['name'] = "{$ret['group']['namedisplay']} Mods";
+                break;
         }
 
         $refmsgs = $this->dbhr->preQuery("SELECT DISTINCT refmsgid FROM chat_messages WHERE chatid = ?;", [ $this->id ]);
@@ -249,7 +322,24 @@ class ChatRoom extends Entity
         $rooms = $this->dbhr->preQuery($sql, [ $userid, $userid, $userid, $userid, ChatRoom::STATUS_CLOSED ]);
         foreach ($rooms as $room) {
             #error_log("Consider {$room['id']} group {$room['groupid']} modonly {$room['modonly']} " . $u->isModOrOwner($room['groupid']));
-            if (!$room['modonly'] || $u->isModOrOwner($room['groupid'])) {
+            $cansee = FALSE;
+            switch ($room['chattype']) {
+                case ChatRoom::TYPE_USER2USER:
+                    # We can see this if we're one of the users.
+                    # TODO or a mod on the group.
+                    $cansee = ($userid == $room['user1'] || $userid == $room['user2']);
+                    break;
+                case ChatRoom::TYPE_MOD2MOD:
+                    # We can see this if we're one of the mods.
+                    $cansee = $u->isModOrOwner($room['groupid']);
+                    break;
+                case ChatRoom::TYPE_USER2MOD:
+                    # We can see this if we're one of the mods on the group, or the user who started it.
+                    $cansee = $u->isModOrOwner($room['groupid']) || $userid == $room['user1'];
+                    break;
+            }
+
+            if ($cansee) {
                 $show = TRUE;
 
                 if ($room['groupid']) {
@@ -363,7 +453,7 @@ class ChatRoom extends Entity
         $n = new Notifications($this->dbhr, $this->dbhm);
 
         foreach ($roster as $rost) {
-            error_log("Poke {$rost['userid']} for {$this->id}");
+            #error_log("Poke {$rost['userid']} for {$this->id}");
             $n->poke($rost['userid'], $data);
             $count++;
         }
@@ -458,7 +548,7 @@ class ChatRoom extends Entity
         return($ret);
     }
 
-    public function notifyByEmail($chatid = NULL, $user = TRUE, $age = 300) {
+    public function notifyByEmail($chatid = NULL, $chattype, $age = 300) {
         # We want to find chatrooms with messages which haven't been seen by people who should have seen them.
         # These could either be a group chatroom, or a conversation.  There aren't too many of the former, but there
         # could be a large number of the latter.  However we don't want to keep nagging people forever - so we are
@@ -466,10 +556,9 @@ class ChatRoom extends Entity
         # members - which is a much smaller set.
         $start = date('Y-m-d', strtotime("midnight 2 weeks ago"));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
-        $modq = $user ? 0 : 1;
-        $sql = "SELECT DISTINCT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= '$start' AND seenbyall = 0 AND modtools = $modq $chatq;";
+        $sql = "SELECT DISTINCT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND seenbyall = 0 AND chattype = ? $chatq;";
         #error_log("$sql");
-        $chats = $this->dbhr->preQuery($sql, [ $start ]);
+        $chats = $this->dbhr->preQuery($sql, [ $start, $chattype ]);
         $notified = 0;
 
         list ($transport, $mailer) = getMailer();

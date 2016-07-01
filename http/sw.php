@@ -244,6 +244,7 @@ self.addEventListener('push', function(event) {
                             }
                         } else {
                             // TODO User notifications.  Also change image and text below.
+                            setTimeout(closeAll, 1000);
                         }
                     } catch (e) {
                         workstr = "Exception " + e.message;

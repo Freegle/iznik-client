@@ -85,7 +85,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(2, $ret['ret']);
         assertFalse(pres('chatmessages', $ret));
 
-        assertEquals(1, $this->user->addMembership($this->groupid));
+        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
 
         # Now we're talking.
         $ret = $this->call('chatmessages', 'GET', [ 'roomid' => $this->cid ]);
@@ -114,7 +114,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(1, $ret['ret']);
         assertFalse(pres('chatmessages', $ret));
 
-        assertEquals(1, $this->user->addMembership($this->groupid));
+        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
         assertTrue($this->user->login('testpw'));
 
         # Now we're talking.  Make sure we're on the roster.

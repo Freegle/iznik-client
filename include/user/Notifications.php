@@ -114,6 +114,19 @@ class Notifications
         return($count);
     }
 
+    public function pokeGroupMods($groupid, $data) {
+        $count = 0;
+        $mods = $this->dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');",
+            [ $groupid ]);
+
+        foreach ($mods as $mod) {
+            $this->poke($mod['userid'], $data);
+            $count++;
+        }
+
+        return($count);
+    }
+
     public function fsockopen($host, $port, &$errno, &$errstr) {
         $fp = fsockopen('ssl://' . CHAT_HOST, 443, $errno, $errstr);
         return($fp);

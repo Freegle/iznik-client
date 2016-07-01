@@ -395,7 +395,6 @@ define([
         dm: function() {
             var self = this;
             require(['iznik/views/chat/chat'], function(ChatHolder) {
-                console.log("Open chat to", self.model.get('user').id);
                 ChatHolder().openChat(self.model.get('user').id);
             })
         },

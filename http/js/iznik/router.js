@@ -129,6 +129,7 @@ define([
             routeOptions = routeOptions || {};
 
             self.modtools = routeOptions.modtools;
+            Iznik.Session.set('modtools', self.modtools);
 
             function loadPage() {
                 firstbeep = true;

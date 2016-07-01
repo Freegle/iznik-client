@@ -90,7 +90,7 @@ define([
                 } while (self.dropdown.options.length > 0);
             } else {
                 // Create dropdown from scratch.
-                console.log("Create dropdown", self.$el, self.el.outerHTML, $('#' + self.id).length);
+                // console.log("Create dropdown", self.$el, self.el.outerHTML, $('#' + self.id).length);
                 self.dropdown = self.$el.msDropdown().data("dd");
             }
 

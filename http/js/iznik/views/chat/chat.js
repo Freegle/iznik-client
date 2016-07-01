@@ -263,6 +263,30 @@ define([
             this.showMin();
         },
 
+        openChatToMods: function(groupid) {
+            $.ajax({
+                type: 'PUT',
+                url: API + 'chat/rooms',
+                data: {
+                    chattype: 'User2Mod',
+                    groupid: groupid
+                }, success: function(ret) {
+                    if (ret.ret == 0) {
+                        Iznik.Session.chats.fetch({
+                            remove: false
+                        }).then(function() {
+                            // Defer to give the CollectionView time to respond.
+                            _.defer(function() {
+                                var chatmodel = Iznik.Session.chats.get(ret.id);
+                                var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
+                                chatView.restore();
+                            })
+                        });
+                    }
+                }
+            });
+        },
+
         openChat: function(userid) {
             if (userid != Iznik.Session.get('me').id) {
                 // We want to open a direct message conversation with this user.
@@ -308,17 +332,13 @@ define([
             if ($('#chatHolder').length == 0) {
                 self.$el.css('visibility', 'hidden');
 
-                Iznik.Session.chats = new Iznik.Collections.Chat.Rooms();
+                Iznik.Session.chats = new Iznik.Collections.Chat.Rooms({
+                    modtools: Iznik.Session.get('modtools')
+                });
                 
                 p = Iznik.View.prototype.render.call(self).then(function(self) {
                     $("#bodyEnvelope").append(self.$el);
-                    var chattypes = self.options.modtools ? [ 'Mod2Mod', 'User2Mod' ] : [ 'User2User' ];
-
-                    Iznik.Session.chats.fetch({
-                        data: {
-                            chattypes: chattypes
-                        }
-                    }).then(function () {
+                    Iznik.Session.chats.fetch().then(function () {
                         Iznik.Session.chats.each(function (chat) {
                             // If the unread message count changes, we want to update it.
                             self.listenTo(chat, 'change:unseen', self.updateCounts);

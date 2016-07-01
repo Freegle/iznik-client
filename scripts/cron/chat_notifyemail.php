@@ -9,7 +9,8 @@ global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
 
+# TODO Other types?
 $c = new ChatRoom($dbhr, $dbhm);
-$c->notifyByEmail(NULL, TRUE);
+$c->notifyByEmail(ChatRoom::TYPE_USER2USER, TRUE);
 
 unlockScript($lockh);

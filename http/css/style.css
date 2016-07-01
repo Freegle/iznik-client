@@ -49,6 +49,10 @@
     display: block;
 }
 
+.ddChild {
+    min-height: 200px !important;
+}
+
 .text-larger {
     font-weight: bold !important;
     font-size: 20px !important;

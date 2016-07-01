@@ -16,6 +16,8 @@ class Digest
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
 
+    private $errorlog;
+
     const NEVER = 0;
     const IMMEDIATE = -1;
     const HOUR1 = 1;
@@ -24,11 +26,12 @@ class Digest
     const HOUR8 = 8;
     const DAILY = 24;
 
-    function __construct($dbhr, $dbhm, $id = NULL)
+    function __construct($dbhr, $dbhm, $id = NULL, $errorlog = FALSE)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
         $this->log = new Log($this->dbhr, $this->dbhm);
+        $this->errorlog = $errorlog;
         
         $this->freqText = [
             Digest::NEVER => 'never',
@@ -97,7 +100,7 @@ class Digest
         }
 
         if ($fdgroupid) {
-            #error_log("#$groupid " . $g->getPrivate('nameshort') . " send emails for $frequency");
+            if ($this->errorlog) { error_log("#$groupid " . $g->getPrivate('nameshort') . " send emails for $frequency"); }
 
             # Make sure we have a tracking entry.
             $sql = "INSERT IGNORE INTO groups_digests (groupid, frequency) VALUES (?, ?);";
@@ -108,7 +111,7 @@ class Digest
             $tracks = $this->dbhr->preQuery($sql, [ $groupid, $frequency ]);
 
             foreach ($tracks as $track) {
-                #error_log("Start group $groupid");
+                if ($this->errorlog) { error_log("Start group $groupid"); }
                 $sql = "UPDATE groups_digests SET started = NOW() WHERE groupid = ? AND frequency = ?;";
                 $this->dbhm->preExec($sql, [$groupid, $frequency]);
 
@@ -264,17 +267,19 @@ class Digest
 
                     foreach ($users as $user) {
                         $u = new User($this->dbhr, $this->dbhm, $user['userid']);
-                        #error_log("Consider user {$user['userid']}");
+                        if ($this->errorlog) { error_log("Consider user {$user['userid']}"); }
 
                         # We are only interested in sending digests to users for whom we have a preferred address -
                         # otherwise where would we send them?
                         $email = $u->getEmailPreferred();
-                        #error_log("Preferred $email");
+                        if ($this->errorlog) { error_log("Preferred $email"); }
 
                         if ($email) {
                             $sendit = FALSE;
 
                             if ($g->getPrivate('onyahoo')) {
+                                if ($this->errorlog) { error_log("On Yahoo"); }
+                                
                                 # We don't want to send out mails to users who are members directly on Yahoo, only
                                 # for ones which have joined through this platform or its predecessor.
                                 #
@@ -286,8 +291,7 @@ class Digest
                                 # emails which we host.  That tells us whether they've joined any groups via our
                                 # platform, which tells us whether it's reasonable to send them emails.
                                 $membershipmail = $u->getEmailForYahooGroup($groupid, TRUE)[1];
-                                #error_log("Membership mail $membershipmail");
-
+                                if ($this->errorlog) { error_log("Membership mail $membershipmail"); }
                                 if ($membershipmail) {
                                     # They have a membership on Yahoo with one of our addresses.
                                     $sendit = TRUE;
@@ -305,7 +309,7 @@ class Digest
                                         # Use email for them having any of ours as an approximation.
                                         $emails = $u->getEmails();
                                         foreach ($emails as $anemail) {
-                                            #error_log("Check {$anemail['email']}");
+                                            if ($this->errorlog) { error_log("Check {$anemail['email']}"); }
                                             if (ourDomain($anemail['email'])) {
                                                 $sendit = TRUE;
                                             }
@@ -316,7 +320,7 @@ class Digest
 
                             if ($sendit) {
                                 # We might be on holiday.
-                                #error_log("...$email");
+                                if ($this->errorlog) { error_log("...$email"); }
                                 $hol = $u->getPrivate('onholidaytill');
                                 $till = $hol ? strtotime($hol) : 0;
 

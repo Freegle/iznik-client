@@ -47,6 +47,15 @@ define([
             }
         },
 
+        fetch: function() {
+            // Which chat types we fetch depends on whether we're in ModTools or the User i/f.
+            return Iznik.Collection.prototype.fetch.call(this, {
+                data: {
+                    chattypes: this.options.modtools ? [ 'Mod2Mod', 'User2Mod' ] : [ 'User2User', 'User2Mod' ]
+                }
+            });
+        },
+
         parse: function(ret) {
             return(ret.chatrooms);
         }

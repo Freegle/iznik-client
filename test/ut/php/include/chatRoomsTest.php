@@ -26,6 +26,9 @@ class chatRoomsTest extends IznikTestCase {
         $this->dbhm = $dbhm;
 
         $dbhm->preExec("DELETE FROM chat_rooms WHERE name = 'test';");
+
+        $g = new Group($dbhr, $dbhm);
+        $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
     }
 
     protected function tearDown() {
@@ -39,11 +42,11 @@ class chatRoomsTest extends IznikTestCase {
         error_log(__METHOD__);
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $id = $r->createGroupChat('test', NULL);
+        $id = $r->createGroupChat('test', $this->groupid);
         assertNotNull($id);
 
         $r->setAttributes(['name' => 'test']);
-        assertEquals('test', $r->getPublic()['name']);
+        assertEquals('testgroup Mods', $r->getPublic()['name']);
         
         assertEquals(1, $r->delete());
 
@@ -97,7 +100,7 @@ class chatRoomsTest extends IznikTestCase {
         $mock->method('preExec')->willThrowException(new Exception());
         $r->setDbhm($mock);
 
-        $id = $r->createGroupChat('test');
+        $id = $r->createGroupChat('test', $this->groupid);
         assertNull($id);
 
         error_log(__METHOD__ . " end");
@@ -140,7 +143,7 @@ class chatRoomsTest extends IznikTestCase {
             'test2@test.com',
             'Re: OFFER: Test item (location)');
         
-        assertEquals(1, $r->notifyByEmail($id, TRUE, 0));
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
 
         # Now pretend we've seen the messages.  Should flag the message as seen by all.
         $r->updateRoster($u1, $cm, ChatRoom::STATUS_ONLINE);
@@ -150,10 +153,10 @@ class chatRoomsTest extends IznikTestCase {
 
         # Shouldn't notify as we've seen them.
         $r->expects($this->never())->method('mailer');
-        assertEquals(0, $r->notifyByEmail($id, TRUE));
+        assertEquals(0, $r->notifyByEmail($id,  ChatRoom::TYPE_USER2USER));
 
         # Once more for luck - this time won't even check this chat.
-        assertEquals(0, $r->notifyByEmail($id), TRUE);
+        assertEquals(0, $r->notifyByEmail($id,  ChatRoom::TYPE_USER2USER));
         
         # Now send an email reply to this notification.
         $msg = $this->unique(file_get_contents('msgs/notif_reply_text'));

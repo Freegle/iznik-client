@@ -143,7 +143,7 @@ class digestTest extends IznikTestCase {
 
         # Mock the actual send
         $mock = $this->getMockBuilder('Digest')
-            ->setConstructorArgs([$this->dbhr, $this->dbhm])
+            ->setConstructorArgs([$this->dbhr, $this->dbhm, NULL, TRUE])
             ->setMethods(array('sendOne'))
             ->getMock();
         $mock->method('sendOne')->will($this->returnCallback(function($mailer, $message) {
@@ -153,6 +153,7 @@ class digestTest extends IznikTestCase {
         # Create a group with two messages on it, one taken.
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', TRUE);
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);

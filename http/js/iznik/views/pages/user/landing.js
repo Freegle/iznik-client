@@ -3,10 +3,11 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'iznik/views/chat/chat',
     'iznik/views/pages/pages',
     'iznik/views/group/select',
     'jquery.dd'
-], function($, _, Backbone, Iznik) {
+], function($, _, Backbone, Iznik, ChatHolder) {
     Iznik.Views.User.Pages.Landing = Iznik.Views.Page.extend({
         template: "user_landing_main",
         footer: true
@@ -46,6 +47,19 @@ define([
         template: "user_landing_contact",
         footer: true,
         noback: true,
+
+        events: {
+            'click .js-chat': 'chatMods'
+        },
+
+        chatMods: function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            var groupid = this.groupSelect.get();
+            ChatHolder().openChatToMods(groupid);
+        },
+
         render: function() {
             var p = Iznik.Views.Page.prototype.render.call(this);
             p.then(function (self) {

@@ -46,7 +46,7 @@ class chatRoomsAPITest extends IznikAPITestCase
     {
     }
 
-    public function testBasic()
+    public function testUser2User()
     {
         error_log(__METHOD__);
         
@@ -54,7 +54,47 @@ class chatRoomsAPITest extends IznikAPITestCase
         $ret = $this->call('chatrooms', 'GET', []);
         assertEquals(1, $ret['ret']);
         assertFalse(pres('chatrooms', $ret));
-        
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $c->createConversation($this->uid, $uid);
+
+        # Just because it exists, doesn't mean we should be able to see it.
+        $ret = $this->call('chatrooms', 'GET', []);
+        assertEquals(1, $ret['ret']);
+        assertFalse(pres('chatrooms', $ret));
+
+        assertTrue($this->user->login('testpw'));
+
+        # Now we're talking.
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ ChatRoom::TYPE_USER2USER ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['chatrooms']));
+        assertEquals($rid, $ret['chatrooms'][0]['id']);
+        assertEquals('Test User', $ret['chatrooms'][0]['name']);
+
+        $ret = $this->call('chatrooms', 'GET', [
+            'id' => $rid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($rid, $ret['chatroom']['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testMod2Mod()
+    {
+        error_log(__METHOD__);
+
+        # Logged out - no rooms
+        $ret = $this->call('chatrooms', 'GET', []);
+        assertEquals(1, $ret['ret']);
+        assertFalse(pres('chatrooms', $ret));
+
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         $rid = $c->createGroupChat('test', $this->groupid);
 
@@ -70,7 +110,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertFalse(pres('chatrooms', $ret));
 
-        assertEquals(1, $this->user->addMembership($this->groupid));
+        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
 
         # Now we're talking.
         $ret = $this->call('chatrooms', 'GET', [
@@ -79,7 +119,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['chatrooms']));
         assertEquals($rid, $ret['chatrooms'][0]['id']);
-        assertEquals('test', $ret['chatrooms'][0]['name']);
+        assertEquals('testgroup Mods', $ret['chatrooms'][0]['name']);
 
         $ret = $this->call('chatrooms', 'GET', [
             'id' => $rid
@@ -106,6 +146,63 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertEquals($this->uid, $ret['roster'][0]['userid']);
         assertEquals('Test User', $ret['roster'][0]['user']['fullname']);
         assertEquals('Away', $ret['roster'][0]['status']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testUser2Mod()
+    {
+        error_log(__METHOD__);
+
+        assertTrue($this->user->login('testpw'));
+
+        # Create a support room from this user to the group mods
+        $ret = $this->call('chatrooms', 'PUT', [
+            'groupid' => $this->groupid,
+            'chattype' => ChatRoom::TYPE_USER2MOD
+        ]);
+        assertEquals(0, $ret['ret']);
+        $rid = $ret['id'];
+        assertNotNull($rid);
+        assertFalse(pres('chatrooms', $ret));
+
+        # Now we're talking.
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ ChatRoom::TYPE_USER2USER, ChatRoom::TYPE_MOD2MOD ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['chatrooms']));
+
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ ChatRoom::TYPE_USER2MOD ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['chatrooms']));
+        assertEquals($rid, $ret['chatrooms'][0]['id']);
+
+        # Now create a group mod
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u->addMembership($this->groupid);
+        assertTrue($u->login('testpw'));
+
+        # Shouldn't see it before we promote.
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ ChatRoom::TYPE_USER2MOD ]
+        ]);
+        error_log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['chatrooms']));
+
+        # Now promote.
+        $u->setRole(USer::ROLE_MODERATOR, $this->groupid);
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ ChatRoom::TYPE_USER2MOD ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['chatrooms']));
+        assertEquals($rid, $ret['chatrooms'][0]['id']);
 
         error_log(__METHOD__ . " end");
     }
