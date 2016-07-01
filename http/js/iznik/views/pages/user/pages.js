@@ -7,15 +7,33 @@ define([
     'typeahead',
     'jquery.scrollTo'
 ], function($, _, Backbone, Iznik) {
-        Iznik.Views.User.Pages.WhereAmI = Iznik.Views.Page.extend({
+    Iznik.Views.User.Pages.WhereAmI = Iznik.Views.Page.extend({
+        firstMatch: null,
+
         events: {
             'focus .tt-input': 'scrollTo',
             'click .js-getloc': 'getLocation',
             'change .js-homegroup': 'changeHomeGroup',
             'typeahead:change .js-postcode': 'locChange',
+            'keyup .js-postcode': 'keyUp',
             'click .tt-suggestion': 'locChange'
         },
 
+        keyUp: function(e) {
+            var self = this;
+            if (e.which === 13) {
+                if (self.firstMatch) {
+                    // We choose the first match on enter.
+                    this.$('.js-postcode').typeahead('val', self.firstMatch);
+                    this.$('.js-next').click();
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+            }
+        },
+            
         scrollTo: function() {
             // Make sure they can see the typeahead by scrolling.  Delay because an on-screen keyboard might open.
             var self = this;
@@ -145,6 +163,7 @@ define([
                         self.$('.js-postcode').tooltip({'trigger':'focus', 'title': 'Please use a valid UK postcode'});
                         self.$('.js-postcode').tooltip('show');
                     } else {
+                        self.firstMatch = matches[0];
                         self.$('.js-postcode').tooltip('hide');
                     }
                 }

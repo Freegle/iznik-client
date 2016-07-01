@@ -95,6 +95,7 @@ define([
 
             if (template) {
                 // For more complex modals we might have set up the content before calling open.
+                self.template = template;
                 p = Iznik.View.prototype.render.call(this);
                 p.then(function(self) {
                     self.attach.call(self);
