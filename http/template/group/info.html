@@ -1,0 +1,17 @@
+<div class="panel panel-info">
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-xs-3 nopad margleft">
+                <% if (obj.profile) { %>
+                <img class="img-thumbnail img-rounded js-profile" src="{{profile}}" />
+                <% } else { %>
+                <img class="img-thumbnail img-rounded js-profile" src="/images/user_logo.png" />
+                <% } %>
+            </div>
+            <div class="col-xs-6">
+                <h3 class="js-name">{{namedisplay}}</h3>
+                <div class="js-tagline">{{tagline}}</div>
+            </div>
+        </div>
+    </div>
+</div>

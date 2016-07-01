@@ -3,6 +3,8 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'iznik/models/group',
+    'iznik/views/group/info',
     'iznik/views/pages/pages',
     'iznik/views/pages/user/pages',
     'iznik/views/pages/user/post'
@@ -23,6 +25,32 @@ define([
     });
     
     Iznik.Views.User.Pages.Give.WhatNext = Iznik.Views.Page.extend({
-        template: "user_give_whatnext"
+        template: "user_give_whatnext",
+
+        render: function() {
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function() {
+                try {
+                    var homegroup = localStorage.getItem('myhomegroup');
+
+                    if (homegroup) {
+                        var g = new Iznik.Models.Group({
+                            id: homegroup
+                        });
+
+                        g.fetch().then(function() {
+                            var v = new Iznik.Views.Group.Info({
+                                model: g
+                            });
+                            v.render().then(function() {
+                                self.$('.js-group').html(v.el)
+                            });
+                        });
+                    }
+                } catch (e) {};
+            });
+
+            return(p)
+        }
     });
 });

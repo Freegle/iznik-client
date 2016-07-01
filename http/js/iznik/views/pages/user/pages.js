@@ -25,7 +25,19 @@ define([
                 if (self.firstMatch) {
                     // We choose the first match on enter.
                     this.$('.js-postcode').typeahead('val', self.firstMatch);
-                    this.$('.js-next').click();
+
+                    $.ajax({
+                        type: 'GET',
+                        url: API + 'locations',
+                        data: {
+                            typeahead: self.firstMatch
+                        }, success: function(ret) {
+                            if (ret.ret == 0) {
+                                self.recordLocation(ret.locations[0], true);
+                                self.$('.js-next').click();
+                            }
+                        }
+                    });
                 }
 
                 e.preventDefault();
@@ -103,21 +115,27 @@ define([
             var groups = self.$('.js-groups');
 
             if (groups.length > 0 && groupsnear) {
-                // Show home groups.
-                groups.empty();
-                _.each(groupsnear, function(groupnear) {
-                    groups.append('<option value="' + groupnear.id + '" />');
-                    groups.find('option:last').text(groupnear.namedisplay);
-                });
-
                 var homegroup = null;
+                var homegroupfound = false;
 
                 try {
                     homegroup = localStorage.getItem('myhomegroup');
                 } catch (e) {};
 
-                if (homegroup) {
+                // Show home groups.
+                groups.empty();
+                _.each(groupsnear, function(groupnear) {
+                    if (homegroup == groupnear.id) {
+                        homegroupfound = true;
+                    }
+                    groups.append('<option value="' + groupnear.id + '" />');
+                    groups.find('option:last').text(groupnear.namedisplay);
+                });
+
+                if (homegroupfound) {
                     groups.val(homegroup);
+                } else {
+                    self.changeHomeGroup();
                 }
 
                 self.$('.js-homegroup').fadeIn('slow');

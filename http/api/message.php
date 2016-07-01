@@ -295,7 +295,8 @@ function message() {
                                         $ret = [
                                             'ret' => 0,
                                             'status' => 'Queued for group membership',
-                                            'appliedemail' => $m->queueForMembership($u, $groupid)
+                                            'appliedemail' => $m->queueForMembership($u, $groupid),
+                                            'groupid' => $groupid
                                         ];
                                     } else if ($rc) {
                                         # Now we have a user who is a member of the appropriate group.
@@ -309,7 +310,7 @@ function message() {
 
                                         if ($m->submit($u, $fromemail, $groupid)) {
                                             # We sent it.
-                                            $ret = ['ret' => 0, 'status' => 'Success'];
+                                            $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid ];
                                         }
                                     }
                                 }

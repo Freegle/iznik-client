@@ -152,7 +152,8 @@ define([
 
         render: function () {
             var self = this;
-            
+            self.photos = new Iznik.Collection();
+
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
                 self.$('.js-items').tagsinput({
                     freeInput: true,
@@ -171,7 +172,6 @@ define([
                 }
 
                 // CollectionView handles adding/removing for us.
-                self.photos = new Iznik.Collection();
                 self.collectionView = new Backbone.CollectionView({
                     el: self.$('.js-thumbnails'),
                     modelView: Iznik.Views.User.Thumbnail,
