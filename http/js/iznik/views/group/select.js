@@ -121,7 +121,7 @@ define([
 
             Iznik.Session.get('groups').each(function(group) {
                 var role = group.get('role');
-                console.log("Consider group", group, role);
+                // console.log("Consider group", group, role);
 
                 if (!self.options.mod || role == 'Owner' || role ==  'Moderator') {
                     self.dropdown.add({

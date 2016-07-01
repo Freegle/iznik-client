@@ -9,8 +9,12 @@ require_once(IZNIK_BASE . '/mailtemplates/chat_notify.php');
 class ChatRoom extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'name', 'groupid', 'modonly', 'modtools', 'description', 'user1', 'user2');
+    var $publicatts = array('id', 'name', 'chattype', 'groupid', 'description', 'user1', 'user2');
     var $settableatts = array('name', 'description');
+
+    const TYPE_MOD2MOD = 'Mod2Mod';
+    const TYPE_USER2MOD = 'User2Mod';
+    const TYPE_USER2USER = 'User2User';
 
     const STATUS_ONLINE = 'Online';
     const STATUS_OFFLINE = 'Offline';
@@ -54,13 +58,12 @@ class ChatRoom extends Entity
         $this->dbhm = $dbhm;
     }
 
-    public function createGroupChat($name, $gid = NULL, $modonly = FALSE, $modtools = FALSE) {
+    public function createGroupChat($name, $gid = NULL) {
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (name, groupid, modonly, modtools) VALUES (?,?,?,?)", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (name, chattype, groupid) VALUES (?,?,?)", [
                 $name,
-                $gid,
-                $modonly,
-                $modtools
+                ChatRoom::TYPE_MOD2MOD,
+                $gid
             ]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
@@ -83,12 +86,13 @@ class ChatRoom extends Entity
         $this->dbhm->beginTransaction();
 
         # Find any existing chat.  Who is user1 and who is user2 doesn't really matter - it's a two way chat.
-        $sql = "SELECT id FROM chat_rooms WHERE (user1 = ? AND user2 = ?) OR (user2 = ? AND user1 = ?) FOR UPDATE;";
+        $sql = "SELECT id FROM chat_rooms WHERE (user1 = ? AND user2 = ?) OR (user2 = ? AND user1 = ?) AND chattype = ? FOR UPDATE;";
         $chats = $this->dbhm->preQuery($sql, [
             $user1,
             $user2,
             $user1,
-            $user2
+            $user2,
+            ChatRoom::TYPE_USER2USER
         ]);
         
         $rollback = TRUE;
@@ -98,9 +102,10 @@ class ChatRoom extends Entity
             $id = $chats[0]['id'];
         } else {
             # We don't.  Create one.
-            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (user1, user2) VALUES (?,?)", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (user1, user2, chattype) VALUES (?,?,?)", [
                 $user1,
-                $user2
+                $user2,
+                ChatRoom::TYPE_USER2USER
             ]);
             
             if ($rc) {
@@ -208,7 +213,7 @@ class ChatRoom extends Entity
 
     public function lastSeenForUser($userid) {
         # Find if we have any unseen messages.
-        $sql = "SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?;";
+        $sql = "SELECT chat_roster.lastmsgseen FROM chat_roster INNER JOIN chat_rooms ON chat_roster.chatid = chat_rooms.id WHERE chatid = ? AND userid = ?;";
         $counts = $this->dbhr->preQuery($sql, [ $this->id, $userid ]);
         #return(round(rand(1, 10)));
         return(count($counts) > 0 ? $counts[0]['lastmsgseen'] : NULL);
@@ -231,15 +236,15 @@ class ChatRoom extends Entity
         return($counts[0]['count']);
     }
 
-    public function listForUser($userid, $modtools = NULL) {
+    public function listForUser($userid, $chattypes) {
         $ret = [];
         $u = new User($this->dbhr, $this->dbhm, $userid);
-        $modtoolsq = ($modtools === NULL) ? '' : ("AND modtools = " . ($modtools ? 1 : 0));
+        $typeq = " AND chattype IN ('" . implode("','", $chattypes) . "') ";
 
         # The chats we can see are:
         # - either for a group (possibly a modonly one)
         # - a conversation between two users that we have not closed
-        $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = ? AND chat_rooms.id = chat_roster.chatid WHERE ((groupid IN (SELECT groupid FROM memberships WHERE userid = ?) OR user1 = ? OR user2 = ?)) $modtoolsq AND (status IS NULL OR status != ?);";
+        $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = ? AND chat_rooms.id = chat_roster.chatid WHERE ((groupid IN (SELECT groupid FROM memberships WHERE userid = ?) OR user1 = ? OR user2 = ?)) $typeq AND (status IS NULL OR status != ?);";
         #error_log($sql . var_export([ $userid, $userid, $userid, $userid, ChatRoom::STATUS_CLOSED ], TRUE));
         $rooms = $this->dbhr->preQuery($sql, [ $userid, $userid, $userid, $userid, ChatRoom::STATUS_CLOSED ]);
         foreach ($rooms as $room) {
@@ -263,7 +268,7 @@ class ChatRoom extends Entity
     }
 
     public function canSee($userid) {
-        $rooms = $this->listForUser($userid);
+        $rooms = $this->listForUser($userid, [ $this->chatroom['chattype'] ]);
         #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
         return($rooms ? in_array($this->id, $rooms) : FALSE);
     }
@@ -531,9 +536,9 @@ class ChatRoom extends Entity
                 #   it's less likely that they will interleave their response inside it - they will probably reply at
                 #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
                 #   added.
-                $site = $chatatts['modtools'] ? MOD_SITE : USER_SITE;
+                $site = $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MOD_SITE : USER_SITE;
                 $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid']);
-                $html = chat_notify($site, $chatatts['modtools'] ? MODLOGO : USERLOGO, $fromname, $url,
+                $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD  ? MODLOGO : USERLOGO, $fromname, $url,
                     $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
 
                 # We ask them to reply to an email address which will direct us back to this chat.

@@ -73,7 +73,9 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertEquals(1, $this->user->addMembership($this->groupid));
 
         # Now we're talking.
-        $ret = $this->call('chatrooms', 'GET', []);
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ ChatRoom::TYPE_MOD2MOD ]
+        ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['chatrooms']));
         assertEquals($rid, $ret['chatrooms'][0]['id']);

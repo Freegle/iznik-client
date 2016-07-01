@@ -312,10 +312,11 @@ define([
                 
                 p = Iznik.View.prototype.render.call(self).then(function(self) {
                     $("#bodyEnvelope").append(self.$el);
+                    var chattypes = self.options.modtools ? [ 'Mod2Mod', 'User2Mod' ] : [ 'User2User' ];
 
                     Iznik.Session.chats.fetch({
                         data: {
-                            modtools: self.options.modtools
+                            chattypes: chattypes
                         }
                     }).then(function () {
                         Iznik.Session.chats.each(function (chat) {
