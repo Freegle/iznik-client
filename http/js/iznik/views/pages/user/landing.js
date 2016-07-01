@@ -3,7 +3,9 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/views/pages/pages'
+    'iznik/views/pages/pages',
+    'iznik/views/group/select',
+    'jquery.dd'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Landing = Iznik.Views.Page.extend({
         template: "user_landing_main",
@@ -43,6 +45,34 @@ define([
     Iznik.Views.User.Pages.Landing.Contact = Iznik.Views.Page.extend({
         template: "user_landing_contact",
         footer: true,
-        noback: true
+        noback: true,
+        render: function() {
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function (self) {
+                self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                    var groups = Iznik.Session.get('groups');
+
+                    if (groups.length >= 0) {
+                        self.groupSelect = new Iznik.Views.Group.Select({
+                            systemWide: false,
+                            all: false,
+                            mod: false,
+                            choose: true,
+                            id: 'contactGroupSelect'
+                        });
+
+                        self.groupSelect.render().then(function() {
+                            self.$('.js-groupselect').html(self.groupSelect.el);
+                        });
+
+                        self.$('.js-contactmods').show();
+                    }
+                });
+
+                Iznik.Session.testLoggedIn();
+            });
+
+            return (p);
+        }
     });
 });

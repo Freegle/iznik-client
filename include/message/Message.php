@@ -1936,7 +1936,7 @@ class Message
 
         $textbody = trim(preg_replace('#(^\w.+:\n)?(^>.*(\n|$))+#mi', "", $textbody));
 
-        # We might have a section like this, for example from eM Client
+        # We might have a section like this, for example from eM Client, which could be top or bottom-quoted.
         #
         # ------ Original Message ------
         # From: "Edward Hibbert" <notify-5147-16226909@users.ilovefreegle.org>
@@ -1949,6 +1949,13 @@ class Message
             $q = strpos($textbody, "\r\n\r\n", $p);
             $textbody = ($q !== FALSE) ? (substr($textbody, 0, $p) . substr($textbody, $q)) : substr($textbody, 0, $p);
         }
+
+        # Or this similar one, which is top-quoted.
+        #
+        # ----Original message----
+
+        $p = strpos($textbody, '----Original message----');
+        $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
         # Or we might have this, for example from GMail:
         #
@@ -1970,6 +1977,7 @@ class Message
         # Get rid of sigs
         $textbody = str_replace('Sent from my iPhone', '', $textbody);
         $textbody = str_replace('Sent from EE', '', $textbody);
+        $textbody = str_replace('Sent from my Samsung device', '', $textbody);
 
         #error_log("Pruned text to $textbody");
         return(trim($textbody));

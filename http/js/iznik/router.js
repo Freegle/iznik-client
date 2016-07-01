@@ -108,6 +108,7 @@ define([
             "disclaimer": "userDisclaimer",
             "donate": "userDonate",
             "contact": "userContact",
+            "help": "userContact",
             "*path": "userHome"
         },
 

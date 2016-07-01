@@ -90,6 +90,7 @@ define([
                 } while (self.dropdown.options.length > 0);
             } else {
                 // Create dropdown from scratch.
+                console.log("Create dropdown", self.$el, self.el.outerHTML, $('#' + self.id).length);
                 self.dropdown = self.$el.msDropdown().data("dd");
             }
 
@@ -120,6 +121,7 @@ define([
 
             Iznik.Session.get('groups').each(function(group) {
                 var role = group.get('role');
+                console.log("Consider group", group, role);
 
                 if (!self.options.mod || role == 'Owner' || role ==  'Moderator') {
                     self.dropdown.add({
@@ -164,6 +166,12 @@ define([
             var self = this;
 
             self.id  = self.options.hasOwnProperty('id') ? self.options.id : null;
+
+            if (self.id && !$('#' + self.id).is('select')) {
+                // Check that we've called this with the right element type, otherwise it fails in a way that's
+                // a pain to debug.  Not that I've made that mistake repeatedly, you understand.
+                console.error("Need to use a select element.");
+            }
 
             // We hide the raw select now otherwise it shows briefly.  We set visibility on the dropdown once it's built.
             self.$el.css('visibility', 'hidden');
