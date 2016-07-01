@@ -240,9 +240,9 @@ class Session {
             return($userid);
         }
 
-        # We failed to verify.  If the ID and series are present, then it is likely to be
-        # a theft.  Delete any existing sessions.  If they aren't, then the delete won't do anything.
-        $this->destroy($id, $series);
+        # We failed to verify.  Some systems would zap the existing sessions here in case there was a theft, but
+        # this means that a bad cookie on one device will log out other devices, which can create a ping-pong
+        # from which you don't recover.
 
         return(NULL);
     }
