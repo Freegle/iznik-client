@@ -1,0 +1,3 @@
+#!/bin/bash
+mysql --defaults-file=/root/.my.cnf -e "show status like 'wsrep%';" | grep wsrep_cluster_status | grep non-Primary
+exit $?
