@@ -46,6 +46,8 @@ class sessionClassTest extends IznikTestCase {
         $ver = $s->verify($ret['id'], $ret['series'], $ret['token']);
         assertEquals($id, $ver);
 
+        $_SESSION['id'] = NULL;
+
         assertNull($s->verify($id, $ret['series'] . 'z', $ret['token']));
 
         $me = whoAmI($this->dbhm, $this->dbhm);
