@@ -244,15 +244,17 @@ define([
                                 });
                             });
 
-                            // The FD settings.
-                            var v = new Iznik.Views.ModTools.User.FreegleMembership({
-                                model: new Iznik.Model(self.model.get('fromuser')),
-                                groupid: group.id
-                            });
+                            if (group.type == 'Freegle') {
+                                // The FD settings.
+                                var v = new Iznik.Views.ModTools.User.FreegleMembership({
+                                    model: new Iznik.Model(self.model.get('fromuser')),
+                                    groupid: group.id
+                                });
 
-                            v.render().then(function(v) {
-                                self.$('.js-freegleinfo').append(v.el);
-                            });
+                                v.render().then(function (v) {
+                                    self.$('.js-freegleinfo').append(v.el);
+                                });
+                            }
 
                             // Add the default standard actions.
                             var configs = Iznik.Session.get('configs');

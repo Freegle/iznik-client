@@ -138,6 +138,7 @@ if (1==1) {
 
                     $hol = presdef('onholidaytill', $user, NULL);
                     $hol = ($hol && $hol != '0000-00-00') ? $hol : NULL;
+                    $u->setPrivate('onholidaytill', $hol);
 
                     $count++;
                     if ($count % 1000 == 0) {

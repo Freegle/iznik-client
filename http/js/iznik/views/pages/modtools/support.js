@@ -368,15 +368,7 @@ define([
                     // We are not in the context of a specific group here, so the general remove/ban buttons don't make sense.
                     self.$('.js-ban, .js-remove').closest('li').remove();
                 });
-
-                var v = new Iznik.Views.ModTools.User.FreegleMembership({
-                    model: self.model
-                });
-
-                v.render().then(function(v) {
-                    self.$('.js-freegleinfo').append(v.el);
-                })
-
+                
                 // Add any emails
                 self.$('.js-otheremails').empty();
                 _.each(self.model.get('otheremails'), function (email) {
@@ -412,6 +404,7 @@ define([
                         model: mod,
                         user: self.model
                     });
+                    
                     v.render().then(function (v) {
                         self.$('.js-memberof').append(v.el);
                     });

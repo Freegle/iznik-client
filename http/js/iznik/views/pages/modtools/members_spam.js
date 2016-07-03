@@ -202,13 +202,15 @@ define([
                             self.$('.js-user').html(v.el);
                         });
 
-                        var v = new Iznik.Views.ModTools.Member.Freegle({
-                            model: mod
-                        });
+                        if (group.get('type') == 'Freegle') {
+                            var v = new Iznik.Views.ModTools.Member.Freegle({
+                                model: mod
+                            });
 
-                        v.render().then(function(v) {
-                            self.$('.js-freegleinfo').append(v.el);
-                        })
+                            v.render().then(function (v) {
+                                self.$('.js-freegleinfo').append(v.el);
+                            })
+                        }
 
                         // No report spammer button here.
                         //

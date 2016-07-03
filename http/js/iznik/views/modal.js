@@ -105,6 +105,12 @@ define([
                 p = resolvedPromise(self);
             }
 
+            // Bootstrap seems to add padding, which has the effect of shrinking the body as more modals open.
+            self.$('.modal').one('hidden.bs.modal', function () {
+                $('body').css('padding-right', '');
+            })
+            $('body').css('padding-right', '');
+
             return(p);
         },
 

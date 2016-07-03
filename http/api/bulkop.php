@@ -105,6 +105,8 @@ function bulkop() {
                         'status' => 'Success'
                     ];
                 }
+
+                break;
             }
         }
     } else {

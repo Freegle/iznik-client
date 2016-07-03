@@ -36,6 +36,7 @@ require_once(IZNIK_BASE . '/include/user/Search.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/group/Alerts.php');
+require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
 require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/include/misc/Supporters.php');
@@ -67,6 +68,7 @@ require_once(IZNIK_BASE . '/http/api/spammers.php');
 require_once(IZNIK_BASE . '/http/api/supporters.php');
 require_once(IZNIK_BASE . '/http/api/group.php');
 require_once(IZNIK_BASE . '/http/api/groups.php');
+require_once(IZNIK_BASE . '/http/api/communityevent.php');
 require_once(IZNIK_BASE . '/http/api/plugin.php');
 require_once(IZNIK_BASE . '/http/api/user.php');
 require_once(IZNIK_BASE . '/http/api/chatrooms.php');
@@ -113,7 +115,8 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             # Repeat logins are OK.
             #
             # So are correlations, which are repeatable without ill effects.
-            if (($call != 'session') && ($call != 'correlate') && ($call != 'chatrooms') && ($call != 'events') &&
+            if ($_SESSION &&
+                ($call != 'session') && ($call != 'correlate') && ($call != 'chatrooms') && ($call != 'events') &&
                 ($call != 'upload') &&
                 array_key_exists('POSTLASTTIME', $_SESSION)) {
                 $ago = time() - $_SESSION['POSTLASTTIME'];
@@ -185,6 +188,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'groups':
                     $ret = groups();
+                    break;
+                case 'communityevent':
+                    $ret = communityevent();
                     break;
                 case 'locations':
                     $ret = locations();

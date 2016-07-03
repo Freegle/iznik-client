@@ -90,6 +90,7 @@ class User extends Entity
             foreach ($logins as $login) {
                 if ($login['type'] == User::LOGIN_NATIVE && $pw == $login['credentials']) {
                     $s = new Session($this->dbhr, $this->dbhm);
+                    error_log("Create for {$this->id}");
                     $s->create($this->id);
 
                     $l = new Log($this->dbhr, $this->dbhm);

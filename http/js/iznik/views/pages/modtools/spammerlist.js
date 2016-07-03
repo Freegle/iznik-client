@@ -229,14 +229,6 @@ define([
                             self.$('.js-user').html(v.el);
                         });
 
-                        var v = new Iznik.Views.ModTools.User.FreegleMembership({
-                            model: mod
-                        });
-
-                        v.render().then(function(v) {
-                            self.$('.js-freegleinfo').append(v.el);
-                        })
-
                         // No point duplicating spammer info
                         self.$('.js-spammerinfo').hide();
 
@@ -265,6 +257,15 @@ define([
                             v.render().then(function (v) {
                                 self.$('.js-memberof').append(v.el);
                             });
+                            if (group.type == 'Freegle') {
+                                var v = new Iznik.Views.ModTools.User.FreegleMembership({
+                                    model: mod
+                                });
+
+                                v.render().then(function (v) {
+                                    self.$('.js-freegleinfo').append(v.el);
+                                })
+                            }
                         });
 
                         self.$('.js-applied').empty();

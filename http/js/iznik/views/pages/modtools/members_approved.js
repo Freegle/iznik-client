@@ -310,13 +310,15 @@ define([
                             self.$('.js-user').html(v.el);
                         })
 
-                        var v = new Iznik.Views.ModTools.Member.Freegle({
-                            model: mod
-                        });
+                        if (group.get('type') == 'Freegle') {
+                            var v = new Iznik.Views.ModTools.Member.Freegle({
+                                model: mod
+                            });
 
-                        v.render().then(function(v) {
-                            self.$('.js-freegleinfo').append(v.el);
-                        })
+                            v.render().then(function(v) {
+                                self.$('.js-freegleinfo').append(v.el);
+                            })
+                        }
 
                         // Delay getting the Yahoo info slightly to improve apparent render speed.
                         _.delay(function () {
