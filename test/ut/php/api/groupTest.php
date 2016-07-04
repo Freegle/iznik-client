@@ -235,5 +235,16 @@ class groupAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testList() {
+        error_log(__METHOD__);
+
+        $ret = $this->call('groups', 'GET', [
+            'grouptype' => 'Freegle'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
