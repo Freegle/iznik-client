@@ -45,7 +45,6 @@ define([
 
     Iznik.Views.User.Pages.Landing.Contact = Iznik.Views.Page.extend({
         template: "user_landing_contact",
-        footer: true,
         noback: true,
 
         events: {
