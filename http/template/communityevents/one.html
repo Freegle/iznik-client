@@ -1,0 +1,31 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <div class="glyphicons glyphicons-calendar" />&nbsp;{{title}}
+        <% if (obj.canmodify) { %>
+        <div class="btn btn-white btn-xs pull-right"><div class="glyphicons glyphicons-bin" /></div>
+        <div class="btn btn-white btn-xs pull-right"><div class="glyphicons glyphicons-pencil" /></div>
+        <% } %>
+    </div>
+    <div class="panel-body nopadtop">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="glyphicons glyphicons-clock inline" /><div class="js-start inline padleft" />
+            </div>
+            <hr class="nomargin"/>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="glyphicons glyphicons-map-marker inline" /><div class="inline padleft">{{location}}</div>
+            </div>
+            <hr class="nomargin"/>
+        </div>
+        <div class="row text-center">
+            <div class="col-xs-12">
+                <button class="js-info btn btn-white"><div class="glyphicon glyphicon-info-sign inline" /><div class="inline padleft">More info</div></button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="topspace text-muted small text-center">Posted on {{groups[0].nameshort}}</div>
+        </div>
+    </div>
+</div>

@@ -83,11 +83,15 @@
 <div class="container completefull margtopbig nopad">
     <div class="row-fluid margtop">
         <div class="col-md-3 hidden-sm hidden-xs js-leftsidebar ">
-            <div class="sidebar-nav-fixed fullholder pull-left affix pre-scrollable">
+            <div class="sidebar-nav-fixed fullholder pull-left affix">
                 <div class="nopad js-loggedinonly">
                     <ul class="nav ">
-                        <div class="js-leftbar">
-                            <div class="js-events" />
+                        <div id="js-leftbar">
+                            <div class="panel" id="js-eventcontainer" style="display: none">
+                                <div class="panel-heading"><h4>Community Events</h4></div>
+                                <div class="panel-body nopad" id="js-events" />
+                                <div class="js-none" style="display: none">There are no events at the moment.</div>
+                            </div>
                         </div>
                     </ul>
                 </div>
@@ -98,7 +102,7 @@
             <div class="pageContent img-rounded js-pageContent">
             </div>
         </div>
-        <div class="col-md-3 hidden-sm hidden-xs js-rightsidebar">
+        <div class="col-md-3 hidden-sm hidden-xs" id="js-rightsidebar">
             <div class="sidebar-nav-fixed fullholder pull-right affix">
                 <div class="nav js-rightcontent">
                     <ul class="list-group nomargin">

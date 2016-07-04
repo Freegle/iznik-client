@@ -5,6 +5,7 @@ define([
     'iznik/base',
     'iznik/models/message',
     'iznik/models/user/search',
+    'iznik/views/group/communityevents',
     'iznik/views/pages/pages',
     'iznik/views/user/message'
 ], function($, _, Backbone, Iznik) {
@@ -191,6 +192,12 @@ define([
                         self.$('.js-searchrow').fadeIn('slow');
                     }
                 });
+
+                // Left menu is community events
+                var v = new Iznik.Views.User.CommunityEvents();
+                v.render().then(function() {
+                    $('#js-events').append(v.$el);
+                })
             });
 
             return(p);

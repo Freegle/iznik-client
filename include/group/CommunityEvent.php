@@ -63,7 +63,7 @@ class CommunityEvent extends Entity
         $ret = [];
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $sql = "SELECT communityevents.id FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ?) AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ?;";
+        $sql = "SELECT communityevents.id FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ?) AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? ORDER BY start ASC LIMIT 20;";
         $events = $this->dbhr->preQuery($sql, [
             $userid,
             $mysqltime
@@ -71,7 +71,10 @@ class CommunityEvent extends Entity
 
         foreach ($events as $event) {
             $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id']);
-            $ret[] = $e->getPublic();
+            $atts = $e->getPublic();
+            $atts['canmodify'] = $e->canModify($userid);
+            
+            $ret[] = $atts;
         }
 
         return($ret);
@@ -79,15 +82,22 @@ class CommunityEvent extends Entity
     
     public function getPublic() {
         $atts = parent::getPublic();
+        $atts['groups'] = [];
         
-        $atts['groups'] = $this->dbhr->preQuery("SELECT * FROM communityevents_groups WHERE eventid = ?", [ $this->id ]);
+        $groups = $this->dbhr->preQuery("SELECT * FROM communityevents_groups WHERE eventid = ?", [ $this->id ]);
+
+        foreach ($groups as $group) {
+            $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+            $atts['groups'][] = $g->getPublic();
+        }
+
         $atts['dates'] = $this->dbhr->preQuery("SELECT * FROM communityevents_dates WHERE eventid = ?", [ $this->id ]);
         
         foreach ($atts['dates'] as &$date) {
             $date['start'] = ISODate($date['start']);
             $date['end'] = ISODate($date['end']);
         }
-        
+
         return($atts);
     }
 
