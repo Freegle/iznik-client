@@ -51,7 +51,7 @@ class communityEventTest extends IznikTestCase {
         assertEquals('Test event', $atts['title']);
         assertEquals('Test location', $atts['location']);
         assertEquals(1, count($atts['groups']));
-        assertEquals($this->groupid, $atts['groups'][0]['groupid']);
+        assertEquals($this->groupid, $atts['groups'][0]['id']);
         assertEquals(1, count($atts['dates']));
         assertEquals($start, $atts['dates'][0]['start']);
         assertEquals($start, $atts['dates'][0]['end']);
