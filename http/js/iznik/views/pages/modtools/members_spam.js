@@ -202,7 +202,7 @@ define([
                             self.$('.js-user').html(v.el);
                         });
 
-                        if (group.get('type') == 'Freegle') {
+                        if (group && group.get('type') == 'Freegle') {
                             var v = new Iznik.Views.ModTools.Member.Freegle({
                                 model: mod
                             });
