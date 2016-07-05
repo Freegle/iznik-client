@@ -41,9 +41,11 @@ function prepareSession($dbhr, $dbhm) {
         if (!pres('id', $_SESSION)) {
             $userid = NULL;
 
-            if (array_key_exists(COOKIE_NAME, $_COOKIE)) {
+            # We might be passed a persistent session 'cookie' (not an actual cookie, because we store it ourselves,
+            # but something that allows us to log in).
+            $cookie = presdef('persistent', $_REQUEST, NULL);
+            if ($cookie) {
                 # Check our cookie to see if it's a valid session
-                $cookie = json_decode($_COOKIE[COOKIE_NAME], true);
                 #error_log("Cookie " . var_export($cookie, TRUE));
 
                 if ((array_key_exists('id', $cookie)) &&
@@ -70,10 +72,6 @@ function prepareSession($dbhr, $dbhm) {
                     }
                 }
             }
-        } else {
-            # We are logged in.  Make sure the client has the cookie.
-            $s = new Session($dbhr, $dbhm);
-            $s->returnCookie($_SESSION['id']);
         }
     }
 }
@@ -167,7 +165,7 @@ class Session {
         # If we wanted to only allow login from a single device/browser, we'd destroy cookies at this point.  But
         # we want to allow login on as many devices as the user wants.  So look for an existing cookie, and use that
         # if present; otherwise create one.
-        $sessions = $this->dbhm->preQuery("SELECT * FROM sessions WHERE userid = ?", [ $userid ]);
+        $sessions = $this->dbhm->preQuery("SELECT * FROM sessions WHERE userid = ?;", [ $userid ]);
 
         if (count($sessions) > 0) {
             # We already have one.
@@ -204,19 +202,13 @@ class Session {
         $_SESSION['logged_in'] = TRUE;
         #error_log("Logged in as $userid in " . session_id());
 
-        $ss = array(
+        $_SESSION['persistent'] = [
             'id' => $id,
             'series' => $series,
             'token' => $thash
-        );
-
-        #error_log("Create cookie " . json_encode($ss));
-        # Set the cookie which means the client will remember and use this.  This also means we don't
-        # need a high PHP session lifetime, because this cookie will allow us to log back in.
-        @setcookie(COOKIE_NAME, json_encode($ss), time() + 60 * 60 * 24 * 30, '/', COOKIE_DOMAIN,
-            false, true);
-
-        return ($ss);
+        ];
+        
+        return ($_SESSION['persistent']);
     }
 
     public function verify($id, $series, $token) {
@@ -264,23 +256,6 @@ class Session {
 
         $_SESSION['id'] = NULL;
         $_SESSION['logged_in'] = FALSE;
-    }
-
-    public function returnCookie($userid) {
-        $sql = "SELECT * FROM sessions WHERE userid = ?;";
-        $sessions = $this->dbhr->preQuery($sql, [ $userid ]);
-        foreach ($sessions as $session) {
-            $ss = array(
-                'id' => $session['id'],
-                'series' => $session['series'],
-                'token' => sha1($session['token'])
-            );
-
-            @setcookie(COOKIE_NAME, json_encode($ss), time() + 60 * 60 * 24 * 30, '/', COOKIE_DOMAIN,
-                false, true);
-
-            break;
-        }
     }
 }
 

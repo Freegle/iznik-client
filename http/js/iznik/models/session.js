@@ -124,8 +124,15 @@ define([
             // Now we may or may not have already triggered, but we still want to refresh our data from the server.  This
             // means we are loosely up to date.  It also means that if we have been logged out on the server side, we'll
             // find out.
+            //
+            // We may have a persistent session from local storage which we can use to revive this session if the
+            // PHP session has timed out.
             $.ajax({
                 url: API + 'session',
+                type: 'GET',
+                data: {
+                    persistent: self.get('persistent')
+                },
                 success: function (ret) {
                     if (ret.ret == 111) {
                         // Down for maintenance

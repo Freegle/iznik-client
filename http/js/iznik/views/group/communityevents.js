@@ -48,6 +48,17 @@ define([
         template: "communityevents_one",
         className: 'padleftsm',
 
+        events: {
+            'click .js-info': 'info'
+        },
+
+        info: function() {
+            var v = new Iznik.Views.User.CommunityEvent.Details({
+                model: this.model
+            });
+            v.render();
+        },
+
         render: function() {
             var self = this;
             Iznik.View.prototype.render.call(this).then(function() {
@@ -58,4 +69,35 @@ define([
             })
         }
     });
+
+    Iznik.Views.User.CommunityEvent.Details  = Iznik.Views.Modal.extend({
+        template: "communityevents_details",
+
+        events: {
+            'click .js-delete': 'deleteMe'
+        },
+
+        deleteMe: function() {
+            var self = this;
+            console.log("Delete event");
+            this.model.destroy({
+                success: function() {
+                    self.close();
+                }
+            });
+        },
+
+        render: function() {
+            var self = this;
+            Iznik.Views.Modal.prototype.render.call(this).then(function() {
+                self.$('.js-dates').empty();
+                _.each(self.model.get('dates'), function(date) {
+                    var start = (new moment(date.start)).format('ddd, Do MMM YYYY HH:mm');
+                    var end = (new moment(date.end)).format('ddd, Do MMM YYYY HH:mm');
+                    self.$('.js-dates').append(start + ' - ' + end + '<br />');
+                });
+                console.log("Events", self.events);
+            })
+        }
+    });    
 });

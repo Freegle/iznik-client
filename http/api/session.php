@@ -15,6 +15,8 @@ function session() {
             if ($me && $me->getId()) {
                 $ret = array('ret' => 0, 'status' => 'Success', 'me' => $me->getPublic());
 
+                $ret['persistent'] = presdef('persistent', $_SESSION, NULL);
+
                 # Don't need to return this, and it might be large.
                 $ret['me']['messagehistory'] = NULL;
 
@@ -106,6 +108,7 @@ function session() {
                 # Return some more useful info.
                 $u = new User($dbhr, $dbhm, $id);
                 $ret['user'] = $u->getPublic();
+                $ret['persistent'] = presdef('persistent', $_SESSION, NULL);
             }
 
             break;
@@ -191,10 +194,6 @@ function session() {
             }
 
             $ret = array('ret' => 0, 'status' => 'Success');
-
-            # Try to remove any persistent session cookie, though it would not be valid
-            # even if presented.
-            @setcookie(COOKIE_NAME, '', time() - 3600, '/', COOKIE_DOMAIN, false, true);
 
             # Destroy the PHP session
             try {

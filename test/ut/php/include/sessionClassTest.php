@@ -84,7 +84,7 @@ class sessionClassTest extends IznikTestCase {
 
         # Cookie should log us in
         $_SESSION['id'] = NULL;
-        $_COOKIE[COOKIE_NAME] = json_encode($ret);
+        $_REQUEST['persistent'] = $ret;
         global $sessionPrepared;
         $sessionPrepared = FALSE;
         prepareSession($this->dbhm, $this->dbhm);
@@ -93,7 +93,7 @@ class sessionClassTest extends IznikTestCase {
 
         # ...repeatedly
         $_SESSION['id'] = NULL;
-        $_COOKIE[COOKIE_NAME] = json_encode($ret);
+        $_REQUEST['persistent'] = $ret;
         global $sessionPrepared;
         $sessionPrepared = FALSE;
         prepareSession($this->dbhm, $this->dbhm);

@@ -1,0 +1,36 @@
+<div class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="glyphicon glyphicon-remove-circle pull-right glyphicon-larger" class="close" data-dismiss="modal" />
+                <h4 class="modal-title js-modal-title">{{title}}</h4>
+            </div>
+            <div class="modal-body js-modal-body">
+                <table class="table borderless table-condensed eventtable fullholder">
+                    <tbody class="completefull">
+                    <tr><td><h4>Where</h4></td><td>{{location}}<td></tr>
+                    <tr><td><h4>When</h4></td><td class="js-dates"><td></tr>
+                    <% if (obj.contactname) { %><tr><td><h4>Contact name</h4></td><td>{{contactname}}<td></tr><% } %>
+                    <% if (obj.contactemail) { %><tr><td><h4>Contact email</h4></td><td><a data-realurl="true" href="mailto:{{contactemail}}">{{contactemail}}</a><td></tr><% } %>
+                    <% if (obj.contactphone) { %><tr><td><h4>Contact phone</h4></td><td><a data-realurl="true" href="tel:{{contactphone}}">{{contactphone}}</a><td></tr><% } %>
+                    <% if (obj.url) { %><tr><td><h4>Website</h4></td><td><a data-realurl="true" href="{{url}}" target="_blank" class="hardbreak">{{url}}</a><td></tr><% } %>
+                    <tr><td colspan="2">{{description}}<td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <% if (obj.canmodify) { %>
+                <div class="btn btn-white js-delete">
+                    <span class="glyphicon glyphicon-trash"></span>
+                    Delete
+                </div>
+                <div class="btn btn-white js-edit">
+                    <span class="glyphicon glyphicon-pencil"></span>
+                    Edit
+                </div>
+                <% } %>
+                <button type="button" class="btn btn-default js-close" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

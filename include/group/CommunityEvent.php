@@ -63,7 +63,7 @@ class CommunityEvent extends Entity
         $ret = [];
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $sql = "SELECT communityevents.id FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ?) AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? ORDER BY start ASC LIMIT 20;";
+        $sql = "SELECT communityevents.id FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ?) AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? ORDER BY end ASC LIMIT 20;";
         $events = $this->dbhr->preQuery($sql, [
             $userid,
             $mysqltime
