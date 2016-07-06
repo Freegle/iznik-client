@@ -1,0 +1,62 @@
+<div class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="glyphicon glyphicon-remove-circle clickme pull-right glyphicon-larger" class="close" data-dismiss="modal" />
+                <h4 class="modal-title js-modal-title">Add Community Event</h4>
+            </div>
+            <div class="modal-body js-modal-body">
+                <form>
+                    <div class="js-grouplist">
+                        <div class="form-group">
+                            <label for="group">For which group?</label>
+
+                            <div class="input-group">
+                                <div id="group" class="groupselect js-groupselect">
+                                    <select id="groupid"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Title:</label>
+                        <input type="text" class="form-control js-title" name="title" placeholder="Give the event a short title." required/>
+                    </div>
+                    <div class="form-group">
+                        <label>What is it?</label>
+                        <textarea class="form-control js-description" name="description" placeholder="Let people know what the event is - why they should come, what to expect, and any admission charge or fee (we only approve free or cheap events)." rows="5" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Where is it?</label>
+                        <input type="text" class="form-control js-location" name="location" placeholder="Where is it being held?  Make sure people can find you!" required />
+                    </div>
+                    <div>
+                        <label>When is it?</label>
+                        <p class="text-muted">You can add multiple dates if the event occurs several times.</p>
+                        <div class="js-dates"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact name:</label>
+                        <input type="text" length="60" class="form-control js-contactname" name="contactname" placeholder="Is there a contact person for anyone who wants to find out more? (Optional)" />
+                    </div>
+                    <div class="form-group">
+                        <label>Contact email:</label>
+                        <input type="email" class="form-control js-contactemail" name="contactemail" placeholder="Can people reach you by email? (Optional)" />
+                    </div>
+                    <div class="form-group">
+                        <label>Contact phone:</label>
+                        <input type="tel" class="form-control js-contactphone" name="contactphone" placeholder="Can people reach you by phone? (Optional)" />
+                    </div>
+                    <div class="form-group">
+                        <label>Web link:</label>
+                        <input type="url" class="form-control js-url" name="url" placeholder="Is there more information on the web? (Optional)" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white js-close" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success js-save">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

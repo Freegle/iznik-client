@@ -136,9 +136,12 @@ if (1==1) {
                     $dig = $user['digest'] ? $user['maxdigestdelay'] : 0;
                     $u->setMembershipAtt($gid, 'emailfrequency', $dig);
 
-                    $hol = presdef('onholidaytill', $user, NULL);
-                    $hol = ($hol && $hol != '0000-00-00') ? $hol : NULL;
-                    $u->setPrivate('onholidaytill', $hol);
+                    $fbusers = $dbhfd->query("SELECT * FROM facebook WHERE email = " . $dbhfd->quote($user['useremail']));
+                    foreach ($fbusers as $fbuser) {
+                        $hol = presdef('onholidaytill', $fbuser, NULL);
+                        $hol = ($hol && $hol != '0000-00-00') ? $hol : NULL;
+                        $u->setPrivate('onholidaytill', $hol);
+                    }
 
                     $count++;
                     if ($count % 1000 == 0) {

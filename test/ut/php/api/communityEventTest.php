@@ -118,6 +118,19 @@ class communityEventAPITest extends IznikAPITestCase {
             'id' => $id
         ]);
         assertEquals('UTTest2', $ret['communityevent']['title']);
+
+        # Edit it
+        $ret = $this->call('communityevent', 'PUT', [
+            'id' => $id,
+            'title' => 'UTTest3'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('communityevent', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals('UTTest3', $ret['communityevent']['title']);
+
         $dateid = $ret['communityevent']['dates'][0]['id'];
 
         # And back as the user

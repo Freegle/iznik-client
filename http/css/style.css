@@ -1263,6 +1263,12 @@ body {
     margin: 0;
     padding: 0;
 }
+
+.combodate select {
+    padding: 0px !important;
+    padding-left: 5px !important;
+}
+
 /*==================================================
 =            Bootstrap 3 Media Queries             =
 ==================================================*/

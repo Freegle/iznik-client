@@ -196,7 +196,7 @@ define([
                 // Left menu is community events
                 var v = new Iznik.Views.User.CommunityEvents();
                 v.render().then(function() {
-                    $('#js-events').append(v.$el);
+                    $('#js-eventcontainer').append(v.$el);
                 })
             });
 

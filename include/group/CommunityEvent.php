@@ -46,7 +46,8 @@ class CommunityEvent extends Entity
     }
 
     public function addGroup($groupid) {
-        $this->dbhm->preExec("INSERT INTO communityevents_groups (eventid, groupid) VALUES (?, ?);" , [
+        # IGNORE as we have a unique key on event/group.
+        $this->dbhm->preExec("INSERT IGNORE INTO communityevents_groups (eventid, groupid) VALUES (?, ?);" , [
             $this->id,
             $groupid
         ]);
@@ -105,13 +106,15 @@ class CommunityEvent extends Entity
         # We can modify events which we created, or where we are a mod on any of the groups on which this event
         # appears, or if we're support/admin.
         $canmodify = $this->event['userid'] == $userid;
-        #error_log("Check user {$this->event['userid']}, $userid");
+        error_log("Check user {$this->event['userid']}, $userid");
         $u = new User($this->dbhr, $this->dbhm, $userid);
 
+        error_log("Can mod? $canmodify");
         if (!$canmodify) {
-            $groups = $this->dbhr->preQuery("SELECT * FROM communityevents_groups WHERE eventid = ?", [ $this->id ]);
+            $groups = $this->dbhr->preQuery("SELECT * FROM communityevents_groups WHERE eventid = ?;", [ $this->id ]);
+            error_log("\"SELECT * FROM communityevents_groups WHERE eventid = {$this->id};");
             foreach ($groups as $group) {
-                #error_log("Check for group {$group['groupid']} " . $u->isAdminOrSupport() . ", " . $u->isModOrOwner($group['groupid']));
+                error_log("Check for group {$group['groupid']} " . $u->isAdminOrSupport() . ", " . $u->isModOrOwner($group['groupid']));
                 if ($u->isAdminOrSupport() || $u->isModOrOwner($group['groupid'])) {
                     $canmodify = TRUE;
                 }

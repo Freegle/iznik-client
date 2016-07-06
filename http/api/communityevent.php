@@ -56,6 +56,19 @@ function communityevent() {
                 break;
             }
 
+            case 'PUT':
+                $ret = ['ret' => 1, 'status' => 'Not logged in'];
+
+                if ($me && $c->canModify($me->getId())) {
+                    $c->setAttributes($_REQUEST);
+                    
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                }
+                break;
+
             case 'PATCH': {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 

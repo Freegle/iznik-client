@@ -35,6 +35,12 @@ requirejs.config({
         "maplabel": {
             deps: [ "jquery", "gmaps"]
         },
+        "combodate": {
+            deps: [ 'moment' ]
+        },
+        'moment': {
+            exports: 'moment'
+        },
         "jquery.dd": [ "jquery" ],
         "jquery.dotdotdot": [ "jquery" ],
         "jquery.geocomplete": [ "jquery" ],

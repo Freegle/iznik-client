@@ -160,6 +160,8 @@ define([
 
             // We've built the dropdown so we can show it now.
             $('.dd').css('visibility', 'visible');
+            
+            self.trigger('completed');
         },
 
         render: function() {
@@ -167,7 +169,7 @@ define([
 
             self.id  = self.options.hasOwnProperty('id') ? self.options.id : null;
 
-            if (self.id && !$('#' + self.id).is('select')) {
+            if (self.id && $('#' + self.id).length > 0 && !$('#' + self.id).is('select')) {
                 // Check that we've called this with the right element type, otherwise it fails in a way that's
                 // a pain to debug.  Not that I've made that mistake repeatedly, you understand.
                 console.error("Need to use a select element.");
@@ -177,7 +179,8 @@ define([
             self.$el.css('visibility', 'hidden');
 
             // The dropdown library needs it to be in the DOM.
-            this.waitDOM(this, this.inDOM);
+            self.waitDOM(self, self.inDOM);
+
             return(resolvedPromise(self));
         },
 
