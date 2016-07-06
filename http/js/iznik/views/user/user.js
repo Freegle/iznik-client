@@ -452,6 +452,8 @@ define([
         template: 'modtools_user_logentry',
 
         render: function() {
+            var self = this;
+
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
                 var mom = new moment(self.model.get('timestamp'));
@@ -465,6 +467,8 @@ define([
     Iznik.Views.ModTools.User.ModMails = Iznik.Views.ModTools.User.Logs.extend({
         template: 'modtools_user_modmails',
         addLog: function(log) {
+            var self = this;
+
             var v = new Iznik.Views.ModTools.User.ModMailEntry({
                 model: new Iznik.Model(log)
             });
