@@ -105,7 +105,6 @@ define([
 
         deleteMe: function() {
             var self = this;
-            console.log("Delete event");
             this.model.destroy({
                 success: function() {
                     self.close();
@@ -132,6 +131,8 @@ define([
         events: {
             'click .js-save': 'save'
         },
+        
+        closeAfterSave: true,
 
         save: function() {
             var self = this;
@@ -146,7 +147,6 @@ define([
 
                 self.model.save({}, {
                     success: function(model, response, options) {
-                        console.log("Saved rsp", response);
                         if (response.id) {
                             self.model.set('id', response.id);
                         }
@@ -154,8 +154,7 @@ define([
                 }).then(function() {
                     // Add the group and dates.
                     var groups = self.model.get('groups');
-                    if (self.groupSelect.get() != groups[0]['id']) {
-                        console.log("Add group", self.groupSelect.get());
+                    if (_.isUndefined(groups) || self.groupSelect.get() != groups[0]['id']) {
                         $.ajax({
                             url: API + 'communityevent',
                             type: 'PATCH',
@@ -165,16 +164,17 @@ define([
                                 groupid: self.groupSelect.get()
                             },
                             success: function (ret) {
-                                console.log("Remove group", groups[0]['id']);
-                                $.ajax({
-                                    url: API + 'communityevent',
-                                    type: 'PATCH',
-                                    data: {
-                                        id: self.model.get('id'),
-                                        action: 'RemoveGroup',
-                                        groupid: groups[0]['id']
-                                    }
-                                });
+                                if (!_.isUndefined(groups)) {
+                                    $.ajax({
+                                        url: API + 'communityevent',
+                                        type: 'PATCH',
+                                        data: {
+                                            id: self.model.get('id'),
+                                            action: 'RemoveGroup',
+                                            groupid: groups[0]['id']
+                                        }
+                                    });
+                                }
                             }
                         });
                     }
@@ -212,13 +212,17 @@ define([
                     }
                 });
 
-                this.close();
+                if (self.closeAfterSave) {
+                    self.close();
+                }
             }
         },
+        
+        parentClass: Iznik.Views.Modal,
 
         render: function() {
             var self = this;
-            Iznik.Views.Modal.prototype.render.call(this).then(function() {
+            this.parentClass.prototype.render.call(this).then(function() {
                 self.groupSelect = new Iznik.Views.Group.Select({
                     systemWide: false,
                     all: false,
@@ -252,7 +256,7 @@ define([
                 var dates = self.model.get('dates');
                 self.dates = [];
 
-                if (dates.length == 0) {
+                if (_.isUndefined(dates) || dates.length == 0) {
                     // None so far.  Set up one for them to modify.
                     var v = new Iznik.Views.User.CommunityEvent.Dates({
                         list: self.dates,

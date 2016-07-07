@@ -246,6 +246,13 @@ define([
                                     sound: false
                                 },
                                 {
+                                    fi: 'pendingevents',
+                                    el: '.js-pendingeventscount',
+                                    ev: 'pendingeventscountschanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
                                     fi: 'spammerpendingadd',
                                     el: '.js-spammerpendingaddcount',
                                     ev: 'spammerpendingaddcountschanged',

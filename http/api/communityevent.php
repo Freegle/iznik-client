@@ -5,6 +5,9 @@ function communityevent() {
     $me = whoAmI($dbhr, $dbhm);
 
     $id = intval(presdef('id', $_REQUEST, NULL));
+    $pending = array_key_exists('pending', $_REQUEST) ? filter_var($_REQUEST['pending'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $ctx = presdef('context', $_REQUEST, NULL);
+    
     $c = new CommunityEvent($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -26,7 +29,8 @@ function communityevent() {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
-                            'communityevents' => $c->listForUser($me->getId())
+                            'communityevents' => $c->listForUser($me->getId(), $pending, $ctx),
+                            'context' => $ctx
                         ];
                     }
                 }
@@ -49,7 +53,6 @@ function communityevent() {
                         $id = $c->create($me->getId(), $title, $location, $contactname, $contactphone, $contactemail, $description);
                     }
 
-                    error_log("Created id $id");
                     $ret = $id ? ['ret' => 0, 'status' => 'Success', 'id' => $id] : ['ret' => 2, 'status' => 'Create failed'];
                 }
 

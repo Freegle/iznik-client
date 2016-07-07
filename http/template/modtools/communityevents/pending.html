@@ -1,0 +1,101 @@
+<div class="panel panel-default">
+    <div class="panel-heading nopadtop nopadbot">
+        <div class="row">
+            <div class="panel-title">
+                <div class="col-sm-9">
+                    <h4>
+                        {{title}}
+                        <span class="text-muted pull-right">#{{id}}</span>
+                    </h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="panel-body">
+        <form>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label>Title:</label>
+                        <input type="text" class="form-control js-title" name="title" required/>
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="js-grouplist">
+                        <div class="form-group">
+                            <label for="group">For group:</label>
+
+                            <div class="input-group">
+                                <div id="group" class="groupselect js-groupselect">
+                                    <select id="groupid"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        <label>Where:</label>
+                        <input type="text" class="form-control js-location" name="location" required />
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label>What:</label>
+                        <textarea class="form-control js-description" name="description" rows="5" required></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div>
+                        <label>When:</label>
+                        <div class="js-dates"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label>Contact name:</label>
+                        <input type="text" length="60" class="form-control js-contactname" name="contactname" />
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label>Contact email:</label>
+                        <input type="email" class="form-control js-contactemail" name="contactemail" />
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label>Contact phone:</label>
+                        <input type="tel" class="form-control js-contactphone" name="contactphone" />
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label>Web link:</label>
+                        <input type="url" class="form-control js-url" name="url" />
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div class="clearfix"></div>
+        <div class="panel-footer">
+            <ul class="list-inline list-unstyled">
+                <button type="button" class="btn btn-success js-approve">
+                    <span class="glyphicon glyphicon-ok" />&nbsp;Approve
+                </button>
+                <button type="button" class="btn btn-warning js-save">
+                    <span class="glyphicon glyphicon-floppy-disk" />&nbsp;Save Changes
+                </button>
+                <button type="button" class="btn btn-danger js-delete">
+                    <span class="glyphicon glyphicon-trash" />&nbsp;Delete
+                </button>
+            </ul>
+        </div>
+    </div>
+</div>

@@ -159,6 +159,7 @@ class Group extends Entity
         #
         # See also MessageCollection.
         $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
+        $eventsqltime = date("Y-m-d H:i:s", time());
 
         $ret = [
             'pending' => $showmessages ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL AND messages.deleted IS NULL;", [
@@ -181,6 +182,10 @@ class Group extends Entity
                 $this->id,
                 MembershipCollection::PENDING
             ])[0]['count'] : 0,
+            'pendingevents' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid = ? AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ?;", [
+                $this->id,
+                $eventsqltime
+            ])[0]['count'],
             'spammembers' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users INNER JOIN memberships ON memberships.groupid = ? AND memberships.userid = users.id WHERE suspectcount > 0;", [
                 $this->id
             ])[0]['count'],

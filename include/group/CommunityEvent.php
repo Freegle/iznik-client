@@ -60,17 +60,21 @@ class CommunityEvent extends Entity
         ]);
     }
 
-    public function listForUser($userid) {
+    public function listForUser($userid, $pending, &$ctx) {
         $ret = [];
+        $pendingq = $pending ? " AND pending = 1 " : " AND pending = 0 ";
+        $ctxq = $ctx ? " end > {$ctx['end']} " : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $sql = "SELECT communityevents.id FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ?) AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? ORDER BY end ASC LIMIT 20;";
+        $sql = "SELECT communityevents.id, communityevents_dates.end FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ?) AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
+        #error_log("$sql, $userid, $mysqltime");
         $events = $this->dbhr->preQuery($sql, [
             $userid,
             $mysqltime
         ]);
 
         foreach ($events as $event) {
+            $ctx['end'] = $event['end'];
             $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id']);
             $atts = $e->getPublic();
             $atts['canmodify'] = $e->canModify($userid);
@@ -106,15 +110,15 @@ class CommunityEvent extends Entity
         # We can modify events which we created, or where we are a mod on any of the groups on which this event
         # appears, or if we're support/admin.
         $canmodify = $this->event['userid'] == $userid;
-        error_log("Check user {$this->event['userid']}, $userid");
+        #error_log("Check user {$this->event['userid']}, $userid");
         $u = new User($this->dbhr, $this->dbhm, $userid);
 
-        error_log("Can mod? $canmodify");
+        #error_log("Can mod? $canmodify");
         if (!$canmodify) {
             $groups = $this->dbhr->preQuery("SELECT * FROM communityevents_groups WHERE eventid = ?;", [ $this->id ]);
-            error_log("\"SELECT * FROM communityevents_groups WHERE eventid = {$this->id};");
+            #error_log("\"SELECT * FROM communityevents_groups WHERE eventid = {$this->id};");
             foreach ($groups as $group) {
-                error_log("Check for group {$group['groupid']} " . $u->isAdminOrSupport() . ", " . $u->isModOrOwner($group['groupid']));
+                #error_log("Check for group {$group['groupid']} " . $u->isAdminOrSupport() . ", " . $u->isModOrOwner($group['groupid']));
                 if ($u->isAdminOrSupport() || $u->isModOrOwner($group['groupid'])) {
                     $canmodify = TRUE;
                 }

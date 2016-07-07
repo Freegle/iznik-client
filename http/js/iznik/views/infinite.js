@@ -130,7 +130,7 @@ define([
                                 self.lastFetched = self.selected;
                                 self.context = response.context;
 
-                                //console.log("Fetched length", collection.length);
+                                // console.log("Fetched length", collection.length);
                                 if (collection.length == 0) {
                                     self.$('.js-none').fadeIn('slow');
                                 } else {

@@ -71,6 +71,7 @@ define([
             "modtools/members/pending(/:search)": "pendingMembers",
             "modtools/members/approved(/:search)": "approvedMembers",
             "modtools/members/spam": "spamMembers",
+            "modtools/events/pending": "pendingEvents",
             "modtools/spammerlist/pendingadd(/:search)": "spammerListPendingAdd",
             "modtools/spammerlist/confirmed(/:search)": "spammerListConfirmed",
             "modtools/spammerlist/pendingremove(/:search)": "spammerListPendingRemove",
@@ -505,6 +506,24 @@ define([
                     var page = new Iznik.Views.ModTools.Pages.ApprovedMembers({
                         search: search
                     });
+                    self.loadRoute({
+                        page: page,
+                        modtools: true
+                    });
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+
+        pendingEvents: function (search) {
+            var self = this;
+
+            require(["iznik/views/pages/modtools/events_pending"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.PendingEvents();
                     self.loadRoute({
                         page: page,
                         modtools: true
