@@ -144,11 +144,16 @@ class User extends Entity
     public function getName() {
         # We may or may not have the knowledge about how the name is split out, depending
         # on the sign-in mechanism.
+        $name = NULL;
         if ($this->user['fullname']) {
-            return($this->user['fullname']);
+            $name = $this->user['fullname'];
         } else {
-            return($this->user['firstname'] . ' ' . $this->user['lastname']);
+            $name = $this->user['firstname'] . ' ' . $this->user['lastname'];
         }
+
+        # Make sure we don't return an email if somehow one has snuck in.
+        $name = strpos($name, '@') !== FALSE ? substr($name, 0, strpos($name, '@')) : $name;
+        return($name);
     }
 
     /**

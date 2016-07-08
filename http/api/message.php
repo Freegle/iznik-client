@@ -308,6 +308,13 @@ function message() {
 
                                         $fromemail = $u->getEmailById($eidforgroup);
 
+                                        # Make sure it's attached to this group.
+                                        $dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, collection) VALUES (?,?,?);", [
+                                            $draft['msgid'],
+                                            $groupid,
+                                            MessageCollection::PENDING
+                                        ]);
+
                                         if ($m->submit($u, $fromemail, $groupid)) {
                                             # We sent it.
                                             $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid ];

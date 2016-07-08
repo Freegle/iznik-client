@@ -864,7 +864,7 @@ class Message
         $myid = $me ? $me->getId() : NULL;
         $sess = session_id();
 
-        $rc = $this->dbhm->preExec("INSERT INTO messages (source) VALUES(?);", [ Message::PLATFORM ]);
+        $rc = $this->dbhm->preExec("INSERT INTO messages (source, sourceheader) VALUES(?);", [ Message::PLATFORM, Message::PLATFORM ]);
         $id = $rc ? $this->dbhm->lastInsertId() : NULL;
 
         if ($id) {
