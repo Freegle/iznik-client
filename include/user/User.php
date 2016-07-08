@@ -1489,6 +1489,9 @@ class User extends Entity
                     $this->dbhm->preExec("UPDATE IGNORE sessions SET userid = $id1 WHERE userid = $id2;");
                     $this->dbhm->preExec("UPDATE IGNORE users_push_notifications SET userid = $id1 WHERE userid = $id2;");
                     $this->dbhm->preExec("UPDATE IGNORE chat_roster SET userid = $id1 WHERE userid = $id2;");
+                    $this->dbhm->preExec("UPDATE IGNORE chat_rooms SET userid1 = $id1 WHERE userid1 = $id2;");
+                    $this->dbhm->preExec("UPDATE IGNORE chat_rooms SET userid2 = $id1 WHERE userid2 = $id2;");
+                    $this->dbhm->preExec("UPDATE IGNORE chat_messages SET userid = $id1 WHERE userid = $id2;");
                 }
 
                 # Merge attributes we want to keep if we have them in id2 but not id1.  Some will have unique

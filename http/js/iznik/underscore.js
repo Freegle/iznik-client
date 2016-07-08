@@ -40,7 +40,7 @@ define([
                 return getClosure(id, _.template(html, {
                     interpolate: /\{\{(.+?)\}\}/g,
                     evaluate: /<%(.+?)%>/g,
-                    escape: /\{\{-(.+?)\}\}/g
+                    escape: /<%-(.+?)%>/g
                 }));
             } else {
                 console.error("Template not loaded", id);

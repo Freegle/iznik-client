@@ -292,6 +292,10 @@
     top: 0px;
 }
 
+.padtop {
+    padding-top: 10px;
+}
+
 .padleft {
     padding-left: 10px;
 }
@@ -1011,8 +1015,8 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 }
 
 .chat-other .chat-message {
-    background-color: white;
-    color:  black;
+    background-color: white !important;
+    color:  black !important;
 }
 
 .badge-unread {
