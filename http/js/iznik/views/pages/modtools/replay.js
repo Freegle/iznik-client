@@ -96,11 +96,13 @@ define([
         pause: function() {
             $('#js-pause').addClass('reallyHide');
             $('#js-play').removeClass('reallyHide');
+            $('#js-id').html(this.eventIndex);
             this.paused = true;
         },
 
         play: function() {
             this.paused = false;
+            $('#js-id').html('');
             $('#js-pause').removeClass('reallyHide');
             $('#js-play').addClass('reallyHide');
             this.playEvent();
