@@ -63,7 +63,7 @@ class Events {
     }
     
     public function listSessions() {
-        $sql = "SELECT DISTINCT(sessionid) FROM logs_events WHERE ip IS NOT NULL ORDER BY id DESC;";
+        $sql = "SELECT DISTINCT(sessionid) FROM logs_events ORDER BY id DESC;";
         $sessions = $this->dbhr->preQuery($sql);
         $ret = [];
         
@@ -77,19 +77,22 @@ class Events {
             $sessions = $this->dbhr->preQuery($sql, [ $sessid ]);
             foreach ($sessions as $session) {
                 $thisone['ip'] = $session['ip'];
-                $thisone['modtools'] = strpos($session['route'], 'modtools') !== FALSE;
-                $thisone['viewx'] = $session['viewx'];
-                $thisone['viewy'] = $session['viewy'];
 
-                if ($session['userid']) {
-                    $u = new User($this->dbhr, $this->dbhm, $session['userid']);
-                    $thisone['user'] = $u->getPublic(NULL, FALSE);
+                if ($thisone['ip']) {
+                    $thisone['modtools'] = strpos($session['route'], 'modtools') !== FALSE;
+                    $thisone['viewx'] = $session['viewx'];
+                    $thisone['viewy'] = $session['viewy'];
+
+                    if ($session['userid']) {
+                        $u = new User($this->dbhr, $this->dbhm, $session['userid']);
+                        $thisone['user'] = $u->getPublic(NULL, FALSE);
+                    }
+
+                    $thisone['start'] = ISODate($session['start']);
+                    $thisone['end'] = ISODate($session['end']);
+
+                    $ret[] = $thisone;
                 }
-
-                $thisone['start'] = ISODate($session['start']);
-                $thisone['end'] = ISODate($session['end']);
-
-                $ret[] = $thisone;
             }
         }
         
