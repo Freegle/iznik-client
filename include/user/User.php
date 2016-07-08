@@ -11,6 +11,7 @@ require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/mailtemplates/modtools/verifymail.php');
+require_once(IZNIK_BASE . '/mailtemplates/welcome/withpassword.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
 class User extends Entity
@@ -2013,6 +2014,20 @@ class User extends Entity
             'byuser' => $me ? $me->getId() : NULL,
             'text' => "Split $email, YID $yahooid, YUID $yahoouserid"
         ]);
+    }
+
+    public function welcome($email, $password) {
+        $html = welcome_password(USER_SITE, MODLOGO, $email, $password);
+
+        $message = Swift_Message::newInstance()
+            ->setSubject("Welcome to " . SITE_NAME . "!")
+            ->setFrom([NOREPLY_ADDR => SITE_NAME])
+            ->setTo($email)
+            ->setBody("Thanks for joining"  . SITE_NAME . "!  We've created a password for you: $password.")
+            ->addPart($html, 'text/html');
+
+        list ($transport, $mailer) = getMailer();
+        $mailer->send($message);
     }
 
     public function verifyEmail($email) {

@@ -273,6 +273,7 @@ function message() {
                                     $u->addLogin(User::LOGIN_NATIVE, $newuser, $pw);
                                     $eid = $u->addEmail($email, 1);
                                     $u->login($pw);
+                                    $u->welcome($email, $pw);
                                 } else {
                                     $u = new User($dbhr, $dbhm, $uid);
                                     $eid = $u->getIdForEmail($email)['id'];

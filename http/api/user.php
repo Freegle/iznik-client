@@ -101,6 +101,7 @@ function user() {
                         $rc = $u->addEmail($email);
 
                         if ($rc) {
+                            $u->welcome($email, $password);
                             $rc = $u->addLogin(User::LOGIN_NATIVE, $id, $password);
 
                             if ($rc) {
@@ -131,7 +132,7 @@ function user() {
 
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-            error_log("Owner? " . $me->isModOrOwner($groupid) . " admin " . $me->isAdminOrSupport());
+            #error_log("Owner? " . $me->isModOrOwner($groupid) . " admin " . $me->isAdminOrSupport());
             if ($u && $me && ($me->isModOrOwner($groupid) || $me->isAdminOrSupport())) {
                 error_log("ok");
                 if ($suspectcount !== NULL) {
