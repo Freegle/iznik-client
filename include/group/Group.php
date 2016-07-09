@@ -653,11 +653,10 @@ class Group extends Entity
             #$news = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND groupid = {$this->id};");
             #error_log("Yahoo membs after update" . var_export($news, TRUE));
 
-
             # Delete any residual Yahoo memberships.
-            #$resid = $this->dbhm->preQuery("SELECT memberships_yahoo.id, emailid FROM memberships_yahoo WHERE emailid IN (SELECT emailid FROM syncdelete) AND membershipid IN (SELECT id FROM memberships WHERE groupid = ?);", [$this->id]);
+            #$resid = $this->dbhm->preQuery("SELECT memberships_yahoo.id, emailid FROM memberships_yahoo WHERE emailid IN (SELECT emailid FROM syncdelete) AND membershipid IN (SELECT id FROM memberships WHERE groupid = ? AND collection = ?);", [$this->id, $collection]);
             #error_log(var_export($resid, TRUE));
-            $rc = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE emailid IN (SELECT emailid FROM syncdelete) AND membershipid IN (SELECT id FROM memberships WHERE groupid = ?);", [$this->id]);
+            $rc = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE emailid IN (SELECT emailid FROM syncdelete) AND membershipid IN (SELECT id FROM memberships WHERE groupid = ? AND collection = ?);", [$this->id, $collection]);
             #error_log("Deleted $rc Yahoo Memberships");
 
             #$news = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND groupid = {$this->id};");
@@ -667,7 +666,7 @@ class Group extends Entity
             # memberships on this group (recall that we might have multiple Yahoo memberships with different email
             # addresses for the same group).  If so, then we want to delete the overall membership, and also log
             # the deletes so that we can see why memberships disappear.
-            $todeletes = $this->dbhm->preQuery("SELECT memberships.id, memberships.userid FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid WHERE membershipid IS NULL AND groupid = ?;", [$this->id]);
+            $todeletes = $this->dbhm->preQuery("SELECT memberships.id, memberships.userid FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid WHERE membershipid IS NULL AND groupid = ? AND collection = ?;", [$this->id, $collection]);
             #error_log("Overall to delete " . var_export($todeletes, TRUE));
             #error_log("Delete overall memberships " . count($todeletes));
             $meid = $me ? $me->getId() : NULL;

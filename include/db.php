@@ -1,4 +1,4 @@
-<?php
+r<?php
 
 use Pheanstalk\Pheanstalk;
 require_once('config.php');

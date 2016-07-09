@@ -460,6 +460,47 @@ class membershipsAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testPendingMembers() {
+        error_log(__METHOD__);
+
+        assertTrue($this->user->login('testpw'));
+        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_OWNER));
+
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::APPROVED
+        ]);
+        error_log("Returned " . var_export($ret, TRUE));
+
+        assertEquals(1, count($ret['members']));
+
+        error_log("Pending members on {$this->groupid}");
+
+        $members = [
+            [
+                'email' => 'test1@test.com'
+            ],
+            [
+                'email' => 'test2@test.com'
+            ]
+        ];
+
+        $ret = $this->call('memberships', 'PATCH', [
+            'groupid' => $this->groupid,
+            'members' => $members,
+            'collection' => MembershipCollection::PENDING
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::PENDING
+        ]);
+        error_log("Returned " . var_export($ret, TRUE));
+
+        assertEquals(2, count($ret['members']));
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testReject() {
         error_log(__METHOD__);
 
