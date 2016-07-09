@@ -21,6 +21,7 @@
     "jenssegers/imagehash": "^0.4.0",
     "phpunit/phpunit-selenium": "^3.0",
     "facebook/webdriver": "^1.1",
-    "swiftmailer/swiftmailer": "@stable"
+    "swiftmailer/swiftmailer": "@stable",
+    "abraham/twitteroauth": "^0.6.4"
   }
 }

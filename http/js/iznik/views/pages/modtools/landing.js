@@ -153,9 +153,13 @@ define([
                     });
 
                     // Add any warnings to prompt action.
-                    var v = new Iznik.Views.ModTools.Settings.ActionRequired();
+                    var v = new Iznik.Views.ModTools.Settings.MissingProfile();
                     v.render().then(function() {
-                        self.$('.js-settingsaction').html(v.el);
+                        self.$('.js-missingprofile').html(v.el);
+                    })
+                    var v = new Iznik.Views.ModTools.Settings.MissingTwitter();
+                    v.render().then(function() {
+                        self.$('.js-missingtwitter').html(v.el);
                     })
                 });
 

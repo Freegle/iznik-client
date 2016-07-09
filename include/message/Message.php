@@ -864,7 +864,7 @@ class Message
         $myid = $me ? $me->getId() : NULL;
         $sess = session_id();
 
-        $rc = $this->dbhm->preExec("INSERT INTO messages (source, sourceheader) VALUES(?);", [ Message::PLATFORM, Message::PLATFORM ]);
+        $rc = $this->dbhm->preExec("INSERT INTO messages (source, sourceheader) VALUES(?,?);", [ Message::PLATFORM, Message::PLATFORM ]);
         $id = $rc ? $this->dbhm->lastInsertId() : NULL;
 
         if ($id) {
@@ -1982,6 +1982,20 @@ class Message
         #error_log("Pruned text to $textbody");
         return(trim($textbody));
     }
+    
+    public static function canonSubj($subj) {
+        $subj = strtolower($subj);
+
+        // Remove any group tag
+        $subj = preg_replace('/^\[.*\](.*)/', "$1", $subj);
+
+        // Remove duplicate spaces
+        $subj = preg_replace('/\s+/', ' ', $subj);
+
+        $subj = trim($subj);
+
+        return($subj);
+    }
 
     public function recordRelated() {
         # Message A is related to message B if:
@@ -2001,18 +2015,19 @@ class Message
         }
 
         $found = 0;
+        $thissubj = Message::canonSubj($this->subject);
 
         if ($type) {
             # We get the Damerau-Levenshtein distance between the subjects, which we can use to
             # find the closest match if there isn't an exact one.
             $sql = "SELECT id, subject, date, DAMLEVLIM(subject, ?, 50) AS dist FROM messages WHERE fromuser = ? AND type = ?;";
-            $messages = $this->dbhr->preQuery($sql, [ $this->subject, $this->fromuser, $type ]);
-            #error_log($sql . var_export([ $this->subject, $this->subject, $this->fromuser, $type ], TRUE));
+            $messages = $this->dbhr->preQuery($sql, [ $thissubj, $this->fromuser, $type ]);
+            #error_log($sql . var_export([ $thissubj, $thissubj, $this->fromuser, $type ], TRUE));
 
             $thistime = strtotime($this->date);
             # If we are using the standard subject line format, ignore all of the stuff that isn't the item.
-            $subj1 = $this->subject;
-            if (preg_match('/.*?\:(.*)\(.*\)/', $this->subject, $matches)) {
+            $subj1 = $thissubj;
+            if (preg_match('/.*?\:(.*)\(.*\)/', $thissubj, $matches)) {
                 $subj1 = trim($matches[1]);
             }
             $mindist = PHP_INT_MAX;
@@ -2020,14 +2035,15 @@ class Message
             $matchmsg = NULL;
 
             foreach ($messages as $message) {
-                #error_log("{$message['subject']} vs {$this->subject} dist {$message['dist']}");
+                $messsubj = Message::canonSubj($message['subject']);
+                #error_log("{$messsubj} vs {$thissubj} dist {$message['dist']}");
                 #error_log("Compare {$message['date']} vs {$this->date}, " . strtotime($message['date']) . " vs $thistime");
                 $mindist = min($mindist, $message['dist']);
 
                 if ((($datedir == 1) && strtotime($message['date']) >= $thistime) ||
                     (($datedir == -1) && strtotime($message['date']) <= $thistime)) {
-                    $subj2 = $message['subject'];
-                    if (preg_match('/.*?\:(.*)\(.*\)/', $message['subject'], $matches)) {
+                    $subj2 = $messsubj;
+                    if (preg_match('/.*?\:(.*)\(.*\)/', $messsubj, $matches)) {
                         $subj2 = trim($matches[1]);
                     }
                     #error_log("Compare subjects $subj1 vs $subj2 dist {$message['dist']} min $mindist lim " . (strlen($subj1) * 3 / 4));

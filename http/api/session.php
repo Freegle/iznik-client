@@ -30,7 +30,7 @@ function session() {
                 $ret['groups'] = $me->getMemberships();
                 $ret['work'] = [];
 
-                foreach ($ret['groups'] as $group) {
+                foreach ($ret['groups'] as &$group) {
                     if (pres('work', $group)) {
                         foreach ($group['work'] as $key => $work) {
                             if (pres($key, $ret['work'])) {
@@ -39,6 +39,20 @@ function session() {
                                 $ret['work'][$key] = $work;
                             }
                         }
+                    }
+
+                    $ammod = $me->isModerator();
+
+                    if ($ammod) {
+                        # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
+                        # in here - but it's of no interest to members so there's no point delaying them by
+                        # fetching it.
+                        $t = new Twitter($dbhr, $dbhm, $group['id']);
+                        $atts = $t->getPublic();
+                        unset($atts['token']);
+                        unset($atts['secret']);
+                        $atts['authdate'] = ISODate($atts['authdate']);
+                        $group['twitter'] =  $atts;
                     }
                 }
 

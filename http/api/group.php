@@ -43,9 +43,20 @@ function group() {
                 $search = presdef('search', $_REQUEST, NULL);
 
                 if ($members && $me && $me->isModOrOwner($id)) {
-
                     $ret['group']['members'] = $g->getMembers($limit, $search, $ctx);
                     $ret['context'] = $ctx;
+                }
+
+                if ($me && $me->isModerator()) {
+                    # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
+                    # in here - but it's of no interest to members so there's no point delaying them by
+                    # fetching it.
+                    $t = new Twitter($dbhr, $dbhm, $id);
+                    $atts = $t->getPublic();
+                    unset($atts['token']);
+                    unset($atts['secret']);
+                    $atts['authdate'] = ISODate($atts['authdate']);
+                    $ret['group']['twitter'] =  $atts;
                 }
 
                 break;

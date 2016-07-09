@@ -160,6 +160,8 @@ define([
                 self.group = new Iznik.Models.Group({
                     id: self.selected
                 });
+
+                self.$('.js-twitterauth').attr('href', '/twitter/twitter_request.php?groupid=' + self.selected);
     
                 self.group.fetch().then(function() {
                     // Add license info
@@ -453,6 +455,27 @@ define([
 
                     self.groupAppearanceForm.render();
                     $('#groupappearanceform input[name=tagline]').attr('maxlength', 120);
+
+                    // Add Twitter info.  Won't show for groups it shouldn't.
+                    var twitter = self.group.get('twitter');
+                    console.log("Got twitter info", self.group, twitter);
+
+                    self.$('.js-twitter').hide();
+
+                    if (twitter) {
+                        self.$('.js-twittername').html(twitter.name);
+                        self.$('.js-twitterurl').attr('href', 'https://twitter.com/' + twitter.name);
+
+                        if (!twitter.valid) {
+                            self.$('.js-twitternotlinked').show();
+                        } else {
+                            var mom = new moment(twitter.authdate);
+                            self.$('.js-twitterauthdate').html(mom.format('ll'));
+                            self.$('.js-twittervalid').show();
+                        }
+                    } else {
+                        self.$('.js-twitternotlinked').show();
+                    }
 
                     // Layout messes up a bit for radio buttons.
                     self.groupForm.$(':radio').closest('.form-group').addClass('clearfix');
@@ -1861,8 +1884,8 @@ define([
         }
     });
 
-    Iznik.Views.ModTools.Settings.ActionRequired = Iznik.View.extend({
-        template: 'modtools_settings_actionrequired',
+    Iznik.Views.ModTools.Settings.MissingProfile = Iznik.View.extend({
+        template: 'modtools_settings_missingprofile',
         
         render: function() {
             var self = this;
@@ -1899,4 +1922,43 @@ define([
             return(p);
         }
     });
+
+    Iznik.Views.ModTools.Settings.MissingTwitter = Iznik.View.extend({
+        template: 'modtools_settings_missingtwitter',
+
+        render: function() {
+            var self = this;
+            var p;
+            var missingTwitter = [];
+            var groups = Iznik.Session.get('groups');
+            groups.each(function(group) {
+                var role = group.get('role');
+                if (group.get('type') == 'Freegle' && (role == 'Moderator' || role == 'Owner') &&
+                    (!group.get('twitter') || !group.get('twitter').valid)) {
+                    missingTwitter.push(group.get('namedisplay'));
+                }
+            });
+
+            if (missingTwitter.length > 0) {
+                var p = Iznik.View.prototype.render.call(this);
+                require(['jquery-show-first'], function() {
+                    p.then(function (self) {
+                        _.each(missingTwitter, function(missing) {
+                            self.$('.js-grouplist').append('<div>' + missing + '</div>');
+                        });
+                        self.$('.js-grouplist').showFirst({
+                            controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                            count: 5
+                        });
+
+                        self.$('.js-profile').fadeIn('slow');
+                    });
+                });
+            } else {
+                p = resolvedPromise(this);
+            }
+
+            return(p);
+        }
+    });    
 });

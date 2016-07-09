@@ -81,9 +81,22 @@
                     </form>
                     <form id="groupappearanceform" class="row" />
                 </div>
-                <div class="js-freegleonly" style="display: none">
+                <span class="js-freegleonly" style="display: none">
                     <h3>Mapping Settings for this Group</h3>
                     <div class="btn btn-default js-mapsettings">View Map Settings</div>
+
+                    <h3>Social Integration</h3>
+                    <p>You can auto-tweet the subject and picture of posts to attract more people to your group.</p>
+                    <div class="js-twitter js-twitternotlinked alert alert-danger" style="display: none">
+                        This group is not linked to a Twitter account.  Please link it to get more publicity.
+                    </div>
+                    <div class="js-twitter js-twittervalid" style="display: none">
+                        <div class="glyphicon glyphicon-ok success" />&nbsp;
+                        Linked to <a class="js-twitterurl" data-realurl="true" target="_blank">@<span class="js-twittername" /></a> on <span class="js-twitterauthdate" />
+                    </div>
+                    <a data-realurl="true" class="js-twitterauth topspace" target="_blank">
+                        <span class="btn btn-default">Link to Twitter</span>
+                    </a>
                 </div>
             </div>
         </div>
