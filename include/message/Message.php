@@ -953,6 +953,7 @@ class Message
                 # Check if it's a group we host.
                 $g = new Group($this->dbhr, $this->dbhm);
                 $this->groupid = $g->findByShortName($groupname);
+                error_log("Groupid {$this->groupid}");
             }
         }
 

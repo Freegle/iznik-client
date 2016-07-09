@@ -534,6 +534,7 @@ class MailRouter
 
                 if (count($groups) > 0) {
                     # We're expecting to do something with this.
+                    if ($log) { error_log("To a group"); }
                     $ret = MailRouter::FAILURE;
 
                     if ($this->msg->getSource() == Message::YAHOO_PENDING) {
@@ -551,7 +552,7 @@ class MailRouter
                     # It's not to one of our groups - but it could be a reply to one of our users - either directly
                     # (which happens after posting on a group) or in reply to an email notification (which happens
                     # in subsequent exchanges).
-                    #error_log("Look for reply");
+                    if ($log) { error_log("Look for reply"); }
                     $u = new User($this->dbhr, $this->dbhm);
                     $to = $this->msg->getEnvelopeto();
                     $uid = NULL;

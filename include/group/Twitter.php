@@ -7,7 +7,7 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 use Abraham\TwitterOAuth\TwitterOAuth;
 
 class Twitter {
-    var $publicatts = ['name', 'token', 'secret', 'authdate', 'valid'];
+    var $publicatts = ['name', 'token', 'secret', 'authdate', 'valid', 'msgid', 'eventid'];
     
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid)
     {
@@ -50,10 +50,12 @@ class Twitter {
     }
 
     public function tweet($status, $media) {
-        error_log("Tweet using {$this->token}, {$this->secret}");
         $tw = new TwitterOAuth(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, $this->token, $this->secret);
+        $tw->setTimeouts(120, 120);
         $content = $tw->get("account/verify_credentials");
-        error_log("Login" . var_export($content, TRUE));
+        $ret = NULL;
+        $rc = FALSE;
+        $valid = TRUE;
 
         if ($content) {
             if ($media) {
@@ -62,12 +64,15 @@ class Twitter {
                 file_put_contents($fname, $media);
 
                 try {
-                    $media = $tw->upload('media/upload', array('media' => $fname));
+                    $ret = $tw->upload('media/upload', array('media' => $fname));
+                    $ret = json_decode(json_encode($ret), TRUE);
 
-                    $ret = $tw->post('statuses/update', [
-                        'status' => $status,
-                        'media_ids' => implode(',', [$media->media_id_string])
-                    ]);
+                    if (!pres('errors', $ret)) {
+                        $ret = $tw->post('statuses/update', [
+                            'status' => $status,
+                            'media_ids' => implode(',', [$ret['media_id_string']])
+                        ]);
+                    }
                 } catch (Exception $e) {}
 
                 unlink($fname);
@@ -81,10 +86,63 @@ class Twitter {
 
             if (pres('errors', $ret)) {
                 # Something failed.
+                #error_log("Tweet failed " . var_export($ret, TRUE));
                 $this->dbhm->preExec("UPDATE groups_twitter SET lasterror = ?, lasterrortime = NOW() WHERE groupid = ?;", [ var_export($ret['errors'], TRUE), $this->groupid ]);
+
+                if ($ret['errors'][0]['code'] == 220) {
+                    # This indicates invalid credentials.
+                    $valid = FALSE;
+                }
+            } else {
+                $rc = TRUE;
             }
-        } else {
-            $this->dbhm->preExec("UPDATE groups_twitter SET valid = 0 WHERE groupid = ?;", [ $this->groupid ]);
         }
+
+        if (!$valid) {
+            $this->dbhm->preExec("UPDATE groups_twitter SET valid = 0 WHERE groupid = ?;", [ $this->groupid ]);
+            #error_log("Twitter link not valid for {$this->groupid}");
+        }
+
+        return($rc);
+    }
+
+    public function tweetMessages() {
+        # We want to tweet any messages since the last one, with a max of the 24 hours ago to avoid flooding things.
+        $mysqltime = date ("Y-m-d", strtotime("24 hours ago"));
+        $msgid = $this->msgid ? $this->msgid : 0;
+        $sql = "SELECT messages_groups.msgid, groups.legacyid, messages_groups.yahooapprovedid FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid WHERE messages_groups.groupid = ? AND messages_groups.arrival >= ? AND msgid > ? AND messages_groups.yahooapprovedid IS NOT NULL ORDER BY messages_groups.msgid ASC;";
+
+        $msgs = $this->dbhr->preQuery($sql, [ $this->groupid, $mysqltime, $msgid ]);
+        $msgid = NULL;
+        $worked = 0;
+
+        foreach ($msgs as $msg) {
+            $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
+            $atts = $m->getAttachments();
+            $media = count($atts) > 0 ? $atts[0]->getData() : NULL;
+
+            # We tweet the subject and a link.
+            $status = $m->getSubject();
+            $status = substr($status, 0, 80);
+
+            $link = "https://directv2.ilovefreegle.org/mygroups/{$msg['legacyid']}/message/{$msg['yahooapprovedid']}";
+
+            $status .= " $link";
+            $rc = $this->tweet($status, $media);
+            
+            if ($rc) {
+                $worked++;
+            }
+
+            # Whether the tweet works or not, we might as well assume it does - tweets are ephemeral so there's no
+            # point getting too het up if they don't work.
+            $msgid = $msg['msgid'];
+        }
+
+        if ($msgid) {
+            $this->dbhm->preExec("UPDATE groups_twitter SET msgid = ? WHERE groupid = ?;", [ $msgid, $this->groupid ]);
+        }
+        
+        return($worked);
     }
 }
