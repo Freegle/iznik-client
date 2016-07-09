@@ -30,7 +30,7 @@ define([
         },
 
         save: function(attrs, options) {
-            // Clear any locally cached copy.
+            // Clear any locally cached copy.  It'll get refreshed from the server soon enough.
             try {
                 localStorage.removeItem('session');
             } catch (e) {};
@@ -318,7 +318,7 @@ define([
                         try {
                             var sess = localStorage.getItem('session');
 
-                            if (sess) {
+                            if (sess && ret.ret == 1) {
                                 // We thought we were logged in but we're not.  Clear our local storage and reload.
                                 // This will look slightly odd but means that the mainline case of still being logged
                                 // in is handled more quickly.
