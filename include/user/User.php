@@ -1495,8 +1495,8 @@ class User extends Entity
                     $this->dbhm->preExec("UPDATE IGNORE sessions SET userid = $id1 WHERE userid = $id2;");
                     $this->dbhm->preExec("UPDATE IGNORE users_push_notifications SET userid = $id1 WHERE userid = $id2;");
                     $this->dbhm->preExec("UPDATE IGNORE chat_roster SET userid = $id1 WHERE userid = $id2;");
-                    $this->dbhm->preExec("UPDATE IGNORE chat_rooms SET userid1 = $id1 WHERE userid1 = $id2;");
-                    $this->dbhm->preExec("UPDATE IGNORE chat_rooms SET userid2 = $id1 WHERE userid2 = $id2;");
+                    $this->dbhm->preExec("UPDATE IGNORE chat_rooms SET user1 = $id1 WHERE user1 = $id2;");
+                    $this->dbhm->preExec("UPDATE IGNORE chat_rooms SET user2 = $id1 WHERE user2 = $id2;");
                     $this->dbhm->preExec("UPDATE IGNORE chat_messages SET userid = $id1 WHERE userid = $id2;");
                     $this->dbhm->preExec("UPDATE IGNORE users_searches SET userid = $id1 WHERE userid = $id2;");
                 }

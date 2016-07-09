@@ -61,11 +61,13 @@ class communityEventTest extends IznikTestCase {
         $uid = $u->create('Test', 'User', 'Test User');
 
         # Not in the right group - shouldn't see.
-        $events = $c->listForUser($uid);
+        $ctx = NULL;
+        $events = $c->listForUser($uid, TRUE, $ctx);
         assertEquals(0, count($events));
 
         $u->addMembership($this->groupid);
-        $events = $c->listForUser($uid);
+        $ctx = NULL;
+        $events = $c->listForUser($uid, TRUE, $ctx);
         assertEquals(1, count($events));
         assertEquals($id, $events[0]['id']);
 
@@ -81,7 +83,8 @@ class communityEventTest extends IznikTestCase {
         # Delete event - shouldn't see it.
         $c->addGroup($this->groupid);
         $c->delete();
-        $events = $c->listForUser($uid);
+        $ctx = NULL;
+        $events = $c->listForUser($uid, TRUE, $ctx);
         assertEquals(0, count($events));
 
         error_log(__METHOD__ . " end");

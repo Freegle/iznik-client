@@ -22,6 +22,7 @@
     "phpunit/phpunit-selenium": "^3.0",
     "facebook/webdriver": "^1.1",
     "swiftmailer/swiftmailer": "@stable",
-    "abraham/twitteroauth": "^0.6.4"
+    "abraham/twitteroauth": "^0.6.4",
+    "Oefenweb/damerau-levenshtein": "^2.1"
   }
 }

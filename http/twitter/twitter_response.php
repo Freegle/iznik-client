@@ -19,6 +19,8 @@ try {
     $connection = new TwitterOAuth(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, $atts['token'], $atts['secret']);
     $access_token = $connection->oauth("oauth/access_token", array("oauth_verifier" => $oauth_verifier));
 
+    var_dump("Got token " . var_export($access_token, TRUE));
+
     $accesstoken = $access_token['oauth_token'];
     $secrettoken = $access_token['oauth_token_secret'];
     $name = $access_token['screen_name'];

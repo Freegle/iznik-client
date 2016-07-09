@@ -14,6 +14,7 @@ require_once(IZNIK_BASE . '/include/misc/Search.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 
 use GeoIp2\Database\Reader;
+use Oefenweb\DamerauLevenshtein\DamerauLevenshtein;
 
 class Message
 {
@@ -1997,6 +1998,17 @@ class Message
         return($subj);
     }
 
+    public static function removeKeywords($type, $subj) {
+        $keywords = Message::keywords();
+        if (pres($type, $keywords)) {
+            foreach ($keywords[$type] as $keyword) {
+                $subj = preg_replace('/(^|\b)' . preg_quote($keyword) . '\b/i', '', $subj);
+            }
+        }
+
+        return($subj);
+    }
+
     public function recordRelated() {
         # Message A is related to message B if:
         # - they are from the same underlying sender (people may post via multiple routes)
@@ -2015,16 +2027,31 @@ class Message
         }
 
         $found = 0;
+        $loc = NULL;
+
         $thissubj = Message::canonSubj($this->subject);
 
-        if ($type) {
-            # We get the Damerau-Levenshtein distance between the subjects, which we can use to
-            # find the closest match if there isn't an exact one.
-            $sql = "SELECT id, subject, date, DAMLEVLIM(subject, ?, 50) AS dist FROM messages WHERE fromuser = ? AND type = ?;";
-            $messages = $this->dbhr->preQuery($sql, [ $thissubj, $this->fromuser, $type ]);
-            #error_log($sql . var_export([ $thissubj, $thissubj, $this->fromuser, $type ], TRUE));
+        if (preg_match('/.*?\:.*\((.*)\)/', $thissubj, $matches)) {
+            $loc = trim($matches[1]);
+        }
 
+        if (preg_match('/.*?\:(.*)\(.*\)/', $this->subject, $matches)) {
+            # Standard format - extract the item.
+            $thissubj = trim($matches[1]);
+        } else {
+            # Non-standard format.  Remove the keywords.
+            $thissubj = Message::removeKeywords($this->type, $thissubj);
+        }
+
+        # Remove any punctuation and whitespace from the purported item.
+        $thissubj = preg_replace('/\-|\,|\.| /', '', $thissubj);
+
+        if ($type) {
+            $sql = "SELECT id, subject, date FROM messages WHERE fromuser = ? AND type = ?;";
+            $messages = $this->dbhr->preQuery($sql, [ $this->fromuser, $type ]);
+            #error_log($sql . var_export([ $thissubj, $thissubj, $this->fromuser, $type ], TRUE));
             $thistime = strtotime($this->date);
+
             # If we are using the standard subject line format, ignore all of the stuff that isn't the item.
             $subj1 = $thissubj;
             if (preg_match('/.*?\:(.*)\(.*\)/', $thissubj, $matches)) {
@@ -2036,16 +2063,33 @@ class Message
 
             foreach ($messages as $message) {
                 $messsubj = Message::canonSubj($message['subject']);
-                #error_log("{$messsubj} vs {$thissubj} dist {$message['dist']}");
                 #error_log("Compare {$message['date']} vs {$this->date}, " . strtotime($message['date']) . " vs $thistime");
-                $mindist = min($mindist, $message['dist']);
 
                 if ((($datedir == 1) && strtotime($message['date']) >= $thistime) ||
                     (($datedir == -1) && strtotime($message['date']) <= $thistime)) {
                     $subj2 = $messsubj;
+
                     if (preg_match('/.*?\:(.*)\(.*\)/', $messsubj, $matches)) {
+                        # Standard format = extract the item.
                         $subj2 = trim($matches[1]);
+                    } else {
+                        # Non-standard - remove keywords.
+                        $subj2 = Message::removeKeywords($type, $messsubj);
+
+                        # We might have identified a valid location in the original message which appears in a non-standard
+                        # way.
+                        $subj2 = $loc ? str_ireplace($loc, '', $subj2) : $subj2;
                     }
+
+                    # Remove any punctuation and whitespace from the purported item.
+                    $subj2 = preg_replace('/\-|\,|\.| /', '', $subj2);
+
+                    # Find the distance.  We do this in PHP rather than in MySQL because we have done all this
+                    # munging on the subject to extract the relevant bit.
+                    $d = new DamerauLevenshtein(strtolower($subj1), strtolower($subj2));
+                    $message['dist'] = $d->getSimilarity();
+                    $mindist = min($mindist, $message['dist']);
+
                     #error_log("Compare subjects $subj1 vs $subj2 dist {$message['dist']} min $mindist lim " . (strlen($subj1) * 3 / 4));
 
                     if ($subj1 == $subj2) {
@@ -2053,8 +2097,7 @@ class Message
                         #error_log("Exact");
                         $match = TRUE;
                         $matchmsg = $message;
-                    } else if ($message['dist'] <= $mindist &&
-                        $message['dist'] <= strlen($subj1) * 3 / 4) {
+                    } else if ($message['dist'] <= $mindist && $message['dist'] <= strlen($subj1) * 3 / 4) {
                         # This is the closest match, but not utterly different.
                         #error_log("Closest");
                         $match = TRUE;
@@ -2103,11 +2146,11 @@ class Message
     public function suggestSubject($groupid, $subject) {
         $newsubj = $subject;
         $g = new Group($this->dbhr, $this->dbhm, $groupid);
-        $keywords = $g->getSetting('keywords', []);
 
         # This method is used to improve subjects, and also to map - because we need to make sure we understand the
         # subject format before can map.
         $type = $this->determineType($subject);
+        $keywords = $g->getSetting('keywords', []);
 
         switch ($type) {
             case Message::TYPE_OFFER:

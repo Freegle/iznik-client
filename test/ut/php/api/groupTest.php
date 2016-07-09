@@ -183,7 +183,8 @@ class groupAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
 
         $ret = $this->call('group', 'GET', [
-            'id' => $this->groupid
+            'id' => $this->groupid,
+            'pending' => true
         ]);
         assertNotFalse(strpos($ret['group']['profile'], $attid));
         assertEquals('Test slogan', $ret['group']['tagline']);

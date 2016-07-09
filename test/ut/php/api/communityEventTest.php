@@ -80,6 +80,7 @@ class communityEventAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
         assertNotNull($id);
+        error_log("Created event $id");
 
         # Add group
         $ret = $this->call('communityevent', 'PATCH', [
@@ -98,7 +99,9 @@ class communityEventAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        $ret = $this->call('communityevent', 'GET', []);
+        $ret = $this->call('communityevent', 'GET', [
+            'pending' => true
+        ]);
         error_log("Result of get all " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['communityevents']));

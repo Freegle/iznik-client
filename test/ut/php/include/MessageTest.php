@@ -144,6 +144,13 @@ class messageTest extends IznikTestCase {
         $atts = $m->getPublic();
         assertEquals($id1, $atts['related'][0]['id']);
 
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Basic test', 'TAKEN: Grey Driveway Blocks (Hoddesdon)', $msg);
+        $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        assertEquals(1, $m->recordRelated());
+        $atts = $m->getPublic();
+        assertEquals($id1, $atts['related'][0]['id']);
+
         error_log(__METHOD__ . " end");
     }
 
