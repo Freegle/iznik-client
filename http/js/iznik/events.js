@@ -41,7 +41,7 @@ define([
             eventQueue = [];
 
             // If we have too much data, throw it away.
-            if (eventQueue.length < 1000) {
+            if (eventQueue.length < 20000) {
 
                 var eventhost = $('meta[name=iznikevent]').attr("content");
 
