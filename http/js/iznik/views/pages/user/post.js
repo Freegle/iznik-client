@@ -187,7 +187,6 @@ define([
                 self.$('.js-upload').fileupload({
                     url: API + 'upload',
                     imageMaxWidth: 800,
-                    imageMaxHeight: 800,
                     acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
                     dataType: 'json',
                     add: function (e, data) {

@@ -1,7 +1,7 @@
 <div class="nomargin panel panel-success">
     <div class="panel-heading nopad">
         <a class="nodecor js-caret row" data-toggle="collapse" href="#result-{{id}}">
-            <div class="col-xs-7">
+            <div class="col-sm-7">
                 <div class="msgsubj panel-title">
                     <span class="js-subject">
                         {{subject}} <br/>
@@ -15,10 +15,10 @@
                     <% } %>
                 </div>
             </div>
-            <div class="col-xs-2">
+            <div class="col-sm-2">
                 <div class="js-attlist" />
             </div>
-            <div class="col-xs-2">
+            <div class="hidden-xs col-sm-2">
                 <% if (obj.location && obj.mylocation) { %>
                 <div class="mapimage margleft pull-right">
                     <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&zoom={{zoom}}&center={{mylocation.lat}},{{mylocation.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{location.lat}},{{location.lng}}&sensor=false" />
@@ -29,7 +29,7 @@
                 </div>
                 <% } %>
             </div>
-            <div class="col-xs-1">
+            <div class="hidden-xs col-sm-1">
                 <button class="btn btn-white pull-right">
                     <span class="js-caretdown caret"></span>
                     <span class="js-caretup caret icon-flipped-y" style="display: none"></span>

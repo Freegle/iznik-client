@@ -1277,6 +1277,10 @@ body {
     white-space: normal;
 }
 
+.btn.selectpicker {
+    white-space: nowrap;
+}
+
 /*==================================================
 =            Bootstrap 3 Media Queries             =
 ==================================================*/
