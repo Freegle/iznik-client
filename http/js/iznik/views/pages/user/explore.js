@@ -42,7 +42,8 @@ define([
                 }
 
                 self.$('.js-location').geocomplete({
-                    'componentRestrictions': {
+                    types: ['(cities)'],
+                    componentRestrictions: {
                         country: ['uk']
                     }
                 }).bind("geocode:result", function (event, result) {
