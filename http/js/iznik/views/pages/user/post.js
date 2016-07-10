@@ -154,6 +154,8 @@ define([
             var self = this;
             self.photos = new Iznik.Collection();
 
+            var originalAdd = $.blueimp.fileupload.prototype.options.add;
+
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
                 self.$('.js-items').tagsinput({
                     freeInput: true,
@@ -200,12 +202,7 @@ define([
                             self.pleaseWait.render();
                         }
 
-                        if (data.autoUpload || (data.autoUpload !== false &&
-                            $(this).fileupload('option', 'autoUpload'))) {
-                            data.process().done(function () {
-                                data.submit();
-                            });
-                        }
+                        originalAdd.call(this, e, data);
                     },
                     done: function (e, data) {
                         self.$('.js-uploading').addClass('hidden');

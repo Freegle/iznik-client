@@ -46,6 +46,7 @@ requirejs.config({
         "jquery.geocomplete": [ "jquery" ],
         "jquery-show-first": [ "iznik/utility", "jquery" ],
         "fileupload": [ "jquery", "canvas-to-blob" ],
+        "fileupload-image": [ "fileupload" ],
         "canvas-to-blob": [ "load-image", "load-image-orientation", "load-image-meta", "load-image-exif", "load-image-exif-map" ],
         "jquery.ui.widget": [ "jquery" ],
         "jquery.ui.touch-punch": [ "jquery" ],

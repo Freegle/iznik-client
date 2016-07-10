@@ -133,6 +133,7 @@
         // Processes the files given as files property of the data parameter,
         // returns a Promise object that allows to bind callbacks:
         process: function (data) {
+            console.log("process start", data, this.options);
             var that = this,
                 options = $.extend({}, this.options, data);
             if (options.processQueue && options.processQueue.length) {

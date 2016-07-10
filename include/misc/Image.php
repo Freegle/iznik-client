@@ -29,26 +29,28 @@ class Image {
         $sw = imagesx($this->img);
         $sh = imagesy($this->img);
 
-        # We might have been asked to scale either or both of the width and height.
-        if ($width) {
-            $height = $sh * $width / $sw;
-        } else {
-            $width = $sw;
+        if ($sw != $width || $sh != $height) {
+            # We might have been asked to scale either or both of the width and height.
+            if ($width) {
+                $height = $sh * $width / $sw;
+            } else {
+                $width = $sw;
+            }
+
+            if ($height) {
+                $width = $sw * $height / $sh;
+            } else {
+                $height = $sh;
+            }
+
+            $height = $height ? $height : $sh;
+            $old = $this->img;
+            $this->img = @imagecreatetruecolor($width, $height);
+            $this->fillTransparent();
+
+            # Don't use imagecopyresized here - creates artefacts.
+            imagecopyresampled($this->img, $old, 0, 0, 0, 0, $width, $height, $sw, $sh);
         }
-
-        if ($height) {
-            $width = $sh * $height / $sw;
-        } else {
-            $height = $sh;
-        }
-
-        $height = $height ? $height : $sh;
-        $old = $this->img;
-        $this->img = @imagecreatetruecolor($width, $height);
-        $this->fillTransparent();
-
-        # Don't use imagecopyresized here - creates artefacts.
-        imagecopyresampled($this->img, $old, 0, 0, 0, 0, $width, $height, $sw, $sh);
     }
 
     public function getData($quality = 75) {

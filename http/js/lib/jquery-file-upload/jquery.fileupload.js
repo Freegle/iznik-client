@@ -662,6 +662,7 @@
                             }
                         ).pipe(resolveFunc, rejectFunc);
                 }
+
                 return this._processQueue || getPromise([this]);
             };
             data.submit = function () {
