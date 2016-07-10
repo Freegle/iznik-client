@@ -1304,6 +1304,8 @@ class Message
         # will probably require client changes, and there are issues about what to do when a message is sent to two
         # groups and edited differently on both.  Meanwhile we need to be able to handle messages which are sent to
         # multiple groups, which would otherwise overwrite each other.
+        #
+        # There is code that does this on message submission too, so that when the message comes back we recognise it.
         $this->messageid = $this->groupid ? ($this->messageid . "-" . $this->groupid) : $this->messageid;
 
         # See if we have a record of approval from Yahoo.
@@ -2439,6 +2441,10 @@ class Message
 
                 # Store away the constructed message.
                 $this->setPrivate('message', $message->toString());
+
+                # Reset the message id we have in the DB to be per-group.  This is so that we recognise it when
+                # it comes back - see save() code above.
+                $this->setPrivate('messageid', "$messageid-$groupid");
 
                 $mailer->send($message);
 
