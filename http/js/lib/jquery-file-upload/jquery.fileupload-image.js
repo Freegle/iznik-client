@@ -22,7 +22,8 @@
             'load-image-meta',
             'load-image-exif',
             'canvas-to-blob',
-            './jquery.fileupload-process.js'
+            'fileupload',
+            'fileupload-process'
         ], factory);
     } else if (typeof exports === 'object') {
         // Node/CommonJS:
@@ -155,6 +156,7 @@
             // Accepts the options fileTypes (regular expression)
             // and maxFileSize (integer) to limit the files to load:
             loadImage: function (data, options) {
+                console.log("File upload load image");
                 if (options.disabled) {
                     return data;
                 }
@@ -186,6 +188,7 @@
             // Accepts the options maxWidth, maxHeight, minWidth,
             // minHeight, canvas and crop:
             resizeImage: function (data, options) {
+                console.log("Resize image called", data, options);
                 if (options.disabled || !(data.canvas || data.img)) {
                     return data;
                 }

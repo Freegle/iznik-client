@@ -3,7 +3,7 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'fileupload',
+    'fileupload-image',
     'iznik/models/user/message',
     'iznik/views/group/select',
     'iznik/models/user/message'
@@ -187,6 +187,8 @@ define([
                 self.$('.js-upload').fileupload({
                     url: API + 'upload',
                     imageMaxWidth: 800,
+                    imageMaxHeight: 800,
+                    disableImageResize: false,
                     acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
                     dataType: 'json',
                     add: function (e, data) {
