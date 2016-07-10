@@ -6,6 +6,8 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/group/Twitter.php');
 
+global $dbhr, $dbhm;
+
 $lockh = lockScript(basename(__FILE__));
 
 error_log("Start at " . date("Y-m-d H:i:s"));
