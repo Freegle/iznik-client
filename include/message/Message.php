@@ -2315,8 +2315,12 @@ class Message
                 $loc = $l->ensureVague();
             }
 
-            $subject = $this->type . ': ' . $this->subject . " ($loc)";
-            $this->setPrivate('subject', $subject);
+            # Ensure that we don't reconstruct an already constructed subject, which could happen if we got a
+            # temporary DB exception.
+            if (strpos($this->subject, " ($loc)") === FALSE) {
+                $subject = $this->type . ': ' . $this->subject . " ($loc)";
+                $this->setPrivate('subject', $subject);
+            }
         }
     }
 
@@ -2327,7 +2331,8 @@ class Message
         $ret = NULL;
         $this->setPrivate('fromuser', $fromuser->getId());
 
-        $rc = $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, collection) VALUES (?,?,?);", [
+        # If this message is already on this group, that's fine.
+        $rc = $this->dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection) VALUES (?,?,?);", [
             $this->id,
             $groupid,
             MessageCollection::QUEUED_YAHOO_USER

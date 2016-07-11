@@ -310,7 +310,7 @@ function message() {
                                         $fromemail = $u->getEmailById($eidforgroup);
 
                                         # Make sure it's attached to this group.
-                                        $dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, collection) VALUES (?,?,?);", [
+                                        $dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection) VALUES (?,?,?);", [
                                             $draft['msgid'],
                                             $groupid,
                                             MessageCollection::PENDING
