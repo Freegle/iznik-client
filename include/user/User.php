@@ -81,17 +81,14 @@ class User extends Entity
         return sha1($pw . PASSWORD_SALT);
     }
 
-    public function login($pw) {
-        # TODO Passwords are a complex area.  There is probably something better we could do.
-        #
+    public function login($pw, $force = FALSE) {
         # TODO lockout
         if ($this->id) {
             $pw = $this->hashPassword($pw);
             $logins = $this->getLogins();
             foreach ($logins as $login) {
-                if ($login['type'] == User::LOGIN_NATIVE && $pw == $login['credentials']) {
+                if ($force || ($login['type'] == User::LOGIN_NATIVE && $pw == $login['credentials'])) {
                     $s = new Session($this->dbhr, $this->dbhm);
-                    error_log("Create for {$this->id}");
                     $s->create($this->id);
 
                     $l = new Log($this->dbhr, $this->dbhm);
@@ -632,10 +629,11 @@ class User extends Entity
         return($rc);
     }
 
-    public function getMemberships($modonly = FALSE) {
+    public function getMemberships($modonly = FALSE, $grouptype = NULL) {
         $ret = [];
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
-        $sql = "SELECT groupid, role, configid, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND groups.publish = 1 WHERE userid = ? $modq ORDER BY LOWER(namedisplay) ASC;";
+        $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
+        $sql = "SELECT groupid, role, configid, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND groups.publish = 1 WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
 
         $c = new ModConfig($this->dbhr, $this->dbhm);

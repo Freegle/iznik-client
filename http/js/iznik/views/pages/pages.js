@@ -51,7 +51,6 @@ define([
         },
 
         refreshChats: function() {
-
         },
 
         home: function () {

@@ -19,6 +19,7 @@ function messages() {
     $messages = presdef('messages', $_REQUEST, NULL);
     $subaction = presdef('subaction', $_REQUEST, NULL);
     $modtools = array_key_exists('modtools', $_REQUEST) ? filter_var($_REQUEST['modtools'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $grouptype = presdef('grouptype', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 1, 'status' => 'Unknown verb' ];
 
@@ -36,7 +37,7 @@ function messages() {
                 } else if ($me) {
                     # No group was specified - use the current memberships, if we have any, excluding those that our
                     # preferences say shouldn't be in.
-                    $mygroups = $me->getMemberships($modtools);
+                    $mygroups = $me->getMemberships($modtools, $grouptype);
                     foreach ($mygroups as $group) {
                         $settings = $me->getGroupSettings($group['id']);
                         if (!array_key_exists('showmessages', $settings) ||

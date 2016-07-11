@@ -93,7 +93,12 @@ function session() {
                 if ($possid) {
                     $ret = array('ret' => 3, 'status' => "The password is wrong.  Maybe you've forgotten it?");
                     $u = new User($dbhr, $dbhm, $possid);
-                    if ($u->login($password)) {
+
+                    # If we are currently logged in as an admin, then we can force a log in as anyone else.  This is
+                    # very useful for debugging.
+                    $force = $me && $me->isAdmin();
+
+                    if ($u->login($password, $force)) {
                         $ret = array('ret' => 0, 'status' => 'Success');
                         $id = $possid;
                     }

@@ -343,7 +343,13 @@ define([
         },
 
         url: function() {
-            return (API + 'messages?' + (this.options.groupid > 0 ? ("groupid=" + this.options.groupid + "&") : '') + 'collection=' + this.options.collection + '&modtools=' + this.options.modtools)
+            // The URL changes based on whether we're wanting a specific group, collection, mod groups only, or
+            // group type (e.g. just Freegle).
+            return (API + 'messages?' +
+                (this.options.groupid > 0 ? ("groupid=" + this.options.groupid + "&") : '') +
+                'collection=' + this.options.collection +
+                '&modtools=' + this.options.modtools +
+                (this.options.type ? ('&grouptype=' + this.options.type) : ''))
         },
 
         parse: function(ret) {

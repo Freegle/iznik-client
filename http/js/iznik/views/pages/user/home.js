@@ -109,15 +109,18 @@ define([
                 // provoking "why hasn't it been approved yet" complaints.
                 self.messages = new Iznik.Collections.Message(null, {
                     modtools: false,
-                    collection: 'Approved'
+                    collection: 'Approved',
+                    type: 'Freegle'
                 });
                 self.pendingMessages = new Iznik.Collections.Message(null, {
                     modtools: false,
-                    collection: 'Pending'
+                    collection: 'Pending',
+                    type: 'Freegle'
                 });
                 self.queuedMessages = new Iznik.Collections.Message(null, {
                     modtools: false,
-                    collection: 'QueuedYahooUser'
+                    collection: 'QueuedYahooUser',
+                    type: 'Freegle'
                 });
 
                 var count = 0;
