@@ -47,6 +47,20 @@ function image() {
             $a = new Attachment($dbhr, $dbhm, NULL, $type);
             $id = $a->create($msgid, mime_content_type($fn), $data);
 
+            # Make sure it's not too large, to keep DB size down.
+            $data = $a->getData();
+            $i = new Image($data);
+            $h = $i->height();
+            $w = $i->width();
+
+            if ($w > 800) {
+                $h = $h * 800 / $w;
+                $w = 800;
+                $i->scale($w, $h);
+                $data = $i->getData(100);
+                $a->setPrivate('data', $data);
+            }
+
             $ret = [
                 'ret' => 0,
                 'status' => 'Success',

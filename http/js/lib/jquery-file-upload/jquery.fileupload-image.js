@@ -187,7 +187,9 @@
             // Accepts the options maxWidth, maxHeight, minWidth,
             // minHeight, canvas and crop:
             resizeImage: function (data, options) {
+                console.log("Resize called", data, options);
                 if (options.disabled || !(data.canvas || data.img)) {
+                    console.log("Disabled");
                     return data;
                 }
                 options = $.extend({canvas: true}, options);

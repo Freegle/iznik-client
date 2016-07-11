@@ -186,11 +186,8 @@ define([
 
                 self.collectionView.render();
 
-                self.$('.js-upload').fileupload({
+                var args = {
                     url: API + 'upload',
-                    imageMaxWidth: 800,
-                    imageMaxHeight: 800,
-                    disableImageResize: false,
                     acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
                     dataType: 'json',
                     add: function (e, data) {
@@ -220,8 +217,8 @@ define([
                                         filename: file.name
                                     }, success: function (ret) {
                                         if (ret.ret === 0) {
-                                            self.$('.js-uploadfailed').removeClass('hidden');
-                                            
+                                            self.$('.js-uploadfailed').addClass('hidden');
+
                                             // Add thumbnail.
                                             var mod = new Iznik.Models.Message.Attachment({
                                                 id: ret.id,
@@ -262,7 +259,22 @@ define([
                             progress + '%'
                         );
                     }
-                }).on('fileuploadfail', function (e, data) {
+                };
+
+                // Enable image resizing, except for Android and Opera,
+                // which actually support image resizing, but fail to
+                // send Blob objects via XHR requests:
+                var allowResize =  /Android(?!.*Chrome)|Opera/
+                    .test(window.navigator && navigator.userAgent);
+                console.log("Allow resize?", allowResize);
+
+                if (allowResize) {
+                    args.imageMaxWidth = 800;
+                    args.imageMaxHeight = 800;
+                    args.disableImageResize =false;
+                }
+
+                self.$('.js-upload').fileupload(args).on('fileuploadfail', function (e, data) {
                     self.uploadFailed();
                 });
             });

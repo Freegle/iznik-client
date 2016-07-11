@@ -386,8 +386,6 @@ define([
                     // Simple file upload without progress bar or error handling - mods can live with that.
                     self.$('.js-profileupload').fileupload({
                         url: API + 'upload?group=1',
-                        imageMaxWidth: 200,
-                        imageMaxHeight: 200,
                         acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
                         dataType: 'json',
                         add: function (e, data) {

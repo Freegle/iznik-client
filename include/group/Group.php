@@ -666,7 +666,7 @@ class Group extends Entity
             # memberships on this group (recall that we might have multiple Yahoo memberships with different email
             # addresses for the same group).  If so, then we want to delete the overall membership, and also log
             # the deletes so that we can see why memberships disappear.
-            $todeletes = $this->dbhm->preQuery("SELECT memberships.id, memberships.userid FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid WHERE membershipid IS NULL AND groupid = ? AND collection = ?;", [$this->id, $collection]);
+            $todeletes = $this->dbhm->preQuery("SELECT memberships.id, memberships.userid FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid WHERE membershipid IS NULL AND groupid = ? AND memberships.collection = ?;", [$this->id, $collection]);
             #error_log("Overall to delete " . var_export($todeletes, TRUE));
             #error_log("Delete overall memberships " . count($todeletes));
             $meid = $me ? $me->getId() : NULL;
