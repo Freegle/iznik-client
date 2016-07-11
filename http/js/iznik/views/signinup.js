@@ -213,6 +213,8 @@ define([
                 } catch (e) {
                 }
 
+                $('.js-privacy').hide();
+                
                 // We have to load the FB API now because otherwise when we click on the login button, we can't load
                 // it synchronously, and therefore the login popup would get blocked by the browser.
                 self.listenToOnce(FBLoad(), 'fbloaded', function () {

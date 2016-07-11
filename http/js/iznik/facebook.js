@@ -33,6 +33,7 @@ define([
                     self.FBLoading = false;
                     self.FBLoaded = true;
                     self.FBDisabled = true;
+                    $('.js-privacy').show();
                     self.trigger('fbloaded');
                 }, 30000);
 

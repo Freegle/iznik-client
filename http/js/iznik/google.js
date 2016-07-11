@@ -45,11 +45,18 @@ define([
                 var self = this;
                 self.buttonId = id;
                 self.scopes = "profile email";
+
+                if (_.isUndefined(window.gapi)) {
+                    // This happens with Firefox privacy blocking.
+                    self.disabled = true;
+                }
+
                 console.log("Set up sign in button", id, self.disabled);
 
                 if (self.disabled) {
                     console.log("Google sign in disabled");
                     $('#' + id + ' img').addClass('signindisabled');
+                    $('.js-privacy').show();
                 } else {
                     console.log("Google sign in enabled");
                     $('#' + id + ' img').removeClass('signindisabled');
