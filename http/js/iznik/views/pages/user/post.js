@@ -220,6 +220,8 @@ define([
                                         filename: file.name
                                     }, success: function (ret) {
                                         if (ret.ret === 0) {
+                                            self.$('.js-uploadfailed').removeClass('hidden');
+                                            
                                             // Add thumbnail.
                                             var mod = new Iznik.Models.Message.Attachment({
                                                 id: ret.id,
@@ -250,7 +252,7 @@ define([
                             self.uploadFailed();
                         }
                     },
-                    fail: self.uploadFailed,
+                    fail: _.bind(self.uploadFailed, self),
                     progressall: function (e, data) {
                         self.$('.js-addprompt').addClass('hidden');
                         var progress = parseInt(data.loaded / data.total * 100, 10);

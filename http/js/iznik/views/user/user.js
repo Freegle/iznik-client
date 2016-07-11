@@ -633,7 +633,7 @@ define([
         
         render: function() {
             var self = this;
-            var emails = this.options.user.get('emails');
+            var emails = this.options.user.get('otheremails');
             var email = _.findWhere(emails, {
                 id: this.model.get('emailid')
             });

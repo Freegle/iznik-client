@@ -337,6 +337,8 @@ function offlineResponse(resourceType, opts) {
 
 self.addEventListener('fetch', function(event) {
 
+try {
+
     function shouldHandleFetch(event, opts) {
         // We want to cache:
         // - GET requests only
@@ -393,4 +395,7 @@ self.addEventListener('fetch', function(event) {
     if (shouldHandleFetch(event, cacheConfig)) {
         onFetch(event, cacheConfig);
     }
+} catch (e) {
+    console.log("Fetch exception", e);
+}
 });
