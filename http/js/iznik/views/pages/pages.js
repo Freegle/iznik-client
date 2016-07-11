@@ -168,6 +168,21 @@ define([
                         var v = new Iznik.Views.User.Social();
                         v.render();
                         $('#botleft').append(v.$el);
+
+                        // Highlight current page if any.
+                        $('#navbar-collapse a').each(function () {
+                            var href = $(this).attr('href');
+                            $(this).closest('li').removeClass('active');
+
+                            if (href == window.location.pathname) {
+                                $(this).closest('li').addClass('active');
+
+                                // Force reload on click, which doesn't happen by default.
+                                $(this).click(function () {
+                                    Backbone.history.loadUrl(href);
+                                });
+                            }
+                        });
                     }
                     
                     // Put self page in

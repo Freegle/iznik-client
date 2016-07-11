@@ -44,7 +44,9 @@ define([
                         $('.js-scrolltop').addClass('hidden');
                     }
 
-                    var v = new Iznik.Views.PleaseWait();
+                    var v = new Iznik.Views.PleaseWait({
+                        timeout: 30000
+                    });
                     v.render().then(function() {
                         if (!self.listening) {
                             self.collectionView.on('add', function (modelView) {
