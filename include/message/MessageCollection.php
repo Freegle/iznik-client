@@ -95,7 +95,7 @@ class MessageCollection
                 # The messages_groups table has a multi-column index which makes it quick to find the relevant messages.
                 if ($typeq != '') {
                     # We need to touch the messages table to find this.
-                    $sql = "SELECT id, messages.arrival FROM messages INNER JOIN (SELECT msgid FROM messages_groups WHERE 1=1 $groupq AND collection = ? AND messages_groups.deleted = 0 AND $dateq $oldest ORDER BY arrival DESC, msgid DESC LIMIT $limit) t ON messages.id = t.msgid AND messages.deleted IS NULL $typeq;";
+                    $sql = "SELECT id, messages.arrival FROM messages INNER JOIN (SELECT msgid FROM messages_groups WHERE 1=1 $groupq AND collection = ? AND messages_groups.deleted = 0 AND $dateq $oldest ORDER BY arrival DESC, msgid DESC LIMIT $limit) t ON messages.id = t.msgid AND messages.deleted IS NULL $typeq ORDER BY messages.arrival DESC LIMIT $limit;";
                 } else {
                     # We can do it all from messages_groups.
                     $sql = "SELECT msgid as id, arrival FROM messages_groups WHERE 1=1 $groupq AND collection = ? AND messages_groups.deleted = 0 AND $dateq $oldest ORDER BY arrival DESC LIMIT $limit;";
