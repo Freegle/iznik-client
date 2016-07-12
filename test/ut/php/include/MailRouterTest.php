@@ -811,7 +811,7 @@ class MailRouterTest extends IznikTestCase {
         $atts = $m->getAttachments();
         assertEquals(1, count($atts));
         assertEquals('image/jpeg', $atts[0]->getContentType());
-        assertLessThan(30000, strlen($atts[0]->getData()));
+        assertLessThan(300000, strlen($atts[0]->getData()));
 
         error_log(__METHOD__ . " end");
     }

@@ -46,7 +46,6 @@ define([
         footer: false,
 
         events: {
-            'click .js-signin': 'signin',
             'click .js-notifchat': 'refreshChats'
         },
 

@@ -29,16 +29,16 @@ class Image {
         $sw = imagesx($this->img);
         $sh = imagesy($this->img);
 
-        if ($sw != $width || $sh != $height) {
+        if (($width != NULL && $sw != $width) || ($height != NULL && $sh != $height)) {
             # We might have been asked to scale either or both of the width and height.
             if ($width) {
-                $height = $sh * $width / $sw;
+                $height = intval($sh * $width / $sw + 0.5);
             } else {
                 $width = $sw;
             }
 
             if ($height) {
-                $width = $sw * $height / $sh;
+                $width = intval($sw * $height / $sh + 0.5);
             } else {
                 $height = $sh;
             }

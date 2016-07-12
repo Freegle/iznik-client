@@ -21,7 +21,8 @@ define([
             'switchChange.bootstrapSwitch .js-onholiday': 'onholiday',
             'changeDate .js-onholidaytill': 'onholidaytill',
             'keyup .js-name': 'nameChange',
-            'keyup .js-email': 'emailChange'
+            'keyup .js-email': 'emailChange',
+            'keyup .js-password': 'passwordChange'
         },
 
         onholidaytill: function() {
@@ -74,9 +75,12 @@ define([
                         id: me.id,
                         displayname: name
                     }, {
-                        patch: true
-                    }).then(function() {
-                        self.$('.js-nameok').fadeIn();
+                        patch: true,
+                        success: function(model, response, options) {
+                            if (response.ret == 0) {
+                                self.$('.js-nameok').fadeIn();
+                            }
+                        }
                     });
                 } else {
                     self.$('.js-name').addClass('error-border');
@@ -97,13 +101,41 @@ define([
                         id: me.id,
                         email: email
                     }, {
-                        patch: true
-                    }).then(function() {
-                        self.$('.js-emailok').fadeIn();
+                        patch: true,
+                        success: function(model, response, options) {
+                            if (response.ret == 0) {
+                                self.$('.js-emailok').fadeIn();
+                            }
+                        }
                     });
                 } else {
                     self.$('.js-email').addClass('error-border');
                     self.$('.js-email').focus();
+                }
+            }
+        },
+
+        passwordChange: function(e) {
+            self.$('.js-password').removeClass('error-border');
+            if (e.which === 13) {
+                var password = this.$('.js-password').val();
+                if (password.length > 0) {
+                    var me = Iznik.Session.get('me');
+                    Iznik.Session.set('me', me);
+                    Iznik.Session.save({
+                        id: me.id,
+                        password: password
+                    }, {
+                        patch: true,
+                        success: function(model, response, options) {
+                            if (response.ret == 0) {
+                                self.$('.js-passwordok').fadeIn();
+                            }
+                        }
+                    });
+                } else {
+                    self.$('.js-password').addClass('error-border');
+                    self.$('.js-password').focus();
                 }
             }
         },
