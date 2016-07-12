@@ -1163,7 +1163,7 @@ class Message
                 if ($emailid && ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED)) {
                     # Make sure we have a membership for the originator of this message; they were a member
                     # at the time they sent this.  If they have since left we'll pick that up later via a sync.
-                    if (!$u->isMember($this->groupid)) {
+                    if (!$u->isApprovedMember($this->groupid)) {
                         $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid);
                     }
                 }

@@ -252,7 +252,7 @@ class User extends Entity
         return(count($emails) == 0 ? NULL : $emails[0]['id']);
     }
 
-    public function isMember($groupid) {
+    public function isApprovedMember($groupid) {
         $membs = $this->dbhr->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ?;", [ $this->id, $groupid ]);
         return(count($membs) > 0);
     }
@@ -994,7 +994,7 @@ class User extends Entity
             $me = whoAmI($this->dbhr, $this->dbhm);
             $startq = $ctx ? " AND id < {$ctx['id']} " : '';
             $modq = $modmailsonly ? $modmailq : '';
-            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged')) AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list','Received later copy of message with same Message-ID')) $modq ORDER BY id DESC LIMIT 50;";
+            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged', 'YahooConfirmed')) AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list','Received later copy of message with same Message-ID')) $modq ORDER BY id DESC LIMIT 50;";
             $logs = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
             $atts['logs'] = [];
             $groups = [];
@@ -1781,12 +1781,15 @@ class User extends Entity
     public function markYahooApproved($groupid) {
         # Move a member from pending to approved in response to a Yahoo notification mail.
         #
-        # Perhaps we can get a notification mail for a member not in Pending, but this is less of an issue as we
-        # will not have work which we are pestering mods to do.  We'll pick them up on the next sync or when they post.
+        # Note that we will not always have a pending member application.  For example, suppose we have an
+        # existing Yahoo membership with an email address which isn't one of ours; then when we post a message
+        # we will trigger an application with one we do host, which will then get confirmed.
+        #
+        # Perhaps we can get a notification mail for a member not in Pending because their application hasn't been
+        # sync'd to us, but this is less of an issue as we will not have work which we are pestering mods to do.
+        # We'll pick them up on the next sync or when they post.
         #
         # No need for a transaction - if things go wrong, the member will remain in pending, which is recoverable.
-        #
-        # Yahoo membership and our membership will become separate in future, so we have separate logging and tables.
         $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
         $members = $this->dbhr->preQuery($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
 
@@ -1807,22 +1810,22 @@ class User extends Entity
                 $this->id,
                 $groupid
             ]);
-
-            # The Yahoo membership should exist as we'll have created it when we triggered the application.
-            $this->log->log([
-                'type' => Log::TYPE_USER,
-                'subtype' => Log::SUBTYPE_YAHOO_JOINED,
-                'user' => $this->getId(),
-                'groupid' => $groupid
-            ]);
-
-            $sql = "UPDATE memberships_yahoo SET collection = ? WHERE membershipid = (SELECT id FROM memberships WHERE userid = ? AND groupid = ?);";
-            $rc = $this->dbhm->preExec($sql, [
-                MembershipCollection::APPROVED,
-                $this->id,
-                $groupid
-            ]);
         }
+
+        # The Yahoo membership should always exist as we'll have created it when we triggered the application.
+        $this->log->log([
+            'type' => Log::TYPE_USER,
+            'subtype' => Log::SUBTYPE_YAHOO_JOINED,
+            'user' => $this->getId(),
+            'groupid' => $groupid
+        ]);
+
+        $sql = "UPDATE memberships_yahoo SET collection = ? WHERE membershipid = (SELECT id FROM memberships WHERE userid = ? AND groupid = ?);";
+        $rc = $this->dbhm->preExec($sql, [
+            MembershipCollection::APPROVED,
+            $this->id,
+            $groupid
+        ]);
     }
 
     function hold($groupid) {
@@ -2153,8 +2156,12 @@ class User extends Entity
         $emailid = $this->addEmail($email, 0);
         #error_log("Added email $email id $emailid");
 
-        # Set up a pending membership - will be converted to approved when we process the approval notification.
-        $this->addMembership($groupid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING);
+        # We might already have a membership with an email which isn't one of ours.  If so, we don't want to
+        # trash that membership by turning it into a pending one.
+        if (!$this->isApprovedMember($groupid)) {
+            # Set up a pending membership - will be converted to approved when we process the approval notification.
+            $this->addMembership($groupid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING);
+        }
 
         $headers = "From: $email>\r\n";
 
