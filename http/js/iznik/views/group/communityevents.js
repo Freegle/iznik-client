@@ -220,6 +220,19 @@ define([
         
         parentClass: Iznik.Views.Modal,
 
+        groupChange: function() {
+            var self = this;
+            var groupid = self.groupSelect.get();
+            var group = Iznik.Session.getGroup(groupid);
+            if (group.get('settings').communityevents) {
+                this.$('.js-eventsdisabled').hide();
+                this.$('.js-save').show();
+            } else {
+                this.$('.js-eventsdisabled').fadeIn('slow');
+                this.$('.js-save').hide();
+            }
+        },
+
         render: function() {
             var self = this;
             this.parentClass.prototype.render.call(this).then(function() {
@@ -240,10 +253,12 @@ define([
                         // TODO
                         self.groupSelect.set(groups[0].id);
                     }
+                    self.groupChange();
                 });
 
                 self.groupSelect.render().then(function () {
                     self.$('.js-groupselect').html(self.groupSelect.el);
+                    self.listenTo(self.groupSelect, 'change', _.bind(self.groupChange, self));
                 });
 
                 // Set the values.  We do it here rather than in the template because they might contain user data

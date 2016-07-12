@@ -270,16 +270,25 @@ define([
     
                     self.groupFields = [
                         {
+                            name: 'communityevents',
+                            label: 'Allow community events?',
+                            control: 'radio',
+                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                            helpMessage: '(Freegle only) Whether members can post local community events on this group.'
+                        },
+                        {
                             name: 'showchat',
                             label: 'Show chat window for mods?',
                             control: 'radio',
-                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                            helpMessage: 'This lets groups mods chat to each other on here.'
                         },
                         {
                             name: 'autoapprove.members',
                             label: 'Auto-approve pending members?',
                             control: 'radio',
-                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                            helpMessage: "Yahoo doesn't let you change from member approval to not approving them - use this to work around that"
                         },
                         {
                             name: 'duplicates.check',
