@@ -50,6 +50,7 @@ class Log
     const SUBTYPE_YAHOO_CONFIRMED = 'YahooConfirmed';
     const SUBTYPE_YAHOO_JOINED = 'YahooJoined';
     const SUBTYPE_MAILOFF = 'MailOff';
+    const SUBTYPE_EVENTSOFF = 'EventsOff';
 
     function __construct($dbhr, $dbhm)
     {

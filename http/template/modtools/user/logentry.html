@@ -79,6 +79,10 @@
             Detected as suspicious<% if (obj.text) { %>: {{text}}<% } %>
             <% } else if (subtype == 'Split') { %>
             Split out into two users - {{text}}
+            <% } else if (subtype == 'MailOff') { %>
+            Turned digests off by email
+            <% } else if (subtype == 'EventsOff') { %>
+            Turned events off by email
             <% } else if (subtype == 'YahooJoined') { %>
             Yahoo informed ModTools that the member has joined.
             <% } else { %>

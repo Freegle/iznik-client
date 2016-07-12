@@ -135,6 +135,8 @@ if (1==1) {
 
                     $dig = $user['digest'] ? $user['maxdigestdelay'] : 0;
                     $u->setMembershipAtt($gid, 'emailfrequency', $dig);
+                    $events = $user['eventsdisabled'] ? 0 : 1;
+                    $u->setMembershipAtt($gid, 'eventsallowed', $events);
 
                     $fbusers = $dbhfd->query("SELECT * FROM facebook WHERE email = " . $dbhfd->quote($user['useremail']));
                     foreach ($fbusers as $fbuser) {

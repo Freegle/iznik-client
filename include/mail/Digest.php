@@ -347,7 +347,7 @@ class Digest
                         list ($transport, $mailer) = getMailer();
                         
                         # We're decorating using the information we collected earlier.  However the decorator doesn't
-                        # copy with sending to multiple recipients properly (headers just get decorated with the first
+                        # cope with sending to multiple recipients properly (headers just get decorated with the first
                         # recipient) so we create a message for each recipient.
                         $decorator = new Swift_Plugins_DecoratorPlugin($replacements);
                         $mailer->registerPlugin($decorator);
@@ -375,7 +375,7 @@ class Digest
 
                                 try {
                                     $message->addBcc($email);
-                                    error_log("...$email");
+                                    #error_log("...$email");
                                     $this->sendOne($mailer, $message);
                                     $sent++;
                                 } catch (Exception $e) {
