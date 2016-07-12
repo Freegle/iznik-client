@@ -391,4 +391,29 @@ class sessionTest extends IznikAPITestCase
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testLostPassword() {
+        error_log(__METHOD__);
+
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+
+        $ret = $this->call('session', 'POST', [
+            'email' => $email,
+            'action' => 'LostPassword'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $u->addEmail($email);
+
+        $ret = $this->call('session', 'POST', [
+            'email' => $email,
+            'action' => 'LostPassword'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
 }

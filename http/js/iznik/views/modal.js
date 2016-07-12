@@ -60,6 +60,13 @@ define([
         attach: function() {
             var self = this;
 
+            // Remove any previous modal.
+            if (modalOpen) {
+                modalOpen.cancel();
+            }
+
+            modalOpen = this;
+            
             // Attach the modal to the DOM
             $('#bodyContent').append(this.$el);
 
@@ -86,13 +93,6 @@ define([
             var self = this;
             var p;
             
-            // Remove any previous modal.
-            if (modalOpen) {
-                modalOpen.cancel();
-            }
-
-            modalOpen = this;
-
             if (template) {
                 // For more complex modals we might have set up the content before calling open.
                 self.template = template;

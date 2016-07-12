@@ -167,27 +167,11 @@ define([
             }
         },
 
-        lostPassword: function () {
-            var self = this;
-            var email = self.$('.js-signinform .js-email').val();
-            if (email.length == 0) {
-                self.$('.js-signinform .js-email').focus();
-            } else {
-                $.ajax({
-                    url: API + 'user_lostpassword',
-                    type: 'POST',
-                    data: {
-                        email: email
-                    }, success: function (ret) {
-                        var v = new Iznik.Views.SignInUp.Result({
-                            model: new FDModel({
-                                ret: ret
-                            })
-                        });
-                        v.render();
-                    }
-                })
-            }
+        lostPassword: function (e) {
+            e.preventDefault();
+            console.log("Lost password");
+            var v = new Iznik.Views.SignInUp.LostPassword();
+            v.render();
         },
 
         render: function () {
@@ -218,7 +202,9 @@ define([
                 // We have to load the FB API now because otherwise when we click on the login button, we can't load
                 // it synchronously, and therefore the login popup would get blocked by the browser.
                 self.listenToOnce(FBLoad(), 'fbloaded', function () {
-                    if (!FBLoad().isDisabled()) {
+                    if (FBLoad().isDisabled()) {
+                        self.$('.js-loginFB').addClass('signindisabled');
+                    } else {
                         self.$('.js-loginFB').removeClass('signindisabled');
                     }
                 });
@@ -242,5 +228,51 @@ define([
 
     Iznik.Views.CookieError = Iznik.Views.Modal.extend({
         template: 'signinup_cookies'
+    });
+    
+    Iznik.Views.SignInUp.LostPassword = Iznik.Views.Modal.extend({
+        template: 'signinup_lostpassword',
+        
+        events: {
+            'click .js-send': 'send'
+        },
+        
+        send: function() {
+            var self = this;
+            var email = self.$('.js-email').val();
+            if (email.length == 0) {
+                self.$('.js-email').focus();
+            } else {
+                $.ajax({
+                    url: API + 'session',
+                    type: 'POST',
+                    data: {
+                        action: 'LostPassword',
+                        email: email
+                    }, success: function (ret) {
+                        var v = new Iznik.Views.SignInUp.LostPassword.Result();
+                        v.render();
+                    }
+                })
+            }
+        },
+
+        render: function() {
+            var self = this;
+
+            Iznik.Views.Modal.prototype.render.call(this).then(function() {
+                try {
+                    var email = localStorage.getItem('nativeemail');
+                    if (email) {
+                        self.$('.js-email').val(email);
+                    }
+                } catch (e) {
+                }
+            })
+        }
+    });
+
+    Iznik.Views.SignInUp.LostPassword.Result = Iznik.Views.Modal.extend({
+        template: 'signinup_lostpasswordresult'
     });
 });

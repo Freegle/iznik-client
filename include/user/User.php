@@ -12,6 +12,7 @@ require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/mailtemplates/modtools/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/withpassword.php');
+require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
 class User extends Entity
@@ -39,6 +40,7 @@ class User extends Entity
     const LOGIN_FACEBOOK = 'Facebook';
     const LOGIN_GOOGLE = 'Google';
     const LOGIN_NATIVE = 'Native';
+    const LOGIN_LINK = 'Link';
 
     /** @var  $log Log */
     private $log;
@@ -113,7 +115,7 @@ class User extends Entity
         if (presdef('id', $_SESSION, NULL) != $this->id) {
             # We're not already logged in as this user.
             $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ? AND credentials = ?;";
-            $logins = $this->dbhr->preQuery($sql, [ $this->id, 'Link', $key ]);
+            $logins = $this->dbhr->preQuery($sql, [ $this->id, User::LOGIN_LINK, $key ]);
             foreach ($logins as $login) {
                 # We found a match - log them in.
                 $s = new Session($this->dbhr, $this->dbhm);
@@ -2028,6 +2030,21 @@ class User extends Entity
         $mailer->send($message);
     }
 
+    public function forgotPassword($email) {
+        $link = $this->loginLink(USER_SITE, $this->id, '/settings');
+        $html = forgot_password(USER_SITE, USERLOGO, $email, $link);
+
+        $message = Swift_Message::newInstance()
+            ->setSubject("Forgot your password?")
+            ->setFrom([NOREPLY_ADDR => SITE_NAME])
+            ->setTo($email)
+            ->setBody("To set a new password, just log in here: $link")
+            ->addPart($html, 'text/html');
+
+        list ($transport, $mailer) = getMailer();
+        $mailer->send($message);
+    }
+
     public function verifyEmail($email) {
         # If this is one of our current emails, then we can just make it the primary.
         $emails = $this->getEmails();
@@ -2219,7 +2236,7 @@ class User extends Entity
         # Get a per-user link we can use to log in without a password.
         $key = NULL;
         $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ?;";
-        $logins = $this->dbhr->preQuery($sql, [ $id, 'Link' ]);
+        $logins = $this->dbhr->preQuery($sql, [ $id, User::LOGIN_LINK ]);
         foreach ($logins as $login) {
             $key = $login['credentials'];
         }
@@ -2228,7 +2245,7 @@ class User extends Entity
             $key = randstr(32);
             $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, type, credentials) VALUES (?,?,?);", [
                 $id,
-                'Link',
+                User::LOGIN_LINK,
                 $key
             ]);
 

@@ -77,16 +77,31 @@ function session() {
             $mobile = array_key_exists('mobile', $_REQUEST) ? filter_var($_REQUEST['mobile'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $email = array_key_exists('email', $_REQUEST) ? $_REQUEST['email'] : NULL;
             $password = array_key_exists('password', $_REQUEST) ? $_REQUEST['password'] : NULL;
-            $key = array_key_exists('key', $_REQUEST) ? $_REQUEST['key'] : NULL;
             $returnto = array_key_exists('returnto', $_REQUEST) ? $_REQUEST['returnto'] : NULL;
-            $rememberme = array_key_exists('rememberme', $_REQUEST) ? filter_var($_REQUEST['rememberme'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+            $action = presdef('action', $_REQUEST, NULL);
 
             $id = NULL;
             $user = new User($dbhr, $dbhm);
             $f = NULL;
             $ret = array('ret' => 1, 'status' => 'Invalid login details');
 
-            if ($password && $email) {
+            if ($action) {
+                switch ($action) {
+                    case 'LostPassword': {
+                        $id = $user->findByEmail($email);
+                        $ret = [ 'ret' => 2, "We don't know that email address" ];
+                        
+                        if ($id) {
+                            $u = new User($dbhr, $dbhm, $id);
+                            $u->forgotPassword($email);
+                            $ret = [ 'ret' => 0, 'status' => "Success" ];
+                        }    
+                        
+                        break;
+                    }
+                }
+            }
+            else if ($password && $email) {
                 # Native login via username and password
                 $ret = array('ret' => 2, 'status' => "We don't know that email address.  If you're new, please Sign Up.");
                 $possid = $user->findByEmail($email);

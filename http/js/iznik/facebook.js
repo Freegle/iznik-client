@@ -29,7 +29,7 @@ define([
 
                 // The load might fail if we have a blocker.  The only way to deal with this is via a timeout.
                 self.timeout = window.setTimeout(function () {
-                    // console.log("Timeout");
+                    //console.log("FB Timeout");
                     self.FBLoading = false;
                     self.FBLoaded = true;
                     self.FBDisabled = true;
