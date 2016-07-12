@@ -136,6 +136,18 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(2, $ret['ret']);
 
+        # Should be able to get the minimal set of membership info for unsubscribe.
+        $ret = $this->call('memberships', 'GET', [
+            'email' => 'test@test.com'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['memberships']));
+        assertEquals($this->groupid, $ret['memberships'][0]['id']);
+        $ret = $this->call('memberships', 'GET', [
+            'email' => 'invalid@test.com'
+        ]);
+        assertEquals(3, $ret['ret']);
+
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
         $ret = $this->call('memberships', 'GET', [
             'groupid' => $this->groupid
@@ -648,6 +660,44 @@ class membershipsAPITest extends IznikAPITestCase {
             'groupid' => $this->groupid,
             'action' => 'Delete',
             'dup' => 2
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testUnsubscribe() {
+        error_log(__METHOD__);
+
+        assertTrue($this->user->addMembership($this->groupid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED));
+
+        # For invalid user
+        $ret = $this->call('memberships', 'DELETE', [
+            'email' => 'invalid@test.com',
+            'groupid' => $this->groupid
+        ]);
+        assertEquals(3, $ret['ret']);
+
+        # For invalid group
+        $ret = $this->call('memberships', 'DELETE', [
+            'email' => 'test@test.com',
+            'groupid' => $this->groupid + 1
+        ]);
+        assertEquals(4, $ret['ret']);
+
+        # For mod
+        assertTrue($this->user->addMembership($this->groupid, User::ROLE_MODERATOR, NULL, MembershipCollection::APPROVED));
+        $ret = $this->call('memberships', 'DELETE', [
+            'email' => 'test@test.com',
+            'groupid' => $this->groupid
+        ]);
+        assertEquals(4, $ret['ret']);
+
+        # Success
+        assertTrue($this->user->addMembership($this->groupid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED));
+        $ret = $this->call('memberships', 'DELETE', [
+            'email' => 'test@test.com',
+            'groupid' => $this->groupid
         ]);
         assertEquals(0, $ret['ret']);
 

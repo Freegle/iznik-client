@@ -50,7 +50,20 @@ function memberships() {
             case 'GET': {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-                if ($me) {
+                if ($email) {
+                    # We're getting a minimal set of membership information, typically from the unsubscribe page.
+                    $ret = ['ret' => 3, 'status' => "We don't know that email" ];
+                    $uid = $u->findByEmail($email);
+
+                    if ($uid) {
+                        $u = new User($dbhr, $dbhm, $uid);
+                        $memberships = $u->getMemberships(FALSE, presdef('grouptype', $_REQUEST, NULL));
+                        $ret = ['ret' => 0, 'status' => 'Success', 'memberships' => [] ];
+                        foreach ($memberships as $membership) {
+                            $ret['memberships'][] = [ 'id' => $membership['id'], 'namedisplay' => $membership['namedisplay'] ];
+                        }
+                    }
+                } else if ($me) {
                     $groupids = [];
                     $proceed = FALSE;
 
@@ -222,7 +235,23 @@ function memberships() {
 
             case 'DELETE': {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
-                if ($u && $me && ($me->isAdminOrSupport() || $me->isModOrOwner($groupid) || $userid == $me->getId())) {
+
+                if ($email) {
+                    # We are unsubscribing when logged out.  There is a DoS attack here, but there's a benefit in
+                    # allowing users who can't manage to log in to unsubscribe.  We only allow an unsubscribe on a
+                    # group as a member to avoid the DoS hitting mods.
+                    $ret = ['ret' => 3, 'status' => "We don't know that email" ];
+                    $uid = $u->findByEmail($email);
+
+                    if ($uid) {
+                        $u = new User($dbhm, $dbhm, $uid);
+                        $ret = ['ret' => 4, 'status' => "Can't remove from that group" ];
+                        if ($u->isApprovedMember($groupid) && !$u->isModOrOwner($groupid)) {
+                            $ret = ['ret' => 0, 'status' => 'Success' ];
+                            $u->removeMembership($groupid);
+                        }
+                    }
+                } else if ($u && $me && ($me->isAdminOrSupport() || $me->isModOrOwner($groupid) || $userid == $me->getId())) {
                     # We can remove them, but not if they are someone higher than us.
                     $myrole = $me->getRole($groupid);
                     if ($myrole == $u->roleMax($myrole, $u->getRole($groupid))) {

@@ -182,7 +182,7 @@ define([
                 self.$('.js-native').hide();
 
                 try {
-                    var email = localStorage.getItem('nativeemail');
+                    var email = localStorage.getItem('myemail');
                     if (email) {
                         self.$('.js-email').val(email);
                     }
@@ -262,7 +262,7 @@ define([
 
             Iznik.Views.Modal.prototype.render.call(this).then(function() {
                 try {
-                    var email = localStorage.getItem('nativeemail');
+                    var email = localStorage.getItem('myemail');
                     if (email) {
                         self.$('.js-email').val(email);
                     }
