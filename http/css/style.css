@@ -29,8 +29,8 @@
 }
 
 .navbar-fixed-top {
-    height: 66px;
-    top: 0px;
+    height: 60px !important;
+    top: 0px !important;
 }
 
 .pageContent, .rightSidebar {
