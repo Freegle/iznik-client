@@ -125,7 +125,8 @@ define([
                     subject: self.$('.js-mailsubj').val(),
                     text: self.$('.js-mailtext').val(),
                     html: html,
-                    askclick: self.$('.js-askclick').val()
+                    askclick: self.$('.js-askclick').val(),
+                    tryhard: self.$('.js-tryhard').val()
                 }, success: function (ret) {
                     if (ret.ret == 0) {
                         self.$('.js-mailsuccess').fadeIn('slow');

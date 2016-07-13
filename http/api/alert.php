@@ -63,9 +63,10 @@ function alert() {
                 $html = presdef('html', $_REQUEST, nl2br($text));
                 $groupid = presdef('groupid', $_REQUEST, NULL);
                 $groupid = $groupid == 'AllFreegle' ? NULL : intval($groupid);
-                $askclick = intval(presdef('askclick', $_REQUEST, 0));
+                $askclick = array_key_exists('askclick', $_REQUEST) ? intval($_REQUEST['askclick']) : 1;
+                $tryhard = array_key_exists('tryhard', $_REQUEST) ? intval($_REQUEST['tryhard']) : 1;
                 
-                $alertid = $a->create($groupid, $from, $to, $subject, $text, $html, $askclick);
+                $alertid = $a->create($groupid, $from, $to, $subject, $text, $html, $askclick, $tryhard);
 
                 $ret = $alertid ? ['ret' => 0, 'status' => 'Success', 'id' => $alertid] : ['ret' => 2, 'status' => 'Create failed'];
             }

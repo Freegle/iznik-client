@@ -82,7 +82,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="mailgroup"class="col-sm-2 control-label">Group:</label>
+                        <label class="col-sm-2 control-label">Group:</label>
                         <div class="col-sm-10">
                             <select class="form-control js-grouplist">
                                 <option value="">Please choose...</option>
@@ -91,7 +91,16 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="mailgroup"class="col-sm-2 control-label">Confirm Receipt:</label>
+                        <label class="col-sm-2 control-label">Try hard?</label>
+                        <div class="col-sm-10">
+                            <select class="form-control js-tryhard">
+                                <option value="0">Just mail -owner address</option>
+                                <option value="1" selected>Mail individual mod emails too (will cause duplicates)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Confirm Receipt:</label>
                         <div class="col-sm-10">
                             <select class="form-control js-askclick">
                                 <option value="0" selected>Don't ask to click</option>

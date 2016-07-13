@@ -28,11 +28,11 @@ class Alert extends Entity
         $this->log = new Log($dbhr, $dbhm);
     }
 
-    public function create($groupid, $from, $to, $subject, $text, $html, $askclick) {
+    public function create($groupid, $from, $to, $subject, $text, $html, $askclick, $tryhard) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO alerts (`groupid`, `from`, `to`, `subject`, `text`, `html`, `askclick`) VALUES (?,?,?,?,?,?,?);", [
-            $groupid, $from, $to, $subject, $text, $html, $askclick
+        $rc = $this->dbhm->preExec("INSERT INTO alerts (`groupid`, `from`, `to`, `subject`, `text`, `html`, `askclick`, `tryhard`) VALUES (?,?,?,?,?,?,?,?);", [
+            $groupid, $from, $to, $subject, $text, $html, $askclick, $tryhard
         ]);
 
         if ($rc) {
@@ -101,7 +101,7 @@ class Alert extends Entity
 
             foreach ($groups as $group) {
                 #error_log("...{$alert['id']} -> {$group['nameshort']}");
-                $done += $a->mailMods($group['id']);
+                $done += $a->mailMods($group['id'], $alert['tryhard']);
 
                 if ($groupid) {
                     # This is to a specific group.  We are now done.
@@ -207,7 +207,7 @@ class Alert extends Entity
         return($ret);
     }
 
-    public function mailMods($groupid) {
+    public function mailMods($groupid, $tryhard = TRUE) {
         list ($transport, $mailer) = getMailer();
         $done = 0;
 

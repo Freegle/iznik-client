@@ -3,6 +3,7 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
 require_once(IZNIK_BASE . '/mailtemplates/digest/events.php');
 require_once(IZNIK_BASE . '/mailtemplates/digest/event.php');
 require_once(IZNIK_BASE . '/mailtemplates/digest/eventsoff.php');
@@ -16,7 +17,7 @@ class EventDigest
 
     private $errorlog;
 
-    function __construct($dbhr, $dbhm, $id = NULL, $errorlog = FALSE)
+    function __construct($dbhr, $dbhm, $errorlog = FALSE)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -87,6 +88,8 @@ class EventDigest
             #error_log("Look for groups to process $sql, $groupid");
             $events = $this->dbhr->preQuery($sql, [ $groupid ]);
 
+            if ($this->errorlog) { error_log("Consider " . count($events) . " events"); }
+
             $textsumm = '';
             $htmlsumm = '';
 
@@ -98,7 +101,7 @@ class EventDigest
                 
                 foreach ($atts['dates'] as $date) {
                     $htmlsumm .= digest_event($atts, $date['start'], $date['end']);
-                    $textsumm .= $atts['title'] . " starts " . date("D, jS F g:ha", strtotime($date['start'])) . " at " . $atts['location'] . "\r\n";
+                    $textsumm .= $atts['title'] . " starts " . date("D, jS F g:ia", strtotime($date['start'])) . " at " . $atts['location'] . "\r\n";
                 }
             }
 
@@ -126,6 +129,7 @@ class EventDigest
             $sql = "SELECT userid FROM memberships WHERE groupid = ? AND eventsallowed = 1 ORDER BY userid ASC;";
             $users = $this->dbhr->preQuery($sql, [ $groupid, ]);
 
+            if ($this->errorlog) { error_log("Consider " . count($users) . " users "); }
             foreach ($users as $user) {
                 $u = new User($this->dbhr, $this->dbhm, $user['userid']);
                 if ($this->errorlog) {
@@ -135,23 +139,22 @@ class EventDigest
                 # We are only interested in sending events to users for whom we have a preferred address -
                 # otherwise where would we send them?
                 $email = $u->getEmailPreferred();
-                if ($this->errorlog) {
-                    error_log("Preferred $email");
-                }
+                if ($this->errorlog) { error_log("Preferred $email"); }
 
                 if ($email) {
                     $sendit = FALSE;
 
                     # We might be on holiday.
-                    if ($this->errorlog) {
-                        error_log("...$email");
-                    }
+                    if ($this->errorlog) { error_log("...$email"); }
                     $hol = $u->getPrivate('onholidaytill');
                     $till = $hol ? strtotime($hol) : 0;
+                    if ($this->errorlog) { error_log(time() . " vs $till"); }
 
                     if (time() > $till) {
                         # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
-                        $replacements[$email] = [
+                        if ($this->errorlog) { error_log("Send to them"); }
+                            $replacements['log@ehibbert.org.uk'] = [
+                            #$replacements[$email] = [
                             '{{toname}}' => $u->getName(),
                             '{{unsubscribe}}' => 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email),
                             '{{email}}' => $email,
@@ -199,8 +202,9 @@ class EventDigest
 
                     try {
                         $message->addBcc($email);
-                        error_log("...$email");
+                        #error_log("...$email");
                         $this->sendOne($mailer, $message);
+                        exit(0);
                         $sent++;
                     } catch (Exception $e) {
                         error_log($email . " skipped with " . $e->getMessage());
@@ -208,6 +212,8 @@ class EventDigest
                 }
             }
         }
+
+        $this->dbhm->preExec("UPDATE groups SET lasteventsdigest = NOW() WHERE groupid = ?;", [ $groupid ]);
 
         return($sent);
     }

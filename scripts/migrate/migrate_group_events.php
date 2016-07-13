@@ -24,6 +24,7 @@ foreach ($fgroups as $fgroup) {
     $g = new Group($dbhr, $dbhm, $gid);
     $settings = $g->getPublic()['settings'];
     $settings['communityevents'] = $fgroup['eventsdisabled'] ? 0 : 1;
+    $g->setPrivate('lasteventsroundup', $fgroup['lasteventroundup']);
     $g->setSettings($settings);
 }
 
