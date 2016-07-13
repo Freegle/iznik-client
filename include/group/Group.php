@@ -9,7 +9,7 @@ class Group extends Entity
 {
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'logo',
-        'onyahoo', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'lat', 'lng',
+        'onyahoo', 'onhere', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid');
 
     const GROUP_REUSE = 'Reuse';
@@ -925,7 +925,7 @@ class Group extends Entity
 
    public function listByType($type) {
         $typeq = $type ? "type = ?" : '1=1';
-        $sql = "SELECT id, nameshort, namefull, lat, lng, onmap, profile, tagline FROM groups WHERE $typeq AND publish = 1 ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
+        $sql = "SELECT id, nameshort, namefull, lat, lng, onhere, onyahoo, onmap, profile, tagline FROM groups WHERE $typeq AND publish = 1 ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         foreach ($groups as &$group) {
             $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];

@@ -266,7 +266,6 @@ define([
                 // send Blob objects via XHR requests:
                 var allowResize =  /Android(?!.*Chrome)|Opera/
                     .test(window.navigator && navigator.userAgent);
-                console.log("Allow resize?", allowResize);
 
                 if (allowResize) {
                     args.imageMaxWidth = 800;

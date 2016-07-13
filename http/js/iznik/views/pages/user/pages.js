@@ -82,6 +82,43 @@ define([
                 }
             });
         },
+        
+        changeGroup: function() {
+            var self = this;
+
+            // See if the group is on Yahoo rather than on here.
+            var current;
+            if (self.$('.js-groups').length > 0) {
+                current = self.$('.js-groups').val();
+            } else {
+                current = self.groupsnear[0].id;
+            }
+
+            console.log("Current group",  current, self.groupsnear);
+            var first = null;
+
+            _.each(self.groupsnear, function(group) {
+                if (group.id == current) {
+                    first = group;
+                }
+            })
+
+            console.log("First", first);
+            if (!first.onhere) {
+                if (first.onyahoo) {
+                    self.$('.js-onyahoo').fadeIn('slow');
+                    self.$('.js-next').hide();
+                    self.$('.js-toyahoo').show();
+                    self.$('.js-toyahoo').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);
+                } else {
+                    // Who knows where it is?
+                }
+            } else {
+                self.$('.js-onyahoo').hide();
+                self.$('.js-next').show();
+                self.$('.js-toyahoo').hide();
+            }            
+        },
 
         recordLocation: function(location, changegroup) {
             var self = this;
@@ -98,7 +135,9 @@ define([
             self.$('.js-next').fadeIn('slow');
             self.$('.js-ok').fadeIn('slow');
 
-            var groupsnear = location.groupsnear;
+            console.log("Record location", location);
+            self.groupsnear = location.groupsnear;
+            console.log("Groupsnear length", self.groupsnear.length);
 
             try {
                 var l = location;
@@ -113,34 +152,46 @@ define([
             };
 
             var groups = self.$('.js-groups');
+            console.log("Groupsnear length", self.groupsnear.length);
 
-            if (groups.length > 0 && groupsnear) {
-                var homegroup = null;
-                var homegroupfound = false;
+            if (groups.length > 0) {
+                // We have a group select dropdown on the page.
+                if (self.groupsnear) {
+                    // We have some groups near their chosen location.
+                    var homegroup = null;
+                    var homegroupfound = false;
 
-                try {
-                    homegroup = localStorage.getItem('myhomegroup');
-                } catch (e) {};
+                    try {
+                        homegroup = localStorage.getItem('myhomegroup');
+                    } catch (e) {};
 
-                // Show home groups.
-                groups.empty();
-                _.each(groupsnear, function(groupnear) {
-                    if (homegroup == groupnear.id) {
-                        homegroupfound = true;
+                    // Show home group if it's present.
+                    groups.empty();
+                    _.each(self.groupsnear, function(groupnear) {
+                        if (homegroup == groupnear.id) {
+                            homegroupfound = true;
+                        }
+                        groups.append('<option value="' + groupnear.id + '" />');
+                        groups.find('option:last').text(groupnear.namedisplay);
+                    });
+
+                    if (homegroupfound) {
+                        groups.val(homegroup);
+                    } else {
+                        self.changeHomeGroup();
                     }
-                    groups.append('<option value="' + groupnear.id + '" />');
-                    groups.find('option:last').text(groupnear.namedisplay);
-                });
 
-                if (homegroupfound) {
-                    groups.val(homegroup);
-                } else {
-                    self.changeHomeGroup();
+                    self.changeGroup();
+                    groups.on('change', _.bind(self.changeGroup, self));
+                    self.$('.js-homegroup').fadeIn('slow');
                 }
-
-                self.$('.js-homegroup').fadeIn('slow');
             } else {
+                // We don't have a groups drop down.  Hide that section, but still check for whether we need to
+                // redirect to Yahoo.
                 self.$('.js-homegroup').hide();
+                if (self.groupsnear) {
+                    self.changeGroup();
+                }
             }
         },
 
