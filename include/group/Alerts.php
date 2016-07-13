@@ -211,71 +211,73 @@ class Alert extends Entity
         list ($transport, $mailer) = getMailer();
         $done = 0;
 
-        # Mail the mods individually
         $g = new Group($this->dbhr, $this->dbhm, $groupid);
-
-        $sql = "SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');";
-        $mods = $this->dbhr->preQuery($sql, [ $groupid ]);
-        error_log("..." . count($mods) . " volunteers");
         $from = $this->getFrom();
 
-        foreach ($mods as $mod) {
-            $u = new User($this->dbhr, $this->dbhm, $mod['userid']);
+        if ($tryhard) {
+            # Mail the mods individually
+            $sql = "SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');";
+            $mods = $this->dbhr->preQuery($sql, [ $groupid ]);
+            error_log("..." . count($mods) . " volunteers");
 
-            $emails = $u->getEmails();
-            foreach ($emails as $email) {
-                try {
-                    error_log("check {$email['email']} real " . realEmail($email['email']));
+            foreach ($mods as $mod) {
+                $u = new User($this->dbhr, $this->dbhm, $mod['userid']);
 
-                    if (realEmail($email['email'])) {
-                        # We don't want to send to a personal email if they've already clicked from that email - even
-                        # if it was on another group.  This is because some people are on many groups, with many emails,
-                        # and this can flood them.  They may get a copy via the owner address, though.
-                        $sql = "SELECT id, response FROM alerts_tracking WHERE userid = ? AND alertid = ? AND emailid = ?;";
-                        $previous = $this->dbhr->preQuery($sql, [ $mod['userid'], $this->id, $email['id']]);
-                        $gotprevious = FALSE;
-                        foreach ($previous as $prev) {
-                            if ($prev['response'] == 'Read' || $prev['response'] == 'Clicked') {
-                                error_log("...already got response");
-                                $gotprevious = TRUE;
-                            }
-                        }
+                $emails = $u->getEmails();
+                foreach ($emails as $email) {
+                    try {
+                        error_log("check {$email['email']} real " . realEmail($email['email']));
 
-                        if (!$gotprevious) {
-                            $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, userid, emailid, `type`) VALUES (?,?,?,?,?);",
-                                [
-                                    $this->id,
-                                    $groupid,
-                                    $mod['userid'],
-                                    $email['id'],
-                                    Alert::TYPE_MODEMAIL
-                                ]
-                            );
-                            $trackid = $this->dbhm->lastInsertId();
-                            $html = alert_tpl(
-                                $g->getPrivate('nameshort'),
-                                $u->getName(),
-                                USER_SITE,
-                                USERLOGO,
-                                $this->alert['subject'],
-                                $this->alert['html'],
-                                NULL, # Should be $u->getUnsubLink(USER_SITE, $mod['userid']) once we go live TODO ,
-                                $this->alert['askclick'] ? 'https://' . USER_SITE . "/alert/viewed/$trackid" : NULL,
-                                'https://' . USER_SITE . "/beacon/$trackid");
-
-                            $text = $this->alert['text'];
-                            if ($this->alert['askclick']) {
-                                $text .=  "\r\n\r\nPlease click to confirm you got this:\r\n\r\n" .
-                                    'https://' . USER_SITE . "/alert/viewed/$trackid";
+                        if (realEmail($email['email'])) {
+                            # We don't want to send to a personal email if they've already clicked from that email - even
+                            # if it was on another group.  This is because some people are on many groups, with many emails,
+                            # and this can flood them.  They may get a copy via the owner address, though.
+                            $sql = "SELECT id, response FROM alerts_tracking WHERE userid = ? AND alertid = ? AND emailid = ?;";
+                            $previous = $this->dbhr->preQuery($sql, [ $mod['userid'], $this->id, $email['id']]);
+                            $gotprevious = FALSE;
+                            foreach ($previous as $prev) {
+                                if ($prev['response'] == 'Read' || $prev['response'] == 'Clicked') {
+                                    error_log("...already got response");
+                                    $gotprevious = TRUE;
+                                }
                             }
 
-                            $msg = $this->constructMessage($email['email'], $u->getName(), $from, $this->alert['subject'], $text, $html);
-                            $mailer->send($msg);
-                            $done++;
+                            if (!$gotprevious) {
+                                $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, userid, emailid, `type`) VALUES (?,?,?,?,?);",
+                                    [
+                                        $this->id,
+                                        $groupid,
+                                        $mod['userid'],
+                                        $email['id'],
+                                        Alert::TYPE_MODEMAIL
+                                    ]
+                                );
+                                $trackid = $this->dbhm->lastInsertId();
+                                $html = alert_tpl(
+                                    $g->getPrivate('nameshort'),
+                                    $u->getName(),
+                                    USER_SITE,
+                                    USERLOGO,
+                                    $this->alert['subject'],
+                                    $this->alert['html'],
+                                    NULL, # Should be $u->getUnsubLink(USER_SITE, $mod['userid']) once we go live TODO ,
+                                    $this->alert['askclick'] ? 'https://' . USER_SITE . "/alert/viewed/$trackid" : NULL,
+                                    'https://' . USER_SITE . "/beacon/$trackid");
+
+                                $text = $this->alert['text'];
+                                if ($this->alert['askclick']) {
+                                    $text .=  "\r\n\r\nPlease click to confirm you got this:\r\n\r\n" .
+                                        'https://' . USER_SITE . "/alert/viewed/$trackid";
+                                }
+
+                                $msg = $this->constructMessage($email['email'], $u->getName(), $from, $this->alert['subject'], $text, $html);
+                                $mailer->send($msg);
+                                $done++;
+                            }
                         }
+                    } catch (Exception $e) {
+                        error_log("Failed with " . $e->getMessage());
                     }
-                } catch (Exception $e) {
-                    error_log("Failed with " . $e->getMessage());
                 }
             }
         }
