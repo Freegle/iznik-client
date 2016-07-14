@@ -16,14 +16,14 @@ $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
 $g = new Group($dbhr, $dbhm);
 $u = new User($dbhr, $dbhm);
 
-error_log("Migrate FD users");
-$count = 0;
-
-$users = $dbhfd->query("SELECT * FROM facebook");
-
-error_log("Queried");
-
 if (1==0) {
+    error_log("Migrate FD users");
+    $count = 0;
+
+    $users = $dbhfd->query("SELECT * FROM facebook");
+
+    error_log("Queried");
+
     foreach ($users as $user) {
         try {
             $eid = $u->findByEmail($user['email']);
@@ -48,7 +48,7 @@ if (1==0) {
     $dbhm->exec("update users set fullname = null where fullname = '';");
 }
 
-if (1==1) {
+if (1==0) {
     $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_EMULATE_PREPARES => FALSE
@@ -159,3 +159,78 @@ if (1==1) {
     }
 }
 
+$dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_EMULATE_PREPARES => FALSE
+));
+
+error_log("Migrate deleted FD memberships");
+$groups = $dbhfd->query("SELECT * FROM groups WHERE grouppublish = 1;");
+$groupcount = 0;
+
+foreach ($groups as $group) {
+    $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_EMULATE_PREPARES => FALSE
+    ));
+
+    $groupcount++;
+    error_log("Migrate deleted FD #$groupcount - {$group['groupname']}");
+    $gid = $g->findByShortName($group['groupname']);
+
+    if ($gid) {
+        $g = new Group($dbhr, $dbhm, $gid);
+
+        $lastsync = $g->getPrivate('lastyahoomembersync');
+        $lastsync = $lastsync ? strtotime($lastsync) : NULL;
+        $age = $lastsync ? ((time() - $lastsync) / 3600) : NULL;
+
+        if (!$age || $age > 7 * 24) {
+            # Only add users who have joined recently.  This means we won't readd old members that have not been
+            # removed from Iznik yet because there hasn't been a member sync.
+            $mysqltime = date("Y-m-d", strtotime("48 hours ago"));
+
+            $users = $dbhfd->query("SELECT * FROM users WHERE groupid = {$group['groupid']} AND deletedfromyahoo = 1;");
+            $count = 0;
+            foreach ($users as $user) {
+                $eid = $u->findByEmail($user['useremail']);
+                if ($eid) {
+                    # Check for specific email
+                    $sql = "SELECT memberships_yahoo.id, membershipid FROM memberships_yahoo INNER JOIN users_emails ON memberships_yahoo.emailid = users_emails.id INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE users_emails.email LIKE ? AND groupid = ?;";
+                    #error_log("$sql, {$user['useremail']}, $gid");
+                    $delid = NULL;
+                    $membid = NULL;
+                    $membs = $dbhr->preQuery($sql, [$user['useremail'], $gid]);
+                    foreach ($membs as $memb) {
+                        $delid = $memb['id'];
+                        $membid = $memb['membershipid'];
+                        error_log("#$eid {$user['useremail']} is member of #$gid {$group['groupname']} with emailid but deleted on Yahoo");
+                    }
+
+                    if (!$delid) {
+                        # Check for membership with no specific email
+                        $sql = "SELECT memberships_yahoo.id, membershipid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE memberships.userid = ? AND groupid = ? AND memberships_yahoo.emailid IS NULL;";
+                        #error_log("$sql, $eid, $gid");
+                        $membs = $dbhr->preQuery($sql, [ $eid, $gid ]);
+                        foreach ($membs as $memb) {
+                            $delid = $memb['id'];
+                            $membid = $memb['membershipid'];
+                            error_log("#$eid {$user['useremail']} is member of #$gid {$group['groupname']} without emailid but deleted on Yahoo");
+                        }
+                    }
+
+                    if ($delid) {
+                        $sql = $dbhm->preExec("DELETE FROM memberships_yahoo WHERE id = ?;", [ $delid ]);
+                        $others = $dbhm->preQuery("SELECT * FROM memberships_yahoo WHERE membershipid = ?;", [ $membid ]);
+
+                        if (count($others) == 0) {
+                            $dbhm->preExec("DELETE FROM memberships WHERE id = ?;", [ $membid ]);
+                        } else {
+                            error_log("Other memberships");
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

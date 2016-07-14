@@ -6,21 +6,24 @@
             <img class="img-thumbnail img-rounded faded" src="/images/user_logo.png" alt="{{namedisplay}}" />
         <% } %>
     </div>
-    <div class="col-xs-6">
+    <div class="col-xs-4">
         <a href="/explore/{{id}}">{{namedisplay}}</a><br>
         {{obj.tagline}}
     </div>
     <div class="col-xs-3">
         <% if (obj.onhere) { %>
-        <a href="/explore/{{id}}">
+        <a href="/explore/{{id}}" class="pull-right">
             <span class="btn btn-white">
-                <span class="glyphicons glyphicons-eye-open" />&nbsp;Explore
+                <img src='/images/heart_empty.png' class='smallicon' />&nbsp;Explore
             </span>
         </a>
-        <% } else if (obj.onyahoo) { %>
+        <% } %>
+    </div>
+    <div class="col-xs-3">
+        <% if (obj.onyahoo) { %>
         <a href="https://groups.yahoo.com/group/{{nameshort}}">
             <span class="btn btn-white">
-                <span class="glyphicons glyphicons-eye-open" />&nbsp;Explore on Yahoo
+                <img src='/images/yahoo.png' class='smallicon' />&nbsp;Explore on Yahoo
             </span>
         </a>
         <% } %>

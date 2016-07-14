@@ -104,8 +104,13 @@ define([
             })
 
             console.log("First", first);
+
+            self.$('.js-closestgroupname').html(first.namedisplay);
+
             if (!first.onhere) {
+                // We don't host this group.
                 if (first.onyahoo) {
+                    // But Yahoo does.
                     self.$('.js-onyahoo').fadeIn('slow');
                     self.$('.js-next').hide();
                     self.$('.js-toyahoo').show();
@@ -114,10 +119,17 @@ define([
                     // Who knows where it is?
                 }
             } else {
+                // We host this group.
                 self.$('.js-onyahoo').hide();
                 self.$('.js-next').show();
                 self.$('.js-toyahoo').hide();
-            }            
+
+                if (first.onyahoo) {
+                    // But it's also on Yahoo, and some people might want to go there.
+                    self.$('.js-yahootoo').show();
+                    self.$('.js-yahootoo a').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);
+                }
+            }
         },
 
         recordLocation: function(location, changegroup) {
