@@ -90,18 +90,17 @@ class imageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $data = file_get_contents('images/chair.jpg');
-        file_put_contents(IZNIK_BASE . "/http/uploads/chair.jpg", $data);
+        $data = file_get_contents('images/pan.jpg');
+        file_put_contents(IZNIK_BASE . "/http/uploads/pan.jpg", $data);
 
         $ret = $this->call('image', 'PUT', [
-            'filename' => 'chair.jpg',
+            'filename' => 'pan.jpg',
             'identify' => TRUE
         ]);
 
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         var_dump($ret);
-        assertEquals('chair', $ret['items'][0]['name']);
 
         # Get coverage for the upload call.  Don't test it properly, as all it does is call a 3rd party component.
         ob_start();
