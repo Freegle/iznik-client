@@ -311,3 +311,11 @@ function resolvedPromise(self) {
     });
     return(p);
 }
+
+function getURLParam(name) {
+    var url = location.search.replace(/\&amp;/g, '&');
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(url);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}

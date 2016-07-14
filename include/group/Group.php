@@ -23,6 +23,16 @@ class Group extends Entity
     {
         $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts);
 
+        if ($id && !$this->id) {
+            # We were passed an id, but didn't find the group.  See if the id is a legacyid.
+            #
+            # This assumes that the legacy and current ids don't clash.  Which they don't.  So that's a good assumption.
+            $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE legacyid = ?;", [ $id ]);
+            foreach ($groups as $group) {
+                $this->fetch($dbhr, $dbhm, $group['id'], 'groups', 'group', $this->publicatts);
+            }
+        }
+
         $this->defaultSettings = [
             'showchat' => 1,
             'communityevents' => 1,

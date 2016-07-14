@@ -2266,6 +2266,59 @@ class User extends Entity
         return($url);
     }
 
+    public function sendOurMails($g) {
+        $sendit = FALSE;
+        $groupid = $g->getId();
+
+        if ($g->getPrivate('onyahoo')) {
+            # We don't want to send out mails to users who are members directly on Yahoo, only
+            # for ones which have joined through this platform or its predecessor.
+            #
+            # We can check this in the Yahoo group membership table to check the email they use
+            # for membership.  However it might not be up to date because that relies on mods
+            # using ModTools.
+            #
+            # So if we don't find anything in there, then we check whether this user has any
+            # emails which we host.  That tells us whether they've joined any groups via our
+            # platform, which tells us whether it's reasonable to send them emails.
+            $membershipmail = $this->getEmailForYahooGroup($groupid, TRUE)[1];
+
+            if ($membershipmail) {
+                # They have a membership on Yahoo with one of our addresses.
+                $sendit = TRUE;
+            } else {
+                # They don't have a membership on Yahoo with one of our addresses.  If we have sync'd our
+                # membership fairly recently, then we can rely on that and it means that we shouldn't send
+                # it.
+                $lastsync = $g->getPrivate('lastyahoomembersync');
+                $lastsync = $lastsync ? strtotime($lastsync) : NULL;
+                $age = $lastsync ? ((time() - $lastsync) / 3600) : NULL;
+
+                if (!$age || $age > 7 * 24) {
+                    # We don't have a recent sync, because the mods aren't using ModTools regularly.
+                    #
+                    # Use email for them having any of ours as an approximation.
+                    $emails = $this->getEmails();
+                    foreach ($emails as $anemail) {
+                        if (ourDomain($anemail['email'])) {
+                            $sendit = TRUE;
+                        }
+                    }
+                }
+            }
+
+            if ($sendit) {
+                # We might be on holiday.
+                $hol = $this->getPrivate('onholidaytill');
+                $till = $hol ? strtotime($hol) : 0;
+
+                $sendit = time() > $till;
+            }
+
+            return($sendit);
+        }
+    }
+
     public function setPrivate($att, $val) {
         if (presdef('id', $_SESSION, NULL) == $this->id) {
             # We cache our user details in our session

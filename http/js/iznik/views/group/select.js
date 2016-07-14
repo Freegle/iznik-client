@@ -123,7 +123,8 @@ define([
                 var role = group.get('role');
                 // console.log("Consider group", group, role);
 
-                if (!self.options.mod || role == 'Owner' || role ==  'Moderator') {
+                if ((!self.options.mod || role == 'Owner' || role ==  'Moderator') &&
+                    (!self.options.grouptype || self.options.grouptype == group.get('type'))) {
                     self.dropdown.add({
                         text: self.getName(group),
                         value: group.get('id'),

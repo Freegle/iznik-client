@@ -69,7 +69,7 @@ class MessageCollection
             $typeq = $types ? (" AND `type` IN (" . implode(',', $types) . ") ") : '';
 
             # At the moment we only support ordering by arrival DESC.
-            $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
+            $date = ($ctx == NULL || !pres('Date', $ctx)) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
             $dateq = $ctx == NULL ? ' 1=1 ' : (" (messages_groups.arrival < $date OR messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ") ");
 
             # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.

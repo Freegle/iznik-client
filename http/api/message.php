@@ -6,9 +6,26 @@ function message() {
     $myid = $me ? $me->getId() : NULL;
 
     $collection = presdef('collection', $_REQUEST, MessageCollection::APPROVED);
-    $id = intval(presdef('id', $_REQUEST, NULL));
-    $reason = presdef('reason', $_REQUEST, NULL);
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
+    $id = presdef('id', $_REQUEST, NULL);
+
+    if ($id && substr($id, 0, 1) == 'L') {
+        # This is a legacy ID used for migrating old links from earlier versions.  Map it to the real id.
+        #
+        # The groupid is probably legacy too, so we need to get the real one.
+        $g = new Group($dbhr, $dbhm, $groupid);
+        $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahooapprovedid = ?;";
+        $msgs = $dbhr->preQuery($sql, [
+            $g->getId(),
+            intval(substr($id, 1))
+        ]);
+
+        foreach ($msgs as $msg) {
+            $id = $msg['msgid'];
+        }
+    }
+
+    $reason = presdef('reason', $_REQUEST, NULL);
     $action = presdef('action', $_REQUEST, NULL);
     $subject = presdef('subject', $_REQUEST, NULL);
     $body = presdef('body', $_REQUEST, NULL);

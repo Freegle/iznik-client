@@ -56,6 +56,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(MailRouter::APPROVED, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
+        $a->setYahooApprovedId($group1, 42);
 
         # Should be able to see this message even logged out.
         $ret = $this->call('message', 'GET', [
@@ -65,6 +66,14 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['message']['id']);
         assertFalse(array_key_exists('fromuser', $ret['message']));
+
+        # We should be able to see it using the legacy id.
+        $ret = $this->call('message', 'GET', [
+            'id' => "L42",
+            'groupid' => $group1
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['message']['id']);
 
         # When logged in should be able to see message history.
         $u = new User($this->dbhr, $this->dbhm);

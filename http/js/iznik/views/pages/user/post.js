@@ -169,7 +169,6 @@ define([
                 });
 
                 if (self.options.item) {
-                    console.log("Want", self.options.item);
                     self.$('.js-items').tagsinput('add', self.options.item);
                 }
 

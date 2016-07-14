@@ -308,6 +308,9 @@ define([
 
         render: function () {
             var self = this;
+
+            // Create the model.  If the id is a legacy group id then it will be corrected in the model we fetch,
+            // so we shouldn't use the options.id after this.
             self.model = new Iznik.Models.Group({ id: self.options.id });
             var p = self.model.fetch();
             p.then(function() {
@@ -325,7 +328,7 @@ define([
                     self.collection = new Iznik.Collections.Message(null, {
                         modtools: false,
                         collection: 'Approved',
-                        groupid: self.options.id
+                        groupid: self.model.get('id')
                     });
 
                     self.collectionView = new Backbone.CollectionView({
@@ -367,6 +370,45 @@ define([
                         }
                     } else {
                         self.showHideJoin();
+                    }
+                });
+            });
+
+            return (p);
+        }
+    });
+
+    Iznik.Views.User.Pages.LegacyMessage = Iznik.Views.Page.extend({
+        template: 'user_explore_message',
+
+        render: function () {
+            var self = this;
+            var p = Iznik.Views.Page.prototype.render.call(self).then(function () {
+                self.model = new Iznik.Models.Message({
+                    id: 'L' + self.options.id
+                });
+                self.model.fetch({
+                    data: {
+                        groupid: self.options.groupid
+                    },
+                    processData: true
+                }).then(function () {
+                    console.log("Fetched", self.model);
+                    // We might fail to fetch, or fetch a deleted message, or fetch a paired message.  In all these
+                    // cases the message shouldn't show.
+                    if (self.model.get('subject') && !self.model.get('deleted')) {
+                        console.log("Got it");
+                        var v = new Iznik.Views.User.Message.Replyable({
+                            model: self.model
+                        });
+
+                        v.render().then(function () {
+                            self.$('.js-message').append(v.el);
+                            self.$('.js-caretdown').click();
+                        });
+                    } else {
+                        console.log("Failed");
+                        self.$('.js-gone').fadeIn('slow');
                     }
                 });
             });

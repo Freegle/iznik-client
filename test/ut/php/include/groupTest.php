@@ -356,5 +356,20 @@ class groupTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testLegacy() {
+        error_log(__METHOD__ );
+
+        $sql = "SELECT id, legacyid FROM groups WHERE legacyid IS NOT NULL AND legacyid NOT IN (SELECT id FROM groups);";
+        $groups = $this->dbhr->preQuery($sql);
+        foreach ($groups as $group) {
+            error_log("Get legacy {$group['legacyid']}");
+            $g = new Group($this->dbhr, $this->dbhm, $group['legacyid']);
+            error_log("Returned id " . $g->getId());
+            assertEquals($group['id'], $g->getId());
+        }
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

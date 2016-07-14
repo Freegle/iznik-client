@@ -10,8 +10,8 @@ define([
     'iznik/models/communityevent',
     'iznik/views/group/select'
 ], function($, _, Backbone, Iznik, moment) {
-    Iznik.Views.User.CommunityEvents = Iznik.View.extend({
-        template: "communityevents_main",
+    Iznik.Views.User.CommunityEventsSidebar = Iznik.View.extend({
+        template: "communityevents_list",
 
         events: {
             'click .js-addevent': 'add'

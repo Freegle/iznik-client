@@ -5,6 +5,7 @@ function communityevent() {
     $me = whoAmI($dbhr, $dbhm);
 
     $id = intval(presdef('id', $_REQUEST, NULL));
+    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
     $pending = array_key_exists('pending', $_REQUEST) ? filter_var($_REQUEST['pending'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $ctx = presdef('context', $_REQUEST, NULL);
     
@@ -29,7 +30,7 @@ function communityevent() {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
-                            'communityevents' => $c->listForUser($me->getId(), $pending, $ctx),
+                            'communityevents' => $c->listForUser($me->getId(), $pending, $groupid, $ctx),
                             'context' => $ctx
                         ];
                     }

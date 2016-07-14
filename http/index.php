@@ -11,6 +11,8 @@ require_once(IZNIK_BASE . '/include/session/Yahoo.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . "/lib/JSMin.php");
 
+if (!defined('SITE_NAME')) { error_log("Bad config " . $_SERVER['HTTP_HOST']); }
+
 global $dbhr, $dbhm;
 
 if (pres('REQUEST_URI', $_SERVER) == 'yahoologin') {

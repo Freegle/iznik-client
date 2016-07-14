@@ -59,6 +59,11 @@ define([
         },
 
         routes: {
+            // Legacy routes
+            "tryfd.php?groupid=:id": "userExploreGroup",
+            "m.php?a=se(&g=:id)": "userCommunityEvents",
+            // End legacy
+
             "localstorage": "localstorage",
             "yahoologin": "yahoologin",
             "modtools": "modtools",
@@ -93,11 +98,14 @@ define([
             "give/whatisit": "userGiveWhatIsIt",
             "give/whoami": "userGiveWhoAmI",
             "give/whatnext": "userGiveWhatNext",
+            "mygroups/:id/message/:id": "legacyUserMessage",
             "mygroups": "userMyGroups",
             "settings": "userSettings",
             "explore/:id/join": "userJoinGroup",
             "explore/:id": "userExploreGroup",
+            "explore/:id/message/:id": "legacyUserMessage",
             "explore": "userExplore",
+            "communityevents(/:id)": "userCommunityEvents",
             "newuser": "newUser",
             "unsubscribe(/:id)": "unsubscribe",
             "post": "userHome", // legacy route
@@ -348,6 +356,29 @@ define([
 
             require(["iznik/views/pages/user/explore"], function() {
                 var page = new Iznik.Views.User.Pages.Explore();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userCommunityEvents: function(groupid) {
+            var self = this;
+
+            require(["iznik/views/pages/user/communityevents"], function() {
+                var page = new Iznik.Views.User.Pages.CommunityEvents({
+                    groupid: groupid
+                });
+                self.loadRoute({page: page});
+            });
+        },
+
+        legacyUserMessage: function(groupid, messageid) {
+            var self = this;
+
+            require(["iznik/views/pages/user/explore"], function() {
+                var page = new Iznik.Views.User.Pages.LegacyMessage({
+                    id: messageid,
+                    groupid: groupid
+                });
                 self.loadRoute({page: page});
             });
         },
