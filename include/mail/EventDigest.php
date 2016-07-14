@@ -112,7 +112,7 @@ class EventDigest
             );
 
             $tosend = [
-                'subject' => 'Community Event Roundup',
+                'subject' => '[' . $gatts['namedisplay'] . "] Community Event Roundup",
                 'from' => $g->getModsEmail(),
                 'fromname' => $gatts['namedisplay'],
                 'replyto' => $g->getModsEmail(),
@@ -153,8 +153,7 @@ class EventDigest
                     if (time() > $till) {
                         # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
                         if ($this->errorlog) { error_log("Send to them"); }
-                            $replacements['log@ehibbert.org.uk'] = [
-                            #$replacements[$email] = [
+                            $replacements[$email] = [
                             '{{toname}}' => $u->getName(),
                             '{{unsubscribe}}' => 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email),
                             '{{email}}' => $email,
@@ -204,7 +203,6 @@ class EventDigest
                         $message->addBcc($email);
                         #error_log("...$email");
                         $this->sendOne($mailer, $message);
-                        exit(0);
                         $sent++;
                     } catch (Exception $e) {
                         error_log($email . " skipped with " . $e->getMessage());
@@ -213,7 +211,7 @@ class EventDigest
             }
         }
 
-        $this->dbhm->preExec("UPDATE groups SET lasteventsdigest = NOW() WHERE groupid = ?;", [ $groupid ]);
+        $this->dbhm->preExec("UPDATE groups SET lasteventsdigest = NOW() WHERE id = ?;", [ $groupid ]);
 
         return($sent);
     }

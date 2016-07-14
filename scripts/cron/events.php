@@ -21,14 +21,13 @@ if (count($opts) < 1) {
     $e = new EventDigest($dbhr, $dbhm, FALSE);
 
     # We only send events for Freegle groups.
-    $sql = "SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' AND onhere = 1 AND MOD(id, ?) = ? AND publish = 1 AND DATEDIFF(NOW(), lasteventsroundup) >= 7L ORDER BY LOWER(nameshort) ASC;";
+    $sql = "SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' AND onhere = 1 AND MOD(id, ?) = ? AND publish = 1 AND DATEDIFF(NOW(), lasteventsroundup) >= 7 ORDER BY LOWER(nameshort) ASC;";
     $groups = $dbhr->preQuery($sql, [$mod, $val]);
 
     foreach ($groups as $group) {
         error_log($group['nameshort']);
         $g = new Group($dbhr, $dbhm, $group['id']);
         $settings = $g->getPublic()['settings'];
-        error_log("Events? {$settings['communityevents']}");
         if ($settings['communityevents']) {
             $total += $e->send($group['id']);
         }
