@@ -14,6 +14,7 @@ function memberships() {
     $ctx = presdef('context', $_REQUEST, NULL);
     $settings = presdef('settings', $_REQUEST, NULL);
     $emailfrequency = presdef('emailfrequency', $_REQUEST, NULL);
+    $filter = intval(presdef('filter', $_REQUEST, Group::FILTER_NONE));
 
     # TODO jQuery won't send an empty array, so we have a hack to ensure we can empty out the pending members.  What's
     # the right way to do this?
@@ -101,7 +102,7 @@ function memberships() {
                                 'status' => 'Success'
                             ];
                         } else {
-                            $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt);
+                            $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt, $filter);
 
                             if ($userid) {
                                 $ret = [

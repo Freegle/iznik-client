@@ -975,5 +975,64 @@ class membershipsAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testFilter() {
+        error_log(__METHOD__);
+
+        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('memberships', 'GET', [
+            'id' => $this->groupid,
+            'members' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $u = new User($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $u->addMembership($this->groupid);
+
+        $ret = $this->call('memberships', 'GET', [
+            'id' => $this->groupid,
+            'members' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(2, count($ret['members']));
+
+        $ret = $this->call('memberships', 'GET', [
+            'id' => $this->groupid,
+            'filter' => Group::FILTER_NONE,
+            'members' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(2, count($ret['members']));
+
+        $ret = $this->call('memberships', 'GET', [
+            'id' => $this->groupid,
+            'filter' => Group::FILTER_WITHCOMMENTS,
+            'members' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['members']));
+
+        $ret = $this->call('memberships', 'GET', [
+            'id' => $this->groupid,
+            'filter' => Group::FILTER_WITHCOMMENTS,
+            'members' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['members']));
+
+        $u->addComment($this->groupid, 'Test comment');
+
+        $ret = $this->call('memberships', 'GET', [
+            'id' => $this->groupid,
+            'filter' => Group::FILTER_WITHCOMMENTS,
+            'members' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['members']));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

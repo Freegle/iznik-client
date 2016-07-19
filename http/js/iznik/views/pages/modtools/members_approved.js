@@ -21,6 +21,7 @@ define([
 
         events: {
             'click .js-search': 'search',
+            'change .js-memberfilter': 'changeFilter',
             'keyup .js-searchterm': 'keyup',
             'click .js-sync': 'sync',
             'click .js-export': 'export',
@@ -177,6 +178,20 @@ define([
             }
         },
 
+        changeFilter: function() {
+            var self = this;
+            self.collection.reset();
+
+            // Fetching from start.
+            self.lastFetched = null;
+            self.context = null;
+
+            self.fetch({
+                groupid: self.selected > 0 ? self.selected : null,
+                filter: self.$('.js-memberfilter').val()
+            });
+        },
+
         render: function () {
             var p = Iznik.Views.Infinite.prototype.render.call(this);
             p.then(function(self) {
@@ -248,7 +263,8 @@ define([
                     self.collectionView.render();
 
                     self.fetch({
-                        groupid: self.selected > 0 ? self.selected : null
+                        groupid: self.selected > 0 ? self.selected : null,
+                        filter: self.$('.js-memberfilter').val()
                     });
                 });
 

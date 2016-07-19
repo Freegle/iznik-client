@@ -16,6 +16,9 @@ class Group extends Entity
     const GROUP_FREEGLE = 'Freegle';
     const GROUP_OTHER = 'Other';
 
+    const FILTER_NONE = 0;
+    const FILTER_WITHCOMMENTS = 1;
+
     /** @var  $log Log */
     private $log;
 
@@ -242,7 +245,7 @@ class Group extends Entity
         return(NULL);
     }
 
-    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection = MembershipCollection::APPROVED, $groupids = NULL, $yps = NULL, $ydt = NULL) {
+    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection = MembershipCollection::APPROVED, $groupids = NULL, $yps = NULL, $ydt = NULL, $filter = Group::FILTER_NONE) {
         $ret = [];
         $groupids = $groupids ? $groupids : ($this->id ? [ $this-> id ] : NULL);
 
@@ -256,6 +259,16 @@ class Group extends Entity
         $groupq = $groupids ? " memberships.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
         $ypsq = $yps ? (" AND memberships_yahoo.yahooPostingStatus = " . $this->dbhr->quote($yps)) : '';
         $ydtq = $ydt ? (" AND memberships_yahoo.yahooDeliveryType = " . $this->dbhr->quote($ydt)) : '';
+
+        switch ($filter) {
+            case Group::FILTER_WITHCOMMENTS:
+                $filterq = ' INNER JOIN users_comments ON users_comments.userid = memberships.userid ';
+                $filterq = $groupids ? ("$filterq AND users_comments.groupid IN (" . implode(',', $groupids) . ") ") : $filterq;
+                break;
+            default:
+                $filterq = '';
+                break;
+        }
 
         # Collection filter.  If we're searching on a specific id then don't put it in.
         $collectionq = '';
@@ -276,7 +289,8 @@ class Group extends Entity
               memberships_yahoo.yahooreject, memberships_yahoo.joincomment FROM memberships 
               LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid 
               LEFT JOIN users_emails ON memberships.userid = users_emails.userid 
-              INNER JOIN users ON users.id = memberships.userid";
+              INNER JOIN users ON users.id = memberships.userid 
+              $filterq";
 
         if ($search) {
             # We're searching.  It turns out to be more efficient to get the userids using the indexes, and then
@@ -304,6 +318,7 @@ class Group extends Entity
         foreach ($members as $member) {
             $u = new User($this->dbhr, $this->dbhm, $member['userid']);
             $thisone = $u->getPublic($groupids, TRUE);
+            error_log("{$member['userid']} has " . count($thisone['comments']));
 
             # We want to return an id of the membership, because the same user might be pending on two groups, and
             # a userid of the user's id.
