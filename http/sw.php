@@ -126,15 +126,14 @@ self.addEventListener('activate', function(event) {
 });
 
 self.addEventListener('message', function(event) {
-    console.log("SW got message", event.data);
-    console.log("Message type", event.data.type);
+    console.log("SW got message", event.data, event.data.type);
     
     switch(event.data.type) {
         case 'clearcache': {
-            console.log("Clear cache");
+            console.log("SW Clear cache");
             caches.keys().then(function (cacheKeys) {
                 // We want to delete everything.
-                console.log("Cache to delete", cacheKeys);
+                console.log("SW Cache to delete", cacheKeys);
                 cacheKeys.map(function (oldKey) {
                     caches.delete(oldKey);
                 });
@@ -145,17 +144,17 @@ self.addEventListener('message', function(event) {
         case 'subscription': {
             // We have been passed our push notification subscription, which we may use to authenticate ourselves
             // to the server when processing notifications.
-            console.log("Save subscription ", event.data.subscription);
+            console.log("SW Save subscription ", event.data.subscription);
             var request = db.transaction(['swdata'], 'readwrite')
                 .objectStore('swdata')
                 .put({id: 'pushsubscription', value: event.data.subscription});
 
             request.onsuccess = function (e) {
-                console.log("Saved subscription");
+                console.log("SW Saved subscription");
             };
 
             request.onerror = function (e) {
-                console.error("Failed to save subscription", e);
+                console.error("SW Failed to save subscription", e);
                 e.preventDefault();
             };
             break;
@@ -168,7 +167,7 @@ self.addEventListener('push', function(event) {
     // we need to display to the user.  This is why we need our pushsub stored, so that we can authenticate to
     // the server.
     console.log('SW Push message received', event, pushsub);
-    var url = new URL(self.registration.scope + '/api/session');
+    var url = new URL(self.registration.scope + 'api/session');
 
     if (pushsub) {
         // We add our push subscription as a way of authenticating ourselves to the server, in case we're
@@ -177,11 +176,11 @@ self.addEventListener('push', function(event) {
         // to log in.
         if (url.searchParams) {
             url.searchParams.append('pushcreds', pushsub);
-            console.log("Add pushcreds", pushsub);
+            console.log("SW Add pushcreds", pushsub);
         } else {
             // Chrome mobile doesn't seem to support searchParams
             url = url + '?pushcreds=' + encodeURIComponent(pushsub);
-            console.log("Add pushcreds into url", url);
+            console.log("SW Add pushcreds into url", url);
         }
     }
 
@@ -198,6 +197,7 @@ self.addEventListener('push', function(event) {
             credentials: 'include'
         }).then(function(response) {
             return response.json().then(function(ret) {
+                console.log("SW got session during push", ret);
                 var workstr = '';
                 var url = '/';
 
@@ -252,7 +252,8 @@ self.addEventListener('push', function(event) {
                 }
 
                 // Show a notification.  Don't vibrate - that would be too annoying.
-                return  self.registration.showNotification("ModTools", {
+                console.log("SW Return notification", workstr, url);
+                return self.registration.showNotification("ModTools", {
                     body: workstr,
                     icon: '/images/favicon/modtools/favicon-96x96.png',
                     tag: 'work',

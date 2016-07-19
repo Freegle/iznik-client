@@ -74,6 +74,7 @@ class Notifications
                 }
 
                 $rc = $webPush->sendNotification($notif['subscription'], null, null, true);
+                #error_log("Returned " . var_export($rc, TRUE));
                 $count++;
             } catch (Exception $e) {
                 $rc = [ 'exception' => $e->getMessage() ];
