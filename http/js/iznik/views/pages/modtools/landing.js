@@ -97,6 +97,23 @@ define([
                         });
 
                         graph.render();
+
+                        if (ret.dashboard.hasOwnProperty('modinfo')) {
+                            self.$('.js-modlist').empty();
+                            self.$('.js-modinfo').show();
+                            _.each(ret.dashboard.modinfo, function(modinfo) {
+                                if (modinfo.lastactive) {
+                                    var v = new Iznik.Views.ModTools.Pages.Landing.ModInfo({
+                                        model: new Iznik.Model(modinfo)
+                                    });
+                                    v.render().then(function() {
+                                        self.$('.js-modlist').append(v.el);
+                                    });
+                                }
+                            })
+                        } else {
+                            self.$('.js-modinfo').hide();
+                        }
                     }
                 })
             },
@@ -165,5 +182,9 @@ define([
 
                 return(p);
             }
+        });
+
+        Iznik.Views.ModTools.Pages.Landing.ModInfo = Iznik.View.Timeago.extend({
+            template: 'modtools_landing_modinfo'
         });
 });
