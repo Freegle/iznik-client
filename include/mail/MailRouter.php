@@ -459,7 +459,10 @@ class MailRouter
                 $ret = MailRouter::TO_SYSTEM;
             }
         } else {
-            if (!$notspam) {
+            # We use SpamAssassin to weed out obvious spam.  We only call this if the message subject line is
+            # not in the standard format.  Most generic spam isn't in that format, and some of our messages
+            # would otherwise get flagged - so this improves overall reliability.
+            if (!$notspam && !preg_match('/.*?\:(.*)\(.*\)/', $this->msg->getSubject())) {
                 # First check if this message is spam based on our own checks.
                 $rc = $this->spam->check($this->msg);
                 if ($rc) {
@@ -491,7 +494,7 @@ class MailRouter
                         $ret = MailRouter::INCOMING_SPAM;
                     }
                 } else {
-                    # Now check if we think this is just plain spam.
+                    # Now check if we think this is just plain spam.  We don't check
                     $this->spamc->command = 'CHECK';
 
                     if ($this->spamc->filter($this->msg->getMessage())) {
