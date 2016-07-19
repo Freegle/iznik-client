@@ -68,6 +68,10 @@ class Dashboard {
                 ];
             }
 
+            usort($active, function($mod1, $mod2) {
+                return(strcmp($mod2['lastactive'], $mod1['lastactive']));
+            });
+
             $ret['modinfo'] = $active;
         }
 
