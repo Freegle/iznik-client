@@ -433,6 +433,12 @@ define([
                         model: self.group,
                         fields: [
                             {
+                                name: 'showonyahoo',
+                                label: 'Show Yahoo Group to members?',
+                                control: 'select',
+                                options: [{label: 'Show links to Yahoo group too', value: 1}, {label: 'Don\'t show links to Yahoo group', value:0 }]
+                            },
+                            {
                                 name: 'tagline',
                                 label: 'Tagline for your group',
                                 control: 'input',
@@ -449,7 +455,8 @@ define([
                             'submit': function(e) {
                                 e.preventDefault();
                                 self.group.save({
-                                    'tagline': self.group.get('tagline')
+                                    'tagline': self.group.get('tagline'),
+                                    'showonyahoo': self.group.get('showonyahoo')
                                 }, {
                                     patch: true,
                                     success: _.bind(self.success, self),

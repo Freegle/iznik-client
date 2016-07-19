@@ -44,7 +44,7 @@ class Entity
     public function getAtts($list) {
         $ret = array();
         foreach ($list as $att) {
-            if (pres($att, $this->{$this->name})) {
+            if ($this->{$this->name} && array_key_exists($att, $this->{$this->name})) {
                 $ret[$att] = $this->{$this->name}[$att];
             } else {
                 $ret[$att] = NULL;

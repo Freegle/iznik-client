@@ -60,11 +60,12 @@ function filterResult(&$array, $skip = NULL) {
     }
 
     foreach($array as $key => $val){
-        #print "$key type ". gettype($val) . " null? " . is_null($val) . "\n";
-        #error_log("Consider $key = $val " . is_numeric($val));
-        
+        #error_log("$key type ". gettype($val) . " null? " . is_null($val) . " is_numeric ");
+
         if ($skip && (array_search($key, $skip) !== false)) {
             # Asked to do nothing
+        } else if (is_int($val)) {
+            # We don't want to filter out ints, even if they are 0 i.e. null.
         } else if (is_null($val)) {
             unset($array[$key]);
         } else if ((is_int($key) || is_numeric($key)) && (!$allnumeric)) {

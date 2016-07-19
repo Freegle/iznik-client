@@ -2270,6 +2270,8 @@ class User extends Entity
         $sendit = FALSE;
         $groupid = $g->getId();
 
+        #error_log("On Yahoo? " . $g->getPrivate('onyahoo'));
+
         if ($g->getPrivate('onyahoo')) {
             # We don't want to send out mails to users who are members directly on Yahoo, only
             # for ones which have joined through this platform or its predecessor.
@@ -2282,6 +2284,7 @@ class User extends Entity
             # emails which we host.  That tells us whether they've joined any groups via our
             # platform, which tells us whether it's reasonable to send them emails.
             $membershipmail = $this->getEmailForYahooGroup($groupid, TRUE)[1];
+            #error_log("Membership mail $membershipmail");
 
             if ($membershipmail) {
                 # They have a membership on Yahoo with one of our addresses.
@@ -2293,6 +2296,7 @@ class User extends Entity
                 $lastsync = $g->getPrivate('lastyahoomembersync');
                 $lastsync = $lastsync ? strtotime($lastsync) : NULL;
                 $age = $lastsync ? ((time() - $lastsync) / 3600) : NULL;
+                #error_log("Last sync $age");
 
                 if (!$age || $age > 7 * 24) {
                     # We don't have a recent sync, because the mods aren't using ModTools regularly.
@@ -2311,10 +2315,12 @@ class User extends Entity
                 # We might be on holiday.
                 $hol = $this->getPrivate('onholidaytill');
                 $till = $hol ? strtotime($hol) : 0;
+                #error_log("Holiday $till vs " . time());
 
                 $sendit = time() > $till;
             }
 
+            #error_log("Sendit? $sendit");
             return($sendit);
         }
     }

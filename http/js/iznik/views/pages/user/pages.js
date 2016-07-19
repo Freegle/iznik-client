@@ -94,7 +94,6 @@ define([
                 current = self.groupsnear[0].id;
             }
 
-            console.log("Current group",  current, self.groupsnear);
             var first = null;
 
             _.each(self.groupsnear, function(group) {
@@ -103,14 +102,12 @@ define([
                 }
             })
 
-            console.log("First", first);
-
             self.$('.js-closestgroupname').html(first.namedisplay);
 
             if (!first.onhere) {
                 // We don't host this group.
-                if (first.onyahoo) {
-                    // But Yahoo does.
+                if (first.onyahoo && first.showonyahoo) {
+                    // But Yahoo does and we want to show it.
                     self.$('.js-onyahoo').fadeIn('slow');
                     self.$('.js-next').hide();
                     self.$('.js-toyahoo').show();
@@ -124,7 +121,7 @@ define([
                 self.$('.js-next').show();
                 self.$('.js-toyahoo').hide();
 
-                if (first.onyahoo) {
+                if (first.onyahoo && first.showonyahoo) {
                     // But it's also on Yahoo, and some people might want to go there.
                     self.$('.js-yahootoo').show();
                     self.$('.js-yahootoo a').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);

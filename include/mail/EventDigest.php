@@ -141,7 +141,7 @@ class EventDigest
                     # We are only interested in sending events to users for whom we have a preferred address -
                     # otherwise where would we send them?
                     $email = $u->getEmailPreferred();
-                    if ($this->errorlog) { error_log("Preferred $email"); }
+                    if ($this->errorlog) { error_log("Preferred $email, send " . $u->sendOurMails($g)); }
 
                     if ($email && $u->sendOurMails($g)) {
                         # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.

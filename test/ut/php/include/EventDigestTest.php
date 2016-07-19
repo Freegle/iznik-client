@@ -41,7 +41,7 @@ class eventDigestTest extends IznikTestCase {
 
         # Mock the actual send
         $mock = $this->getMockBuilder('EventDigest')
-            ->setConstructorArgs([$this->dbhr, $this->dbhm, NULL, TRUE])
+            ->setConstructorArgs([$this->dbhm, $this->dbhm, TRUE])
             ->setMethods(array('sendOne'))
             ->getMock();
         $mock->method('sendOne')->will($this->returnCallback(function($mailer, $message) {
@@ -53,15 +53,18 @@ class eventDigestTest extends IznikTestCase {
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', TRUE);
 
+
         # And two users, one who wants events and one who doesn't.
         $u = new User($this->dbhr, $this->dbhm);
         $uid1 = $u->create(NULL, NULL, "Test User");
-        $u->addEmail('test1@test.com');
-        $u->addMembership($gid);
+        $eid1 = $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+        $u->addMembership($gid, User::ROLE_MEMBER, $eid1);
         $u->setMembershipAtt($gid, 'eventsallowed', 0);
         $uid2 = $u->create(NULL, NULL, "Test User");
-        $u->addEmail('test2@test.com');
-        $u->addMembership($gid);
+        $eid2 = $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+        $u->addMembership($gid, User::ROLE_MEMBER, $eid2);
 
         $e = new CommunityEvent($this->dbhr, $this->dbhm);
         $e->create($uid1, 'Test Event 1', 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'A test event');
