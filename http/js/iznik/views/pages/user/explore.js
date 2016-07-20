@@ -157,7 +157,6 @@ define([
 
                             self.listenTo(content, 'opened', function(opened) {
                                 self.groupViews.forEach(function(element, index, array) {
-                                    console.log("Compare", element, opened);
                                     if (element != opened) {
                                         element.close();
                                     }

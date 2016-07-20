@@ -65,6 +65,7 @@ define([
             "mygroups/:id/message/:id": "legacyUserMessage",
             "explore/:id/message/:id": "legacyUserMessage",
             "groups": "legacyUserGroups",
+            "location/:id": "legacyUserGroups",
             // End legacy
 
             "localstorage": "localstorage",
@@ -341,23 +342,31 @@ define([
             });
         },
 
-        legacyUserGroups: function(name) {
+        legacyUserGroups: function(loc) {
             var self = this;
 
-            // Legacy route.  Either we're called with /groups, or /groups#place.  If it's the latter then we need
-            // to search.
-            var hash = Backbone.history.getHash();
-
-            if (hash) {
-                require(["iznik/views/pages/user/explore"], function() {
+            require(["iznik/views/pages/user/explore"], function() {
+                // Legacy route.  If we have a name, we need to search.
+                if (loc) {
+                    // This is the route for /location/loc
                     var page = new Iznik.Views.User.Pages.Explore({
-                        search: hash
+                        search: loc
                     });
                     self.loadRoute({page: page});
-                });
-            } else {
-                Router.navigate('/explore', true);
-            }
+                } else {
+                    // This is the route for /groups or /groups#loc.
+                    var hash = Backbone.history.getHash();
+
+                    if (hash) {
+                        var page = new Iznik.Views.User.Pages.Explore({
+                            search: hash
+                        });
+                        self.loadRoute({page: page});
+                    } else {
+                        Router.navigate('/explore', true);
+                    }
+                }
+            });
         },
 
         userExploreGroup: function(name) {
