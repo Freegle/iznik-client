@@ -50,6 +50,7 @@ define([
                     self.map.moveTo(result.geometry.location.lat(), result.geometry.location.lng());
                 });
 
+                // Just centre on one of the centres of Britain.  Yes, there are multiple.
                 self.map = new Iznik.Views.Map({
                     model: new Iznik.Model({
                         clat: 53.9450,
@@ -59,7 +60,13 @@ define([
                     })
                 });
 
-                self.map.render();
+                self.map.render().then(function() {
+                    if (self.options.search) {
+                        // We've been asked to search for a place.
+                        self.$('.js-location').val(self.options.search);
+                        self.locButton();
+                    }
+                });
             });
 
             return (p);

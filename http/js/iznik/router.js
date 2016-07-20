@@ -59,9 +59,12 @@ define([
         },
 
         routes: {
-            // Legacy routes
+            // Legacy routes - hopefully we can retire these at some point.
             "tryfd.php?groupid=:id": "userExploreGroup",
             "m.php?a=se(&g=:id)": "userCommunityEvents",
+            "mygroups/:id/message/:id": "legacyUserMessage",
+            "explore/:id/message/:id": "legacyUserMessage",
+            "groups": "legacyUserGroups",
             // End legacy
 
             "localstorage": "localstorage",
@@ -98,12 +101,10 @@ define([
             "give/whatisit": "userGiveWhatIsIt",
             "give/whoami": "userGiveWhoAmI",
             "give/whatnext": "userGiveWhatNext",
-            "mygroups/:id/message/:id": "legacyUserMessage",
             "mygroups": "userMyGroups",
             "settings": "userSettings",
             "explore/:id/join": "userJoinGroup",
             "explore/:id": "userExploreGroup",
-            "explore/:id/message/:id": "legacyUserMessage",
             "explore": "userExplore",
             "communityevents(/:id)": "userCommunityEvents",
             "newuser": "newUser",
@@ -340,12 +341,31 @@ define([
             });
         },
 
-        userExploreGroup: function(id) {
+        legacyUserGroups: function(name) {
+            var self = this;
+
+            // Legacy route.  Either we're called with /groups, or /groups#place.  If it's the latter then we need
+            // to search.
+            var hash = Backbone.history.getHash();
+
+            if (hash) {
+                require(["iznik/views/pages/user/explore"], function() {
+                    var page = new Iznik.Views.User.Pages.Explore({
+                        search: hash
+                    });
+                    self.loadRoute({page: page});
+                });
+            } else {
+                Router.navigate('/explore', true);
+            }
+        },
+
+        userExploreGroup: function(name) {
             var self = this;
 
             require(["iznik/views/pages/user/explore"], function() {
                 var page = new Iznik.Views.User.Pages.ExploreGroup({
-                    id: id
+                    id: name
                 });
                 self.loadRoute({page: page});
             });
@@ -855,7 +875,7 @@ define([
         Backbone.history.start({
             pushState: true
         });
-        
+
         // See if we have local storage enabled; we need it
         try {
             localStorage.setItem('lsenabled', true);
@@ -872,6 +892,7 @@ define([
     }
 
     if (document.URL.indexOf('action=') !== -1) {
+        // Legacy.
         Router.navigate('/modtools', true);
     }
 
