@@ -10,7 +10,7 @@ foreach ($groups as $group) {
     $dbhm->preExec("INSERT IGNORE INTO prerender (url) VALUES (?);", [ "https://" . USER_SITE . "/explore/{$group['id']}" ]);
 }
 
-$pages = $dbhr->preQuery("SELECT id, url FROM prerender WHERE html IS NULL OR HOUR(TIMEDIFF(NOW(), retrieved) * 60) >= timeout;");
+$pages = $dbhr->preQuery("SELECT id, url FROM prerender WHERE html IS NULL OR TIMESTAMPDIFF(HOUR, retrieved,NOW()) >= timeout;");
 foreach ($pages as $page) {
     $url = $page['url'] . "?nocache=1";
     $file_name = tempnam('/tmp', 'prerender_') . ".html";
@@ -25,6 +25,14 @@ foreach ($pages as $page) {
                 var fs = require('fs');
                 var requests = 0;
                 
+                page.settings.resourceTimeout = 12000; 
+                page.onResourceTimeout = function(e) {
+                  console.log(e.errorCode);   // it'll probably be 408 
+                  console.log(e.errorString); // it'll probably be 'Network timeout on resource'
+                  console.log(e.url);         // the url whose request timed out
+                  phantom.exit(1);
+                };
+                                
                 page.onResourceRequested = function(request) {
                     console.log('Requested', request.url);
                     requests++;
@@ -51,7 +59,7 @@ foreach ($pages as $page) {
     exec("phantomjs --ssl-protocol=tlsv1 $job_file");
     $html = file_get_contents($file_name);
     unlink($file_name);
-    #unlink($job_file);
+    unlink($job_file);
 
     if ($html && strlen($html) > 100) {
         $rc = $dbhm->preExec("UPDATE prerender SET html = ? WHERE id = ?;", [ $html, $page['id'] ]);
