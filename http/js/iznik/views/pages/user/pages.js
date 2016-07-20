@@ -102,29 +102,32 @@ define([
                 }
             })
 
-            self.$('.js-closestgroupname').html(first.namedisplay);
+            // console.log("changeGroup", first);
+            if (first) {
+                self.$('.js-closestgroupname').html(first.namedisplay);
 
-            if (!first.onhere) {
-                // We don't host this group.
-                if (first.onyahoo && first.showonyahoo) {
-                    // But Yahoo does and we want to show it.
-                    self.$('.js-onyahoo').fadeIn('slow');
-                    self.$('.js-next').hide();
-                    self.$('.js-toyahoo').show();
-                    self.$('.js-toyahoo').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);
+                if (!first.onhere) {
+                    // We don't host this group.
+                    if (first.onyahoo && first.showonyahoo) {
+                        // But Yahoo does and we want to show it.
+                        self.$('.js-onyahoo').fadeIn('slow');
+                        self.$('.js-next').hide();
+                        self.$('.js-toyahoo').show();
+                        self.$('.js-toyahoo').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);
+                    } else {
+                        // Who knows where it is?
+                    }
                 } else {
-                    // Who knows where it is?
-                }
-            } else {
-                // We host this group.
-                self.$('.js-onyahoo').hide();
-                self.$('.js-next').show();
-                self.$('.js-toyahoo').hide();
+                    // We host this group.
+                    self.$('.js-onyahoo').hide();
+                    self.$('.js-next').show();
+                    self.$('.js-yahootoo').hide();
 
-                if (first.onyahoo && first.showonyahoo) {
-                    // But it's also on Yahoo, and some people might want to go there.
-                    self.$('.js-yahootoo').show();
-                    self.$('.js-yahootoo a').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);
+                    if (first.onyahoo && first.showonyahoo) {
+                        // But it's also on Yahoo, and some people might want to go there.
+                        self.$('.js-yahootoo').show();
+                        self.$('.js-yahootoo a').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);
+                    }
                 }
             }
         },
@@ -144,9 +147,9 @@ define([
             self.$('.js-next').fadeIn('slow');
             self.$('.js-ok').fadeIn('slow');
 
-            console.log("Record location", location);
+            // console.log("Record location", location);
             self.groupsnear = location.groupsnear;
-            console.log("Groupsnear length", self.groupsnear.length);
+            // console.log("Groupsnear length", self.groupsnear.length);
 
             try {
                 var l = location;
@@ -161,7 +164,6 @@ define([
             };
 
             var groups = self.$('.js-groups');
-            console.log("Groupsnear length", self.groupsnear.length);
 
             if (groups.length > 0) {
                 // We have a group select dropdown on the page.
