@@ -1879,10 +1879,12 @@ define([
 
                         self.listenTo(self.areas, 'remove', function(area) {
                             var obj = area.get('obj');
-                            var oldlen = self.features.length;
-                            self.features = _.without(self.features, obj);
-                            console.log("Removed", oldlen, self.features.length);
-                            obj.setMap(null);
+                            if (!_.isUndefined(obj)) {
+                                var oldlen = self.features.length;
+                                self.features = _.without(self.features, obj);
+                                console.log("Removed", obj, oldlen, self.features.length);
+                                obj.setMap(null);
+                            }
                         });
 
                         google.maps.event.addListener(self.map, 'idle', _.bind(function() {
