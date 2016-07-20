@@ -6,6 +6,8 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 
+$lockh = lockScript(basename(__FILE__));
+
 $dsn = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
 
 $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
@@ -32,3 +34,5 @@ foreach ($groups as $group) {
         }
     }
 }
+
+unlockScript($lockh);

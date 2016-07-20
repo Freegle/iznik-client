@@ -418,8 +418,10 @@ class Location extends Entity
             if ($expand) {
                 $g = new Group($this->dbhr, $this->dbhm, $group['id']);
                 $thisone = $g->getPublic();
+
                 $thisone['distance'] = $group['hav'];
                 $thisone['polydist'] = $group['dist'];
+
                 $ret[] = $thisone;
             } else {
                 $ret[] = $group['id'];

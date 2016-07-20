@@ -31,6 +31,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
         $this->group = new Group($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
+        $this->group->setPrivate('onyahoo', TRUE);
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         assertNotNull($this->uid);
