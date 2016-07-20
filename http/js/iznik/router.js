@@ -61,7 +61,8 @@ define([
         routes: {
             // Legacy routes - hopefully we can retire these at some point.
             "tryfd.php?groupid=:id": "userExploreGroup",
-            "m.php?a=se(&g=:id)": "userCommunityEvents",
+            "m.php?a=se(&g=:id)": "legacyUserCommunityEvents",
+            "events(/:id)": "legacyUserCommunityEvents",
             "mygroups/:id/message/:id": "legacyUserMessage",
             "explore/:id/message/:id": "legacyUserMessage",
             "groups": "legacyUserGroups",
@@ -386,6 +387,21 @@ define([
             require(["iznik/views/pages/user/explore"], function() {
                 var page = new Iznik.Views.User.Pages.Explore();
                 self.loadRoute({page: page});
+            });
+        },
+
+        legacyUserCommunityEvents: function(legacyid) {
+            var self = this;
+
+            require(["iznik/models/group"], function() {
+                // Map the legacy id to a real id.
+                var group = new Iznik.Models.Group({
+                    id: legacyid
+                });
+
+                group.fetch().then(function () {
+                    self.userCommunityEvents(group.get('id'));
+                })
             });
         },
 

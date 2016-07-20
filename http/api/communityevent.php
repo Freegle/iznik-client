@@ -6,6 +6,13 @@ function communityevent() {
 
     $id = intval(presdef('id', $_REQUEST, NULL));
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
+
+    if ($groupid) {
+        # This might be a legacy groupid.
+        $g = new Group($dbhr, $dbhm, $groupid);
+        $groupid = $g->getId();
+    }
+
     $pending = array_key_exists('pending', $_REQUEST) ? filter_var($_REQUEST['pending'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $ctx = presdef('context', $_REQUEST, NULL);
     

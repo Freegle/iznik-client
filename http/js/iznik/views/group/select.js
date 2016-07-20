@@ -68,7 +68,11 @@ define([
                 // We have a specified id.  We try to remember this in local storage
                 try {
                     self.persist = true;
-                    self.options.selected = localStorage.getItem('groupselect.' + self.id);
+
+                    if (!self.options.selected) {
+                        // We haven't been passed a value to select - use what we last had.
+                        self.options.selected = localStorage.getItem('groupselect.' + self.id);
+                    }
                 } catch (e) {}
             } else {
                 self.id = id = "gs" + groupSelectIdCounter++;

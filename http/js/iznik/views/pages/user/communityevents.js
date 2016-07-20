@@ -54,6 +54,11 @@ define([
         render: function () {
             var self = this;
 
+            if (self.options.groupid) {
+                // Not logged in - expect to be called for a specific group.
+                self.selected = self.options.groupid;
+            }
+
             // We extend the sidebar as that has some event handling we want, but we don't want its render.
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
@@ -75,7 +80,8 @@ define([
                             all: true,
                             mod: false,
                             grouptype: 'Freegle',
-                            id: 'eventsGroupSelect'
+                            id: 'eventsGroupSelect',
+                            selected: self.options.groupid
                         });
 
                         self.listenTo(v, 'selected', function(selected) {
