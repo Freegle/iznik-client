@@ -18,10 +18,17 @@ define([
         },
 
         add: function() {
-            var v = new Iznik.Views.User.CommunityEvent.Editable({
-                model: new Iznik.Models.CommunityEvent({})
+            var self = this;
+
+            // Need to be logged in to add an event.
+            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                var v = new Iznik.Views.User.CommunityEvent.Editable({
+                    model: new Iznik.Models.CommunityEvent({})
+                });
+                v.render();
             });
-            v.render();
+
+            Iznik.Session.forceLogin();
         },
 
         containerHeight: function() {

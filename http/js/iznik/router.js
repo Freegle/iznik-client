@@ -59,7 +59,7 @@ define([
         },
 
         routes: {
-            // Legacy routes - hopefully we can retire these at some point.
+            // TODO Legacy routes - hopefully we can retire these at some point.
             "tryfd.php?groupid=:id": "userExploreGroup",
             "m.php?a=se(&g=:id)": "legacyUserCommunityEvents",
             "events(/:id)": "legacyUserCommunityEvents",
@@ -67,6 +67,21 @@ define([
             "explore/:id/message/:id": "legacyUserMessage",
             "groups": "legacyUserGroups",
             "location/:id": "legacyUserGroups",
+            "main.php?action=look&groupid=:id": "userExploreGroup",
+            "main.php?action=showevents*t": "userCommunityEvents",
+            "main.php?&action=join&then=displaygroup&groupid=:id": "userExploreGroup",
+            "main.php?action=mygroups": "userMyGroups",
+            "main.php?action=myposts": "userHome",
+            "main.php?action=post*t": "userHome",
+            "main.php?action=findgroup": "userExplore",
+            "legacy?action=join&groupid=:id&then=displaygroup": "userExploreGroup",
+            "legacy?action=look&groupid=:id": "userExploreGroup",
+            "legacy?action=mygroups*t": "userMyGroups",
+            "legacy?action=myposts": "userMyPosts",
+            "legacy?action=mysettings": "userSettings",
+            "legacy?action=post*t": "userHome",
+            "legacy?action=showevents*t": "userCommunityEvents",
+            "legacy?a=se&g=:id": "legacyUserCommunityEvents",
             // End legacy
 
             "localstorage": "localstorage",
@@ -372,6 +387,7 @@ define([
 
         userExploreGroup: function(name) {
             var self = this;
+            console.log("Explore group", name);
 
             require(["iznik/views/pages/user/explore"], function() {
                 var page = new Iznik.Views.User.Pages.ExploreGroup({
@@ -408,11 +424,28 @@ define([
         userCommunityEvents: function(groupid) {
             var self = this;
 
+            // We might be called in the legacy case with some random guff on the end of the url.
+            if (groupid) {
+                groupid = groupid.substr(0,1) == '&' ? null : groupid;
+            }
+
             require(["iznik/views/pages/user/communityevents"], function() {
                 var page = new Iznik.Views.User.Pages.CommunityEvents({
                     groupid: groupid
                 });
-                self.loadRoute({page: page});
+
+                console.log("Communit events", groupid);
+                if (groupid) {
+                    // We can see events for a specific group when we're logged out.
+                    self.loadRoute({page: page});
+                } else {
+                    // But for all groups, we need to log in.
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        self.loadRoute({page: page});
+                    });
+
+                    Iznik.Session.forceLogin();
+                }
             });
         },
 
@@ -901,6 +934,8 @@ define([
             pushState: true
         });
 
+        console.log("Router start", Backbone.history.getFragment());
+
         // See if we have local storage enabled; we need it
         try {
             localStorage.setItem('lsenabled', true);
@@ -914,11 +949,6 @@ define([
         window.alert("Top-level exception " + e);
         console.log("Top-level exception", e);
         console.trace();
-    }
-
-    if (document.URL.indexOf('action=') !== -1) {
-        // Legacy.
-        Router.navigate('/modtools', true);
     }
 
     // We can flag anchors as not to be handled via Backbone using data-realurl
