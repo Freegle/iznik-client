@@ -275,6 +275,26 @@ define([
                 self.$('.js-upload').fileupload(args).on('fileuploadfail', function (e, data) {
                     self.uploadFailed();
                 });
+
+                try {
+                    var id = localStorage.getItem('draft');
+
+                    if (id) {
+                        // We have a draft we were in the middle of.
+                        var msg = new Iznik.Models.Message({
+                            id: id
+                        });
+
+                        msg.fetch().then(function() {
+                            if (self.msgType == msg.get('type')) {
+                                self.$('.js-items').tagsinput('add', msg.get('subject'));
+                                self.$('.js-description').val(msg.get('textbody'));
+                            }
+                        });
+                    }
+                } catch (e) {
+                }
+
             });
 
             return (p);
@@ -331,6 +351,12 @@ define([
                             } else {
                                 // Known user.  Just display the confirm page.
                                 Router.navigate(self.whatnext, true)
+                            }
+
+                            try {
+                                // The draft has now been sent.
+                                localStorage.removeItem('draft');
+                            } catch (e) {
                             }
                         }
                     }, error: self.fail
