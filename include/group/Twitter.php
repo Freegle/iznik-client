@@ -3,6 +3,7 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
 
 use Abraham\TwitterOAuth\TwitterOAuth;
 
@@ -104,6 +105,65 @@ class Twitter {
         }
 
         return($rc);
+    }
+
+    public function tweetEvents() {
+        # We want to tweet:
+        # - any events since the last one, with a max of the 24 hours ago to avoid flooding things
+        # - which start after now and within the next 96 hours
+        $addedsince = date("Y-m-d", strtotime("24 hours ago"));
+        $startafter = date("Y-m-d");
+        $startbefore = date("Y-m-d", strtotime("+96 hours"));
+        $eventid = $this->eventid ? $this->eventid : 0;
+        $sql = "SELECT DISTINCT communityevents_groups.eventid, communityevents_dates.start FROM communityevents_groups INNER JOIN groups ON groups.id = communityevents_groups.groupid INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents_groups.eventid WHERE communityevents_groups.groupid = ? AND ((communityevents_groups.arrival >= ? AND communityevents_dates.eventid > ?) OR communityevents_dates.start <= ?) AND communityevents_dates.start >= ? ORDER BY communityevents_dates.start ASC;";
+
+        $events = $this->dbhr->preQuery($sql, [
+            $this->groupid,
+            $addedsince,
+            $eventid,
+            $startbefore,
+            $startafter
+        ]);
+        $eventid = NULL;
+        $worked = 0;
+
+        foreach ($events as $event) {
+            $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['eventid']);
+
+            # We tweet the title, first date later than now, and a link.
+            $atts = $e->getPublic();
+
+            # Get a string representation of the date in UK time.
+            $tz1 = new DateTimeZone('UTC');
+            $tz2 = new DateTimeZone('Europe/London');
+            $datetime = new DateTime($event['start'], $tz1);
+            $datetime->setTimezone($tz2);
+            $datestr = $datetime->format('D jS F g:i a');
+
+            $status = $atts['title'];
+            $status = substr($status, 0, 80);
+            $status .= " on $datestr";
+
+            $link = "https://directv2.ilovefreegle.org/events/{$this->groupid}?t=". time();
+
+            $status .= " $link";
+            $rc = $this->tweet($status, NULL);
+            error_log($status);
+
+            if ($rc) {
+                $worked++;
+            }
+
+            # Whether the tweet works or not, we might as well assume it does - tweets are ephemeral so there's no
+            # point getting too het up if they don't work.
+            $eventid = max($eventid, $event['eventid']);
+        }
+
+        if ($eventid) {
+            $this->dbhm->preExec("UPDATE groups_twitter SET eventid = ? WHERE groupid = ?;", [ $eventid, $this->groupid ]);
+        }
+
+        return($worked);
     }
 
     public function tweetMessages() {

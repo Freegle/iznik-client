@@ -7,6 +7,7 @@ require_once UT_DIR . '/IznikTestCase.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/group/Twitter.php';
+require_once IZNIK_BASE . '/include/group/CommunityEvent.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 
 /**
@@ -74,6 +75,27 @@ class twitterTest extends IznikTestCase {
         $count = $t->tweetMessages();
         assertGreaterThanOrEqual(0, $count);
         
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testEvents() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+
+        $e = new CommunityEvent($this->dbhr, $this->dbhm);
+        $eid = $e->create(NULL, 'Test Event', 'Test location', NULL, NULL, NULL, 'Test Event');
+        $e->addGroup($gid);
+        $start = date("Y-m-d H:i:s", strtotime('+3 hours'));
+        $end = date("Y-m-d H:i:s", strtotime('+4 hours'));
+        $e->addDate($start, $end);
+
+        $t = new Twitter($this->dbhr, $this->dbhm, $gid);
+
+        $count = $t->tweetEvents();
+        assertGreaterThanOrEqual(1, $count);
+
         error_log(__METHOD__ . " end");
     }
 }

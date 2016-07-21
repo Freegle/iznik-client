@@ -4,6 +4,8 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 
+$lockh = lockScript(basename(__FILE__));
+
 # We want to pre-cache all Freegle groups.
 $groups = $dbhr->preQuery("SELECT id FROM groups WHERE type = 'Freegle' AND publish = 1;");
 foreach ($groups as $group) {
@@ -73,3 +75,4 @@ foreach ($pages as $page) {
     }
 }
 
+unlockScript($lockh);
