@@ -113,7 +113,6 @@ define([
                     }
 
                     $('#bodyContent').html(window.template(tpl));
-
                     $('.js-pageContent').html(self.$el);
 
                     $('#notifchatdropdown').html(chats);
@@ -183,7 +182,14 @@ define([
                             }
                         });
                     }
-                    
+
+                    if (self.options.naked) {
+                        // We don't want the page framing.   This is used for plugins.
+                        $('.navbar, .js-leftsidebar, .js-rightsidebar').hide();
+                        $('.margtopbig').removeClass('margtopbig');
+                        $('#botleft').hide();
+                    }
+
                     // Put self page in
                     templateFetch(self.template).then(function(tpl) {
                         if (self.model) {

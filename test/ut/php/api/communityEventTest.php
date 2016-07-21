@@ -107,6 +107,16 @@ class communityEventAPITest extends IznikAPITestCase {
         assertEquals(1, count($ret['communityevents']));
         assertEquals($id, $ret['communityevents'][0]['id']);
 
+        # Check it shows for this group.
+        $ret = $this->call('communityevent', 'GET', [
+            'pending' => TRUE,
+            'groupid' => $this->groupid
+        ]);
+        error_log("Result of get for group " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['communityevents']));
+        assertEquals($id, $ret['communityevents'][0]['id']);
+
         # Log in as the mod
         assertTrue($this->user2->login('testpw'));
 

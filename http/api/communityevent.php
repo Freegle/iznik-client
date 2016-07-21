@@ -29,6 +29,14 @@ function communityevent() {
                         'status' => 'Success',
                         'communityevent' => $c->getPublic()
                     ];
+                } else if ($groupid) {
+                    # List for a specific group - which we can do even if not logged in.
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'communityevents' => $c->listForGroup($pending, $groupid, $ctx),
+                        'context' => $ctx
+                    ];
                 } else {
                     # List all for this user.
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
@@ -37,7 +45,7 @@ function communityevent() {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
-                            'communityevents' => $c->listForUser($me->getId(), $pending, $groupid, $ctx),
+                            'communityevents' => $c->listForUser($me->getId(), $pending, $ctx),
                             'context' => $ctx
                         ];
                     }

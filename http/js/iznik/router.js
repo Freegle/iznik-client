@@ -136,6 +136,9 @@ define([
             "donate": "userDonate",
             "contact": "userContact",
             "help": "userContact",
+            "plugins/events/:id": "communityEventsPlugin",
+            "plugins/group?groupid=:id(&*t)": "groupPlugin",
+            "plugins/group/:id": "groupPlugin",
             "*path": "userHome"
         },
 
@@ -385,13 +388,13 @@ define([
             });
         },
 
-        userExploreGroup: function(name) {
+        userExploreGroup: function(id, naked) {
             var self = this;
-            console.log("Explore group", name);
 
             require(["iznik/views/pages/user/explore"], function() {
                 var page = new Iznik.Views.User.Pages.ExploreGroup({
-                    id: name
+                    id: id,
+                    naked: naked
                 });
                 self.loadRoute({page: page});
             });
@@ -421,20 +424,24 @@ define([
             });
         },
 
-        userCommunityEvents: function(groupid) {
+        userCommunityEvents: function(groupid, naked) {
             var self = this;
 
+            console.log("Events for", groupid);
+
             // We might be called in the legacy case with some random guff on the end of the url.
-            if (groupid) {
-                groupid = groupid.substr(0,1) == '&' ? null : groupid;
+            if (groupid && typeof groupid == 'string') {
+                groupid = groupid.substr(0,1) == '&' ? null : parseInt(groupid);
             }
+
+            console.log("groupid now", groupid);
 
             require(["iznik/views/pages/user/communityevents"], function() {
                 var page = new Iznik.Views.User.Pages.CommunityEvents({
-                    groupid: groupid
+                    groupid: groupid,
+                    naked: naked
                 });
 
-                console.log("Communit events", groupid);
                 if (groupid) {
                     // We can see events for a specific group when we're logged out.
                     self.loadRoute({page: page});
@@ -923,6 +930,18 @@ define([
                 var page = new Iznik.Views.User.Pages.Landing.Contact();
                 self.loadRoute({page: page});
             });
+        },
+
+        communityEventsPlugin: function(groupid) {
+            this.userCommunityEvents(groupid, true);
+        },
+
+        groupPlugin: function(groupid) {
+            console.log("Group plugin", groupid);
+
+            // Might be trailing guff in legacy routes.
+            groupid = parseInt(groupid);
+            this.userExploreGroup(groupid, true);
         }
     });
 

@@ -60,14 +60,13 @@ class CommunityEvent extends Entity
         ]);
     }
 
-    public function listForUser($userid, $pending, $groupid = NULL, &$ctx) {
+    public function listForUser($userid, $pending, &$ctx) {
         $ret = [];
         $pendingq = $pending ? " AND pending = 1 " : " AND pending = 0 ";
-        $groupq = $groupid ? " AND groupid = $groupid " : '';
         $ctxq = $ctx ? " end > {$ctx['end']} " : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $sql = "SELECT communityevents.id, communityevents_dates.end FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ?) $groupq AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
+        $sql = "SELECT communityevents.id, communityevents_dates.end FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ?) AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
         #error_log("$sql, $userid, $mysqltime");
         $events = $this->dbhr->preQuery($sql, [
             $userid,
@@ -85,7 +84,31 @@ class CommunityEvent extends Entity
 
         return($ret);
     }
-    
+
+    public function listForGroup($pending, $groupid = NULL, &$ctx) {
+        $ret = [];
+
+        # We allow visibility of pending events to users who aren't logged in.  Nothing confidential in them.
+        $pendingq = $pending ? " AND pending = 1 " : " AND pending = 0 ";
+        $ctxq = $ctx ? " end > {$ctx['end']} " : '';
+
+        $mysqltime = date("Y-m-d H:i:s", time());
+        $sql = "SELECT communityevents.id, communityevents_dates.end FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid = ? AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
+        #error_log("$sql, $userid, $mysqltime");
+        $events = $this->dbhr->preQuery($sql, [
+            $groupid,
+            $mysqltime
+        ]);
+
+        foreach ($events as $event) {
+            $ctx['end'] = $event['end'];
+            $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id']);
+            $ret[] = $e->getPublic();
+        }
+
+        return($ret);
+    }
+
     public function getPublic() {
         $atts = parent::getPublic();
         $atts['groups'] = [];
