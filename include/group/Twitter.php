@@ -130,33 +130,35 @@ class Twitter {
         foreach ($events as $event) {
             $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['eventid']);
 
-            # We tweet the title, first date later than now, and a link.
-            $atts = $e->getPublic();
+            if (!$e->getPrivate('deleted')) {
+                # We tweet the title, first date later than now, and a link.
+                $atts = $e->getPublic();
 
-            # Get a string representation of the date in UK time.
-            $tz1 = new DateTimeZone('UTC');
-            $tz2 = new DateTimeZone('Europe/London');
-            $datetime = new DateTime($event['start'], $tz1);
-            $datetime->setTimezone($tz2);
-            $datestr = $datetime->format('D jS F g:i a');
+                # Get a string representation of the date in UK time.
+                $tz1 = new DateTimeZone('UTC');
+                $tz2 = new DateTimeZone('Europe/London');
+                $datetime = new DateTime($event['start'], $tz1);
+                $datetime->setTimezone($tz2);
+                $datestr = $datetime->format('D jS F g:i a');
 
-            $status = $atts['title'];
-            $status = substr($status, 0, 80);
-            $status .= " on $datestr";
+                $status = $atts['title'];
+                $status = substr($status, 0, 80);
+                $status .= " on $datestr";
 
-            $link = "https://directv2.ilovefreegle.org/events/{$this->groupid}?t=". time();
+                $link = "https://directv2.ilovefreegle.org/events/{$this->groupid}?t=". time();
 
-            $status .= " $link";
-            $rc = $this->tweet($status, NULL);
-            error_log($status);
+                $status .= " $link";
+                $rc = $this->tweet($status, NULL);
+                error_log($status);
 
-            if ($rc) {
-                $worked++;
+                if ($rc) {
+                    $worked++;
+                }
+
+                # Whether the tweet works or not, we might as well assume it does - tweets are ephemeral so there's no
+                # point getting too het up if they don't work.
+                $eventid = max($eventid, $event['eventid']);
             }
-
-            # Whether the tweet works or not, we might as well assume it does - tweets are ephemeral so there's no
-            # point getting too het up if they don't work.
-            $eventid = max($eventid, $event['eventid']);
         }
 
         if ($eventid) {
