@@ -173,6 +173,52 @@ class chatRoomsTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testUser2Mod() {
+        error_log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = new User($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+        $u->addMembership($this->groupid, User::ROLE_MEMBER);
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+        $u->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createUser2Mod($u1, $this->groupid);
+        error_log("Chat room $id for $u1 <-> $u2");
+        assertNotNull($id);
+
+        $r->delete();
+
+        $dbconfig = array (
+            'host' => SQLHOST,
+            'port' => SQLPORT,
+            'user' => SQLUSER,
+            'pass' => SQLPASSWORD,
+            'database' => SQLDB
+        );
+
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->setConstructorArgs([
+                "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
+                $dbconfig['user'], $dbconfig['pass'], array(), TRUE
+            ])
+            ->setMethods(array('preExec'))
+            ->getMock();
+        $mock->method('preExec')->willReturn(FALSE);
+        $r->setDbhm($mock);
+
+        $id = $r->createUser2Mod($u1, $this->groupid);
+        error_log("Chat room $id for $u1 <-> $u2");
+        assertNull($id);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
 

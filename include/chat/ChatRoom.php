@@ -174,10 +174,10 @@ class ChatRoom extends Entity
 
         $rollback = TRUE;
 
-        if (count($chats) > 0) {
-            # We have an existing chat.  That'll do nicely.
-            $id = $chats[0]['id'];
-        } else {
+        # We have an existing chat.  That'll do nicely.
+        $id = count($chats) > 0 ? $chats[0]['id'] : NULL;
+
+        if (!$id) {
             # We don't.  Create one.
             $rc = $this->dbhm->preExec("INSERT INTO chat_rooms (user1, groupid, chattype) VALUES (?,?,?)", [
                 $user1,

@@ -56,16 +56,19 @@ class dashboardTest extends IznikAPITestCase {
         error_log(__METHOD__);
 
         $u = new User($this->dbhr, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $u = new User($this->dbhr, $this->dbhm, $id);
+        $id1 = $u->create('Test', 'User', NULL);
+        $id2 = $u->create('Test', 'User', NULL);
+        $u1 = new User($this->dbhr, $this->dbhm, $id1);
+        $u2 = new User($this->dbhr, $this->dbhm, $id2);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         $g = new Group($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_OTHER);
         $group2 = $g->create('testgroup2', Group::GROUP_OTHER);
-        $u->addMembership($group1);
-        $u->addMembership($group2, User::ROLE_MODERATOR);
+        $u1->addMembership($group1);
+        $u1->addMembership($group2, User::ROLE_MODERATOR);
+        $u2->addMembership($group2, User::ROLE_MODERATOR);
 
         # Shouldn't get anything as a user
         $ret = $this->call('dashboard', 'GET', [
