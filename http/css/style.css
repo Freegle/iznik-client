@@ -304,8 +304,16 @@
     padding-left: 5px;
 }
 
+.padleftlg {
+    padding-left: 20px;
+}
+
 .padright {
     padding-right: 10px;
+}
+
+.padrightlg {
+    padding-right: 20px;
 }
 
 .searchhighlight {
