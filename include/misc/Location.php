@@ -452,8 +452,9 @@ class Location extends Entity
 
     public function findByName($query)
     {
-        $sql = "SELECT * FROM locations WHERE name = ? LIMIT 1;";
-        $locs = $this->dbhr->preQuery($sql, [$query]);
+        $canon = $this->canon($query);
+        $sql = "SELECT * FROM locations WHERE canon LIKE ? LIMIT 1;";
+        $locs = $this->dbhr->preQuery($sql, [$canon]);
         return (count($locs) == 1 ? $locs[0]['id'] : NULL);
     }
 
