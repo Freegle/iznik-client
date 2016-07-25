@@ -235,7 +235,7 @@ self.addEventListener('push', function(event) {
                                 if (workstr == '') {
                                     // We have to show a popup, otherwise we'll get the "updated in the background" message.  But
                                     // we can start a timer to clear the notifications later.
-                                    setTimeout(closeAll, 1000);
+                                    setTimeout(closeAll, 2000);
                                 }
 
                                 workstr = workstr == '' ? "No tasks outstanding" : workstr;
@@ -244,7 +244,7 @@ self.addEventListener('push', function(event) {
                             }
                         } else {
                             // TODO User notifications.  Also change image and text below.
-                            setTimeout(closeAll, 1000);
+                            setTimeout(closeAll, 2000);
                         }
                     } catch (e) {
                         workstr = "Exception " + e.message;
@@ -262,8 +262,8 @@ self.addEventListener('push', function(event) {
                     }
                 });
             }).catch(function(err) {
-                workstr = "Network error " + err
-                setTimeout(closeAll, 1000);
+                workstr = "Network error " + err;
+                setTimeout(closeAll, 2000);
             });
         })
     );

@@ -41,7 +41,46 @@ define([
         updateCounts: function () {
             this.testLoggedIn();
         },
-        
+
+        askSubscription: function() {
+            // Don't ask for push notif permissions too often.
+            var lastasked = null;
+            var now = (new Date()).getTime();
+            try {
+                lastasked = localStorage.getItem('lastAskedPush');
+            } catch (e) {}
+            //console.log("askSubscription", lastasked, now,now - lastasked,7 * 24 * 60 * 60 * 1000);
+
+            if (window.serviceWorker &&
+                (!lastasked || (now - lastasked > 7 * 24 * 60 * 60 * 1000)))  {
+                // Try to get push notification permissions.
+                try {
+                    try {
+                        localStorage.setItem('lastAskedPush', now);
+                    } catch (e) {}
+
+                    window.serviceWorker.pushManager.getSubscription().then(function (subscription) {
+                        if (!subscription) {
+                            var p = window.serviceWorker.pushManager.subscribe({
+                                userVisibleOnly: true
+                            });
+                            pushManagerPromise = p;
+                            p.then(self.gotSubscription, function (error) {
+                                if (!_.isUndefined(error) && error.indexOf("permission denied") == -1) {
+                                    // Permission denied is normal.
+                                    console.log("Subscribe error", error);
+                                }
+                            });
+                        } else {
+                            self.gotSubscription(subscription);
+                        }
+                    });
+                } catch (e) {
+                    console.log("Can't get sub", e);
+                }
+            }
+        },
+
         gotSubscription: function (sub) {
             console.log('Subscription endpoint:', sub);
             var subscription = sub.endpoint;
@@ -139,48 +178,15 @@ define([
                         window.location = '/maintenance_on.html';
                     } else if ((ret.ret == 0)) {
                         // Save off the returned session information into local storage.
-                        var lastasked = null;
                         var now = (new Date()).getTime();
                         try {
                             localStorage.setItem('session', JSON.stringify(ret));
-                            lastasked = localStorage.getItem('lastAskedPush');
 
                             // We use this to decide whether to show sign up or sign in.
                             localStorage.setItem('signedinever', true);
                         } catch (e) {
                         }
                         self.set(ret);
-
-                        // Don't ask for push notif permissions too often.
-                        if (window.serviceWorker && !Iznik.Session.askedPush && (!lastasked || (now - lastasked > 7 * 24 * 60 * 60 * 1000)))  {
-                            // Try to get push notification permissions.
-                            // TODO Do this at an appropriate point, not here.
-                            try {
-                                //Iznik.Session.askedPush = true;
-                                try {
-                                    localStorage.setItem('lastAskedPush', now);
-                                } catch (e) {}
-                                
-                                window.serviceWorker.pushManager.getSubscription().then(function (subscription) {
-                                    if (!subscription) {
-                                        var p = window.serviceWorker.pushManager.subscribe({
-                                            userVisibleOnly: true
-                                        });
-                                        pushManagerPromise = p;
-                                        p.then(self.gotSubscription, function (error) {
-                                            if (!_.isUndefined(error) && error.indexOf("permission denied") == -1) {
-                                                // Permission denied is normal.
-                                                console.log("Subscribe error", error);
-                                            }
-                                        });
-                                    } else {
-                                        self.gotSubscription(subscription);
-                                    }
-                                });
-                            } catch (e) {
-                                console.log("Can't get sub", e);
-                            }
-                        }
 
                         // We get an array of groups back - we want it to be a collection.
                         self.set('groups', new Iznik.Collection(ret.groups));

@@ -178,6 +178,8 @@ define([
                     v.render().then(function() {
                         self.$('.js-missingtwitter').html(v.el);
                     })
+
+                    Iznik.Session.askSubscription();
                 });
 
                 return(p);

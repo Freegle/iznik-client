@@ -46,6 +46,8 @@ define([
         render: function () {
             var self = this;
 
+            Iznik.Session.askSubscription();
+
             // Our replies are chats which we initiated to another user.
             if (Iznik.Session.hasOwnProperty('chats')) {
                 // We have the chats already.
