@@ -469,7 +469,7 @@ class Message
         $ret['mine'] = $myid && $this->fromuser == $myid;
 
         # Remove any group subject tag.
-        $ret['subject'] = preg_replace('/\[.*?\]\s*/', '', $ret['subject']);
+        $ret['subject'] = preg_replace('/^\[.*?\]\s*/', '', $ret['subject']);
         $ret['subject'] = preg_replace('/\[.*Attachment.*\]\s*/', '', $ret['subject']);
 
         # Add any groups that this message is on.
@@ -479,6 +479,7 @@ class Message
 
         foreach ($ret['groups'] as &$group) {
             $group['arrival'] = ISODate($group['arrival']);
+            #error_log("{$this->id} approved by {$group['approvedby']}");
 
             if (pres('approvedby', $group)) {
                 $u = new User($this->dbhr, $this->dbhm, $group['approvedby']);
@@ -1788,7 +1789,7 @@ class Message
             # We want to see the message on the group even if it's been deleted, otherwise we'll go ahead and try
             # to re-add it and get an exception.
             $oldgroups = $m->getGroups(TRUE);
-            error_log("Compare groups $this->groupid vs " . var_export($oldgroups, TRUE));
+            #error_log("Compare groups $this->groupid vs " . var_export($oldgroups, TRUE));
             if (!in_array($this->groupid, $oldgroups)) {
                 // This code is here for future handling of the same message on multiple groups, but since we
                 // currently make the message id per-group, we can't reach it.  Keep it for later use but don't

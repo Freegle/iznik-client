@@ -199,7 +199,7 @@ define([
                             self.$el.html(window.template(tpl)(Iznik.Session.toJSON2()));
                         }
 
-                        $('.js-pageContent').append(self.$el);
+                        $('.js-pageContent').html(self.$el);
 
                         $('#footer').remove();
 

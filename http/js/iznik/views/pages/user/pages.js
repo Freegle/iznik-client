@@ -66,9 +66,9 @@ define([
         },
 
         locChange: function() {
-            var loc = this.$('.js-postcode').typeahead('val');
-
             var self = this;
+
+            var loc = this.$('.js-postcode').typeahead('val');
 
             $.ajax({
                 type: 'GET',
@@ -102,26 +102,34 @@ define([
                 }
             })
 
-            // console.log("changeGroup", first);
+            //console.log("changeGroup", first);
             if (first) {
                 self.$('.js-closestgroupname').html(first.namedisplay);
 
                 if (!first.onhere) {
                     // We don't host this group.
-                    if (first.onyahoo && first.showonyahoo) {
+                    if (first.external) {
+                        // Hosted externally on a different site.
+                        self.$('.js-toexternal').attr('href', first.external);
+                        self.$('.js-external').fadeIn('slow');
+                        self.$('.js-onyahoo').hide();
+                        self.$('.js-yahootoo').hide();
+                        self.$('.js-toyahoo').hide();
+                        self.$('.js-next').hide();
+                    } else if (first.onyahoo && first.showonyahoo) {
                         // But Yahoo does and we want to show it.
                         self.$('.js-onyahoo').fadeIn('slow');
                         self.$('.js-next').hide();
                         self.$('.js-toyahoo').show();
                         self.$('.js-toyahoo').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);
-                    } else {
-                        // Who knows where it is?
+                        self.$('.js-external').hide();
                     }
                 } else {
                     // We host this group.
                     self.$('.js-onyahoo').hide();
                     self.$('.js-next').show();
                     self.$('.js-yahootoo').hide();
+                    self.$('.js-external').hide();
 
                     if (first.onyahoo && first.showonyahoo) {
                         // But it's also on Yahoo, and some people might want to go there.
@@ -287,6 +295,8 @@ define([
                     self.$('.js-groupoverridename').html(groupoverride);
                     self.$('.js-groupoverride').fadeIn('slow');
                 }
+
+                self.delegateEvents();
             });
 
             return(p);

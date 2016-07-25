@@ -112,7 +112,7 @@ class Twitter {
         # - any events since the last one, with a max of the 24 hours ago to avoid flooding things
         # - which start after now and within the next 96 hours
         $addedsince = date("Y-m-d", strtotime("24 hours ago"));
-        $startafter = date("Y-m-d");
+        $startafter = date("Y-m-d H:i:s");
         $startbefore = date("Y-m-d", strtotime("+96 hours"));
         $eventid = $this->eventid ? $this->eventid : 0;
         $sql = "SELECT DISTINCT communityevents_groups.eventid, communityevents_dates.start FROM communityevents_groups INNER JOIN groups ON groups.id = communityevents_groups.groupid INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents_groups.eventid WHERE communityevents_groups.groupid = ? AND ((communityevents_groups.arrival >= ? AND communityevents_dates.eventid > ?) OR communityevents_dates.start <= ?) AND communityevents_dates.start >= ? ORDER BY communityevents_dates.start ASC;";

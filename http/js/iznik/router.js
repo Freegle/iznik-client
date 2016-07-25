@@ -953,7 +953,7 @@ define([
             pushState: true
         });
 
-        console.log("Router start", Backbone.history.getFragment());
+        // console.log("Router start", Backbone.history.getFragment());
 
         // See if we have local storage enabled; we need it
         try {
