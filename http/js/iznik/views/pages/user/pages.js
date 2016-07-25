@@ -102,6 +102,13 @@ define([
                 }
             })
 
+            // Start off with no variant showing.
+            self.$('.js-onyahoo').hide();
+            self.$('.js-yahootoo').hide();
+            self.$('.js-toyahoo').hide();
+            self.$('.js-next').hide();
+            self.$('.js-external').hide();
+
             //console.log("changeGroup", first);
             if (first) {
                 self.$('.js-closestgroupname').html(first.namedisplay);
@@ -112,26 +119,17 @@ define([
                         // Hosted externally on a different site.
                         self.$('.js-toexternal').attr('href', first.external);
                         self.$('.js-external').fadeIn('slow');
-                        self.$('.js-onyahoo').hide();
-                        self.$('.js-yahootoo').hide();
-                        self.$('.js-toyahoo').hide();
-                        self.$('.js-next').hide();
                     } else if (first.onyahoo && first.showonyahoo) {
                         // But Yahoo does and we want to show it.
-                        self.$('.js-onyahoo').fadeIn('slow');
-                        self.$('.js-next').hide();
-                        self.$('.js-toyahoo').show();
                         self.$('.js-toyahoo').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);
-                        self.$('.js-external').hide();
+                        self.$('.js-onyahoo').fadeIn('slow');
+                        self.$('.js-toyahoo').show();
                     }
                 } else {
                     // We host this group.
-                    self.$('.js-onyahoo').hide();
                     self.$('.js-next').show();
-                    self.$('.js-yahootoo').hide();
-                    self.$('.js-external').hide();
 
-                    if (first.onyahoo && first.showonyahoo) {
+                    if (first.onyahoo && first.showonyahoo && self.$('.js-groups').length > 0) {
                         // But it's also on Yahoo, and some people might want to go there.
                         self.$('.js-yahootoo').show();
                         self.$('.js-yahootoo a').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);
