@@ -21,7 +21,7 @@ if (count($opts) < 1) {
     $e = new EventDigest($dbhr, $dbhm, FALSE);
 
     # We only send events for Freegle groups.
-    $sql = "SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' AND onhere = 1 AND MOD(id, ?) = ? AND publish = 1 AND DATEDIFF(NOW(), lasteventsroundup) >= 7 ORDER BY LOWER(nameshort) ASC;";
+    $sql = "SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' AND onhere = 1 AND MOD(id, ?) = ? AND publish = 1 AND (lasteventsroundup IS NULL OR DATEDIFF(NOW(), lasteventsroundup) >= 7) ORDER BY LOWER(nameshort) ASC;";
     $groups = $dbhr->preQuery($sql, [$mod, $val]);
 
     foreach ($groups as $group) {

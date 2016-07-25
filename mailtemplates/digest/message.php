@@ -3,7 +3,7 @@
 function digest_message($msg, $msgid, $fdgroupid) {
     $text = htmlentities($msg['textbody']);
     $text = nl2br($text);
-    $date = date("D, jS F g:ia");
+    $date = date("D, jS F g:ia", strtotime($msg['date']));
     $replyweb = "https://direct.ilovefreegle.org/login.php?action=mygroups&subaction=displaypost&msgid=$msgid&groupid=$fdgroupid&digest=$fdgroupid";
     $replyemail = "mailto:{$msg['fromaddr']}?subject=" . rawurlencode("Re: " . $msg['subject']);
 

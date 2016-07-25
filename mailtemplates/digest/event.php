@@ -1,8 +1,17 @@
 <?php
 
 function digest_event($event, $start, $end) {
-    $start = date("D, jS F g:ia", strtotime($start));
-    $end = date("D, jS F g:ia", strtotime($end));
+    $tz1 = new DateTimeZone('UTC');
+    $tz2 = new DateTimeZone('Europe/London');
+
+    # Get a string representation of the date in UK time.
+    $datetime = new DateTime($start, $tz1);
+    $datetime->setTimezone($tz2);
+    $start = $datetime->format('D, jS F g:ia');
+
+    $datetime = new DateTime($end, $tz1);
+    $datetime->setTimezone($tz2);
+    $end = $datetime->format('D, jS F g:ia');
 
     $html  = '<table><tbody>';
 

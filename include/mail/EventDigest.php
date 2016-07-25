@@ -94,6 +94,9 @@ class EventDigest
             $textsumm = '';
             $htmlsumm = '';
 
+            $tz1 = new DateTimeZone('UTC');
+            $tz2 = new DateTimeZone('Europe/London');
+
             if (count($events) > 0) {
                 foreach ($events as $event) {
                     if ($this->errorlog) { error_log("Start group $groupid"); }
@@ -103,7 +106,13 @@ class EventDigest
 
                     foreach ($atts['dates'] as $date) {
                         $htmlsumm .= digest_event($atts, $date['start'], $date['end']);
-                        $textsumm .= $atts['title'] . " starts " . date("D, jS F g:ia", strtotime($date['start'])) . " at " . $atts['location'] . "\r\n";
+
+                        # Get a string representation of the date in UK time.
+                        $datetime = new DateTime($date['start'], $tz1);
+                        $datetime->setTimezone($tz2);
+                        $datestr = $datetime->format('D, jS F g:ia');
+
+                        $textsumm .= $atts['title'] . " starts $datestr at " . $atts['location'] . "\r\n";
                     }
                 }
 
@@ -183,10 +192,6 @@ class EventDigest
                             ->setReplyTo($tosend['replyto'], $tosend['replytoname'])
                             ->setBody($tosend['text'])
                             ->addPart($tosend['html'], 'text/html');
-
-                        #if ($ccto) {
-                        #    $message->addCc('');
-                        #}
 
                         $headers = $message->getHeaders();
                         $headers->addTextHeader('List-Unsubscribe', '<mailto:{{eventsoff}}>, <{{unsubscribe}}>');
