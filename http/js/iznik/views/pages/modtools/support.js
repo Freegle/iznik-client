@@ -189,6 +189,8 @@ define([
                     elementpath: false,
                     toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright |  bullist numlist link | forecolor styleselect formatselect fontselect fontsizeselect | cut copy paste'
                 });
+
+                self.delegateEvents();
             });
 
             return(p);

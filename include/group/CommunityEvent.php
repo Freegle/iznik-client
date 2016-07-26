@@ -10,6 +10,7 @@ class CommunityEvent extends Entity
     /** @var  $dbhm LoggedPDO */
     public $publicatts = [ 'id', 'userid', 'pending', 'title', 'location', 'contactname', 'contactphone', 'contactemail', 'description', 'added'];
     public $settableatts = [ 'pending', 'title', 'location', 'contactname', 'contactphone', 'contactemail', 'description' ];
+    var $event;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {

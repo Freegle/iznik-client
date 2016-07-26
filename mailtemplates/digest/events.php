@@ -107,7 +107,7 @@ EOT;
                                                         <tr>
                                                             <td colspan="2" style="color: grey; font-size:10px;">
                                                                 <p>This mail was sent to {{email}}.  You are set to receive updates for $groupname community events.</p>
-                                                                <p>You can change your settings by clicking <a href="https://direct.ilovefreegle.org/login.php?action=mysettings">here</a>, or turn these communit event emails off by emailing <a href="mailto:{{noemail}}">{{noemail}}</a>.</p>
+                                                                <p>You can change your settings by clicking <a href="https://direct.ilovefreegle.org/login.php?action=mysettings">here</a>, or turn these community event emails off by emailing <a href="mailto:{{noemail}}">{{noemail}}</a>.</p>
                                                                 <p>Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.</p> 
                                                             </td>
                                                         </tr>        

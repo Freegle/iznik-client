@@ -8,8 +8,15 @@ function image() {
     $fn = presdef('filename', $_REQUEST, NULL);
     $identify = array_key_exists('identify', $_REQUEST) ? filter_var($_REQUEST['identify'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $group = presdef('group', $_REQUEST, NULL);
-    
-    $type = $group ? Attachment::TYPE_GROUP : Attachment::TYPE_MESSAGE;
+    $newsletter = presdef('newsletter', $_REQUEST, NULL);
+
+    if ($newsletter) {
+        $type = Attachment::TYPE_NEWSLETTER;
+    } else if ($group) {
+        $type = Attachment::TYPE_GROUP;
+    } else {
+        $type = Attachment::TYPE_MESSAGE;
+    }
 
     switch ($_REQUEST['type']) {
         case 'GET': {

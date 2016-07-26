@@ -458,6 +458,17 @@ class MailRouter
 
                 $ret = MailRouter::TO_SYSTEM;
             }
+        } else if (preg_match('/newslettersoff-(.*)@/', $to, $matches) == 1) {
+            # Request to turn newsletters off.
+            $uid = intval($matches[1]);
+            $groupid = intval($matches[2]);
+
+            if ($uid && $groupid) {
+                $d = new Newsletter($this->dbhr, $this->dbhm);
+                $d->off($uid, $groupid);
+
+                $ret = MailRouter::TO_SYSTEM;
+            }
         } else {
             # We use SpamAssassin to weed out obvious spam.  We only call this if the message subject line is
             # not in the standard format.  Most generic spam isn't in that format, and some of our messages

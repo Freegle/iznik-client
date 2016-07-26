@@ -337,7 +337,7 @@ class Digest
                                 #}
 
                                 $headers = $message->getHeaders();
-                                $headers->addTextHeader('List-Unsubscribe', '<mailto:{{mailoff}}>, <{{unsubscribe}}>');
+                                $headers->addTextHeader('List-Unsubscribe', '<mailto:{{noemail}}>, <{{unsubscribe}}>');
 
                                 try {
                                     $message->addBcc($email);

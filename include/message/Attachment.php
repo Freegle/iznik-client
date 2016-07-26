@@ -26,6 +26,7 @@ class Attachment
     
     const TYPE_MESSAGE = 'Message';
     const TYPE_GROUP = 'Group';
+    const TYPE_NEWSLETTER = 'Newsletter';
 
     /**
      * @return mixed
@@ -46,7 +47,12 @@ class Attachment
     public static function getPath($id, $type = Attachment::TYPE_MESSAGE, $thumb = FALSE) {
         # We serve up our attachment names as though they are files.
         # When these are fetched it will go through image.php
-        $name = $type == Attachment::TYPE_MESSAGE ? 'img' : 'gimg';
+        switch ($type) {
+            case Attachment::TYPE_MESSAGE: $name = 'img'; break;
+            case Attachment::TYPE_GROUP: $name = 'gimg'; break;
+            case Attachment::TYPE_NEWSLETTER: $name = 'nimg'; break;
+        }
+
         $name = $thumb ? "t$name" : $name;
 
         return("https://" . IMAGE_DOMAIN . "/{$name}_$id.jpg");
@@ -77,6 +83,7 @@ class Attachment
         switch ($type) {
             case Attachment::TYPE_MESSAGE: $this->table = 'messages_attachments'; $this->idatt = 'msgid'; break;
             case Attachment::TYPE_GROUP: $this->table = 'groups_images'; $this->idatt = 'groupid'; break;
+            case Attachment::TYPE_NEWSLETTER: $this->table = 'newsletters_images'; $this->idatt = 'articleid'; break;
         }
 
         if ($id) {
