@@ -114,7 +114,7 @@ EOT
         $ret = $this->call('event', 'GET', [
         ]);
 
-        error_log(var_export($ret, TRUE));
+        #error_log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertGreaterThan(1, count($ret['sessions']));
         $found = FALSE;

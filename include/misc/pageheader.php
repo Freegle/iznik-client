@@ -21,14 +21,59 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     # TODO _escaped_fragment_ previews for Facebook etc.
     ?>
 
-    <!-- Facebook meta info -->
-    <title><?php echo SITE_NAME; ?></title>
-    <meta property="og:title" content="<?php echo SITE_NAME; ?>"/>
     <meta property="og:url" content="<?php get_current_url(); ?>">
-    <meta property="og:description" content="<?php echo SITE_DESC; ?>"/>
-    <meta property="og:image" content="/images/favicon/<?php echo FAVICON_HOME; ?>largetile.png"/>
+    <?php
+    if (!defined('BASE_DIR')) {
+        define( 'BASE_DIR', dirname(__FILE__) . '/../..' );
+    }
+
+    # We serve up different og: tags to allow preview.
+    if (preg_match('/\/explore\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
+        # Individual group - preview with name, tagline, image.
+        require_once(BASE_DIR . '/include/config.php');
+        require_once(IZNIK_BASE . '/include/db.php');
+        require_once(IZNIK_BASE . '/include/group/Group.php');
+        global $dbhr, $dbhm;
+        $g = new Group($dbhr, $dbhm);
+        $gid = $g->findByShortName($matches[1]);
+        if ($gid) {
+            $g = new Group($dbhr, $dbhm, $gid);
+            $atts = $g->getPublic();
+            ?>
+            <title><?php echo $atts['namedisplay']; ?></title>
+            <meta property="og:title" content="<?php echo $atts['namedisplay']; ?>"/>
+            <meta property="og:description" content="<?php echo presdef('tagline', $atts, SITE_DESC) ; ?>"/>
+            <meta property="og:image" content="<?php echo presdef('profile', $atts, USERLOGO); ?>"/>
+            <?php
+        }
+    } else if (preg_match('/\/message\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
+        # Individual message - preview with subject and photo.
+        require_once(BASE_DIR . '/include/config.php');
+        require_once(IZNIK_BASE . '/include/db.php');
+        require_once(IZNIK_BASE . '/include/message/Message.php');
+        global $dbhr, $dbhm;
+        $m = new Message($dbhr, $dbhm, intval($matches[1]));
+        if ($m->getID()) {
+            $atts = $m->getPublic();
+            $icon = (count($atts['attachments']) > 0) ?  $atts['attachments'][0]['path'] : USERLOGO;
+
+            ?>
+            <title><?php echo $atts['subject']; ?></title>
+            <meta property="og:title" content="<?php echo $atts['subject']; ?>"/>
+            <meta property="og:description" content="<?php echo SITE_DESC; ?>"/>
+            <meta property="og:image" content="<?php echo $icon; ?>"/>
+            <?php
+        }
+    } else {
+        ?>
+        <title><?php echo SITE_NAME; ?></title>
+        <meta property="og:title" content="<?php echo SITE_NAME; ?>"/>
+        <meta property="og:description" content="<?php echo SITE_DESC; ?>"/>
+        <meta property="og:image" content="/images/favicon/<?php echo FAVICON_HOME; ?>largetile.png"/>
+        <?php
+    }
+    ?>
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta property="description" content="<?php echo SITE_DESC; ?>"/>
 
     <?php
     # We use require on the client, and we want to avoid caching code after it has changed.  Find out when the
