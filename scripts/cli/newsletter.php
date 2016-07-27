@@ -22,22 +22,24 @@ require_once(IZNIK_BASE . '/include/mail/Newsletter.php');
 
 $opts = getopt('e:i:');
 
-if (count($opts) != 2) {
-    echo "Usage: hhvm newsletter_preview -e <email> -i <newsletter id>)\n";
+if (count($opts) == 0) {
+    echo "Usage: hhvm newsletter <-e <email>> -i <newsletter id>)\n";
 } else {
     $email = presdef('e', $opts, NULL);
     $id = presdef('i', $opts, NULL);
 
-    if ($email && $id) {
-        $u = new User($dbhr, $dbhm);
-        $eid = $u->findByEmail($email);
+    $n = new Newsletter($dbhr, $dbhm, $id);
 
-        if ($eid) {
-            $n = new Newsletter($dbhr, $dbhm, $id);
+    if ($n->getId() == $id) {
+        if ($email) {
+            $u = new User($dbhr, $dbhm);
+            $eid = $u->findByEmail($email);
 
-            if ($n->getId() == $id) {
+            if ($eid) {
                 $n->send(NULL, $eid);
             }
+        } else {
+            $n->send(NULL, NULL);
         }
     }
 }

@@ -14,7 +14,7 @@ class Newsletter extends Entity
     const TYPE_HEADER = 'Header';
     const TYPE_ARTICLE = 'Article';
 
-    public $publicatts = [ 'id', 'groupid', 'subject', 'textbody', 'created', 'completed', 'photoid'];
+    public $publicatts = [ 'id', 'groupid', 'subject', 'textbody', 'created', 'completed', 'uptouser' ];
     public $settableatts = [ 'groupid', 'subject', 'textbody' ];
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
@@ -128,10 +128,14 @@ class Newsletter extends Entity
         # - an override to a single user
         # - users on a group
         # - all users on a group type.
-        $sql = $uid ? "SELECT DISTINCT userid FROM memberships WHERE userid = $uid;" : ($groupid ? "SELECT userid FROM memberships INNER JOIN users ON users.id = memberships.userid WHERE groupid = $groupid AND newslettersallowed = 1 ORDER BY userid ASC;" : "SELECT DISTINCT userid FROM users INNER JOIN memberships ON memberships.userid = users.id INNER JOIN groups ON groups.id = memberships.groupid AND type = '$grouptype' WHERE newslettersallowed = 1 ORDER BY id ASC;");
+        $startfrom = presdef('uptouser', $this->newsletter, 0);
+        $sql = $uid ? "SELECT DISTINCT userid FROM memberships WHERE userid = $uid;" : ($groupid ? "SELECT DISTINCT userid FROM memberships INNER JOIN users ON users.id = memberships.userid WHERE groupid = $groupid AND newslettersallowed = 1 AND userid > $startfrom ORDER BY userid ASC;" : "SELECT DISTINCT userid FROM users INNER JOIN memberships ON memberships.userid = users.id INNER JOIN groups ON groups.id = memberships.groupid AND type = '$grouptype' WHERE newslettersallowed = 1 AND users.id > $startfrom ORDER BY users.id ASC;");
         $replacements = [];
 
+        error_log("Query for users");
         $users = $this->dbhr->preQuery($sql);
+        error_log("Queried, now scan " . count($users));
+        $scan = 0;
 
         foreach ($users as $user) {
             $u = new User($this->dbhr, $this->dbhm, $user['userid']);
@@ -143,11 +147,19 @@ class Newsletter extends Entity
             if ($email) {
                 # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
                 $replacements[$email] = [
+                    '{{id}}' => $user['userid'],
                     '{{toname}}' => $u->getName(),
                     '{{unsubscribe}}' => 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email),
                     '{{email}}' => $email,
                     '{{noemail}}' => 'newslettersoff-' . $user['userid'] . "@" . USER_DOMAIN
                 ];
+            }
+
+            $scan++;
+
+            if ($scan % 1000 === 0) {
+                $pc = round(100 * $scan / count($users));
+                error_log("...$scan ($pc%)");
             }
         }
 
@@ -183,6 +195,21 @@ class Newsletter extends Entity
                 try {
                     $message->addTo($email);
                     $this->sendOne($mailer, $message);
+
+                    if ($sent % 1000 === 0) {
+                        $pc = round(100 * $sent / count($replacements));
+                        error_log("...$sent ($pc%)");
+
+                        if (!$uid) {
+                            # Save where we're upto so that if we crash or restart we don't duplicate for too many
+                            # users.
+                            $this->dbhm->preExec("UPDATE newsletters SET uptouser = ? WHERE id = ?;", [
+                                $rep['{{id}}'],
+                                $this->id
+                            ]);
+                        }
+                    }
+
                     $sent++;
                 } catch (Exception $e) {
                     error_log($email . " skipped with " . $e->getMessage());
@@ -190,7 +217,9 @@ class Newsletter extends Entity
             }
         }
 
-        $this->dbhm->preExec("UPDATE newsletters SET completed = NOW() WHERE id = ?;", [ $this->id ]);
+        if (!$uid) {
+            $this->dbhm->preExec("UPDATE newsletters SET completed = NOW() WHERE id = ?;", [ $this->id ]);
+        }
 
         error_log("Returning $sent");
         return($sent);
