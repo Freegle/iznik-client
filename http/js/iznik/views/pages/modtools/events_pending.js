@@ -106,7 +106,15 @@ define([
         },
 
         deleteMe: function() {
-            this.model.destroy();
+            var self = this;
+
+            var v = new Iznik.Views.Confirm();
+
+            self.listenToOnce(v, 'confirmed', function() {
+                self.model.destroy();
+            });
+
+            v.render();
         }
     });
 });
