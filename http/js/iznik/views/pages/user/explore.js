@@ -399,11 +399,9 @@ define([
                     },
                     processData: true
                 }).then(function () {
-                    console.log("Fetched", self.model);
                     // We might fail to fetch, or fetch a deleted message, or fetch a paired message.  In all these
                     // cases the message shouldn't show.
                     if (self.model.get('subject') && !self.model.get('deleted')) {
-                        console.log("Got it");
                         var v = new Iznik.Views.User.Message.Replyable({
                             model: self.model
                         });
@@ -413,7 +411,37 @@ define([
                             self.$('.js-caretdown').click();
                         });
                     } else {
-                        console.log("Failed");
+                        self.$('.js-gone').fadeIn('slow');
+                    }
+                });
+            });
+
+            return (p);
+        }
+    });
+
+    Iznik.Views.User.Pages.Message = Iznik.Views.Page.extend({
+        template: 'user_explore_message',
+
+        render: function () {
+            var self = this;
+            var p = Iznik.Views.Page.prototype.render.call(self).then(function () {
+                self.model = new Iznik.Models.Message({
+                    id: self.options.id
+                });
+                self.model.fetch().then(function () {
+                    // We might fail to fetch, or fetch a deleted message, or fetch a paired message.  In all these
+                    // cases the message shouldn't show.
+                    if (self.model.get('subject') && !self.model.get('deleted')) {
+                        var v = new Iznik.Views.User.Message.Replyable({
+                            model: self.model
+                        });
+
+                        v.render().then(function () {
+                            self.$('.js-message').append(v.el);
+                            self.$('.js-caretdown').click();
+                        });
+                    } else {
                         self.$('.js-gone').fadeIn('slow');
                     }
                 });

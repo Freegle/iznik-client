@@ -71,9 +71,6 @@ define([
                 },
                 success: function (ret) {
                     if (ret.ret == 0) {
-                        Iznik.Session.set('loggedin', true);
-                        Iznik.Session.trigger('loggedIn');
-
                         // We're logged in.  Reload this page, and now that we are logged in the route
                         // should behave differently.
                         window.location.reload();

@@ -118,6 +118,7 @@ define([
             "give/whatisit": "userGiveWhatIsIt",
             "give/whoami": "userGiveWhoAmI",
             "give/whatnext": "userGiveWhatNext",
+            "message/:id": "userMessage",
             "mygroups": "userMyGroups",
             "settings": "userSettings",
             "explore/:id/join": "userJoinGroup",
@@ -463,6 +464,17 @@ define([
                 var page = new Iznik.Views.User.Pages.LegacyMessage({
                     id: messageid,
                     groupid: groupid
+                });
+                self.loadRoute({page: page});
+            });
+        },
+
+        userMessage: function(id) {
+            var self = this;
+
+            require(["iznik/views/pages/user/explore"], function() {
+                var page = new Iznik.Views.User.Pages.Message({
+                    id: id
                 });
                 self.loadRoute({page: page});
             });

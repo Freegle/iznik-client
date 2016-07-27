@@ -38,6 +38,7 @@ define([
 
         setReply: function(text) {
             var self = this;
+            console.log("Set reply", text);
 
             try {
                 // Clear the local storage, so that we don't get stuck here.
@@ -56,6 +57,7 @@ define([
                 },
                 2000,
                 function() {
+                    console.log("Try to send", self.readyToSend);
                     if (self.readyToSend) {
                         // Now send it.
                         self.readyToSend = false;
@@ -579,6 +581,7 @@ define([
         send: function() {
             var self = this;
             var replytext = self.$('.js-replytext').val();
+            console.log("Send reply", replytext);
 
             if (replytext.length == 0) {
                 self.$('.js-replytext').addClass('error-border').focus();
@@ -593,9 +596,9 @@ define([
                 } catch (e) {}
 
                 // If we're not already logged in, we want to be.
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    // Now we're logged in we no longer need the local storage memory, because we've put it back into
-                    // the DOM.
+                self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                    // Now we're logged in we no longer need the local storage of the reply, because we've put it
+                    // back into the DOM during the render.
                     try {
                         // Clear the local storage, so that we don't get stuck here.
                         localStorage.removeItem('replyto');
@@ -607,12 +610,9 @@ define([
                     var member = false;
                     var tojoin = null;
                     if (memberofs) {
-                        console.log("Member ofs", memberofs);
                         memberofs.each(function(memberof) {
-                            console.log("Check member", memberof);
                             var msggroups = self.model.get('groups');
                             _.each(msggroups, function(msggroup) {
-                                console.log("Check msg", msggroup);
                                 if (memberof.id = msggroup.groupid) {
                                     member = true;
                                 }
@@ -623,7 +623,6 @@ define([
                     if (!member) {
                         // We're not a member of any groups on which this message appears.  Join one.  Doesn't much
                         // matter which.
-                        console.log("Not a member yet, need to join");
                         var tojoin = self.model.get('groups')[0].id;
                         $.ajax({
                             url: API + 'memberships',
@@ -645,6 +644,7 @@ define([
                             }
                         })
                     } else {
+                        console.log("We're already a member");
                         self.startChat();
                     }
                 });
@@ -695,6 +695,23 @@ define([
                             }
                         });
                     }
+
+                    if (self.model.get('mine')) {
+                        // Stop people replying to their own messages.
+                        self.$('.js-replybox').hide();
+                    } else {
+                        // We might have been trying to reply.
+                        try {
+                            var replyto = localStorage.getItem('replyto');
+                            var replytext = localStorage.getItem('replytext');
+                            var thisid = self.model.get('id');
+
+                            if (replyto == thisid) {
+                                self.setReply.call(self, replytext);
+                            }
+                        } catch (e) {console.log("Failed", e)}
+                    }
+
                     self.$el.css('visibility', 'visible');
                 })
             }
