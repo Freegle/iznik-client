@@ -60,7 +60,6 @@ class imageAPITest extends IznikAPITestCase
             'id' => $id,
             'collection' => 'Approved'
         ]);
-        error_log(var_export($ret, true));
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['message']['id']);
         assertEquals(2, count($ret['message']['attachments']));
@@ -79,6 +78,22 @@ class imageAPITest extends IznikAPITestCase
         ], FALSE);
 
         assertEquals(2305, strlen($ret));
+
+        $ret = $this->call('image', 'GET', [
+            'id' => $img1,
+            'h' => 100,
+            'group' => 1
+        ], TRUE);
+
+        assertEquals(1, $ret['ret']);
+
+        $ret = $this->call('image', 'GET', [
+            'id' => $img1,
+            'h' => 100,
+            'newsletter' => 1
+        ], TRUE);
+
+        assertEquals(1, $ret['ret']);
 
         $a->delete();
         $g->delete();
