@@ -112,9 +112,6 @@ define([
                 // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
                 self.listenTo(Iznik.Session, 'pendingmemberscountschanged', _.bind(self.countsChanged, self));
                 self.listenTo(Iznik.Session, 'pendingmembersothercountschanged', _.bind(self.countsChanged, self));
-
-                // We seem to need to redelegate
-                self.delegateEvents();
             });
 
             return(p);

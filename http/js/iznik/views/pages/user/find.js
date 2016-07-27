@@ -242,33 +242,7 @@ define([
         template: "user_find_whoami"
     });
 
-    Iznik.Views.User.Pages.Find.WhatNext = Iznik.Views.Page.extend({
-        template: "user_find_whatnext",
-
-        render: function() {
-            var p = Iznik.Views.Page.prototype.render.call(this);
-            p.then(function() {
-                try {
-                    var homegroup = localStorage.getItem('myhomegroup');
-
-                    if (homegroup) {
-                        var g = new Iznik.Models.Group({
-                            id: homegroup
-                        });
-
-                        g.fetch().then(function() {
-                            var v = new Iznik.Views.Group.Info({
-                                model: g
-                            });
-                            v.render().then(function() {
-                                self.$('.js-group').html(v.el)
-                            });
-                        });
-                    }
-                } catch (e) {};
-            });
-
-            return(p)
-        }
+    Iznik.Views.User.Pages.Find.WhatNext = Iznik.Views.User.Pages.WhatNext.extend({
+        template: "user_find_whatnext"
     });
 });

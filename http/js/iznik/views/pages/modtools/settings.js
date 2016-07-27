@@ -975,9 +975,6 @@ define([
                     self.$(".js-configselect").selectPersist();
 
                     self.configSelect();
-
-                    // We seem to need to redelegate, otherwise the change event is not caught.
-                    self.delegateEvents();
                 });
             });
 

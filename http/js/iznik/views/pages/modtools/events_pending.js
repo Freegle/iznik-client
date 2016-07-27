@@ -73,9 +73,6 @@ define([
                 // If we detect that the pending counts have changed on the server, refetch the members so that we add/remove
                 // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
                 self.listenTo(Iznik.Session, 'pendingeventscountschanged', _.bind(self.countsChanged, self));
-
-                // We seem to need to redelegate
-                self.delegateEvents();
             });
 
             return(p);

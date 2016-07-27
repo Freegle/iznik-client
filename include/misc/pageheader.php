@@ -60,7 +60,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             ?>
             <title><?php echo $atts['subject']; ?></title>
             <meta property="og:title" content="<?php echo $atts['subject']; ?>"/>
-            <meta property="og:description" content="<?php echo SITE_DESC; ?>"/>
+            <meta property="og:description" content="Interested?  Click here to reply."/>
             <meta property="og:image" content="<?php echo $icon; ?>"/>
             <?php
         }
@@ -199,7 +199,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
         ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=3"><?php
     } else {
-        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=112"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=116"><?php
     }
     ?>
 

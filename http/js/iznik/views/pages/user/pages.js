@@ -3,10 +3,11 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'iznik/facebook',
     'iznik/views/pages/pages',
     'typeahead',
     'jquery.scrollTo'
-], function($, _, Backbone, Iznik) {
+], function($, _, Backbone, Iznik, FBLoad) {
     Iznik.Views.User.Pages.WhereAmI = Iznik.Views.Page.extend({
         firstMatch: null,
 
@@ -293,11 +294,89 @@ define([
                     self.$('.js-groupoverridename').html(groupoverride);
                     self.$('.js-groupoverride').fadeIn('slow');
                 }
-
-                self.delegateEvents();
             });
 
             return(p);
+        }
+    });
+
+    Iznik.Views.User.Pages.WhatNext = Iznik.Views.Page.extend({
+        events: {
+            'click .js-sharefb': 'sharefb'
+        },
+
+        id: null,
+        image: null,
+
+        sharefb: function() {
+            var self = this;
+
+            if (self.id) {
+                var params = {
+                    method: 'share',
+                    href: window.location.protocol + '//' + window.location.host + '/message/' + self.id,
+                    image: self.image
+                };
+
+                FB.ui(params, function (response) {
+                    self.$('.js-fbshare').fadeOut('slow');
+                });
+            }
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function() {
+                try {
+                    var homegroup = localStorage.getItem('myhomegroup');
+
+                    if (homegroup) {
+                        var g = new Iznik.Models.Group({
+                            id: homegroup
+                        });
+
+                        g.fetch().then(function() {
+                            var v = new Iznik.Views.Group.Info({
+                                model: g
+                            });
+                            v.render().then(function() {
+                                self.$('.js-group').html(v.el)
+                            });
+                        });
+                    }
+
+                    self.listenToOnce(FBLoad(), 'fbloaded', function () {
+                        if (!FBLoad().isDisabled()) {
+                            // Get the message so that we can include a picture in the share parameters.  This results in a
+                            // better preview in the share dialog.
+                            //
+                            // We have to do this here, because we can't do async stuff in the click on the FB button
+                            // otherwise the browser blocks our popup.
+                            try {
+                                self.id = localStorage.getItem('lastpost');
+                            } catch (e) {}
+
+                            if (self.id) {
+                                var message = new Iznik.Models.Message({ id: self.id });
+                                message.fetch().then(function() {
+                                    var atts = message.get('attachments');
+                                    if (atts.length > 0) {
+                                        self.image = atts[0].path;
+                                    }
+                                });
+
+                                self.$('.js-sharefb').fadeIn('slow');
+                            }
+                        }
+                    });
+
+                    FBLoad().render();
+                } catch (e) { console.error("Give error", e.message)};
+            });
+
+            return(p)
         }
     });
 });

@@ -146,9 +146,6 @@ define([
                 // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
                 self.listenTo(Iznik.Session, 'spammerpendingaddcountschanged', self.fetch);
                 self.listenTo(Iznik.Session, 'spammerpendingremovecountschanged', self.fetch);
-
-                // We seem to need to redelegate
-                self.delegateEvents();
             });
 
             return(p);

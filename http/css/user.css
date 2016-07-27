@@ -252,6 +252,11 @@ a.btn, .btn a, a:hover {
     -webkit-font-smoothing: antialiased;
 }
 
+.fbshare {
+    background-color: #3B5998 !important;
+    color: white !important;
+}
+
 h1,h2,h3,h4 {
     color: #1d6607 !important;
 }

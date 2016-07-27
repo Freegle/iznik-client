@@ -189,7 +189,7 @@ define([
                             self.trigger('rendered');
                         })
                     }
-                })
+                });
 
                 return(promise);
             },

@@ -262,7 +262,10 @@ define([
                         $('.js-logout').click(function() {
                             logout();
                         });
-                        
+
+                        // Now that we're in the DOM, ensure events work.
+                        self.delegateEvents();
+
                         resolve(self);
                     });
                 });
