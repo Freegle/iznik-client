@@ -236,7 +236,7 @@ a.btn, .btn a, a:hover {
 }
 
 .btn-default  {
-    background-color: #F18D05 !important;
+    background-color: white !important;
     background-image: none;
     border-color: #006b50 #006b50 hsl(165, 100%, 16%);
     color: #fff !important;
