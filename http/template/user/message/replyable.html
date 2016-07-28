@@ -1,6 +1,6 @@
 <div class="nomargin panel panel-success">
     <div class="panel-heading nopad clearfix">
-        <a class="nodecor js-caret row" data-toggle="collapse" href="#result-{{id}}">
+        <a class="nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
             <div class="col-sm-7">
                 <div class="msgsubj panel-title">
                     <span class="js-subject">
@@ -20,31 +20,31 @@
             </div>
             <div class="hidden-xs col-sm-2 js-mapzoom">
                 <% if (obj.location && obj.mylocation) { %>
-                <div class="mapimage margleft pull-right">
+                <div class="mapimage margleft topspace pull-right">
                     <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&zoom={{zoom}}&center={{mylocation.lat}},{{mylocation.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{location.lat}},{{location.lng}}&sensor=false" />
                 </div>
                 <% } else if (obj.area) { %>
-                <div class="mapimage margleft pull-right">
+                <div class="mapimage margleft topspace pull-right">
                     <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&zoom={{zoom}}&center={{area.lat}},{{area.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{area.lat}},{{area.lng}}&sensor=false" />
                 </div>
                 <% } %>
             </div>
             <div class="hidden-xs col-sm-1">
-                <button class="btn btn-white pull-right">
+                <button class="btn btn-white pull-right topspace">
                     <span class="js-caretdown caret"></span>
                     <span class="js-caretup caret icon-flipped-y" style="display: none"></span>
                 </button>
             </div>
         </a>
-        <div class="row hidden-sm hidden-md hidden-lg">
+        <% if (obj.snippet) { %>
+        <div class="row hidden-sm hidden-md hidden-lg js-snippet">
             <div class="col-xs-12">
-                <% if (obj.snippet) { %>
                 <a class="nodecor js-caret row" data-toggle="collapse" href="#result-{{id}}">
-                    <h3 class="padleft nomargin js-snippet">{{snippet}}... <span class="black">Read more >></span></h3>
+                    <h3 class="padleft nomargin">{{snippet}}... <span class="black">Read more >></span></h3>
                 </a>
-                <% } %>
             </div>
         </div>
+        <% } %>
     </div>
     <div id="result-{{id}}" class="panel-collapse collapse">
         <div class="panel-body">
@@ -54,6 +54,11 @@
                     <% if (obj.fromuser) { %>
                     <span class="text-muted">
                         Posted by {{fromuser.displayname}}.
+                        <% if (obj.location && obj.mylocation || obj.area) { %>
+                        <div class="js-mapzoom pull-right clickme hidden-sm hidden-md hidden-lg">
+                            <span class="glyphicon glyphicon-map-marker glyphicon-larger" />
+                        </div>
+                        <% } %>
                     </span>
                     <% } %>
                     <% if (FOP) { %>

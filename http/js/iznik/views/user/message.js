@@ -738,9 +738,9 @@ define([
 
         render: function() {
             var self = this;
-            require(['gmaps'], function() {
-                var p = Iznik.Views.Modal.prototype.render.call(self);
-                p.then(function() {
+            var p = Iznik.Views.Modal.prototype.render.call(self);
+            p.then(function() {
+                require(['gmaps'], function() {
                     self.waitDOM(self, function(self) {
                         // Set map to be square - will have height 0 when we open.
                         var map = self.$('.js-map');
