@@ -1492,6 +1492,18 @@ class Message
             # We have a mail to send.
             $to = $this->getEnvelopefrom();
             $to = $to ? $to : $this->getFromaddr();
+
+            # If this is one of our domains, then we should send directly to the preferred email, to avoid
+            # the mail coming back to us and getting added into a chat.
+            if (ourDomain($to)) {
+                $u = new User($this->dbhr, $this->dbhm);
+                $uid = $u->findByEmail($to);
+                if ($uid) {
+                    $u = new User($this->dbhr, $this->dbhm, $uid);
+                    $to = $u->getEmailPreferred();
+                }
+            }
+
             $g = new Group($this->dbhr, $this->dbhm, $groupid);
             $atts = $g->getPublic();
 

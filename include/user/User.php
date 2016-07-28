@@ -1619,7 +1619,9 @@ class User extends Entity
             # We have a mail to send.
             list ($eid, $to) = $this->getEmailForYahooGroup($groupid);
 
-            if (!$to) {
+            # If this is one of our domains, then we should send directly to the preferred email, to avoid
+            # the mail coming back to us and getting added into a chat.
+            if (!$to || ourDomain($to)) {
                 $to = $this->getEmailPreferred();
             }
 
