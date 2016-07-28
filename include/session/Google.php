@@ -164,7 +164,7 @@ class Google
                     'type' => Log::TYPE_USER,
                     'subtype' => Log::SUBTYPE_LOGIN,
                     'byuser' => $id,
-                    'text' => 'Using Google $googleuid'
+                    'text' => "Using Google $googleuid"
                 ]);
 
                 $ret = 0;

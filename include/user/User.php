@@ -2183,6 +2183,7 @@ class User extends Entity
             'type' => Log::TYPE_USER,
             'subtype' => Log::SUBTYPE_YAHOO_APPLIED,
             'user' => $this->id,
+            'groupid' => $groupid,
             'text' => $email
         ]);
 
