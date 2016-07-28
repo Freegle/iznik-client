@@ -14,7 +14,7 @@ error_log("Start at " . date("Y-m-d H:i:s"));
 
 $groups = $dbhr->preQuery("SELECT * FROM groups INNER JOIN groups_facebook ON groups.id = groups_facebook.groupid WHERE type = 'Freegle' AND publish = 1 AND valid = 1 ORDER BY LOWER(nameshort) ASC;");
 foreach ($groups as $group) {
-    $f = new Facebook($dbhr, $dbhm, $group['id']);
+    $f = new GroupFacebook($dbhr, $dbhm, $group['id']);
     $count = $f->shareFrom();
 
     if ($count > 0) {

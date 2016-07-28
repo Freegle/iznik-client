@@ -11,10 +11,10 @@ use Facebook\FacebookCanvasLoginHelper;
 use Facebook\FacebookRequest;
 use Facebook\FacebookRequestException;
 
-class Facebook {
-    var $publicatts = ['name', 'token', 'authdate', 'valid', 'msgid', 'eventid', 'sharefrom', 'token' ];
+class GroupFacebook {
+    var $publicatts = ['name', 'token', 'authdate', 'valid', 'msgid', 'eventid', 'sharefrom', 'token', 'groupid', 'id' ];
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -41,6 +41,11 @@ class Facebook {
         return($ret);
     }
 
+    public function findById($id) {
+        $groups = $this->dbhr->preQuery("SELECT groupid FROM groups_facebook WHERE id = ?;", [ $id ]);
+        return(count($groups) > 0 ? $groups[0]['groupid'] : NULL);
+    }
+
     public function getFB() {
         $fb = new Facebook\Facebook([
             'app_id' => FBGRAFFITIAPP_ID,
@@ -50,15 +55,13 @@ class Facebook {
         return($fb);
     }
 
-    public function set($name, $token) {
-        $this->dbhm->preExec("INSERT INTO groups_facebook (groupid, name, token, authdate, valid) VALUES (?,?,?,NOW(),1) ON DUPLICATE KEY UPDATE name = ?, token = ?, authdate = NOW(), valid = 1;",
+    public function set($token) {
+        $this->dbhm->preExec("UPDATE groups_facebook SET token = ?, authdate = NOW(), valid = 1 WHERE groupid = ?;",
             [
-                $this->groupid,
-                $name, $token,
-                $name, $token
+                $token,
+                $this->groupid
             ]);
 
-        $this->name = $name;
         $this->token = $token;
     }
 

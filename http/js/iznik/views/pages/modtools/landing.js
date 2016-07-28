@@ -173,11 +173,15 @@ define([
                     var v = new Iznik.Views.ModTools.Settings.MissingProfile();
                     v.render().then(function() {
                         self.$('.js-missingprofile').html(v.el);
-                    })
-                    var v = new Iznik.Views.ModTools.Settings.MissingTwitter();
-                    v.render().then(function() {
-                        self.$('.js-missingtwitter').html(v.el);
-                    })
+                    });
+                    var w = new Iznik.Views.ModTools.Settings.MissingFacebook();
+                    w.render().then(function() {
+                        self.$('.js-missingfacebook').html(w.el);
+                    });
+                    var x = new Iznik.Views.ModTools.Settings.MissingTwitter();
+                    x.render().then(function() {
+                        self.$('.js-missingtwitter').html(x.el);
+                    });
 
                     Iznik.Session.askSubscription();
                 });

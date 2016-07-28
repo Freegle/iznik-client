@@ -34,9 +34,12 @@ class groupFacebookTest extends IznikTestCase {
 
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
-        $t = new Facebook($this->dbhr, $this->dbhm, $gid);
+        $t = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
         $count = $t->shareFrom(true);
         assertGreaterThan(0, $count);
+
+        $atts = $t->getPublic();
+        assertEquals($atts['groupid'], $t->findById($atts['id']));
 
         error_log(__METHOD__ . " end");
     }

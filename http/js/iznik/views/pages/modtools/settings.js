@@ -162,7 +162,8 @@ define([
                 });
 
                 self.$('.js-twitterauth').attr('href', '/twitter/twitter_request.php?groupid=' + self.selected);
-    
+                self.$('.js-facebookauth').attr('href', '/facebook/facebook_request.php?groupid=' + self.selected);
+
                 self.group.fetch().then(function() {
                     // Add license info
                     var text;
@@ -433,16 +434,16 @@ define([
                         model: self.group,
                         fields: [
                             {
-                                name: 'showonyahoo',
-                                label: 'Show Yahoo Group to members?',
-                                control: 'select',
-                                options: [{label: 'Show links to Yahoo group too', value: 1}, {label: 'Don\'t show links to Yahoo group', value:0 }]
-                            },
-                            {
                                 name: 'tagline',
                                 label: 'Tagline for your group',
                                 control: 'input',
                                 helpMessage: 'This should be short and snappy.  Include some local reference that people in your area will feel connected to.',
+                            },
+                            {
+                                name: 'showonyahoo',
+                                label: 'Show Yahoo Group to members?',
+                                control: 'select',
+                                options: [{label: 'Show links to Yahoo group too', value: 1}, {label: 'Don\'t show links to Yahoo group', value:0 }]
                             },
                             {
                                 control: 'button',
@@ -489,6 +490,27 @@ define([
                         }
                     } else {
                         self.$('.js-twitternotlinked').show();
+                    }
+
+                    self.$('.js-facebook').hide();
+
+                    // Add Facebook info.  Won't show for groups it shouldn't.
+                    var facebook = self.group.get('facebook');
+                    console.log("Got facebook info", self.group, facebook);
+
+                    if (facebook) {
+                        self.$('.js-facebookname').html(facebook.name);
+                        self.$('.js-facebookurl').attr('href', 'https://facebook.com/' + facebook.name);
+
+                        if (!facebook.valid) {
+                            self.$('.js-facebooknotlinked').show();
+                        } else {
+                            var mom = new moment(facebook.authdate);
+                            self.$('.js-facebookauthdate').html(mom.format('ll'));
+                            self.$('.js-facebookvalid').show();
+                        }
+                    } else {
+                        self.$('.js-facebooknotlinked').show();
                     }
 
                     // Layout messes up a bit for radio buttons.
@@ -1948,7 +1970,7 @@ define([
                 var role = group.get('role');
                 if (group.get('type') == 'Freegle' && (role == 'Moderator' || role == 'Owner') &&
                     (!group.get('twitter') || !group.get('twitter').valid)) {
-                    missingTwitter.push(group.get('namedisplay'));
+                    missingTwitter.push(group.get('namedisplay') + ' - ' + (group.get('twitter') ? ' token invalid' : ' not linked'));
                 }
             });
 
@@ -1973,5 +1995,44 @@ define([
 
             return(p);
         }
-    });    
+    });
+
+    Iznik.Views.ModTools.Settings.MissingFacebook = Iznik.View.extend({
+        template: 'modtools_settings_missingfacebook',
+
+        render: function() {
+            var self = this;
+            var p;
+            var missingFacebook = [];
+            var groups = Iznik.Session.get('groups');
+            groups.each(function(group) {
+                var role = group.get('role');
+                if (group.get('type') == 'Freegle' && (role == 'Moderator' || role == 'Owner') &&
+                    (!group.get('facebook') || !group.get('facebook').valid)) {
+                    missingFacebook.push(group.get('namedisplay') + ' - ' + (group.get('facebook') ? ' token invalid' : ' not linked'));
+                }
+            });
+
+            if (missingFacebook.length > 0) {
+                var p = Iznik.View.prototype.render.call(this);
+                require(['jquery-show-first'], function() {
+                    p.then(function (self) {
+                        _.each(missingFacebook, function(missing) {
+                            self.$('.js-grouplist').append('<div>' + missing + '</div>');
+                        });
+                        self.$('.js-grouplist').showFirst({
+                            controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                            count: 5
+                        });
+
+                        self.$('.js-profile').fadeIn('slow');
+                    });
+                });
+            } else {
+                p = resolvedPromise(this);
+            }
+
+            return(p);
+        }
+    });
 });

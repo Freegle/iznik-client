@@ -81,7 +81,7 @@
                     </form>
                     <form id="groupappearanceform" class="row" />
                 </div>
-                <span class="js-freegleonly" style="display: none">
+                <div class="js-freegleonly" style="display: none">
                     <h3>Mapping Settings for this Group</h3>
                     <div class="btn btn-default js-mapsettings">View Map Settings</div>
 
@@ -96,6 +96,17 @@
                     </div>
                     <a data-realurl="true" class="js-twitterauth topspace" target="_blank">
                         <span class="btn btn-default">Link to Twitter</span>
+                    </a>
+                    <p>You can link to a group Facebook page to attract more people to your group.</p>
+                    <div class="js-facebook js-facebooknotlinked alert alert-danger" style="display: none">
+                        This group is not linked to a Facebook page.  Please link it to get more publicity.
+                    </div>
+                    <div class="js-facebook js-facebookvalid" style="display: none">
+                        <div class="glyphicon glyphicon-ok success" />&nbsp;
+                        Linked to <a class="js-facebookurl" data-realurl="true" target="_blank"><span class="js-facebookname" /></a> on <span class="js-facebookauthdate" />
+                    </div>
+                    <a data-realurl="true" class="js-facebookauth topspace" target="_blank">
+                        <span class="btn btn-default">Link to Facebook</span>
                     </a>
                 </div>
             </div>

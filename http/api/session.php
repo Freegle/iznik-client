@@ -47,12 +47,21 @@ function session() {
                         # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
                         # in here - but it's of no interest to members so there's no point delaying them by
                         # fetching it.
+                        #
+                        # Similar code in group.php.
                         $t = new Twitter($dbhr, $dbhm, $group['id']);
                         $atts = $t->getPublic();
                         unset($atts['token']);
                         unset($atts['secret']);
                         $atts['authdate'] = ISODate($atts['authdate']);
                         $group['twitter'] =  $atts;
+
+                        # Ditto Facebook.
+                        $f = new GroupFacebook($dbhr, $dbhm, $group['id']);
+                        $atts = $f->getPublic();
+                        unset($atts['token']);
+                        $atts['authdate'] = ISODate($atts['authdate']);
+                        $group['facebook'] =  $atts;
                     }
                 }
 

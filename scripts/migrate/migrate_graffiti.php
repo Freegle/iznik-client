@@ -26,10 +26,10 @@ foreach ($fgroups as $fgroup) {
     if ($name) {
         $p = strrpos($name, '/');
         if ($p && $fgroup['graffititoken']) {
-            $t = new Facebook($dbhr, $dbhm, $gid);
+            $t = new GroupFacebook($dbhr, $dbhm, $gid);
             $name = substr($name, $p + 1);
             error_log("...$name");
-            $t->set($name, $fgroup['graffititoken']);
+            $t->set($fgroup['graffititoken']);
         }
     }
 }
