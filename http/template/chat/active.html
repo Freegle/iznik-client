@@ -5,12 +5,12 @@
             <div class="js-minimise clickme inline padleftlg padright" title="Minimise this chat. It'll still show in your chat list" >
                 <div class="glyphicon glyphicon-minus"/>
             </div>
-            <!--<% if (!obj.group) { %>-->
-            <!--<div class="clickme inline glyphicon glyphicon-remove js-remove" title="Remove this chat.  It won't show in your chat list." />-->
-            <!--<% } %>-->
         </div>
         {{name}}
         <span class="js-count badge badge-unread" style="display: none;"></span>
+        <% if (!obj.group) { %>
+        <div class="clickme inline glyphicon glyphicon-trash js-remove" title="Remove this chat.  It won't show in your chat list." />
+        <% } %>
         &nbsp;
         <div class="js-privacy inline">
             <% if (chattype == 'User2User') { %>
@@ -53,12 +53,12 @@
         <span class="input-group-addon nopad">
             <span class="clickme btn btn-sm btn-primary js-send" title="Send this message">
                 <span class="glyphicons glyphicons-chevron-right" />
-                <span class="chathidesmall vcenter">&nbsp;Send</span>
+                <!--<span class="chathidesmall vcenter">&nbsp;Send</span>-->
             </span>
             <% if (chattype == 'User2User') { %>
             <span class="clickme btn btn-sm btn-success js-promise" title="Promise an item to this person" id="chat-promise-{{id}}">
                 <span class="glyphicons glyphicons-handshake" />
-                <span class="chathidesmall vcenter">&nbsp;Promise</span>
+                <!--<span class="chathidesmall vcenter">&nbsp;Promise</span>-->
             </span>
             <% } %>
         </span>

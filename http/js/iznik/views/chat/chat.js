@@ -495,11 +495,23 @@ define([
         },
 
         removeIt: function() {
-            // This will close the chat, which means it won't show in our list until we recreate it.  The messages
-            // will be preserved.
-            this.removed = true;
-            this.$el.hide();
-            this.updateRoster('Closed', _.bind(this.zapViews, this));
+            var self = this;
+
+            var v = new Iznik.Views.Confirm({
+                model: self.model
+            });
+            v.template = 'chat_remove';
+
+            self.listenToOnce(v, 'confirmed', function () {
+                // This will close the chat, which means it won't show in our list until we recreate it.  The messages
+                // will be preserved.
+                self.removed = true;
+                self.$el.hide();
+                self.updateRoster('Closed', _.bind(self.zapViews, self));
+            });
+
+            v.render();
+
         },
 
         focus: function() {
@@ -1015,10 +1027,11 @@ define([
             var p;
 
             if (this.model.get('id')) {
-                // Insert some wbrs to allow us to word break long words (e.g. URLs).
                 var message = this.model.get('message');
                 if (message) {
-                    message = this.model.set('message', wbr(message, 20));
+                    // Insert some wbrs to allow us to word break long words (e.g. URLs).
+                    // It might have line breaks in if it comes originally from an email.
+                    message = this.model.set('message', wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, '<br />'));
                 }
 
                 this.model.set('group', this.options.chatModel.get('group'));
@@ -1038,6 +1051,7 @@ define([
                 }
 
                 this.template = tpl;
+
                 p = Iznik.View.prototype.render.call(this);
                 p.then(function(self) {
                     self.$('.timeago').timeago();
