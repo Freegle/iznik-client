@@ -199,7 +199,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
         ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=3"><?php
     } else {
-        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=118"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=120"><?php
     }
     ?>
 
