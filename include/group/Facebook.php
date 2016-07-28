@@ -1,0 +1,121 @@
+<?php
+
+require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/misc/Entity.php');
+require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
+
+use Facebook\FacebookSession;
+use Facebook\FacebookJavaScriptLoginHelper;
+use Facebook\FacebookCanvasLoginHelper;
+use Facebook\FacebookRequest;
+use Facebook\FacebookRequestException;
+
+class Facebook {
+    var $publicatts = ['name', 'token', 'authdate', 'valid', 'msgid', 'eventid', 'sharefrom', 'token' ];
+
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid)
+    {
+        $this->dbhr = $dbhr;
+        $this->dbhm = $dbhm;
+        $this->groupid = $groupid;
+
+        foreach ($this->publicatts as $att) {
+            $this->$att = NULL;
+        }
+
+        $groups = $this->dbhr->preQuery("SELECT * FROM groups_facebook WHERE groupid = ?;", [ $groupid ]);
+        foreach ($groups as $group) {
+            foreach ($this->publicatts as $att) {
+                $this->$att = $group[$att];
+            }
+        }
+    }
+
+    public function getPublic() {
+        $ret = [];
+        foreach ($this->publicatts as $att) {
+            $ret[$att] = $this->$att;
+        }
+
+        return($ret);
+    }
+
+    public function getFB() {
+        $fb = new Facebook\Facebook([
+            'app_id' => FBGRAFFITIAPP_ID,
+            'app_secret' => FBGRAFFITIAPP_SECRET
+        ]);
+
+        return($fb);
+    }
+
+    public function set($name, $token) {
+        $this->dbhm->preExec("INSERT INTO groups_facebook (groupid, name, token, authdate, valid) VALUES (?,?,?,NOW(),1) ON DUPLICATE KEY UPDATE name = ?, token = ?, authdate = NOW(), valid = 1;",
+            [
+                $this->groupid,
+                $name, $token,
+                $name, $token
+            ]);
+
+        $this->name = $name;
+        $this->token = $token;
+    }
+
+    public function shareFrom($forceshare = FALSE) {
+        $count = 0;
+        $fb = $this->getFB();
+
+        # Get posts we might want to share.  This returns only posts by the page itself.
+        try {
+            $ret = $fb->get($this->sharefrom . "/posts?since=yesterday&fields=id,link,message,type,caption,icon,name", $this->token);
+
+            $posts = $ret->getDecodedBody();
+            #error_log("Posts " . var_export($posts, TRUE));
+
+            foreach ($posts['data'] as $wallpost) {
+                #error_log("Post " . var_export($wallpost, true));
+
+                # Check if we've already shared this one.
+                $sql = "SELECT * FROM groups_facebook_shares WHERE groupid = ? AND postid = ?;";
+                $posteds = $this->dbhr->preQuery($sql, [ $this->groupid, $wallpost['id'] ]);
+
+                if (count($posteds) == 0 || $forceshare) {
+                    # Whether or not this worked, remember that we've tried, so that we don't try again.
+                    #
+                    # TODO should we handle transient errors better?
+                    $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (groupid, postid) VALUES (?,?);", [
+                        $this->groupid,
+                        $wallpost['id']
+                    ]);
+
+                    # Like the original post.
+                    $res = $fb->post($wallpost['id'] . '/likes', [], $this->token);
+                    #error_log("Like returned " . var_export($res, true));
+
+                    # We want to share the post out with the existing details - but we need to remove the id, otherwise
+                    # it's an invalid op.
+                    unset($wallpost['id']);
+                    $result = $fb->post($this->name . '/feed', $wallpost, $this->token);
+                    #error_log("Post returned " . var_export($result, true));
+
+                    if ($result->getHttpStatusCode() == 200) {
+                        $count++;
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            $code = $e->getCode();
+
+            # These numbers come from FacebookResponseException.
+            if ($code == 100 || $code == 102 || $code == 190) {
+                $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterrortime = NOW(), lasterror = ? WHERE groupid = ?;", [
+                    $e->getMessage(),
+                    $this->groupid
+                ]);
+            }
+        }
+
+        return($count);
+    }
+}

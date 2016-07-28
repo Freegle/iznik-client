@@ -27,6 +27,10 @@ define('GOOGLE_APP_NAME', 'zzz');
 define('FBAPP_ID', 'zzz');
 define('FBAPP_SECRET', 'zzz');
 
+# We have a separate app for posting to group pages, in case this one gets blocked
+define('FBAPPGRAFFITI_ID', 'zzz');
+define('FBAPPGRAFFITI_SECRET', 'zzz');
+
 # We post to Twitter
 define('TWITTER_CONSUMER_KEY', 'zzzz');
 define('TWITTER_CONSUMER_SECRET', 'zzzz');
