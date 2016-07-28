@@ -134,7 +134,6 @@ function user() {
 
             #error_log("Owner? " . $me->isModOrOwner($groupid) . " admin " . $me->isAdminOrSupport());
             if ($u && $me && ($me->isModOrOwner($groupid) || $me->isAdminOrSupport())) {
-                error_log("ok");
                 if ($suspectcount !== NULL) {
                     $u->setPrivate('suspectcount', $suspectcount);
                     $u->setPrivate('suspectreason', $suspectreason);
