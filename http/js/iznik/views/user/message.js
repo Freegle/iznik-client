@@ -527,11 +527,24 @@ define([
         template: 'user_message_replyable',
 
         events: {
-            'click .js-send': 'send'
+            'click .js-send': 'send',
+            'click .js-mapzoom': 'mapZoom'
         },
 
         initialize: function(){
             this.events = _.extend(this.events, Iznik.Views.User.Message.prototype.events);
+        },
+
+        mapZoom: function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var self = this;
+            var v = new Iznik.Views.User.Message.Map({
+                model: self.model
+            });
+
+            v.render();
         },
 
         wordify: function (str) {
@@ -676,7 +689,7 @@ define([
                 this.model.set('mylocation', mylocation);
 
                 // Static map custom markers don't support SSL.
-                this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapmarker.gif');
+                this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapareamarker.png');
 
                 // Hide until we've got a bit into the render otherwise the border shows.
                 this.$el.css('visibility', 'hidden');
@@ -715,6 +728,63 @@ define([
                     self.$el.css('visibility', 'visible');
                 })
             }
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.User.Message.Map = Iznik.Views.Modal.extend({
+        template: 'user_message_mapzoom',
+
+        render: function() {
+            var self = this;
+            require(['gmaps'], function() {
+                var p = Iznik.Views.Modal.prototype.render.call(self);
+                p.then(function() {
+                    self.waitDOM(self, function(self) {
+                        // Set map to be square - will have height 0 when we open.
+                        var map = self.$('.js-map');
+                        var mapWidth = map.width();
+                        console.log("Width", mapWidth);
+                        map.height(mapWidth);
+
+                        var location = self.model.get('location');
+                        var area = self.model.get('area');
+                        var centre = null;
+
+                        if (location) {
+                            centre = new google.maps.LatLng(location.lat, location.lng);
+                        } else if (area) {
+                            centre = new google.maps.LatLng(area.lat, area.lng);
+                            self.$('.js-vague').show();
+                        }
+
+                        var mapOptions = {
+                            mapTypeControl      : false,
+                            streetViewControl   : false,
+                            center              : centre,
+                            panControl          : mapWidth > 400,
+                            zoomControl         : mapWidth > 400,
+                            zoom                : self.model.get('zoom') ? self.model.get('zoom') : 16
+                        };
+
+                        self.map = new google.maps.Map(map.get()[0], mapOptions);
+
+                        var icon = {
+                            url: '/images/user_logo.png',
+                            scaledSize: new google.maps.Size(50, 50),
+                            origin: new google.maps.Point(0,0),
+                            anchor: new google.maps.Point(0, 0)
+                        };
+
+                        var marker = new google.maps.Marker({
+                            position: centre,
+                            icon: icon,
+                            map: self.map
+                        });
+                    });
+                });
+            });
 
             return(p);
         }

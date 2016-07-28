@@ -239,7 +239,7 @@ a.btn, .btn a, a:hover {
     background-color: white !important;
     background-image: none;
     border-color: #006b50 #006b50 hsl(165, 100%, 16%);
-    color: #fff !important;
+    color: black !important;
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.33);
     -webkit-font-smoothing: antialiased;
 }

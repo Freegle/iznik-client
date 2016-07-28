@@ -128,7 +128,7 @@ define([
                     var end = (new moment(date.end)).format('ddd, Do MMM YYYY HH:mm');
                     self.$('.js-dates').append(start + ' - ' + end + '<br />');
                 });
-            })
+            });
         }
     });
 
