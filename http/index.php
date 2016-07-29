@@ -75,6 +75,15 @@ if ($default) {
                 </div>
             </div>
             <div id="botleft" />
+
+            <!-- Some nonsense to make browsers remember user/password. -->
+            <div id="hiddenloginform" style="display: none">
+                <form action="" method="post">
+                    <input type="text" name="email" id="hiddenloginemail"/>
+                    <input type="password" name="password" id="hiddenloginpassword"/>
+                    <input type="submit" value="Login" id="hiddenloginsubmit"/>
+                </form>
+            </div>
         </body>
 <?php
 }

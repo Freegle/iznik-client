@@ -178,12 +178,12 @@ define([
             p.then(function() {
                 self.$('.js-native').hide();
 
-                try {
-                    var email = localStorage.getItem('myemail');
-                    if (email) {
-                        self.$('.js-email').val(email);
-                    }
+                // We do a trick with submitting to a hidden iframe to make browsers save the password.  If there was
+                // one, it'll have been restored by the browser on page load. Move it into our form now.
+                self.$('.js-email').val($('#hiddenloginemail').val());
+                self.$('.js-password').val($('#hiddenloginpassword').val());
 
+                try {
                     var ever = localStorage.getItem('signedinever');
                     if (ever) {
                         self.already();
