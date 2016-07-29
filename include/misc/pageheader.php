@@ -182,7 +182,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <link rel="stylesheet" href="/js/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css">
     <link rel="stylesheet" href="/css/dd.css">
 
-    <link rel="stylesheet" type="text/css" href="/css/style.css?a=60">
+    <link rel="stylesheet" type="text/css" href="/css/style.css?a=61">
     <!--[if lt IE 9]>
     <link rel="stylesheet" type="text/css" href="/css/ie-only.css">
     <![endif]-->
