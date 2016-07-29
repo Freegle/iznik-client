@@ -288,6 +288,9 @@ define([
         },
 
         openChat: function(userid) {
+            var v = new Iznik.Views.PleaseWait();
+            v.render();
+
             if (userid != Iznik.Session.get('me').id) {
                 // We want to open a direct message conversation with this user.
                 $.ajax({
@@ -304,9 +307,12 @@ define([
                                 _.defer(function() {
                                     var chatmodel = Iznik.Session.chats.get(ret.id);
                                     var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
+                                    v.close();
                                     chatView.restore();
                                 })
                             });
+                        } else {
+                            v.close();
                         }
                     }
                 })
@@ -707,8 +713,11 @@ define([
             }
 
             // We fetch the messages when restoring - no need before then.
+            var v = new Iznik.Views.PleaseWait();
+            v.render();
             self.messages.fetch().then(function() {
                 // We've just opened this chat - so we have had a decent chance to see any unread messages.
+                v.close();
                 self.messageFocus();
                 self.trigger('restored');
             });
