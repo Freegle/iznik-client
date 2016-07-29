@@ -221,7 +221,7 @@ class Location extends Entity
             # Now find grids within approximately 30 miles of that.
             #$sql = "SELECT id FROM locations_grids WHERE haversine(" . ($grid['swlat'] + 0.05) . ", " . ($grid['swlng'] + 0.05) . ", swlat + 0.05, swlng + 0.05) < 30;";
             $sql = "SELECT id FROM locations_grids WHERE ABS(" . $grid['swlat'] . " - swlat) <= 0.4 AND ABS(" . $grid['swlng']. " - swlng) <= 0.4;";
-            $neighbours = $this->dbhr->query($sql);
+            $neighbours = $this->dbhr->preQuery($sql);
             foreach ($neighbours as $neighbour) {
                 $gridids[] = $neighbour['id'];
             }
@@ -232,7 +232,7 @@ class Location extends Entity
                 # First we do a simple match.  If the location is correct, that will find it quickly.
                 $term2 = $this->dbhr->quote($this->canon($term));
                 $sql = "SELECT locations.* FROM locations $exclgroup WHERE canon = $term2 AND gridid IN (" . implode(',', $gridids) . ") $exclude ORDER BY LENGTH(canon) ASC, popularity DESC LIMIT $limit;";
-                $locs = $this->dbhr->query($sql);
+                $locs = $this->dbhr->preQuery($sql);
 
                 foreach ($locs as $loc) {
                     $ret[] = $loc;
@@ -249,7 +249,7 @@ class Location extends Entity
                 if ($limit > 0) {
                     $sql = "SELECT locations.* FROM locations $exclgroup WHERE LENGTH(name) >= " . strlen($termt) . " AND name REGEXP CONCAT('[[:<:]]', " . $this->dbhr->quote($termt) . ", '[[:>:]]') AND gridid IN (" . implode(',', $gridids) . ") $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
                     #error_log("%..% $sql");
-                    $locs = $this->dbhr->query($sql);
+                    $locs = $this->dbhr->preQuery($sql);
 
                     foreach ($locs as $loc) {
                         $ret[] = $loc;
@@ -265,7 +265,7 @@ class Location extends Entity
                     #
                     # We also order to find the one most similar in length.
                     $sql = "SELECT locations.* FROM locations $exclgroup WHERE gridid IN (" . implode(',', $gridids) . ") AND LENGTH(canon) > 2 AND LENGTH(name) >= " . strlen($termt)/2 . " AND " . $this->dbhr->quote($termt) . " REGEXP CONCAT('[[:<:]]', name, '[[:>:]]') $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . "), GetMaxDimension(locations.geometry) ASC, popularity DESC LIMIT $limit;";
-                    $locs = $this->dbhr->query($sql);
+                    $locs = $this->dbhr->preQuery($sql);
 
                     foreach ($locs as $loc) {
                         $ret[] = $loc;
@@ -279,7 +279,7 @@ class Location extends Entity
                     $sql = "SELECT locations.* FROM locations $exclgroup WHERE gridid IN (" . implode(',', $gridids) . ") AND DAMLEVLIM(`canon`, " .
                         $this->dbhr->quote($this->canon($term)) . ", " . strlen($term) . ") < 2 $exclude ORDER BY ABS(LENGTH(canon) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
                     #error_log("DamLeve $sql");
-                    $locs = $this->dbhr->query($sql);
+                    $locs = $this->dbhr->preQuery($sql);
 
                     foreach ($locs as $loc) {
                         $ret[] = $loc;
