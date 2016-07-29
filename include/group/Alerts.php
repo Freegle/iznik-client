@@ -28,6 +28,14 @@ class Alert extends Entity
         $this->log = new Log($dbhr, $dbhm);
     }
 
+    /**
+     * @param LoggedPDO $dbhm
+     */
+    public function setDbhm($dbhm)
+    {
+        $this->dbhm = $dbhm;
+    }
+
     public function create($groupid, $from, $to, $subject, $text, $html, $askclick, $tryhard) {
         $id = NULL;
 
@@ -81,7 +89,7 @@ class Alert extends Entity
         $this->dbhm->preExec("UPDATE alerts_tracking SET responded = NOW(), response = 'Clicked' WHERE id = ?;", [ $id] );
     }
 
-    public function process($id = NULL) {
+    public function process($id = NULL, $type = Group::GROUP_FREEGLE) {
         $done = 0;
         $idq = $id ? " id = $id AND " : '';
         $sql = "SELECT * FROM alerts WHERE $idq complete IS NULL;";
@@ -93,7 +101,7 @@ class Alert extends Entity
             # This alert might be for a specific group, or all Freegle groups.  We only process a single group in this
             # pass.  If it's for multiple, we'll update the progress and do the next one next time.
             $groupid = $a->getPrivate('groupid');
-            $groupq =  $groupid ? " WHERE id = $groupid " : (" WHERE `type` = '" . Group::GROUP_FREEGLE . "' AND id > {$alert['groupprogress']} LIMIT 1");
+            $groupq =  $groupid ? " WHERE id = $groupid " : (" WHERE `type` = '$type' AND id > {$alert['groupprogress']} LIMIT 1");
 
             $groups = $this->dbhr->preQuery("SELECT id, nameshort FROM groups $groupq;");
             $complete = count($groups) == 0;
@@ -117,7 +125,6 @@ class Alert extends Entity
             }
 
             if ($complete) {
-                error_log("Done");
                 $this->dbhm->preExec("UPDATE alerts SET complete = NOW() WHERE id = ?;", [ $alert['id'] ]);
             }
         }
@@ -234,13 +241,7 @@ class Alert extends Entity
                             # and this can flood them.  They may get a copy via the owner address, though.
                             $sql = "SELECT id, response FROM alerts_tracking WHERE userid = ? AND alertid = ? AND emailid = ?;";
                             $previous = $this->dbhr->preQuery($sql, [ $mod['userid'], $this->id, $email['id']]);
-                            $gotprevious = FALSE;
-                            foreach ($previous as $prev) {
-                                if ($prev['response'] == 'Read' || $prev['response'] == 'Clicked') {
-                                    error_log("...already got response");
-                                    $gotprevious = TRUE;
-                                }
-                            }
+                            $gotprevious = count($previous) > 0 && ($previous[0]['response'] == 'Read' || $previous[0]['response'] == 'Clicked');
 
                             if (!$gotprevious) {
                                 $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, userid, emailid, `type`) VALUES (?,?,?,?,?);",
