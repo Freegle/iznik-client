@@ -97,7 +97,7 @@ class Digest
         }
     }
 
-    public function send($groupid, $frequency, $ccto = NULL) {
+    public function send($groupid, $frequency) {
         $g = new Group($this->dbhr, $this->dbhm, $groupid);
         $gatts = $g->getPublic();
         $sent = 0;
@@ -326,21 +326,17 @@ class Digest
                             foreach ($replacements as $email => $rep) {
                                 $message = Swift_Message::newInstance()
                                     ->setSubject($msg['subject'])
+                                    ->setTo([ $email => $u->getName() ])
                                     ->setFrom([$msg['from'] => $msg['fromname']])
                                     ->setReturnPath('bounce@direct.ilovefreegle.org')
                                     ->setReplyTo($msg['replyto'], $msg['replytoname'])
                                     ->setBody($msg['text'])
                                     ->addPart($msg['html'], 'text/html');
 
-                                #if ($ccto) {
-                                #    $message->addCc('');
-                                #}
-
                                 $headers = $message->getHeaders();
                                 $headers->addTextHeader('List-Unsubscribe', '<mailto:{{noemail}}>, <{{unsubscribe}}>');
 
                                 try {
-                                    $message->addBcc($email);
                                     #error_log("...$email");
                                     $this->sendOne($mailer, $message);
                                     $sent++;
