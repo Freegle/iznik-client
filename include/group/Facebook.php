@@ -32,6 +32,14 @@ class GroupFacebook {
         }
     }
 
+    /**
+     * @param LoggedPDO $dbhm
+     */
+    public function setDbhm($dbhm)
+    {
+        $this->dbhm = $dbhm;
+    }
+
     public function getPublic() {
         $ret = [];
         foreach ($this->publicatts as $att) {
@@ -65,13 +73,13 @@ class GroupFacebook {
         $this->token = $token;
     }
 
-    public function shareFrom($forceshare = FALSE) {
+    public function shareFrom($forceshare = FALSE, $since = "yesterday") {
         $count = 0;
         $fb = $this->getFB();
 
         # Get posts we might want to share.  This returns only posts by the page itself.
         try {
-            $ret = $fb->get($this->sharefrom . "/posts?since=yesterday&fields=id,link,message,type,caption,icon,name", $this->token);
+            $ret = $fb->get($this->sharefrom . "/posts?since=$since&fields=id,link,message,type,caption,icon,name", $this->token);
 
             $posts = $ret->getDecodedBody();
             #error_log("Posts " . var_export($posts, TRUE));

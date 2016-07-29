@@ -673,7 +673,7 @@ class User extends Entity
                 }
 
                 # Give a summary of outstanding work.
-                $one['work'] = $g->getWorkCounts($one['mysettings']);
+                $one['work'] = $g->getWorkCounts($one['mysettings'], $this->id);
             }
 
             $ret[] = $one;

@@ -138,6 +138,55 @@ class digestTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testError() {
+        error_log(__METHOD__);
+
+        # Create a group with a message on it.
+        $g = new Group($this->dbhm, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 1);
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+        $msg = str_replace("Hey", "Hey {{username}}", $msg);
+
+        $r = new MailRouter($this->dbhm, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
+        assertNotNull($id);
+        error_log("Created message $id");
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
+        # and a real one to get the digest.
+        $u = new User($this->dbhm, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@blackhole.io');
+        $eid = $u->addEmail('test@' . USER_DOMAIN);
+        error_log("Created user $uid email $eid");
+        assertGreaterThan(0, $eid);
+        $u->addMembership($gid, User::ROLE_MEMBER, $eid);
+        $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
+
+        # And another who only has a membership on Yahoo and therefore shouldn't get one.
+        $u2 = new User($this->dbhm, $this->dbhm);
+        $uid2 = $u2->create(NULL, NULL, 'Test User');
+        $u2->addEmail('test2@blackhole.io');
+        error_log("Created user $uid2");
+        $u2->addMembership($gid, User::ROLE_MEMBER);
+        $u2->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
+
+        # Mock for coverage.
+        $mock = $this->getMockBuilder('Digest')
+            ->setConstructorArgs([$this->dbhr, $this->dbhm, NULL, TRUE])
+            ->setMethods(array('sendOne'))
+            ->getMock();
+        $mock->method('sendOne')->willThrowException(new Exception());
+        $mock->send($gid, Digest::IMMEDIATE);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testMultipleMails() {
         error_log(__METHOD__);
 

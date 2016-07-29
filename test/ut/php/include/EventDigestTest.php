@@ -39,15 +39,6 @@ class eventDigestTest extends IznikTestCase {
     public function testEvents() {
         error_log(__METHOD__);
 
-        # Mock the actual send
-        $mock = $this->getMockBuilder('EventDigest')
-            ->setConstructorArgs([$this->dbhm, $this->dbhm, TRUE])
-            ->setMethods(array('sendOne'))
-            ->getMock();
-        $mock->method('sendOne')->will($this->returnCallback(function($mailer, $message) {
-            return($this->sendMock($mailer, $message));
-        }));
-
         # Create a group with two events on it.
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
@@ -77,6 +68,23 @@ class eventDigestTest extends IznikTestCase {
         $e->addDate(ISODate('@' . strtotime('next wednesday 2pm')), ISODate('@' . strtotime('next wednesday 3pm')));
 
         # Now test.
+
+        # Send fails
+        $mock = $this->getMockBuilder('EventDigest')
+            ->setConstructorArgs([$this->dbhm, $this->dbhm, TRUE])
+            ->setMethods(array('sendOne'))
+            ->getMock();
+        $mock->method('sendOne')->willThrowException(new Exception());
+        assertEquals(0, $mock->send($gid));
+
+        # Mock the actual send
+        $mock = $this->getMockBuilder('EventDigest')
+            ->setConstructorArgs([$this->dbhm, $this->dbhm, TRUE])
+            ->setMethods(array('sendOne'))
+            ->getMock();
+        $mock->method('sendOne')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
         assertEquals(1, $mock->send($gid));
         assertEquals(1, count($this->eventsSent));
 

@@ -272,9 +272,9 @@ class Message
         $this->s = $search;
     }
 
-    private function mailer($user, $modmail, $toname, $to, $bcc, $fromname, $from, $subject, $text) {
+    public function mailer($user, $modmail, $toname, $to, $bcc, $fromname, $from, $subject, $text) {
         try {
-            error_log(session_id() . " mail " . microtime(true));
+            #error_log(session_id() . " mail " . microtime(true));
 
             list ($transport, $mailer) = getMailer();
             
@@ -302,10 +302,13 @@ class Message
             # Stop the transport, otherwise the message doesn't get sent until the UT script finishes.
             $transport->stop();
 
-            error_log(session_id() . " mailed " . microtime(true));
+            #error_log(session_id() . " mailed " . microtime(true));
         } catch (Exception $e) {
+            # Not much we can do - shouldn't really happen given the failover transport.
+            // @codeCoverageIgnoreStart
             error_log("Send failed with " . $e->getMessage());
             mail("log@ehibbert.org.uk", "Email send failed", $e->getMessage());
+            // @codeCoverageIgnoreEnd
         }
     }
 

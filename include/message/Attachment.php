@@ -130,6 +130,16 @@ class Attachment
         return($ret);
     }
 
+    public function archive() {
+        $rc = file_put_contents(IZNIK_BASE . "/http/attachments/img_{$this->id}.jpg", $this->getData());
+        if ($rc) {
+            $sql = "UPDATE messages_attachments SET archived = 1, data = NULL WHERE id = {$this->id};";
+            $this->dbhm->exec($sql);
+        }
+
+        return($rc);
+    }
+
     public function getData() {
         $ret = NULL;
 
@@ -143,7 +153,7 @@ class Attachment
                 # We fetch the data - not using SSL as we don't need to, and that host might not have a cert.
                 #
                 # This isn't very efficient - but these are rarely accessed messages, so it doesn't need to be.
-                $ret = file_get_contents('http://' . IMAGE_ARCHIVED_DOMAIN . "/img_{$this->id}.jpg");
+                $ret = @file_get_contents('http://' . IMAGE_ARCHIVED_DOMAIN . "/img_{$this->id}.jpg");
             } else {
                 $ret = $data['data'];
             }

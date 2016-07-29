@@ -133,7 +133,18 @@ class chatRoomsTest extends IznikTestCase {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_DEFAULT, $msgid, TRUE);
         error_log("Created chat message $cm");
-        
+
+        # Exception first for coverage.
+        error_log("Fake exception");
+        $r = $this->getMockBuilder('ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('constructMessage'))
+            ->getMock();
+
+        $r->method('constructMessage')->willThrowException(new Exception());
+
+        assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+
         $r = $this->getMockBuilder('ChatRoom')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('mailer'))

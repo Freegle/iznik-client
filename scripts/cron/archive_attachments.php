@@ -3,6 +3,7 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/message/Attachment.php');
 
 # TODO Make this host generic.
 $dsn = "mysql:host=db3.ilovefreegle.org;dbname=iznik;charset=utf8";
@@ -14,15 +15,8 @@ $atts = $dbh->query($sql);
 $count = 0;
 
 foreach ($atts as $att) {
-    $sql = "SELECT * FROM messages_attachments WHERE id = {$att['id']};";
-    $datas = $dbh->query($sql);
-    foreach ($datas as $data) {
-        $rc = file_put_contents(IZNIK_BASE . "/http/attachments/img_{$att['id']}.jpg", $data['data']);
-        if ($rc) {
-            $sql = "UPDATE messages_attachments SET archived = 1, data = NULL WHERE id = {$att['id']};";
-            $dbh->exec($sql);
-        }
-    }
+    $a = new Attachment($dbhr, $dbhm, $att['id']);
+    $a->archive();
 
     $count++;
     if ($count % 1000 == 0) {

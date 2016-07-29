@@ -35,11 +35,47 @@ class groupFacebookTest extends IznikTestCase {
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
         $t = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
-        $count = $t->shareFrom(true);
+        $count = $t->shareFrom(TRUE, "last week");
         assertGreaterThan(0, $count);
 
         $atts = $t->getPublic();
         assertEquals($atts['groupid'], $t->findById($atts['id']));
+
+        $t->set('test');
+        assertEquals('test', $t->getPublic()['token']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testErrors() {
+        error_log(__METHOD__);
+
+        $dbconfig = array (
+            'host' => SQLHOST,
+            'port' => SQLPORT,
+            'user' => SQLUSER,
+            'pass' => SQLPASSWORD,
+            'database' => SQLDB
+        );
+
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->setConstructorArgs([
+                "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
+                $dbconfig['user'], $dbconfig['pass'], array(), TRUE
+            ])
+            ->setMethods(array('preExec'))
+            ->getMock();
+        $mock->method('preExec')->willThrowException(new Exception('test', 100));
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+        $t = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
+        $t->setDbhm($mock);
+        try {
+            # Will throw exception and then again in handler so we need to catch here.
+            $t->shareFrom(true);
+            assertTrue(FALSE);
+        } catch (Exception $e) {}
 
         error_log(__METHOD__ . " end");
     }

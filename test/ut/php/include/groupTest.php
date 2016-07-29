@@ -55,6 +55,8 @@ class groupTest extends IznikTestCase {
 
         assertGreaterThan(0 ,$g->delete());
 
+        assertGreaterThan(0, strpos($g->getGroupUnsubscribe(), 'unsub'));
+
         error_log(__METHOD__ . " end");
     }
 

@@ -302,8 +302,8 @@ class ChatRoom extends Entity
     }
 
     public function unseenForUser($userid) {
-        # Find if we have any unseen messages.
-        $sql = "SELECT COUNT(*) AS count FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?), 0) AND chatid = ? AND userid != ?;";
+        # Find if we have any unseen messages.  Exclude any pending review.
+        $sql = "SELECT COUNT(*) AS count FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?), 0) AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0;";
         $counts = $this->dbhr->preQuery($sql, [ $this->id, $userid, $this->id, $userid  ]);
         #return(round(rand(1, 10)));
         return($counts[0]['count']);
@@ -461,6 +461,25 @@ class ChatRoom extends Entity
         return($count);
     }
 
+    public function getMessagesForReview($userid) {
+        # We want the messages for review for any group where we are a mod and the recipient of the chat message is
+        # a member.
+        $sql = "SELECT chat_messages.id, chat_messages.chatid FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator'));";
+        $msgs = $this->dbhr->preQuery($sql, [ $userid ]);
+        $ret = [];
+
+        foreach ($msgs as $msg) {
+            $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
+            $thisone = $m->getPublic();
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
+            $thisone['chatroom'] = $r->getPublic();
+
+            $ret[] = $thisone;
+        }
+
+        return($ret);
+    }
+
     public function getMessages($limit = 100) {
         $sql = "SELECT id, userid FROM chat_messages WHERE chatid = ? ORDER BY date DESC LIMIT $limit;";
         $msgs = $this->dbhr->preQuery($sql, [ $this->id ]);
@@ -471,24 +490,38 @@ class ChatRoom extends Entity
         $lastuser = NULL;
         $lastmsg = NULL;
 
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
         foreach ($msgs as $msg) {
             $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
             $atts = $m->getPublic();
-            $atts['date'] = ISODate($atts['date']);
 
-            $atts['sameaslast'] = ($lastuser === $msg['userid']);
+            if ($atts['reviewrequired'] && $msg['userid'] != $myid) {
+                # This message is held for review, and we didn't send it.  So we shouldn't see it.
+            } else if ($atts['reviewrejected']) {
+                # This message was reviewed and deemed unsuitable.  So we shouldn't see it.
+            } else {
+                # We should return this one.
+                unset($atts['reviewrequired']);
+                unset($atts['reviewedby']);
+                unset($atts['reviewrejected']);
+                $atts['date'] = ISODate($atts['date']);
 
-            if (count($ret) > 0) {
-                $ret[count($ret) - 1]['sameasnext'] = ($lastuser === $msg['userid']);
+                $atts['sameaslast'] = ($lastuser === $msg['userid']);
+
+                if (count($ret) > 0) {
+                    $ret[count($ret) - 1]['sameasnext'] = ($lastuser === $msg['userid']);
+                }
+
+                if (!array_key_exists($msg['userid'], $users)) {
+                    $u = new User($this->dbhr, $this->dbhm, $msg['userid']);
+                    $users[$msg['userid']] = $u->getPublic(NULL, FALSE);
+                }
+
+                $ret[] = $atts;
+                $lastuser = $msg['userid'];
             }
-
-            if (!array_key_exists($msg['userid'], $users)) {
-                $u = new User($this->dbhr, $this->dbhm, $msg['userid']);
-                $users[$msg['userid']] = $u->getPublic(NULL, FALSE);
-            }
-
-            $ret[] = $atts;
-            $lastuser = $msg['userid'];
         }
 
         return([$ret, $users]);
@@ -565,7 +598,7 @@ class ChatRoom extends Entity
         
         foreach ($chats as $chat) {
             # Different members of the chat might have seen different messages.
-            error_log("Check chat {$chat['chatid']}");
+            #error_log("Check chat {$chat['chatid']}");
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
             $chatatts = $r->getPublic();
             $lastseen = $r->lastSeenByAll();
@@ -582,7 +615,7 @@ class ChatRoom extends Entity
                 
                 # Now collect a summary of what they've missed.
                 $minmsg = $member['lastmsgseen'] ? $member['lastmsgseen'] : 0;
-                $unseenmsgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE chatid = ? AND id > ? ORDER BY id ASC;",
+                $unseenmsgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE chatid = ? AND id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
                     [
                         $chat['chatid'],
                         $minmsg
@@ -609,11 +642,8 @@ class ChatRoom extends Entity
                 ]);
                 #error_log(var_export($subjs, TRUE));
 
-                $subject = "You have a new message";
-                foreach ($subjs as $subj) {
-                    $subject = 'Re: ' . $subj['subject'];
-                }
-                
+                $subject = count($subjs) == 0 ? "You have a new message" : $subjs[0]['subject'];
+
                 # Construct the SMTP message.
                 # - The text bodypart is just the user text.  This means that people who aren't showing HTML won't see
                 #   all the wrapping.  It also means that the kinds of preview notification popups you get on mail
@@ -634,9 +664,9 @@ class ChatRoom extends Entity
                 $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
                 $to = $thisu->getEmailPreferred();
 
-                $message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to, $fromname, $replyto, $subject, $textsummary, $html);
                 try {
-                    error_log($to . " " . $subject);
+                    $message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to, $fromname, $replyto, $subject, $textsummary, $html);
+                    #error_log($to . " " . $subject);
                     $mailer->send($message);
 
                     $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [

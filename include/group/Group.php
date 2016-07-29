@@ -15,6 +15,7 @@ class Group extends Entity
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
     const GROUP_OTHER = 'Other';
+    const GROUP_UT = 'UnitTest';
 
     const FILTER_NONE = 0;
     const FILTER_WITHCOMMENTS = 1;
@@ -161,7 +162,7 @@ class Group extends Entity
         return(NULL);
     }
 
-    public function getWorkCounts($mysettings) {
+    public function getWorkCounts($mysettings, $myid) {
         # Depending on our group settings we might not want to show this work as primary; "other" work is displayed
         # less prominently in the client.
         #error_log("Getworkcounts " . error_log(var_export($mysettings, true)));
@@ -205,6 +206,12 @@ class Group extends Entity
             ])[0]['count'],
             'plugin' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM plugin WHERE groupid = ?;", [
                 $this->id
+            ])[0]['count'],
+            # For chats, we should see the messages which require review, and where we are a mod on one of the groups
+            # that the recipient of the message (i.e. the chat member who isn't the one who sent it) is on.
+            'chatreview' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND ? IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator'));", [
+                $this->id,
+                $myid
             ])[0]['count']
         ];
 

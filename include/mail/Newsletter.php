@@ -155,12 +155,12 @@ class Newsletter extends Entity
                 ];
             }
 
-            $scan++;
-
             if ($scan % 1000 === 0) {
                 $pc = round(100 * $scan / count($users));
                 error_log("...$scan ($pc%)");
             }
+
+            $scan++;
         }
 
         if (count($replacements) > 0) {

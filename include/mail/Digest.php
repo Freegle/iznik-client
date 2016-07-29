@@ -341,7 +341,6 @@ class Digest
                                     $this->sendOne($mailer, $message);
                                     $sent++;
                                 } catch (Exception $e) {
-
                                     error_log($email . " skipped with " . $e->getMessage());
                                 }
                             }

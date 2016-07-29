@@ -45,6 +45,24 @@ class AttachmentTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testArchive() {
+        error_log(__METHOD__);
+
+        $data = file_get_contents('images/chair.jpg');
+        $a = new Attachment($this->dbhr, $this->dbhm);
+        $attid = $a->create(NULL, 'image/jpeg', $data);
+        assertNotNull($attid);
+
+        # Fake an archive
+        $a->archive();
+        $dat2 = $a->getData();
+
+        # TODO We're not archiving images yet, so this doesn't work.  But we are keeping the code.
+        #assertEquals($data, $dat2);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testHash() {
         error_log(__METHOD__);
 
