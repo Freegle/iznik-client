@@ -101,12 +101,16 @@ class eventDigestTest extends IznikTestCase {
         $u->addMembership($gid);
         assertEquals(0, $mock->send($gid));
 
-        # Actual send for coverage.
-        $uid4 = $u->create(NULL, NULL, "Test User");
-        $u->addEmail('test@blackhole.io');
-        $u->addMembership($gid);
+        error_log("For coverage");
         $e = new EventDigest($this->dbhr, $this->dbhm);
-        $e->send($gid);
+        $mock = $this->getMockBuilder('SwiftMailer')
+            ->setMethods(array('send'))
+            ->getMock();
+        $mock->method('send')->willThrowException(new Exception());
+        try {
+            $e->sendOne($mock, NULL);
+            assertTrue(FALSE);
+        } catch (Exception $e){}
 
         error_log(__METHOD__ . " end");
     }

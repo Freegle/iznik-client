@@ -39,6 +39,14 @@ class twitterTest extends IznikTestCase {
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $t->tweet('Test - ignore', $data);
 
+        $gid = $g->create('testgroup', Group::GROUP_UT);
+        $t = new Twitter($this->dbhr, $this->dbhm, $gid);
+        $t->set('test', 'test', 'test');
+        $atts = $t->getPublic();
+        assertEquals('test', $atts['name']);
+        assertEquals('test', $atts['token']);
+        assertEquals('test', $atts['secret']);
+
         error_log(__METHOD__ . " end");
     }
 

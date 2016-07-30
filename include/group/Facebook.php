@@ -116,7 +116,7 @@ class GroupFacebook {
                 }
             }
         } catch (Exception $e) {
-            #error_log("Failed " . $e->getMessage());
+            error_log("Failed " . $e->getMessage() . " token " . $this->token);
             $code = $e->getCode();
 
             # These numbers come from FacebookResponseException.

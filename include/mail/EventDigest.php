@@ -188,6 +188,7 @@ class EventDigest
                         $message = Swift_Message::newInstance()
                             ->setSubject($tosend['subject'])
                             ->setFrom([$tosend['from'] => $tosend['fromname']])
+                            ->setTo([ $email => $rep['{{toname}}'] ])
                             ->setReturnPath('bounce@direct.ilovefreegle.org')
                             ->setReplyTo($tosend['replyto'], $tosend['replytoname'])
                             ->setBody($tosend['text'])

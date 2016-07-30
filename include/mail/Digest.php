@@ -326,7 +326,7 @@ class Digest
                             foreach ($replacements as $email => $rep) {
                                 $message = Swift_Message::newInstance()
                                     ->setSubject($msg['subject'])
-                                    ->setTo([ $email => $u->getName() ])
+                                    ->setTo([ $email => $rep['{{toname}}'] ])
                                     ->setFrom([$msg['from'] => $msg['fromname']])
                                     ->setReturnPath('bounce@direct.ilovefreegle.org')
                                     ->setReplyTo($msg['replyto'], $msg['replytoname'])

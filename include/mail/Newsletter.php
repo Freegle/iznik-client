@@ -60,15 +60,14 @@ class Newsletter extends Entity
         $mailer->send($message);
     }
 
-    public function off($uid, $groupid) {
+    public function off($uid) {
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $u->setPrivate('newslettersallowed', 0);
 
         $this->log->log([
             'type' => Log::TYPE_USER,
             'subtype' => Log::SUBTYPE_NEWSLETTERSOFF,
-            'userid' => $uid,
-            'groupid' => $groupid
+            'userid' => $uid
         ]);
 
         $email = $u->getEmailPreferred();
