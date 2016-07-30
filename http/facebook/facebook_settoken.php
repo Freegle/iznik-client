@@ -36,7 +36,7 @@ if ($id && $token) {
                 if ($gid) {
                     echo "Found group and set token.  You can close this tab now.";
                     $f = new GroupFacebook($dbhr, $dbhm, $gid);
-                    $f->set($page['id']);
+                    $f->set($page['access_token']);
                     $found = TRUE;
                 }
             }

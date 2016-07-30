@@ -82,7 +82,7 @@ class GroupFacebook {
             $ret = $fb->get($this->sharefrom . "/posts?since=$since&fields=id,link,message,type,caption,icon,name", $this->token);
 
             $posts = $ret->getDecodedBody();
-            #error_log("Posts " . var_export($posts, TRUE));
+            error_log("Posts " . var_export($posts, TRUE));
 
             foreach ($posts['data'] as $wallpost) {
                 #error_log("Post " . var_export($wallpost, true));
@@ -116,6 +116,7 @@ class GroupFacebook {
                 }
             }
         } catch (Exception $e) {
+            #error_log("Failed " . $e->getMessage());
             $code = $e->getCode();
 
             # These numbers come from FacebookResponseException.

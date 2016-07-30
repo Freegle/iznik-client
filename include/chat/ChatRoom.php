@@ -674,11 +674,11 @@ class ChatRoom extends Entity
                         $member['userid'],
                         $chat['chatid']
                     ]);
+
+                    $notified++;
                 } catch (Exception $e) {
                     error_log("Send failed with " . $e->getMessage());
                 }
-
-                $notified++;
             }
         }
 
