@@ -54,11 +54,11 @@ define([
                 console.log("Set up sign in button", id, self.disabled);
 
                 if (self.disabled) {
-                    console.log("Google sign in disabled");
+                    console.error("Google sign in failed - blocked?");
                     $('#' + id + ' img').addClass('signindisabled');
                     $('.js-privacy').show();
                 } else {
-                    console.log("Google sign in enabled");
+                    // console.log("Google sign in enabled");
                     $('#' + id + ' img').removeClass('signindisabled');
                     $('#' + id).click(function () {
                         // Get client id

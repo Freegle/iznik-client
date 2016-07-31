@@ -29,7 +29,7 @@ define([
 
                 // The load might fail if we have a blocker.  The only way to deal with this is via a timeout.
                 self.timeout = window.setTimeout(function () {
-                    //console.log("FB Timeout");
+                    console.error("Facebook API load failed - blocked?");
                     self.FBLoading = false;
                     self.FBLoaded = true;
                     self.FBDisabled = true;
@@ -51,6 +51,7 @@ define([
                     // console.log("FB asyncInit");
                     self.FBLoading = false;
                     self.FBLoaded = true;
+                    clearTimeout(self.timeout);
 
                     try {
                         FB.init({
