@@ -2028,7 +2028,7 @@ class User extends Entity
             ->setSubject("Welcome to " . SITE_NAME . "!")
             ->setFrom([NOREPLY_ADDR => SITE_NAME])
             ->setTo($email)
-            ->setBody("Thanks for joining"  . SITE_NAME . "!  We've created a password for you: $password.")
+            ->setBody("Thanks for joining"  . SITE_NAME . "!  Here's your password: $password.")
             ->addPart($html, 'text/html');
 
         list ($transport, $mailer) = getMailer();

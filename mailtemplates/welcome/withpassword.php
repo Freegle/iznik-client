@@ -52,7 +52,7 @@ EOT;
                                                             </td>    
                                                             <td>
                                                                 <h1>Thanks for joining Freegle!</h1>
-                                                                <p>We've created a password for you: <b>$password</b>.</p>
+                                                                <p>Here's your password: <b>$password</b>.</p>
                                                                 <p>Happy freegling!</p>
                                                                 <table width="100%">
                                                                     <tr>
