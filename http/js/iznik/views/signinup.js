@@ -108,7 +108,7 @@ define([
                         // should behave differently.
                         window.location.reload();
                     } else {
-                        self.$('.js-signuperror .js-errmsg').html(ret.error);
+                        self.$('.js-signuperror .js-errmsg').html(ret.status);
                         self.$('.js-signuperror').fadeIn('slow');
                     }
                 },
