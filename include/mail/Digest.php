@@ -326,7 +326,6 @@ class Digest
                             foreach ($replacements as $email => $rep) {
                                 $message = Swift_Message::newInstance()
                                     ->setSubject($msg['subject'])
-                                    ->setTo([ $email => $rep['{{toname}}'] ])
                                     ->setFrom([$msg['from'] => $msg['fromname']])
                                     ->setReturnPath('bounce@direct.ilovefreegle.org')
                                     ->setReplyTo($msg['replyto'], $msg['replytoname'])
@@ -338,6 +337,7 @@ class Digest
 
                                 try {
                                     #error_log("...$email");
+                                    $message->setTo([ $email => $rep['{{toname}}'] ]);
                                     $this->sendOne($mailer, $message);
                                     $sent++;
                                 } catch (Exception $e) {

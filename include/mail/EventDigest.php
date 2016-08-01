@@ -188,7 +188,6 @@ class EventDigest
                         $message = Swift_Message::newInstance()
                             ->setSubject($tosend['subject'])
                             ->setFrom([$tosend['from'] => $tosend['fromname']])
-                            ->setTo([ $email => $rep['{{toname}}'] ])
                             ->setReturnPath('bounce@direct.ilovefreegle.org')
                             ->setReplyTo($tosend['replyto'], $tosend['replytoname'])
                             ->setBody($tosend['text'])
@@ -198,7 +197,7 @@ class EventDigest
                         $headers->addTextHeader('List-Unsubscribe', '<mailto:{{eventsoff}}>, <{{unsubscribe}}>');
 
                         try {
-                            $message->addBcc($email);
+                            $message->setTo([ $email => $rep['{{toname}}'] ]);
                             #error_log("...$email");
                             $this->sendOne($mailer, $message);
                             $sent++;
