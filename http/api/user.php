@@ -83,7 +83,7 @@ function user() {
                     } else {
                         $ret = [
                             'ret' => 2,
-                            'status' => "That's the wrong password.",
+                            'status' => "That user already exists, but with a different password.",
                             'id' => $id
                         ];
                     }

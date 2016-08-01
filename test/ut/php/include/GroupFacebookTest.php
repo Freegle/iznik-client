@@ -79,6 +79,25 @@ class groupFacebookTest extends IznikTestCase {
             assertTrue(FALSE);
         } catch (Exception $e) {}
 
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->setConstructorArgs([
+                "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
+                $dbconfig['user'], $dbconfig['pass'], array(), TRUE
+            ])
+            ->setMethods(array('preExec'))
+            ->getMock();
+        $mock->method('preExec')->willThrowException(new Exception('test', 1));
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+        $t = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
+        $t->setDbhm($mock);
+        try {
+            # Will throw exception and then again in handler so we need to catch here.
+            $t->shareFrom(true);
+            assertTrue(FALSE);
+        } catch (Exception $e) {}
+
         error_log(__METHOD__ . " end");
     }
 }

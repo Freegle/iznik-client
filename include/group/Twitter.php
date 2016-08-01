@@ -8,13 +8,14 @@ require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
 use Abraham\TwitterOAuth\TwitterOAuth;
 
 class Twitter {
-    var $publicatts = ['name', 'token', 'secret', 'authdate', 'valid', 'msgid', 'eventid'];
+    var $publicatts = ['name', 'token', 'secret', 'authdate', 'valid', 'msgid', 'eventid', 'lasterror', 'lasterrortime'];
     
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
         $this->groupid = $groupid;
+        $this->tw = NULL;
 
         foreach ($this->publicatts as $att) {
             $this->$att = NULL;
@@ -25,6 +26,8 @@ class Twitter {
             foreach ($this->publicatts as $att) {
                 $this->$att = $group[$att];
             }
+
+            $this->tw = new TwitterOAuth(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, $this->token, $this->secret);
         }
     }
 
@@ -35,6 +38,11 @@ class Twitter {
         }
         
         return($ret);
+    }
+
+    public function setTw($tw)
+    {
+        $this->tw = $tw;
     }
     
     public function set($name, $token, $secret) {
@@ -51,9 +59,8 @@ class Twitter {
     }
 
     public function tweet($status, $media) {
-        $tw = new TwitterOAuth(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, $this->token, $this->secret);
-        $tw->setTimeouts(120, 120);
-        $content = $tw->get("account/verify_credentials");
+        $this->tw->setTimeouts(120, 120);
+        $content = $this->tw->get("account/verify_credentials");
         $ret = NULL;
         $rc = FALSE;
         $valid = TRUE;
@@ -65,11 +72,11 @@ class Twitter {
                 file_put_contents($fname, $media);
 
                 try {
-                    $ret = $tw->upload('media/upload', array('media' => $fname));
+                    $ret = $this->tw->upload('media/upload', array('media' => $fname));
                     $ret = json_decode(json_encode($ret), TRUE);
 
                     if (!pres('errors', $ret)) {
-                        $ret = $tw->post('statuses/update', [
+                        $ret = $this->tw->post('statuses/update', [
                             'status' => $status,
                             'media_ids' => implode(',', [$ret['media_id_string']])
                         ]);
@@ -78,12 +85,14 @@ class Twitter {
 
                 unlink($fname);
             } else {
-                $ret = $tw->post('statuses/update', [
+                $ret = $this->tw->post('statuses/update', [
                     'status' => $status
                 ]);
             }
 
             $ret = json_decode(json_encode($ret), TRUE);
+
+            #error_log("Twitter returned" . var_export($ret, TRUE));
 
             if (pres('errors', $ret)) {
                 # Something failed.
@@ -92,6 +101,7 @@ class Twitter {
 
                 if ($ret['errors'][0]['code'] == 220) {
                     # This indicates invalid credentials.
+                    #error_log("Now invalid");
                     $valid = FALSE;
                 }
             } else {
@@ -101,6 +111,7 @@ class Twitter {
 
         if (!$valid) {
             $this->dbhm->preExec("UPDATE groups_twitter SET valid = 0 WHERE groupid = ?;", [ $this->groupid ]);
+            $this->valid = FALSE;
             #error_log("Twitter link not valid for {$this->groupid}");
         }
 

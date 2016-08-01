@@ -209,11 +209,14 @@ class Group extends Entity
             ])[0]['count'],
             # For chats, we should see the messages which require review, and where we are a mod on one of the groups
             # that the recipient of the message (i.e. the chat member who isn't the one who sent it) is on.
-            'chatreview' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND ? IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator'));", [
+            'chatreview' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid = ? AND ? IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator'));", [
+                $this->id,
                 $this->id,
                 $myid
             ])[0]['count']
         ];
+
+        #error_log("SELECT COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid = {$this->id} AND {$this->id} IN (SELECT groupid FROM memberships WHERE memberships.userid = $myid AND memberships.role IN ('Owner', 'Moderator'));");
 
         return($ret);
     }
@@ -410,11 +413,11 @@ class Group extends Entity
         $sql = $groupid ? "SELECT * FROM memberships_yahoo_dump WHERE groupid = $groupid;" : "SELECT * FROM memberships_yahoo_dump WHERE lastprocessed IS NULL OR lastupdated > lastprocessed AND backgroundok = 1;";
         $groups = $this->dbhr->preQuery($sql);
         $count = 0;
+        $g = new Group($this->dbhm, $this->dbhm, $group['groupid']);
 
         foreach ($groups as $group) {
             try {
                 # Use master for sync to avoid caching, which can break our sync process.
-                $g = new Group($this->dbhm, $this->dbhm, $group['groupid']);
                 error_log("Sync group " . $g->getPrivate('nameshort') . " $count / " . count($groups) . " time {$group['synctime']}");
                 $g->setMembers(json_decode($group['members'], TRUE),  MembershipCollection::APPROVED, $group['synctime']);
                 $this->dbhm->preExec("UPDATE memberships_yahoo_dump SET lastprocessed = NOW() WHERE groupid = ?;", [ $group['groupid']]);

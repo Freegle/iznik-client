@@ -86,6 +86,38 @@ class twitterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testErrors() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhm, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_UT);
+
+        $t = new Twitter($this->dbhr, $this->dbhm, $gid);
+
+        $mock = $this->getMockBuilder('TwitterOAuth')
+            ->setMethods(['post', 'get', 'setTimeouts'])
+            ->getMock();
+
+        $mock->method('get')->willReturn(true);
+        $mock->method('setTimeouts')->willReturn(true);
+        $mock->method('post')->willReturn([
+            'errors' => [
+                [
+                    'code' => 220
+                ]
+            ]
+        ]);
+
+        $t->setTw($mock);
+
+        assertFalse($t->tweet('test', NULL));
+        $atts = $t->getPublic();
+        error_log("After fail " . var_export($atts, TRUE));
+        assertFalse($atts['valid']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testEvents() {
         error_log(__METHOD__);
 

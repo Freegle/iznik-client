@@ -409,11 +409,9 @@ class Message
             $text = preg_replace('/(?:(?:\r\n|\r|\n)\s*){2}/s', "\n\n", $text);
 
             $text = trim($text);
-        } else {
-            $text = '';
         }
         
-        return($text);
+        return($text ? $text : '');
     }
 
     public function getPublic($messagehistory = TRUE, $related = TRUE, $seeall = FALSE) {
