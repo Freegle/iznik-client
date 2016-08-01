@@ -56,6 +56,9 @@ define('SITE_HOST', $host);
 # Where we send event tracking.
 define('EVENT_HOST', 'dev.ilovefreegle.org');
 
+# Trusted domains for links
+define('TRUSTED_LINKS', 'a.b.c');
+
 switch($host) {
     case 'iznik.modtools.org':
         define('SITE_NAME', 'Iznik');

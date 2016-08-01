@@ -461,20 +461,44 @@ class ChatRoom extends Entity
         return($count);
     }
 
-    public function getMessagesForReview($userid) {
+    public function getMessagesForReview($user, &$ctx) {
         # We want the messages for review for any group where we are a mod and the recipient of the chat message is
         # a member.
-        $sql = "SELECT chat_messages.id, chat_messages.chatid FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator'));";
-        $msgs = $this->dbhr->preQuery($sql, [ $userid ]);
+        $userid = $user->getId();
+        $msgid = $ctx ? $ctx['msgid'] : 0;
+        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, memberships.groupid FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) ORDER BY chat_messages.id ASC;";
+        $msgs = $this->dbhr->preQuery($sql, [ $msgid, $userid  ]);
         $ret = [];
 
-        foreach ($msgs as $msg) {
-            $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
-            $thisone = $m->getPublic();
-            $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
-            $thisone['chatroom'] = $r->getPublic();
+        $ctx = $ctx ? $ctx : [];
 
-            $ret[] = $thisone;
+        foreach ($msgs as $msg) {
+            # This might be for a group which we are a mod on but don't actually want to see.
+            $mysettings = $user->getGroupSettings($msg['groupid']);
+            $showmessages = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'];
+
+            if ($showmessages) {
+                $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
+                $thisone = $m->getPublic();
+                $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
+                $thisone['chatroom'] = $r->getPublic();
+
+                $u = new User($this->dbhr, $this->dbhm, $msg['userid']);
+                $thisone['fromuser'] = $u->getPublic();
+
+                $touserid = $msg['userid'] == $thisone['chatroom']['user1']['id'] ? $thisone['chatroom']['user2']['id'] : $thisone['chatroom']['user1']['id'];
+                $u = new User($this->dbhr, $this->dbhm, $touserid);
+                $thisone['touser'] = $u->getPublic();
+
+                $g = new Group($this->dbhr, $this->dbhm, $msg['groupid']);
+                $thisone['group'] = $g->getPublic();
+
+                $thisone['date'] = ISODate($thisone['date']);
+
+                $ctx['msgid'] = $msg['id'];
+
+                $ret[] = $thisone;
+            }
         }
 
         return($ret);

@@ -1,0 +1,40 @@
+Received: by 10.129.114.194 with SMTP id n185csp288047ywc;
+        Thu, 3 Dec 2015 14:20:40 -0800 (PST)
+X-Received: by 10.194.19.133 with SMTP id f5mr15609963wje.48.1449181240082;
+        Thu, 03 Dec 2015 14:20:40 -0800 (PST)
+Return-Path: <test2@test.com>
+Received: from app1.ilovefreegle.org (app1.ilovefreegle.org. [5.28.62.22])
+        by mx.google.com with ESMTPS id ix3si14271684wjb.141.2015.12.03.14.20.39
+        for <test@test.com>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Thu, 03 Dec 2015 14:20:40 -0800 (PST)
+Received-SPF: pass (google.com: domain of test2@test.com designates 5.28.62.22 as permitted sender) client-ip=5.28.62.22;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: domain of test2@test.com designates 5.28.62.22 as permitted sender) smtp.mailfrom=test2@test.com;
+       dkim=policy (weak key) header.i=@direct.ilovefreegle.org;
+       dmarc=pass (p=NONE dis=NONE) header.from=direct.ilovefreegle.org
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=direct.ilovefreegle.org; s=x;
+	h=Date:Message-Id:From:Subject:To; bh=njo0J8mlqaKLUNFSPm08C9JBOuEn3jhY5ysEUDOHyM0=;
+	b=1JLsAo9eez1TenIQd3xDdoWATQudYcvK335zj3iRoppvqE4JWm8xQa2cB53vlyvColYgb8WfaSU6ht5sX3Xr69V1CTengbwblS4A02wpFbRH10VDk74M+8oww/GpCDPj;
+Received: from www-data by app1.ilovefreegle.org with local (Exim 4.82)
+	(envelope-from <test2@test.com>)
+	id 1a4cEx-0000fI-O9
+	for test@test.com; Thu, 03 Dec 2015 22:20:39 +0000
+To: test@test.com
+Subject: Re: Basic test
+From: "Some replying person" <test2@test.com>
+Message-Id: <E1a4cEx-0000fI-O9@app1.ilovefreegle.org>
+Date: Thu, 03 Dec 2015 22:20:39 +0000
+X-Iznik-ModMail: true
+X-Iznik-From-User: 1
+
+You did a thing.  Maybe the thing was wrong.
+
+> I bought these marbles in Elgin. There's only so many times you can make that joke. They'd make a nice stocking filler for someone, though they'd get sore feet.
+>
+>
+>
+> Fair Offer Policy: I agree to take a period of time to see what responses I get before deciding who to give item(s) to. This gives members on Daily Digest, or those who don't have continual access to the Internet a fair chance to reply.
+>
+> Get Freegling from Freegle Direct http://direct.ilovefreegle.org/
+>

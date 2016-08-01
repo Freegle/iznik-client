@@ -97,6 +97,31 @@ class chatMessagesTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testCheckReview() {
+        error_log(__METHOD__);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+
+        # Fine
+        assertFalse($m->checkReview('Nothing to see here'));
+
+        # Spam
+        assertTrue($m->checkReview('https://spam'));
+        assertTrue($m->checkReview('http://spam'));
+
+        # Valid
+        assertFalse($m->checkReview('http://' . USER_DOMAIN));
+        assertFalse($m->checkReview('http://freegle.in'));
+
+        # Mixed urls, one valid one not.
+        assertTrue($m->checkReview("http://" . USER_DOMAIN . "\r\nhttps://spam.com"));
+
+        # Others.
+        assertTrue($m->checkReview('<script'));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
 

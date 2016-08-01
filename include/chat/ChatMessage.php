@@ -39,9 +39,53 @@ class ChatMessage extends Entity
         $this->dbhm = $dbhm;
     }
 
-    private function checkReview($message) {
-        # At present, just check if there's a link in there.
-        return(strpos($message, 'http') !== FALSE);
+    public function checkReview($message) {
+        $check = FALSE;
+
+        if (stripos($message, '<script') !== FALSE) {
+            # Looks dodgy.
+            $check = TRUE;
+        }
+
+        # Check for URLs.  Use matching from https://gist.github.com/gruber/249502 .
+        $ourdomains = explode(',', TRUSTED_LINKS);
+
+        if (preg_match_all('#(?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))#m', $message, $matches)) {
+            # A link.  Some domains are ok.
+            $valid = 0;
+            $count = 0;
+            $badurl = NULL;
+
+            foreach ($matches as $val) {
+                foreach ($val as $url) {
+                    if (strlen($url) > 0 && stripos($url, 'http') !== FALSE) {
+                        #error_log("Check $url");
+                        $url = substr($url, strpos($url, '://') + 3);
+                        $count++;
+                        $trusted = FALSE;
+
+                        foreach ($ourdomains as $domain) {
+                            #error_log("Check ours $domain vs $url pos " . stripos($url, $domain));
+                            if (stripos($url, $domain) === 0) {
+                                # One of our domains.
+                                $valid++;
+                                $trusted = TRUE;
+                            }
+                        }
+
+                        $badurl = $trusted ? $badurl : $url;
+                    }
+                }
+            }
+
+            if ($valid < $count) {
+                # At least one URL which we don't trust.
+                error_log("...$badurl not trusted");
+                $check = TRUE;
+            }
+        }
+
+        return($check);
     }
 
     public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE) {

@@ -7,6 +7,7 @@ function chatmessages() {
     $roomid = intval(presdef('roomid', $_REQUEST, NULL));
     $message = presdef('message', $_REQUEST, NULL);
     $refmsgid = presdef('refmsgid', $_REQUEST, NULL);
+    $ctx = presdef('context', $_REQUEST, NULL);
 
     $r = new ChatRoom($dbhr, $dbhm, $roomid);
     $id = intval(presdef('id', $_REQUEST, NULL));
@@ -51,8 +52,10 @@ function chatmessages() {
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
-                        'chatmessages' => $r->getMessagesForReview($me->getId())
+                        'chatmessages' => $r->getMessagesForReview($me, $ctx)
                     ];
+
+                    $ret['context'] = $ctx;
                 }
             }
             break;

@@ -529,9 +529,7 @@ class Message
 
                 foreach ($ret['replies'] as &$reply) {
                     foreach ($ret['promises'] as $promise) {
-                        if ($promise['userid'] == $reply['user']['id']) {
-                            $reply['promised'] = TRUE;
-                        }
+                        $reply['promised'] = $reply['promised'] || ($promise['userid'] == $reply['user']['id']);
                     }
                 }
             }

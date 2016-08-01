@@ -8,6 +8,7 @@ require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 require_once IZNIK_BASE . '/include/message/Message.php';
 require_once IZNIK_BASE . '/include/misc/Location.php';
 require_once IZNIK_BASE . '/include/spam/Spam.php';
+require_once IZNIK_BASE . '/include/user/User.php';
 
 /**
  * @backupGlobals disabled
@@ -373,7 +374,18 @@ And something after it.', $stripped);
 
         error_log(__METHOD__ . " end");
     }
-    
+
+    public function testModmail() {
+        error_log(__METHOD__);
+
+        $msg = $this->unique(file_get_contents('msgs/modmail'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        assertTrue($m->getPrivate('modmail'));
+
+        error_log(__METHOD__ . " end");
+    }
+
     // For manual testing
 //    public function testSpecial() {
 //        error_log(__METHOD__);

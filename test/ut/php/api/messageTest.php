@@ -278,7 +278,15 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+
+        # Send from a user at our domain, so that we can cover the reply going back to them
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $u->addEmail('from@test.com');
+        $u->addEmail($email);
+
+        $id = $r->received(Message::YAHOO_PENDING, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
         $this->dbhm->preExec("UPDATE messages_groups SET yahooapprove = 'test@test.com', yahoopendingid = 1 WHERE msgid = $id;");

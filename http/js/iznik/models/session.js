@@ -259,6 +259,20 @@ define([
                                     sound: false
                                 },
                                 {
+                                    fi: 'chatreview',
+                                    el: '.js-repliescount',
+                                    ev: 'repliescountschanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'chatreviewother',
+                                    el: '.js-repliescountother',
+                                    ev: 'repliescountsotherchanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
                                     fi: 'spammerpendingadd',
                                     el: '.js-spammerpendingaddcount',
                                     ev: 'spammerpendingaddcountschanged',

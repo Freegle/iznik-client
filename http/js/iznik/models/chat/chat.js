@@ -104,4 +104,17 @@ define([
             return(msgs);
         }
     });
+
+    Iznik.Collections.Chat.Review = Iznik.Collection.extend({
+        url: API + 'chatmessages',
+
+        model: Iznik.Models.Chat.Message,
+
+        comparator: 'id',
+
+        parse: function(ret) {
+            var msgs = ret.chatmessages;
+            return(msgs);
+        }
+    });
 });
