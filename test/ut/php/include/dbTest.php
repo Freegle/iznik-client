@@ -129,6 +129,11 @@ class dbTest extends IznikTestCase {
         $this->dbhm->setPheanstalk($mock);
         $this->dbhm->background('INSERT INTO test VALUES ();');
 
+        # Test large
+        $sql = randstr(LoggedPDO::MAX_BACKGROUND_SIZE + 1);
+        $fn = $this->dbhm->background($sql);
+        unlink($fn);
+
         # Mock the put to fail.
         $mock->method('put')->will($this->throwException(new Exception()));
         $this->dbhm->background('INSERT INTO test VALUES ();');

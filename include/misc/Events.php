@@ -6,7 +6,6 @@ class Events {
     private $dbhr;
     private $dbhm;
 
-    const QUEUE=100000;
     private $queue = '';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm) {
@@ -46,10 +45,6 @@ class Events {
         $lastip = presdef('REMOTE_ADDR', $_SERVER, 'NULL');
 
         $sql = "INSERT IGNORE INTO logs_events (`userid`, `sessionid`, `timestamp`, `clienttimestamp`, `route`, `target`, `event`, `posx`, `posy`, `viewx`, `viewy`, `data`, `datahash`, `datasameas`, `ip`) VALUES ($id, " . $this->dbhr->quote($sessid) . ", CURTIME(3), FROM_UNIXTIME($timestamp), " . $this->dbhr->quote($route) . ", " . $this->dbhr->quote($target) . ", " . $this->dbhr->quote($action) . ", $posx, $posy, $viewx, $viewy, $dataq, $datahash, $datasameas, " . $this->dbhr->quote($lastip) . ");";
-
-        if (strlen($this->queue) + strlen($sql) > Events::QUEUE) {
-            $this->flush();
-        }
 
         $this->queue .= $sql;
     }

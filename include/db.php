@@ -131,6 +131,8 @@ class LoggedPDO {
     const CACHE_MAX_SIZE = 50000;
     const CACHE_EXPIRY = 45;  // We expect session polls every 30s, so this should cover that.
 
+    const MAX_BACKGROUND_SIZE = 100000;  # Max size of sql that we can pass to beanstalk directly; larger goes in file
+
     /**
      * @param int $tries
      */
@@ -627,6 +629,8 @@ class LoggedPDO {
 
     public function background($sql) {
         $count = 0;
+        $fn = NULL;
+
         do {
             $done = FALSE;
             try {
@@ -636,12 +640,27 @@ class LoggedPDO {
                     $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
                 }
 
-                $id = $this->pheanstalk->put(json_encode(array(
-                    'type' => 'sql',
-                    'queued' => time(),
-                    'sql' => $sql,
-                    'ttr' => 300
-                )));
+                if (strlen($sql) > LoggedPDO::MAX_BACKGROUND_SIZE) {
+                    # This is too large to pass to Beanstalk - we can blow its limit.   Save to a temp
+                    # file and pass a reference to that.
+                    $fn = tempnam('/tmp', 'iznik.background.');
+                    file_put_contents($fn, $sql);
+
+                    $id = $this->pheanstalk->put(json_encode(array(
+                        'type' => 'sqlfile',
+                        'queued' => time(),
+                        'file' => $fn,
+                        'ttr' => 300
+                    )));
+                } else {
+                    # Can pass inline and save the disk write.
+                    $id = $this->pheanstalk->put(json_encode(array(
+                        'type' => 'sql',
+                        'queued' => time(),
+                        'sql' => $sql,
+                        'ttr' => 300
+                    )));
+                }
                 #error_log("Backgroupd $id for $sql");
                 $done = TRUE;
             } catch (Exception $e) {
@@ -651,6 +670,8 @@ class LoggedPDO {
                 $count++;
             }
         } while (!$done && $count < 10);
+
+        return($fn);
     }
 
     private function giveUp($msg) {

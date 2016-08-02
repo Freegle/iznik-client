@@ -39,6 +39,12 @@ try {
                             break;
                         }
 
+                        case 'sqlfile': {
+                            $sqls[] = file_get_contents($data['file']);
+                            unlink($data['file']);
+                            break;
+                        }
+
                         default: {
                             error_log("Unknown job type {$data['type']} " . var_export($data, TRUE));
                         }
