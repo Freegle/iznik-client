@@ -1120,6 +1120,7 @@ class MailRouterTest extends IznikTestCase {
         # Create the sending user
         $u = new User($this->dbhm, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('from@test.com');
         error_log("Created user $uid");
 
         $g = new Group($this->dbhr, $this->dbhm);

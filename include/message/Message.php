@@ -2067,11 +2067,6 @@ class Message
             #error_log($sql . var_export([ $thissubj, $thissubj, $this->fromuser, $type ], TRUE));
             $thistime = strtotime($this->date);
 
-            # If we are using the standard subject line format, ignore all of the stuff that isn't the item.
-            $subj1 = $thissubj;
-            if (preg_match('/.*?\:(.*)\(.*\)/', $thissubj, $matches)) {
-                $subj1 = trim($matches[1]);
-            }
             $mindist = PHP_INT_MAX;
             $match = FALSE;
             $matchmsg = NULL;
@@ -2082,8 +2077,6 @@ class Message
 
                 if ((($datedir == 1) && strtotime($message['date']) >= $thistime) ||
                     (($datedir == -1) && strtotime($message['date']) <= $thistime)) {
-                    $subj2 = $messsubj;
-
                     if (preg_match('/.*?\:(.*)\(.*\)/', $messsubj, $matches)) {
                         # Standard format = extract the item.
                         $subj2 = trim($matches[1]);
@@ -2096,6 +2089,8 @@ class Message
                         $subj2 = $loc ? str_ireplace($loc, '', $subj2) : $subj2;
                     }
 
+                    $subj1 = $thissubj;
+
                     # Remove any punctuation and whitespace from the purported item.
                     $subj2 = preg_replace('/\-|\,|\.| /', '', $subj2);
 
@@ -2107,7 +2102,7 @@ class Message
 
                     #error_log("Compare subjects $subj1 vs $subj2 dist {$message['dist']} min $mindist lim " . (strlen($subj1) * 3 / 4));
 
-                    if ($subj1 == $subj2) {
+                    if (strtolower($subj1) == strtolower($subj2)) {
                         # Exact match
                         #error_log("Exact");
                         $match = TRUE;

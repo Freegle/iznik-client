@@ -213,10 +213,7 @@ class Group extends Entity
                 $this->id,
                 $myid
             ])[0]['count'] : 0,
-            'chatreviewother' => $showmessages ? 0 : $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid = ? AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator'));", [
-                $this->id,
-                $myid
-            ])[0]['count'],
+            'chatreviewother' => $showmessages ? 0 : $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid = ? AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator'));", [ $this->id, $myid ])[0]['count'],
         ];
 
         #error_log("SELECT COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid = {$this->id} AND {$this->id} IN (SELECT groupid FROM memberships WHERE memberships.userid = $myid AND memberships.role IN ('Owner', 'Moderator'));");

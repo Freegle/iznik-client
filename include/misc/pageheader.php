@@ -71,6 +71,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         <meta property="og:description" content="<?php echo SITE_DESC; ?>"/>
         <meta property="og:image" content="/images/favicon/<?php echo FAVICON_HOME; ?>largetile.png"/>
         <?php
+        echo "<!-- requested " . $_SERVER["REQUEST_URI"] . " -->\r\n";
     }
     ?>
     <meta name="apple-mobile-web-app-capable" content="yes">

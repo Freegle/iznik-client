@@ -90,6 +90,10 @@ class eventDigestTest extends IznikTestCase {
 
         error_log("Mail sent" . var_export($this->eventsSent, TRUE));
 
+        # Actual send for coverage.
+        $d = new EventDigest($this->dbhr, $this->dbhm);
+        assertEquals(1, $d->send($gid));
+
         # Turn off
         $mock->off($uid2, $gid);
 
