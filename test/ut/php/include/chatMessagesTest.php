@@ -7,6 +7,7 @@ require_once UT_DIR . '/IznikTestCase.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
 require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
+require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 
 /**
  * @backupGlobals disabled
@@ -66,6 +67,32 @@ class chatMessagesTest extends IznikTestCase {
 
         assertEquals(1, $m->delete());
         assertEquals(1, $r->delete());
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testSpamReply() {
+        error_log(__METHOD__);
+
+        # Put a valid message on a group.
+        error_log("Put valid message on");
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_UT);
+
+        $msg = $this->unique(file_get_contents('msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Now reply to it with spam.
+        error_log("Reply with spam");
+        $msg = $this->unique(file_get_contents('msgs/spamreply'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
 
         error_log(__METHOD__ . " end");
     }
