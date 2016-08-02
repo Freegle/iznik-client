@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/group/Facebook.php');
 
-$groupid = intval(presdef('groupid', $_REQUEST, 0));
+$groupid = presdef('graffitigroup', $_SESSION, 0);
 
 $fb = new Facebook\Facebook([
     'app_id' => FBGRAFFITIAPP_ID,
@@ -21,9 +21,11 @@ try {
     $accessToken = $helper->getAccessToken();
     $_SESSION['fbaccesstoken'] = (string)$accessToken;
 
+    $ret = $fb->get('/me', $accessToken);
+
     $ret = $fb->get('/me/accounts', $accessToken);
     $accounts = $ret->getDecodedBody();
-    #error_log("Got accounts " . var_export($accounts, TRUE));
+    #echo("Got accounts " . var_export($accounts, TRUE));
     $pages = $accounts['data'];
     $found = FALSE;
 

@@ -40,6 +40,14 @@ class GroupFacebook {
         $this->dbhm = $dbhm;
     }
 
+    /**
+     * @param LoggedPDO $dbhr
+     */
+    public function setDbhr($dbhr)
+    {
+        $this->dbhr = $dbhr;
+    }
+
     public function getPublic() {
         $ret = [];
         foreach ($this->publicatts as $att) {
@@ -82,7 +90,7 @@ class GroupFacebook {
             $ret = $fb->get($this->sharefrom . "/posts?since=$since&fields=id,link,message,type,caption,icon,name", $this->token);
 
             $posts = $ret->getDecodedBody();
-            error_log("Posts " . var_export($posts, TRUE));
+            #error_log("Posts " . var_export($posts, TRUE));
 
             foreach ($posts['data'] as $wallpost) {
                 #error_log("Post " . var_export($wallpost, true));
@@ -116,8 +124,8 @@ class GroupFacebook {
                 }
             }
         } catch (Exception $e) {
-            error_log("Failed " . $e->getMessage() . " token " . $this->token);
             $code = $e->getCode();
+            #error_log("Failed code $code message " . $e->getMessage() . " token " . $this->token);
 
             # These numbers come from FacebookResponseException.
             if ($code == 100 || $code == 102 || $code == 190) {

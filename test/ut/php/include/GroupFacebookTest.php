@@ -49,6 +49,20 @@ class groupFacebookTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    private $count = 0;
+
+    public function exceptionUntil() {
+        error_log("exceptionUntil count " . $this->count);
+        $this->count--;
+        if ($this->count > 0) {
+            error_log("Exception");
+            throw new Exception('test', 100);
+        } else {
+            error_log("No exception");
+            return TRUE;
+        }
+    }
+
     public function testErrors() {
         error_log(__METHOD__);
 
@@ -60,6 +74,8 @@ class groupFacebookTest extends IznikTestCase {
             'database' => SQLDB
         );
 
+        error_log("Fail with 100");
+        $this->count = 2;
         $mock = $this->getMockBuilder('LoggedPDO')
             ->setConstructorArgs([
                 "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
@@ -67,31 +83,30 @@ class groupFacebookTest extends IznikTestCase {
             ])
             ->setMethods(array('preExec'))
             ->getMock();
-        $mock->method('preExec')->willThrowException(new Exception('test', 100));
+        $mock->method('preExec')->will($this->returnCallback(function() {
+            return($this->exceptionUntil());
+        }));
 
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
         $t = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
         $t->setDbhm($mock);
-        try {
-            # Will throw exception and then again in handler so we need to catch here.
-            $t->shareFrom(true);
-            assertTrue(FALSE);
-        } catch (Exception $e) {}
+        $t->shareFrom(true);
 
+        error_log("Fail with 1");
         $mock = $this->getMockBuilder('LoggedPDO')
             ->setConstructorArgs([
                 "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
                 $dbconfig['user'], $dbconfig['pass'], array(), TRUE
             ])
-            ->setMethods(array('preExec'))
+            ->setMethods(array('preQuery'))
             ->getMock();
-        $mock->method('preExec')->willThrowException(new Exception('test', 1));
+        $mock->method('preQuery')->willThrowException(new Exception('test', 1));
 
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
         $t = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
-        $t->setDbhm($mock);
+        $t->setDbhr($mock);
         try {
             # Will throw exception and then again in handler so we need to catch here.
             $t->shareFrom(true);

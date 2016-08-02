@@ -55,7 +55,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         $m = new Message($dbhr, $dbhm, intval($matches[1]));
         if ($m->getID()) {
             $atts = $m->getPublic();
-            $icon = (count($atts['attachments']) > 0) ?  $atts['attachments'][0]['path'] : USERLOGO;
+            $icon = (count($atts['attachments']) > 0) ? $atts['attachments'][0]['path'] : USERLOGO;
 
             ?>
             <title><?php echo $atts['subject']; ?></title>

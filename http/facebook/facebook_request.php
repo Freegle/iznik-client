@@ -22,9 +22,12 @@ $fb = new Facebook\Facebook([
 $helper = $fb->getRedirectLoginHelper();
 
 $permissions = [
-    'manage_pages'
+    'manage_pages',
+    'publish_pages'
 ];
 
-$url = $helper->getLoginUrl('https://' . $_SERVER['HTTP_HOST'] . '/facebook/facebook_response.php?groupid=' . $groupid, $permissions);
+$_SESSION['graffitgroup'] = $groupid;
 
+$url = $helper->getLoginUrl('https://' . $_SERVER['HTTP_HOST'] . '/facebook/facebook_response.php', $permissions);
+#echo $url;
 header('Location: ' . $url);

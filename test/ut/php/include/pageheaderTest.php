@@ -42,7 +42,7 @@ class pageheaderTest extends IznikTestCase {
         $this->expectOutputRegex('/.*<meta property="og:title" content="Freegle Playground"\/>./');
         include(IZNIK_BASE . '/include/misc/pageheader.php');
 
-        $msgs = $this->dbhr->preQuery("SELECT messages.id, subject FROM messages INNER JOIN messages_attachments ON messages.id = messages_attachments.msgid ORDER BY arrival DESC LIMIT 1;");
+        $msgs = $this->dbhr->preQuery("SELECT messages.id, subject FROM messages INNER JOIN messages_attachments ON messages.id = messages_attachments.msgid ORDER BY arrival ASC LIMIT 1;");
         $id = $msgs[0]['id'];
         error_log("Test with message $id");
         $_SERVER['REQUEST_URI'] = "/message/$id";

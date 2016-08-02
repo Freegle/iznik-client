@@ -290,6 +290,12 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals(2, $ret['work']['chatreview']);
 
+        # Test the 'other' variant.
+        $this->user2->setGroupSettings($this->groupid, [ 'showmessages' => 0 ]);
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, $ret['work']['chatreviewother']);
+
         # Get the messages for review.
         $ret = $this->call('chatmessages', 'GET', []);
         assertEquals(0, $ret['ret']);

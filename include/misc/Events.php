@@ -46,16 +46,12 @@ class Events {
         $lastip = presdef('REMOTE_ADDR', $_SERVER, 'NULL');
 
         $sql = "INSERT IGNORE INTO logs_events (`userid`, `sessionid`, `timestamp`, `clienttimestamp`, `route`, `target`, `event`, `posx`, `posy`, `viewx`, `viewy`, `data`, `datahash`, `datasameas`, `ip`) VALUES ($id, " . $this->dbhr->quote($sessid) . ", CURTIME(3), FROM_UNIXTIME($timestamp), " . $this->dbhr->quote($route) . ", " . $this->dbhr->quote($target) . ", " . $this->dbhr->quote($action) . ", $posx, $posy, $viewx, $viewy, $dataq, $datahash, $datasameas, " . $this->dbhr->quote($lastip) . ");";
-        $this->queue .= $sql;
 
-        if (strlen($sql) > 500000) {
-            file_put_contents('/tmp/sql', $sql);
-            error_log("Big SQL");
-        }
-
-        if (strlen($this->queue) > Events::QUEUE) {
+        if (strlen($this->queue) + strlen($sql) > Events::QUEUE) {
             $this->flush();
         }
+
+        $this->queue .= $sql;
     }
 
     public function flush() {

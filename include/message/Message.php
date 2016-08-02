@@ -529,7 +529,7 @@ class Message
 
                 foreach ($ret['replies'] as &$reply) {
                     foreach ($ret['promises'] as $promise) {
-                        $reply['promised'] = $reply['promised'] || ($promise['userid'] == $reply['user']['id']);
+                        $reply['promised'] = presdef('promised', $reply, FALSE) || ($promise['userid'] == $reply['user']['id']);
                     }
                 }
             }
