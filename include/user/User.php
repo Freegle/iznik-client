@@ -2355,9 +2355,14 @@ class User extends Entity
 
         $ret = [];
         foreach ($users as $user) {
+            $ctx['id'] = $user['userid'];
+
             $u = new User($this->dbhr, $this->dbhm, $user['userid']);
             $thisone = $u->getPublic();
-            $ctx['id'] = $user['userid'];
+
+            # We might not have the emails.
+            $thisone['email'] = $u->getEmailPreferred();
+            $thisone['emails'] = $u->getEmails();
 
             # We also want the Yahoo details.  Get them all in a single query for performance.
             $sql = "SELECT memberships.id AS membershipid, memberships_yahoo.* FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid WHERE userid = ?;";

@@ -41,6 +41,8 @@ define([
             });
             v.render();
 
+            self.$('.js-searchuserres').empty();
+
             $.ajax({
                 url: API + 'user',
                 data: {
