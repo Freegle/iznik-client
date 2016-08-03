@@ -38,15 +38,34 @@ class pageheaderTest extends IznikTestCase {
         $this->expectOutputRegex('/.*<script.*/');
         include(IZNIK_BASE . '/include/misc/pageheader.php');
 
-        $_SERVER['REQUEST_URI'] = '/group/FreeglePlayground';
-        $this->expectOutputRegex('/.*<meta property="og:title" content="Freegle Playground"\/>./');
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testGroup() {
+        error_log(__METHOD__);
+
+        $_SERVER['HTTP_HOST'] = USER_SITE;
+
+        $_SERVER['REQUEST_URI'] = '/explore/FreeglePlayground';
+        $this->expectOutputRegex('/.*<meta property="og:title" content="FreeglePlayground"\/>./');
         include(IZNIK_BASE . '/include/misc/pageheader.php');
 
-        $msgs = $this->dbhr->preQuery("SELECT messages.id, subject FROM messages INNER JOIN messages_attachments ON messages.id = messages_attachments.msgid ORDER BY arrival ASC LIMIT 1;");
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testMessage() {
+        error_log(__METHOD__);
+
+        $_SERVER['HTTP_HOST'] = USER_SITE;
+
+        $msgs = $this->dbhr->preQuery("SELECT messages.id, subject FROM messages_attachments INNER JOIN messages ON messages.id = messages_attachments.msgid ORDER BY arrival ASC LIMIT 1;");
         $id = $msgs[0]['id'];
         error_log("Test with message $id");
         $_SERVER['REQUEST_URI'] = "/message/$id";
-        $re = '/.*<meta property="og:title" content="' . preg_quote($msgs[0]['subject']) . '"\/>./';
+        $subj = $msgs[0]['subject'];
+        $subj = preg_replace('/^\[.*?\]\s*/', '', $subj);
+        $subj = preg_replace('/\[.*Attachment.*\]\s*/', '', $subj);        
+        $re = '/.*<meta property="og:title" content="' . preg_quote($subj) . '"\/>./';
         error_log($re);
         $this->expectOutputRegex($re);
         include(IZNIK_BASE . '/include/misc/pageheader.php');
