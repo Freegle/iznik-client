@@ -43,16 +43,19 @@ define([
         },
 
         askSubscription: function() {
+            var self = this;
+
             // Don't ask for push notif permissions too often.
             var lastasked = null;
             var now = (new Date()).getTime();
             try {
                 lastasked = localStorage.getItem('lastAskedPush');
             } catch (e) {}
-            //console.log("askSubscription", lastasked, now,now - lastasked,7 * 24 * 60 * 60 * 1000);
+
+            //console.log("askSubscription", lastasked, now,now - lastasked, 60 * 60 * 1000);
 
             if (window.serviceWorker &&
-                (!lastasked || (now - lastasked > 7 * 24 * 60 * 60 * 1000)))  {
+                (!lastasked || (now - lastasked > 60 * 60 * 1000)))  {
                 // Try to get push notification permissions.
                 try {
                     try {
