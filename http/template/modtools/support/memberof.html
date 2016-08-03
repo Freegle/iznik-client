@@ -5,7 +5,10 @@
     <div class="col-md-1 js-date">
     </div>
     <div class="col-md-3 forcebreak">
-        <a href="mailto:{{email}}">{{email}}</a>
+        <a href="mailto:{{email}}">{{email}}</a><br>
+        <% if (obj.yahooAlias) { %>
+        <img src='/images/yahoo.png' class='smallicon' />&nbsp;{{yahooAlias}}
+        <% } %>
     </div>
     <div class="col-md-2">
         <select class="form-control botspace js-emailfrequency" data-style="btn-white" disabled="true">

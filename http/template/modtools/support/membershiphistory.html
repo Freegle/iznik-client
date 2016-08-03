@@ -1,0 +1,30 @@
+<div class="row">
+    <div class="col-md-2">
+        <abbr class="timeago" title="{{timestamp}}"/>
+    </div>
+    <div class="col-md-2">
+        <% if (obj.type == 'Joined') { %>
+        Joined
+        <% } else if (obj.type == 'Approved') { %>
+        Approved on
+        <% } else if (obj.type == 'Rejected') { %>
+        Rejected on
+        <% } else if (obj.type == 'Applied') { %>
+        Applied to
+        <% } else if (obj.type == 'Left') { %>
+        Left
+        <% } else if (obj.type == 'YahooApplied') { %>
+        Applied to Yahoo Group for
+        <% } else if (obj.type == 'YahooJoined') { %>
+        Joined Yahoo Group for
+        <% } else { %>
+        {{type}}
+        <% }  %>
+    </div>
+    <div class="col-md-2">
+        {{group.nameshort}}
+    </div>
+    <div class="col-md-4">
+        {{text}}
+    </div>
+</div>

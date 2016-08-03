@@ -515,6 +515,12 @@ define([
                 // Logins
                 self.loginCollection = new Iznik.Collection(self.model.get('logins'));
 
+                if (self.loginCollection.length == 0) {
+                    self.$('.js-loginsnone').show();
+                }  else {
+                    self.$('.js-loginsnone').hide();
+                }
+
                 self.loginCollectionView = new Backbone.CollectionView({
                     el: self.$('.js-logins'),
                     modelView: Iznik.Views.ModTools.Member.SupportSearch.Login,
@@ -522,6 +528,17 @@ define([
                 });
 
                 self.loginCollectionView.render();
+                
+                // Membership history
+                self.membershipHistoryCollection = new Iznik.Collection(self.model.get('membershiphistory'));
+
+                self.membershipHistoryCollectionView = new Backbone.CollectionView({
+                    el: self.$('.js-membershiphistory'),
+                    modelView: Iznik.Views.ModTools.Member.SupportSearch.MembershipHistory,
+                    collection: self.membershipHistoryCollection
+                });
+
+                self.membershipHistoryCollectionView.render();
             });
 
             return (p);
@@ -565,6 +582,10 @@ define([
 
             return(p);
         }
+    });
+
+    Iznik.Views.ModTools.Member.SupportSearch.MembershipHistory = Iznik.View.Timeago.extend({
+        template: 'modtools_support_membershiphistory'
     });
 
     Iznik.Views.ModTools.Member.SupportSearch.Applied = Iznik.Views.ModTools.Member.Applied.extend({

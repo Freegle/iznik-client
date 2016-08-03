@@ -11,6 +11,9 @@
                     <div class="col-md-4">
                         <div class="ellipsis">
                             <div class="glyphicon glyphicon-user" />&nbsp;<% if (obj.displayname && displayname.trim().length > 0) { %>{{displayname}}<% } else { %><em>Blank name</em><% } %>
+                            <% if (obj.yahooid) { %>
+                            <img src='/images/yahoo.png' class='smallicon' />&nbsp;{{yahooid}}
+                            <% } %>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -22,7 +25,28 @@
     </div>
     <div class="panel-body">
         <div class="completefull nomargin">
-            <h4>Settings</h4>
+            <% if (obj.spammer) { %>
+                <% if (spammer.collection == 'Spammer') { %>
+                <div class="alert alert-danger">
+                    Confirmed spammer: {{spammer.reason}}
+                </div>
+                <% } else if (spammer.collection == 'PendingAdd') { %>
+                <div class="alert alert-warning">
+                    Unconfirmed spammer: {{spammer.reason}}
+                </div>
+                <% } else if (spammer.collection == 'PendingRemove') { %>
+                <div class="alert alert-info">
+                    Requested removal from spammer list: {{spammer.reason}}
+                </div>
+                <% } else if (spammer.collection == 'Whitelisted') { %>
+                <div class="alert alert-success">
+                    Whitelisted: {{spammer.reason}}
+                </div>
+                <% } %>
+            <% } else { %>
+            <p>This user isn't on the spammer list.</p>
+            <% } %>
+            <h3>Settings</h3>
             <div class="row botspace">
                 <div class="col-md-3 botspace">
                     Newsletters allowed?
@@ -39,30 +63,36 @@
                     <% if (obj.onholidaytill && onholidaytill != '1970-01-01T00:00:00Z') { %><abbr class="timeago" title="{{onholidaytill}}" /></small></span><% } else { %>No<% } %>
                 </div>
             </div>
-            <h4>Logins</h4>
+            <h3>Logins</h3>
+            <div class="js-loginsnone">
+                This user has no logins on this platform - they are probably a user on Yahoo.
+            </div>
             <div class="row padleft js-logins" />
-            <h4>Memberships</h4>
+            <h3>Current Memberships</h3>
             <div class="js-memberof" />
             <div class="js-memberofnone">
                 This user isn't a member of any groups.
             </div>
             <div class="js-otheremailsdiv">
-                <h4>Other Known Emails</h4>
+                <h3>Other Known Emails</h3>
                 <div class="js-otheremails" />
             </div>
+            <h3>Membership History</h3>
             <h4>Recent Applications</h4>
             <div class="js-appliedto" />
             <div class="js-appliednone">
                 This user hasn't recently applied to any groups.
             </div>
-            <h4>Recent Sessions</h4>
+            <h4>Full History</h4>
+            <div class="js-membershiphistory" />
+            <h3>Recent Sessions</h3>
             <div class="js-sessions" />
             <div class="js-sessionsnone">
                 No recent sessions.
             </div>
-            <h4>Detailed Logs</h4>
+            <h3>Detailed Logs</h3>
             <div class="btn btn-white js-logs">View Logs</div>
-            <h4>Message History</h4>
+            <h3>Message History</h3>
             <div class="js-messages" />
             <div class="js-messagesnone">
                 This user hasn't posted any messages.

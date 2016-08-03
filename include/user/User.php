@@ -2340,6 +2340,43 @@ class User extends Entity
         }
     }
 
+    public function getMembershipHistory() {
+        # We get this from our logs.
+        $sql = "SELECT * FROM logs WHERE user = ? AND `type` = 'User' ORDER BY id DESC;";
+        $logs = $this->dbhr->preQuery($sql, [ $this->id ]);
+
+        $ret = [];
+        foreach ($logs as $log) {
+            $thisone = NULL;
+            switch ($log['subtype']) {
+                case Log::SUBTYPE_JOINED:
+                case Log::SUBTYPE_APPROVED:
+                case Log::SUBTYPE_REJECTED:
+                case Log::SUBTYPE_APPLIED:
+                case Log::SUBTYPE_LEFT:
+                case Log::SUBTYPE_YAHOO_APPLIED:
+                case Log::SUBTYPE_YAHOO_JOINED:
+                {
+                    $thisone = $log['subtype'];
+                    break;
+                }
+            }
+
+            error_log("{$log['subtype']} gives $thisone {$log['groupid']}");
+            if ($thisone && $log['groupid']) {
+                $g = new Group($this->dbhr, $this->dbhm, $log['groupid']);
+                $ret[] = [
+                    'timestamp' => ISODate($log['timestamp']),
+                    'type' => $thisone,
+                    'group' => $g->getPublic(),
+                    'text' => $log['text']
+                ];
+            }
+        }
+
+        return($ret);
+    }
+
     public function search($search, $ctx)
     {
         $id = presdef('id', $ctx, 0);
@@ -2377,6 +2414,7 @@ class User extends Entity
                 }
             }
 
+            $thisone['membershiphistory'] = $u->getMembershipHistory();
             $thisone['sessions'] = $u->getSessions($this->dbhr, $this->dbhm, $user['userid']);
 
             $thisone['logins'] = $u->getLogins();
