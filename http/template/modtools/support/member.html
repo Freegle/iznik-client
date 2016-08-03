@@ -23,8 +23,8 @@
     <div class="panel-body">
         <div class="completefull nomargin">
             <h4>Settings</h4>
-            <div class="row">
-                <div class="col-md-3">
+            <div class="row botspace">
+                <div class="col-md-3 botspace">
                     Newsletters allowed?
                 </div>
                 <div class="col-md-9">
@@ -39,6 +39,8 @@
                     <% if (obj.onholidaytill && onholidaytill != '1970-01-01T00:00:00Z') { %><abbr class="timeago" title="{{onholidaytill}}" /></small></span><% } else { %>No<% } %>
                 </div>
             </div>
+            <h4>Logins</h4>
+            <div class="row padleft js-logins" />
             <h4>Memberships</h4>
             <div class="js-memberof" />
             <div class="js-memberofnone">
@@ -58,6 +60,8 @@
             <div class="js-sessionsnone">
                 No recent sessions.
             </div>
+            <h4>Detailed Logs</h4>
+            <div class="btn btn-white js-logs">View Logs</div>
             <h4>Message History</h4>
             <div class="js-messages" />
             <div class="js-messagesnone">

@@ -370,6 +370,14 @@ class membershipsAPITest extends IznikAPITestCase {
         $g = new Group($this->dbhr, $this->dbhm);
         $g->processSetMembers();
 
+        # Test user search - here as we want to check the Yahoo details too.
+        $u = new User($this->dbhr, $this->dbhm);
+        $ctx = NULL;
+        $users = $u->search('test@test.com', $ctx);
+        error_log("Search returned " . var_export($users, TRUE));
+        self::assertEquals(1, count($users));
+        assertEquals('ANNOUNCEMENT', $users[0]['memberof'][0]['yahooDeliveryType']);
+
         $ret = $this->call('memberships', 'GET', []);
 
         assertEquals(3, count($ret['members']));

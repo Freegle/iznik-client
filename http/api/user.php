@@ -56,13 +56,6 @@ function user() {
                             'users' => $users,
                             'context' => $ctx
                         ];
-
-                        # Add sessions
-                        $u = new User($dbhr, $dbhm);
-
-                        foreach ($ret['users']as &$user) {
-                            $user['sessions'] = $u->getSessions($dbhr, $dbhm, $user['id']);
-                        }
                     }
                 } else {
                     $ret = [

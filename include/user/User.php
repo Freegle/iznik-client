@@ -781,6 +781,13 @@ class User extends Entity
     public function getLogins() {
         $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ?;",
             [$this->id]);
+
+        foreach ($logins as &$login) {
+            unset($login['credentials']);
+            $login['added'] = ISODate($login['added']);
+            $login['lastaccess'] = ISODate($login['lastaccess']);
+        }
+
         return($logins);
     }
 
@@ -1156,6 +1163,7 @@ class User extends Entity
 
                 $memberof[] = [
                     'id' => $group['groupid'],
+                    'membershipid' => $group['id'],
                     'namedisplay' => $name,
                     'nameshort' => $group['nameshort'],
                     'added' => ISODate($group['added']),
@@ -1196,6 +1204,7 @@ class User extends Entity
 
                 $memberof[] = [
                     'id' => $group['groupid'],
+                    'membershipid' => $group['id'],
                     'namedisplay' => $name,
                     'nameshort' => $group['nameshort'],
                     'added' => ISODate($group['added']),
@@ -2347,8 +2356,27 @@ class User extends Entity
         $ret = [];
         foreach ($users as $user) {
             $u = new User($this->dbhr, $this->dbhm, $user['userid']);
-            $ret[] = $u->getPublic();
+            $thisone = $u->getPublic();
             $ctx['id'] = $user['userid'];
+
+            # We also want the Yahoo details.  Get them all in a single query for performance.
+            $sql = "SELECT memberships.id AS membershipid, memberships_yahoo.* FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid WHERE userid = ?;";
+            $membs = $this->dbhr->preQuery($sql, [ $user['userid']]);
+            foreach ($thisone['memberof'] as &$member) {
+                foreach ($membs as $memb) {
+                    if ($memb['membershipid'] == $member['membershipid']) {
+                        foreach (['yahooAlias', 'yahooPostingStatus', 'yahooDeliveryType'] as $att) {
+                            $member[$att] = $memb[$att];
+                        }
+                    }
+                }
+            }
+
+            $thisone['sessions'] = $u->getSessions($this->dbhr, $this->dbhm, $user['userid']);
+
+            $thisone['logins'] = $u->getLogins();
+
+            $ret[] = $thisone;
         }
 
         return($ret);

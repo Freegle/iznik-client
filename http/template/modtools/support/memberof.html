@@ -8,7 +8,7 @@
         <a href="mailto:{{email}}">{{email}}</a>
     </div>
     <div class="col-md-2">
-        <select class="form-control js-emailfrequency" data-style="btn-white" disabled="true">
+        <select class="form-control botspace js-emailfrequency" data-style="btn-white" disabled="true">
             <option data-content="<img src='/images/heart_empty.png' />&nbsp;Immediately" value="-1">Immediately</option>
             <option data-content="<img src='/images/heart_empty.png' />&nbsp;Never" value="0">Never</option>
             <option data-content="<img src='/images/heart_empty.png' />&nbsp;Every Hour" value="1">Every Hour</option>
@@ -22,6 +22,13 @@
             <option data-content="<span class='glyphicon glyphicon-calendar'></span>&nbsp;Event Mails On" value="1">Event Mails On</option>
             <option data-content="<span class='glyphicon glyphicon-calendar'></span>&nbsp;Event Mails Off" value="0">Event Mails Off</option>
         </select>
+        <br />
+        <select class="form-control botspace js-yahoodelivery" data-style="btn-white" disabled="true">
+            <option data-content="<img src='/images/yahoo.png' class='smallicon' />Daily Digest " value="DIGEST">Daily Digest</option>
+            <option data-content="<img src='/images/yahoo.png' class='smallicon' />Web Only " value="NONE">Web Only</option>
+            <option data-content="<img src='/images/yahoo.png' class='smallicon' />Individual Emails " value="SINGLE">Individual Emails</option>
+            <option data-content="<img src='/images/yahoo.png' class='smallicon' />Special Notices " value="ANNOUNCEMENT">Special Notices</option>
+        </select>
     </div>
     <div class="col-md-3">
         <% if (role == 'Member') { %>
@@ -31,4 +38,4 @@
         <% } %>
     </div>
 </div>
-<hr class="grey nopad nomargin padtopsm" />
+<hr class="grey margtopsm margbotsm" />

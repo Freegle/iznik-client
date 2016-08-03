@@ -356,7 +356,26 @@ define([
     Iznik.Views.ModTools.Member.SupportSearch = Iznik.View.Timeago.extend({
         template: 'modtools_support_member',
 
+        events: {
+            'click .js-logs': 'logs'
+        },
+
         groups: [],
+
+        logs: function() {
+            var self = this;
+            var mod = new Iznik.Models.ModTools.User({
+                id: self.model.get('id')
+            });
+
+            mod.fetch().then(function() {
+                var v = new Iznik.Views.ModTools.User.Logs({
+                    model: mod
+                });
+
+                v.render();
+            });
+        },
 
         addMessage: function(message) {
             var self = this;
@@ -378,6 +397,7 @@ define([
             var self = this;
 
             _.each(self.model.get('messagehistory'), function (message) {
+                self.$('.js-messagesnone').hide();
                 message.group = self.groups[message.groupid];
                 self.addMessage(message);
             });
@@ -455,11 +475,10 @@ define([
                 // Add message history.  Annoyingly, we might have a groupid for a group which we are not a
                 // member of at the moment, so we may need to fetch some.
                 self.$('.js-messages').empty();
-                self.$('.js-messagesnone').show();
+                self.$('.js-messagesnone').hide();
 
                 _.each(self.model.get('memberof'), function (group) {
                     self.groups[group.id] = group.attributes;
-                    console.log("Save group", group.id);
                 });
 
                 var fetching = 0;
@@ -490,6 +509,17 @@ define([
                     // Not waiting to get any groups - add now.
                     self.addMessages();
                 }
+                
+                // Logins
+                self.loginCollection = new Iznik.Collection(self.model.get('logins'));
+
+                self.loginCollectionView = new Backbone.CollectionView({
+                    el: self.$('.js-logins'),
+                    modelView: Iznik.Views.ModTools.Member.SupportSearch.Login,
+                    collection: self.loginCollection
+                });
+
+                self.loginCollectionView.render();
             });
 
             return (p);
@@ -507,6 +537,7 @@ define([
                 self.$('.js-date').html(m.format('DD-MMM-YYYY'));
 
                 self.$('.js-eventsenabled').val(self.model.get('eventsenabled'));
+                self.$('.js-yahoodelivery').val(self.model.get('yahooDeliveryType'));
 
                 self.waitDOM(self, function() {
                     self.$('select').selectpicker();
@@ -536,6 +567,10 @@ define([
 
     Iznik.Views.ModTools.Member.SupportSearch.Applied = Iznik.Views.ModTools.Member.Applied.extend({
         template: 'modtools_support_appliedto'
+    });
+
+    Iznik.Views.ModTools.Member.SupportSearch.Login = Iznik.View.Timeago.extend({
+        template: 'modtools_support_login'
     });
 
     Iznik.Views.ModTools.Message.SupportSearchResult = Iznik.Views.ModTools.Message.Approved.extend({

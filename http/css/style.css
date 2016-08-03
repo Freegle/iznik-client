@@ -247,6 +247,10 @@
     margin-bottom: 5px;
 }
 
+.margbotnone {
+    margin-bottom: 0px;
+}
+
 .padbotnone {
     padding-bottom: 0px !important;
 }
