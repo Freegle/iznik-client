@@ -2,7 +2,7 @@
     <div class="col-sm-1">{{ip}}</div>
     <div class="col-sm-2 js-time" />
     <div class="col-sm-1">{{viewx}} x {{viewy}}</div>
-    <div class="col-sm-1"><%if (modtools) { %><div class="glyphicons glyphicons-crown warning" /><% } else { %><div class="glyphicons glyphicons-user success" /><% } %></div>
+    <div class="col-sm-1"><%if (modtools) { %><div class="glyphicons glyphicons-crown warning" title="ModTools Session" /><% } else { %><div class="glyphicons glyphicons-user success" title="Member Session" /><% } %></div>
     <div class="col-sm-2">
         <% if (obj.user) { %>
         {{user.displayname}}<br />

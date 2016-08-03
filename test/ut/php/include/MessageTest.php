@@ -386,6 +386,24 @@ And something after it.', $stripped);
         error_log(__METHOD__ . " end");
     }
 
+    public function testAutoReply() {
+        error_log(__METHOD__);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        assertFalse($m->isAutoreply());;
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: Out of the office', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        assertTrue($m->isAutoreply());
+
+        error_log(__METHOD__ . " end");
+    }
+
+
     // For manual testing
 //    public function testSpecial() {
 //        error_log(__METHOD__);

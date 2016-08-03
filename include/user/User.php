@@ -1148,7 +1148,7 @@ class User extends Entity
             $memberof = [];
 
             # Check the groups.
-            $sql = "SELECT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
+            $sql = "SELECT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
             $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
             foreach ($groups as $group) {
                 $role = $me ? $me->getRole($group['groupid']) : User::ROLE_NONMEMBER;
@@ -1157,10 +1157,14 @@ class User extends Entity
                 $memberof[] = [
                     'id' => $group['groupid'],
                     'namedisplay' => $name,
+                    'nameshort' => $group['nameshort'],
                     'added' => ISODate($group['added']),
                     'collection' => $group['collection'],
+                    'role' => $group['role'],
                     'emailid' => $group['emailid'],
-                    'emailfrequency' => $group['emailfrequency']
+                    'emailfrequency' => $group['emailfrequency'],
+                    'eventsallowed' => $group['eventsallowed'],
+                    'type' => $group['type']
                 ];
 
                 if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
@@ -1183,7 +1187,7 @@ class User extends Entity
             # allows us to spot abuse) and any which are on our groups.
             $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
             $modids = array_merge([0], $me->getModeratorships());
-            $sql = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
+            $sql = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
             $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
             $memberof = [];
 
@@ -1193,10 +1197,14 @@ class User extends Entity
                 $memberof[] = [
                     'id' => $group['groupid'],
                     'namedisplay' => $name,
+                    'nameshort' => $group['nameshort'],
                     'added' => ISODate($group['added']),
                     'collection' => $group['collection'],
+                    'role' => $group['role'],
                     'emailid' => $group['emailid'],
-                    'emailfrequency' => $group['emailfrequency']
+                    'emailfrequency' => $group['emailfrequency'],
+                    'eventsallowed' => $group['eventsallowed'],
+                    'type' => $group['type']
                 ];
 
                 if ($group['lat'] && $group['lng']) {
@@ -1260,13 +1268,8 @@ class User extends Entity
     }
 
     public static function getSessions($dbhr, $dbhm, $id) {
-        # Get any sessions
-        $sql = "SELECT MIN(timestamp) AS timestamp, sessionid FROM logs_events WHERE userid = ? GROUP BY sessionid ORDER BY MIN(timestamp) DESC;";
-        $sessions = $dbhr->preQuery($sql, [ $id ]);
-        foreach ($sessions as &$session) {
-            $session['timestamp'] = ISODate($session['timestamp']);
-        }
-
+        $e = new Events($dbhr, $dbhm);
+        $sessions = $e->listSessions($id);
         return($sessions);
     }
 
@@ -2326,6 +2329,29 @@ class User extends Entity
             #error_log("Sendit? $sendit");
             return($sendit);
         }
+    }
+
+    public function search($search, $ctx)
+    {
+        $id = presdef('id', $ctx, 0);
+        $ctx = $ctx ? $ctx : [];
+        $q = $this->dbhr->quote("$search%");
+
+        $sql = "SELECT DISTINCT userid FROM
+                ((SELECT userid FROM users_emails WHERE email LIKE $q) UNION
+                (SELECT id AS userid FROM users WHERE fullname LIKE $q) UNION
+                (SELECT id AS userid FROM users WHERE yahooid LIKE $q) UNION
+                (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)) t WHERE userid > ? ORDER BY userid ASC";
+        $users = $this->dbhr->preQuery($sql, [$id]);
+
+        $ret = [];
+        foreach ($users as $user) {
+            $u = new User($this->dbhr, $this->dbhm, $user['userid']);
+            $ret[] = $u->getPublic();
+            $ctx['id'] = $user['userid'];
+        }
+
+        return($ret);
     }
 
     public function setPrivate($att, $val) {

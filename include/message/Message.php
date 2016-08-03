@@ -80,6 +80,39 @@ class Message
         return $this->yahooapprove;
     }
 
+    public function isAutoreply() {
+        # There is no foolproof way of doing this, sadly.
+        $subjs = [
+            "Auto Response",
+            "Autoresponder",
+            "If your enquiry is urgent",
+            "Thankyou for your enquiry",
+            "Thanks for your email",
+            "Thanks for contacting",
+            "Thank you for your enquiry",
+            "Many thanks for your",
+            "Could not send message",
+            "Automatic reply",
+            "Mail Receipt",
+            "Automated reply",
+            "Auto-Reply",
+            "Out of Office",
+            "out of the office",
+            "holiday",
+            "vacation reply"
+        ];
+
+        $oof = FALSE;
+
+        foreach ($subjs as $s) {
+            if (stripos($this->subject, $s) !== FALSE) {
+                $oof = TRUE;
+            }
+        }
+
+        return($oof);
+    }
+
     public function setYahooPendingId($groupid, $id) {
         # Don't set for deleted messages, otherwise there's a timing window where we can end up with a deleted
         # message with an id that blocks inserts of subequent messages.

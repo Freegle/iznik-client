@@ -5,6 +5,24 @@ function event() {
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
     switch ($_REQUEST['type']) {
+        case 'GET':
+            $me = whoAmI($dbhr, $dbhm);
+            $ret = array('ret' => 2, 'status' => 'Permission denied');
+
+            if ($me && $me->isAdminOrSupport()) {
+                $sessionid = presdef('sessionid', $_REQUEST, NULL);
+                $p = new Events($dbhr, $dbhm);
+
+                if ($sessionid) {
+                    # Fetching a session.
+                    $events = $p->get($sessionid);
+                    $ret = !$events ? ['ret' => 1, 'status' => 'Session not found'] : ['ret' => 0, 'status' => 'Success', 'events' => $events];
+                } else {
+                    $ret = [ 'ret' => 0, 'status' => 'Success', 'sessions' => $p->listSessions() ];
+                }
+            }
+
+            break;
         case 'POST':
             $events = array_key_exists('events', $_REQUEST) ? $_REQUEST['events'] : NULL;
 
@@ -41,24 +59,6 @@ function event() {
             }
 
             $ret = array('ret' => 0, 'status' => 'Success', 'nolog' => TRUE);
-            break;
-        case 'GET':
-            $me = whoAmI($dbhr, $dbhm);
-            $ret = array('ret' => 2, 'status' => 'Permission denied');
-
-            if ($me && $me->isAdminOrSupport()) {
-                $sessionid = presdef('sessionid', $_REQUEST, NULL);
-                $p = new Events($dbhr, $dbhm);
-
-                if ($sessionid) {
-                    # Fetching a session.
-                    $events = $p->get($sessionid);
-                    $ret = !$events ? ['ret' => 1, 'status' => 'Session not found'] : ['ret' => 0, 'status' => 'Success', 'events' => $events];
-                } else {
-                    $ret = [ 'ret' => 0, 'status' => 'Success', 'sessions' => $p->listSessions() ];
-                }
-            }
-
             break;
     }
 

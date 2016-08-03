@@ -58,8 +58,9 @@ class Events {
         } catch (Exception $e) {}
     }
     
-    public function listSessions() {
-        $sql = "SELECT DISTINCT(sessionid) FROM logs_events ORDER BY id DESC;";
+    public function listSessions($userid = NULL) {
+        $userq = $userid ? " WHERE userid = $userid " : '';
+        $sql = "SELECT DISTINCT(sessionid) FROM logs_events $userq ORDER BY id DESC;";
         $sessions = $this->dbhr->preQuery($sql);
         $ret = [];
         

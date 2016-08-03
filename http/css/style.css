@@ -300,6 +300,10 @@
     padding-top: 10px;
 }
 
+.padtopsm {
+    padding-top: 5px !important;
+}
+
 .padleft {
     padding-left: 10px;
 }

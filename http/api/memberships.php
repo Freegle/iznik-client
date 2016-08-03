@@ -68,11 +68,7 @@ function memberships() {
                     $groupids = [];
                     $proceed = FALSE;
 
-                    if ($me->isAdminOrSupport() && $search) {
-                        # Admin or support can search all groups.
-                        $groupids = $groupid ? [ $groupid ] : NULL;
-                        $proceed = TRUE;
-                    } else if ($groupid && ($me->isModOrOwner($groupid) || ($userid && $userid == $me->getId()))) {
+                    if ($groupid && ($me->isModOrOwner($groupid) || ($userid && $userid == $me->getId()))) {
                         # Get just one.  We can get this if we're a mod or it's our own.
                         $groupids[] = $groupid;
                         $limit = $userid ? 1 : $limit;

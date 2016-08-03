@@ -3,10 +3,11 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    "iznik/modtools",
     'moment',
+    "iznik/modtools",
     'iznik/views/pages/pages',
     'iznik/views/pages/modtools/messages_approved',
+    'iznik/views/pages/modtools/replay',
     'iznik/models/user/alert',
     'iznik/views/user/user',
     'tinymce'
@@ -35,34 +36,34 @@ define([
             var self = this;
 
             self.$('.js-loading').addClass('hidden');
-
-            self.collection = new Iznik.Collections.Members.Search(null, {
-                collection: 'Approved',
-                search: this.$('.js-searchuserinp').val().trim()
-            });
-
-            self.collectionView = new Backbone.CollectionView({
-                el: self.$('.js-searchuserres'),
-                modelView: Iznik.Views.ModTools.Member.SupportSearch,
-                collection: self.collection
-            });
-
             var v = new Iznik.Views.PleaseWait({
                 timeout: 1
             });
             v.render();
 
-            self.collectionView.render();
-            this.collection.fetch({
-                remove: true,
+            $.ajax({
+                url: API + 'user',
                 data: {
-                    limit: 100
+                    search: this.$('.js-searchuserinp').val().trim()
                 },
-                success: function (collection, response, options) {
+                success: function(ret) {
                     v.close();
 
-                    if (collection.length == 0) {
-                        self.$('.js-none').fadeIn('slow');
+                    self.$('.js-none').hide();
+
+                    if (ret.ret === 0) {
+                        if (ret.users.length === 0) {
+                            self.$('.js-none').fadeIn('slow');
+                        } else {
+                            self.collection = new Iznik.Collection(ret.users);
+                            self.collectionView = new Backbone.CollectionView({
+                                el: self.$('.js-searchuserres'),
+                                modelView: Iznik.Views.ModTools.Member.SupportSearch,
+                                collection: self.collection
+                            });
+
+                            self.collectionView.render();
+                        }
                     }
                 }
             });
@@ -352,95 +353,189 @@ define([
 
     // TODO This feels like an abuse of the memberships API just to use the search mechanism.  Should there be a user
     // search instead?
-    Iznik.Views.ModTools.Member.SupportSearch = Iznik.View.extend({
+    Iznik.Views.ModTools.Member.SupportSearch = Iznik.View.Timeago.extend({
         template: 'modtools_support_member',
+
+        groups: [],
+
+        addMessage: function(message) {
+            var self = this;
+
+            // We only want to show messages on reuse groups
+            if (message.group.type == 'Freegle' || message.group.type == 'Reuse') {
+                self.$('.js-messagesnone').hide();
+                var v = new Iznik.Views.ModTools.Member.SupportSearch.Message({
+                    model: new Iznik.Model(message)
+                });
+
+                v.render().then(function() {
+                    self.$('.js-messages').append(v.el);
+                });
+            }
+        },
+
+        addMessages: function() {
+            var self = this;
+
+            _.each(self.model.get('messagehistory'), function (message) {
+                message.group = self.groups[message.groupid];
+                self.addMessage(message);
+            });
+        },
 
         render: function () {
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
-                // Our user
-                var v = new Iznik.Views.ModTools.User({
-                    model: self.model
+                console.log("Model", self.model);
+                // Add any group memberships.
+                self.$('.js-memberof').empty();
+
+                var emails = self.model.get('emails');
+
+                var remaining = emails;
+
+                _.each(self.model.get('memberof'), function (group) {
+                    _.each(emails, function(email) {
+                        if (email.id == group.emailid) {
+                            group.email = email.email
+                            remaining = _.without(remaining, _.findWhere(remaining, {
+                                email: email.email
+                            }));
+                        }
+                    });
+
+                    self.$('.js-memberofnone').hide();
+                    var mod = new Iznik.Model(group);
+                    var v = new Iznik.Views.ModTools.Member.SupportSearch.MemberOf({
+                        model: mod,
+                        user: self.model
+                    });
+
+                    v.render().then(function (v) {
+                        self.$('.js-memberof').append(v.el);
+                        v.$el.find('.js-emailfrequency').val(group.emailfrequency);
+                    });
                 });
 
-                v.render().then(function (v) {
-                    self.$('.js-user').html(v.el);
-
-                    // We are not in the context of a specific group here, so the general remove/ban buttons don't make sense.
-                    self.$('.js-ban, .js-remove').closest('li').remove();
+                self.$('.js-otheremailsdiv').hide();
+                _.each(remaining, function(email) {
+                    self.$('.js-otheremailsdiv').show();
+                    self.$('.js-otheremails').append(email.email + '<br />');
                 });
-                
-                // Add any emails
-                self.$('.js-otheremails').empty();
-                _.each(self.model.get('otheremails'), function (email) {
-                    if (email.preferred) {
-                        self.$('.js-email').append(email.email);
-                    } else {
-                        var mod = new Iznik.Model(email);
-                        var v = new Iznik.Views.ModTools.Message.OtherEmail({
-                            model: mod
-                        });
-                        v.render().then(function (v) {
-                            self.$('.js-otheremails').html(v.el);
-                        });
-                    }
+
+                self.$('.js-applied').empty();
+                _.each(self.model.get('applied'), function (group) {
+                    self.$('.js-appliednone').hide();
+                    var mod = new Iznik.Model(group);
+                    var v = new Iznik.Views.ModTools.Member.SupportSearch.Applied({
+                        model: mod
+                    });
+                    v.render().then(function (v) {
+                        self.$('.js-appliedto').append(v.el);
+                    });
                 });
 
                 // Add any sessions.
                 self.sessionCollection = new Iznik.Collection(self.model.get('sessions'));
 
+                if (self.sessionCollection.length == 0) {
+                    self.$('.js-sessionsnone').show();
+                } else {
+                    self.$('.js-sessionsnone').hide();
+                }
+
                 self.sessionCollectionView = new Backbone.CollectionView({
                     el: self.$('.js-sessions'),
-                    modelView: Iznik.Views.ModTools.Member.Session,
+                    modelView: Iznik.Views.ModTools.Pages.Replay.Session,
                     collection: self.sessionCollection
                 });
 
                 self.sessionCollectionView.render();
 
-                // Add any group memberships.
-                self.$('.js-memberof').empty();
+                // Add message history.  Annoyingly, we might have a groupid for a group which we are not a
+                // member of at the moment, so we may need to fetch some.
+                self.$('.js-messages').empty();
+                self.$('.js-messagesnone').show();
+
                 _.each(self.model.get('memberof'), function (group) {
-                    var mod = new Iznik.Model(group);
-                    var v = new Iznik.Views.ModTools.Member.Of({
-                        model: mod,
-                        user: self.model
+                    self.groups[group.id] = group.attributes;
+                    console.log("Save group", group.id);
+                });
+
+                var fetching = 0;
+                var tofetch = [];
+                _.each(self.model.get('messagehistory'), function (message) {
+                    if (!self.groups[message.groupid] && tofetch.indexOf(message.groupid) === -1) {
+                        tofetch.push(message.groupid);
+                    }
+                });
+
+                _.each(tofetch, function(groupid) {
+                    var group = new Iznik.Models.Group({
+                        id: groupid
                     });
-                    
-                    v.render().then(function (v) {
-                        self.$('.js-memberof').append(v.el);
+
+                    fetching++;
+                    group.fetch().then(function() {
+                        fetching--;
+                        self.groups[group.get('id')] = group.attributes;
+
+                        if (fetching == 0) {
+                            self.addMessages();
+                        }
                     });
                 });
 
-                self.$('.js-applied').empty();
-                _.each(self.model.get('applied'), function (group) {
-                    var mod = new Iznik.Model(group);
-                    var v = new Iznik.Views.ModTools.Member.Applied({
-                        model: mod
-                    });
-                    v.render().then(function (v) {
-                        self.$('.js-applied').append(v.el);
-                    });
-                });
-
-                // Add the default standard actions.
-                self.model.set('fromname', self.model.get('displayname'));
-                self.model.set('fromaddr', self.model.get('email'));
-                self.model.set('fromuser', self.model);
-
-                new Iznik.Views.ModTools.StdMessage.Button({
-                    model: new Iznik.Model({
-                        title: 'Mail',
-                        action: 'Leave Approved Member',
-                        member: self.model
-                    })
-                }).render().then(function (v) {
-                    self.$('.js-stdmsgs').append(v.el);
-                    self.$('.timeago').timeago();
-                });
+                if (fetching == 0) {
+                    // Not waiting to get any groups - add now.
+                    self.addMessages();
+                }
             });
 
             return (p);
         }
+    });
+
+    Iznik.Views.ModTools.Member.SupportSearch.MemberOf = Iznik.Views.ModTools.Member.Of.extend({
+        template: 'modtools_support_memberof',
+
+        render: function() {
+            var self = this;
+            var p = Iznik.Views.ModTools.Member.Of.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('added'));
+                self.$('.js-date').html(m.format('DD-MMM-YYYY'));
+
+                self.$('.js-eventsenabled').val(self.model.get('eventsenabled'));
+
+                self.waitDOM(self, function() {
+                    self.$('select').selectpicker();
+                });
+
+                self.delegateEvents();
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.ModTools.Member.SupportSearch.Message = Iznik.View.extend({
+        template: 'modtools_support_message',
+
+        render: function() {
+            var self = this;
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var mom = new moment(self.model.get('date'));
+                self.$('.js-date').html(mom.format('DD-MMM-YYYY hh:mm:a'));
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.ModTools.Member.SupportSearch.Applied = Iznik.Views.ModTools.Member.Applied.extend({
+        template: 'modtools_support_appliedto'
     });
 
     Iznik.Views.ModTools.Message.SupportSearchResult = Iznik.Views.ModTools.Message.Approved.extend({

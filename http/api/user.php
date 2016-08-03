@@ -14,6 +14,7 @@ function user() {
     $suspectcount = array_key_exists('suspectcount', $_REQUEST) ? intval($_REQUEST['suspectcount']) : NULL;
     $suspectreason = presdef('suspectreason', $_REQUEST, NULL);
     $settings = presdef('settings', $_REQUEST, NULL);
+    $search = presdef('search', $_REQUEST, NULL);
 
     if (!$id && $yahooUserId) {
         # We don't know our unique ID, but we do know the Yahoo one. Find it.
@@ -44,13 +45,34 @@ function user() {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
             if ($u && $me) {
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success'
-                ];
+                if ($search) {
+                    # Admin or support can search users.
+                    if ($me->isAdminOrSupport()) {
+                        $users = $u->search($search, $ctx);
 
-                $ret['user'] = $u->getPublic(NULL, TRUE, $logs, $ctx, TRUE, TRUE, TRUE, $modmailsonly);
-                $ret['logcontext'] = $ctx;
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'users' => $users,
+                            'context' => $ctx
+                        ];
+
+                        # Add sessions
+                        $u = new User($dbhr, $dbhm);
+
+                        foreach ($ret['users']as &$user) {
+                            $user['sessions'] = $u->getSessions($dbhr, $dbhm, $user['id']);
+                        }
+                    }
+                } else {
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+
+                    $ret['user'] = $u->getPublic(NULL, TRUE, $logs, $ctx, TRUE, TRUE, TRUE, $modmailsonly);
+                    $ret['logcontext'] = $ctx;
+                }
             }
 
             break;

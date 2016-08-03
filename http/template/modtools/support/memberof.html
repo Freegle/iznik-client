@@ -1,0 +1,34 @@
+<div class="row">
+    <div class="col-md-2 forcebreak">
+        <% if (role == 'Moderator' || role == 'Owner') { %><div class="glyphicons glyphicons-crown warning" /><% } else { %><div class="glyphicons glyphicons-user success" /><% } %>&nbsp;<a href="mailto:{{nameshort}}-owner@yahoogroups.com">{{nameshort}}</a>
+    </div>
+    <div class="col-md-1 js-date">
+    </div>
+    <div class="col-md-3 forcebreak">
+        <a href="mailto:{{email}}">{{email}}</a>
+    </div>
+    <div class="col-md-2">
+        <select class="form-control js-emailfrequency" data-style="btn-white" disabled="true">
+            <option data-content="<img src='/images/heart_empty.png' />&nbsp;Immediately" value="-1">Immediately</option>
+            <option data-content="<img src='/images/heart_empty.png' />&nbsp;Never" value="0">Never</option>
+            <option data-content="<img src='/images/heart_empty.png' />&nbsp;Every Hour" value="1">Every Hour</option>
+            <option data-content="<img src='/images/heart_empty.png' />&nbsp;Every 2 Hours" value="2">Every 2 Hours</option>
+            <option data-content="<img src='/images/heart_empty.png' />&nbsp;Every 4 Hours" value="4">Every 4 Hours</option>
+            <option data-content="<img src='/images/heart_empty.png' />&nbsp;Every 8 Hours" value="2">Every 8 Hours</option>
+            <option data-content="<img src='/images/heart_empty.png' />&nbsp;Every day" value="24">Every day</option>
+        </select>
+        <br />
+        <select class="form-control js-eventsenabled" data-style="btn-white" disabled="true">
+            <option data-content="<span class='glyphicon glyphicon-calendar'></span>&nbsp;Event Mails On" value="1">Event Mails On</option>
+            <option data-content="<span class='glyphicon glyphicon-calendar'></span>&nbsp;Event Mails Off" value="0">Event Mails Off</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <% if (role == 'Member') { %>
+        <div class="btn btn-white js-remove">
+            <span class="clickme glyphicon glyphicon-trash" />&nbsp;Remove
+        </div>
+        <% } %>
+    </div>
+</div>
+<hr class="grey nopad nomargin padtopsm" />

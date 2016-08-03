@@ -198,34 +198,6 @@ class membershipsAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testSupportSearch() {
-        error_log(__METHOD__);
-
-        $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
-        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MEMBER));
-
-        # Search across all groups.
-        $ret = $this->call('memberships', 'GET', [
-            'search' => 'test@test'
-        ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['members']));
-        assertEquals($this->uid, $ret['members'][0]['userid']);
-
-        # Test that a mod can't see stuff
-        $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
-        assertEquals(1, $this->user->removeMembership($this->groupid));
-
-        # Search across all groups.
-        $ret = $this->call('memberships', 'GET', [
-            'search' => 'tes2t@test.com'
-        ]);
-        error_log("Should fail " . var_export($ret, TRUE));
-        assertEquals(2, $ret['ret']);
-
-        error_log(__METHOD__ . " end");
-    }
-
     public function testDemote() {
         error_log(__METHOD__);
 

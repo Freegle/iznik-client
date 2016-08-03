@@ -586,8 +586,8 @@ class MailRouter
                                 $ret = MailRouter::TO_USER;
                             }
                         }
-                    } else {
-                        # See if it's a direct reply.
+                    } else if (!$this->msg->isAutoreply()) {
+                        # See if it's a direct reply.  Auto-replies (that we can identify) we just drop.
                         $uid = $u->findByEmail($to);
                         if ($log) { error_log("Find reply $to = $uid"); }
 

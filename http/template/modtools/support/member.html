@@ -5,16 +5,16 @@
                 <div class="row-fluid">
                     <div class="col-md-4">
                         <div class="ellipsis js-email">
-                            <div class="glyphicon glyphicon-envelope" />&nbsp;
+                            <div class="glyphicon glyphicon-envelope" />&nbsp;{{email}}
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="ellipsis">
-                            <div class="glyphicon glyphicon-user" />&nbsp;<% if (obj.displayname && displayname.trim().length > 0) { %>{{displayname}}<% } else { %><em>Blank name</em><% } %> <% if (obj.yahooid) { %>({{yahooid}}<% if (obj.yahooAlias && obj.yahooAlias != obj.yahooid) { %> aka {{yahooAlias}}<% } %>)<% } %>
+                            <div class="glyphicon glyphicon-user" />&nbsp;<% if (obj.displayname && displayname.trim().length > 0) { %>{{displayname}}<% } else { %><em>Blank name</em><% } %>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        #{{userid}}
+                        #{{id}}
                     </div>
                 </div>
             </div>
@@ -22,28 +22,46 @@
     </div>
     <div class="panel-body">
         <div class="completefull nomargin">
-            <div class="row-fluid">
-                <div class="noleftpad col-md-4">
-                    <div class="panel panel-default">
-                        <div class="panel-body small">
-                            <div class="js-otheremails" />
-                        </div>
-                    </div>
-                    <div class="panel panel-default">
-                        <div class="panel-body small">
-                            <div class="js-sessions" />
-                        </div>
-                    </div>
+            <h4>Settings</h4>
+            <div class="row">
+                <div class="col-md-3">
+                    Newsletters allowed?
                 </div>
-                <div class="noleftpad col-md-8">
-                    <div class="panel panel-default">
-                        <div class="panel-body small">
-                            <div class="js-user"></div>
-                            <div class="js-memberof" />
-                            <div class="js-applied" />
-                        </div>
-                    </div>
+                <div class="col-md-9">
+                    <% if (obj.newslettersallowed) { %>Yes<% } else { %>No<% } %>
                 </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    On holiday?
+                </div>
+                <div class="col-md-9">
+                    <% if (obj.onholidaytill && onholidaytill != '1970-01-01T00:00:00Z') { %><abbr class="timeago" title="{{onholidaytill}}" /></small></span><% } else { %>No<% } %>
+                </div>
+            </div>
+            <h4>Memberships</h4>
+            <div class="js-memberof" />
+            <div class="js-memberofnone">
+                This user isn't a member of any groups.
+            </div>
+            <div class="js-otheremailsdiv">
+                <h4>Other Known Emails</h4>
+                <div class="js-otheremails" />
+            </div>
+            <h4>Recent Applications</h4>
+            <div class="js-appliedto" />
+            <div class="js-appliednone">
+                This user hasn't recently applied to any groups.
+            </div>
+            <h4>Recent Sessions</h4>
+            <div class="js-sessions" />
+            <div class="js-sessionsnone">
+                No recent sessions.
+            </div>
+            <h4>Message History</h4>
+            <div class="js-messages" />
+            <div class="js-messagesnone">
+                This user hasn't posted any messages.
             </div>
         </div>
         <div class="clearfix"></div>
