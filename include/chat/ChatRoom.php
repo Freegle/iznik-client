@@ -536,7 +536,7 @@ class ChatRoom extends Entity
 
         $modaccess = FALSE;
 
-        if ($myid != $this->chatroom['user1'] && $myid != $this->chatroom['user1']) {
+        if ($myid && $myid != $this->chatroom['user1'] && $myid != $this->chatroom['user1']) {
             $modaccess = $me->moderatorForUser($this->chatroom['user1']) ||
                 $me->moderatorForUser($this->chatroom['user2']);
         }
