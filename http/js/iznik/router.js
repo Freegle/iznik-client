@@ -97,7 +97,8 @@ define([
             "modtools/members/approved(/:search)": "approvedMembers",
             "modtools/members/spam": "spamMembers",
             "modtools/events/pending": "pendingEvents",
-            "modtools/replies": "chatReview",
+            "modtools/conversations/replies": "chatReview",
+            "modtools/conversations/reported": "chatReport",
             "modtools/spammerlist/pendingadd(/:search)": "spammerListPendingAdd",
             "modtools/spammerlist/confirmed(/:search)": "spammerListConfirmed",
             "modtools/spammerlist/pendingremove(/:search)": "spammerListPendingRemove",
@@ -671,6 +672,24 @@ define([
             require(["iznik/views/pages/modtools/chat_review"], function() {
                 self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                     var page = new Iznik.Views.ModTools.Pages.ChatReview();
+                    self.loadRoute({
+                        page: page,
+                        modtools: true
+                    });
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+
+        chatReport: function () {
+            var self = this;
+
+            require(["iznik/views/pages/modtools/chat_report"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.ChatReport();
                     self.loadRoute({
                         page: page,
                         modtools: true

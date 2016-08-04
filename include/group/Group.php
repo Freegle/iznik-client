@@ -207,17 +207,7 @@ class Group extends Entity
             'plugin' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM plugin WHERE groupid = ?;", [
                 $this->id
             ])[0]['count'],
-            # For chats, we should see the messages which require review, and where we are a mod on one of the groups
-            # that the recipient of the message (i.e. the chat member who isn't the one who sent it) is on.
-            'chatreview' => $showmessages ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid = ? AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator'));", [
-                $this->id,
-                $myid
-            ])[0]['count'] : 0,
-            'chatreviewother' => $showmessages ? 0 : $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid = ? AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator'));", [ $this->id, $myid ])[0]['count'],
         ];
-
-        #error_log("SELECT COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid = {$this->id} AND {$this->id} IN (SELECT groupid FROM memberships WHERE memberships.userid = $myid AND memberships.role IN ('Owner', 'Moderator'));");
-
         return($ret);
     }
 
@@ -371,7 +361,7 @@ class Group extends Entity
             $thisone['yahooDeliveryType'] = $member['yahooDeliveryType'];
             $thisone['yahooPostingStatus'] = $member['yahooPostingStatus'];
             $thisone['yahooAlias'] = $member['yahooAlias'];
-            $thisone['role'] = $u->getRole($member['groupid']);
+            $thisone['role'] = $u->getRoleForGroup($member['groupid']);
             $thisone['joincomment'] = $member['joincomment'];
             $thisone['emailfrequency'] = $member['emailfrequency'];
 
@@ -550,7 +540,7 @@ class Group extends Entity
             error_log("Scanned members {$this->group['nameshort']}");
 
             $me = whoAmI($this->dbhr, $this->dbhm);
-            $myrole = $me ? $me->getRole($this->id) : User::ROLE_NONMEMBER;
+            $myrole = $me ? $me->getRoleForGroup($this->id) : User::ROLE_NONMEMBER;
 
             # Save off the list of members which currently exist, so that after we've processed the ones which currently
             # exist, we can remove any which should no longer be present.

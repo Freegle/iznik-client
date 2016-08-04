@@ -36,7 +36,7 @@ function locations() {
 
         case 'POST': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
-            $role = $me ? $me->getRole($groupid) : User::ROLE_NONMEMBER;
+            $role = $me ? $me->getRoleForGroup($groupid) : User::ROLE_NONMEMBER;
 
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];

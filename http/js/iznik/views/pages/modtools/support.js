@@ -359,7 +359,8 @@ define([
         template: 'modtools_support_member',
 
         events: {
-            'click .js-logs': 'logs'
+            'click .js-logs': 'logs',
+            'click .js-spammer': 'spammer'
         },
 
         groups: [],
@@ -377,6 +378,26 @@ define([
 
                 v.render();
             });
+        },
+
+        spammer: function() {
+            var self = this;
+            var v = new Iznik.Views.ModTools.EnterReason();
+            self.listenToOnce(v, 'reason', function(reason) {
+                $.ajax({
+                    url: API + 'spammers',
+                    type: 'POST',
+                    data: {
+                        userid: self.model.get('id'),
+                        reason: reason,
+                        collection: 'PendingAdd'
+                    }, success: function(ret) {
+                        (new Iznik.Views.ModTools.User.Reported().render());
+                    }
+                });
+            });
+
+            v.render();
         },
 
         addMessage: function(message) {
@@ -408,7 +429,6 @@ define([
         render: function () {
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
-                console.log("Model", self.model);
                 // Add any group memberships.
                 self.$('.js-memberof').empty();
 
@@ -545,12 +565,45 @@ define([
         }
     });
 
-    Iznik.Views.ModTools.Member.SupportSearch.MemberOf = Iznik.Views.ModTools.Member.Of.extend({
+    Iznik.Views.ModTools.Member.SupportSearch.MemberOf = Iznik.View.extend({
         template: 'modtools_support_memberof',
+
+        events: {
+            'click .js-remove': 'remove'
+        },
+
+        remove: function() {
+            var self = this;
+
+            if (self.options.user.get('systemrole') == 'User') {
+                var v = new Iznik.Views.Confirm({
+                    model: self.options.user
+                });
+                v.template = 'modtools_members_removeconfirm';
+
+                self.listenToOnce(v, 'confirmed', function() {
+                    $.ajax({
+                        url: API + 'memberships',
+                        type: 'DELETE',
+                        data: {
+                            userid: self.options.user.get('id'),
+                            groupid: self.model.get('id')
+                        }, success: function(ret) {
+                            if (ret.ret == 0) {
+                                self.$el.fadeOut('slow');
+                                self.options.user.trigger('removed');
+                            }
+                        }
+                    });
+                });
+
+                v.render();
+            }
+        },
 
         render: function() {
             var self = this;
-            var p = Iznik.Views.ModTools.Member.Of.prototype.render.call(self);
+            var p = Iznik.View.prototype.render.call(self);
             p.then(function() {
                 var m = new moment(self.model.get('added'));
                 self.$('.js-date').html(m.format('DD-MMM-YYYY'));

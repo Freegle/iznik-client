@@ -829,7 +829,7 @@ class User extends Entity
         return($rc);
     }
 
-    public function getRole($groupid, $overrides = TRUE) {
+    public function getRoleForGroup($groupid, $overrides = TRUE) {
         # We can have a number of roles on a group
         # - none, we can only see what is member
         # - member, we are a group member and can see some extra info
@@ -872,6 +872,27 @@ class User extends Entity
         }
 
         return($role);
+    }
+
+    public function moderatorForUser($userid) {
+        # There are times when we want to check whether we can administer a user, but when we are not immediately
+        # within the context of a known group.  We can administer a user when:
+        # - they're only a user themselves
+        # - we are a mod on one of the groups on which they are a member.
+        $u = new User($this->dbhr, $this->dbhm, $userid);
+
+        $usermemberships = [];
+        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Member');", [ $userid ]);
+        foreach ($groups as $group) {
+            $usermemberships = $group['groupid'];
+        }
+
+        $mymodships = $this->getModeratorships();
+
+        # Is there any group which we mod and which they are a member of?
+        $canmod = count(array_intersect($usermemberships, $mymodships)) > 0;
+
+        return($canmod);
     }
 
     public function setGroupSettings($groupid, $settings) {
@@ -1041,7 +1062,7 @@ class User extends Entity
 
                         if ($g->getId()) {
                             $groups[$log['groupid']] = $g->getPublic();
-                            $groups[$log['groupid']]['myrole'] = $me ? $me->getRole($log['groupid']) : User::ROLE_NONMEMBER;
+                            $groups[$log['groupid']]['myrole'] = $me ? $me->getRoleForGroup($log['groupid']) : User::ROLE_NONMEMBER;
                         }
                     }
 
@@ -1160,7 +1181,7 @@ class User extends Entity
             $sql = "SELECT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
             $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
             foreach ($groups as $group) {
-                $role = $me ? $me->getRole($group['groupid']) : User::ROLE_NONMEMBER;
+                $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
                 $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
 
                 $memberof[] = [

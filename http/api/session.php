@@ -68,6 +68,9 @@ function session() {
                 $s = new Spam($dbhr, $dbhm);
                 $ret['work']['spammerpendingadd'] = $s->collectionCount(Spam::TYPE_PENDING_ADD);
                 $ret['work']['spammerpendingremove'] = $s->collectionCount(Spam::TYPE_PENDING_REMOVE);
+
+                $c = new ChatMessage($dbhr, $dbhm);
+                $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
             } else {
                 $ret = array('ret' => 1, 'status' => 'Not logged in');
             }

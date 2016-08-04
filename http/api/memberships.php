@@ -158,7 +158,7 @@ function memberships() {
 
                 if ($u && $me && $u->getId() && $me->getId()) {
                     # If this isn't us, we can add them, but not as someone with higher permissions than us.
-                    $role = $u->roleMin($role, $me->getRole($groupid));
+                    $role = $u->roleMin($role, $me->getRoleForGroup($groupid));
 
                     if ($email) {
                         # Get the emailid we'd like to use on this group.  This will add it if absent.
@@ -190,7 +190,7 @@ function memberships() {
 
             case 'POST': {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
-                $role = $me ? $me->getRole($groupid) : User::ROLE_NONMEMBER;
+                $role = $me ? $me->getRoleForGroup($groupid) : User::ROLE_NONMEMBER;
 
                 if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
@@ -250,14 +250,16 @@ function memberships() {
                     }
                 } else if ($u && $me && ($me->isAdminOrSupport() || $me->isModOrOwner($groupid) || $userid == $me->getId())) {
                     # We can remove them, but not if they are someone higher than us.
-                    $myrole = $me->getRole($groupid);
-                    if ($myrole == $u->roleMax($myrole, $u->getRole($groupid))) {
-                        $u->removeMembership($groupid, $ban);
+                    $myrole = $me->getRoleForGroup($groupid);
+                    if ($myrole == $u->roleMax($myrole, $u->getRoleForGroup($groupid))) {
+                        $rc = $u->removeMembership($groupid, $ban);
 
-                        $ret = [
-                            'ret' => 0,
-                            'status' => 'Success'
-                        ];
+                        if ($rc) {
+                            $ret = [
+                                'ret' => 0,
+                                'status' => 'Success'
+                            ];
+                        }
                     }
                 }
 
@@ -276,7 +278,7 @@ function memberships() {
 
                         if ($role) {
                             # We can set the role, but not to something higher than our own.
-                            $role = $u->roleMin($role, $me->getRole($groupid));
+                            $role = $u->roleMin($role, $me->getRoleForGroup($groupid));
                             $u->setRole($role, $groupid);
                         }
 

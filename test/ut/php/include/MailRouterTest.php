@@ -174,7 +174,7 @@ class MailRouterTest extends IznikTestCase {
         $r->received(Message::YAHOO_SYSTEM, NULL, "modconfirm-$gid-$uid-$key@iznik.modtools.org", $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_SYSTEM, $rc);
-        assertEquals(User::ROLE_MODERATOR, $u->getRole($gid));
+        assertEquals(User::ROLE_MODERATOR, $u->getRoleForGroup($gid));
 
         # A user who is an owner - shouldn't be demoted
         error_log("Owner");
@@ -187,7 +187,7 @@ class MailRouterTest extends IznikTestCase {
         $r->received(Message::YAHOO_SYSTEM, NULL, "modconfirm-$gid-$uid-$key@iznik.modtools.org", $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_SYSTEM, $rc);
-        assertEquals(User::ROLE_OWNER, $u->getRole($gid));
+        assertEquals(User::ROLE_OWNER, $u->getRoleForGroup($gid));
 
         # Try a fake confirm
         $msg = file_get_contents('msgs/confirmmod_fake');

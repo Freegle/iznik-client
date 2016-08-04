@@ -212,11 +212,11 @@ class userTest extends IznikTestCase {
         $u->setPrivate('yahooUserId', 1);
         $u = new User($this->dbhm, $this->dbhm, $id);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
-        assertEquals($u->getRole($group1), User::ROLE_NONMEMBER);
+        assertEquals($u->getRoleForGroup($group1), User::ROLE_NONMEMBER);
         assertFalse($u->isModOrOwner($group1));
 
         $u->addMembership($group1, User::ROLE_MEMBER, $eid);
-        assertEquals($u->getRole($group1), User::ROLE_MEMBER);
+        assertEquals($u->getRoleForGroup($group1), User::ROLE_MEMBER);
         assertFalse($u->isModOrOwner($group1));
         $u->setGroupSettings($group1, [
             'testsetting' => 'test'
@@ -227,7 +227,7 @@ class userTest extends IznikTestCase {
 
         error_log("Set owner");
         $u->setRole(User::ROLE_OWNER, $group1);
-        assertEquals($u->getRole($group1), User::ROLE_OWNER);
+        assertEquals($u->getRoleForGroup($group1), User::ROLE_OWNER);
         assertTrue($u->isModOrOwner($group1));
         assertTrue(array_key_exists('work', $u->getMemberships()[0]));
         $settings = $u->getGroupSettings($group1);
@@ -245,7 +245,7 @@ class userTest extends IznikTestCase {
         assertEquals(1, count($atts['applied']));
 
         $u->setRole(User::ROLE_MODERATOR, $group1);
-        assertEquals($u->getRole($group1), User::ROLE_MODERATOR);
+        assertEquals($u->getRoleForGroup($group1), User::ROLE_MODERATOR);
         assertTrue($u->isModOrOwner($group1));
         assertTrue(array_key_exists('work', $u->getMemberships()[0]));
         $modships = $u->getModeratorships();
@@ -256,7 +256,7 @@ class userTest extends IznikTestCase {
         assertEquals(2, count($membs));
 
         $u->removeMembership($group1);
-        assertEquals($u->getRole($group1), User::ROLE_NONMEMBER);
+        assertEquals($u->getRoleForGroup($group1), User::ROLE_NONMEMBER);
         $membs = $u->getMemberships();
         assertEquals(1, count($membs));
         assertEquals($group2, $membs[0]['id']);
@@ -282,10 +282,10 @@ class userTest extends IznikTestCase {
         $m = new Message($this->dbhm, $this->dbhm, $mid);
 
         $u->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
-        assertEquals($u->getRole($group1), User::ROLE_MODERATOR);
+        assertEquals($u->getRoleForGroup($group1), User::ROLE_MODERATOR);
         assertEquals(User::ROLE_MODERATOR, $m->getRoleForMessage());
         $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
-        assertEquals($u->getRole($group1), User::ROLE_OWNER);
+        assertEquals($u->getRoleForGroup($group1), User::ROLE_OWNER);
         assertEquals(User::ROLE_OWNER, $m->getRoleForMessage());
 
         # Ban ourselves; can't rejoin

@@ -262,7 +262,7 @@ class messagesTest extends IznikAPITestCase {
 
         # Promote to owner - should be able to see it.
         $u->setRole(User::ROLE_OWNER, $group1);
-        assertEquals(User::ROLE_OWNER, $u->getRole($group1));
+        assertEquals(User::ROLE_OWNER, $u->getRoleForGroup($group1));
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
         $ret = $this->call('messages', 'GET', [
@@ -340,7 +340,7 @@ class messagesTest extends IznikAPITestCase {
 
         # Promote to mod - should be able to see it.
         $u->setRole(User::ROLE_MODERATOR, $group1);
-        assertEquals(User::ROLE_MODERATOR, $u->getRole($group1));
+        assertEquals(User::ROLE_MODERATOR, $u->getRoleForGroup($group1));
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1,
             'collection' => 'Pending'

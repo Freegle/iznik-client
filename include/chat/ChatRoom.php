@@ -358,9 +358,25 @@ class ChatRoom extends Entity
     }
 
     public function canSee($userid) {
+        # This user can see this chat if:
+        # - it's one of the user's own chats, or
+        # - it's a conversation between two users and this user can administer one of them (i.e. is a mod on one of
+        #   their groups.
         $rooms = $this->listForUser($userid, [ $this->chatroom['chattype'] ]);
         #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
-        return($rooms ? in_array($this->id, $rooms) : FALSE);
+        $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
+
+        if (!$cansee) {
+            $me = whoAmI($this->dbhr, $this->dbhm);
+
+            if ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER &&
+                ($me->moderatorForUser($this->chatroom['user1']) ||
+                 $me->moderatorForUser($this->chatroom['user2']))) {
+                $cansee = TRUE;
+            }
+        }
+
+        return($cansee);
     }
 
     public function updateRoster($userid, $lastmsgseen, $status) {

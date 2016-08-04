@@ -18,7 +18,7 @@ function chatrooms() {
         case 'GET': {
             if ($id) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                $ret['chatroom'] = $r->getPublic();
+                $ret['chatroom'] = $r->canSee($myid) ? $r->getPublic() : NULL;
             } else {
                 $me = whoAmI($dbhr, $dbhm);
                 $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
@@ -50,7 +50,6 @@ function chatrooms() {
             if ($me) {
                 $ret = ['ret' => 2, 'status' => 'Bad parameters'];
 
-                error_log("Create $chattype");
                 switch ($chattype) {
                     case ChatRoom::TYPE_USER2USER:
                         if ($userid) {
@@ -77,7 +76,7 @@ function chatrooms() {
             if ($me && $id) {
                 $ret = ['ret' => 2, 'status' => "$id Not visible to you"];
 
-                if ($r->canSee($me->getId())) {
+                if ($r->canSee($myid)) {
                     $ret = ['ret' => 0, 'status' => 'Success'];
                     $lastmsgseen = presdef('lastmsgseen', $_REQUEST, NULL);
                     $status = presdef('status', $_REQUEST, 'Online');

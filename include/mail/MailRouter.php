@@ -184,7 +184,7 @@ class MailRouter
 
                         if ($u->getPublic()['id'] == $userid) {
                             if ($log) { error_log("Userid $userid is valid"); }
-                            $role = $u->getRole($groupid, FALSE);
+                            $role = $u->getRoleForGroup($groupid, FALSE);
                             if ($log) { error_log("Role is $role"); }
 
                             if ($role == User::ROLE_NONMEMBER) {

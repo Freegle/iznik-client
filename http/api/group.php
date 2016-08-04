@@ -36,7 +36,7 @@ function group() {
                     'group' => $g->getPublic()
                 ];
 
-                $ret['group']['myrole'] = $me ? $me->getRole($id) : User::ROLE_NONMEMBER;
+                $ret['group']['myrole'] = $me ? $me->getRoleForGroup($id) : User::ROLE_NONMEMBER;
                 $ret['group']['mysettings'] = $me ? $me->getGroupSettings($id) : NULL;
                 $ctx = presdef('context', $_REQUEST, NULL);
                 $limit = presdef('limit', $_REQUEST, 5);
