@@ -6,6 +6,9 @@ define([
     'iznik/models/chat/chat',
     'jquery-resizable'
 ], function($, _, Backbone, Iznik) {
+    // This is a singleton view.
+    var instance;
+
     Iznik.Views.Chat.Holder = Iznik.View.extend({
         template: 'chat_holder',
 
@@ -263,6 +266,37 @@ define([
             this.showMin();
         },
 
+        reportPerson: function(groupid, chatid, reason, message) {
+            $.ajax({
+                type: 'PUT',
+                url: API + 'chat/rooms',
+                data: {
+                    chattype: 'User2Mod',
+                    groupid: groupid
+                }, success: function(ret) {
+                    if (ret.ret == 0) {
+                        Iznik.Session.chats.fetch({
+                            remove: false
+                        }).then(function() {
+                            // Now create a report message.
+                            var msg = new Iznik.Models.Chat.Message({
+                                roomid: ret.id,
+                                message: message,
+                                reportreason: reason,
+                                refchatid: chatid
+                            });
+                            msg.save().then(function() {
+                                // Now open the chat so that the user sees what's happening.
+                                var chatmodel = Iznik.Session.chats.get(ret.id);
+                                var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
+                                chatView.restore();
+                            });
+                        });
+                    }
+                }
+            });
+        },
+
         openChatToMods: function(groupid) {
             $.ajax({
                 type: 'PUT',
@@ -447,6 +481,7 @@ define([
         events: {
             'click .js-remove, touchstart .js-remove': 'removeIt',
             'click .js-minimise, touchstart .js-minimise': 'minimise',
+            'click .js-report, touchstart .js-report': 'report',
             'focus .js-message': 'messageFocus',
             'click .js-promise': 'promise',
             'click .js-send': 'send',
@@ -615,6 +650,18 @@ define([
             this.trigger('minimised');
         },
 
+        report: function() {
+            var groups = Iznik.Session.get('groups');
+
+            if (groups.length > 0) {
+                // We only take reports from a group member, so that we have somewhere to send it.
+                // TODO Give an error or pass to support?
+                (new Iznik.Views.Chat.Report({
+                    chatid: this.model.get('id')
+                })).render();
+            }
+        },
+
         adjust: function() {
             var self = this;
 
@@ -624,14 +671,14 @@ define([
 
             var width = self.$el.width();
 
-            if (self.model.get('group')) {
+            if (self.model.get('chattype') == 'Group') {
                 // Group chats have a roster.
                 var lpwidth = self.$('.js-leftpanel').width();
                 lpwidth = self.$el.width() - 60 < lpwidth ? (width - 60) : lpwidth;
                 lpwidth = Math.max(self.$el.width() - 250, lpwidth);
                 self.$('.js-leftpanel').width(lpwidth);
             } else {
-                // Conversations don't.
+                // Others
                 self.$('.js-leftpanel').width('100%');
             }
 
@@ -1033,6 +1080,26 @@ define([
     });
 
     Iznik.Views.Chat.Message = Iznik.View.extend({
+        events: {
+            'click .js-viewchat': 'viewChat'
+        },
+
+        viewChat: function() {
+            var self = this;
+
+            var chat = new Iznik.Models.Chat.Room({
+                id: self.model.get('refchatid')
+            });
+
+            chat.fetch().then(function() {
+                var v = new Iznik.Views.Chat.Modal({
+                    model: chat
+                });
+
+                v.render();
+            });
+        },
+
         render: function() {
             var self = this;
             var p;
@@ -1082,6 +1149,7 @@ define([
                     case 'Interested': tpl = this.model.get('refmsg') ? 'chat_interested' : 'chat_message'; break;
                     case 'Promised': tpl = this.model.get('refmsg') ? 'chat_promised' : 'chat_message'; break;
                     case 'Reneged': tpl = this.model.get('refmsg') ? 'chat_reneged' : 'chat_message'; break;
+                    case 'ReportedUser': tpl = 'chat_reported'; break;
                     default: tpl = 'chat_message'; break;
                 }
 
@@ -1132,6 +1200,50 @@ define([
         }
     });
 
+    Iznik.Views.Chat.Report = Iznik.Views.Modal.extend({
+        template: 'chat_report',
+
+        events: {
+            'click .js-report': 'report'
+        },
+
+        report: function() {
+            var self = this;
+            var reason = self.$('.js-reason').val();
+            var message = self.$('.js-message').val();
+            var groupid = self.groupSelect.get();
+
+            if (reason != '' && message != '') {
+                instance.reportPerson(groupid, self.options.chatid, reason, message);
+                self.close();
+            }
+        },
+
+        render: function() {
+            var self = this;
+            var p = Iznik.Views.Modal.prototype.render.call(self);
+            p.then(function () {
+                var groups = Iznik.Session.get('groups');
+
+                if (groups.length >= 0) {
+                    self.groupSelect = new Iznik.Views.Group.Select({
+                        systemWide: false,
+                        all: false,
+                        mod: false,
+                        choose: true,
+                        id: 'reportGroupSelect'
+                    });
+
+                    self.groupSelect.render().then(function() {
+                        self.$('.js-groupselect').html(self.groupSelect.el);
+                    });
+                }
+            });
+
+            return (p);
+        }
+    });
+
     Iznik.Views.Chat.Modal = Iznik.Views.Modal.extend({
         template: 'chat_modal',
 
@@ -1160,9 +1272,6 @@ define([
             return (p);
         }
     });
-
-    // This is a singleton view.
-    var instance;
 
     return function(options) {
         if (!instance) {

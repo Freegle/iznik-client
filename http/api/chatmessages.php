@@ -7,6 +7,8 @@ function chatmessages() {
     $roomid = intval(presdef('roomid', $_REQUEST, NULL));
     $message = presdef('message', $_REQUEST, NULL);
     $refmsgid = presdef('refmsgid', $_REQUEST, NULL);
+    $refchatid = presdef('refchatid', $_REQUEST, NULL);
+    $reportreason = presdef('reportreason', $_REQUEST, NULL);
     $ctx = presdef('context', $_REQUEST, NULL);
 
     $r = new ChatRoom($dbhr, $dbhm, $roomid);
@@ -81,7 +83,23 @@ function chatmessages() {
                         'status' => 'Success'
                     ];
                 } else if ($message && $roomid && $r->canSee($me->getId())) {
-                    $id = $m->create($roomid, $me->getId(), $message, $refmsgid ? ChatMessage::TYPE_INTERESTED : ChatMessage::TYPE_DEFAULT, $refmsgid);
+                    if ($refmsgid) {
+                        $type = ChatMessage::TYPE_INTERESTED;
+                    } else if ($refchatid) {
+                        $type = ChatMessage::TYPE_REPORTEDUSER;
+                    } else {
+                        $type = ChatMessage::TYPE_DEFAULT;
+                    }
+
+                    $id = $m->create($roomid,
+                        $me->getId(),
+                        $message,
+                        $type,
+                        $refmsgid,
+                        TRUE,
+                        NULL,
+                        $reportreason,
+                        $refchatid);
                     $ret = ['ret' => 3, 'status' => 'Message create failed'];
 
                     if ($id) {

@@ -2,13 +2,13 @@
     <div class="chat-name">
         <img src="/images/wingrip.png" class="clickme pull-left js-grip">&nbsp;
         <div class="dropdown pull-right">
+            <% if (!obj.group) { %>
             <span class="glyphicon glyphicon-menu-down dropdown-toggle clickme" type="button" id="chat-dropdown-{{id}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" />
             <ul class="dropdown-menu" aria-labelledby="chat-dropdown-{{id}}">
-                <% if (!obj.group) { %>
                 <li title="Remove this conversation from your list."><a class="js-remove" href="#">Remove this conversation</a></li>
                 <li title="Report this person to our volunteers."><a class="js-report" href="#">Report this person</a></li>
-                <% } %>
             </ul>
+            <% } %>
             <div class="js-minimise clickme inline padleftlg padright" title="Minimise this chat. It'll still show in your chat list" >
                 <div class="glyphicon glyphicon-minus"/>
             </div>

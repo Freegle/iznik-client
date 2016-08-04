@@ -62,9 +62,10 @@ if ($default) {
             <noscript>
                 <h1>Please enable Javascript</h1>
 
-                <p>We'd love to do a version
-                    which was accessible to people who don't use Javascript, but we do not have the volunteer resources to do that.
-                    If you'd like to help with skills or funding, please <a href="mailto:edward@ehibbert.org.uk">mail us</a>.</p>
+                <p>
+                    We'd love to do a version which was accessible to people who don't use Javascript, but we do not have the resources to do that.
+                    If you'd like to help with skills or funding, please <a href="mailto:geeks@ilovefreegle.org">mail us</a>.
+                </p>
             </noscript>
             <div id="pageloader" style="position: relative; height: 100vh; width: 100%">
                 <img src="/images/pageloader.gif" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto;"/>

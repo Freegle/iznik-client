@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 class ChatMessage extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'reviewrequired', 'reviewedby', 'reviewrejected', 'spamscore');
+    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'reviewrequired', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid');
     var $settableatts = array('name');
 
     const TYPE_DEFAULT = 'Default';
@@ -18,6 +18,7 @@ class ChatMessage extends Entity
     const TYPE_INTERESTED = 'Interested';
     const TYPE_PROMISED = 'Promised';
     const TYPE_RENEGED = 'Reneged';
+    const TYPE_REPORTEDUSER = 'ReportedUser';
 
     const ACTION_APPROVE = 'Approve';
     const ACTION_REJECT = 'Reject';
@@ -88,10 +89,10 @@ class ChatMessage extends Entity
         return($check);
     }
 
-    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL) {
+    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL) {
         try {
             $review = $this->checkReview($message);
-            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, spamscore) VALUES (?,?,?,?,?,?,?,?)", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, spamscore, reportreason, refchatid) VALUES (?,?,?,?,?,?,?,?,?,?)", [
                 $chatid,
                 $userid,
                 $message,
@@ -99,7 +100,9 @@ class ChatMessage extends Entity
                 $refmsgid,
                 $platform,
                 $review,
-                $spamscore
+                $spamscore,
+                $reportreason,
+                $refchatid
             ]);
 
             $id = $this->dbhm->lastInsertId();

@@ -1,0 +1,34 @@
+<div class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title js-modal-title">Oh dear...</h2>
+            </div>
+            <div class="modal-body js-modal-body">
+                <p>Sorry you're having trouble.</p>
+                <h3>Which group is this about?</h3>
+                <div class="js-groupselect" />
+                <h3>Why are you reporting this?</h3>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <select class="form-control js-reason">
+                            <option value="">Please choose...</option>
+                            <option value="Spam">It's spam</option>
+                            <option value="Other">Something else</option>
+                        </select>
+                    </div>
+                </div>
+                <h3>What's wrong?</h3>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <textarea class="form-control js-message" lines="5" placeholder="Please tell us what's wrong.  This will go to our lovely volunteers, who will try to help you."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success js-report">Send</button>
+                <button type="button" class="btn btn-default js-close" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
