@@ -1,7 +1,8 @@
 define([
     'jquery',
     'backbone',
-    'iznik/base'
+    'iznik/base',
+    'jquery-visibility'
 ], function($, Backbone, Iznik) {
     Iznik.Models.Session = Iznik.Model.extend({
         url: API + 'session',
@@ -19,13 +20,18 @@ define([
             self.playBeep = document.hidden;
 
             $(document).on('hide', function () {
-                console.log("Hide");
+                console.log("Tab Hide");
                 self.playBeep = true;
             });
 
             $(document).on('show', function () {
-                console.log("Show");
+                console.log("Tab Show");
                 self.playBeep = false;
+
+                // Check if we're still logged in - this tab might have been hidden for a while.  If we were logged
+                // in and we no longer are, this will trigger a reload, so we don't look as though we're logged in
+                // when we're not.
+                self.testLoggedIn();
             });
         },
 

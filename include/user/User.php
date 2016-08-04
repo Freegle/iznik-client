@@ -87,7 +87,7 @@ class User extends Entity
         # TODO lockout
         if ($this->id) {
             $pw = $this->hashPassword($pw);
-            $logins = $this->getLogins();
+            $logins = $this->getLogins(TRUE);
             foreach ($logins as $login) {
                 if ($force || ($login['type'] == User::LOGIN_NATIVE && $pw == $login['credentials'])) {
                     $s = new Session($this->dbhr, $this->dbhm);
@@ -778,12 +778,14 @@ class User extends Entity
         return(false);
     }
 
-    public function getLogins() {
+    public function getLogins($credentials = TRUE) {
         $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ?;",
             [$this->id]);
 
         foreach ($logins as &$login) {
-            unset($login['credentials']);
+            if (!$credentials) {
+                unset($login['credentials']);
+            }
             $login['added'] = ISODate($login['added']);
             $login['lastaccess'] = ISODate($login['lastaccess']);
         }
@@ -2417,7 +2419,7 @@ class User extends Entity
             $thisone['membershiphistory'] = $u->getMembershipHistory();
             $thisone['sessions'] = $u->getSessions($this->dbhr, $this->dbhm, $user['userid']);
 
-            $thisone['logins'] = $u->getLogins();
+            $thisone['logins'] = $u->getLogins(FALSE);
 
             $ret[] = $thisone;
         }

@@ -500,8 +500,10 @@ define([
             });
         },
 
-        removeIt: function() {
+        removeIt: function(e) {
             var self = this;
+            e.preventDefault();
+            e.stopPropagation();
 
             var v = new Iznik.Views.Confirm({
                 model: self.model
