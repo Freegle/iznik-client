@@ -55,7 +55,8 @@ define([
 
         events: {
             'click .js-approve': 'approve',
-            'click .js-delete': 'deleteMe'
+            'click .js-delete': 'deleteMe',
+            'click .js-view': 'view'
         },
 
         approve: function() {
@@ -88,6 +89,22 @@ define([
                     }
                 }
             })
+        },
+
+        view: function() {
+            var self = this;
+
+            var chat = new Iznik.Models.Chat.Room({
+                id: self.model.get('chatid')
+            });
+
+            chat.fetch().then(function() {
+                var v = new Iznik.Views.Chat.Modal({
+                    model: chat
+                });
+
+                v.render();
+            });
         }
     });
 });

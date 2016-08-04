@@ -884,12 +884,13 @@ class User extends Entity
         $usermemberships = [];
         $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Member');", [ $userid ]);
         foreach ($groups as $group) {
-            $usermemberships = $group['groupid'];
+            $usermemberships[] = $group['groupid'];
         }
 
         $mymodships = $this->getModeratorships();
 
         # Is there any group which we mod and which they are a member of?
+        #error_log("Compare groups " . var_export($usermemberships, TRUE) . " vs " . var_export($mymodships, TRUE));
         $canmod = count(array_intersect($usermemberships, $mymodships)) > 0;
 
         return($canmod);
@@ -2057,7 +2058,7 @@ class User extends Entity
     }
 
     public function welcome($email, $password) {
-        $html = welcome_password(USER_SITE, MODLOGO, $email, $password);
+        $html = welcome_password(USER_SITE, USERLOGO, $email, $password);
 
         $message = Swift_Message::newInstance()
             ->setSubject("Welcome to " . SITE_NAME . "!")

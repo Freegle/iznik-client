@@ -91,14 +91,8 @@ define([
 
             // Fill in the users - each message has the user object below it for our convenience, even though the server
             // returns them in a separate object for bandwidth reasons.
-            //
-            // If the user is us, we remove it.
-            var myid = Iznik.Session.get('me').id;
-
             _.each(msgs, function(msg, index, list) {
-                if (msg.userid != myid) {
-                    msg.user = ret.chatusers[msg.userid];
-                }
+                msg.user = ret.chatusers[msg.userid];
             });
 
             return(msgs);

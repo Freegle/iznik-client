@@ -2006,6 +2006,12 @@ class Message
         $p = strpos($textbody, '----Original message----');
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
+        # Or this:
+        #
+        # -------- Original message --------
+        $p = strpos($textbody, '-------- Original message --------');
+        $textbody = $p ? substr($textbody, 0, $p) : $textbody;
+
         # Or we might have this, for example from GMail:
         #
         # On Sat, May 14, 2016 at 2:19 PM, Edward Hibbert <

@@ -367,6 +367,7 @@ class ChatRoom extends Entity
         $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
 
         if (!$cansee) {
+            #error_log("$userid can't see {$this->id} of type {$this->chatroom['chattype']}");
             $me = whoAmI($this->dbhr, $this->dbhm);
 
             if ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER &&
@@ -533,11 +534,18 @@ class ChatRoom extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
+        $modaccess = FALSE;
+
+        if ($myid != $this->chatroom['user1'] && $myid != $this->chatroom['user1']) {
+            $modaccess = $me->moderatorForUser($this->chatroom['user1']) ||
+                $me->moderatorForUser($this->chatroom['user2']);
+        }
+
         foreach ($msgs as $msg) {
             $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
             $atts = $m->getPublic();
 
-            if ($atts['reviewrequired'] && $msg['userid'] != $myid) {
+            if ($atts['reviewrequired'] && $msg['userid'] != $myid && !$modaccess) {
                 # This message is held for review, and we didn't send it.  So we shouldn't see it.
             } else if ($atts['reviewrejected']) {
                 # This message was reviewed and deemed unsuitable.  So we shouldn't see it.

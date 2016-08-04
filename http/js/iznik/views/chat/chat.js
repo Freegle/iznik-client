@@ -1045,8 +1045,32 @@ define([
                     message = this.model.set('message', wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, '<br />'));
                 }
 
-                this.model.set('group', this.options.chatModel.get('group'));
-                this.model.set('myid', Iznik.Session.get('me').id);
+                var group = this.options.chatModel.get('group');
+                var myid = Iznik.Session.get('me').id;
+                this.model.set('group', group);
+                this.model.set('myid', myid);
+
+                // Decide if this message should be on the left or the right.
+                //
+                // For group messages, our messages are on the right.
+                // For conversations:
+                // - if we're one of the users then our messages are on the right
+                // - otherwise user1 is on the left and user2 on the right.
+                var userid = this.model.get('user').id;
+                var u1 = this.options.chatModel.get('user1');
+                var user1 = u1 ? u1.id : null;
+                var u2 = this.options.chatModel.get('user1');
+                var user2 = u2 ? u2.id : null;
+
+                if (group) {
+                    this.model.set('left', userid != myid);
+                } else if (myid == user1 || myid == user2) {
+                    this.model.set('left', userid != myid);
+                } else {
+                    this.model.set('left', userid == user1);
+                }
+
+                //console.log("Consider left", userid, myid, user1, user2, this.model.get('left'));
 
                 this.model.set('lastmsgseen', this.options.chatModel.get('lastmsgseen'));
 
@@ -1105,6 +1129,35 @@ define([
                     }
                 })
             }
+        }
+    });
+
+    Iznik.Views.Chat.Modal = Iznik.Views.Modal.extend({
+        template: 'chat_modal',
+
+        render: function () {
+            // Open a modal containing the chat messages.
+            var self = this;
+            var p = Iznik.Views.Modal.prototype.render.call(self);
+            p.then(function () {
+                self.messages = new Iznik.Collections.Chat.Messages({
+                    roomid: self.model.get('id')
+                });
+
+                self.collectionView = new Backbone.CollectionView({
+                    el: self.$('.js-messages'),
+                    modelView: Iznik.Views.Chat.Message,
+                    collection: self.messages,
+                    modelViewOptions: {
+                        chatModel: self.model
+                    }
+                });
+
+                self.collectionView.render();
+                self.messages.fetch();
+            });
+
+            return (p);
         }
     });
 

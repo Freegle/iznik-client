@@ -204,7 +204,7 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
         assertEquals(1, $this->user2->addMembership($this->groupid, User::ROLE_MEMBER));
 
-        assertEquals(User::ROLE_MODERATOR, $this->user->getRole($this->groupid));
+        assertEquals(User::ROLE_MODERATOR, $this->user->getRoleForGroup($this->groupid));
 
         # Demote ourselves - should work
         $ret = $this->call('memberships', 'PATCH', [
@@ -214,7 +214,7 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        assertEquals(User::ROLE_MEMBER, $this->user->getRole($this->groupid));
+        assertEquals(User::ROLE_MEMBER, $this->user->getRoleForGroup($this->groupid));
 
         # Try again - should fail as we're not a mod now.
         $ret = $this->call('memberships', 'PATCH', [
