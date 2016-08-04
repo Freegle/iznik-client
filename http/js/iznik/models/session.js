@@ -322,7 +322,11 @@ define([
 
                                             if (presdef('playbeep', settings, 1) && self.playBeep) {
                                                 var sound = new Audio("/sounds/alert.wav");
-                                                sound.play();
+                                                try {
+                                                    // Some browsers prevent us using play unless in response to a
+                                                    // user gesture, so catch any exception.
+                                                    sound.play();
+                                                } catch (e) {}
                                             }
                                         }
                                     }
