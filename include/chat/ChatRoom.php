@@ -38,8 +38,12 @@ class ChatRoom extends Entity
             ->setSubject($subject)
             ->setFrom([$from => $fromname])
             ->setTo([$to => $toname])
-            ->setBody($text)
-            ->addPart($html, 'text/html');
+            ->setBody($text);
+
+        if ($html) {
+            $message->addPart($html, 'text/html');
+        }
+
         $headers = $message->getHeaders();
 
         # TODO
@@ -462,17 +466,41 @@ class ChatRoom extends Entity
             'roomid' => $this->id
         ];
 
-        $mysqltime = date("Y-m-d H:i:s", strtotime("60 seconds ago"));
-        $sql = "SELECT * FROM chat_roster WHERE `chatid` = ? AND `date` >= ?;";
-        $roster = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
-        $count = 0;
+        $userids = [];
+        $group = NULL;
+        $mods = FALSE;
+
+        switch ($this->chatroom['chattype']) {
+            case ChatRoom::TYPE_USER2USER:
+                # Poke both users.
+                $userids[] = $this->chatroom['user1'];
+                $userids[] = $this->chatroom['user2'];
+                break;
+            case ChatRoom::TYPE_USER2MOD:
+                # Poke the initiator and all group mods.
+                $userids[] = $this->chatroom['user1'];
+                $mods = TRUE;
+                break;
+            case ChatRoom::TYPE_MOD2MOD:
+                # If this is a group chat we poke all mods.
+                $mods = TRUE;
+                break;
+        }
+
 
         $n = new Notifications($this->dbhr, $this->dbhm);
+        $count = 0;
 
-        foreach ($roster as $rost) {
+        #error_log("Poke mods $mods users " . var_export($userids, TRUE));
+
+        foreach ($userids as $userid) {
             #error_log("Poke {$rost['userid']} for {$this->id}");
-            $n->poke($rost['userid'], $data);
+            $n->poke($userid, $data);
             $count++;
+        }
+
+        if ($mods) {
+            $count += $n->pokeGroupMods($this->chatroom['groupid'], $data);
         }
 
         return($count);
@@ -713,7 +741,10 @@ class ChatRoom extends Entity
                 $to = $thisu->getEmailPreferred();
 
                 try {
-                    $message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to, $fromname, $replyto, $subject, $textsummary, $html);
+                    # TODO Until we go live, don't send the rich notifications which drag people to the new site
+                    #
+                    #$message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to, $fromname, $replyto, $subject, $textsummary, $html);
+                    $message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to, $fromname, $replyto, $subject, $textsummary, NULL);
                     #error_log($to . " " . $subject);
                     $mailer->send($message);
 

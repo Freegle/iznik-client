@@ -1035,12 +1035,12 @@ class MailRouterTest extends IznikTestCase {
         # Send a message.
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        assertNotNull($id);
+        $origid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertNotNull($origid);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
-        # Send a purported reply.  This should result in the user being created.
+        # Send a purported reply.  This should result in the replying user being created.
         $msg = $this->unique(file_get_contents('msgs/replytext'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
@@ -1063,7 +1063,7 @@ class MailRouterTest extends IznikTestCase {
         error_log("Chat messages " . var_export($msgs, TRUE));
         assertEquals(1, count($msgs));
         assertEquals("I'd like to have these, then I can return them to Greece where they rightfully belong.", $msgs[0]['message']);
-        assertEquals($id, $msgs[0]['refmsg']['id']);
+        assertEquals($origid, $msgs[0]['refmsg']['id']);
 
         error_log("Chat users " . var_export($users, TRUE));
         assertEquals(1, count($users));
@@ -1072,6 +1072,7 @@ class MailRouterTest extends IznikTestCase {
         }
 
         # The reply should be visible in the message.
+        $m = new Message($this->dbhr, $this->dbhm, $origid);
         $atts = $m->getPublic(FALSE, FALSE, TRUE);
         assertEquals(1, count($atts['replies']));
 
@@ -1103,7 +1104,7 @@ class MailRouterTest extends IznikTestCase {
         assertEquals('This is a rich text reply. ', $lines[0]);
         assertEquals('  ', $lines[1]);
         assertEquals('Hopefully you\'ll receive it and it\'ll get parsed ok.', $lines[2]);
-        assertEquals($id, $msgs[0]['refmsg']['id']);
+        assertEquals($origid, $msgs[0]['refmsg']['id']);
 
         error_log("Chat users " . var_export($users, TRUE));
         assertEquals(1, count($users));
@@ -1179,6 +1180,19 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'from@test.com', "newslettersoff-$uid@" . USER_DOMAIN, $msg);
+        assertNotNull($id);
+        $rc = $r->route();
+        assertEquals($rc, MailRouter::TO_SYSTEM);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testSpecial() {
+        error_log(__METHOD__);
+
+        $msg = $this->unique(file_get_contents('msgs/special'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'obediah@ehibbert.org.uk', "FBUser.1287223266.420404@republisher.freegle.in", $msg);
         assertNotNull($id);
         $rc = $r->route();
         assertEquals($rc, MailRouter::TO_SYSTEM);

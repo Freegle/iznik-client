@@ -172,7 +172,7 @@ class Notifications
                     error_log("Failed to post");
                 } else {
                     fputs($fp, $header . $vars);
-                    $server_response = fread($fp, 256);
+                    $server_response = fread($fp, 512);
                     #error_log("Rsp on $service_uri $server_response");
                 }
             }

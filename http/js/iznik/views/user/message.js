@@ -227,13 +227,14 @@ define([
                     self.$('.js-attlist').append(v.el);
                 });
 
+                self.replies = new Iznik.Collection(replies);
+
                 if (self.$('.js-replies').length > 0) {
                     // Show and update the reply details.
                     var replies = self.model.get('replies');
                     if (replies.length > 0) {
                         self.$('.js-noreplies').hide();
                         self.$('.js-replies').empty();
-                        self.replies = new Iznik.Collection(replies);
                         self.listenTo(self.model, 'change:replies', self.updateReplies);
                         self.updateReplies();
 

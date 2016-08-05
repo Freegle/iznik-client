@@ -2002,8 +2002,13 @@ class Message
         # Or this similar one, which is top-quoted.
         #
         # ----Original message----
-
         $p = strpos($textbody, '----Original message----');
+        $textbody = $p ? substr($textbody, 0, $p) : $textbody;
+
+        # Or TN's
+        #
+        # _________________________________________________________________
+        $p = strpos($textbody, '_________________________________________________________________');
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
         # Or this:

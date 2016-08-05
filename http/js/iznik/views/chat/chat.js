@@ -54,48 +54,50 @@ define([
                             if (ret && ret.hasOwnProperty('text')) {
                                 var data = ret.text;
 
-                                if (data.hasOwnProperty('newroom')) {
-                                    // We have been notified that we are now in a new chat.  Pick it up.
-                                    Iznik.Session.chats.fetch({
-                                        modtools: self.options.modtools
-                                    }).then(function() {
-                                        // Now that we have the chat, update our status in it.
-                                        var chat = Iznik.Session.chats.get(data.newroom);
+                                if (data) {
+                                    if (data.hasOwnProperty('newroom')) {
+                                        // We have been notified that we are now in a new chat.  Pick it up.
+                                        Iznik.Session.chats.fetch({
+                                            modtools: self.options.modtools
+                                        }).then(function() {
+                                            // Now that we have the chat, update our status in it.
+                                            var chat = Iznik.Session.chats.get(data.newroom);
 
-                                        // If the unread message count changes in the new chat, we want to update.
-                                        self.listenTo(chat, 'change:unseen', self.updateCounts);
-                                        self.updateCounts();
+                                            // If the unread message count changes in the new chat, we want to update.
+                                            self.listenTo(chat, 'change:unseen', self.updateCounts);
+                                            self.updateCounts();
 
+                                            if (chat) {
+                                                var chatView = Iznik.activeChats.viewManager.findByModel(chat);
+                                                chatView.updateRoster(chatView.statusWithOverride('Online'), chatView.noop);
+                                            }
+
+                                            Iznik.Session.chats.trigger('newroom', data.newroom);
+                                        });
+                                    } else if (data.hasOwnProperty('roomid')) {
+                                        // Activity on this room.  If the chat is active, then we refetch the mesages
+                                        // within it so that they are displayed.  If it's not, then we don't want
+                                        // to keep fetching messages - the notification count will get updated by
+                                        // the roster poll.
+                                        var chat = Iznik.Session.chats.get(data.roomid);
+
+                                        // It's possible that we haven't yet fetched the model for this chat.
                                         if (chat) {
+                                            // console.log("Notification", self, chat, data);
                                             var chatView = Iznik.activeChats.viewManager.findByModel(chat);
-                                            chatView.updateRoster(chatView.statusWithOverride('Online'), chatView.noop);
-                                        }
 
-                                        Iznik.Session.chats.trigger('newroom', data.newroom);
-                                    });
-                                } else if (data.hasOwnProperty('roomid')) {
-                                    // Activity on this room.  If the chat is active, then we refetch the mesages
-                                    // within it so that they are displayed.  If it's not, then we don't want
-                                    // to keep fetching messages - the notification count will get updated by
-                                    // the roster poll.
-                                    var chat = Iznik.Session.chats.get(data.roomid);
+                                            if (!chatView.minimised) {
+                                                waiting = true;
+                                                chatView.messages.fetch().then(function () {
+                                                    // Wait for the next one.  Slight timing window here but the fallback
+                                                    // protects us from losing messages forever.
+                                                    self.wait();
 
-                                    // It's possible that we haven't yet fetched the model for this chat.
-                                    if (chat) {
-                                        // console.log("Notification", self, chat, data);
-                                        var chatView = Iznik.activeChats.viewManager.findByModel(chat);
-
-                                        if (!chatView.minimised) {
-                                            waiting = true;
-                                            chatView.messages.fetch().then(function () {
-                                                // Wait for the next one.  Slight timing window here but the fallback
-                                                // protects us from losing messages forever.
-                                                self.wait();
-
-                                                // Also fetch the chat, because the number of unread messages in it will
-                                                // update counts in various places.
-                                                chat.fetch();
-                                            });
+                                                    // Also fetch the chat, because the number of unread messages in it will
+                                                    // update counts in various places.
+                                                    chat.fetch();
+                                                });
+                                            }
                                         }
                                     }
                                 }

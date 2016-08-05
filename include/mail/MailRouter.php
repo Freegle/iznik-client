@@ -131,7 +131,7 @@ class MailRouter
 
     public function route($msg = NULL, $notspam = FALSE) {
         $ret = NULL;
-        $log = TRUE;
+        $log = FALSE;
 
         # We route messages to one of the following destinations:
         # - to a handler for system messages
@@ -548,9 +548,9 @@ class MailRouter
                     # It's not to one of our groups - but it could be a reply to one of our users - either directly
                     # (which happens after posting on a group) or in reply to an email notification (which happens
                     # in subsequent exchanges).
-                    if ($log) { error_log("Look for reply"); }
                     $u = new User($this->dbhr, $this->dbhm);
                     $to = $this->msg->getEnvelopeto();
+                    if ($log) { error_log("Look for reply $to"); }
                     $uid = NULL;
                     $ret = MailRouter::DROPPED;
 
@@ -596,39 +596,40 @@ class MailRouter
                             $original = $this->msg->findFromReply($uid);
                             if ($log) { error_log("Paired with $original"); }
 
-                            if ($original) {
-                                # We've found (probably) the original message to which this is a reply.
-                                $ret = MailRouter::TO_USER;
+                            $ret = MailRouter::TO_USER;
 
-                                $textbody = $this->msg->stripQuoted();
+                            $textbody = $this->msg->stripQuoted();
 
-                                # Get/create the chat room between the two users.
-                                #error_log("Create chat between " . $this->msg->getFromuser() . " and " . $uid);
-                                $r = new ChatRoom($this->dbhr, $this->dbhm);
-                                $rid = $r->createConversation($this->msg->getFromuser(), $uid);
-                                #error_log("Got chat id $rid");
+                            # If we found a message to pair it with, then we will pass that as a referenced
+                            # message.  If not then add in the subject line as that might shed some light on it.
+                            $textbody = $original ? $textbody : ($this->msg->getSubject() . "\r\n\r\n$textbody");
 
-                                if ($rid) {
-                                    # Add in a spam score for the message.
-                                    if (!$spamscore) {
-                                        $this->spamc->command = 'CHECK';
-                                        if ($this->spamc->filter($this->msg->getMessage())) {
-                                            $spamscore = $this->spamc->result['SCORE'];
-                                            if ($log) { error_log("Spam score $spamscore"); }
-                                        }
+                            # Get/create the chat room between the two users.
+                            if ($log) { error_log("Create chat between " . $this->msg->getFromuser() . " and " . $uid); }
+                            $r = new ChatRoom($this->dbhr, $this->dbhm);
+                            $rid = $r->createConversation($this->msg->getFromuser(), $uid);
+                            if ($log) { error_log("Got chat id $rid"); }
+
+                            if ($rid) {
+                                # Add in a spam score for the message.
+                                if (!$spamscore) {
+                                    $this->spamc->command = 'CHECK';
+                                    if ($this->spamc->filter($this->msg->getMessage())) {
+                                        $spamscore = $this->spamc->result['SCORE'];
+                                        if ($log) { error_log("Spam score $spamscore"); }
                                     }
-
-                                    # And now add our text into the chat room as a message.  This will notify them.
-                                    $m = new ChatMessage($this->dbhr, $this->dbhm);
-                                    $mid = $m->create($rid, 
-                                        $this->msg->getFromuser(), 
-                                        $textbody, 
-                                        $this->msg->getModmail() ? ChatMessage::TYPE_MODMAIL : ChatMessage::TYPE_INTERESTED, 
-                                        $this->msg->getID(), 
-                                        FALSE,
-                                        $spamscore);
-                                    #error_log("Created chat message $mid");
                                 }
+
+                                # And now add our text into the chat room as a message.  This will notify them.
+                                $m = new ChatMessage($this->dbhr, $this->dbhm);
+                                $mid = $m->create($rid,
+                                    $this->msg->getFromuser(),
+                                    $textbody,
+                                    $this->msg->getModmail() ? ChatMessage::TYPE_MODMAIL : ChatMessage::TYPE_INTERESTED,
+                                    $original,
+                                    FALSE,
+                                    $spamscore);
+                                if ($log) { error_log("Created chat message $mid"); }
                             }
                         }
                     }
