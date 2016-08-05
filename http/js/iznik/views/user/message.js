@@ -227,11 +227,12 @@ define([
                     self.$('.js-attlist').append(v.el);
                 });
 
+                var replies = self.model.get('replies');
                 self.replies = new Iznik.Collection(replies);
+                console.log("Check replies", replies);
 
-                if (self.$('.js-replies').length > 0) {
+                if (replies.length > 0) {
                     // Show and update the reply details.
-                    var replies = self.model.get('replies');
                     if (replies.length > 0) {
                         self.$('.js-noreplies').hide();
                         self.$('.js-replies').empty();
@@ -456,33 +457,31 @@ define([
 
         render: function() {
             var self = this;
-            var p;
+            var p = Iznik.View.prototype.render.call(self).then(function(self) {
+                var chat = Iznik.Session.chats.get({
+                    id: self.model.get('chatid')
+                });
 
-            var chat = Iznik.Session.chats.get({
-                id: self.model.get('chatid')
+                // We might not find this chat if the user has closed it.
+                console.log("Find chat for message reply", chat, self);
+
+                if (!_.isUndefined(chat)) {
+                    // If the number of unseen messages in this chat changes, update this view so that the count is
+                    // displayed here.
+                    self.listenToOnce(chat, 'change:unseen', self.render);
+                    self.model.set('unseen', chat.get('unseen'));
+                    self.model.set('message', self.options.message.toJSON2());
+                    self.model.set('me', Iznik.Session.get('me'));
+                    p = Iznik.View.prototype.render.call(self).then(function() {
+                        self.$('.timeago').timeago();
+                    });
+
+                    // We might promise to this person from a chat.
+                    self.listenTo(chat, 'promised', _.bind(self.chatPromised, self));
+                }
             });
 
-            // We might not find this chat if the user has closed it.
-            if (!_.isUndefined(chat)) {
-                // If the number of unseen messages in this chat changes, update this view so that the count is
-                // displayed here.
-                self.listenToOnce(chat, 'change:unseen', self.render);
-                self.model.set('unseen', chat.get('unseen'));
-                self.model.set('message', self.options.message.toJSON2());
-                self.model.set('me', Iznik.Session.get('me'));
-                p = Iznik.View.prototype.render.call(self).then(function() {
-                    self.$('.timeago').timeago();
-                });
-
-                // We might promise to this person from a chat.
-                self.listenTo(chat, 'promised', _.bind(self.chatPromised, self));
-            } else {{
-                p = new Promise(function(resolve, reject) {
-                    resolve(self);
-                });
-            }}
-
-            return(this);
+            return(p);
         }
     });
 

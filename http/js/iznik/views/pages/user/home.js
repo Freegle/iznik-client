@@ -12,52 +12,10 @@ define([
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
         template: "user_home_main",
 
-        addReplies: function() {
-            var self = this;
-            Iznik.Session.chats.each(function (chat) {
-                if (chat.get('user1').id == Iznik.Session.get('me').id) {
-                    var refmsgs = chat.get('refmsgids');
-
-                    // Show most recent message first.
-                    refmsgs = _.sortBy(refmsgs, function(msgid) {
-                        return(-msgid)
-                    });
-
-                    _.each(refmsgs, function(msgid) {
-                        var m = new Iznik.Models.Message({
-                            id: msgid,
-                            chat: chat.toJSON2()
-                        });
-
-                        m.fetch().then(function() {
-                            var v = new Iznik.Views.User.Home.Reply({
-                                model: m
-                            });
-
-                            v.render().then(function(v) {
-                                self.$('.js-replylist').append(v.el);
-                            });
-                        })
-                    })
-                }
-            });
-        },
-
         render: function () {
             var self = this;
 
             Iznik.Session.askSubscription();
-
-            // Our replies are chats which we initiated to another user.
-            if (Iznik.Session.hasOwnProperty('chats')) {
-                // We have the chats already.
-                self.addReplies();
-            } else {
-                // The chats will be fetched within the page render so we must be ready for that event.
-                self.listenToOnce(Iznik.Session, 'chatsfetched', function() {
-                    self.addReplies();
-                });
-            }
 
             var p = Iznik.Views.Page.prototype.render.call(this, {
                 noSupporters: true
@@ -336,50 +294,6 @@ define([
                 self.$('.js-user option:last').html(reply.user.displayname);
             })
             self.$('.js-user').append('<option value="0">Someone else</option>');
-        }
-    });
-
-    Iznik.Views.User.Home.Reply = Iznik.View.extend({
-        template: "user_home_reply",
-
-        events: {
-            'click .js-chat': 'dm'
-        },
-
-        dm: function() {
-            console.log("DM");
-            var self = this;
-            require(['iznik/views/chat/chat'], function(ChatHolder) {
-                var chatmodel = Iznik.Session.chats.get(self.model.get('chat').id);
-                var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
-                chatView.restore();
-            })
-        },
-
-        updateUnread: function() {
-            var unread = 0;
-            var chat = this.model.get('chat');
-
-            if (chat.unseen > 0) {
-                this.$('.js-unreadcount').html(chat.unseen);
-                this.$('.js-unreadcountholder').show();
-            } else {
-                this.$('.js-unreadcountholder').hide();
-            }
-        },
-
-        render: function() {
-            var p = Iznik.View.prototype.render.call(this);
-            p.then(function(self) {
-                self.$('.timeago').timeago();
-
-                var chat = Iznik.Session.chats.get(self.model.get('chat').id);
-                self.listenTo(chat, 'change:unseen', self.updateUnread);
-
-                self.updateUnread();
-            });
-
-            return(p);
         }
     });
 
