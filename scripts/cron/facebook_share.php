@@ -12,10 +12,11 @@ $lockh = lockScript(basename(__FILE__));
 
 error_log("Start at " . date("Y-m-d H:i:s"));
 
-$groups = $dbhr->preQuery("SELECT * FROM groups INNER JOIN groups_facebook ON groups.id = groups_facebook.groupid WHERE type = 'Freegle' AND publish = 1 AND valid = 1 ORDER BY LOWER(nameshort) ASC;");
+$groups = $dbhr->preQuery("SELECT groups.id AS groupid, groups.*, groups_facebook.* FROM groups INNER JOIN groups_facebook ON groups.id = groups_facebook.groupid WHERE type = 'Freegle' AND publish = 1 AND valid = 1 AND groups.nameshort LIKE '%Edinburgh%' ORDER BY LOWER(nameshort) ASC;");
 foreach ($groups as $group) {
-    $f = new GroupFacebook($dbhr, $dbhm, $group['id']);
-    $count = $f->shareFrom();
+    error_log("...#{$group['groupid']} {$group['nameshort']} token ");
+    $f = new GroupFacebook($dbhr, $dbhm, $group['groupid']);
+    $count = $f->shareFrom(TRUE);
 
     if ($count > 0) {
         error_log("{$group['nameshort']} $count");

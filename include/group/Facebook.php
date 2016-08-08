@@ -125,7 +125,7 @@ class GroupFacebook {
             }
         } catch (Exception $e) {
             $code = $e->getCode();
-            #error_log("Failed code $code message " . $e->getMessage() . " token " . $this->token);
+            error_log("Failed code $code message " . $e->getMessage() . " token " . $this->token);
 
             # These numbers come from FacebookResponseException.
             if ($code == 100 || $code == 102 || $code == 190) {

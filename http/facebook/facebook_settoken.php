@@ -24,7 +24,7 @@ if ($id && $token) {
 
         $ret = $fb->get('/me/accounts', $accessToken);
         $accounts = $ret->getDecodedBody();
-        #error_log("Got accounts " . var_export($accounts, TRUE));
+        error_log("Got accounts " . var_export($accounts, TRUE));
         $pages = $accounts['data'];
         $found = FALSE;
 
