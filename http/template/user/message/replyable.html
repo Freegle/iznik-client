@@ -53,7 +53,11 @@
                     <div class="lead prewrap js-textbody"><% if (textbody.length == 0) { %><em>There's no description.</em><% } else { %><%-textbody%><% } %></div>
                     <% if (obj.fromuser) { %>
                     <span class="text-muted">
+                        <% if (obj.mine) { %>
+                        You posted this.
+                        <% } else { %>
                         Posted by {{fromuser.displayname}}.
+                        <% } %>
                         <% if (obj.location && obj.mylocation || obj.area) { %>
                         <div class="js-mapzoom pull-right clickme hidden-sm hidden-md hidden-lg">
                             <span class="glyphicon glyphicon-map-marker glyphicon-larger" />

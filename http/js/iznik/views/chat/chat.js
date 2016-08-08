@@ -83,7 +83,7 @@ define([
 
                                         // It's possible that we haven't yet fetched the model for this chat.
                                         if (chat) {
-                                            // console.log("Notification", self, chat, data);
+                                            console.log("Notification", self, chat, data);
                                             var chatView = Iznik.activeChats.viewManager.findByModel(chat);
 
                                             if (!chatView.minimised) {
@@ -95,7 +95,9 @@ define([
 
                                                     // Also fetch the chat, because the number of unread messages in it will
                                                     // update counts in various places.
-                                                    chat.fetch();
+                                                    chat.fetch().then(function() {
+                                                        console.log("Fetched chat", chat);
+                                                    });
                                                 });
                                             }
                                         }
@@ -616,10 +618,12 @@ define([
 
         messageFocus: function() {
             var self = this;
+            console.log("Focus", self);
 
             // We've seen all the messages.
             if (this.messages.length > 0) {
                 this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
+                console.log("Now seen chat message", this.messages.at(this.messages.length - 1).get('id'));
             }
             this.model.set('unseen', 0);
 

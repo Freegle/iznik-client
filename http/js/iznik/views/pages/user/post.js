@@ -253,10 +253,12 @@ define([
                         self.$('.js-addprompt').addClass('hidden');
                         var progress = parseInt(data.loaded / data.total * 100, 10);
 
-                        self.pleaseWait.$('.js-progress .progress-bar').css(
-                            'width',
-                            progress + '%'
-                        );
+                        if (self.pleaseWait) {
+                            self.pleaseWait.$('.js-progress .progress-bar').css(
+                                'width',
+                                progress + '%'
+                            );
+                        }
                     }
                 };
 

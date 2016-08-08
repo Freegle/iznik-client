@@ -1966,8 +1966,10 @@ class Message
         #
         # We only expect to be matching replies for reuse/Freegle groups, and it's not worth matching against any
         # old messages.
-        $sql = "SELECT messages.id, subject, messages.date, DAMLEVLIM(subject, ?, 50) AS dist FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND fromuser = ? INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type IN ('Freegle', 'Reuse') AND DATEDIFF(NOW(), messages.arrival) < 90 ORDER BY dist ASC LIMIT 1;";
+        $sql = "SELECT messages.id, subject, messages.date, DAMLEVLIM(subject, ?, 50) AS dist FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND fromuser = ? INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type IN ('Freegle', 'Reuse') AND DATEDIFF(NOW(), messages.arrival) < 90 HAVING dist < 30 ORDER BY dist ASC LIMIT 1;";
         $messages = $this->dbhr->preQuery($sql, [ $this->subject, $userid ]);
+
+        error_log("findFromReply " . var_export($messages, TRUE));
         return(count($messages) > 0 ? $messages[0]['id'] : NULL);
     }
     

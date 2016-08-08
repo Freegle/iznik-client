@@ -491,7 +491,7 @@ class ChatRoom extends Entity
         $n = new Notifications($this->dbhr, $this->dbhm);
         $count = 0;
 
-        #error_log("Poke mods $mods users " . var_export($userids, TRUE));
+        error_log("Chat #{$this->id} Poke mods $mods users " . var_export($userids, TRUE));
 
         foreach ($userids as $userid) {
             #error_log("Poke {$rost['userid']} for {$this->id}");

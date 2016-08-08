@@ -463,8 +463,6 @@ define([
                 });
 
                 // We might not find this chat if the user has closed it.
-                console.log("Find chat for message reply", chat, self);
-
                 if (!_.isUndefined(chat)) {
                     // If the number of unseen messages in this chat changes, update this view so that the count is
                     // displayed here.
@@ -711,7 +709,7 @@ define([
 
                     if (self.model.get('mine')) {
                         // Stop people replying to their own messages.
-                        self.$('.js-replybox').hide();
+                        self.$('.panel-footer').hide();
                     } else {
                         // We might have been trying to reply.
                         try {

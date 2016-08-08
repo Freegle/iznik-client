@@ -191,7 +191,9 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <!-- Iznik info -->
     <meta name="iznikchat" content="<?php echo CHAT_HOST; ?>">
     <meta name="iznikevent" content="<?php echo EVENT_HOST; ?>">
+    <?php if (defined('USER_GROUP_OVERRIDE')) { ?>
     <meta name="iznikusergroupoverride" content="<?php echo USER_GROUP_OVERRIDE; ?>">
+    <?php } ?>
     <meta name="iznikusersite" content="<?php echo USER_SITE; ?>">
     <meta name="iznikmodsite" content="<?php echo MOD_SITE; ?>">
     

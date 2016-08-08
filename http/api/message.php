@@ -263,7 +263,7 @@ function message() {
                             }
 
                             // @codeCoverageIgnoreStart
-                            if (USER_GROUP_OVERRIDE && !pres('ignoregroupoverride', $_REQUEST)) {
+                            if (defined('USER_GROUP_OVERRIDE') && !pres('ignoregroupoverride', $_REQUEST)) {
                                 # We're in testing mode
                                 $g = new Group($dbhr, $dbhm);
                                 $nears = [ $g->findByShortName(USER_GROUP_OVERRIDE)];
