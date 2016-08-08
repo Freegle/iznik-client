@@ -57,7 +57,7 @@ class communityEventTest extends IznikTestCase {
         assertEquals($start, $atts['dates'][0]['end']);
 
         # Check that a user sees what we want them to see.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = new User($this->dbhm, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
 
         # Not in the right group - shouldn't see.
