@@ -263,6 +263,14 @@ self.addEventListener('push', function(event) {
                 });
             }).catch(function(err) {
                 workstr = "Network error " + err;
+                return self.registration.showNotification("ModTools", {
+                    body: workstr,
+                    icon: '/images/favicon/modtools/favicon-96x96.png',
+                    tag: 'work',
+                    data: {
+                    'url': url
+                    }
+                });
                 setTimeout(closeAll, 2000);
             });
         })
