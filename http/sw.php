@@ -262,6 +262,7 @@ self.addEventListener('push', function(event) {
                     }
                 });
             }).catch(function(err) {
+                // TODO retry?
                 workstr = "Network error " + err;
                 return self.registration.showNotification("ModTools", {
                     body: workstr,
