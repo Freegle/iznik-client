@@ -500,7 +500,7 @@ define([
 
                     if (facebook) {
                         self.$('.js-facebookname').html(facebook.name);
-                        self.$('.js-facebookurl').attr('href', 'https://facebook.com/' + facebook.name);
+                        self.$('.js-facebookurl').attr('href', 'https://facebook.com/' + facebook.id);
 
                         if (!facebook.valid) {
                             self.$('.js-facebooknotlinked').show();
