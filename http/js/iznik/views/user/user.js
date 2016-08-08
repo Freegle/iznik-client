@@ -781,7 +781,7 @@ define([
             });
 
             self.form.render();
-            
+
             // Make it full width.
             self.$('label').remove();
             self.$('.col-sm-8').removeClass('col-sm-8').addClass('col-sm-12');
@@ -792,10 +792,18 @@ define([
             // Turn on spell-checking
             self.$('textarea, input:text').attr('spellcheck', true);
         },
-
+        
         render: function() {
+            var self = this;
+
             var p = Iznik.Views.Modal.prototype.render.call(this);
             p.then(function(self) {
+                // Focus on first input.  This is hard to do in bootstrap, especially, with fade, so just hack 
+                // with a timer.
+                window.setTimeout(function() {
+                    $('#js-form input:first').focus();
+                }, 2000);
+
                 if (self.model.get('id')) {
                     // We want to refetch the model to make sure we edit the most up to date settings.
                     self.model.fetch().then(self.render2.call(self));
