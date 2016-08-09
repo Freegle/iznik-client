@@ -15,6 +15,7 @@ class MessageCollection
     const SPAM = 'Spam';
     const DRAFT = 'Draft';
     const QUEUED_YAHOO_USER = 'QueuedYahooUser'; # Awaiting a user on the Yahoo group before it can be sent
+    const REJECTED = 'Rejected'; # Rejected by mod; user can see and resend.
 
     /** @var  $dbhr LoggedPDO */
     public $dbhr;
@@ -42,6 +43,7 @@ class MessageCollection
             case MessageCollection::SPAM:
             case MessageCollection::DRAFT:
             case MessageCollection::QUEUED_YAHOO_USER:
+            case MessageCollection::REJECTED:
                 $this->collection = $collection;
                 break;
             default:
@@ -187,6 +189,7 @@ class MessageCollection
                             $limit--;
                             break;
                         case MessageCollection::PENDING:
+                        case MessageCollection::REJECTED:
                             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                                 # Only visible to moderators or owners
                                 $n = $m->getPublic(TRUE, TRUE);

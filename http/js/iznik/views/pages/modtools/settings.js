@@ -310,6 +310,13 @@ define([
                             options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
                         },
                         {
+                            name: 'spammers.chatreview',
+                            label: 'Check for spam messages to members?',
+                            control: 'radio',
+                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                            helpMessage: "(Freegle only) Messages to members come through the system.  It can flag suspicious ones for review so you can check if they are spam or not.  If you turn this off, such replies (some of which may be fine) will be dropped and members won't see them."
+                        },
+                        {
                             name: 'keywords.offer',
                             label: 'OFFER keyword',
                             control: 'input'
@@ -495,23 +502,24 @@ define([
                     self.$('.js-facebook').hide();
 
                     // Add Facebook info.  Won't show for groups it shouldn't.
-                    var facebook = self.group.get('facebook');
-                    console.log("Got facebook info", self.group, facebook);
-
-                    if (facebook) {
-                        self.$('.js-facebookname').html(facebook.name);
-                        self.$('.js-facebookurl').attr('href', 'https://facebook.com/' + facebook.id);
-
-                        if (!facebook.valid) {
-                            self.$('.js-facebooknotlinked').show();
-                        } else {
-                            var mom = new moment(facebook.authdate);
-                            self.$('.js-facebookauthdate').html(mom.format('ll'));
-                            self.$('.js-facebookvalid').show();
-                        }
-                    } else {
-                        self.$('.js-facebooknotlinked').show();
-                    }
+                    // TODO disabled as can't link yet.
+                    // var facebook = self.group.get('facebook');
+                    // console.log("Got facebook info", self.group, facebook);
+                    //
+                    // if (facebook) {
+                    //     self.$('.js-facebookname').html(facebook.name);
+                    //     self.$('.js-facebookurl').attr('href', 'https://facebook.com/' + facebook.id);
+                    //
+                    //     if (!facebook.valid) {
+                    //         self.$('.js-facebooknotlinked').show();
+                    //     } else {
+                    //         var mom = new moment(facebook.authdate);
+                    //         self.$('.js-facebookauthdate').html(mom.format('ll'));
+                    //         self.$('.js-facebookvalid').show();
+                    //     }
+                    // } else {
+                    //     self.$('.js-facebooknotlinked').show();
+                    // }
 
                     // Layout messes up a bit for radio buttons.
                     self.groupForm.$(':radio').closest('.form-group').addClass('clearfix');
@@ -2001,6 +2009,9 @@ define([
         template: 'modtools_settings_missingfacebook',
 
         render: function() {
+            // TODO Can't link yet.
+            return resolvedPromise(this);
+
             var self = this;
             var p;
             var missingFacebook = [];

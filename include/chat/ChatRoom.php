@@ -374,7 +374,8 @@ class ChatRoom extends Entity
             #error_log("$userid can't see {$this->id} of type {$this->chatroom['chattype']}");
             $me = whoAmI($this->dbhr, $this->dbhm);
 
-            if ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER &&
+            if ($me &&
+                $this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER &&
                 ($me->moderatorForUser($this->chatroom['user1']) ||
                  $me->moderatorForUser($this->chatroom['user2']))) {
                 $cansee = TRUE;
@@ -491,7 +492,7 @@ class ChatRoom extends Entity
         $n = new Notifications($this->dbhr, $this->dbhm);
         $count = 0;
 
-        error_log("Chat #{$this->id} Poke mods $mods users " . var_export($userids, TRUE));
+        #error_log("Chat #{$this->id} Poke mods $mods users " . var_export($userids, TRUE));
 
         foreach ($userids as $userid) {
             #error_log("Poke {$rost['userid']} for {$this->id}");
@@ -508,10 +509,10 @@ class ChatRoom extends Entity
 
     public function getMessagesForReview($user, &$ctx) {
         # We want the messages for review for any group where we are a mod and the recipient of the chat message is
-        # a member.
+        # a member, where the group wants us to do this.
         $userid = $user->getId();
         $msgid = $ctx ? $ctx['msgid'] : 0;
-        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, memberships.groupid FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) ORDER BY chat_messages.id ASC;";
+        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, memberships.groupid FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator'))  INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":1') != 0) ORDER BY chat_messages.id ASC;";
         $msgs = $this->dbhr->preQuery($sql, [ $msgid, $userid  ]);
         $ret = [];
 

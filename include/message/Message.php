@@ -378,8 +378,8 @@ class Message
                         break;
                 }
 
-                # We have rights to any messages which we have sent but which are queued waiting for Yahoo membership.
-                if ($group['collection'] == MessageCollection::QUEUED_YAHOO_USER && $me->getId() == $this->fromuser) {
+                if ($me->getId() == $this->fromuser) {
+                    # It's our message.  We have full rights.
                     $role = User::ROLE_MODERATOR;
                 }
             }
@@ -1522,46 +1522,58 @@ class Message
     private function maybeMail($groupid, $subject, $body, $action) {
         if ($subject) {
             # We have a mail to send.
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me->getId();
+
             $to = $this->getEnvelopefrom();
             $to = $to ? $to : $this->getFromaddr();
 
-            # If this is one of our domains, then we should send directly to the preferred email, to avoid
-            # the mail coming back to us and getting added into a chat.
+            $mailit = FALSE;
+
             if (ourDomain($to)) {
-                $u = new User($this->dbhr, $this->dbhm);
-                $uid = $u->findByEmail($to);
-                if ($uid) {
-                    $u = new User($this->dbhr, $this->dbhm, $uid);
-                    $to = $u->getEmailPreferred();
+                # This is a user who we host.  We can therefore send the message via chat.  This is better than
+                # sending it by email and then parsing the email later to work out what we intended to send and
+                # construct a chat message from it :-).
+                $r = new ChatRoom($this->dbhr, $this->dbhm);
+                $rid = $r->createUser2Mod($this->getFromuser(), $groupid);
+
+                if ($rid) {
+                    $m = new ChatMessage($this->dbhr, $this->dbhm);
+                    $m->create($rid,
+                        $myid,
+                        "$subject\r\n\r\n$body",
+                        ChatMessage::TYPE_MODMAIL,
+                        $this->id,
+                        FALSE,
+                        NULL);
                 }
+            } else {
+                # For other users, we send the message out by mail.
+                $g = new Group($this->dbhr, $this->dbhm, $groupid);
+                $atts = $g->getPublic();
+
+                # Find who to send it from.  If we have a config to use for this group then it will tell us.
+                $name = $me->getName();
+                $c = new ModConfig($this->dbhr, $this->dbhm);
+                $cid = $c->getForGroup($me->getId(), $groupid);
+                $c = new ModConfig($this->dbhr, $this->dbhm, $cid);
+                $fromname = $c->getPrivate('fromname');
+
+                if ($fromname == 'Groupname Moderator') {
+                    $name = '$groupname Moderator';
+                }
+
+                # We can do a simple substitution in the from name.
+                $name = str_replace('$groupname', $atts['namedisplay'], $name);
+
+                $bcc = $c->getBcc($action);
+
+                if ($bcc) {
+                    $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
+                }
+
+                $this->mailer($me, TRUE, $this->getFromname(), $to, $bcc, $name, $g->getModsEmail(), $subject, $body);
             }
-
-            $g = new Group($this->dbhr, $this->dbhm, $groupid);
-            $atts = $g->getPublic();
-
-            $me = whoAmI($this->dbhr, $this->dbhm);
-
-            # Find who to send it from.  If we have a config to use for this group then it will tell us.
-            $name = $me->getName();
-            $c = new ModConfig($this->dbhr, $this->dbhm);
-            $cid = $c->getForGroup($me->getId(), $groupid);
-            $c = new ModConfig($this->dbhr, $this->dbhm, $cid);
-            $fromname = $c->getPrivate('fromname');
-
-            if ($fromname == 'Groupname Moderator') {
-                $name = '$groupname Moderator';
-            }
-
-            # We can do a simple substitution in the from name.
-            $name = str_replace('$groupname', $atts['namedisplay'], $name);
-
-            $bcc = $c->getBcc($action);
-
-            if ($bcc) {
-                $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
-            }
-
-            $this->mailer($me, TRUE, $this->getFromname(), $to, $bcc, $name, $g->getModsEmail(), $subject, $body);
         }
     }
 
@@ -1598,10 +1610,20 @@ class Message
             }
         }
 
-        $sql = "UPDATE messages_groups SET deleted = 1 WHERE msgid = ?;";
-        $this->dbhm->preExec($sql, [
-            $this->id
-        ]);
+        # When rejecting, we put it in the appropriate collection, which means the user can potentially edit and
+        # resend.
+        if ($subject) {
+            $sql = $subject ? "UPDATE messages_groups SET collection = ? WHERE msgid = ?;" : "UPDATE messages_groups SET deleted = 1 WHERE msgid = ?;";
+            $this->dbhm->preExec($sql, [
+                MessageCollection::REJECTED,
+                $this->id
+            ]);
+        } else {
+            $sql = $subject ? "UPDATE messages_groups SET collection = 'Rejected' WHERE msgid = ?;" : "UPDATE messages_groups SET deleted = 1 WHERE msgid = ?;";
+            $this->dbhm->preExec($sql, [
+                $this->id
+            ]);
+        }
 
         $this->notif->notifyGroupMods($groupid);
 

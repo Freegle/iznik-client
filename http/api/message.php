@@ -54,6 +54,7 @@ function message() {
                         # No special checks for approved or draft - we could even be logged out.
                         break;
                     case MessageCollection::PENDING:
+                    case MessageCollection::REJECTED:
                         if (!$me) {
                             $ret = ['ret' => 1, 'status' => 'Not logged in'];
                             $m = NULL;

@@ -334,6 +334,9 @@ define([
             }
 
             if (id) {
+                self.pleaseWait = new Iznik.Views.PleaseWait();
+                self.pleaseWait.render();
+
                 $.ajax({
                     type: 'POST',
                     url: API + 'message',
@@ -342,6 +345,8 @@ define([
                         email: email,
                         id: id
                     }, success: function (ret) {
+                        self.pleaseWait.close();
+
                         if (ret.ret == 0) {
                             try {
                                 // The draft has now been sent.

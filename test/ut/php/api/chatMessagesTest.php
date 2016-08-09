@@ -286,6 +286,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
 
         # Should see this now.
+        error_log("Check can see for mod on {$this->groupid}");
         $ret = $this->call('session', 'GET', []);
         assertEquals(0, $ret['ret']);
         assertEquals(2, $ret['work']['chatreview']);

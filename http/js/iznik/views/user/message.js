@@ -208,13 +208,34 @@ define([
 
                 var groups = self.model.get('groups');
                 self.$('.js-groups').empty();
+
+                // We want to know whether a message is visible on the group, because this affects which
+                // buttons we should show.
+                var approved = false;
+                var rejected = false;
+
                 _.each(groups, function(group) {
+                    if (group.collection == 'Approved') {
+                        approved = true;
+                    }
+                    if (group.collection == 'Rejected') {
+                        rejected = true;
+                    }
+
                     var v = new Iznik.Views.User.Message.Group({
                         model: new Iznik.Model(group)
                     });
                     v.render();
                     self.$('.js-groups').append(v.el);
                 });
+
+                if (approved) {
+                    self.$('.js-taken').show();
+                }
+
+                if (rejected) {
+                    self.$('.js-rejected').show();
+                }
 
                 self.$('.js-attlist').empty();
                 var photos = self.model.get('attachments');
@@ -229,7 +250,6 @@ define([
 
                 var replies = self.model.get('replies');
                 self.replies = new Iznik.Collection(replies);
-                console.log("Check replies", replies);
 
                 if (replies.length > 0) {
                     // Show and update the reply details.
@@ -256,19 +276,11 @@ define([
                         // chat.
                         if (self.options.chatid ) {
                             var model = self.replies.get(self.options.chatid);
-                            console.log("Get chat model", model);
                             if (model) {
                                 var view = self.repliesView.viewManager.findByModel(model);
-                                console.log("Got view", view, view.$('.js-caret'));
                                 // Slightly hackily jump up to find the owning message and click to expand.
                                 view.$el.closest('.panel-heading').find('.js-caret').click();
                             }
-                            self.replies.each(function(reply) {
-                                console.log("Compare", reply.get('chatid'), self.options.chatid);
-                                if (reply.get('chatid') == self.options.chatid) {
-                                    console.log("Found it");
-                                }
-                            });
                         }
                     } else {
                         self.$('.js-noreplies').show();
@@ -457,26 +469,29 @@ define([
 
         render: function() {
             var self = this;
+
+            self.model.set('me', Iznik.Session.get('me'));
+
+            var chat = Iznik.Session.chats.get({
+                id: self.model.get('chatid')
+            });
+
+            // We might not find this chat if the user has closed it.
+            if (!_.isUndefined(chat)) {
+                self.model.set('unseen', chat.get('unseen'));
+                self.model.set('message', self.options.message.toJSON2());
+            }
+
             var p = Iznik.View.prototype.render.call(self).then(function(self) {
-                var chat = Iznik.Session.chats.get({
-                    id: self.model.get('chatid')
+                // If the number of unseen messages in this chat changes, update this view so that the count is
+                // displayed here.
+                self.listenToOnce(chat, 'change:unseen', self.render);
+                p = Iznik.View.prototype.render.call(self).then(function() {
+                    self.$('.timeago').timeago();
                 });
 
-                // We might not find this chat if the user has closed it.
-                if (!_.isUndefined(chat)) {
-                    // If the number of unseen messages in this chat changes, update this view so that the count is
-                    // displayed here.
-                    self.listenToOnce(chat, 'change:unseen', self.render);
-                    self.model.set('unseen', chat.get('unseen'));
-                    self.model.set('message', self.options.message.toJSON2());
-                    self.model.set('me', Iznik.Session.get('me'));
-                    p = Iznik.View.prototype.render.call(self).then(function() {
-                        self.$('.timeago').timeago();
-                    });
-
-                    // We might promise to this person from a chat.
-                    self.listenTo(chat, 'promised', _.bind(self.chatPromised, self));
-                }
+                // We might promise to this person from a chat.
+                self.listenTo(chat, 'promised', _.bind(self.chatPromised, self));
             });
 
             return(p);
