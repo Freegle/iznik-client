@@ -1192,7 +1192,7 @@ class MailRouterTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents('msgs/special'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, '', "FBUser.1287223266.420404@republisher.freegle.in", $msg);
+        $id = $r->received(Message::YAHOO_PENDING, 'fbuser.1465629678.647264@direct.ilovefreegle.org', "PenrithEdenFreegle@yahoogroups.com", $msg);
         assertNotNull($id);
         $rc = $r->route();
         assertEquals(MailRouter::TO_USER, $rc);

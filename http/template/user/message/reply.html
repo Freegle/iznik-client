@@ -1,21 +1,28 @@
 <div class="row-fluid panel">
     <div class="panel-body">
         <div class="nopad col-xs-8">
-            <% if (user.id != me.id) { %>
-            {{user.displayname}}<br />
-            <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" ></abbr>
+            <% if (chat.chattype == 'User2Mod') { %>
+                {{chat.name}}<br />
+                <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" ></abbr><br />
+                <span class="js-chat black">Read more&nbsp;>></span>
             <% } else { %>
-            You replied to yourself<br />
-            <% } %>
-            <span class="js-chat text-muted">{{snippet}}...</span><br />
-            <% if (user.id != me.id) { %>
-            <span class="js-chat black">Read more&nbsp;>></span>
+                <% if (user.id != me.id) { %>
+                {{user.displayname}}<br />
+                <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" ></abbr>
+                <% } else { %>
+                You replied to yourself<br />
+                <% } %>
+                <span class="js-chat text-muted">{{snippet}}...</span><br />
+                <% if (user.id != me.id) { %>
+                <span class="js-chat black">Read more&nbsp;>></span>
+                <% } %>
             <% } %>
         </div>
         <li class="col-xs-4 nopad">
             <% if (user.id != me.id) { %>
             <ul class="list-unstyled list-inline pull-right">
                 <li>
+                    <% if (chat.chattype == 'User2User') { %>
                     <div  class="btn btn-primary js-chat" title="Chat to {{user.displayname}}">
                         <% if (unseen != 0) { %>
                         <span class="badge badge-unread">{{unseen}}</span>
@@ -24,20 +31,32 @@
                         <% } %>
                         &nbsp;Chat
                     </div>
-                </li>
-                <% if (message.type == 'Offer' && message.mine && user.id != me.id) { %>
-                    <% if (obj.promised) { %>
-                    <li>
-                        <div class="btn btn-warning js-renege" title="Remove promise">
-                            <div class="glyphicons glyphicons-remove-circle vcenter" />&nbsp;Remove
-                        </div>
-                    </li>
                     <% } else { %>
-                    <li>
-                        <div class="btn btn-success js-promise" title="Promise it to {{user.displayname}}">
-                            <div class="glyphicons glyphicons-handshake vcenter" />&nbsp;Promise
-                        </div>
-                    </li>
+                    <div  class="btn btn-primary js-chatmods" title="Chat to {{chat.name}}">
+                        <% if (unseen != 0) { %>
+                        <span class="badge badge-unread">{{unseen}}</span>
+                        <% } else { %>
+                        <div class="glyphicons glyphicons-conversation vcenter" />
+                        <% } %>
+                        &nbsp;Chat
+                    </div>
+                    <% } %>
+                </li>
+                <% if (chat.chattype == 'User2User') { %>
+                    <% if (message.type == 'Offer' && message.mine && user.id != me.id) { %>
+                        <% if (obj.promised) { %>
+                        <li>
+                            <div class="btn btn-warning js-renege" title="Remove promise">
+                                <div class="glyphicons glyphicons-remove-circle vcenter" />&nbsp;Remove
+                            </div>
+                        </li>
+                        <% } else { %>
+                        <li>
+                            <div class="btn btn-success js-promise" title="Promise it to {{user.displayname}}">
+                                <div class="glyphicons glyphicons-handshake vcenter" />&nbsp;Promise
+                            </div>
+                        </li>
+                        <% } %>
                     <% } %>
                 <% } %>
             </ul>

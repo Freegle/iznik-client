@@ -3,8 +3,7 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/views/infinite',
-    'iznik/views/chat/chat'
+    'iznik/views/infinite'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Message = Iznik.View.extend({
         className: "marginbotsm botspace",
@@ -404,6 +403,7 @@ define([
 
         events: {
             'click .js-chat': 'dm',
+            'click .js-chatmods': 'chatMods',
             'click .js-promise': 'promise',
             'click .js-renege': 'renege'
         },
@@ -413,6 +413,23 @@ define([
             require(['iznik/views/chat/chat'], function(ChatHolder) {
                 ChatHolder().openChat(self.model.get('user').id);
             })
+        },
+
+        chatMods: function(e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation();
+
+            require(['iznik/views/chat/chat'], function(ChatHolder) {
+                var chatid = self.model.get('chatid');
+
+                var chat = Iznik.Session.chats.get({
+                    id: chatid
+                });
+
+                var groupid = chat.get('group').id;
+                ChatHolder().openChatToMods(groupid);
+            });
         },
 
         promise: function() {
@@ -478,6 +495,7 @@ define([
 
             // We might not find this chat if the user has closed it.
             if (!_.isUndefined(chat)) {
+                self.model.set('chat', chat.toJSON2());
                 self.model.set('unseen', chat.get('unseen'));
                 self.model.set('message', self.options.message.toJSON2());
             }

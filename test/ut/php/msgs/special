@@ -1,25 +1,88 @@
+Return-Path: <FBUser.1465629678.647264@direct.ilovefreegle.org>
+X-Sender: FBUser.1465629678.647264@direct.ilovefreegle.org
+X-Apparently-To: penrithedenfreegle@yahoogroups.com
+X-Received: (qmail 45879 invoked by uid 102); 7 Aug 2016 23:11:02 -0000
+X-Received: from unknown (HELO mtaq5.grp.bf1.yahoo.com) (10.193.84.36)
+  by m15.grp.bf1.yahoo.com with SMTP; 7 Aug 2016 23:11:02 -0000
+X-Received: (qmail 3764 invoked from network); 7 Aug 2016 23:11:02 -0000
+X-Received: from unknown (HELO mta1006.groups.mail.bf1.yahoo.com) (98.139.245.165)
+  by mtaq5.grp.bf1.yahoo.com with SMTP; 7 Aug 2016 23:11:02 -0000
+X-Original-Return-Path: <FBUser.1465629678.647264@direct.ilovefreegle.org>
+X-Received-SPF: pass (domain of direct.ilovefreegle.org designates 5.28.62.22 as permitted sender)
+X-YMailISG: N69f434WLDsCgqmY1Ls0UUcbTDCkUJ4GHru1c48Vdw4tbziY
+ 7vsFcEcPtcdUpeCB9K2fxbZ0o3ZGEOAvfLFoGtoYXw5tkhnQ8IxgsQUm4YWX
+ oX2KX0eHfx8XWxZUN1vMickyOlWb9BWdIII15mc7idEoBbE.2PxyIfzhWn.T
+ kKA60L7FKFppecdvL.5Xc_oxz0cm4Wxvji.x.JOEHTYxoO9cTOiO6B0C_bT1
+ 3D3eQPaelrC3p_wD09tRyk9ZaQCO9JmgplFZ4deSH1Jg1hpTLCJ6sB1uOwau
+ YxjKBLdZYixAhFJB5G7lv2VjuXN3PD4okPnKuZF5LrNWyYlMj1zIPrbxssuC
+ YWYYl3qWAXDot4TQp7B5bG7o5CDf5B7pJmsG85YuCoubUHtlNZmge8CMFSXS
+ KQYO73XGX6uEAOZ8KDoUbTUFlvw0aUMLZcZf9qdi5wS69wm58yYr8mW0Sz3N
+ ZBuGE4EBEKOF4D.l9p4_QlAy_ter2_Fe81VUWdtfHRMyZucv_O6NFp_GtOec
+ d8MSnokNjfKddCMFjPyKV2HNY9YQMG6huhxrGjNVtJ3Jg_1iXzzBVeILjcKv
+ hDK_jkxgn8GQnREpc.MktwTxl8gJClAZP7_b_qCjZBRzd2kZC70LAzXbWnH.
+ TBCPtKrNKfXJIq6N84PTBEL7fWcq_NYQnfwc5_USfQxEdFnuEqdlRYMLN9dl
+ QOtv2gQqOEAH0cCxrmocuIaNqVVlaSOcF3mqN9gm4uoyjgmQy8DPUlTjIVxs
+ QyxK2TDywl25FLFuWnuESR6mjzLME9IPClAW5o74gNuCtOU5dySJi3Wy3pIB
+ o3OkZiTxncx1Dyn7GLHpamvyniw8E112V.3VPQuK_grGjwdPv52ipFCjF_U8
+ ni_oyKf4CzXkJqpkINPlfXHcFM0R_BoAH2IDTQiLpy7YKM7qMDWOkTo_fqqD
+ E0dJm_i0b5l8_ybKyzWRyBlW6mD.cISzUfD8ahprvZa3kzuID.a5kxypsy_3
+ RXstyMWd2ff3Q9cbrHCvwAs0CsqX8pfI.hmsJ6zaGttsCYxAB5Aki5iRYptf
+ 0VEBn75M5Qc0iQ6mkoHtfXeqR.t5A13Z__uFMOy3rZv3pwxNQ8rG3DVwgs7I
+ mmUlezbORt_3MWdIEh2P3SO97btI7UXUkFJpXc_z_4V4QxPrWQYVLCe5tTKN
+ ig4Y8zIs0713wb_oSzsoYskQt0cYvygov8enTxkjUy7TxVBDuFgLmjLi5luN
+ xY6lLXefdEq3CcybL9pbDF11A5mfhfqCJXIHiVdgttPu_HYK1o_fkqXCNuE2
+ Ad80HjTHLwEWHpgQM43Swv1WOFTqOvEhJQltdI1O1aOy0hnnz.1LBBWoQ_oU
+ sgJX3VLi2P4MrQ7EMO_cJuLI9nYBDGlzRGk1XpJFggZRBXPhS7bdIhCrcvLo
+ 5Y5dBvEO1jw6cCBNQa8Z1hCVUWwP0k0-
+Authentication-Results: mta1006.groups.mail.bf1.yahoo.com  from=direct.ilovefreegle.org; domainkeys=neutral (no sig);  from=direct.ilovefreegle.org; dkim=pass (ok)
+X-Received: from 127.0.0.1  (EHLO app1.ilovefreegle.org) (5.28.62.22)
+  by mta1006.groups.mail.bf1.yahoo.com with SMTPS; Sun, 07 Aug 2016 23:11:02 +0000
+X-Received: from localhost ([127.0.0.1])
+	by app1.ilovefreegle.org with esmtp (Exim 4.82)
+	(envelope-from <FBUser.1465629678.647264@direct.ilovefreegle.org>)
+	id 1bWXDh-0006X3-Fa
+	for PenrithEdenFreegle@yahoogroups.com; Sun, 07 Aug 2016 23:11:01 +0000
+Message-ID: <900113@direct.ilovefreegle.org>
+Date: Mon, 08 Aug 2016 00:10:27 +0100
+To: PenrithEdenFreegle@yahoogroups.com
 MIME-Version: 1.0
-Received: by 10.129.132.132 with HTTP; Thu, 4 Aug 2016 13:57:49 -0700 (PDT)
-X-Originating-IP: [81.157.219.37]
-In-Reply-To: <CAFTifHRbdjFX0ByiZDvrVxTJgvwE_Qq45NUPjV6RUy47wewszw@mail.gmail.com>
-References: <CAFTifHRbdjFX0ByiZDvrVxTJgvwE_Qq45NUPjV6RUy47wewszw@mail.gmail.com>
-Date: Thu, 4 Aug 2016 21:57:49 +0100
-Delivered-To: obediah@ehibbert.org.uk
-Message-ID: <CAFTifHQTgD1_w86kVtoKNoUmTY7xyB4M_g3-zOK=D+t77E_dwA@mail.gmail.com>
-Subject: Re: Offer: test (Loud Bridge PR3)
-From: Obediah Clutterbuck <obediah@ehibbert.org.uk>
-To: FBUser.1287223266.420404@republisher.freegle.in
-Content-Type: multipart/alternative; boundary=001a1147e5a6e342ab053945335a
+Content-Type: multipart/alternative;
+ boundary="_=_swift_v4_1470611427_847734fb99280c1908e662301bb5bc38_=_"
+X-Group-Address: FBUser.1465629678.647264@direct.ilovefreegle.org
+X-Freegle-Source: FDv2
+X-Freegle-Pending-Id: 900113
+X-Freegle-IP: 2.28.252.23
+X-Freegle-ID: 4597259
+X-Originating-IP: 98.139.245.165
+From: Alison Howard <fbuser.1465629678.647264@direct.ilovefreegle.org>
+Subject: OFFER: Espresso Maker. (Penrith)
+X-Yahoo-Group-Post: member; u=579557434
+X-YGroups-SubInfo: t=0;f=512;g=none;
 
---001a1147e5a6e342ab053945335a
-Content-Type: text/plain; charset=UTF-8
 
-And once more, do you still have it?
+--_=_swift_v4_1470611427_847734fb99280c1908e662301bb5bc38_=_
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
 
---001a1147e5a6e342ab053945335a
-Content-Type: text/html; charset=UTF-8
+Espresso Maker. Hardly used just no longer needed. Comes with instructions.=
 
-<div dir="ltr"><div class="gmail_extra"><div class="gmail_quote"><blockquote class="gmail_quote" style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex"><div dir="ltr">And once more, do you still have it?</div>
-</blockquote></div><br></div></div>
+--
+http://www.facebook.com/Penrith.Eden.Freegle
+https://twitter.com/Penri=
+thFreegle
+http://www.penrithedenfreegle.org.uk/
 
---001a1147e5a6e342ab053945335a--
+Donate to keep Freegle run=
+ning: http://www.ilovefreegle.org/donate/
+
+Stay Safe: Please NEVER pay cour=
+ier fees for delivery - it is a scam.
+
+--_=_swift_v4_1470611427_847734fb99280c1908e662301bb5bc38_=_
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="UTF-8"
+
+...Content of size 393 removed...
+
+--_=_swift_v4_1470611427_847734fb99280c1908e662301bb5bc38_=_--
+

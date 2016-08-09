@@ -131,7 +131,7 @@ class MailRouter
 
     public function route($msg = NULL, $notspam = FALSE) {
         $ret = NULL;
-        $log = FALSE;
+        $log = TRUE;
 
         # We route messages to one of the following destinations:
         # - to a handler for system messages
