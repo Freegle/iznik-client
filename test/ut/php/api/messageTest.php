@@ -407,6 +407,7 @@ class messageAPITest extends IznikAPITestCase
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('Subject: Basic test', 'Subject: OFFER: thing (place)', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
@@ -480,6 +481,40 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('{"type":"RejectPendingMessage","id":"1"}', $ret['plugin'][0]['data']);
         $pid = $ret['plugin'][0]['id'];
 
+        # The message should exist as rejected.  Log in as the sender.
+        $uid = $m->getFromuser();
+        error_log("Found sender as $uid");
+        $u = new User($this->dbhm, $this->dbhm, $uid);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        error_log("Message $id should now be rejected");
+        $ret = $this->call('messages', 'GET', [
+            'collection' => MessageCollection::REJECTED
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['messages']));
+        assertEquals($id, $ret['messages'][0]['id']);
+
+        # Try to convert it back to a draft.
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'RejectToDraft'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('messages', 'GET', [
+            'collection' => MessageCollection::DRAFT
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['messages']));
+        assertEquals($id, $ret['messages'][0]['id']);
+
+        # Coverage of rollback case.
+        $m2 = new Message($this->dbhr, $this->dbhm);
+        assertFalse($m2->backToDraft());
+
+        # Now delete it.
         $ret = $this->call('plugin', 'DELETE', [
             'id' => $pid
         ]);

@@ -62,7 +62,7 @@ class MessageCollection
                 session_id(),
                 $me ? $me->getId() : NULL
             ]);
-            error_log($sql . " " . ($me ? $me->getId() : NULL));
+            #error_log($sql . " " . ($me ? $me->getId() : NULL));
 
             foreach ($msgs as $msg) {
                 $msgids[] = ['id' => $msg['msgid']];

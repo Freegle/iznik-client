@@ -1163,6 +1163,19 @@ define([
 
                 p = Iznik.View.prototype.render.call(this);
                 p.then(function(self) {
+                    if (self.model.get('type') == 'ModMail' && self.model.get('refmsg')) {
+                        // ModMails may related to a message which has been rejected.  If so, add a button to
+                        // edit and resend.
+                        var msg = self.model.get('refmsg');
+                        console.log("Chat refmsg", msg);
+                        var groups = msg.groups
+
+                        _.each(groups, function(group) {
+                            if (group.collection == 'Rejected') {
+                                self.$('.js-rejected').show();
+                            }
+                        });
+                    }
                     self.$('.timeago').timeago();
                     self.$('.timeago').show();
                     self.$el.fadeIn('slow');

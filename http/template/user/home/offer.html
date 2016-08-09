@@ -3,7 +3,7 @@
         <div class="msgsubj panel-title">
             <div class="row">
                 <div class="col-xs-8 col-sm-10 col-md-8">
-                    <div class="js-rejected glyphicon glyphicon-warning-sign glyphicon-larger error" style="display: none" title="This message has been returned to you by the volunteers." />
+                    <div class="js-rejected glyphicon glyphicon-warning-sign glyphicon-larger error" style="display: none" title="This message has been sent back to you by the volunteers." />
                     {{subject}}
                 </div>
                 <div class="col-xs-2 col-sm-1 col-md-2 nopad">
@@ -69,10 +69,12 @@
                     <div class="glyphicon glyphicon-ok"></div>
                     It's been TAKEN
                 </button>
-                <button class="btn btn-warning js-rejected" style="display: none">
-                    <div class="glyphicon glyphicon-pencil"></div>
-                    Edit and Resend
-                </button>
+                <a href="/edit/{{id}}">
+                    <button class="btn btn-warning js-rejected" style="display: none">
+                        <span class="glyphicon glyphicon-pencil" />
+                        Edit and Resend
+                    </button>
+                </a>
                 <button class="btn btn-white js-withdraw">
                     <div class="glyphicon glyphicon-trash"></div>
                     Withdraw

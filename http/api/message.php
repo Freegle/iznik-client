@@ -347,6 +347,27 @@ function message() {
                         $ret['newpassword'] = $pw;
 
                         break;
+                    case 'RejectToDraft':
+                        # This is a message which has been rejected, but which we are now going to edit.
+                        $ret = ['ret' => 3, 'status' => 'Message does not exist'];
+                        $sql = "SELECT * FROM messages WHERE id = ?;";
+                        $msgs = $dbhr->preQuery($sql, [ $id ]);
+
+                        foreach ($msgs as $msg) {
+                            $m = new Message($dbhr, $dbhm, $id);
+                            $ret = ['ret' => 4, 'status' => 'Failed to edit message'];
+
+                            $role = $m->getRoleForMessage();
+
+                            if ($role == User::ROLE_MODERATOR || $role = User::ROLE_OWNER) {
+                                $rc = $m->backToDraft();
+
+                                if ($rc) {
+                                    $ret = ['ret' => 0, 'status' => 'Success'];
+                                }
+                            }
+                        }
+                        break;
                 }
             }
 

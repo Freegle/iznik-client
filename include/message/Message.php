@@ -2648,4 +2648,44 @@ class Message
             $comment
         ]);
     }
+
+    public function backToDraft() {
+        # Convert a message back to a draft.
+        $rollback = FALSE;
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
+        if ($this->dbhm->beginTransaction()) {
+            $rollback = TRUE;
+
+            if ($this->id) {
+                # The subject line needs unravelling back to an item
+                if (preg_match('/.*?\:(.*)\(.*\)/', $this->getSubject(), $matches)) {
+                    # Standard format - extract the item.
+                    $item = trim($matches[1]);
+                    $this->setPrivate('subject', $item);
+                }
+
+                $rc = $this->dbhm->preExec("INSERT INTO messages_drafts (msgid, userid, session) VALUES (?, ?, ?);", [ $this->id, $myid, session_id() ]);
+
+                if ($rc) {
+                    $rc = $this->dbhm->preExec("DELETE FROM messages_groups WHERE msgid = ?;", [ $this->id ]);
+
+                    if ($rc) {
+                        $rc = $this->dbhm->commit();
+
+                        if ($rc) {
+                            $rollback = FALSE;
+                        }
+                    }
+                }
+            }
+       }
+
+        if ($rollback) {
+            $this->dbhm->rollBack();
+        }
+
+        return(!$rollback);
+    }
 }

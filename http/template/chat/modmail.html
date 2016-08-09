@@ -11,5 +11,14 @@
     </div>
     <div class="panel-body">
         {{message}}
+        <div class="js-rejected" style="display: none">
+            <hr class="faded clearfix" />
+            <a href="/edit/{{id}}">
+                <button class="btn btn-warning">
+                    <span class="glyphicon glyphicon-pencil" />
+                    Edit and Resend
+                </button>
+            </a>
+        </div>
     </div>
 </div>
