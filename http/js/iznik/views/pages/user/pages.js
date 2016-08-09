@@ -362,7 +362,7 @@ define([
                                 var message = new Iznik.Models.Message({ id: self.id });
                                 message.fetch().then(function() {
                                     var atts = message.get('attachments');
-                                    if (atts.length > 0) {
+                                    if (atts && atts.length > 0) {
                                         self.image = atts[0].path;
                                     }
                                 });
