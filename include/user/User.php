@@ -2406,9 +2406,11 @@ class User extends Entity
         $id = presdef('id', $ctx, 0);
         $ctx = $ctx ? $ctx : [];
         $q = $this->dbhr->quote("$search%");
+        $backwards = strrev($search);
+        $qb = $this->dbhr->quote("$backwards%");
 
         $sql = "SELECT DISTINCT userid FROM
-                ((SELECT userid FROM users_emails WHERE email LIKE $q) UNION
+                ((SELECT userid FROM users_emails WHERE email LIKE $q OR backwards LIKE $qb) UNION
                 (SELECT id AS userid FROM users WHERE fullname LIKE $q) UNION
                 (SELECT id AS userid FROM users WHERE yahooid LIKE $q) UNION
                 (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)) t WHERE userid > ? ORDER BY userid ASC";
