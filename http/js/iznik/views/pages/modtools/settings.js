@@ -1837,7 +1837,7 @@ define([
                             var wkt;
 
                             // Set the drawing mode to "pan" (the hand) so users can immediately edit
-                            self.setDrawingMode(null);
+                            this.setDrawingMode(null);
 
                             // Polygon drawn
                             var obj = event.overlay;
@@ -1852,6 +1852,9 @@ define([
 
                                 // Existing vertex is moved (set elsewhere)
                                 google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj, true));
+
+                                // Click to show info
+                                google.maps.event.addListener(obj, 'click', self.changeHandler(self, area, obj, false));
                             }
 
                             self.features.push(event.overlay);
