@@ -101,10 +101,17 @@ class CommunityEvent extends Entity
             $mysqltime
         ]);
 
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : $me;
+
         foreach ($events as $event) {
             $ctx['end'] = $event['end'];
             $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id']);
-            $ret[] = $e->getPublic();
+            $atts = $e->getPublic();
+
+            $atts['canmodify'] = $e->canModify($myid);
+
+            $ret[] = $atts;
         }
 
         return($ret);
