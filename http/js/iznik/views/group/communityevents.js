@@ -86,6 +86,8 @@ define([
             Iznik.View.prototype.render.call(this).then(function() {
                 var mom = new moment(self.model.get('dates')[0]['start']);
                 self.$('.js-start').html(mom.format('ddd, Do MMM HH:mm'));
+                var mom = new moment(self.model.get('dates')[0]['end']);
+                self.$('.js-end').html(mom.format('ddd, Do MMM HH:mm'));
                 self.$el.closest('li').addClass('completefull');
 
                 self.model.on('change', self.render, self);
