@@ -336,7 +336,13 @@ class Digest
                                 $headers->addTextHeader('List-Unsubscribe', '<mailto:{{noemail}}>, <{{unsubscribe}}>');
 
                                 try {
-                                    #error_log("...$email");
+//                                    error_log("...$email {$msg['subject']}");
+//                                    if (strpos($email, 'btinternet.com')) {
+//                                        $email = 'investigation06@btinternet.com';
+//                                        $message->setTo([ $email => $rep['{{toname}}'] ]);
+//                                        $this->sendOne($mailer, $message);
+//                                        exit(0);
+//                                    }
                                     $message->setTo([ $email => $rep['{{toname}}'] ]);
                                     $this->sendOne($mailer, $message);
                                     $sent++;
