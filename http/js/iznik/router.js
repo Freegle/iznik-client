@@ -120,6 +120,7 @@ define([
             "give/whatisit": "userGiveWhatIsIt",
             "give/whoami": "userGiveWhoAmI",
             "give/whatnext": "userGiveWhatNext",
+            "edit/:id": "userEdit",
             "message/:id": "userMessage",
             "mygroups": "userMyGroups",
             "settings": "userSettings",
@@ -473,6 +474,44 @@ define([
 
         userMessage: function(id) {
             var self = this;
+
+            require(["iznik/views/pages/user/explore"], function() {
+                var page = new Iznik.Views.User.Pages.Message({
+                    id: id
+                });
+                self.loadRoute({page: page});
+            });
+        },
+
+        userEdit: function(id) {
+            var self = this;
+
+            // We convert the message back into a draft, and assuming that works, navigate to the appropriate
+            // page.
+            $.ajax({
+                url: API + 'message',
+                type: 'POST',
+                data: {
+                    id: id,
+                    action: 'RejectToDraft'
+                },
+                success: function(ret) {
+                    console.log("Returned", ret, id);
+                    if (ret.ret === 0) {
+                        try {
+                            localStorage.setItem('draft', id);
+
+                            if (ret.messagetype == 'Offer') {
+                                // Make them reconfirm the location
+                                Router.navigate('/give/whereami', true);
+                            } else {
+                                // TODO Should we be able to change the location?
+                                Router.navigate('/find/whatisit', true);
+                            }
+                        } catch (e) {}
+                    }
+                }
+            })
 
             require(["iznik/views/pages/user/explore"], function() {
                 var page = new Iznik.Views.User.Pages.Message({

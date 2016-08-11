@@ -363,7 +363,7 @@ function message() {
                                 $rc = $m->backToDraft();
 
                                 if ($rc) {
-                                    $ret = ['ret' => 0, 'status' => 'Success'];
+                                    $ret = ['ret' => 0, 'status' => 'Success', 'messagetype' => $m->getType() ];
                                 }
                             }
                         }

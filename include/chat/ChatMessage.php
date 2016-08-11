@@ -91,7 +91,10 @@ class ChatMessage extends Entity
 
     public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL) {
         try {
-            $review = $this->checkReview($message);
+            if ($type != ChatMessage::TYPE_MODMAIL) {
+                # No need to check our own mod mails for spam.
+                $review = $this->checkReview($message);
+            }
             $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, spamscore, reportreason, refchatid) VALUES (?,?,?,?,?,?,?,?,?,?)", [
                 $chatid,
                 $userid,
