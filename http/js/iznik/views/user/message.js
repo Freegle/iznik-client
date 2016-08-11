@@ -141,44 +141,6 @@ define([
             }
         },
 
-        stripGumf: function(property) {
-            // We have the same function in PHP in Message.php; keep them in sync.
-            var text = this.model.get(property);
-
-            if (text) {
-                // console.log("Strip photo", text);
-                // Strip photo links - we should have those as attachments.
-                text = text.replace(/You can see a photo[\s\S]*?jpg/, '');
-                text = text.replace(/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/\d*/, '');
-                text = text.replace(/You can see photos here[\s\S]*jpg/m, '');
-                text = text.replace(/https:\/\/direct.*jpg/m, '');
-
-                // FOPs
-                text = text.replace(/Fair Offer Policy applies \(see https:\/\/[\s\S]*\)/, '');
-                text = text.replace(/Fair Offer Policy:[\s\S]*?reply./, '');
-
-                // App footer
-                text = text.replace(/Freegle app.*[0-9]$/m, '');
-
-                // Footers
-                text = text.replace(/--[\s\S]*Get Freegling[\s\S]*book/m, '');
-                text = text.replace(/--[\s\S]*Get Freegling[\s\S]*org[\s\S]*?<\/a>/m, '');
-                text = text.replace(/This message was sent via Freegle Direct[\s\S]*/m, '');
-                text = text.replace(/\[Non-text portions of this message have been removed\]/m, '');
-                text = text.replace(/^--$[\s\S]*/m, '');
-
-                // Redundant line breaks
-                text = text.replace(/(?:(?:\r\n|\r|\n)\s*){2}/m, "\n\n");
-
-                text = text.trim();
-                // console.log("Stripped photo", text);
-            } else {
-                text = '';
-            }
-
-            this.model.set(property, text);
-        },
-
         render: function() {
             var self = this;
 
@@ -190,7 +152,7 @@ define([
                 self.$el.hide();
             }
 
-            this.stripGumf('textbody');
+            this.model.stripGumf('textbody');
 
             // The server will have returned us a snippet.  But if we've stripped out the gumf and we have something
             // short, use that instead.

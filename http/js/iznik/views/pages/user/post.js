@@ -290,7 +290,20 @@ define([
                         msg.fetch().then(function() {
                             if (self.msgType == msg.get('type')) {
                                 self.$('.js-items').tagsinput('add', msg.get('subject'));
+
+                                msg.stripGumf('textbody');
                                 self.$('.js-description').val(msg.get('textbody'));
+
+                                _.each(msg.get('attachments'), function(att) {
+                                    self.$('.js-addprompt').addClass('hidden');
+                                    var mod = new Iznik.Models.Message.Attachment({
+                                        id: att.id,
+                                        src: att.paththumb
+                                    });
+
+                                    self.photos.add(mod);
+                                });
+
                                 self.checkNext();
                             }
                         });
