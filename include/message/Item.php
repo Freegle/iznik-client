@@ -7,7 +7,7 @@ require_once(IZNIK_BASE . '/include/misc/Search.php');
 class Item extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'name', 'popularity', 'weight', 'updated');
+    var $publicatts = array('id', 'name', 'popularity', 'weight', 'updated', 'suggestfromphoto', 'suggestfromtypeahead');
     var $settableatts = array('name', 'popularity', 'weight');
 
     /** @var  $log Log */
@@ -29,7 +29,7 @@ class Item extends Entity
 
     public function create($name) {
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO items (name) VALUES (?);", [ $name ]);
+            $rc = $this->dbhm->preExec("INSERT INTO items (name) VALUES (?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);", [ $name ]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
             $id = NULL;
@@ -57,7 +57,10 @@ class Item extends Entity
         $results = $this->s->search($query, $ctx, 10);
         foreach ($results as &$result) {
             $i = new Item($this->dbhr, $this->dbhm, $result['id']);
-            $result['item'] = $i->getPublic();
+
+            if ($i->getPrivate('suggestfromtypeahead')) {
+                $result['item'] = $i->getPublic();
+            }
         }
         return($results);
     }

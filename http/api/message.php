@@ -122,7 +122,8 @@ function message() {
                             # - a locationid
                             # - a groupid (optional)
                             # - a type
-                            # - an item (which we store in the subject)
+                            # - an item
+                            # - a subject constructed from the type, item and location.
                             # - a fromuser if known (we might not have logged in yet)
                             # - a textbody
                             # - zero or more attachments
@@ -133,7 +134,13 @@ function message() {
                             }
                             
                             $type = presdef('messagetype', $_REQUEST, NULL);
+
+                            # Associated the item with the message.
                             $item = presdef('item', $_REQUEST, NULL);
+                            $i = new Item($dbhr, $dbhm);
+                            $itemid = $i->create($item);
+                            $m->addItem($itemid);
+
                             $fromuser = $me ? $me->getId() : NULL;
                             $textbody = presdef('textbody', $_REQUEST, NULL);
                             $attachments = presdef('attachments', $_REQUEST, []);

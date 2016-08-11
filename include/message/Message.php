@@ -2380,8 +2380,10 @@ class Message
     public function constructSubject() {
         # Construct the subject - do this now as it may get displayed to the user before we get the membership.
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
+        $items = $this->dbhr->preQuery("SELECT * FROM messages_items INNER JOIN items ON messages_items.itemid = items.id WHERE msgid = ?;", [ $this->id ]);
+        error_log("Items " . var_export($items, TRUE));
 
-        if (pres('location', $atts)) {
+        if (pres('location', $atts) && count($items) > 0) {
             # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
             if (pres('area', $atts) && pres('postcode', $atts)) {
                 $loc = $atts['area']['name'] . ' ' . $atts['postcode']['name'];
@@ -2390,12 +2392,8 @@ class Message
                 $loc = $l->ensureVague();
             }
 
-            # Ensure that we don't reconstruct an already constructed subject, which could happen if we got a
-            # temporary DB exception.
-            if (strpos($this->subject, " ($loc)") === FALSE) {
-                $subject = $this->type . ': ' . $this->subject . " ($loc)";
-                $this->setPrivate('subject', $subject);
-            }
+            $subject = $this->type . ': ' . $items[0]['name'] . " ($loc)";
+            $this->setPrivate('subject', $subject);
         }
     }
 
@@ -2421,6 +2419,11 @@ class Message
         return($ret);
     }
 
+    public function addItem($itemid) {
+        # Ignore duplicate msgid/itemid.
+        $this->dbhm->preExec("INSERT IGNORE INTO messages_items (msgid, itemid) VALUES (?, ?);", [ $this->id, $itemid]);
+    }
+
     public function submit(User $fromuser, $fromemail, $groupid) {
         $rc = FALSE;
         $this->setPrivate('fromuser', $fromuser->getId());
@@ -2429,13 +2432,13 @@ class Message
         #
         # - a locationid
         # - a type
-        # - an item (which we store in the subject)
+        # - an item
+        # - a subject
         # - a fromuser
         # - a textbody
         # - zero or more attachments
         #
         # We need to turn this into a full message:
-        # - construct a full subject
         # - create a Message-ID
         # - other bits and pieces
         # - create a full MIME message
@@ -2659,13 +2662,6 @@ class Message
             $rollback = TRUE;
 
             if ($this->id) {
-                # The subject line needs unravelling back to an item
-                if (preg_match('/.*?\:(.*)\(.*\)/', $this->getSubject(), $matches)) {
-                    # Standard format - extract the item.
-                    $item = trim($matches[1]);
-                    $this->setPrivate('subject', $item);
-                }
-
                 # This might already be a draft, so ignore dups.
                 $rc = $this->dbhm->preExec("INSERT IGNORE INTO messages_drafts (msgid, userid, session) VALUES (?, ?, ?);", [ $this->id, $myid, session_id() ]);
 
@@ -2683,8 +2679,6 @@ class Message
             }
         }
 
-
-        error_log("todraft rollback? $rollback rc $rc");
         if ($rollback) {
             $this->dbhm->rollBack();
         }
