@@ -185,6 +185,8 @@ define([
             var outcomes = self.model.get('outcomes');
             if (outcomes && outcomes.length > 0) {
                 // Hide completed posts by default.
+                // TODO option to show
+                console.log("Hide completed", self);
                 self.$el.hide();
             }
 

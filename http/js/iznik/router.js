@@ -496,7 +496,6 @@ define([
                     action: 'RejectToDraft'
                 },
                 success: function(ret) {
-                    console.log("Returned", ret, id);
                     if (ret.ret === 0) {
                         try {
                             localStorage.setItem('draft', id);
@@ -512,13 +511,6 @@ define([
                     }
                 }
             })
-
-            require(["iznik/views/pages/user/explore"], function() {
-                var page = new Iznik.Views.User.Pages.Message({
-                    id: id
-                });
-                self.loadRoute({page: page});
-            });
         },
 
         unsubscribe: function () {

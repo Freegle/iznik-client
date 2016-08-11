@@ -186,10 +186,6 @@ foreach ($groups as $group) {
         $age = $lastsync ? ((time() - $lastsync) / 3600) : NULL;
 
         if (!$age || $age > 7 * 24) {
-            # Only add users who have joined recently.  This means we won't readd old members that have not been
-            # removed from Iznik yet because there hasn't been a member sync.
-            $mysqltime = date("Y-m-d", strtotime("48 hours ago"));
-
             $users = $dbhfd->query("SELECT * FROM users WHERE groupid = {$group['groupid']} AND deletedfromyahoo = 1;");
             $count = 0;
             foreach ($users as $user) {

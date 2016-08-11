@@ -1167,7 +1167,6 @@ define([
                         // ModMails may related to a message which has been rejected.  If so, add a button to
                         // edit and resend.
                         var msg = self.model.get('refmsg');
-                        console.log("Chat refmsg", msg);
                         var groups = msg.groups
 
                         _.each(groups, function(group) {

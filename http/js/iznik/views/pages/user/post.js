@@ -291,6 +291,7 @@ define([
                             if (self.msgType == msg.get('type')) {
                                 self.$('.js-items').tagsinput('add', msg.get('subject'));
                                 self.$('.js-description').val(msg.get('textbody'));
+                                self.checkNext();
                             }
                         });
                     }

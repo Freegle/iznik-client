@@ -290,10 +290,19 @@ class ChatRoom extends Entity
 
     public function lastSeenForUser($userid) {
         # Find if we have any unseen messages.
-        $sql = "SELECT chat_roster.lastmsgseen FROM chat_roster INNER JOIN chat_rooms ON chat_roster.chatid = chat_rooms.id WHERE chatid = ? AND userid = ?;";
-        $counts = $this->dbhr->preQuery($sql, [ $this->id, $userid ]);
-        #return(round(rand(1, 10)));
-        return(count($counts) > 0 ? $counts[0]['lastmsgseen'] : NULL);
+        if ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2MOD && $userid != $this->chatroom['user1']) {
+            # This is a chat between a user and group mods - and we're checking for a user who isn't the member - so
+            # must be the mod.  In that case we only return that messages are unseen if they have not been seen by
+            # _any_ of the mods.
+            $sql = "SELECT MAX(chat_roster.lastmsgseen) AS lastmsgseen FROM chat_roster INNER JOIN chat_rooms ON chat_roster.chatid = chat_rooms.id WHERE chatid = ? AND userid = ?;";
+            $counts = $this->dbhr->preQuery($sql, [$this->id, $userid]);
+            return($this->chat);
+        } else {
+            # No fancy business - just get it from the roster.
+            $sql = "SELECT chat_roster.lastmsgseen FROM chat_roster INNER JOIN chat_rooms ON chat_roster.chatid = chat_rooms.id WHERE chatid = ? AND userid = ?;";
+            $counts = $this->dbhr->preQuery($sql, [$this->id, $userid]);
+            return (count($counts) > 0 ? $counts[0]['lastmsgseen'] : NULL);
+        }
     }
     
     public function seenLastForUser($userid) {

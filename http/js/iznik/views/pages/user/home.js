@@ -42,12 +42,12 @@ define([
 
                     self.offersView = new Backbone.CollectionView({
                         el: self.$('.js-offers'),
-                        modelView: Iznik.Views.User.Home.Offer,
                         modelViewOptions: {
                             offers: self.offers,
                             page: self,
                             chatid: self.options.chatid
                         },
+                        modelView: Iznik.Views.User.Home.Offer,
                         collection: self.offers
                     });
 
@@ -91,29 +91,36 @@ define([
                     });
 
                     var count = 0;
+                    var colls = [self.messages, self.pendingMessages, self.queuedMessages, self.rejectedMessages];
 
-                    _.each([self.messages, self.pendingMessages, self.queuedMessages, self.rejectedMessages], function (coll) {
+                    _.each(colls, function (coll) {
                         // We listen for events on the messages collection and ripple them through to the relevant offers/wanteds
                         // collection.  CollectionView will then handle rendering/removing the messages view.
                         self.listenTo(coll, 'add', function (msg) {
                             var related = msg.get('related');
 
                             if (msg.get('type') == 'Offer') {
+                                console.log("Got offer", msg);
                                 var taken = _.where(related, {
                                     type: 'Taken'
                                 });
 
                                 if (taken.length == 0) {
+                                    console.log("Add it");
                                     self.offers.add(msg);
                                 }
                             } else if (msg.get('type') == 'Wanted') {
+                                console.log("Got wanted", msg);
                                 var received = _.where(related, {
                                     type: 'Received'
                                 });
 
                                 if (received.length == 0) {
+                                    console.log("Add it");
                                     self.wanteds.add(msg);
                                 }
+                            } else {
+                                console.log("Got something else", msg);
                             }
                         });
 
@@ -136,7 +143,7 @@ define([
                             // We want both fetches to finish.
                             count++;
 
-                            if (count == 3) {
+                            if (count == colls.length) {
                                 if (self.offers.length == 0) {
                                     self.$('.js-nooffers').fadeIn('slow');
                                 } else {

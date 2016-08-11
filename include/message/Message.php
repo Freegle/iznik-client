@@ -2666,7 +2666,8 @@ class Message
                     $this->setPrivate('subject', $item);
                 }
 
-                $rc = $this->dbhm->preExec("INSERT INTO messages_drafts (msgid, userid, session) VALUES (?, ?, ?);", [ $this->id, $myid, session_id() ]);
+                # This might already be a draft, so ignore dups.
+                $rc = $this->dbhm->preExec("INSERT IGNORE INTO messages_drafts (msgid, userid, session) VALUES (?, ?, ?);", [ $this->id, $myid, session_id() ]);
 
                 if ($rc) {
                     $rc = $this->dbhm->preExec("DELETE FROM messages_groups WHERE msgid = ?;", [ $this->id ]);
@@ -2680,8 +2681,10 @@ class Message
                     }
                 }
             }
-       }
+        }
 
+
+        error_log("todraft rollback? $rollback rc $rc");
         if ($rollback) {
             $this->dbhm->rollBack();
         }
