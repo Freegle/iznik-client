@@ -53,7 +53,15 @@ define([
         },
 
         home: function () {
-            Router.navigate(this.modtools ? '/modtools' : '/', true);
+            var homeurl = this.modtools ? '/modtools' : '/';
+
+            if (window.location.pathname == homeurl) {
+                // Reload - this is because clicking on this when we're already on it can mean that something's 
+                // broken and they're confused.
+                window.location.reload();
+            } else {
+                Router.navigate(homeurl, true);
+            }
         },
 
         signin: function () {
