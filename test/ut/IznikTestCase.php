@@ -68,6 +68,7 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
     protected function tearDown() {
         parent::tearDown ();
         try {
+            $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
             @session_destroy();
         } catch (Exception $e) {
             error_log("Session exception " . $e->getMessage());

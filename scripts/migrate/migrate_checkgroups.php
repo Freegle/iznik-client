@@ -26,5 +26,7 @@ foreach ($pgroups as $pgroup) {
     $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND publish = 1 AND nameshort LIKE ?;", [ $nameshort ]);
     if (count($groups) == 0) {
         error_log("{$pgroup['groupURL']} not on new system");
+    } else {
+        $dbhm->preExec("UPDATE groups SET namefull = ? WHERE id = {$groups[0]['id']};", [ $pgroup['groupTitle'] ]);
     }
 }

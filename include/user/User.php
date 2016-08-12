@@ -2386,7 +2386,7 @@ class User extends Entity
                 }
             }
 
-            error_log("{$log['subtype']} gives $thisone {$log['groupid']}");
+            #error_log("{$log['subtype']} gives $thisone {$log['groupid']}");
             if ($thisone && $log['groupid']) {
                 $g = new Group($this->dbhr, $this->dbhm, $log['groupid']);
                 $ret[] = [
