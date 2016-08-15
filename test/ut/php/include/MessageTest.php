@@ -306,11 +306,15 @@ class messageTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
-
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-
         assertEquals('TAKEN: Test item (location)', $m->reverseSubject());
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $msg = str_replace('Basic test', '[StevenageFreegle] OFFER: Ninky nonk train and night garden characters St NIcks [1 Attachment]', $msg);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertEquals('TAKEN: Ninky nonk train and night garden characters St NIcks', $m->reverseSubject());
 
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);

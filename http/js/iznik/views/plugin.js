@@ -769,6 +769,7 @@ define([
                             serverMissing = _.shuffle(serverMissing);
 
                             _.each(serverMissing, function(group) {
+                                console.log("Confirm mod status on", group);
                                 var g = new Iznik.Models.Group({ id: group});
 
                                 g.fetch().then(function() {
@@ -781,8 +782,9 @@ define([
                                             action: 'ConfirmKey'
                                         },
                                         success: function(ret) {
+                                            console.log("Confirm mod status server returned", group, ret);
                                             if (ret.ret == 0) {
-                                                console.log("Confirm mod on", group);
+                                                console.log("Confirm mod to server on on", group);
                                                 var email = 'modconfirm-' + g.get('id') + '-' +
                                                     Iznik.Session.get('me').id + '-' + ret.key + '@' + location.host;
     

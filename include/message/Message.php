@@ -2568,19 +2568,23 @@ class Message
         $type = $this->getType();
 
         # Remove any group tag at the start.
-        if (preg_match('/\[.*\](.*)/', $subj, $matches)) {
+        if (preg_match('/\[.*?\](.*)/', $subj, $matches)) {
+            # Strip possible group name
+            $subj = trim($matches[1]);
+        }
+
+        # Strip any attachments tag put in by Yahoo
+        if (preg_match('/(.*)\[.*? Attachment.*\].*/', $subj, $matches)) {
             # Strip possible group name
             $subj = trim($matches[1]);
         }
 
         # Strip the relevant keywords.
         $keywords = Message::keywords()[$type];
-        error_log($subj);
 
         foreach ($keywords as $keyword) {
             if (preg_match('/^' . preg_quote($keyword) . '\b(.*)/i', $subj, $matches)) {
                 $subj = $matches[1];
-                error_log($subj);
             }
         }
 
