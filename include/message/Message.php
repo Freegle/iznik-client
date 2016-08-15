@@ -2130,7 +2130,7 @@ class Message
         $thissubj = preg_replace('/\-|\,|\.| /', '', $thissubj);
 
         if ($type) {
-            $sql = "SELECT id, subject, date FROM messages WHERE fromuser = ? AND type = ?;";
+            $sql = "SELECT id, subject, date FROM messages WHERE fromuser = ? AND type = ? AND DATEDIFF(NOW(), arrival) <= 31;";
             $messages = $this->dbhr->preQuery($sql, [ $this->fromuser, $type ]);
             #error_log($sql . var_export([ $thissubj, $thissubj, $this->fromuser, $type ], TRUE));
             $thistime = strtotime($this->date);
