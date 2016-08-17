@@ -194,6 +194,7 @@ define([
 
                 if (approved) {
                     self.$('.js-taken').show();
+                    self.$('.js-received').show();
                 }
 
                 if (rejected) {
