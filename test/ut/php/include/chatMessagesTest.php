@@ -97,6 +97,46 @@ class chatMessagesTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testPairing() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_UT);
+
+        $msg = $this->unique(file_get_contents('msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('OFFER: a test item (location)', 'OFFER: A spade and broom handle (Conniburrow MK14', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid1 = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $msg = $this->unique(file_get_contents('msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('OFFER: a test item (location)', 'Wanted: bike (Conniburrow MK14', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid2 = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $msg = $this->unique(file_get_contents('msgs/replytext'));
+        $msg = str_replace('Re: Basic test', 'Re: A spade and broom handle (Conniburrow MK14)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        $m = new Message($this->dbhm, $this->dbhm, $refmsgid1);
+        $atts = $m->getPublic(FALSE, TRUE, TRUE);
+        error_log("Message 1 " . var_export($atts, TRUE));
+        assertEquals(1, count($atts['replies']));
+        $m = new Message($this->dbhm, $this->dbhm, $refmsgid2);
+        $atts = $m->getPublic(FALSE, TRUE, TRUE);
+        assertEquals(0, count($atts['replies']));
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testError() {
         error_log(__METHOD__);
 
