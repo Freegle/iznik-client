@@ -214,7 +214,7 @@ define([
                 var replies = self.model.get('replies');
                 self.replies = new Iznik.Collection(replies);
 
-                if (replies.length > 0) {
+                if (replies && replies.length > 0) {
                     // Show and update the reply details.
                     if (replies.length > 0) {
                         self.$('.js-noreplies').hide();
@@ -589,7 +589,7 @@ define([
         send: function() {
             var self = this;
             var replytext = self.$('.js-replytext').val();
-            console.log("Send reply", replytext);
+            //console.log("Send reply", replytext);
 
             if (replytext.length == 0) {
                 self.$('.js-replytext').addClass('error-border').focus();
@@ -617,11 +617,12 @@ define([
                     var memberofs = Iznik.Session.get('groups');
                     var member = false;
                     var tojoin = null;
+
                     if (memberofs) {
                         memberofs.each(function(memberof) {
                             var msggroups = self.model.get('groups');
                             _.each(msggroups, function(msggroup) {
-                                if (memberof.id = msggroup.groupid) {
+                                if (memberof.id == msggroup.groupid) {
                                     member = true;
                                 }
                             });
