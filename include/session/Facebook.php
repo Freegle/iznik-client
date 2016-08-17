@@ -171,7 +171,7 @@ class Facebook
                                 'type' => Log::TYPE_USER,
                                 'subtype' => Log::SUBTYPE_LOGIN,
                                 'byuser' => $id,
-                                'text' => 'Using Facebook $fid'
+                                'text' => "Using Facebook $fid"
                             ]);
 
                             $ret = 0;
