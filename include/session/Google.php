@@ -159,6 +159,12 @@ class Google
                 $s = new Session($this->dbhr, $this->dbhm);
                 $s->create($id);
 
+                # Anyone who has logged in to our site has given RIPA consent.
+                $this->dbhm->preExec("UPDATE users SET ripaconsent = 1 WHERE userid = ?;",
+                    [
+                        $id
+                    ]);
+
                 $l = new Log($this->dbhr, $this->dbhm);
                 $l->log([
                     'type' => Log::TYPE_USER,
