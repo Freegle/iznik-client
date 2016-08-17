@@ -186,11 +186,11 @@ define([
 
                 tinyMCE.init({
                     selector: '#mailhtml',
-                    plugins: 'link textcolor',
+                    plugins: 'link textcolor code',
                     height: 300,
                     menubar: false,
                     elementpath: false,
-                    toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright |  bullist numlist link | forecolor styleselect formatselect fontselect fontsizeselect | cut copy paste'
+                    toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright |  bullist numlist link | forecolor styleselect formatselect fontselect fontsizeselect | cut copy paste | code'
                 });
             });
 
