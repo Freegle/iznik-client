@@ -128,12 +128,14 @@ class userTest extends IznikTestCase {
         $g = new Group($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $emailid1 = $u->getIdForEmail('test@test.com')['id'];
-        $emailid2 = $u->getIdForEmail('test2@test.com')['id'];
+        $emailid3 = $u->getIdForEmail('test3@test.com')['id'];
+        error_log("emailid1 $emailid1 emailid3 $emailid3");
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid1);
         assertEquals($emailid1, $u->getEmailForYahooGroup($group1)[0]);
-        $u->addMembership($group1, User::ROLE_MEMBER, $emailid2);
-        $u->addMembership($group1, User::ROLE_MEMBER, $emailid2);
-        assertEquals($emailid2, $u->getEmailForYahooGroup($group1)[0]);
+        $u->removeMembership($group1);
+        $u->addMembership($group1, User::ROLE_MEMBER, $emailid3);
+        $u->addMembership($group1, User::ROLE_MEMBER, $emailid3);
+        assertEquals($emailid3, $u->getEmailForYahooGroup($group1)[0]);
         assertNull($u->getIdForEmail('wibble@test.com'))['id'];
         assertNull($u->getEmailForYahooGroup(-1)[0]);
 
@@ -377,6 +379,73 @@ class userTest extends IznikTestCase {
 //        error_log("ID is " . $u1->getId() . " public " . var_export($atts, true));
 //        $log = $this->findLog('User', 'Merged', $atts['logs']);
 //        assertEquals($id1, $log['user']['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testMergeReal() {
+        error_log(__METHOD__);
+
+        # Simulates processing from real emails migration script.
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $id1 = $u->create(NULL, NULL, 'Test User');
+        $id2 = $u->create(NULL, NULL, 'Test User');
+        $u1 = new User($this->dbhr, $this->dbhm, $id1);
+        $u2 = new User($this->dbhr, $this->dbhm, $id2);
+        $eid1 = $u1->addEmail('test1@test.com');
+        $eid2 = $u2->addEmail('test2@test.com');
+
+        # Set up various memberships
+        $u1->addMembership($group, User::ROLE_MEMBER, $eid1);
+        $u2->addMembership($group, User::ROLE_MEMBER, $eid2);
+
+        # Merge u2 into u1
+        assertTrue($u1->merge($id1, $id2, "UT"));
+
+        # Pick up new settings.
+        $u1 = new User($this->dbhm, $this->dbhm, $id1);
+
+        $membershipid = $this->dbhm->preQuery("SELECT id FROM memberships WHERE userid = ?;", [ $id1 ])[0]['id'];
+        error_log("Membershipid $membershipid");
+
+        # Should have both Yahoo memberships.
+        $yahoomembers = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo WHERE membershipid = ? ORDER BY emailid;", [ $membershipid ]);
+        error_log("Yahoo memberships " . var_export($yahoomembers, TRUE));
+        assertEquals($eid1, $yahoomembers[0]['emailid']);
+        assertEquals($eid2, $yahoomembers[1]['emailid']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+
+    public function testDoubleAdd() {
+        error_log(__METHOD__);
+
+        # Simulates processing from real emails migration script.
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $id1 = $u->create(NULL, NULL, 'Test User');
+        $eid1 = $u->addEmail('test1@test.com');
+        $eid2 = $u->addEmail('test2@test.com');
+
+        # Set up membership with two emails
+        $u->addMembership($group, User::ROLE_MEMBER, $eid1);
+        $u->addMembership($group, User::ROLE_MEMBER, $eid2);
+
+        $membershipid = $this->dbhm->preQuery("SELECT id FROM memberships WHERE userid = ?;", [ $id1 ])[0]['id'];
+        error_log("Membershipid $membershipid");
+
+        # Should have both Yahoo memberships.
+        $yahoomembers = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo WHERE membershipid = ? ORDER BY emailid;", [ $membershipid ]);
+        error_log("Yahoo memberships " . var_export($yahoomembers, TRUE));
+        self::assertEquals(2, count($yahoomembers));
+        assertEquals($eid1, $yahoomembers[0]['emailid']);
+        assertEquals($eid2, $yahoomembers[1]['emailid']);
 
         error_log(__METHOD__ . " end");
     }
@@ -731,6 +800,20 @@ class userTest extends IznikTestCase {
         $email2 = $u->inventEmail();
         error_log("Other email again, invented $email2");
         assertEquals($email, $email2);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testSpecial() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail('chris@phdcc.com');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+
+
+        list ($eidforgroup, $emailforgroup) = $u->getEmailForYahooGroup(21560, TRUE);
+        error_log("Eid is $eidforgroup");
 
         error_log(__METHOD__ . " end");
     }
