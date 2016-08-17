@@ -128,7 +128,7 @@ class Yahoo
                     $s->create($id);
 
                     # Anyone who has logged in to our site has given RIPA consent.
-                    $this->dbhm->preExec("UPDATE users SET ripaconsent = 1 WHERE userid = ?;",
+                    $this->dbhm->preExec("UPDATE users SET ripaconsent = 1 WHERE id = ?;",
                         [
                             $id
                         ]);

@@ -313,6 +313,7 @@ class Alert extends Entity
                         'https://' . USER_SITE . "/alert/viewed/$trackid";
                 }
 
+                error_log("Mail " . $g->getModsEmail());
                 $msg = $this->constructMessage($g->getModsEmail(), $toname, $from, $this->alert['subject'], $text, $html);
                 $mailer->send($msg);
                 $done++;
