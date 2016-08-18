@@ -731,7 +731,7 @@ define([
                 lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
 
                 if (lpwidth) {
-                    console.log("Restore chat width to", lpwidth);
+                    // console.log("Restore chat width to", lpwidth);
                     self.$('.js-leftpanel').width(lpwidth);
                 }
             } catch (e) {}
