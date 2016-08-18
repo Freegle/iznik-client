@@ -217,7 +217,37 @@ define([
     });
 
     Iznik.Views.User.Home.Wanted = Iznik.Views.User.Message.extend({
-        template: "user_home_wanted"
+        template: "user_home_wanted",
+
+        events: {
+            'click .js-received': 'received',
+            'click .js-withdraw': 'withdrawn'
+        },
+
+        received: function () {
+            this.outcome('Received');
+        },
+
+        withdrawn: function () {
+            this.outcome('Withdrawn');
+        },
+
+        outcome: function (outcome) {
+            var self = this;
+
+            var v = new Iznik.Views.User.Outcome({
+                model: this.model,
+                outcome: outcome
+            });
+
+            self.listenToOnce(v, 'outcame', function () {
+                self.$el.fadeOut('slow', function () {
+                    self.destroyIt();
+                });
+            })
+
+            v.render();
+        }
     });
 
     Iznik.Views.User.Outcome = Iznik.Views.Modal.extend({
