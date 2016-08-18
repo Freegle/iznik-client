@@ -63,6 +63,9 @@ define([
                     // Add a type selector.  The parent class has an event and method to re-render if we change that.
                     self.$('.js-type').selectpicker();
                     self.$('.js-type').selectPersist();
+                } else {
+                    self.$('.js-somegroups').hide();
+                    self.$('.js-nogroups').fadeIn('slow');
                 }
             });
 
