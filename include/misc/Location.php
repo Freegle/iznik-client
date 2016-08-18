@@ -87,12 +87,12 @@ class Location extends Entity
                 $nelng = $bbox['maxx'] + 0.01;
 
                 $sql = "SELECT * FROM locations WHERE $swlat <= lat AND lat <= $nelat AND $swlng <= lng AND lng <= $nelng AND type = 'Postcode' AND LOCATE(' ', name) > 0;";
-                #error_log($sql);
+                #error_log("Find postcodes for new location $sql");
                 $locs = $this->dbhr->preQuery($sql);
                 foreach ($locs as $loc) {
                     if ($loc['id'] != $id) {
                         #error_log("Re-evaluate {$loc['id']} {$loc['name']}");
-                        $this->setParents($loc['id'], $gridid, 1);
+                        $this->setParents($loc['id'], $gridid, 1, $id);
                     }
                 }
             }
@@ -117,7 +117,7 @@ class Location extends Entity
         }
     }
 
-    public function setParents($id, $gridid, $osmonly = 1) {
+    public function setParents($id, $gridid, $osmonly = 1, $areaid = NULL) {
         # For each location, we also want to store the area and first-part-postcode which this location is within.
         #
         # This allows us to standardise subjects on groups.
@@ -143,38 +143,45 @@ class Location extends Entity
                 }
             }
 
-            # Now we want to find the area.  We can speed up our query if we restrict the search to this grid square
-            # and adjacent ones, but we need to work outwards until we find our location or it gets silly.
-            $gridids = [ $gridid ];
-            $lastcount = 0;
+            if (!$areaid) {
+                # Now we want to find the area.  We can speed up our query if we restrict the search to this grid square
+                # and adjacent ones, but we need to work outwards until we find our location or it gets silly.
+                $gridids = [ $gridid ];
+                $lastcount = 0;
 
-            do {
-                # Now find grids which touch.  That avoids issues where our group is near the boundary of a grid square.
-                $sql = "SELECT touches FROM locations_grids_touches WHERE gridid IN (" . implode(',', $gridids) . ");";
-                #error_log($sql);
-                $neighbours = $this->dbhr->preQuery($sql, [ $gridid ]);
-                $lastcount = count($gridids);
-                foreach ($neighbours as $neighbour) {
-                    $gridids[] = $neighbour['touches'];
+                do {
+                    # Now find grids which touch.  That avoids issues where our group is near the boundary of a grid square.
+                    $sql = "SELECT touches FROM locations_grids_touches WHERE gridid IN (" . implode(',', $gridids) . ");";
+                    #error_log($sql);
+                    $neighbours = $this->dbhr->preQuery($sql, [ $gridid ]);
+                    $lastcount = count($gridids);
+                    foreach ($neighbours as $neighbour) {
+                        $gridids[] = $neighbour['touches'];
+                    }
+
+                    $gridids = array_unique($gridids);
+
+                    # We choose the smallest non-postcode place location.  A place location is either one where the OSM data
+                    # says it's a place (osm_place) or the type of the location means it would work as one (not point,
+                    # basically).  We can't use MBRContains or MBRIntersects as some places are only present in OSM as points.
+                    $sql = "SELECT id, name, CASE WHEN ourgeometry IS NOT NULL THEN AsText(ourgeometry) ELSE AsText(geometry) END AS geomtext, haversine(lat, lng, ?, ?) AS dist FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = $osmonly ORDER BY dist ASC LIMIT 2;";
+                    #error_log("For $id $sql, {$loc['lat']}, {$loc['lng']}");
+                    $intersects = $this->dbhr->preQuery($sql, [
+                        $loc['lat'],
+                        $loc['lng']
+                    ]);
+                } while (count($gridids) != $lastcount && count($intersects) < 2 && count($gridids) < 10000);
+
+                if (count($intersects) > 1 || (count($intersects) == 1 && $intersects[0]['id'] != $id)) {
+                    # Quicker query if we omit AND id != $id and handle it here.
+                    $iid = $intersects[0]['id'] != $id ? $intersects[0]['id'] : $intersects[1]['id'];
+                    $areaid = $iid;
                 }
+            }
 
-                $gridids = array_unique($gridids);
-
-                # We choose the smallest non-postcode place location.  A place location is either one where the OSM data
-                # says it's a place (osm_place) or the type of the location means it would work as one (not point,
-                # basically).  We can't use MBRContains or MBRIntersects as some places are only present in OSM as points.
-                $sql = "SELECT id, name, CASE WHEN ourgeometry IS NOT NULL THEN AsText(ourgeometry) ELSE AsText(geometry) END AS geomtext, haversine(lat, lng, ?, ?) AS dist FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = $osmonly ORDER BY dist ASC LIMIT 2;";
-                #error_log("For $id $sql, {$loc['lat']}, {$loc['lng']}");
-                $intersects = $this->dbhr->preQuery($sql, [
-                    $loc['lat'],
-                    $loc['lng']
-                ]);
-            } while (count($gridids) != $lastcount && count($intersects) < 2 && count($gridids) < 10000);
-
-            if (count($intersects) > 1 || (count($intersects) == 1 && $intersects[0]['id'] != $id)) {
-                # Quicker query if we omit AND id != $id and handle it here.
-                $iid = $intersects[0]['id'] != $id ? $intersects[0]['id'] : $intersects[1]['id'];
-                $sql = "UPDATE locations SET areaid = $iid WHERE id = $id;";
+            if ($areaid) {
+                #error_log("Set $id to have area $areaid");
+                $sql = "UPDATE locations SET areaid = $areaid WHERE id = $id;";
                 $this->dbhm->preExec($sql);
             }
         }
@@ -325,6 +332,7 @@ class Location extends Entity
             #error_log("Got gridids " . var_export($gridids, TRUE));
             if (count($gridids) > 0) {
                 $sql = "SELECT locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") ORDER BY popularity ASC;";
+                #error_log("Get locs in grids $sql");
                 $ret = $this->dbhr->preQuery($sql);
             }
         }

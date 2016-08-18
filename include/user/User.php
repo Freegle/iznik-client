@@ -473,7 +473,7 @@ class User extends Entity
         # memberships_yahoo), and if the membership already exists, then this would cause us to delete and re-add it,
         # which would result in the row in the child table being deleted.
         #
-        error_log("Add membership {$this->id} to $groupid with $emailid");
+        #error_log("Add membership {$this->id} to $groupid with $emailid");
         $rc = $this->dbhm->preExec("INSERT INTO memberships (userid, groupid, role, collection) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), role = ?;", [
             $this->id,
             $groupid,
@@ -482,7 +482,7 @@ class User extends Entity
             $role
         ]);
         $membershipid = $this->dbhm->lastInsertId();
-        error_log("Insert returned $rc membership $membershipid");
+        #error_log("Insert returned $rc membership $membershipid");
 
         if ($rc && $emailid) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
