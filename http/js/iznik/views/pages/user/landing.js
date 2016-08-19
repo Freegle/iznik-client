@@ -19,6 +19,12 @@ define([
         noback: true
     });
 
+    Iznik.Views.User.Pages.Landing.Mobile = Iznik.Views.Page.extend({
+        template: "user_landing_mobile",
+        footer: true,
+        noback: true
+    });
+
     Iznik.Views.User.Pages.Landing.Terms = Iznik.Views.Page.extend({
         template: "user_landing_terms",
         footer: true,

@@ -133,6 +133,8 @@ define([
             "post": "userHome", // legacy route
             "chat/:id": "userChat",
             "alert/viewed/:id": "alertViewed",
+            "mobile": "userMobile",
+            "mobile/": "userMobile",
             "about": "userAbout",
             "terms": "userTerms",
             "privacy": "userPrivacy",
@@ -956,6 +958,15 @@ define([
                 Iznik.Session.forceLogin({
                     modtools: true
                 });
+            });
+        },
+
+        userMobile: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/landing"], function() {
+                var page = new Iznik.Views.User.Pages.Landing.Mobile();
+                self.loadRoute({page: page});
             });
         },
 
