@@ -7,8 +7,7 @@ define([
     "iznik/modtools",
     "iznik/models/social",
     'iznik/views/pages/pages',
-    'iznik/views/infinite',
-    'iznik/views/group/select'
+    'iznik/views/infinite'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Pages.SocialActions = Iznik.Views.Infinite.extend({
         modtools: true,
@@ -18,7 +17,7 @@ define([
         retField: 'socialactions',
 
         countsChanged: function() {
-            this.groupSelect.render();
+            this.render();
         },
 
         render: function () {
@@ -32,39 +31,19 @@ define([
                     self.$('.js-help').html(v.el);
                 })
 
-                self.groupSelect = new Iznik.Views.Group.Select({
-                    systemWide: false,
-                    all: true,
-                    mod: true,
-                    counts: ['socialactions'],
-                    id: 'socialGroupSelect'
+                self.lastFetched = null;
+                self.context = null;
+
+                self.collection = new Iznik.Collections.SocialActions();
+
+                self.collectionView = new Backbone.CollectionView({
+                    el: self.$('.js-list'),
+                    modelView: Iznik.Views.ModTools.SocialAction,
+                    collection: self.collection
                 });
 
-                self.listenTo(self.groupSelect, 'selected', function (selected) {
-                    // Change the group selected.
-                    self.selected = selected;
-
-                    // We haven't fetched anything for this group yet.
-                    self.lastFetched = null;
-                    self.context = null;
-
-                    self.collection = new Iznik.Collections.SocialActions();
-
-                    console.log("Add to ", self.$('.js-list'));
-                    self.collectionView = new Backbone.CollectionView({
-                        el: self.$('.js-list'),
-                        modelView: Iznik.Views.ModTools.SocialAction,
-                        collection: self.collection
-                    });
-
-                    self.collectionView.render();
-                    self.fetch();
-                });
-
-                // Render after the listen to as they are called during render.
-                self.groupSelect.render().then(function(v) {
-                    self.$('.js-groupselect').html(v.el);
-                });
+                self.collectionView.render();
+                self.fetch();
 
                 // If we detect that the pending counts have changed on the server, refetch the members so that we add/remove
                 // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
