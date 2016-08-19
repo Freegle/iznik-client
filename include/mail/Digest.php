@@ -336,7 +336,7 @@ class Digest
                                 $headers->addTextHeader('List-Unsubscribe', '<mailto:{{noemail}}>, <{{unsubscribe}}>');
 
                                 try {
-                                    error_log("...$email {$msg['subject']}");
+//                                    error_log("...$email {$msg['subject']}");
 //                                    if (strpos($email, 'btinternet.com')) {
 //                                        error_log("BT - cause fail");
 //                                        $message->setTo([ 'log@ehibbert.org.uk' => $rep['{{toname}}'] ]);
