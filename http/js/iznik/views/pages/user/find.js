@@ -158,7 +158,7 @@ define([
                                 // This event happens before the view has been rendered.  Wait for that.
                                 self.listenToOnce(modelView, 'rendered', function() {
                                     modelView.expand.call(modelView);
-                                    modelView.setReply.call(modelView, replytext);
+                                    modelView.continueReply.call(modelView, replytext);
                                 });
                             }
                         } catch (e) {console.log("Failed", e)}

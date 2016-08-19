@@ -362,6 +362,8 @@ class Message
                 $me->getId()
             ]);
 
+            #error_log("$sql {$this->id}, " . $me->getId() . " " . var_export($groups, TRUE));
+
             foreach ($groups as $group) {
                 switch ($group['role']) {
                     case User::ROLE_OWNER:
@@ -452,6 +454,7 @@ class Message
         $myid = $me ? $me->getId() : NULL;
         $ret = [];
         $role = $this->getRoleForMessage();
+        $ret['myrole'] = $role;
 
         foreach ($this->nonMemberAtts as $att) {
             $ret[$att] = $this->$att;

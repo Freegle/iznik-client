@@ -92,7 +92,7 @@ function whoAmI(LoggedPDO $dbhr, $dbhm, $writeaccess = false)
 
     $id = pres('id', $_SESSION);
     $ret = NULL;
-    #error_log("whoAmI  $id in " . session_id());
+    #error_log("whoAmI $id in " . session_id());
 
     if ($id) {
         # We are logged in.  Get our details

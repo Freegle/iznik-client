@@ -103,7 +103,6 @@ function user() {
                         ];
                     }
                 } else {
-                    session_reopen();
                     $id = $u->create($firstname, $lastname, NULL, "Registered");
 
                     $ret = [
@@ -120,11 +119,10 @@ function user() {
                             $rc = $u->addLogin(User::LOGIN_NATIVE, $id, $password);
 
                             if ($rc) {
-                                session_reopen();
                                 $rc = $u->login($password);
 
                                 if ($rc) {
-                                    $_SESSION['id'] = $id;
+                                    error_log("Created user $id");
                                     $ret = [
                                         'ret' => 0,
                                         'status' => 'Success',

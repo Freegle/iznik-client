@@ -6,6 +6,7 @@ if (!defined('UT_DIR')) {
 require_once UT_DIR . '/IznikAPITestCase.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
+require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 
 /**
  * @backupGlobals disabled
@@ -79,6 +80,47 @@ class membershipsAPITest extends IznikAPITestCase {
             'email' => 'test2@test.com'
         ]);
         assertEquals(0, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testJoinAndSee() {
+        error_log(__METHOD__);
+
+        # Check that if we join a group we can see messages on it immediately.
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        error_log("Approved id $id");
+
+        # Our role should be non-member.
+        $this->user->removeMembership($this->groupid);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+
+        self::assertEquals('Non-member', $ret['message']['myrole']);
+
+        # Join
+        $ret = $this->call('memberships', 'PUT', [
+            'groupid' => $this->groupid,
+            'userid' => $this->uid,
+            'role' => 'Member'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Our role should be member.
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+
+        # We have moderator role on our own message.
+        self::assertEquals('Moderator', $ret['message']['myrole']);
 
         error_log(__METHOD__ . " end");
     }

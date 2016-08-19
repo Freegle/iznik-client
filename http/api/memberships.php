@@ -7,7 +7,7 @@ function memberships() {
     $userid = intval(presdef('userid', $_REQUEST, NULL));
 
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
-    $role = presdef('role', $_REQUEST, NULL);
+    $role = presdef('role', $_REQUEST, User::ROLE_MEMBER);
     $email = presdef('email', $_REQUEST, NULL);
     $limit = presdef('limit', $_REQUEST, 5);
     $search = presdef('search', $_REQUEST, NULL);
@@ -157,8 +157,10 @@ function memberships() {
                 $u = new User($dbhr, $dbhm, $userid);
 
                 if ($u && $me && $u->getId() && $me->getId()) {
-                    # If this isn't us, we can add them, but not as someone with higher permissions than us.
-                    $role = $u->roleMin($role, $me->getRoleForGroup($groupid));
+                    if ($userid && $userid != $me->getId()) {
+                        # If this isn't us, we can add them, but not as someone with higher permissions than us.
+                        $role = $u->roleMin($role, $me->getRoleForGroup($groupid));
+                    }
 
                     if ($email) {
                         # Get the emailid we'd like to use on this group.  This will add it if absent.

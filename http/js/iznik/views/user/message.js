@@ -35,16 +35,10 @@ define([
             this.$('.js-caretdown').click();
         },
 
-        setReply: function(text) {
+        continueReply: function(text) {
+            // This is when we were in the middle of replying to a message.
             var self = this;
             console.log("Set reply", text);
-
-            try {
-                // Clear the local storage, so that we don't get stuck here.
-                localStorage.removeItem('replyto');
-                localStorage.removeItem('replytext');
-            } catch (e) {}
-
             this.$('.js-replytext').val(text);
 
             // We might get called back twice because of the html, body selector (which we need for browser compatibility)
@@ -58,9 +52,19 @@ define([
                 function() {
                     console.log("Try to send", self.readyToSend);
                     if (self.readyToSend) {
-                        // Now send it.
-                        self.readyToSend = false;
-                        self.$('.js-send').click();
+                        self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                            try {
+                                // Clear the local storage, so that we don't get stuck here.
+                                localStorage.removeItem('replyto');
+                                localStorage.removeItem('replytext');
+                            } catch (e) {}
+
+                            // Now send it.
+                            self.readyToSend = false;
+                            self.$('.js-send').click();
+                        });
+
+                        Iznik.Session.forceLogin();
                     }
                 }
             );
@@ -574,11 +578,22 @@ define([
                             }, complete: function() {
                                 // Ensure the chat is opened, which shows the user what will happen next.
                                 Iznik.Session.chats.fetch().then(function() {
+                                    self.wait.close();
                                     self.$('.js-replybox').slideUp();
                                     var chatmodel = Iznik.Session.chats.get(chatid);
                                     var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
                                     chatView.restore();
-                                    self.wait.close();
+
+                                    // If we were replying, we might have forced a login and shown the message in
+                                    // isolation, in which case we need to return to where we were.
+                                    try {
+                                        var ret = localStorage.getItem('replyreturn');
+                                        console.log("Return after reply", ret);
+
+                                        if (ret) {
+                                            Router.navigate(ret, true);
+                                        }
+                                    } catch (e) {};
                                 });
                             }
                         });
@@ -590,76 +605,78 @@ define([
         send: function() {
             var self = this;
             var replytext = self.$('.js-replytext').val();
-            //console.log("Send reply", replytext);
+            console.log("Send reply", replytext);
 
             if (replytext.length == 0) {
                 self.$('.js-replytext').addClass('error-border').focus();
             } else {
                 self.$('.js-replytext').removeClass('error-border');
 
-                try {
-                    // Save off details of our reply.  This is so that when we do a force login and may have to sign up or
-                    // log in, which can cause a page refresh, we will repopulate this data during the render.
-                    localStorage.setItem('replyto', self.model.get('id'));
-                    localStorage.setItem('replytext', replytext);
-                } catch (e) {}
-
                 // If we're not already logged in, we want to be.
-                self.listenToOnce(Iznik.Session, 'loggedIn', function () {
-                    // Now we're logged in we no longer need the local storage of the reply, because we've put it
-                    // back into the DOM during the render.
-                    try {
-                        // Clear the local storage, so that we don't get stuck here.
-                        localStorage.removeItem('replyto');
-                        localStorage.removeItem('replytext');
-                    } catch (e) {}
+                self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedin) {
+                    if (loggedin) {
+                        // We are logged in and can proceed.
+                        //
+                        // When we reply to a message on a group, we join the group if we're not already a member.
+                        var memberofs = Iznik.Session.get('groups');
+                        var member = false;
+                        var tojoin = null;
 
-                    // When we reply to a message on a group, we join the group if we're not already a member.
-                    var memberofs = Iznik.Session.get('groups');
-                    var member = false;
-                    var tojoin = null;
-
-                    if (memberofs) {
-                        memberofs.each(function(memberof) {
-                            var msggroups = self.model.get('groups');
-                            _.each(msggroups, function(msggroup) {
-                                if (memberof.id == msggroup.groupid) {
-                                    member = true;
-                                }
+                        if (memberofs) {
+                            memberofs.each(function (memberof) {
+                                var msggroups = self.model.get('groups');
+                                _.each(msggroups, function (msggroup) {
+                                    if (memberof.id == msggroup.groupid) {
+                                        member = true;
+                                    }
+                                });
                             });
-                        });
-                    }
+                        }
 
-                    if (!member) {
-                        // We're not a member of any groups on which this message appears.  Join one.  Doesn't much
-                        // matter which.
-                        var tojoin = self.model.get('groups')[0].id;
-                        $.ajax({
-                            url: API + 'memberships',
-                            type: 'PUT',
-                            data: {
-                                groupid : tojoin
-                            }, success: function(ret) {
-                                if (ret.ret == 0) {
-                                    // We're now a member of the group.  Fetch the message back, because we'll see more
-                                    // info about it now.
-                                    self.model.fetch().then(function() {
-                                        self.startChat();
-                                    })
-                                } else {
+                        if (!member) {
+                            // We're not a member of any groups on which this message appears.  Join one.  Doesn't much
+                            // matter which.
+                            var tojoin = self.model.get('groups')[0].id;
+                            $.ajax({
+                                url: API + 'memberships',
+                                type: 'PUT',
+                                data: {
+                                    groupid: tojoin
+                                }, success: function (ret) {
+                                    if (ret.ret == 0) {
+                                        // We're now a member of the group.  Fetch the message back, because we'll see more
+                                        // info about it now.
+                                        self.model.fetch().then(function () {
+                                            self.startChat();
+                                        })
+                                    } else {
+                                        // TODO
+                                    }
+                                }, error: function () {
                                     // TODO
                                 }
-                            }, error: function() {
-                                // TODO
-                            }
-                        })
+                            })
+                        } else {
+                            console.log("We're already a member");
+                            self.startChat();
+                        }
                     } else {
-                        console.log("We're already a member");
-                        self.startChat();
+                        // We are not logged in, and will have to do so.  This may result in a page reload - so save
+                        // off details of our reply in local storage.
+                        try {
+                            localStorage.setItem('replyto', self.model.get('id'));
+                            localStorage.setItem('replytext', replytext);
+                            localStorage.setItem('replyreturn', Backbone.history.getFragment());
+                        } catch (e) {}
+
+                        // Set the route route to the individual message.  This will spot the local storage, force us to
+                        // log in, and then send it.  This also means that when the page is reloaded because of a login,
+                        // we don't have issues with not seeing/needing to scroll to the message of interest.
+                        Router.navigate('/message/' + self.model.get('id'), true);
                     }
                 });
 
-                Iznik.Session.forceLogin({
+                Iznik.Session.testLoggedIn({
                     modtools: false
                 });
             }
@@ -717,7 +734,7 @@ define([
                             var thisid = self.model.get('id');
 
                             if (replyto == thisid) {
-                                self.setReply.call(self, replytext);
+                                self.continueReply.call(self, replytext);
                             }
                         } catch (e) {console.log("Failed", e)}
                     }
