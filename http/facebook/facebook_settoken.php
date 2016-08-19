@@ -24,7 +24,7 @@ if ($id && $token) {
 
         $ret = $fb->get('/me/accounts', $accessToken);
         $accounts = $ret->getDecodedBody();
-        error_log("Got accounts " . var_export($accounts, TRUE));
+        #error_log("Got accounts " . var_export($accounts, TRUE));
         $pages = $accounts['data'];
         $found = FALSE;
 
@@ -34,7 +34,7 @@ if ($id && $token) {
                 $gid = $f->findById($page['id']);
 
                 if ($gid) {
-                    echo "Found group and set token.  You can close this tab now.";
+                    echo "Found group and set access token.  You can close this tab now.";
                     $f = new GroupFacebook($dbhr, $dbhm, $gid);
                     $f->set($page['access_token']);
                     $found = TRUE;

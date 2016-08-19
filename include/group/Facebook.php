@@ -32,22 +32,6 @@ class GroupFacebook {
         }
     }
 
-    /**
-     * @param LoggedPDO $dbhm
-     */
-    public function setDbhm($dbhm)
-    {
-        $this->dbhm = $dbhm;
-    }
-
-    /**
-     * @param LoggedPDO $dbhr
-     */
-    public function setDbhr($dbhr)
-    {
-        $this->dbhr = $dbhr;
-    }
-
     public function getPublic() {
         $ret = [];
         foreach ($this->publicatts as $att) {
@@ -116,7 +100,7 @@ class GroupFacebook {
 
             if (count($modships) > 0) {
                 $groupids = implode(',', $modships);
-                $sql = "SELECT DISTINCT groups_facebook_toshare.*, 'Facebook' AS actiontype FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 WHERE groupid IN ($groupids) AND groups_facebook_toshare.id > ? ORDER BY groups_facebook_toshare.id ASC;";
+                $sql = "SELECT DISTINCT groups_facebook_toshare.*, 'Facebook' AS actiontype, groups_facebook.groupid FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 WHERE groupid IN ($groupids) AND groups_facebook_toshare.id > ? ORDER BY groups_facebook_toshare.id ASC;";
                 $posts = $this->dbhr->preQuery($sql, [ $minid ]);
 
                 foreach ($posts as &$post) {
@@ -139,7 +123,7 @@ class GroupFacebook {
                             # Create the iframe version of the Facebook plugin.
                             $pageid = $matches[1];
                             $postid = $matches[2];
-                            $post['iframe'] = '<iframe src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>';
+                            $post['iframe'] = '<iframe src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>';
                         }
 
                         $ret[] = $post;
@@ -151,61 +135,54 @@ class GroupFacebook {
         return($posts);
     }
 
-    public function shareFrom($forceshare = FALSE, $since = "yesterday") {
-        $count = 0;
+    public function performSocialAction($id) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $ret = [];
         $fb = $this->getFB();
 
-        # Get posts we might want to share.  This returns only posts by the page itself.
-        try {
-            $ret = $fb->get($this->sharefrom . "/posts?since=$since&fields=id,link,message,type,caption,icon,name", $this->token);
+        if ($me) {
+            # We need to be a mod on the relevant group.
+            $modships = $me->getModeratorships();
 
-            $posts = $ret->getDecodedBody();
-            #error_log("Posts " . var_export($posts, TRUE));
+            if (count($modships) > 0) {
+                $groupids = implode(',', $modships);
+                $sql = "SELECT * FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND groupid IN ($groupids) AND groups_facebook_toshare.id = ?;";
+                $actions = $this->dbhr->preQuery($sql, [ $id ]);
+                foreach ($actions as $action) {
+                    try {
+                        # Whether or not this worked, remember that we've tried, so that we don't try again.
+                        #
+                        # TODO should we handle transient errors better?
+                        $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (groupid, postid) VALUES (?,?);", [
+                            $this->groupid,
+                            $action['postid']
+                        ]);
 
-            foreach ($posts['data'] as $wallpost) {
-                #error_log("Post " . var_export($wallpost, true));
+                        # Like the original post.
+                        #$res = $fb->post($action['id'] . '/likes', [], $this->token);
+                        #error_log("Like returned " . var_export($res, true));
 
-                # Check if we've already shared this one.
-                $sql = "SELECT * FROM groups_facebook_shares WHERE groupid = ? AND postid = ?;";
-                $posteds = $this->dbhr->preQuery($sql, [ $this->groupid, $wallpost['id'] ]);
+                        # We want to share the post out with the existing details - but we need to remove the id, otherwise
+                        # it's an invalid op.
+                        $params = json_decode($action['data'], TRUE);
+                        unset($params['id']);
+                        #error_log("Post to {$this->name} with {$this->token} action " . var_export($params, TRUE));
+                        $result = $fb->post($this->name . '/feed', $params, $this->token);
+                        #error_log("Post returned " . var_export($result, true));
+                    } catch (Exception $e) {
+                        $code = $e->getCode();
+                        error_log("Failed code $code message " . $e->getMessage() . " token " . $this->token);
 
-                if (count($posteds) == 0 || $forceshare) {
-                    # Whether or not this worked, remember that we've tried, so that we don't try again.
-                    #
-                    # TODO should we handle transient errors better?
-                    $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (groupid, postid) VALUES (?,?);", [
-                        $this->groupid,
-                        $wallpost['id']
-                    ]);
-
-                    # Like the original post.
-                    $res = $fb->post($wallpost['id'] . '/likes', [], $this->token);
-                    #error_log("Like returned " . var_export($res, true));
-
-                    # We want to share the post out with the existing details - but we need to remove the id, otherwise
-                    # it's an invalid op.
-                    unset($wallpost['id']);
-                    $result = $fb->post($this->name . '/feed', $wallpost, $this->token);
-                    #error_log("Post returned " . var_export($result, true));
-
-                    if ($result->getHttpStatusCode() == 200) {
-                        $count++;
+                        # These numbers come from FacebookResponseException.
+                        if ($code == 100 || $code == 102 || $code == 190) {
+                            $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterrortime = NOW(), lasterror = ? WHERE groupid = ?;", [
+                                $e->getMessage(),
+                                $this->groupid
+                            ]);
+                        }
                     }
                 }
             }
-        } catch (Exception $e) {
-            $code = $e->getCode();
-            error_log("Failed code $code message " . $e->getMessage() . " token " . $this->token);
-
-            # These numbers come from FacebookResponseException.
-            if ($code == 100 || $code == 102 || $code == 190) {
-                $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterrortime = NOW(), lasterror = ? WHERE groupid = ?;", [
-                    $e->getMessage(),
-                    $this->groupid
-                ]);
-            }
         }
-
-        return($count);
     }
 }
