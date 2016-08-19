@@ -54,7 +54,8 @@ function chatmessages() {
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
-                        'chatmessages' => $r->getMessagesForReview($me, $ctx)
+//                        'chatmessages' => $r->getMessagesForReview($me, $ctx)
+                        'chatmessages' => []
                     ];
 
                     $ret['context'] = $ctx;
