@@ -151,6 +151,7 @@ define([
         template: 'wait',
 
         timeout: null,
+        closeTimeout: null,
         isOpen : false,
 
         render: function() {
@@ -166,6 +167,12 @@ define([
                     console.log("Open wait");
                     waitOpen = self;
                     waitPromise = self.open(self.template);
+
+                    // Start backstop timeout to close the modal - there are various error cases which could leave
+                    // it stuck forever, which looks silly.
+                    self.closeTimeout = setTimeout(function() {
+                        self.close();
+                    }, 60000);
                 }
             }, self.options.timeout ? self.options.timeout : 3000);
 
@@ -176,6 +183,10 @@ define([
             if (this.timeout) {
                 // console.log("Still timer");
                 clearTimeout(this.timeout);
+            }
+
+            if (this.closeTimeout) {
+                clearTimeout(this.closeTimeout);
             }
 
             waitCount--;
