@@ -1930,13 +1930,8 @@ class Message
                 $m->setPrivate('suggestedsubject', NULL);
                 $m->suggestedsubject = $m->suggestSubject($this->groupid, $this->subject);
 
-                # Our new message may have a different set of attachments from the old one, or none.  Take the new lot.
-                #
-                # If we crash halfway through we might lose attachments.  Acceptable given the rarity.
-                $rc = $this->dbhm->preExec("DELETE FROM messages_attachments WHERE msgid = ?;", [ $msg['id'] ]);
-                $this->saveAttachments($msg['id']);
-
-                $changed = ($rc != count($this->attachments)) ? ' attachments' : $changed;
+                # We keep the old set of attachments, because they might be mentioned in (for example) the text
+                # of the message.  This means that we don't support editing of the attachments on Yahoo.
 
                 # We might have new approvedby info.
                 $rc = $this->dbhm->preExec("UPDATE messages_groups SET approvedby = ? WHERE msgid = ? AND groupid = ? AND approvedby IS NULL;",

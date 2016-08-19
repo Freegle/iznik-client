@@ -1281,8 +1281,30 @@ class messageAPITest extends IznikAPITestCase
 
         assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
 
+        # Now approve the message and wait for it to reach the group.
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        $m->delete("UT delete");
+        $m->approve($gid, NULL, NULL, NULL);
+
+        do {
+            error_log("...waiting for approved message from $applied #$uid, try $count");
+            sleep(1);
+            $msgs = $this->dbhr->preQuery("SELECT * FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND groupid = ? AND messages_groups.collection = ? AND fromuser = ? AND yahooapprovedid IS NOT NULL;",
+                [ $gid, MessageCollection::APPROVED, $uid ]);
+            foreach ($msgs as $msg) {
+                error_log("Reached approved" . var_export($msg, TRUE));
+                $found = TRUE;
+                $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
+
+                # Check that the attachment is present.
+                $atts = $m->getAttachments();
+                assertEquals(1, count($atts));
+
+                $m->delete('UT');
+            }
+            $count++;
+        } while ($count < 600 && !$found);
+
+        assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
 
         error_log(__METHOD__ . " end");
     }
