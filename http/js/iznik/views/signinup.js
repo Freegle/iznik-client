@@ -10,6 +10,8 @@ define([
     Iznik.Views.SignInUp = Iznik.Views.Modal.extend({
         className: "signinup",
 
+        signInShown: true,
+
         events: {
             'click .js-loginNative': 'showNative',
             'click .js-signin': 'signin',
@@ -19,27 +21,23 @@ define([
             'click .js-loginYahoo': 'yahoologin',
             'click .js-loginFB': 'fblogin',
             'click .js-forgot': 'lostPassword',
-            'keyup .js-signinform .js-password': 'enterSubmit',
-            'keyup .js-signupform .js-password': 'enterSubmit2'
+            'keyup .js-signinform': 'enterSubmit'
         },
 
         'enterSubmit': function (e) {
             switch (e.keyCode) {
                 case 13: //enter
-                    this.signin();
-                    break;
-            }
-        },
-
-        'enterSubmit2': function (e) {
-            switch (e.keyCode) {
-                case 13: //enter
-                    this.signup();
+                    if (this.signInShown) {
+                        this.signin();
+                    } else {
+                        this.signup();
+                    }
                     break;
             }
         },
 
         register: function(e) {
+            this.signInShown = false;
             this.$('.js-registerhide').hide();
             this.$('.js-signinerror').hide();
             this.$('.js-registershow').fadeIn('slow');
@@ -47,6 +45,7 @@ define([
         },
 
         already: function(e) {
+            this.signInShown = true;
             this.$('.js-registershow').hide();
             this.$('.js-signinerror').hide();
             this.$('.js-registerhide').fadeIn('slow');
