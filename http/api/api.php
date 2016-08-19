@@ -79,6 +79,7 @@ require_once(IZNIK_BASE . '/http/api/locations.php');
 require_once(IZNIK_BASE . '/http/api/image.php');
 require_once(IZNIK_BASE . '/http/api/upload.php');
 require_once(IZNIK_BASE . '/http/api/event.php');
+require_once(IZNIK_BASE . '/http/api/socialactions.php');
 
 $includetime = microtime(true) - $scriptstart;
 
@@ -154,6 +155,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'event':
                     $ret = event();
+                    break;
+                case 'socialactions':
+                    $ret = socialactions();
                     break;
                 case 'upload':
                     $ret = upload();

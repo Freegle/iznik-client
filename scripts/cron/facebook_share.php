@@ -12,14 +12,18 @@ $lockh = lockScript(basename(__FILE__));
 
 error_log("Start at " . date("Y-m-d H:i:s"));
 
-$groups = $dbhr->preQuery("SELECT groups.id AS groupid, groups.*, groups_facebook.* FROM groups INNER JOIN groups_facebook ON groups.id = groups_facebook.groupid WHERE type = 'Freegle' AND publish = 1 AND valid = 1 AND groups.nameshort LIKE '%Edinburgh%' ORDER BY LOWER(nameshort) ASC;");
-foreach ($groups as $group) {
-    error_log("...#{$group['groupid']} {$group['nameshort']} token ");
-    $f = new GroupFacebook($dbhr, $dbhm, $group['groupid']);
-    $count = $f->shareFrom(TRUE);
+# Get the posts we want to offer mods to share.  This is a bit inefficient, but it's a background process.
+$sharefroms = $dbhr->preQuery("SELECT DISTINCT sharefrom FROM groups_facebook;");
 
-    if ($count > 0) {
-        error_log("{$group['nameshort']} $count");
+foreach ($sharefroms as $sharefrom) {
+    # Find a token we can use to access this page.  Get them all, as some may be invalid.
+    $tokens = $dbhr->preQuery("SELECT groupid FROM groups_facebook WHERE sharefrom = ? AND valid = 1;", [
+        $sharefrom['sharefrom']
+    ]);
+
+    foreach ($tokens as $token) {
+        $f = new GroupFacebook($dbhr, $dbhm, $token['groupid']);
+        $f->getPostsToShare($sharefrom['sharefrom']);
     }
 }
 
