@@ -28,7 +28,7 @@ class Search
 
     private $common = array(
         'the', 'old', 'new', 'please', 'thanks', 'with', 'offer', 'taken', 'wanted', 'received', 'attachment', 'offered', 'and',
-        'freegle', 'freecycle', 'for'
+        'freegle', 'freecycle', 'for', 'large', 'small'
     );
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $table, $idatt, $sortatt, $wordtab, $filtatt, $sortlim = NULL)
@@ -321,12 +321,6 @@ class Search
                 return($b['count'] - $a['count']);
             }
         });
-
-//        foreach ($results as $id => $info) {
-//            $m = new Message($this->dbhr, $this->dbhm, $id);
-//            $atts = $m->getPublic();
-//            error_log("$id {$info['count']} {$atts['arrival']} {$atts['subject']} ");
-//        }
 
         # Now apply the limit.
         $ret = array();

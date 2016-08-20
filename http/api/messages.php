@@ -99,7 +99,7 @@ function messages() {
                             $groups = $l->groupsNear();
                         }
 
-                        $msgs = $m->search($search, $ctx, $limit, NULL, $groups);
+                        $msgs = $m->search($search, $ctx, $limit, NULL, $groups, $nearlocation);
                         list($groups, $msgs) = $c->fillIn($msgs, $limit, $messagetype, NULL);
                     }
 

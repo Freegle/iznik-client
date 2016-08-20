@@ -2318,6 +2318,14 @@ class Message
                         $this->lat = $loc['lat'];
                         $this->lng = $loc['lng'];
                         $this->locationid = $loc['id'];
+
+                        if ($this->fromuser) {
+                            # Save off this as the last known location for this user.
+                            $this->dbhm->preExec("UPDATE users SET lastlocation = ? WHERE id = ?;", [
+                                $this->locationid,
+                                $this->fromuser
+                            ]);
+                        }
                     }
                 }
                break;
@@ -2348,7 +2356,7 @@ class Message
         }
     }
 
-    public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL) {
+    public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL, $locationid = NULL) {
         $ret = $this->s->search($string, $context, $limit, $restrict, $groups);
 
         if (count($ret) > 0) {
@@ -2358,7 +2366,7 @@ class Message
             if ($myid) {
                 $maxid = $ret[0]['id'];
                 $s = new UserSearch($this->dbhr, $this->dbhm);
-                $s->create($myid, $maxid, $string);
+                $s->create($myid, $maxid, $string, $locationid);
             }
         }
 

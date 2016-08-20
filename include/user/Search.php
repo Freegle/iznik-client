@@ -17,14 +17,16 @@ class UserSearch extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'users_searches', 'search', $this->publicatts);
     }
 
-    public function create($userid, $maxmsg, $term) {
+    public function create($userid, $maxmsg, $term, $locationid = NULL) {
         $id = NULL;
         
-        $rc = $this->dbhm->preExec("INSERT INTO users_searches (userid, maxmsg, term) VALUES (?,?,?) ON DUPLICATE KEY UPDATE maxmsg = GREATEST(maxmsg, ?), deleted = 0;", [
+        $rc = $this->dbhm->preExec("INSERT INTO users_searches (userid, maxmsg, term, locationid) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE maxmsg = GREATEST(maxmsg, ?), deleted = 0, locationid = ?;", [
             $userid,
             $maxmsg,
             $term,
-            $maxmsg
+            $locationid,
+            $maxmsg,
+            $locationid
         ]);
 
         if ($rc) {
@@ -32,6 +34,14 @@ class UserSearch extends Entity
 
             if ($id) {
                 $this->fetch($this->dbhr, $this->dbhm, $id, 'users_searches', 'search', $this->publicatts);
+            }
+
+            if ($locationid) {
+                # Save off this as the last known location for this user.
+                $this->dbhm->preExec("UPDATE users SET lastlocation = ? WHERE id = ?;", [
+                    $locationid,
+                    $userid
+                ]);
             }
         }
 
