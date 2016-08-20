@@ -94,6 +94,10 @@ class Relevant {
             }
         }
 
+        usort($ret, function($a, $b) {
+            return($b['id'] - $a['id']);
+        });
+
         return($ret);
     }
 

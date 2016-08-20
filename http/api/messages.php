@@ -80,7 +80,8 @@ function messages() {
                     $ctx = presdef('context', $_REQUEST, NULL);
                     $limit = presdef('limit', $_REQUEST, Search::Limit);
                     $messagetype = presdef('messagetype', $_REQUEST, NULL);
-                    $nearlocation = intval(presdef('nearlocation', $_REQUEST, NULL));
+                    $nearlocation = presdef('nearlocation', $_REQUEST, NULL);
+                    $nearlocation = $nearlocation ? intval($nearlocation) : NULL;
 
                     if (is_numeric($search)) {
                         $m = new Message($dbhr, $dbhm, $search);
