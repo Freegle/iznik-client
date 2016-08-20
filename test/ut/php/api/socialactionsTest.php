@@ -68,6 +68,12 @@ class socialactionsAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
 
+        # Shouldn't show in list of groups now.
+        $ret = $this->call('socialactions', 'GET', []);
+        assertEquals(0, $ret['ret']);
+
+        assertFalse(pres('groups', $ret['socialactions'][0]));
+
         # Force a failure for coverage.
         $tokens = $this->dbhr->preQuery("SELECT * FROM groups_facebook WHERE groupid = $gid;");
         $this->dbhm->preExec("UPDATE groups_facebook SET token = 'a' WHERE groupid = $gid");

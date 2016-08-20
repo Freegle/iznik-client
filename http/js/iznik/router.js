@@ -97,7 +97,7 @@ define([
             "modtools/members/approved(/:search)": "approvedMembers",
             "modtools/members/spam": "spamMembers",
             "modtools/events/pending": "pendingEvents",
-            "modtools/socialactions": "socialActions",
+            "modtools/publicity": "socialActions",
             "modtools/conversations/spam": "chatReview",
             "modtools/conversations/reported": "chatReport",
             "modtools/spammerlist/pendingadd(/:search)": "spammerListPendingAdd",

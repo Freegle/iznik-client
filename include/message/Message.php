@@ -1622,7 +1622,7 @@ class Message
                 $this->id
             ]);
         } else {
-            $sql = $subject ? "UPDATE messages_groups SET collection = 'Rejected' WHERE msgid = ?;" : "UPDATE messages_groups SET deleted = 1 WHERE msgid = ?;";
+            $sql = $subject ? "UPDATE messages_groups SET collection = 'Rejected', rejectedat = NOW() WHERE msgid = ?;" : "UPDATE messages_groups SET deleted = 1 WHERE msgid = ?;";
             $this->dbhm->preExec($sql, [
                 $this->id
             ]);

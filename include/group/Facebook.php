@@ -100,20 +100,20 @@ class GroupFacebook {
 
             if (count($modships) > 0) {
                 $groupids = implode(',', $modships);
-                $sql = "SELECT DISTINCT groups_facebook_toshare.*, 'Facebook' AS actiontype, groups_facebook.groupid FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 WHERE groupid IN ($groupids) AND groups_facebook_toshare.id > ? ORDER BY groups_facebook_toshare.id ASC;";
+                $sql = "SELECT DISTINCT groups_facebook_toshare.*, 'Facebook' AS actiontype FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 WHERE groupid IN ($groupids) AND groups_facebook_toshare.id > ? ORDER BY groups_facebook_toshare.id ASC;";
+                error_log($sql);
                 $posts = $this->dbhr->preQuery($sql, [ $minid ]);
 
                 foreach ($posts as &$post) {
                     $ctx['id'] = $post['id'];
-                    $posteds = $this->dbhr->preQuery("SELECT groupid FROM groups_facebook_shares WHERE postid = ? AND groupid = ?;", [
-                        $post['postid'],
-                        $post['groupid']
+                    $posteds = $this->dbhr->preQuery("SELECT groupid FROM groups_facebook_shares WHERE postid = ?;", [
+                        $post['postid']
                     ]);
 
                     $remaining = $modships;
 
                     foreach ($posteds as $posted) {
-                        unset($remaining[$posted['groupid']]);
+                        $remaining = array_diff($remaining, [ $posted['groupid'] ]);
                     }
 
                     if (count($remaining) > 0) {
@@ -132,7 +132,7 @@ class GroupFacebook {
             }
         }
 
-        return($posts);
+        return($ret);
     }
 
     public function performSocialAction($id) {
@@ -159,7 +159,7 @@ class GroupFacebook {
                         ]);
 
                         # Like the original post.
-                        #$res = $fb->post($action['id'] . '/likes', [], $this->token);
+                        $res = $fb->post($action['postid'] . '/likes', [], $this->token);
                         #error_log("Like returned " . var_export($res, true));
 
                         # We want to share the post out with the existing details - but we need to remove the id, otherwise
@@ -167,7 +167,7 @@ class GroupFacebook {
                         $params = json_decode($action['data'], TRUE);
                         unset($params['id']);
                         #error_log("Post to {$this->name} with {$this->token} action " . var_export($params, TRUE));
-                        $result = $fb->post($this->name . '/feed', $params, $this->token);
+                        $result = $fb->post($this->id . '/feed', $params, $this->token);
                         #error_log("Post returned " . var_export($result, true));
                     } catch (Exception $e) {
                         $code = $e->getCode();

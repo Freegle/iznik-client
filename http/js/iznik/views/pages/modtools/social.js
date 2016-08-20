@@ -69,7 +69,8 @@ define([
 
                     if (group.get('type') == 'Freegle') {
                         var v = new Iznik.Views.ModTools.SocialAction.FacebookShare({
-                            model: group
+                            model: group,
+                            actionid: self.model.get('id')
                         });
 
                         v.render().then(function() {
@@ -86,6 +87,25 @@ define([
     Iznik.Views.ModTools.SocialAction.FacebookShare = Iznik.View.extend({
         template: 'modtools_socialactions_facebookshare',
 
-        tagName: 'li'
+        tagName: 'li',
+
+        events: {
+            'click .js-share': 'share'
+        },
+
+        share: function() {
+            var self = this;
+
+            $.ajax({
+                url: API + 'socialactions',
+                type: 'POST',
+                data: {
+                    id: self.options.actionid,
+                    groupid: self.model.get('id')
+                }
+            });
+
+            self.$el.fadeOut('slow');
+        }
     });
 });

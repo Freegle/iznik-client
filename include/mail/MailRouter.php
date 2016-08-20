@@ -102,7 +102,7 @@ class MailRouter
     public function markApproved() {
         # Set this message to be in the Approved collection.
         # TODO Handle message on multiple groups
-        $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Approved' WHERE msgid = ?;", [
+        $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Approved', approvedat = NOW() WHERE msgid = ?;", [
             $this->msg->getID()
         ]);
 
@@ -111,11 +111,23 @@ class MailRouter
 
     # Public for UT
     public function markPending($force) {
-        # Set the message as pending. Unless we're forced, we can only do this for incoming messages; this is to
-        # handle the case where a message is approved, and then we get a pending notification for it later.
+        # Set the message as pending.
         #
-        # The force is to allow us to move from Spam to Pending.
-        $overq = $force ? '' : " AND collection = 'Incoming' ";
+        # If we're forced we just do it.  The force is to allow us to move from Spam to Pending.
+        #
+        # If we're not forced, then the mainline case is that this is an incoming message.  We might get a
+        # pending notification after approving it, and in that case we don't generally want to move it back to
+        # pending.  However if we approved/rejected it a while ago, then it's likely that the action didn't stick (for
+        # example if we approved by email to Yahoo and Yahoo ignored it).  In that case we should move it
+        # back to Pending, otherwise it will stay stuck on Yahoo.
+        $overq = '';
+
+        if (!$force) {
+            $groups = $this->dbhr->preQuery("SELECT collection, approvedat, rejectedat FROM messages_groups WHERE msgid = ? AND ((collection = 'Approved' AND (approvedat IS NULL OR approvedat < DATE_SUB(NOW(), INTERVAL 2 HOUR))) OR (collection = 'Rejected' AND (rejectedat IS NULL OR rejectedat < DATE_SUB(NOW(), INTERVAL 2 HOUR))));",  [ $this->msg->getID() ]);
+            $overq = count($groups) == 0 ? " AND collection = 'Incoming' " : '';
+            #error_log("MarkPending " . $this->msg->getID() . " from collection $overq");
+        }
+
         $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Pending' WHERE msgid = ? $overq;", [ $this->msg->getID() ]);
 
         # Notify mods of new work
@@ -131,7 +143,7 @@ class MailRouter
 
     public function route($msg = NULL, $notspam = FALSE) {
         $ret = NULL;
-        $log = TRUE;
+        $log = FALSE;
 
         # We route messages to one of the following destinations:
         # - to a handler for system messages
