@@ -101,7 +101,7 @@ class GroupFacebook {
             if (count($modships) > 0) {
                 $groupids = implode(',', $modships);
                 $sql = "SELECT DISTINCT groups_facebook_toshare.*, 'Facebook' AS actiontype FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 WHERE groupid IN ($groupids) AND groups_facebook_toshare.id > ? ORDER BY groups_facebook_toshare.id ASC;";
-                error_log($sql);
+                #error_log($sql);
                 $posts = $this->dbhr->preQuery($sql, [ $minid ]);
 
                 foreach ($posts as &$post) {
