@@ -5,6 +5,8 @@ require_once(IZNIK_BASE . '/include/misc/Search.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/mailtemplates/relevant/wrapper.php');
+require_once(IZNIK_BASE . '/mailtemplates/relevant/one.php');
 
 # Find messages relevant to users which they might have missed, and mail them to them.
 class Relevant {
@@ -70,7 +72,9 @@ class Relevant {
                 foreach ($interesteds as $interested) {
                     $s = new Search($this->dbhr, $this->dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid', $start);
                     $ctx = NULL;
-                    $res = $s->search($interested['item'], $ctx, 1, NULL, $groups);
+
+                    # We want to search for exact matches only, as some of the others will look silly.
+                    $res = $s->search($interested['item'], $ctx, 1, NULL, $groups, TRUE);
                     #error_log("Search for {$interested['item']} returned " . var_export($res, TRUE));
 
                     foreach ($res as $r) {
@@ -122,69 +126,89 @@ class Relevant {
             PDO::ATTR_EMULATE_PREPARES => FALSE
         ));
 
-        $sql = $userid ? "SELECT id FROM users WHERE id = $userid;" : "SELECT id FROM users;";
+        $sql = $userid ? "SELECT id FROM users WHERE id = $userid AND relevantallowed = 1;" : "SELECT id FROM users WHERE relevantallowed = 1;";
         $users = $this->dbhr->preQuery($sql);
 
         foreach ($users as $user) {
             $u = new User($this->dbhr, $this->dbhm, $user['id']);
-            $ints = $this->interestedIn($user['id']);
-            $msgs = $this->getMessages($user['id'], $ints);
 
-            if (count($msgs) > 0) {
-                $textbody = "Based on what you've offered or searched for, we thought you might be interested in these recent messages.\r\n";
-                $offers = [];
-                $wanteds = [];
+            $hol = $u->getPrivate('onholidaytill');
+            $till = $hol ? strtotime($hol) : 0;
 
-                foreach ($msgs as $msg) {
-                    $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
+            if (time() > $till) {
+                # Not on holiday
+                $ints = $this->interestedIn($user['id']);
+                $msgs = $this->getMessages($user['id'], $ints);
 
-                    # We need the approved ID on Yahoo for migration links.
-                    # TODO remove in time.
-                    $href = NULL;
-                    $atts = $m->getPublic(FALSE, FALSE, TRUE);
-                    $groups = $atts['groups'];
-                    foreach ($groups as $group) {
-                        $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
-                        $gatts = $g->getPublic();
+                if (count($msgs) > 0) {
+                    $textbody = "Based on what you've offered or searched for, we thought you might be interested in these recent messages.\r\n";
+                    $offers = [];
+                    $wanteds = [];
+                    $hoffers = [];
+                    $hwanteds = [];
 
-                        $sql = "SELECT groupid FROM groups WHERE groupname = " . $dbhold->quote($gatts['nameshort']) . ";";
-                        $fdgroupid = NULL;
-                        $fdgroups = $dbhold->query($sql);
-                        foreach ($fdgroups as $fdgroup) {
-                            $fdgroupid = $fdgroup['groupid'];
+                    foreach ($msgs as $msg) {
+                        $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
+
+                        # We need the approved ID on Yahoo for migration links.
+                        # TODO remove in time.
+                        $href = NULL;
+                        $atts = $m->getPublic(FALSE, FALSE, TRUE);
+                        $groups = $atts['groups'];
+                        foreach ($groups as $group) {
+                            $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+                            $gatts = $g->getPublic();
+
+                            $sql = "SELECT groupid FROM groups WHERE groupname = " . $dbhold->quote($gatts['nameshort']) . ";";
+                            $fdgroupid = NULL;
+                            $fdgroups = $dbhold->query($sql);
+                            foreach ($fdgroups as $fdgroup) {
+                                $fdgroupid = $fdgroup['groupid'];
+                            }
+
+                            $href = "https://direct.ilovefreegle.org/login.php?action=mygroups&subaction=displaypost&msgid={$group['yahooapprovedid']}&groupid=$fdgroupid&digest=$fdgroupid";
                         }
 
-                        $href = "https://direct.ilovefreegle.org/login.php?action=mygroups&subaction=displaypost&msgid={$group['yahooapprovedid']}&groupid=$fdgroupid&digest=$fdgroupid";
-                    }
+                        if ($href) {
+                            $subject = $m->getSubject();
+                            $subject = preg_replace('/\[.*?\]\s*/', '', $subject);
 
-                    if ($href) {
-                        $subject = $m->getSubject();
-                        $subject = preg_replace('/\[.*?\]\s*/', '', $subject);
-
-                        if ($m->getType() == Message::TYPE_OFFER) {
-                            $offers[] = "$subject - see $href\r\n";
-                        } else {
-                            $wanteds[] = "$subject - see $href\r\n";
+                            if ($m->getType() == Message::TYPE_OFFER) {
+                                $offers[] = "$subject - see $href\r\n";
+                                $hoffers[] = relevant_one($subject, $href);
+                            } else {
+                                $wanteds[] = "$subject - see $href\r\n";
+                                $hwanteds[] = relevant_one($subject, $href);
+                            }
                         }
                     }
-                }
 
-                $textbody .= count($offers) > 0 ? ("\r\nThings people are giving away which you might want:\r\n\r\n" . implode('', $offers)) : '';
-                $textbody .= count($wanteds) > 0 ? ("\r\nThings people are looking for which you might have:\r\n\r\n" . implode('', $wanteds)) : '';
+                    $textbody .= count($offers) > 0 ? ("\r\nThings people are giving away which you might want:\r\n\r\n" . implode('', $offers)) : '';
+                    $textbody .= count($wanteds) > 0 ? ("\r\nThings people are looking for which you might have:\r\n\r\n" . implode('', $wanteds)) : '';
 
-                $email = $u->getEmailPreferred();
-                if ($email) {
-                    $message = Swift_Message::newInstance()
-                        ->setSubject("You might be interested in these messages...")
-                        ->setFrom([NOREPLY_ADDR => SITE_NAME ])
-                        ->setReturnPath('bounce@direct.ilovefreegle.org')
-                        #->setTo([ $email => $u->getName() ])
-                        ->setTo([ 'log@ehibbert.org.uk' => $u->getName() ])
-                        ->setBody($textbody);
-//                        ->addPart($html, 'text/html');
+                    $htmloffers = count($offers) > 0 ? ("<p>Things people are giving away which you might want:</p>" . implode('', $hoffers)) : '';
+                    $htmlwanteds = count($wanteds) > 0 ? ("<p>Things people are looking for which you might have:</p>" . implode('', $hwanteds)) : '';
 
-                    $this->sendOne($mailer, $message);
-                    exit(0);
+                    $email = $u->getEmailPreferred();
+                    if ($email) {
+                        $subj = "Check these out...";
+                        $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
+                        $post = "https://direct.ilovefreegle.org/login.php?action=post";
+                        $unsubscribe = 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email);
+
+                        $html = relevant_wrapper(USER_DOMAIN, USERLOGO, $subj, $htmloffers, $htmlwanteds, $email, $noemail, $post, $unsubscribe);
+                        $message = Swift_Message::newInstance()
+                            ->setSubject($subj)
+                            ->setFrom([NOREPLY_ADDR => SITE_NAME ])
+                            ->setReturnPath('bounce@direct.ilovefreegle.org')
+                            ->setTo([ $email => $u->getName() ])
+                            ->setCc([ 'log@ehibbert.org.uk' ])
+                            ->setBody($textbody)
+                            ->addPart($html, 'text/html');
+
+                        $this->sendOne($mailer, $message);
+                        exit(0);
+                    }
                 }
             }
         }
