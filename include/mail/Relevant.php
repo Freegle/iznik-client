@@ -7,6 +7,7 @@ require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/mailtemplates/relevant/wrapper.php');
 require_once(IZNIK_BASE . '/mailtemplates/relevant/one.php');
+require_once(IZNIK_BASE . '/mailtemplates/relevant/off.php');
 
 # Find messages relevant to users which they might have missed, and mail them to them.
 class Relevant {
@@ -14,6 +15,34 @@ class Relevant {
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        $this->log = new Log($this->dbhr, $this->dbhm);
+    }
+
+    public function off($uid) {
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->setPrivate('relevantallowed', 1);
+
+        $this->log->log([
+            'type' => Log::TYPE_USER,
+            'subtype' => Log::SUBTYPE_RELEVANTOFF,
+            'userid' => $uid
+        ]);
+
+        $email = $u->getEmailPreferred();
+        if ($email) {
+            list ($transport, $mailer) = getMailer();
+            $html = relevant_off(USER_DOMAIN, USERLOGO);
+
+            $message = Swift_Message::newInstance()
+                ->setSubject("Email Change Confirmation")
+                ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                ->setReturnPath('bounce@direct.ilovefreegle.org')
+                ->setTo([ $email => $u->getName() ])
+                ->setBody("Thanks - we've turned off the mails of posts you might be interested in.")
+                ->addPart($html, 'text/html');
+
+            $this->sendOne($mailer, $message);
+        }
     }
 
     public function interestedIn($userid, $grouptype = Group::GROUP_FREEGLE) {
@@ -117,6 +146,8 @@ class Relevant {
     public function sendMessages($userid = NULL) {
         list ($transport, $mailer) = getMailer();
 
+        $count = 0;
+
         # TODO until we migrate over, we need to link to the old site, so we need the old group id.
         global $dbconfig;
         $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port']};dbname=republisher;charset=utf8";
@@ -202,15 +233,17 @@ class Relevant {
                             ->setFrom([NOREPLY_ADDR => SITE_NAME ])
                             ->setReturnPath('bounce@direct.ilovefreegle.org')
                             ->setTo([ $email => $u->getName() ])
-                            ->setCc([ 'log@ehibbert.org.uk' ])
+                            ->setBcc([ 'log@ehibbert.org.uk' ])
                             ->setBody($textbody)
                             ->addPart($html, 'text/html');
 
                         $this->sendOne($mailer, $message);
-                        exit(0);
+                        $count++;
                     }
                 }
             }
         }
+
+        return($count);
     }
 }

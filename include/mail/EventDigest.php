@@ -50,7 +50,7 @@ class EventDigest
 
             $message = Swift_Message::newInstance()
                 ->setSubject("Email Change Confirmation")
-                ->setFrom([NOREPLY_ADDR => 'Do Not Reply'])
+                ->setFrom([NOREPLY_ADDR => SITE_NAME])
                 ->setReturnPath('bounce@direct.ilovefreegle.org')
                 ->setTo([ $email => $u->getName() ])
                 ->setBody("We've turned your community event emails off on $groupname.")

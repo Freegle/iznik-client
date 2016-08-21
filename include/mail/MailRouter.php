@@ -11,6 +11,7 @@ require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/include/mail/Digest.php');
 require_once(IZNIK_BASE . '/include/mail/EventDigest.php');
 require_once(IZNIK_BASE . '/include/mail/Newsletter.php');
+require_once(IZNIK_BASE . '/include/mail/Relevant.php');
 
 if (!class_exists('spamc')) {
     require_once(IZNIK_BASE . '/lib/spamc.php');
@@ -445,6 +446,16 @@ class MailRouter
 
             if ($uid) {
                 $d = new Newsletter($this->dbhr, $this->dbhm);
+                $d->off($uid);
+
+                $ret = MailRouter::TO_SYSTEM;
+            }
+        } else if (preg_match('/relevantoff-(.*)@/', $to, $matches) == 1) {
+            # Request to turn newsletters off.
+            $uid = intval($matches[1]);
+
+            if ($uid) {
+                $d = new Relevant($this->dbhr, $this->dbhm);
                 $d->off($uid);
 
                 $ret = MailRouter::TO_SYSTEM;

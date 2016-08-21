@@ -95,8 +95,16 @@ EOT;
                                                                 <p>Based on what you've offered or searched for, we thought you might be interested in these recent messages.</p>
                                                             </td>
                                                         </tr>
-                                                        $htmloffers
-                                                        $htmlwanteds
+                                                        <tr>
+                                                            <td width="100%">
+                                                                $htmloffers
+                                                            </td>
+                                                        </tr>    
+                                                        <tr>
+                                                            <td width="100%">
+                                                                $htmlwanteds
+                                                            </td>
+                                                        </tr>    
                                                         <tr>
                                                             <td colspan="2" style="color: grey; font-size:10px;">
                                                                 <p>This mail was sent to $email.  You can change your settings by clicking <a href="https://direct.ilovefreegle.org/login.php?action=mysettings">here</a>, or turn these suggestion mails off by emailing <a href="mailto:$noemail">$noemail</a>.</p>
