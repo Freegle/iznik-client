@@ -193,7 +193,7 @@ class Location extends Entity
                     $iid = $intersects[0]['id'] != $id ? $intersects[0]['id'] : $intersects[1]['id'];
                     $name = $intersects[0]['id'] != $id ? $intersects[0]['name'] : $intersects[1]['name'];
                     $areaid = $iid;
-                    #error_log("Choose areaid #$areaid $name");
+                    error_log("Choose areaid #$areaid $name");
                 }
             }
 
@@ -376,7 +376,7 @@ class Location extends Entity
 
         # We might have some postcodes which are mapped to this area.  Remap them.
         $sql = "SELECT id FROM locations WHERE areaid = ?;";
-        $locs = $this->dbhr->preQuery($sql);
+        $locs = $this->dbhr->preQuery($sql, [ $this->id ]);
         foreach ($locs as $loc) {
             $this->setParents($loc['id'], $loc['gridid']);
         }

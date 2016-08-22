@@ -2386,7 +2386,7 @@ class Message
         # Construct the subject - do this now as it may get displayed to the user before we get the membership.
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
         $items = $this->dbhr->preQuery("SELECT * FROM messages_items INNER JOIN items ON messages_items.itemid = items.id WHERE msgid = ?;", [ $this->id ]);
-        error_log("Items " . var_export($items, TRUE));
+        #error_log("Items " . var_export($items, TRUE));
 
         if (pres('location', $atts) && count($items) > 0) {
             # Normally we should have an area and postcode to use, but as a fallback we use the area we have.

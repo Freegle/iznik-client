@@ -36,6 +36,7 @@ require_once(IZNIK_BASE . '/include/user/Search.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/group/Alerts.php');
+require_once(IZNIK_BASE . '/include/group/Admin.php');
 require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
 require_once(IZNIK_BASE . '/include/group/Twitter.php');
 require_once(IZNIK_BASE . '/include/group/Facebook.php');
@@ -55,6 +56,7 @@ require_once(IZNIK_BASE . '/include/misc/CustomUploadHandler.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/alert.php');
+require_once(IZNIK_BASE . '/http/api/admin.php');
 require_once(IZNIK_BASE . '/http/api/session.php');
 require_once(IZNIK_BASE . '/http/api/modconfig.php');
 require_once(IZNIK_BASE . '/http/api/stdmsg.php');
@@ -143,6 +145,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             switch ($call) {
                 case 'alert':
                     $ret = alert();
+                    break;
+                case 'admin':
+                    $ret = admin();
                     break;
                 case 'dashboard':
                     $ret = dashboard();
