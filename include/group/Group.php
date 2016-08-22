@@ -414,7 +414,6 @@ class Group extends Entity
                 $this->dbhm->preExec("UPDATE memberships_yahoo_dump SET lastprocessed = NOW() WHERE groupid = ?;", [ $group['groupid']]);
             } catch (Exception $e) {
                 error_log("Sync failed with " . $e->getMessage());
-                mail("log@ehibbert.org.uk", "Membership sync failed on " . $g->getPrivate('nameshort'), $e->getMessage());
             }
 
             $count++;

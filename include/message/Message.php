@@ -340,7 +340,6 @@ class Message
             # Not much we can do - shouldn't really happen given the failover transport.
             // @codeCoverageIgnoreStart
             error_log("Send failed with " . $e->getMessage());
-            mail("log@ehibbert.org.uk", "Email send failed", $e->getMessage());
             // @codeCoverageIgnoreEnd
         }
     }

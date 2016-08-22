@@ -46,9 +46,6 @@ class ChatRoom extends Entity
 
         $headers = $message->getHeaders();
 
-        # TODO
-        $message->addTo('log@ehibbert.org.uk');
-
         $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $id));
 
         return($message);

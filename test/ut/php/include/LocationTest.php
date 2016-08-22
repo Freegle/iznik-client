@@ -247,12 +247,6 @@ class locationTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
-
-    public function testSpecial2() {
-        $l = new Location($this->dbhr, $this->dbhm);
-        #$l->inventArea(1863655);
-        $l->setParents(8014092, 31854);
-    }
 }
 
 

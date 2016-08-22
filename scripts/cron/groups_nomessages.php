@@ -24,8 +24,7 @@ if ($count) {
     $message = Swift_Message::newInstance()
         ->setSubject("WARNING: $count groups not receiving messages on Iznik")
         ->setFrom(GEEKS_ADDR)
-        ->setTo('log@ehibbert.org.uk')
-        #->setCc(GEEKS_ADDR)
+        ->setCc(GEEKS_ADDR)
         ->setDate(time())
         ->setBody(
             "The following groups are on Iznik but haven't received any messages recently.  Either they are inactive or don't have modtools@modtools.org on there on individual emails.\r\n\r\n$none"
