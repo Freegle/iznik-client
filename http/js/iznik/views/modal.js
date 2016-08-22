@@ -157,14 +157,14 @@ define([
         render: function() {
             var self = this;
             waitCount++;
-            console.log("Start wait", waitCount); console.trace();
+            // console.log("Start wait", waitCount); console.trace();
 
             this.timeout = setTimeout(function() {
                 self.timeout = null;
 
                 if (!waitOpen) {
                     // We don't have a modal open.  Open ours.
-                    console.log("Open wait");
+                    // console.log("Open wait");
                     waitOpen = self;
                     waitPromise = self.open(self.template);
 
@@ -190,11 +190,11 @@ define([
             }
 
             waitCount--;
-            console.log("Waits open", waitCount); console.trace();
+            // console.log("Waits open", waitCount); console.trace();
 
             if (waitCount === 0 && waitOpen) {
                 // We don't need any more open.  But this one might not quite have rendered yet, so we need to wait.
-                console.log("Close open one", waitOpen);
+                // console.log("Close open one", waitOpen);
                 waitPromise.then(function() {
                     // console.log("Open rendered");
                     Iznik.Views.Modal.prototype.close.call(waitOpen);
