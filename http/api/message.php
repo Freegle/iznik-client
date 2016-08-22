@@ -302,6 +302,11 @@ function message() {
                                 } else {
                                     $u = new User($dbhr, $dbhm, $uid);
                                     $eid = $u->getIdForEmail($email)['id'];
+
+                                    if ($u->getEmailPreferred() != $email) {
+                                        # The email specified is the one they currently want to use - make sure it's
+                                        $u->addEmail($email, 1, TRUE);
+                                    }
                                 }
 
                                 $ret = ['ret' => 5, 'status' => 'Failed to create user or email'];
