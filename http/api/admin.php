@@ -23,7 +23,7 @@ function admin() {
             break;
         }
 
-        case 'PUT': {
+        case 'POST': {
             $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
             if ($me) {

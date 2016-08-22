@@ -98,6 +98,7 @@ define([
             "modtools/members/spam": "spamMembers",
             "modtools/events/pending": "pendingEvents",
             "modtools/publicity": "socialActions",
+            "modtools/admins": "admins",
             "modtools/conversations/spam": "chatReview",
             "modtools/conversations/reported": "chatReport",
             "modtools/spammerlist/pendingadd(/:search)": "spammerListPendingAdd",
@@ -700,12 +701,30 @@ define([
             });
         },
 
-        socialActions: function (search) {
+        socialActions: function () {
             var self = this;
 
             require(["iznik/views/pages/modtools/social"], function() {
                 self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                     var page = new Iznik.Views.ModTools.Pages.SocialActions();
+                    self.loadRoute({
+                        page: page,
+                        modtools: true
+                    });
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+
+        admins: function () {
+            var self = this;
+
+            require(["iznik/views/pages/modtools/admins"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.Admins();
                     self.loadRoute({
                         page: page,
                         modtools: true

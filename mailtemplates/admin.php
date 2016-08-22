@@ -109,6 +109,7 @@ EOT;
                                                             <table width="100%" cellpadding="0" cellspacing="0" border="0" class="container" align="right">
                                                                 <tr>
                                                                     <td width="100%" align="left" class="htmlsummary mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:14px; line-height:20px;">
+                                                                        <h1>$subject</h1>
                                                                         $message                                                                
                                                                     </td>
                                                                 </tr>

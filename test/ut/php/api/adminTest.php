@@ -62,18 +62,18 @@ class adminAPITest extends IznikAPITestCase
         ];
 
         # Can't create logged out.
-        $ret = $this->call('admin', 'PUT', $admindata);
+        $ret = $this->call('admin', 'POST', $admindata);
         assertEquals(1, $ret['ret']);
 
         # Or logged in as non-mod
         assertTrue($this->user->login('testpw'));
         $this->user->addMembership($this->groupid);
-        $ret = $this->call('admin', 'PUT', $admindata);
+        $ret = $this->call('admin', 'POST', $admindata);
         assertEquals(2, $ret['ret']);
 
         # Can create as mod
         $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
-        $ret = $this->call('admin', 'PUT', $admindata);
+        $ret = $this->call('admin', 'POST', $admindata);
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
 
