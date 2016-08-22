@@ -302,35 +302,38 @@ define([
                     });
                 }
 
-                self.validator = self.$('form').validate({
-                    rules: {
-                        title: {
-                            required: true
-                        },
-                        description: {
-                            required: true
-                        },
-                        start: {
-                            mindate: self,
-                            required: true
-                        },
-                        end: {
-                            mindate: self,
-                            required: true
-                        },
-                        location: {
-                            required: true
-                        },
-                        contactphone: {
-                            phoneUK: true
-                        },
-                        contactemail: {
-                            email: true
-                        },
-                        contacturl: {
-                            url: true
+                // Need to make sure we're in the DOM else the validate plugin fails.
+                self.waitDOM(self, function() {
+                    self.validator = self.$('form').validate({
+                        rules: {
+                            title: {
+                                required: true
+                            },
+                            description: {
+                                required: true
+                            },
+                            start: {
+                                mindate: self,
+                                required: true
+                            },
+                            end: {
+                                mindate: self,
+                                required: true
+                            },
+                            location: {
+                                required: true
+                            },
+                            contactphone: {
+                                phoneUK: true
+                            },
+                            contactemail: {
+                                email: true
+                            },
+                            contacturl: {
+                                url: true
+                            }
                         }
-                    }
+                    });
                 });
             });
         }
