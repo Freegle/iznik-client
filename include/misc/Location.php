@@ -121,7 +121,7 @@ class Location extends Entity
         # For each location, we also want to store the area and first-part-postcode which this location is within.
         #
         # This allows us to standardise subjects on groups.
-        $sql = "SELECT name, lat, lng, type, gridid, geometry, AsText(geometry) AS geomtext FROM locations WHERE id = ?;";
+        $sql = "SELECT name, postcodeid, areaid, lat, lng, type, gridid, CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END AS geometry FROM locations WHERE id = ?;";
         $locs = $this->dbhr->preQuery($sql, [ $id ]);
         #error_log($sql . ", $id");
 
@@ -135,51 +135,69 @@ class Location extends Entity
                 $sql = "SELECT id FROM locations WHERE name LIKE ? AND type = 'Postcode';";
                 $pcs = $this->dbhr->preQuery($sql, [ substr($loc['name'], 0, $p) ]);
                 foreach ($pcs as $pc) {
-                    $this->dbhr->preExec("UPDATE locations SET postcodeid = ? WHERE id = ?;",
-                        [
-                            $pc['id'],
-                            $id
-                        ]);
+                    if ($loc['postcodeid'] != $pc['id']) {
+                        $this->dbhr->preExec("UPDATE locations SET postcodeid = ? WHERE id = ?;",
+                            [
+                                $pc['id'],
+                                $id
+                            ]);
+                    }
                 }
             }
 
             if (!$areaid) {
-                # Now we want to find the area.  We can speed up our query if we restrict the search to this grid square
-                # and adjacent ones, but we need to work outwards until we find our location or it gets silly.
+                # Now we want to find the area.  The logic here is a bit involved in order to speed up bulk setting
+                # of parents.
+                #
+                # Start with the grid square, and the next one that this location is closest to - that avoids issues 
+                # where a group is near the boundary of a grid square, and it's the adjacent square that contains
+                # the location we want.
                 $gridids = [ $gridid ];
+                $thisgrid = $this->dbhr->preQuery("SELECT * FROM locations_grids WHERE id = ?;", [ $gridid ])[0];
+                $lat = $loc['lat'] < ($thisgrid['swlat'] + 0.05) ? $thisgrid['swlat'] - 0.1 : $thisgrid['swlat'] + 0.1;
+                $lng = $loc['lng'] < ($thisgrid['swlng'] + 0.05) ? $thisgrid['swlng'] - 0.1 : $thisgrid['swlng'] + 0.1;
+                $nearest = $this->dbhr->preQuery("SELECT * FROM locations_grids WHERE swlat = ? AND swlng = ?;", [ $lat, $lng ])[0];
+                #error_log("{$loc['lat']}, {$loc['lng']} in [{$thisgrid['swlat']}, {$thisgrid['swlng']}, {$thisgrid['nelat']}, {$thisgrid['nelng']}] closest adjacent {$nearest['id']} from $lat, $lng");
                 $lastcount = 0;
 
                 do {
-                    # Now find grids which touch.  That avoids issues where our group is near the boundary of a grid square.
-                    $sql = "SELECT touches FROM locations_grids_touches WHERE gridid IN (" . implode(',', $gridids) . ");";
-                    #error_log($sql);
-                    $neighbours = $this->dbhr->preQuery($sql, [ $gridid ]);
-                    $lastcount = count($gridids);
-                    foreach ($neighbours as $neighbour) {
-                        $gridids[] = $neighbour['touches'];
+                    if ($lastcount == 1) {
+                        # Last time we just checked the grid it's in. Now add the next nearest.
+                        $gridid[] = $nearest['id'];
+                    } else if ($lastcount != 0) {
+                        # Now find grids which touch the ones we already have, i.e. work outwards
+                        $sql = "SELECT touches FROM locations_grids_touches WHERE gridid IN (" . implode(',', $gridids) . ");";
+                        error_log("for {$loc['id']} $sql");
+                        $neighbours = $this->dbhr->preQuery($sql, [ $gridid ]);
+                        foreach ($neighbours as $neighbour) {
+                            $gridids[] = $neighbour['touches'];
+                        }
                     }
-
+                    
+                    $lastcount = count($gridids);
                     $gridids = array_unique($gridids);
 
-                    # We choose the smallest non-postcode place location.  A place location is either one where the OSM data
-                    # says it's a place (osm_place) or the type of the location means it would work as one (not point,
-                    # basically).  We can't use MBRContains or MBRIntersects as some places are only present in OSM as points.
-                    $sql = "SELECT id, name, CASE WHEN ourgeometry IS NOT NULL THEN AsText(ourgeometry) ELSE AsText(geometry) END AS geomtext, haversine(lat, lng, ?, ?) AS dist FROM locations  LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = $osmonly AND locations_excluded.locationid IS NULL ORDER BY dist ASC LIMIT 2;";
-                    #error_log("For $id $sql, {$loc['lat']}, {$loc['lng']}");
+                    # See if there will be a location to choose - without actually choosing it yet, be
+                    # We choose the closest location.
+                    $sql = "SELECT id, name, ST_Distance(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS dist FROM locations  LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = $osmonly AND locations_excluded.locationid IS NULL ORDER BY dist ASC LIMIT 2;";
+                    #error_log($sql);
                     $intersects = $this->dbhr->preQuery($sql, [
-                        $loc['lat'],
-                        $loc['lng']
+                        $loc['geometry']
                     ]);
+
+                    #error_log("For $id $sql, {$loc['lat']}, {$loc['lng']}");
                 } while (count($gridids) != $lastcount && count($intersects) < 2 && count($gridids) < 10000);
 
                 if (count($intersects) > 1 || (count($intersects) == 1 && $intersects[0]['id'] != $id)) {
                     # Quicker query if we omit AND id != $id and handle it here.
                     $iid = $intersects[0]['id'] != $id ? $intersects[0]['id'] : $intersects[1]['id'];
+                    $name = $intersects[0]['id'] != $id ? $intersects[0]['name'] : $intersects[1]['name'];
                     $areaid = $iid;
+                    #error_log("Choose areaid #$areaid $name");
                 }
             }
 
-            if ($areaid) {
+            if ($areaid && $loc['areaid'] != $areaid) {
                 #error_log("Set $id to have area $areaid");
                 $sql = "UPDATE locations SET areaid = $areaid WHERE id = $id;";
                 $this->dbhm->preExec($sql);
@@ -354,6 +372,13 @@ class Location extends Entity
                 $groupid,
                 $userid
             ]);
+        }
+
+        # We might have some postcodes which are mapped to this area.  Remap them.
+        $sql = "SELECT id FROM locations WHERE areaid = ?;";
+        $locs = $this->dbhr->preQuery($sql);
+        foreach ($locs as $loc) {
+            $this->setParents($loc['id'], $loc['gridid']);
         }
 
         # Not the end of the world if this doesn't work.

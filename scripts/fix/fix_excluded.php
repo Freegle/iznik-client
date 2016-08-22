@@ -1,24 +1,15 @@
 <?php
 
-define(SQLLOG, FALSE);
-
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 
+$locs = $dbhr->preQuery("SELECT locations.* FROM locations INNER JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE gridid IS NOT NULL;");
+
 $l = new Location($dbhr, $dbhm);
 
-$locs = $dbhm->query("SELECT id, name, gridid FROM locations;");
-
-$count = 0;
-
 foreach ($locs as $loc) {
-    #echo "{$loc['id']} - {$loc['name']} => ";
+    error_log("#{$loc['id']} {$loc['name']}");
     $l->setParents($loc['id'], $loc['gridid']);
-    $count++;
-
-    #if ($count % 1000 == 0) {
-        error_log("$count..." . count($locs));
-    #}
 }
