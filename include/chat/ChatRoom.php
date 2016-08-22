@@ -750,11 +750,7 @@ class ChatRoom extends Entity
                 $to = $thisu->getEmailPreferred();
 
                 try {
-                    # TODO Until we go live, don't send the rich notifications which drag people to the new site
-                    #
-                    #$message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to, $fromname, $replyto, $subject, $textsummary, $html);
-                    $message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to, $fromname, $replyto, $subject, $textsummary, NULL);
-                    #error_log($to . " " . $subject);
+                    $message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to, $fromname, $replyto, $subject, $textsummary, $html);
                     $mailer->send($message);
 
                     $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
