@@ -233,7 +233,6 @@ class Relevant {
                             ->setFrom([NOREPLY_ADDR => SITE_NAME ])
                             ->setReturnPath('bounce@direct.ilovefreegle.org')
                             ->setTo([ $email => $u->getName() ])
-                            ->setBcc([ 'log@ehibbert.org.uk' ])
                             ->setBody($textbody)
                             ->addPart($html, 'text/html');
 
