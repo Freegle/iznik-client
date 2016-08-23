@@ -152,11 +152,25 @@ function group() {
                     }
 
                     case 'ConfirmKey': {
-                        $ret = [
-                            'ret' => 0,
-                            'status' => 'Success',
-                            'key' => $g->getConfirmKey()
-                        ];
+                        if ($me && $me->isAdminOrSupport()) {
+                            # If we already have Admin or Support rights, we trust ourselves enough to add the
+                            # membership immediately.  This helps with people who are on many groups, because
+                            # it avoids having to wait for Yahoo invitation processing.
+                            #
+                            # If this is incorrect, and we're not actually a mod on Yahoo, then it will get
+                            # downgraded on the next sync.
+                            $me->addMembership($id, User::ROLE_MODERATOR);
+                            $ret = [
+                                'ret' => 100,
+                                'status' => 'Added status on server.'
+                            ];
+                        } else {
+                            $ret = [
+                                'ret' => 0,
+                                'status' => 'Success',
+                                'key' => $g->getConfirmKey()
+                            ];
+                        }
 
                         break;
                     }
