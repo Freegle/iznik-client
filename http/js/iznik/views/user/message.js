@@ -3,8 +3,9 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'moment',
     'iznik/views/infinite'
-], function($, _, Backbone, Iznik) {
+], function($, _, Backbone, Iznik, moment) {
     Iznik.Views.User.Message = Iznik.View.extend({
         className: "marginbotsm botspace",
 
@@ -280,6 +281,10 @@ define([
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
                 self.$('.timeago').timeago();
+
+                if (self.model.get('autorepostallowed')) {
+                    self.$('.js-autodue').html((moment(self.model.get('autorepostat')).fromNow()));
+                }
             });
             return(p);
         }

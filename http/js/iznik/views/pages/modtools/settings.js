@@ -361,6 +361,24 @@ define([
                             type: 'number'
                         },
                         {
+                            name: 'reposts.max',
+                            label: 'Max auto-reposts',
+                            control: 'input',
+                            type: 'number'
+                        },
+                        {
+                            name: 'reposts.offer',
+                            label: 'OFFER auto-repost (days)',
+                            control: 'input',
+                            type: 'number'
+                        },
+                        {
+                            name: 'reposts.wanted',
+                            label: 'WANTED auto-repost (days)',
+                            control: 'input',
+                            type: 'number'
+                        },
+                        {
                             name: 'map.zoom',
                             label: 'Default zoom for maps',
                             control: 'input',

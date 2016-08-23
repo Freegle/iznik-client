@@ -2,8 +2,9 @@ define([
     'jquery',
     'underscore',
     'backbone',
-    'iznik/base'
-], function($, _, Backbone, Iznik) {
+    'iznik/base',
+    'moment'
+], function($, _, Backbone, Iznik, moment) {
     Iznik.Models.Message = Iznik.Model.extend({
         url: function() {
             return (API + 'message/' + this.get('id'));
@@ -403,6 +404,25 @@ define([
                     var groups = [];
                     _.each(message.groups, function(group, index2, list2) {
                         var groupdata = ret.groups[group.groupid];
+
+                        if (message.type == 'Offer' || message.type == 'Wanted') {
+                            // Work out when we can repost.
+                            group.autorepostallowed = false;
+                            var settings = groupdata.settings;
+
+                            if (settings.hasOwnProperty('reposts')) {
+                                var interval = message.type == 'Offer' ? settings.reposts.offer : settings.reposts.wanted;
+                                var max = settings.reposts.max;
+
+                                if (group.autoreposts < max) {
+                                    group.autorepostallowed = true;
+                                    var m = new moment(message.arrival);
+                                    m = m.add(interval, 'days');
+                                    group.autorepostat = m.format();
+                                }
+                            }
+                        }
+
                         groups.push(_.extend([], groupdata, group));
                     });
 

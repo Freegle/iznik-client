@@ -198,29 +198,37 @@ define([
                         $('#botleft').hide();
                     }
 
-                    // Put self page in
-                    templateFetch(self.template).then(function(tpl) {
-                        if (self.model) {
-                            self.$el.html(window.template(tpl)(self.model.toJSON2()));
-                        } else {
-                            // Default is that we pass the session as the model.
-                            self.$el.html(window.template(tpl)(Iznik.Session.toJSON2()));
+                    // Put self page in.  Need to know whether we're logged in first, in order to start the
+                    // chats, which some pages may rely on behing active.
+                    self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                        if (loggedIn) {
+                            // Since we're logged in, we can start chat.
+                            ChatHolder({
+                                modtools: self.modtools
+                            }).render();
                         }
 
-                        $('.js-pageContent').html(self.$el);
+                        templateFetch(self.template).then(function(tpl) {
+                            if (self.model) {
+                                self.$el.html(window.template(tpl)(self.model.toJSON2()));
+                            } else {
+                                // Default is that we pass the session as the model.
+                                self.$el.html(window.template(tpl)(Iznik.Session.toJSON2()));
+                            }
 
-                        $('#footer').remove();
+                            $('.js-pageContent').html(self.$el);
 
-                        if (self.footer) {
-                            var v = new Iznik.Views.Page.Footer();
-                            v.render().then(function() {
-                                $('body').addClass('Site');
-                                $('body').append(v.$el);
-                            });
-                        }
+                            $('#footer').remove();
 
-                        // Show anything which should or shouldn't be visible based on login status.
-                        self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                            if (self.footer) {
+                                var v = new Iznik.Views.Page.Footer();
+                                v.render().then(function() {
+                                    $('body').addClass('Site');
+                                    $('body').append(v.$el);
+                                });
+                            }
+
+                            // Show anything which should or shouldn't be visible based on login status.
                             var loggedInOnly = $('.js-loggedinonly');
                             var loggedOutOnly = $('.js-loggedoutonly');
 
@@ -234,48 +242,43 @@ define([
                             if (loggedIn) {
                                 loggedInOnly.removeClass('reallyHide');
                                 loggedOutOnly.addClass('reallyHide');
-
-                                // Since we're logged in, we can start chat.
-                                ChatHolder({
-                                    modtools: self.modtools
-                                }).render();
                             } else {
                                 loggedOutOnly.removeClass('reallyHide');
                                 loggedInOnly.addClass('reallyHide');
                             }
+
+                            // Sort out any menu
+                            $("#menu-toggle").click(function (e) {
+                                e.preventDefault();
+                                $("#wrapper").toggleClass("toggled");
+                            });
+
+                            window.scrollTo(0, 0);
+
+                            // Let anyone who cares know.
+                            self.trigger('pageContentAdded');
+
+                            // This doesn't work as an event as it's outwith our element, so attach manually.
+                            if (self.home) {
+                                $('#bodyContent .js-home').click(_.bind(self.home, self));
+                            }
+
+                            if (self.signin) {
+                                $('#bodyContent .js-signin').click(_.bind(self.signin, self));
+                            }
+
+                            $('.js-logout').click(function() {
+                                logout();
+                            });
+
+                            // Now that we're in the DOM, ensure events work.
+                            self.delegateEvents();
+
+                            resolve(self);
                         });
-
-                        Iznik.Session.testLoggedIn();
-
-                        // Sort out any menu
-                        $("#menu-toggle").click(function (e) {
-                            e.preventDefault();
-                            $("#wrapper").toggleClass("toggled");
-                        });
-
-                        window.scrollTo(0, 0);
-
-                        // Let anyone who cares know.
-                        self.trigger('pageContentAdded');
-
-                        // This doesn't work as an event as it's outwith our element, so attach manually.
-                        if (self.home) {
-                            $('#bodyContent .js-home').click(_.bind(self.home, self));
-                        }
-
-                        if (self.signin) {
-                            $('#bodyContent .js-signin').click(_.bind(self.signin, self));
-                        }
-
-                        $('.js-logout').click(function() {
-                            logout();
-                        });
-
-                        // Now that we're in the DOM, ensure events work.
-                        self.delegateEvents();
-
-                        resolve(self);
                     });
+
+                    Iznik.Session.testLoggedIn();
                 });
             });
 
