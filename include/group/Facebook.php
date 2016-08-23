@@ -146,7 +146,7 @@ class GroupFacebook {
 
             if (count($modships) > 0) {
                 $groupids = implode(',', $modships);
-                $sql = "SELECT * FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND groupid IN ($groupids) AND groups_facebook_toshare.id = ?;";
+                $sql = "SELECT DISTINCT groups_facebook_toshare.* FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND groupid IN ($groupids) AND groups_facebook_toshare.id = ?;";
                 $actions = $this->dbhr->preQuery($sql, [ $id ]);
                 foreach ($actions as $action) {
                     try {
