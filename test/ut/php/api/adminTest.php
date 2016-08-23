@@ -73,6 +73,7 @@ class adminAPITest extends IznikAPITestCase
 
         # Can create as mod
         $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
+        $admindata['dup'] = TRUE;
         $ret = $this->call('admin', 'POST', $admindata);
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
@@ -83,7 +84,9 @@ class adminAPITest extends IznikAPITestCase
         assertEquals($id, $ret['admin']['id']);
 
         foreach ($admindata as $key => $val) {
-            assertEquals($val, $ret['admin'][$key]);
+            if ($key != 'dup') {
+                assertEquals($val, $ret['admin'][$key]);
+            }
         }
 
         # Now send - none to find, as we don't have an email on our domain.
