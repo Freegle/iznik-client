@@ -223,6 +223,7 @@ define([
 
                 if (self.closeAfterSave) {
                     self.close();
+                    (new Iznik.Views.User.CommunityEvent.Confirm()).render();
                 }
             }
         },
@@ -397,13 +398,17 @@ define([
                 if (start) {
                     self.$('.js-start').combodate('setValue', new Date(start));
                 } else {
-                    self.$('.js-start').combodate('setValue', new Date());
+                    // Set a default of tomorrow on the hour
+                    var m = moment().add(1, 'days').startOf('hour');
+                    self.$('.js-start').combodate('setValue', m.toDate());
                 }
 
                 if (end) {
                     self.$('.js-end').combodate('setValue', new Date(end));
                 } else {
-                    self.$('.js-end').combodate('setValue', new Date());
+                    // Default event to last 1 hour.
+                    var m = moment().add(1, 'days').startOf('hour').add(1, 'hours');
+                    self.$('.js-end').combodate('setValue', m.toDate());
                 }
 
                 self.$('select').addClass('form-control');
@@ -430,5 +435,9 @@ define([
         getEnd: function() {
             return(this.getDate('.js-end'));
         }
+    });
+
+    Iznik.Views.User.CommunityEvent.Confirm = Iznik.Views.Modal.extend({
+        template: "communityevents_confirm"
     });
 });

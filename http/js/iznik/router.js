@@ -435,14 +435,10 @@ define([
         userCommunityEvents: function(groupid, naked) {
             var self = this;
 
-            console.log("Events for", groupid);
-
             // We might be called in the legacy case with some random guff on the end of the url.
             if (groupid && typeof groupid == 'string') {
                 groupid = groupid.substr(0,1) == '&' ? null : parseInt(groupid);
             }
-
-            console.log("groupid now", groupid);
 
             require(["iznik/views/pages/user/communityevents"], function() {
                 var page = new Iznik.Views.User.Pages.CommunityEvents({
