@@ -118,6 +118,7 @@ define([
 
             // If we've not put anything in the HTML version we get some placeholder HTML.
             html = html == '<p><br data-mce-bogus="1"></p>' ? null : html;
+            text = text ? text : 'Please see the HTML version of this mail';
 
             $.ajax({
                 type: 'PUT',
