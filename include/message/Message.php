@@ -1981,15 +1981,49 @@ class Message
         # emails with subjects of their choice, or reply from Yahoo Groups which doesn't add
         # In-Reply-To headers.  So we just have to do the best we can using the email subject.  The Damerau–Levenshtein
         # distance does this for us - if we get a subject which is just "Re: " and the original, then that will come
-        # top.
+        # top.  We can't do that in the DB, though, as we need to strip out some stuff.
         #
         # We only expect to be matching replies for reuse/Freegle groups, and it's not worth matching against any
         # old messages.
-        $sql = "SELECT messages.id, subject, messages.date, DAMLEVLIM(subject, ?, 50) AS dist FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND fromuser = ? INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type IN ('Freegle', 'Reuse') AND DATEDIFF(NOW(), messages.arrival) < 90 HAVING dist < 30 ORDER BY dist ASC LIMIT 1;";
-        $messages = $this->dbhr->preQuery($sql, [ $this->subject, $userid ]);
+        $sql = "SELECT messages.id, subject, messages.date FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND fromuser = ? INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type IN ('Freegle', 'Reuse') AND DATEDIFF(NOW(), messages.arrival) < 90 LIMIT 1000;";
+        $messages = $this->dbhr->preQuery($sql, [ $userid ]);
 
-        error_log("findFromReply " . var_export($messages, TRUE));
-        return(count($messages) > 0 ? $messages[0]['id'] : NULL);
+        $thissubj = Message::canonSubj($this->subject);
+
+        # This is expected to be a reply - so remove the most common reply tag.
+        $thissubj = preg_replace('/^Re\:/i', '', $thissubj);
+
+        # Remove any punctuation and whitespace from the purported item.
+        $thissubj = preg_replace('/\-|\,|\.| /', '', $thissubj);
+
+        $mindist = PHP_INT_MAX;
+        $match = FALSE;
+        $matchmsg = NULL;
+
+        foreach ($messages as $message) {
+            $subj1 = $thissubj;
+            $subj2 = Message::canonSubj($message['subject']);
+
+            # Remove any punctuation and whitespace from the purported item.
+            $subj2 = preg_replace('/\-|\,|\.| /', '', $subj2);
+
+            # Find the distance.  We do this in PHP rather than in MySQL because we have done all this
+            # munging on the subject.
+            $d = new DamerauLevenshtein(strtolower($subj1), strtolower($subj2));
+            $message['dist'] = $d->getSimilarity();
+            $mindist = min($mindist, $message['dist']);
+
+            #error_log("Compare subjects $subj1 vs $subj2 dist {$message['dist']} min $mindist lim " . (strlen($subj1) * 3 / 4));
+
+            if ($message['dist'] <= $mindist && $message['dist'] <= strlen($subj1) * 3 / 4) {
+                # This is the closest match, but not utterly different.
+                #error_log("Closest");
+                $match = TRUE;
+                $matchmsg = $message;
+            }
+        }
+
+        return(($match && $matchmsg['id']) ? $matchmsg['id'] : NULL);
     }
     
     public function stripQuoted() {

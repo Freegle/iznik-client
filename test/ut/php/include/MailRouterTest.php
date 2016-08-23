@@ -1034,6 +1034,7 @@ class MailRouterTest extends IznikTestCase {
 
         # Send a message.
         $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $origid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($origid);
@@ -1042,6 +1043,7 @@ class MailRouterTest extends IznikTestCase {
 
         # Send a purported reply.  This should result in the replying user being created.
         $msg = $this->unique(file_get_contents('msgs/replytext'));
+        $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
         assertNotNull($id);
@@ -1079,6 +1081,7 @@ class MailRouterTest extends IznikTestCase {
         # Now send another reply, but in HTML with no text body.
         error_log("Now HTML");
         $msg = $this->unique(file_get_contents('msgs/replyhtml'));
+        $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::EMAIL, 'test3@test.com', 'test@test.com', $msg);
         assertNotNull($id);
