@@ -59,7 +59,6 @@ define([
 
         render: function() {
             var self = this;
-            console.log("Render action", self);
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
                 // Show buttons for the remaining groups that haven't shared this.
@@ -67,15 +66,19 @@ define([
                 _.each(self.model.get('groups'), function(groupid) {
                     var group = Iznik.Session.getGroup(groupid);
 
-                    if (group.get('type') == 'Freegle') {
-                        var v = new Iznik.Views.ModTools.SocialAction.FacebookShare({
-                            model: group,
-                            actionid: self.model.get('id')
-                        });
+                    if (group) {
+                        console.log("Consider action for", self.model.get('id'), groupid, group.get('type'), group.get('nameshort'));
 
-                        v.render().then(function() {
-                            self.$('.js-buttons').append(v.$el);
-                        });
+                        if (group.get('type') == 'Freegle') {
+                            var v = new Iznik.Views.ModTools.SocialAction.FacebookShare({
+                                model: group,
+                                actionid: self.model.get('id')
+                            });
+
+                            v.render().then(function() {
+                                self.$('.js-buttons').append(v.$el);
+                            });
+                        }
                     }
                 });
             });

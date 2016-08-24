@@ -520,24 +520,23 @@ define([
                     self.$('.js-facebook').hide();
 
                     // Add Facebook info.  Won't show for groups it shouldn't.
-                    // TODO disabled as can't link yet.
-                    // var facebook = self.group.get('facebook');
-                    // console.log("Got facebook info", self.group, facebook);
-                    //
-                    // if (facebook) {
-                    //     self.$('.js-facebookname').html(facebook.name);
-                    //     self.$('.js-facebookurl').attr('href', 'https://facebook.com/' + facebook.id);
-                    //
-                    //     if (!facebook.valid) {
-                    //         self.$('.js-facebooknotlinked').show();
-                    //     } else {
-                    //         var mom = new moment(facebook.authdate);
-                    //         self.$('.js-facebookauthdate').html(mom.format('ll'));
-                    //         self.$('.js-facebookvalid').show();
-                    //     }
-                    // } else {
-                    //     self.$('.js-facebooknotlinked').show();
-                    // }
+                    var facebook = self.group.get('facebook');
+                    console.log("Got facebook info", self.group, facebook);
+
+                    if (facebook) {
+                        self.$('.js-facebookname').html(facebook.name);
+                        self.$('.js-facebookurl').attr('href', 'https://facebook.com/' + facebook.id);
+
+                        if (!facebook.valid) {
+                            self.$('.js-facebooknotlinked').show();
+                        } else {
+                            var mom = new moment(facebook.authdate);
+                            self.$('.js-facebookauthdate').html(mom.format('ll'));
+                            self.$('.js-facebookvalid').show();
+                        }
+                    } else {
+                        self.$('.js-facebooknotlinked').show();
+                    }
 
                     // Layout messes up a bit for radio buttons.
                     self.groupForm.$(':radio').closest('.form-group').addClass('clearfix');
@@ -2030,9 +2029,6 @@ define([
         template: 'modtools_settings_missingfacebook',
 
         render: function() {
-            // TODO Can't link yet.
-            return resolvedPromise(this);
-
             var self = this;
             var p;
             var missingFacebook = [];
