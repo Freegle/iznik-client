@@ -407,6 +407,41 @@ And something after it.', $stripped);
         error_log(__METHOD__ . " end");
     }
 
+    public function testAutoRepost() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+
+        # Put two messages on the group - one eligible for autorepost, the other not yet.
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test not due (Tuvalu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id1 = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test due (Tuvalu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id2 = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = '2016-02-01' WHERE msgid = ?;", [ $id2 ]);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        assertEquals(0, $m->autoRepost(Group::GROUP_FREEGLE, '2016-03-01', $gid));
+        assertEquals(1, $m->autoRepost(Group::GROUP_FREEGLE, '2016-01-01', $gid));
+
+        error_log(__METHOD__ . " end");
+    }
 
     // For manual testing
 //    public function testSpecial() {

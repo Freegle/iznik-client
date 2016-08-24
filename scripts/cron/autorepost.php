@@ -1,0 +1,20 @@
+<?php
+
+# Fake user site.
+# TODO Messy.
+$_SERVER['HTTP_HOST'] = "ilovefreegle.org";
+
+require_once dirname(__FILE__) . '/../../include/config.php';
+require_once(IZNIK_BASE . '/include/db.php');
+require_once(IZNIK_BASE . '/include/mail/Relevant.php');
+global $dbhr, $dbhm;
+
+$lockh = lockScript(basename(__FILE__));
+
+$m = new Message($dbhr, $dbhm);
+$mysqltime = date ("Y-m-d", strtotime("Midnight 90 days ago"));
+$count = $m->autoRepost(Group::GROUP_FREEGLE, $mysqltime);
+
+error_log("Sent $count");
+
+unlockScript($lockh);

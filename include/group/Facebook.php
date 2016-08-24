@@ -88,11 +88,13 @@ class GroupFacebook {
         }
     }
 
-    public function listSocialActions(&$ctx) {
+    public function listSocialActions(&$ctx, $mindate = NULL) {
         # We want posts which have been collected from the sharefrom page which have not already been shared, for
         # groups where we are a moderator.
         $me = whoAmI($this->dbhr, $this->dbhm);
         $ret = [];
+        $dateq = $mindate ? " AND groups_facebook_toshare.date >= '$mindate'" : '';
+
 
         if ($me) {
             $modships = $me->getModeratorships();
@@ -100,7 +102,7 @@ class GroupFacebook {
 
             if (count($modships) > 0) {
                 $groupids = implode(',', $modships);
-                $sql = "SELECT DISTINCT groups_facebook_toshare.*, 'Facebook' AS actiontype FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 WHERE groupid IN ($groupids) AND groups_facebook_toshare.id > ? ORDER BY groups_facebook_toshare.id DESC;";
+                $sql = "SELECT DISTINCT groups_facebook_toshare.*, 'Facebook' AS actiontype FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 WHERE groupid IN ($groupids) AND groups_facebook_toshare.id > ? $dateq ORDER BY groups_facebook_toshare.id DESC;";
                 #error_log($sql);
                 $posts = $this->dbhr->preQuery($sql, [ $minid ]);
 

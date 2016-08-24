@@ -136,9 +136,15 @@ class Digest
                 # Find the cut-off time for the earliest message we want to include.  If we've not sent anything for this
                 # group/frequency before then ensure we don't send anything older than a day.
                 $oldest = " AND arrival >= '" . date("Y-m-d H:i:s", strtotime("24 hours ago")) . "'";
-                $msgidq = $track['msgid'] ? " AND msgid > {$track['msgid']} " : '';
 
-                $sql = "SELECT msgid, arrival, yahooapprovedid FROM messages_groups WHERE groupid = ? AND collection = ? AND deleted = 0 $oldest $msgidq ORDER BY msgid ASC;";
+                # We record where we got up to using arrival.  We don't use msgid because the arrival gets reset when
+                # we repost, but the msgid remains the same, and we want to send out messages which have been reposted
+                # here.
+                #
+                # arrival is a high-precision timestamp, so it's effectively unique per message.
+                $msgidq = $track['msgdate'] ? " AND arrival > '{$track['msgdate']}' " : '';
+
+                $sql = "SELECT msgid, arrival, yahooapprovedid FROM messages_groups WHERE groupid = ? AND collection = ? AND deleted = 0 $oldest $msgidq ORDER BY arrival ASC;";
                 $messages = $this->dbhr->preQuery($sql, [
                     $groupid,
                     MessageCollection::APPROVED,
@@ -151,7 +157,7 @@ class Digest
                 $maxdate = NULL;
 
                 foreach ($messages as $message) {
-                    if ($message['msgid'] > $maxmsg) {
+                    if (strtotime($message['arrival']) > $maxdate) {
                         $maxmsg = $message['msgid'];
                         $maxdate = $message['arrival'];
                     }

@@ -36,12 +36,10 @@ define([
         },
 
         save: function(attrs, options) {
-            // Clear any locally cached copy.  It'll get refreshed from the server soon enough.
-            try {
-                localStorage.removeItem('session');
-            } catch (e) {};
-            
-            Backbone.Model.prototype.save.call(this, attrs, options);
+            var self = this;
+            Backbone.Model.prototype.save.call(this, attrs, options).then(function() {
+                self.testLoggedIn();
+            });
         },
 
         updateCounts: function () {
@@ -278,6 +276,13 @@ define([
                                     fi: 'chatreviewother',
                                     el: '.js-repliescountother',
                                     ev: 'repliescountsotherchanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'socialactions',
+                                    el: '.js-socialactionscount',
+                                    ev: 'socialactionscountschanged',
                                     window: false,
                                     sound: false
                                 },

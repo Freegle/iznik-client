@@ -988,7 +988,6 @@ class Message
                 # Check if it's a group we host.
                 $g = new Group($this->dbhr, $this->dbhm);
                 $this->groupid = $g->findByShortName($groupname);
-                error_log("Groupid {$this->groupid}");
             }
         }
 
@@ -1414,7 +1413,7 @@ class Message
                 if ($this->groupid) {
                     # Save the group we're on.  If we crash or fail at this point we leave the message stranded, which is ok
                     # given the perf cost of a transaction.
-                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby) VALUES (?,?,?,?,?,?,?,?);", [
+                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby,arrival) VALUES (?,?,?,?,?,?,?,?,NOW());", [
                         $this->id,
                         $this->groupid,
                         $this->yahoopendingid,
@@ -1873,7 +1872,7 @@ class Message
                 #error_log("Not on group, add to $collection");
 
                 if ($collection) {
-                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby) VALUES (?,?,?,?,?,?,?,?);", [
+                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby, arrival) VALUES (?,?,?,?,?,?,?,?,NOW());", [
                         $msg['id'],
                         $this->groupid,
                         $this->yahoopendingid,
@@ -2444,7 +2443,7 @@ class Message
         $this->setPrivate('fromuser', $fromuser->getId());
 
         # If this message is already on this group, that's fine.
-        $rc = $this->dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection) VALUES (?,?,?);", [
+        $rc = $this->dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection, arrival) VALUES (?,?,?,NOW());", [
             $this->id,
             $groupid,
             MessageCollection::QUEUED_YAHOO_USER
@@ -2467,7 +2466,7 @@ class Message
         $rc = FALSE;
         $this->setPrivate('fromuser', $fromuser->getId());
 
-        # Submit a draft. The draft currently has:
+        # Submit a draft or repost a message. Either way, it currently has:
         #
         # - a locationid
         # - a type
@@ -2570,7 +2569,7 @@ class Message
 
                 $mailer->send($message);
 
-                # This message is not a draft any more, it's pending.
+                # This message is now pending (not a draft or approved).
                 $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $this->id ]);
                 $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
 
@@ -2727,5 +2726,49 @@ class Message
         }
 
         return(!$rollback);
+    }
+
+    public function autoRepost($type, $mindate, $groupid = NULL) {
+        $count = 0;
+        $groupq = $groupid ? " AND id = $groupid " : "";
+        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq;", [ $type ]);
+        foreach ($groups as $group) {
+            $g = new Group($this->dbhr, $this->dbhm, $group['id']);
+            $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10]);
+
+            # We want approved messages which haven't got a related message, i.e. aren't TAKEN/RECEIVED, which don't have
+            # some other outcome (e.g. withdrawn) and which we originally sent.
+            $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, messages.type FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid LEFT OUTER JOIN messages_related ON id1 = messages.id OR id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND type IN ('Offer', 'Wanted') AND source = 'Platform';";
+            #error_log("$sql, $mindate, {$group['id']}");
+            $messages = $this->dbhr->preQuery($sql, [
+                $mindate,
+                $group['id']
+            ]);
+
+            foreach ($messages as $message) {
+                $interval = $message['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+                if ($message['autoreposts'] < $reposts['max'] && $message['hoursago'] > $interval * 24) {
+                    # We can repost this one.  That consists of:
+                    # - incrementing the repost count
+                    # - resetting the arrival time, which will mean the message shows up on the site as recent,
+                    #   and goes out by mail from Digest.php.
+                    # - if on Yahoo, send it there again.
+                    $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                    error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
+                    $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), autoreposts = autoreposts + 1 WHERE msgid = ?;", [ $message['msgid'] ]);
+
+                    if ($g->getPrivate('onyahoo')) {
+                        # Resend it to Yahoo.
+                        $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+                        $m->setPrivate('textbody', $m->stripGumf());
+                        $m->submit($u, $m->getFromaddr(), $message['groupid']);
+                    }
+
+                    $count++;
+                }
+            }
+        }
+
+        return($count);
     }
 }

@@ -69,6 +69,12 @@ function session() {
                 $ret['work']['spammerpendingadd'] = $s->collectionCount(Spam::TYPE_PENDING_ADD);
                 $ret['work']['spammerpendingremove'] = $s->collectionCount(Spam::TYPE_PENDING_REMOVE);
 
+                # Show social actions from last 4 days.
+                $ctx = NULL;
+                $starttime = date("Y-m-d H:i:s", strtotime("midnight 4 days ago"));
+                $f = new GroupFacebook($dbhr, $dbhm);
+                $ret['work']['socialactions'] = count($f->listSocialActions($ctx, $starttime));
+
                 $c = new ChatMessage($dbhr, $dbhm);
                 $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
             } else {

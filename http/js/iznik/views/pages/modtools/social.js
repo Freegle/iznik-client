@@ -16,10 +16,6 @@ define([
 
         retField: 'socialactions',
 
-        countsChanged: function() {
-            this.render();
-        },
-
         render: function () {
             var self = this;
             var p = Iznik.Views.Infinite.prototype.render.call(this);
@@ -44,10 +40,6 @@ define([
 
                 self.collectionView.render();
                 self.fetch();
-
-                // If we detect that the pending counts have changed on the server, refetch the members so that we add/remove
-                // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
-                self.listenTo(Iznik.Session, 'socialactionscountschanged', _.bind(self.countsChanged, self));
             });
 
             return(p);
@@ -67,7 +59,7 @@ define([
                     var group = Iznik.Session.getGroup(groupid);
 
                     if (group) {
-                        console.log("Consider action for", self.model.get('id'), groupid, group.get('type'), group.get('nameshort'));
+                        //console.log("Consider action for", self.model.get('id'), groupid, group.get('type'), group.get('nameshort'));
 
                         if (group.get('type') == 'Freegle') {
                             var v = new Iznik.Views.ModTools.SocialAction.FacebookShare({
