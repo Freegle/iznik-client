@@ -5,8 +5,7 @@
 <% } else { %>
 <p class="text-muted">
     <small>
-        <abbr class="timeago" title="{{arrival}}"/> on {{namedisplay}}</span>
-        <% } %>
+        <abbr class="timeago" title="{{arrival}}"/> on {{namedisplay}}<% if (obj.mine && obj.autorepostallowed) { %>.<span class="success"> Auto-repost due <span class="js-autodue" /></span><% } %>
     </small>
 </p>
 <% } %>

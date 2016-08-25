@@ -471,7 +471,25 @@ define([
                             $('.modal ' + focuson).focus();
                         });
 
-                        if (self.options.stdmsg.get('autosend')) {
+                        // Now check for some things we want to flag up which might suggest that the message
+                        // needs attention.
+                        var check = msg.toLowerCase();
+                        var autosend = true;
+
+                        if (check.indexOf('message maker') !== -1) {
+                            self.$('.modal-body').prepend('<div class="alert alert-warning">The Message Maker has now been retired.  Please just link to http://ilovefreegle.org.</div>');
+                            autosend = false;
+                        }
+
+                        var source = self.model.get('sourceheader');
+                        if ((source == 'Platform' || source == 'FDv2' || source.indexOf('TN-') !== -1) &&
+                            ((check.indexOf('groups.yahoo') !== -1) ||
+                             (msg.indexOf('Yahoo') !== -1))) {
+                            self.$('.modal-body').prepend('<div class="alert alert-warning">This message did not come from Yahoo, but your reply mentions Yahoo, so they may not understand.</div>');
+                            autosend = false;
+                        }
+
+                        if (autosend && self.options.stdmsg.get('autosend')) {
                             self.$('.js-send').click();
                         }
                     });

@@ -100,23 +100,19 @@ define([
                             var related = msg.get('related');
 
                             if (msg.get('type') == 'Offer') {
-                                console.log("Got offer", msg);
                                 var taken = _.where(related, {
                                     type: 'Taken'
                                 });
 
                                 if (taken.length == 0) {
-                                    console.log("Add it");
                                     self.offers.add(msg);
                                 }
                             } else if (msg.get('type') == 'Wanted') {
-                                console.log("Got wanted", msg);
                                 var received = _.where(related, {
                                     type: 'Received'
                                 });
 
                                 if (received.length == 0) {
-                                    console.log("Add it");
                                     self.wanteds.add(msg);
                                 }
                             } else {

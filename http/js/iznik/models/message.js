@@ -405,6 +405,9 @@ define([
                     _.each(message.groups, function(group, index2, list2) {
                         var groupdata = ret.groups[group.groupid];
 
+                        // Need to know whether it's our message when rendering the group info.
+                        group.mine = message.mine;
+
                         if (message.type == 'Offer' || message.type == 'Wanted') {
                             // Work out when we can repost.
                             group.autorepostallowed = false;
@@ -416,7 +419,7 @@ define([
 
                                 if (group.autoreposts < max) {
                                     group.autorepostallowed = true;
-                                    var m = new moment(message.arrival);
+                                    var m = new moment(group.arrival);
                                     m = m.add(interval, 'days');
                                     group.autorepostat = m.format();
                                 }
