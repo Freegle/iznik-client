@@ -26,7 +26,7 @@ $permissions = [
     'publish_pages'
 ];
 
-$_SESSION['graffitgroup'] = $groupid;
+$_SESSION['graffitigroup'] = $groupid;
 
 $url = $helper->getLoginUrl('https://' . $_SERVER['HTTP_HOST'] . '/facebook/facebook_response.php', $permissions);
 #echo $url;

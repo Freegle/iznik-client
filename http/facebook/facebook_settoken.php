@@ -24,14 +24,15 @@ if ($id && $token) {
 
         $ret = $fb->get('/me/accounts', $accessToken);
         $accounts = $ret->getDecodedBody();
-        #error_log("Got accounts " . var_export($accounts, TRUE));
+        #echo("Got accounts " . var_export($accounts, TRUE));
         $pages = $accounts['data'];
         $found = FALSE;
 
         foreach ($pages as $page) {
-            if ($page['id'] == $id) {
+            #echo("Compare {$page['id']} vs $id");
+            if (strcmp($page['id'], $id) === 0) {
                 $f = new GroupFacebook($dbhr, $dbhm);
-                $gid = $f->findById($page['id']);
+                $gid = presdef('graffitigroup', $_SESSION, NULL);
 
                 if ($gid) {
                     echo "Found group and set access token.  You can close this tab now.";
