@@ -326,7 +326,9 @@ define([
         },
 
         openChat: function(userid) {
-            var v = new Iznik.Views.PleaseWait();
+            var v = new Iznik.Views.PleaseWait({
+                label: 'chat openChat'
+            });
             v.render();
 
             if (userid != Iznik.Session.get('me').id) {
@@ -768,7 +770,9 @@ define([
             }
 
             // We fetch the messages when restoring - no need before then.
-            var v = new Iznik.Views.PleaseWait();
+            var v = new Iznik.Views.PleaseWait({
+                label: 'chat restore'
+            });
             v.render();
             self.messages.fetch().then(function() {
                 // We've just opened this chat - so we have had a decent chance to see any unread messages.

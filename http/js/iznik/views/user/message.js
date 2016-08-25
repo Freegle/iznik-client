@@ -561,7 +561,9 @@ define([
             // We start a conversation with the sender.
             var self = this;
 
-            self.wait = new Iznik.Views.PleaseWait();
+            self.wait = new Iznik.Views.PleaseWait({
+                label: "message startChat"
+            });
             self.wait.render();
 
             $.ajax({
