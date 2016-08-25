@@ -421,7 +421,10 @@ And something after it.', $stripped);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id1 = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $id1 = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $id1);
+        $m->setPrivate('sourceheader', 'Platform');
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -430,7 +433,9 @@ And something after it.', $stripped);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id2 = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $id2 = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $id2);
+        $m->setPrivate('sourceheader', 'Platform');
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 

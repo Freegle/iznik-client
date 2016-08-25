@@ -2738,7 +2738,7 @@ class Message
 
             # We want approved messages which haven't got a related message, i.e. aren't TAKEN/RECEIVED, which don't have
             # some other outcome (e.g. withdrawn) and which we originally sent.
-            $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, messages.type FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid LEFT OUTER JOIN messages_related ON id1 = messages.id OR id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND type IN ('Offer', 'Wanted') AND source = 'Platform';";
+            $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, messages.type FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid LEFT OUTER JOIN messages_related ON id1 = messages.id OR id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND type IN ('Offer', 'Wanted') AND sourceheader = 'Platform';";
             #error_log("$sql, $mindate, {$group['id']}");
             $messages = $this->dbhr->preQuery($sql, [
                 $mindate,
