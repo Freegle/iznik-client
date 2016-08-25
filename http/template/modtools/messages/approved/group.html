@@ -1,6 +1,6 @@
 <span class="text-muted">
     <small>
-        <abbr class="timeago" title="{{message.date}}"></abbr>
+        <abbr class="timeago" title="{{message.date}}"></abbr><% if (obj.autorepostallowed) { %>.<span class="success"> Auto-repost due <span class="js-autodue" />
         <% if (message.yahoopendingid) { %>
             #{{message.yahoopendingid}}
         <% } %>
