@@ -279,6 +279,10 @@ function memberships() {
                             'status' => 'Success'
                         ];
 
+                        # We don't want to default the role to anything here, otherwise we might patch ourselves
+                        # to a member.
+                        $role = presdef('role', $_REQUEST, NULL);
+
                         if ($role) {
                             # We can set the role, but not to something higher than our own.
                             $role = $u->roleMin($role, $me->getRoleForGroup($groupid));
