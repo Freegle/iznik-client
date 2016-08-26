@@ -12,7 +12,8 @@ function socialactions() {
     switch ($_REQUEST['type']) {
         case 'GET':
             $f = new GroupFacebook($dbhr, $dbhm);
-            $actions = $f->listSocialActions($ctx);
+            $mysqltime = date("Y-m-d H:i:s", strtotime("midnight 7 days ago"));
+            $actions = $f->listSocialActions($ctx, $mysqltime);
             $ret = [
                 'ret' => 0,
                 'status' => 'Success',
