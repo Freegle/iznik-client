@@ -43,7 +43,7 @@ class groupFacebookTest extends IznikTestCase {
 
         $gid = $g->create('testgroup', Group::GROUP_UT);
         $t = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
-        $t->set('test');
+        $t->set($gid, 'test', 'test', 'test');
         assertEquals('test', $t->getPublic()['token']);
 
         error_log(__METHOD__ . " end");

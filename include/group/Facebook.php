@@ -55,11 +55,14 @@ class GroupFacebook {
         return($fb);
     }
 
-    public function set($token) {
-        $this->dbhm->preExec("UPDATE groups_facebook SET token = ?, authdate = NOW(), valid = 1 WHERE groupid = ?;",
+    public function set($groupid, $token, $name, $id) {
+        $this->dbhm->preExec("INSERT INTO groups_facebook (groupid, name, id, token, authdate) VALUES (?,?,?,?,NOW()) ON DUPLICATE KEY UPDATE token = ?, authdate = NOW(), valid = 1;",
             [
+                $groupid,
+                $name,
+                $id,
                 $token,
-                $this->groupid
+                $token
             ]);
 
         $this->token = $token;
