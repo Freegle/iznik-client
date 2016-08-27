@@ -8,6 +8,8 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/session/Yahoo.php');
+require_once(IZNIK_BASE . '/include/session/Facebook.php');
+require_once(IZNIK_BASE . '/include/session/Session.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . "/lib/JSMin.php");
 
@@ -24,7 +26,12 @@ if (pres('REQUEST_URI', $_SERVER) == 'yahoologin') {
     # No need to pay attention to the result - whether it worked or not will be determined by the
     # client later.
     $y->login(get_current_url());
+} else if (pres('fb_locale', $_REQUEST) && pres('signed_request', $_REQUEST)) {
+    # Looks like a load of the Facebook app.
+    $f = new Facebook($dbhr, $dbhm);
+    $f->loadCanvas();
 }
+
 include_once(BASE_DIR . '/include/misc/pageheader.php');
 
 # Depending on rewrites we might not have set up $_REQUEST.

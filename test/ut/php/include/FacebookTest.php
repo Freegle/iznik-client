@@ -58,9 +58,10 @@ class FacebookTest extends IznikTestCase {
         return(FALSE);
     }
 
-    private $getLongLivedAccessTokenException, $getLongLivedAccessFacebookException;
+    private $getLongLivedAccessTokenException, $getLongLivedAccessFacebookException, $getCanvasHelperException;
 
     public function getLongLivedAccessToken() {
+        error_log("getLongLivedAccessToken {$this->getLongLivedAccessTokenException} {$this->getLongLivedAccessFacebookException}");
         if ($this->getLongLivedAccessTokenException) {
             throw new Exception();
         }
@@ -70,6 +71,14 @@ class FacebookTest extends IznikTestCase {
         }
 
         return($this->accessToken);
+    }
+
+    public function getCanvasHelper() {
+        error_log("getCanvasHelper {$this->getCanvasHelperException}");
+        if ($this->getCanvasHelperException) {
+            throw new Exception();
+        }
+        return($this);
     }
 
     public function get() {
@@ -180,10 +189,44 @@ class FacebookTest extends IznikTestCase {
         # And so will this one.
         $this->asArrayException = TRUE;
         list($session, $ret) = $mock->login();
-        assertEquals(1, $ret['ret']);
+        assertEquals(2, $ret['ret']);
         $this->asArrayException = FALSE;
 
         error_log(__METHOD__ . " end");
+    }
+
+    public function testCanvas()
+    {
+        error_log(__METHOD__);
+
+        $this->accessToken = '1234';
+        $this->facebookId = 1;
+        $this->facebookFirstName = 'Test';
+        $this->facebookLastName = 'User';
+        $this->facebookName = 'Test User';
+        $this->facebookEmail = 'test@test.com';
+
+        $mock = $this->getMockBuilder('Facebook')
+            ->setConstructorArgs([$this->dbhr, $this->dbhm])
+            ->setMethods(array('getFB'))
+            ->getMock();
+
+        $mock->method('getFB')->willReturn($this);
+        $this->getLongLivedAccessTokenException = FALSE;
+        $this->getLongLivedAccessFacebookException = FALSE;
+        $this->asArrayException = FALSE;
+
+        list($session, $ret) = $mock->loadCanvas();
+        self::assertEquals(0, $ret['ret']);
+
+        # Fail login
+        error_log("Fail canvas login");
+        $_SESSION['id'] = 0;
+        $this->getCanvasHelperException = TRUE;
+        list($session, $ret) = $mock->loadCanvas();
+        error_log("loaded canvas");
+        assertEquals(2, $ret['ret']);
+        $this->asArrayException = FALSE;
     }
 }
 
