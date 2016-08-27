@@ -157,10 +157,8 @@ class Digest
                 $maxdate = NULL;
 
                 foreach ($messages as $message) {
-                    if (strtotime($message['arrival']) > strtotime($maxdate)) {
-                        $maxmsg = $message['msgid'];
-                        $maxdate = $message['arrival'];
-                    }
+                    $maxmsg = max($message['msgid'], $maxmsg);
+                    $maxdate = $message['arrival'];
 
                     $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
                     $subjects[$message['msgid']] = $m->getSubject();
@@ -360,7 +358,7 @@ class Digest
                         }
                     }
 
-                    if ($maxmsg > 0) {
+                    if ($maxdate) {
                         # Record the message we got upto.
                         $sql = "UPDATE groups_digests SET msgid = ?, msgdate = ? WHERE groupid = ? AND frequency = ?;";
                         $this->dbhm->preExec($sql, [$maxmsg, $maxdate, $groupid, $frequency]);
