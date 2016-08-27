@@ -29,14 +29,12 @@ try {
     do {
         $ret = $fb->get($url, $accessToken);
         $accounts = $ret->getDecodedBody();
-        error_log("Got accounts " . var_export($accounts, TRUE));
 
         if (pres('data', $accounts)) {
             $pages = array_merge($pages, $accounts['data']);
         }
 
         $url = pres('paging', $accounts) ? presdef('next', $accounts['paging'], NULL) : NULL;
-        error_log("Next url $url");
     } while ($url);
     $found = FALSE;
 
