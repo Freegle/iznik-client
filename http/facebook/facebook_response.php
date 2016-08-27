@@ -22,22 +22,33 @@ try {
     $_SESSION['fbaccesstoken'] = (string)$accessToken;
 
     $ret = $fb->get('/me', $accessToken);
+    $pages = [];
+    $url = '/me/accounts';
 
-    $ret = $fb->get('/me/accounts', $accessToken);
-    $accounts = $ret->getDecodedBody();
-    #echo("Got accounts " . var_export($accounts, TRUE));
-    $pages = $accounts['data'];
+    # Page through all of them.
+    do {
+        $ret = $fb->get($url, $accessToken);
+        $accounts = $ret->getDecodedBody();
+        error_log("Got accounts " . var_export($accounts, TRUE));
+
+        if (pres('data', $accounts)) {
+            $pages = array_merge($pages, $accounts['data']);
+        }
+
+        $url = pres('paging', $accounts) ? presdef('next', $accounts['paging'], NULL) : NULL;
+        error_log("Next url $url");
+    } while ($url);
     $found = FALSE;
+
+    usort($pages, function ($a, $b) {
+        return (strcmp($a['name'], $b['name']));
+    });
 
     ?>
     <p>These are the Facebook pages you manage.  Click on the one you want to link to your group.</p>
     <?php
     foreach ($pages as $page) {
-        #echo var_export($page, TRUE);
-        $ret = $fb->get($page['id'], $accessToken);
-        $pageinfo = $ret->getDecodedBody();
-
-        echo '<a href="/facebook/facebook_settoken.php?id=' . urlencode($page['id']) . '&token=' . urlencode($page['access_token']) . '">' . $pageinfo['name'] . '</a><br />';
+        echo '<a href="/facebook/facebook_settoken.php?id=' . urlencode($page['id']) . '&token=' . urlencode($page['access_token']) . '">' . $page['name'] . '</a><br />';
     }
 } catch(Facebook\Exceptions\FacebookResponseException $e) {
     // When Graph returns an error
