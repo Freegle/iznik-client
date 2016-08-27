@@ -224,11 +224,18 @@ class Session {
 
         /** @noinspection PhpUnusedLocalVariableInspection */
         foreach ($sessions as $session) {
-            # Leave the cookie in existence.  This is a bit less secure, but it does mean that we can frequently
-            # use the cookie to recover a session when the PHP session is no longer there.
+            # Leave the cookie in existence, marked as active.  This is a bit less secure, but it does mean that we
+            # can frequently use the cookie to recover a session when the PHP session is no longer there, including
+            # from multiple devices.
             $userid = $session['userid'];
             $_SESSION['id'] = $userid;
             $_SESSION['logged_in'] = TRUE;
+            $this->dbhm->preExec("UPDATE sessions SET lastactive = NOW() WHERE  id = ? AND series = ? AND token = ?;", [
+                $id,
+                $series,
+                $token
+            ]);
+
             return($userid);
         }
 
