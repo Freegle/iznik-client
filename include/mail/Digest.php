@@ -142,9 +142,9 @@ class Digest
                 # here.
                 #
                 # arrival is a high-precision timestamp, so it's effectively unique per message.
-                $msgidq = $track['msgdate'] ? " AND arrival > '{$track['msgdate']}' " : '';
+                $msgdtq = $track['msgdate'] ? " AND arrival > '{$track['msgdate']}' " : '';
 
-                $sql = "SELECT msgid, arrival, yahooapprovedid FROM messages_groups WHERE groupid = ? AND collection = ? AND deleted = 0 $oldest $msgidq ORDER BY arrival ASC;";
+                $sql = "SELECT msgid, arrival, yahooapprovedid FROM messages_groups WHERE groupid = ? AND collection = ? AND deleted = 0 $oldest $msgdtq ORDER BY arrival ASC;";
                 $messages = $this->dbhr->preQuery($sql, [
                     $groupid,
                     MessageCollection::APPROVED,
@@ -157,7 +157,7 @@ class Digest
                 $maxdate = NULL;
 
                 foreach ($messages as $message) {
-                    if (strtotime($message['arrival']) > $maxdate) {
+                    if (strtotime($message['arrival']) > strtotime($maxdate)) {
                         $maxmsg = $message['msgid'];
                         $maxdate = $message['arrival'];
                     }
@@ -313,7 +313,7 @@ class Digest
                     }
 
                     if (count($replacements) > 0) {
-                        error_log("#$groupid {$gatts['nameshort']} " . count($tosend) . " messages max $maxmsg to " . count($replacements) . " users");
+                        error_log("#$groupid {$gatts['nameshort']} " . count($tosend) . " messages max $maxmsg, $maxdate to " . count($replacements) . " users");
                         # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
                         # rather than lose it.
                         list ($transport, $mailer) = getMailer();
