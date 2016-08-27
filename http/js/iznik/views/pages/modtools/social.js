@@ -55,23 +55,34 @@ define([
             p.then(function(self) {
                 // Show buttons for the remaining groups that haven't shared this.
                 self.$('.js-buttons').empty();
-                _.each(self.model.get('groups'), function(groupid) {
+                var grouplist = [];
+                var groups = self.model.get('groups');
+
+                _.each(groups, function(groupid) {
                     var group = Iznik.Session.getGroup(groupid);
 
                     if (group) {
                         //console.log("Consider action for", self.model.get('id'), groupid, group.get('type'), group.get('nameshort'));
 
                         if (group.get('type') == 'Freegle') {
-                            var v = new Iznik.Views.ModTools.SocialAction.FacebookShare({
-                                model: group,
-                                actionid: self.model.get('id')
-                            });
-
-                            v.render().then(function() {
-                                self.$('.js-buttons').append(v.$el);
-                            });
+                            grouplist.push(group);
                         }
                     }
+                });
+
+                var groups = new Iznik.Collection(grouplist);
+                groups.comparator = 'namedisplay';
+                groups.sort();
+                
+                groups.each(function(group) {
+                    var v = new Iznik.Views.ModTools.SocialAction.FacebookShare({
+                        model: group,
+                        actionid: self.model.get('id')
+                    });
+
+                    v.render().then(function() {
+                        self.$('.js-buttons').append(v.$el);
+                    });
                 });
             });
 
