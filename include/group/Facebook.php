@@ -100,8 +100,19 @@ class GroupFacebook {
 
 
         if ($me) {
-            $modships = $me->getModeratorships();
             $minid = $ctx ? $ctx['id'] : 0;
+
+            $modships = [];
+
+            # Remove groups which aren't linked.
+            $groups = $this->dbhr->preQuery("SELECT memberships.groupid FROM memberships INNER JOIN groups_facebook ON groups_facebook.groupid = memberships.groupid WHERE userid = ? AND role IN ('Owner', 'Moderator') AND valid = 1;",
+                [
+                    $me->getId()
+                ]);
+
+            foreach ($groups as $group) {
+                $modships[] = $group['groupid'];
+            }
 
             if (count($modships) > 0) {
                 $groupids = implode(',', $modships);

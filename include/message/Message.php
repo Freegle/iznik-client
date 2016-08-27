@@ -1531,7 +1531,9 @@ class Message
 
             $mailit = FALSE;
 
-            if (ourDomain($to)) {
+            # TODO Once live
+            #if (ourDomain($to)) {
+            if (strpos($to, USER_DOMAIN) !== FALSE) {
                 # This is a user who we host.  We can therefore send the message via chat.  This is better than
                 # sending it by email and then parsing the email later to work out what we intended to send and
                 # construct a chat message from it :-).
@@ -2071,6 +2073,12 @@ class Message
         $p = strpos($textbody, '-------- Original message --------');
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
+        # Or Windows phones:
+        #
+        # ________________________________
+        $p = strpos($textbody, '________________________________');
+        $textbody = $p ? substr($textbody, 0, $p) : $textbody;
+
         # Or we might have this, for example from GMail:
         #
         # On Sat, May 14, 2016 at 2:19 PM, Edward Hibbert <
@@ -2092,6 +2100,9 @@ class Message
         $textbody = str_replace('Sent from my iPhone', '', $textbody);
         $textbody = str_replace('Sent from EE', '', $textbody);
         $textbody = str_replace('Sent from my Samsung device', '', $textbody);
+        $textbody = str_replace('Sent from my Windows Phone', '', $textbody);
+        $textbody = str_replace('Sent from the trash nothing! Mobile App', '', $textbody);
+        $textbody = preg_replace('/^Sent on the go from.*?$/mi', '', $textbody);
 
         #error_log("Pruned text to $textbody");
         return(trim($textbody));
