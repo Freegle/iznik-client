@@ -6,8 +6,8 @@ define([
     'wicket-gmap3',
     'moment',
     'iznik/base',
-    'fileupload',
     'backform',
+    'fileinput',
     'gmaps',
     'maplabel',
     "iznik/modtools",
@@ -418,40 +418,49 @@ define([
                     var profile = self.group.get('profile');
                     self.$('.js-profile').attr('src', profile ? profile : "http://placehold.it/200x200");
 
-                    // Simple file upload without progress bar or error handling - mods can live with that.
-                    self.$('.js-profileupload').fileupload({
-                        url: API + 'upload?group=1',
-                        acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
-                        dataType: 'json',
-                        add: function (e, data) {
-                            data.process().done(function () {
-                                data.submit();
-                            });
+                    // File upload
+                    self.$('.js-profileupload').fileinput({
+                        showUpload: false,
+                        allowedFileExtensions: [ 'jpg', 'jpeg', 'gif', 'png' ],
+                        uploadUrl: API + 'image?imgtype=Group',
+                        showPreview: false,
+                        resizeImage: true,
+                        maxImageWidth: 800,
+                        browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
+                        browseLabel: 'Upload image',
+                        browseClass: 'btn btn-primary nowrap',
+                        showCaption: false,
+                        dropZoneEnabled: false,
+                        buttonLabelClass: '',
+                        fileActionSettings: {
+                            showZoom: false,
+                            showRemove: false,
+                            showUpload: false
                         },
-                        done: function (e, data) {
-                            if (data.result.files.length > 0) {
-                                _.each(data.result.files, function (file) {
-                                    $.ajax({
-                                        type: 'PUT',
-                                        url: API + 'image?group=1',
-                                        data: {
-                                            filename: file.name
-                                        }, success: function (ret) {
-                                            if (ret.ret === 0) {
-                                                self.group.set('profile', ret.id);
-                                                self.group.save({
-                                                    id: self.group.get('id'),
-                                                    profile: ret.id
-                                                }, {
-                                                    patch: true
-                                                });
-                                                self.$('.js-profile').attr('src', ret.path);
-                                            }
-                                        }
-                                    });
-                                });
-                            }
-                        }
+                        layoutTemplates: {
+                            footer: '<div class="file-thumbnail-footer">\n' +
+                            '    {actions}\n' +
+                            '</div>'
+                        },
+                        showRemove: false
+                    });
+
+                    // Upload as soon as photos have been resized.
+                    self.$('.js-profileupload').on('fileimagesresized', function(event) {
+                        self.$('.js-profileupload').fileinput('upload');
+                    });
+
+                    // Watch for all uploaded
+                    self.$('.js-profileupload').on('fileuploaded', function(event, data) {
+                        self.group.set('profile', data.response.id);
+                        self.group.save({
+                            id: self.group.get('id'),
+                            profile: data.response.id
+                        }, {
+                            patch: true
+                        });
+                        self.$('.js-profile').attr('src', data.response.path);
+                        self.$('.file-preview').hide();
                     });
 
                     self.groupAppearanceForm = new Backform.Form({

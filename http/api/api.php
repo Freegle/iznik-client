@@ -51,8 +51,6 @@ require_once(IZNIK_BASE . '/include/misc/Events.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/config/StdMessage.php');
 require_once(IZNIK_BASE . '/include/config/BulkOp.php');
-require_once(IZNIK_BASE . '/lib/UploadHandler.php');
-require_once(IZNIK_BASE . '/include/misc/CustomUploadHandler.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/alert.php');
@@ -79,7 +77,6 @@ require_once(IZNIK_BASE . '/http/api/chatrooms.php');
 require_once(IZNIK_BASE . '/http/api/chatmessages.php');
 require_once(IZNIK_BASE . '/http/api/locations.php');
 require_once(IZNIK_BASE . '/http/api/image.php');
-require_once(IZNIK_BASE . '/http/api/upload.php');
 require_once(IZNIK_BASE . '/http/api/event.php');
 require_once(IZNIK_BASE . '/http/api/socialactions.php');
 

@@ -3,7 +3,7 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'fileupload-image',
+    'fileinput',
     'iznik/models/user/message',
     'iznik/views/group/select',
     'iznik/models/user/message'
@@ -11,9 +11,12 @@ define([
     Iznik.Views.User.Pages.WhatIsIt = Iznik.Views.Page.extend({
         pleaseWait: null,
 
+        uploading: 0,
+
         events: {
             'click .js-next': 'next',
             'change .js-items': 'checkNext',
+            'change .tt-hint': 'checkNext',
             'keyup .js-description': 'checkNext',
             'change .bootstrap-tagsinput .tt-input': 'checkNext'
         },
@@ -28,15 +31,20 @@ define([
         checkNext: function () {
             var self = this;
             var item = this.getItem();
+            self.$('.bootstrap-tagsinput').removeClass('error-border');
+            self.$('.js-description').removeClass('error-border');
 
-            if (item.length == 0) {
+            // We accept either a photo or a description.
+            console.log("checkNext", self.uploading, item, self.$('.js-description').val().length, self.photos.length );
+            if (self.uploading || item.length == 0) {
                 self.$('.bootstrap-tagsinput').addClass('error-border');
                 self.$('.js-next').fadeOut('slow');
                 self.$('.js-ok').fadeOut('slow');
             } else if (self.$('.js-description').val().length > 0 || self.photos.length > 0) {
-                self.$('.bootstrap-tagsinput').removeClass('error-border');
                 self.$('.js-next').fadeIn('slow');
                 self.$('.js-ok').fadeIn('slow');
+            } else if (self.$('.js-description').val().length == 0) {
+                self.$('.js-description').addClass('error-border');
             }
         },
 
@@ -126,20 +134,9 @@ define([
             }
         },
 
-        uploadFailed: function() {
-            var self = this;
-            if (self.pleaseWait) {
-                self.pleaseWait.close();
-                self.pleaseWait = null;
-            }
-
-            self.$('.js-uploadfailed').removeClass('hidden');
-        },
-
         allUploaded: function() {
             var self = this;
-            self.pleaseWait.close();
-            self.pleaseWait = null;
+            self.checkNext();
 
             if (self.tagcount > 0) {
                 var v = new Iznik.Views.Help.Box();
@@ -153,8 +150,6 @@ define([
         render: function () {
             var self = this;
             self.photos = new Iznik.Collection();
-
-            var originalAdd = $.blueimp.fileupload.prototype.options.add;
 
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
                 self.$('.js-items').tagsinput({
@@ -172,110 +167,67 @@ define([
                     self.$('.js-items').tagsinput('add', self.options.item);
                 }
 
-                // CollectionView handles adding/removing for us.
-                self.collectionView = new Backbone.CollectionView({
-                    el: self.$('.js-thumbnails'),
-                    modelView: Iznik.Views.User.Thumbnail,
-                    modelViewOptions: {
-                        collection: self.photos,
-                        page: self
+                // File upload
+                self.$('#fileupload').fileinput({
+                    uploadExtraData: {
+                        type: 'Message',
+                        identify: true
                     },
-                    collection: self.photos
+                    showUpload: false,
+                    allowedFileExtensions: [ 'jpg', 'jpeg', 'gif', 'png' ],
+                    uploadUrl: API + 'image',
+                    resizeImage: true,
+                    maxImageWidth: 800,
+                    browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
+                    browseLabel: 'Add photos',
+                    browseClass: 'btn btn-primary nowrap',
+                    showCaption: false,
+                    dropZoneEnabled: false,
+                    buttonLabelClass: '',
+                    fileActionSettings: {
+                        showZoom: false,
+                        showRemove: false,
+                        showUpload: false
+                    },
+                    layoutTemplates: {
+                       footer: '<div class="file-thumbnail-footer">\n' +
+                               '    {actions}\n' +
+                               '</div>'
+                    },
+                    showRemove: false
                 });
 
-                self.collectionView.render();
+                // Count how many we will upload.
+                self.$('#fileupload').on('fileloaded', function(event) {
+                    self.uploading++;
+                });
 
-                var args = {
-                    url: API + 'upload',
-                    acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
-                    dataType: 'json',
-                    add: function (e, data) {
-                        if (!self.pleaseWait) {
-                            self.pleaseWait = new Iznik.Views.PleaseWait({
-                                timeout: 1
-                            });
-                            self.pleaseWait.template = 'user_give_uploadwait';
-                            self.pleaseWait.render();
-                        }
+                // Upload as soon as photos have been resized.
+                self.$('#fileupload').on('fileimagesresized', function(event) {
+                    self.$('#fileupload').fileinput('upload');
+                });
 
-                        originalAdd.call(this, e, data);
-                    },
-                    done: function (e, data) {
-                        self.$('.js-uploading').addClass('hidden');
-                        var promises = [];
-                        self.tagcount = 0;
+                // Watch for all uploaded
+                self.$('#fileupload').on('fileuploaded', function(event, data) {
+                    // Add the photo to our list
+                    var mod = new Iznik.Models.Message.Attachment({
+                        id: data.response.id,
+                        src: data.response.paththumb
+                    });
 
-                        if (data.result.files.length > 0) {
-                            _.each(data.result.files, function (file) {
-                                // Create attachment object and try to identify self as an object
-                                promises.push($.ajax({
-                                    type: 'PUT',
-                                    url: API + 'image',
-                                    data: {
-                                        identify: true,
-                                        filename: file.name
-                                    }, success: function (ret) {
-                                        if (ret.ret === 0) {
-                                            self.$('.js-uploadfailed').addClass('hidden');
+                    self.photos.add(mod);
 
-                                            // Add thumbnail.
-                                            var mod = new Iznik.Models.Message.Attachment({
-                                                id: ret.id,
-                                                src: file.thumbnailUrl
-                                            });
+                    // Add any hints about the item
+                    _.each(data.response.items, function (item) {
+                        self.$('.js-items').tagsinput('add', item.name);
+                        self.tagcount++;
+                    });
 
-                                            self.photos.add(mod);
+                    self.uploading--;
 
-                                            // Add any hints about the item
-                                            _.each(ret.items, function (item) {
-                                                self.$('.js-items').tagsinput('add', item.name);
-                                                self.tagcount++;
-                                            });
-
-                                            self.checkNext();
-                                        }
-                                    }
-                                }));
-                            });
-
-                            // Requests can complete inline
-                            if (promises.length > 0) {
-                                $.when.apply($, promises).done(_.bind(self.allUploaded, self));
-                            } else {
-                                self.allUploaded();
-                            }
-                        } else {
-                            self.uploadFailed();
-                        }
-                    },
-                    fail: _.bind(self.uploadFailed, self),
-                    progressall: function (e, data) {
-                        self.$('.js-addprompt').addClass('hidden');
-                        var progress = parseInt(data.loaded / data.total * 100, 10);
-
-                        if (self.pleaseWait) {
-                            self.pleaseWait.$('.js-progress .progress-bar').css(
-                                'width',
-                                progress + '%'
-                            );
-                        }
+                    if (self.uploading == 0) {
+                        self.allUploaded();
                     }
-                };
-
-                // Enable image resizing, except for Android and Opera,
-                // which actually support image resizing, but fail to
-                // send Blob objects via XHR requests:
-                var allowResize =  /Android(?!.*Chrome)|Opera/
-                    .test(window.navigator && navigator.userAgent);
-
-                if (allowResize) {
-                    args.imageMaxWidth = 800;
-                    args.imageMaxHeight = 800;
-                    args.disableImageResize =false;
-                }
-
-                self.$('.js-upload').fileupload(args).on('fileuploadfail', function (e, data) {
-                    self.uploadFailed();
                 });
 
                 try {
@@ -313,20 +265,6 @@ define([
             });
 
             return (p);
-        }
-    });
-
-    Iznik.Views.User.Thumbnail = Iznik.View.extend({
-        tagName: 'li',
-
-        template: "user_thumbnail",
-
-        events: {
-            'click .js-remove': 'removeMe'
-        },
-
-        removeMe: function () {
-            this.model.destroy();
         }
     });
 

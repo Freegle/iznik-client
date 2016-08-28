@@ -990,10 +990,13 @@ class messageAPITest extends IznikAPITestCase
 
         # Can create drafts when not logged in.
         $data = file_get_contents('images/chair.jpg');
-        file_put_contents(IZNIK_BASE . "/http/uploads/chair.jpg", $data);
+        file_put_contents("/tmp/chair.jpg", $data);
 
-        $ret = $this->call('image', 'PUT', [
-            'filename' => 'chair.jpg',
+        $ret = $this->call('image', 'POST', [
+            'photo' => [
+                'tmp_name' => '/tmp/chair.jpg',
+                'type' => 'image/jpeg'
+            ],
             'identify' => TRUE
         ]);
 
@@ -1036,8 +1039,12 @@ class messageAPITest extends IznikAPITestCase
         assertEquals($attid, $msg['attachments'][0]['id']);
 
         # Now create a new attachment and update the draft.
-        $ret = $this->call('image', 'PUT', [
-            'filename' => 'chair.jpg',
+        $ret = $this->call('image', 'POST', [
+            'photo' => [
+                'tmp_name' => '/tmp/chair.jpg',
+                'type' => 'image/jpeg',
+                'dedup' => 1
+            ],
             'identify' => TRUE
         ]);
 
@@ -1119,10 +1126,13 @@ class messageAPITest extends IznikAPITestCase
         $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
         $data = file_get_contents('images/chair.jpg');
-        file_put_contents(IZNIK_BASE . "/http/uploads/chair.jpg", $data);
+        file_put_contents("/tmp/chair.jpg", $data);
 
-        $ret = $this->call('image', 'PUT', [
-            'filename' => 'chair.jpg',
+        $ret = $this->call('image', 'POST', [
+            'photo' => [
+                'tmp_name' => '/tmp/chair.jpg',
+                'type' => 'image/jpeg'
+            ],
             'identify' => TRUE
         ]);
 
@@ -1331,10 +1341,13 @@ class messageAPITest extends IznikAPITestCase
         $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
         $data = file_get_contents('images/chair.jpg');
-        file_put_contents(IZNIK_BASE . "/http/uploads/chair.jpg", $data);
+        file_put_contents("/tmp/chair.jpg", $data);
 
-        $ret = $this->call('image', 'PUT', [
-            'filename' => 'chair.jpg',
+        $ret = $this->call('image', 'POST', [
+            'photo' => [
+                'tmp_name' => '/tmp/chair.jpg',
+                'type' => 'image/jpeg'
+            ],
             'identify' => TRUE
         ]);
 

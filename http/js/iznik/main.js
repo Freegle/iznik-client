@@ -101,7 +101,8 @@ require([
         // There are some cases we don't want to subject to automatic retrying:
         // - Yahoo can validly return errors as part of its API, and we handle retrying via the plugin work.
         // - Where the context is set to a different object, we'd need to figure out how to implement the retry.
-        if (!options.hasOwnProperty('context') && url && url.indexOf('groups.yahoo.com') == -1) {
+        // - File uploads, because we might have cancelled it.
+        if (!options.hasOwnProperty('context') && url && url.indexOf('groups.yahoo.com') == -1 && url != API + 'upload') {
             // We wrap the AJAX call in our own, with our own error handler.
             var args;
             if (typeof options === 'string') {

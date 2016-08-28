@@ -48,37 +48,84 @@ function image() {
             break;
         }
 
-        case 'PUT': {
-            $fn = IZNIK_BASE . "/http/uploads/" . basename($fn);
-            $data = file_get_contents($fn);
-            $a = new Attachment($dbhr, $dbhm, NULL, $type);
-            $id = $a->create($msgid, mime_content_type($fn), $data);
+        case 'POST': {
+            $ret = [ 'ret' => 1, 'status' => 'No photo provided' ];
 
-            # Make sure it's not too large, to keep DB size down.
-            $data = $a->getData();
-            $i = new Image($data);
-            $h = $i->height();
-            $w = $i->width();
+            # This next line is to simplify UT.
+            $photo = presdef('photo', $_FILES, NULL) ? $_FILES['photo'] : $_REQUEST['photo'];
+            $imgtype = presdef('imgtype', $_REQUEST, Attachment::TYPE_MESSAGE);
 
-            if ($w > 800) {
-                $h = $h * 800 / $w;
-                $w = 800;
-                $i->scale($w, $h);
-                $data = $i->getData(100);
-                $a->setPrivate('data', $data);
+            # Make sure what we have looks plausible - the file upload plugin should ensure this is the case.
+            if ($photo &&
+                pres('tmp_name', $photo) &&
+                presdef('type', $photo, NULL) == 'image/jpeg') {
+
+                # We may need to rotate.
+                $data = file_get_contents($photo['tmp_name']);
+                $image = imagecreatefromstring($data);
+                $exif = exif_read_data($photo['tmp_name']);
+
+                if(!empty($exif['Orientation'])) {
+                    switch($exif['Orientation']) {
+                        case 8:
+                            $image = imagerotate($image,90,0);
+                            break;
+                        case 3:
+                            $image = imagerotate($image,180,0);
+                            break;
+                        case 6:
+                            $image = imagerotate($image,-90,0);
+                            break;
+                    }
+
+                    ob_start();
+                    imagejpeg($image, NULL, 100);
+                    $data = ob_get_contents();
+                    ob_end_clean();
+                }
+
+                if ($data) {
+                    $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
+                    $id = $a->create($msgid, $photo['type'], $data);
+
+                    # Make sure it's not too large, to keep DB size down.  Ought to have been resized by
+                    # client, but you never know.
+                    $data = $a->getData();
+                    $i = new Image($data);
+                    $h = $i->height();
+                    $w = $i->width();
+
+                    if ($w > 800) {
+                        $h = $h * 800 / $w;
+                        $w = 800;
+                        $i->scale($w, $h);
+                        $data = $i->getData(100);
+                        $a->setPrivate('data', $data);
+                    }
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'id' => $id,
+                        'path' => Attachment::getPath($id, $imgtype)
+                    ];
+
+                    # Return a new thumbnail (which might be a different orientation).
+                    $ret['initialPreview'] =  [
+                        '<img src="' . Attachment::getPath($id, $imgtype, TRUE) . '" class="file-preview-image" width="130px">',
+                    ];
+
+                    if ($identify) {
+                        $a = new Attachment($dbhr, $dbhm, $id);
+                        $ret['items'] = $a->identify();
+                    }
+                }
             }
 
-            $ret = [
-                'ret' => 0,
-                'status' => 'Success',
-                'id' => $id,
-                'path' => Attachment::getPath($id, $type)
-            ];
+            # Uploader code requires this field.
+            $ret['error'] = $ret['ret'] == 0 ? NULL : $ret['status'];
 
-            if ($identify) {
-                $a = new Attachment($dbhr, $dbhm, $id);
-                $ret['items'] = $a->identify();
-            }
+            break;
         }
     }
 
