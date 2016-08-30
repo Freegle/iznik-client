@@ -115,6 +115,7 @@ define([
         sendAlert: function () {
             var self = this;
             var html = tinyMCE.activeEditor.getContent({format: 'raw'});
+            var text = self.$('.js-mailtext').val();
 
             // If we've not put anything in the HTML version we get some placeholder HTML.
             html = html == '<p><br data-mce-bogus="1"></p>' ? null : html;
@@ -127,7 +128,7 @@ define([
                     groupid: self.$('.js-grouplist').val(),
                     from: self.$('.js-mailfrom').val(),
                     subject: self.$('.js-mailsubj').val(),
-                    text: self.$('.js-mailtext').val(),
+                    text: text,
                     html: html,
                     askclick: self.$('.js-askclick').val(),
                     tryhard: self.$('.js-tryhard').val()
