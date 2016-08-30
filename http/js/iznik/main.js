@@ -21,6 +21,7 @@ function panicReload() {
 
 requirejs.onError = function (err) {
     console.log("Require Error", err);
+    alert("Require Error " + err);
     var mods = err.requireModules;
     var msg = err.message;
     if (msg && msg.indexOf('showFirst') !== -1) {
@@ -49,7 +50,7 @@ require([
     'backbone',
     'iznik/router'
 ], function($, _, Backbone) {
-    if (!Backbone) {
+	if (!Backbone) {
         // Something has gone unpleasantly wrong.
         console.error("Backbone failed to fetch");
         panicReload();

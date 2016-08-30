@@ -58,16 +58,18 @@ requirejs.config({
     },
 
     paths: {
-        "bootstrap" :  "/js/lib/bootstrap.min",
+			  // CC.. remove /js/lib/ from on-absolute paths
+        "bootstrap" :  "bootstrap.min",
         "ga": "https://www.google-analytics.com/analytics",	// CC
-        "waypoints": "/js/lib/jquery.waypoints",
-        "jquery.ui.widget": "/js/lib/jquery-file-upload/vendor/jquery.ui.widget",
-        "jquery-ui": "/js/lib/jquery-ui/jquery-ui.min",
-        "underscore": "/js/lib/underscore",
-        "jquery-show-first": "/js/lib/jquery-show-first",
+        "waypoints": "jquery.waypoints",
+        "jquery.ui.widget": "jquery-file-upload/vendor/jquery.ui.widget",
+        "jquery-ui": "jquery-ui/jquery-ui.min",
+        "underscore": "underscore",
+        "jquery-show-first": "jquery-show-first",
         "tinymce": "https://cdn.tinymce.com/4/tinymce.min",
         "gmaps": "https://maps.googleapis.com/maps/api/js?v=3&libraries=geometry,places,drawing,visualization", // CC
-        "maplabel": "/js/lib/maplabel-compiled",
+        "maplabel": "maplabel-compiled",
+        // CC
 
         "iznik": iznikroot + "js/iznik"	// CC
     },
