@@ -13,6 +13,12 @@
     "currentEditorMode": 0
   },
   "build-tab": {
-    "selectedTargets": []
+    "selectedTargets": [
+      "CORDOVA_ANDROID",
+      "CORDOVA_IOS"
+    ],
+    "emailListForShareBuild": [
+      "jchriscant@googlemail.com"
+    ]
   }
 }
