@@ -1,0 +1,720 @@
+{
+  "project": {
+    "projectSettingsVersion": "3.0.0",
+    "creationData": {
+      "type": "App Designer",
+      "createDefaultBuildConfigs": true,
+      "projectTypeName": "com.intel.xdk.projecttype.jsapp",
+      "src": "appDesigner",
+      "sourceDirectory": "www",
+      "projectGuid": "6c581939-e55c-40c5-8f84-1485f015cb19",
+      "lastModifiedDate": 1472566753250,
+      "creationDate": 1409296993221
+    },
+    "XDK-app-designer": "true",
+    "sourceDirectory": "www",
+    "cordovaPluginsDirectory": "plugins",
+    "startFile": "index.html",
+    "projectFiles": {
+      "xdk-publish-meta-data.json": {
+        "settings": {
+          "project": {
+            "XDK-not-deployed": "True"
+          }
+        }
+      }
+    },
+    "projectDirectories": {
+      "www/xdk": {
+        "settings": {
+          "project": {
+            "XDK-generated": "true"
+          }
+        }
+      }
+    },
+    "libraries": [],
+    "cordovaPlugins": [
+      {
+        "id": "cordova-plugin-splashscreen",
+        "version": "3.2.0",
+        "selectedState": "Included",
+        "data": {},
+        "paramvals": {},
+        "dependsOn": [],
+        "dependedBy": [],
+        "originType": "cordova.io",
+        "origin": "cordova-plugin-splashscreen",
+        "permissions": {},
+        "topLevel": true,
+        "checksum": "452a4659",
+        "gitref": "",
+        "name": "Splashscreen",
+        "description": "Cordova Splashscreen Plugin"
+      },
+      {
+        "id": "cordova-plugin-device",
+        "name": "Device",
+        "version": "1.1.1",
+        "originType": "cordova.io",
+        "origin": "cordova-plugin-device",
+        "gitref": "",
+        "paramvals": {},
+        "sourceLocation": "plugins/org.apache.cordova.device",
+        "selectedState": "Included",
+        "checksum": "927290ca",
+        "dependsOn": [],
+        "topLevel": true,
+        "permissions": {},
+        "description": "Cordova Device Plugin",
+        "data": {},
+        "dependedBy": []
+      },
+      {
+        "id": "cordova-plugin-statusbar",
+        "name": "StatusBar",
+        "version": "2.1.0",
+        "originType": "cordova.io",
+        "origin": "cordova-plugin-statusbar",
+        "gitref": "",
+        "paramvals": {},
+        "sourceLocation": "plugins/cordova-plugin-statusbar",
+        "selectedState": "Included",
+        "checksum": "858cc583",
+        "dependsOn": [],
+        "topLevel": true,
+        "cordovaVersion": ">=3.0.0",
+        "permissions": {},
+        "description": "Cordova StatusBar Plugin",
+        "data": {},
+        "dependedBy": []
+      }
+    ],
+    "serviceMethods": [],
+    "buildConfigurations": {
+      "Android": {
+        "platform_": "android",
+        "runtime_": "Crosswalk with Cordova 3.x",
+        "name_": "Android",
+        "preferences_": {
+          "android-minSdkVersion": "14",
+          "android-targetSdkVersion": "21",
+          "android-signed": true,
+          "android-installLocation": "auto"
+        },
+        "isActive_": true,
+        "certificateId_": "BDvRrR_5uUCwlnQPO6xdAQ2",
+        "appName_": "Freegle",
+        "appID_": "org.ilovefreegle.direct",
+        "appAccess_": {
+          "mode": "whitelist",
+          "network": [
+            "*"
+          ],
+          "intents": [
+            "http://*/*",
+            "https://*/*",
+            "tel:*",
+            "sms:*",
+            "mailto:*",
+            "geo:*",
+            "market:*"
+          ],
+          "navigation": [],
+          "properties": {}
+        },
+        "icons_": [
+          {
+            "relPath": "images/mobile/FreegleLaunch36.png",
+            "density": "ldpi",
+            "height": 36,
+            "width": 36
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch48.png",
+            "density": "mdpi",
+            "height": 48,
+            "width": 48
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch72.png",
+            "density": "hdpi",
+            "height": 72,
+            "width": 72
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch96.png",
+            "density": "xhdpi",
+            "height": 96,
+            "width": 96
+          }
+        ],
+        "splashes_": [
+          {
+            "relPath": "images/mobile/FreegleSplash_320x470.png",
+            "density": "mdpi",
+            "height": 470,
+            "width": 320,
+            "orientation": "portrait"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_320x426.png",
+            "density": "ldpi",
+            "height": 426,
+            "width": 320,
+            "orientation": "portrait"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_426x320.png",
+            "density": "ldpi",
+            "height": 320,
+            "width": 426,
+            "orientation": "landscape"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_470x320.png",
+            "density": "mdpi",
+            "height": 320,
+            "width": 470,
+            "orientation": "landscape"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_480x640.png",
+            "density": "hdpi",
+            "height": 640,
+            "width": 480,
+            "orientation": "portrait"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_720x960.png",
+            "density": "xhdpi",
+            "height": 960,
+            "width": 720,
+            "orientation": "portrait"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_640x480.png",
+            "density": "hdpi",
+            "height": 480,
+            "width": 640,
+            "orientation": "landscape"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_960x720.png",
+            "density": "xhdpi",
+            "height": 720,
+            "width": 960,
+            "orientation": "landscape"
+          }
+        ],
+        "addlPermissions_": "",
+        "excludedLibraries_": "",
+        "iosProvs_": [],
+        "cordovaCLIVersion_": "5.4.1",
+        "appVersion_": "1.0.0",
+        "appAuthor_": "Chris Cant, Freegle Ltd",
+        "appDescription_": "Offer and request free items on your local Freegle reuse group",
+        "appVersionCode_": "35",
+        "crosswalkVersion_": "19"
+      },
+      "iOS": {
+        "platform_": "ios",
+        "runtime_": "Cordova 3.x",
+        "name_": "iOS",
+        "preferences_": {
+          "ios-configuration": "adhoc",
+          "Orientation": "all",
+          "deployment-target": "8.0"
+        },
+        "isActive_": true,
+        "certificateId_": "TcR8oJZSfke6ZfqilqkKkw2",
+        "appName_": "Freegle",
+        "appID_": "org.ilovefreegle.iphone",
+        "appAccess_": {
+          "mode": "whitelist",
+          "network": [
+            "*"
+          ],
+          "intents": [
+            "http://*/*",
+            "https://*/*",
+            "tel:*",
+            "sms:*",
+            "mailto:*",
+            "geo:*",
+            "itms:*",
+            "itms-apps:*"
+          ],
+          "navigation": [],
+          "properties": {}
+        },
+        "icons_": [
+          {
+            "relPath": "images/mobile/FreegleLaunch120.png",
+            "height": 120,
+            "width": 120
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch60.png",
+            "height": 60,
+            "width": 60
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch152.png",
+            "height": 152,
+            "width": 152
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch76.png",
+            "height": 76,
+            "width": 76
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch180.png",
+            "height": 180,
+            "width": 180
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch58.png",
+            "height": 58,
+            "width": 58
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch72.png",
+            "height": 72,
+            "width": 72
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch50.png",
+            "height": 50,
+            "width": 50
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch100.png",
+            "height": 100,
+            "width": 100
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch57.png",
+            "height": 57,
+            "width": 57
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch29.png",
+            "height": 29,
+            "width": 29
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch87.png",
+            "height": 87,
+            "width": 87
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch40.png",
+            "height": 40,
+            "width": 40
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch80.png",
+            "height": 80,
+            "width": 80
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch114.png",
+            "height": 114,
+            "width": 114
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch144.png",
+            "height": 144,
+            "width": 144
+          }
+        ],
+        "splashes_": [
+          {
+            "relPath": "images/mobile/FreegleSplash_320x480.png",
+            "height": 480,
+            "width": 320,
+            "orientation": "portrait"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_1536x2008.png",
+            "height": 2008,
+            "width": 1536,
+            "orientation": "portrait"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_640x960.png",
+            "height": 960,
+            "width": 640,
+            "orientation": "portrait"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_640x1136.png",
+            "height": 1136,
+            "width": 640,
+            "orientation": "portrait"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_768x1004.png",
+            "height": 1004,
+            "width": 768,
+            "orientation": "portrait"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_2048x1496.png",
+            "height": 1496,
+            "width": 2048,
+            "orientation": "landscape"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_1024x748.png",
+            "height": 748,
+            "width": 1024,
+            "orientation": "landscape"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_750x1334.png",
+            "height": 1334,
+            "width": 750,
+            "orientation": "portrait"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_1242x2208.png",
+            "height": 2208,
+            "width": 1242,
+            "orientation": "portrait"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_1334x750.png",
+            "height": 750,
+            "width": 1334,
+            "orientation": "landscape"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_2208x1242.png",
+            "height": 1242,
+            "width": 2208,
+            "orientation": "landscape"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_2048x1536.png",
+            "height": 1536,
+            "width": 2048,
+            "orientation": "landscape"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_1024x768.png",
+            "height": 768,
+            "width": 1024,
+            "orientation": "landscape"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_1536x2048.png",
+            "height": 2048,
+            "width": 1536,
+            "orientation": "portrait"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_768x1024.png",
+            "height": 1024,
+            "width": 768,
+            "orientation": "portrait"
+          }
+        ],
+        "addlPermissions_": "",
+        "excludedLibraries_": "",
+        "iosProvs_": [
+          {
+            "relPath": "ios/Freegle_AdHoc.mobileprovision",
+            "type": "adhoc"
+          },
+          {
+            "relPath": "ios/Freegle.mobileprovision",
+            "type": "production"
+          }
+        ],
+        "cordovaCLIVersion_": "5.4.1",
+        "crosswalkVersion_": "stable",
+        "appVersion_": "1.0.0",
+        "appDescription_": "Offer and request free items on your local Freegle reuse group",
+        "appAuthor_": "Chris Cant, Freegle Ltd",
+        "appVersionCode_": "100"
+      },
+      "Windows8": {
+        "platform_": "windows8",
+        "runtime_": "Cordova 3.x",
+        "name_": "Windows8",
+        "preferences_": {
+          "windows-publisher-display-name": "Freegle Ltd",
+          "windows-publisher-id": "",
+          "wp81-publisher-id": "D1018EE3-0164-449E-9DA7-12194A1E7554"
+        },
+        "isActive_": true,
+        "certificateId_": "",
+        "appName_": "Freegle",
+        "appID_": "FreegleLtd.Freegle",
+        "appAccess_": {
+          "mode": "whitelist",
+          "network": [
+            "*"
+          ],
+          "intents": [],
+          "navigation": [],
+          "properties": {}
+        },
+        "icons_": [
+          {
+            "relPath": "images/mobile/FreegleLaunch30.png",
+            "height": 30,
+            "width": 30
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch50.png",
+            "height": 50,
+            "width": 50
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch150.png",
+            "height": 150,
+            "width": 150
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_744x360.png",
+            "height": 360,
+            "width": 744
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch120.png",
+            "height": 120,
+            "width": 120
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch24.png",
+            "height": 24,
+            "width": 24
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch33.png",
+            "height": 33,
+            "width": 33
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch58.png",
+            "height": 58,
+            "width": 58
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch70.png",
+            "height": 70,
+            "width": 70
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch44.png",
+            "height": 44,
+            "width": 44
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch62.png",
+            "height": 62,
+            "width": 62
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch71.png",
+            "height": 71,
+            "width": 71
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch99.png",
+            "height": 99,
+            "width": 99
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch106.png",
+            "height": 106,
+            "width": 106
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch170.png",
+            "height": 170,
+            "width": 170
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch210.png",
+            "height": 210,
+            "width": 210
+          },
+          {
+            "relPath": "images/mobile/FreegleLaunch360.png",
+            "height": 360,
+            "width": 360
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_310x150.png",
+            "height": 150,
+            "width": 310
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_434x210.png",
+            "height": 210,
+            "width": 434
+          }
+        ],
+        "splashes_": [
+          {
+            "relPath": "images/mobile/FreegleSplash_620x300.png",
+            "height": 300,
+            "width": 620,
+            "orientation": "landscape"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_480x800.png",
+            "height": 800,
+            "width": 480,
+            "orientation": "landscape"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_672x1120.png",
+            "height": 1120,
+            "width": 672,
+            "orientation": "landscape"
+          },
+          {
+            "relPath": "images/mobile/FreegleSplash_1152x1920.png",
+            "height": 1920,
+            "width": 1152,
+            "orientation": "landscape"
+          }
+        ],
+        "addlPermissions_": "",
+        "excludedLibraries_": "",
+        "iosProvs_": [],
+        "cordovaCLIVersion_": "5.4.1",
+        "crosswalkVersion_": "stable",
+        "appVersion_": "0.76.0",
+        "appDescription_": "Offer and request free items on your local Freegle reuse group",
+        "appAuthor_": "Chris Cant, Freegle Ltd"
+      },
+      "WebApp": {
+        "platform_": "webapp",
+        "runtime_": "W3C",
+        "name_": "WebApp",
+        "preferences_": {},
+        "isActive_": false,
+        "certificateId_": "",
+        "appName_": "Freegle",
+        "appID_": "not.yet.specified",
+        "appAccess_": {
+          "mode": "legacy",
+          "network": [
+            "*"
+          ],
+          "intents": [],
+          "navigation": []
+        },
+        "icons_": [],
+        "splashes_": [],
+        "addlPermissions_": "",
+        "excludedLibraries_": "",
+        "appVersion_": "0.0.1"
+      },
+      "Firefox": {
+        "platform_": "firefoxos",
+        "runtime_": "W3C on Firefox OS",
+        "name_": "Firefox",
+        "preferences_": {},
+        "isActive_": false,
+        "certificateId_": "",
+        "appName_": "Freegle",
+        "appID_": "not.yet.specified",
+        "appAccess_": {
+          "mode": "legacy",
+          "network": [
+            "*"
+          ],
+          "intents": [],
+          "navigation": []
+        },
+        "icons_": [],
+        "splashes_": [],
+        "addlPermissions_": "",
+        "excludedLibraries_": "",
+        "appVersion_": "0.0.1"
+      },
+      "Chrome": {
+        "platform_": "chromeos",
+        "runtime_": "W3C on Chrome OS",
+        "name_": "Chrome",
+        "preferences_": {},
+        "isActive_": false,
+        "certificateId_": "",
+        "appName_": "Freegle",
+        "appID_": "not.yet.specified",
+        "appAccess_": {
+          "mode": "legacy",
+          "network": [
+            "*"
+          ],
+          "intents": [],
+          "navigation": []
+        },
+        "icons_": [],
+        "splashes_": [],
+        "addlPermissions_": "",
+        "excludedLibraries_": "",
+        "appVersion_": "0.0.1"
+      },
+      "Facebook": {
+        "platform_": "facebook",
+        "runtime_": "W3C on Facebook",
+        "name_": "Facebook",
+        "preferences_": {},
+        "isActive_": false,
+        "certificateId_": "",
+        "appName_": "Freegle",
+        "appID_": "not.yet.specified",
+        "appAccess_": {
+          "mode": "legacy",
+          "network": [
+            "*"
+          ],
+          "intents": [],
+          "navigation": []
+        },
+        "icons_": [],
+        "splashes_": [],
+        "addlPermissions_": "",
+        "excludedLibraries_": "",
+        "appVersion_": "0.0.1"
+      },
+      "WP81": {
+        "platform_": "wp81",
+        "runtime_": "Cordova 3.x",
+        "name_": "WP81",
+        "preferences_": {},
+        "isActive_": true,
+        "certificateId_": "",
+        "appName_": "Freegle",
+        "appID_": "not.yet.specified",
+        "appAccess_": {
+          "mode": "legacy",
+          "network": [],
+          "intents": [],
+          "navigation": []
+        },
+        "icons_": [],
+        "splashes_": [],
+        "addlPermissions_": "",
+        "excludedLibraries_": "",
+        "appVersion_": "0.0.0.1",
+        "cordovaCLIVersion_": "5.4.1"
+      }
+    },
+    "gameAssetDirectory": "asset",
+    "gameMetadata": {},
+    "projectTags": [
+      "XDK-disallow-legacy-whitelist"
+    ],
+    "testDirectory": "test"
+  }
+}
