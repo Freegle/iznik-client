@@ -1,4 +1,4 @@
-var API = '/api/';
+var API = 'https://iznik.ilovefreegle.org/api/'; // CC
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
@@ -7,7 +7,7 @@ function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
     // reload from scratch.
     console.error("Panic and reload");
-    try {
+    /* try { // CC
         // If we have a service worker, tell it to clear its cache in case we have bad scripts.
         navigator.serviceWorker.controller.postMessage({
             type: 'clearcache'
@@ -16,7 +16,7 @@ function panicReload() {
 
     window.setTimeout(function() {
         window.location.reload();
-    }, 1000);
+    }, 1000);*/
 }
 
 requirejs.onError = function (err) {
@@ -39,6 +39,9 @@ requirejs.onError = function (err) {
         panicReload();
     }
 };
+
+function mainOnAppStart() { // CC
+console.log("main boot");	// CC
 
 require([
     'jquery',
@@ -84,9 +87,9 @@ require([
         this.errors = this.errors === undefined ? 0 : this.errors + 1;
         var thedelay = delay(this.errors);
         console.log("retryIt", thedelay, this, arguments);
-        setTimeout(function () {
-            $.ajax(self);
-        }, thedelay);
+        // CC setTimeout(function () {
+        // CC    $.ajax(self);
+        // CC }, thedelay);
     }
 
     function extendIt(args, options) {
@@ -120,3 +123,5 @@ require([
         }
     };
 });
+
+}; // CC

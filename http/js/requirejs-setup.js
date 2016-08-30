@@ -8,8 +8,12 @@ for (var i=0; i<metas.length; i++) {
     }
 }
 
+var iznikroot = location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1);	// CC
+iznikroot = decodeURI(iznikroot.replace(/%25/g, '%2525'));	// CC
+console.log("iznikroot " + iznikroot);
+
 requirejs.config({
-    baseUrl: "/js/lib",
+    baseUrl: iznikroot + "js/lib",	// CC
 
     // The server has returned info telling us when code was changed, which we can use to bust our cache.
     urlArgs: "bust=" + bust,
@@ -55,17 +59,17 @@ requirejs.config({
 
     paths: {
         "bootstrap" :  "/js/lib/bootstrap.min",
-        "ga": "//www.google-analytics.com/analytics",
+        "ga": "https://www.google-analytics.com/analytics",	// CC
         "waypoints": "/js/lib/jquery.waypoints",
         "jquery.ui.widget": "/js/lib/jquery-file-upload/vendor/jquery.ui.widget",
         "jquery-ui": "/js/lib/jquery-ui/jquery-ui.min",
         "underscore": "/js/lib/underscore",
         "jquery-show-first": "/js/lib/jquery-show-first",
         "tinymce": "https://cdn.tinymce.com/4/tinymce.min",
-        "gmaps": "https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization",
+        "gmaps": "https://maps.googleapis.com/maps/api/js?v=3&libraries=geometry,places,drawing,visualization", // CC
         "maplabel": "/js/lib/maplabel-compiled",
 
-        "iznik": "/js/iznik"
+        "iznik": iznikroot + "js/iznik"	// CC
     },
 
     tpl: {

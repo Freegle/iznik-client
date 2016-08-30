@@ -133,7 +133,7 @@ define([
                             // Switch to pins for large collections
                             var marker = new google.maps.Marker({
                                 position: latLng,
-                                icon: '/images/mapmarker.gif',
+                                icon: iznikroot + 'images/mapmarker.gif',	// CC
                                 title: group.get('namedisplay')
                             });
 

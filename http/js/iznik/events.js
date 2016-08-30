@@ -64,7 +64,7 @@ define([
                 var myid = me ? me.id : null;
 
                 $.ajax({
-                    url: 'https://' + eventhost + API + 'event',
+                    url: 'https://' + eventhost + 'event',	// CC
                     type: 'POST',
                     data: {
                         api_key: sessionCookie,

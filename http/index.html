@@ -1,0 +1,199 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+    <!-- Hi there.  We always need geek volunteers.  Why not mail geeks@ilovefreegle.org to get in touch, or -->
+    <!-- help make the code better at https://github.com/Freegle/iznik ?  -->
+    <meta name="msapplication-tap-highlight" content="no"/>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes, minimal-ui">
+    <meta name="robots" content="nofollow, noindex, noarchive, nocache">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Freegle">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="manifest" href="/manifest.json">
+
+    
+    <!-- Facebook meta info -->
+    <title>Freegle</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta property="description" content="Online dating for stuff"/>
+<script src="cordova.js"></script>          <!-- CC phantom library, needed for Cordova api calls, added during build -->	
+<script src="xdk/init-dev.js"></script>     <!-- CC normalizes device and document ready events, see README for details -->
+
+    <meta name="iznikcache" content="1467804560" >
+    
+    <script type="text/javascript">
+			console.log("ROOT START A");
+        // Start a timer to reload if we fail to get the page rendered.  Do this now as any JS errors might prevent
+        // us doing it later.  This is a last resort so the timer can be long.
+        window.setTimeout(function() {
+            var loader = document.getElementById('pageloader');
+            if (loader) {
+                // We've not managed to render and remove the page.  Probably a network issue.  Reload.
+                console.log("Loader found - force reload", loader);
+                //window.location.reload();
+            }
+        }, 120000);
+
+        if ('serviceWorker' in navigator) {
+            // Before we do anything else, get our service worker up and running.  This will allow us to do better
+            // caching where the browser supports them.
+            //
+            // We see problems with Service Workers in Firefox, so stick to Chrome for now.
+            window.serviceWorker = null;
+            var inChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+            console.log("Chrome?", inChrome);
+
+            if (inChrome) {
+                // Use our version so that we will add a new service worker when the code changes.
+                var lastversion = null;
+
+                try {
+                    lastversion = localStorage.getItem('version');
+                } catch (e) {
+                }
+                ;
+
+                var version = 1467804560;
+                console.log("Register service worker", version);
+                navigator.serviceWorker.register('/sw.js?version=' + version).then(function (reg) {
+                    console.log("Registered service worker");
+                    window.serviceWorker = reg;
+                }).catch(function (err) {
+                    console.log("Can't register service worker", err);
+                });
+
+                try {
+                    localStorage.setItem('version', version);
+                } catch (e) {};
+
+                console.log("Versions", lastversion, version);
+
+                if (lastversion != null && version != lastversion) {
+                    // The code has changed.  Reload to pick up the changes.
+                    console.log("Code changed, reload");
+                    window.setTimeout(function () {
+                        window.location.reload();
+                    }, 1000);
+                }
+            } else {
+                // Make sure no service workers running.
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    console.log("Got SW registrations", registrations);
+                    for (var registration in registrations) {
+                        console.log("Registration", registration);
+                        if (registration) {
+                            registration.unregister();
+                        }
+                    }
+                });
+            }
+        }
+        console.log("ROOT START B");
+    </script>    
+
+    <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/jekkhomlnoblcnangfcdohhaipmmaddc">
+    <link rel="shortcut icon" href="/images/favicon/user/favicon/user.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/images/favicon/user/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/images/favicon/user/apple-touch-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/images/favicon/user/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/images/favicon/user/apple-touch-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/images/favicon/user/apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/images/favicon/user/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/images/favicon/user/apple-touch-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/images/favicon/user/apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/user/apple-touch-icon-180x180.png">
+    <link rel="icon" type="image/png" href="/images/favicon/user/favicon/user-16x16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="/images/favicon/user/favicon/user-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/images/favicon/user/favicon/user-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/png" href="/images/favicon/user/android-chrome-192x192.png" sizes="192x192">
+    <meta name="msapplication-square70x70logo" content="images/favicon/user/smalltile.png" />
+    <meta name="msapplication-square150x150logo" content="images/favicon/user/mediumtile.png" />
+    <meta name="msapplication-wide310x150logo" content="images/favicon/user/widetile.png" />
+    <meta name="msapplication-square310x310logo" content="images/favicon/user/largetile.png" />
+
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="css/glyphicons.css">
+    <link rel="stylesheet" href="css/bootstrap-select.min.css">
+    <link rel="stylesheet" href="css/bootstrap-switch.min.css">
+    <link rel="stylesheet" href="css/datepicker3.css">
+    <link rel="stylesheet" href="css/bootstrap-tagsinput.css">
+    <link rel="stylesheet" href="js/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css">
+    <link rel="stylesheet" href="css/dd.css">
+
+    <link rel="stylesheet" type="text/css" href="css/style.css?a=49">
+    <!--[if lt IE 9]>
+    <link rel="stylesheet" type="text/css" href="css/ie-only.css">
+    <![endif]-->
+
+    <!-- Iznik info -->
+    <meta name="iznikchat" content="iznik.modtools.org">
+    <meta name="iznikevent" content="dev.ilovefreegle.org/api/"> <!-- CC -->
+    <!--meta name="iznikusergroupoverride" content="FreeglePlayground"-->  <!-- CC -->
+    <meta name="iznikusersite" content="iznik.ilovefreegle.org">
+    <meta name="iznikmodsite" content="modtools.org">
+    
+    <!-- And then some custom styles for our different apps -->
+    <link rel="stylesheet" type="text/css" href="css/user.css?a=33">
+
+
+	<script src="js/lib/require.js"></script>          <!-- CC -->
+	<script src="js/requirejs-setup.js"></script>          <!-- CC -->
+	<script src="js/iznik/main.js"></script>          <!-- CC -->
+    <!--[if lt IE 9]>
+    <script src="js/lib/html5shiv.js"></script>
+    <script src="js/lib/respond.min.js"></script>
+    <![endif]-->
+	<script>
+		document.addEventListener("app.Ready", mainOnAppStart, false);
+
+		// Override CSS background that has absolute url path
+		var style = document.createElement('style');
+		style.type = 'text/css';
+		style.innerHTML = '.bodyback { background-image: url("' + iznikroot + 'images/wallpaper.png") !important; }';
+		document.getElementsByTagName('head')[0].appendChild(style);
+		document.getElementById('someElementId').className = 'cssClass';
+	</script>
+
+
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+    <meta name="HandheldFriendly" content="true">
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <meta name="google-signin-client_id" content="423761283916-1rpa8120tpudgv4nf44cpmlf8slqbf4f.apps.googleusercontent.com">
+    <script>
+        (function() {
+            var po = document.createElement('script');
+            po.type = 'text/javascript'; po.async = true;
+            po.src = 'https://plus.google.com/js/client:plusone.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(po, s);
+        })();
+    </script>
+</head>
+<body style="background-color: #dff2d1;">
+	<noscript>
+		<h1>Please enable Javascript</h1>
+
+		<p>
+			We'd love to do a version
+			which was accessible to people who don't use Javascript, but we do not have the volunteer resources to do that.
+			If you'd like to help with skills or funding, please <a href="mailto:edward@ehibbert.org.uk">mail us</a>.
+		</p>
+	</noscript>
+	<div id="pageloader" style="position: relative; height: 100vh; width: 100%">
+		<img src="images/pageloader.gif" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto;" />
+	</div>
+	<div id="fb-root"></div>
+	<div id="bodyEnvelope">
+		<div id="bodyContent" class="nopad">
+		</div>
+	</div>
+	<div id="botleft" />
+</body>
+
+</html>

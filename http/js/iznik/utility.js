@@ -287,7 +287,7 @@ function haversineDistance(coords1, coords2, isMiles) {
 }
 
 function tplName(tpl) {
-    var nm = 'text!/template/' + tpl.replace(/\_/g, '/') + '.html';
+    var nm = 'text!../../template/' + tpl.replace(/\_/g, '/') + '.html'; // CC
     return(nm);
 }
 
@@ -296,7 +296,10 @@ var loadedTemplates = [];
 function templateFetch(tpl) {
     var promise = new Promise(function(resolve, reject) {
         require([tplName(tpl)], function(html) {
-            loadedTemplates[tpl] = html;
+        	  //html = html.replace(/href=\"\//g, 'href="' + iznikroot);// ./	// CC Don't need to fix href
+        	  html = html.replace(/src=\"\//g, 'src="' + iznikroot);	// CC
+        	  html = html.replace(/src=\'\//g, "src='" + iznikroot);	// CC
+        	  loadedTemplates[tpl] = html;
             resolve(tpl);
         })
     });

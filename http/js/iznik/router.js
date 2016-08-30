@@ -47,9 +47,9 @@ define([
         pageView: function () {
             var url = Backbone.history.getFragment();
 
-            if (!/^\//.test(url) && url != "") {
-                url = "/" + url;
-            }
+            // CC if (!/^\//.test(url) && url != "") {
+            // CC     url = "/" + url;
+            // CC }
 
             // Make sure we have google analytics for Backbone routes.
             require(["ga"], function(ga) {
@@ -1075,7 +1075,10 @@ define([
     var Router = new IznikRouter();
 
     try {
-        Backbone.history.start({
+    	  var root = location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1);	// CC
+    	  root = decodeURI(root.replace(/%25/g, '%2525'));	// CC
+    	  Backbone.history.start({
+    	      root: root,	// CC
             pushState: true
         });
 
