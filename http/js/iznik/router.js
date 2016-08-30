@@ -1,5 +1,3 @@
-// TODO Some of these requires could be moved further down into modules which use them.  This would speed loading
-// of the user site.
 define([
     'jquery',
     'underscore',
