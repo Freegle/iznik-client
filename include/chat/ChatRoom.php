@@ -326,9 +326,18 @@ class ChatRoom extends Entity
         # The chats we can see are:
         # - either for a group (possibly a modonly one)
         # - a conversation between two users that we have not closed
-        $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = ? AND chat_rooms.id = chat_roster.chatid WHERE ((groupid IN (SELECT groupid FROM memberships WHERE userid = ?) OR user1 = ? OR user2 = ?)) $typeq AND (status IS NULL OR status != ?);";
+        #
+        # Get the groupids to avoid a nested query.
+        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [ $userid ]);
+        $groupids = [0];
+        foreach ($groups as $group) {
+            $groupids[] = $group['groupid'];
+        }
+        $groupq = implode(',', $groupids);
+
+        $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = ? AND chat_rooms.id = chat_roster.chatid WHERE ((groupid IN ($groupq) OR user1 = ? OR user2 = ?)) $typeq AND (status IS NULL OR status != ?);";
         #error_log($sql . var_export([ $userid, $userid, $userid, $userid, ChatRoom::STATUS_CLOSED ], TRUE));
-        $rooms = $this->dbhr->preQuery($sql, [ $userid, $userid, $userid, $userid, ChatRoom::STATUS_CLOSED ]);
+        $rooms = $this->dbhr->preQuery($sql, [ $userid, $userid, $userid, ChatRoom::STATUS_CLOSED ]);
         foreach ($rooms as $room) {
             #error_log("Consider {$room['id']} group {$room['groupid']} modonly {$room['modonly']} " . $u->isModOrOwner($room['groupid']));
             $cansee = FALSE;

@@ -238,7 +238,7 @@ function session() {
         }
 
         case 'DELETE': {
-            # Logout
+            # Logout.  Kill all sessions for this user.
             $id = pres('id', $_SESSION);
             if ($id) {
                 $s = new Session($dbhr, $dbhm);
