@@ -1097,21 +1097,44 @@ define([
         console.trace();
     }
 
+    function internal(evt, href) {
+    	if (href.charAt(0) == '/') {
+    		evt.preventDefault();
+    		evt.stopPropagation();
+
+    		var ret = Router.navigate(href, { trigger: true });
+
+    		if (ret === undefined && $link.hasClass('allow-reload')) {
+    			console.log("LINK 5");
+    			alert("LINK 5: " + href);
+    			Backbone.history.loadUrl(href);
+    		}
+    		console.log("LINK 6");
+    	}
+			// Could be #, #something or absolute URL: all OK
+    	console.log("LINK 7: "+href);
+    }
+
     // We can flag anchors as not to be handled via Backbone using data-realurl
     $(document).on('click', 'a:not([data-realurl]):not([data-toggle])', function (evt) {
         // Only trigger for our own anchors, except selectpicker which relies on #.
         // console.log("a click", $(this), $(this).parents('#bodyEnvelope').length);
-        if (($(this).parents('#bodyEnvelope').length > 0 || $(this).parents('footer').length > 0) &&
+    	  var href = $(this).attr('href');
+    	  console.log("LINK 1: " + href);
+    	  if (($(this).parents('#bodyEnvelope').length > 0 || $(this).parents('footer').length > 0) &&
             $(this).parents('.selectpicker').length == 0) {
-            evt.preventDefault();
-            evt.stopPropagation();
-            var href = $(this).attr('href');
-            var ret = Router.navigate(href, {trigger: true});
-
-            if (ret === undefined && $link.hasClass('allow-reload')) {
-                Backbone.history.loadUrl(href);
-            }
+        	console.log("LINK 2");
+        	internal(evt, href);
+        } else {
+        	//alert("Not data-realurl but ignored");
+        	console.log("LINK 3");
+        	internal(evt, href);
         }
+    });
+    $(document).on('click', 'a', function (evt) {
+    	var href = $(this).attr('href');
+    	console.log("LINK 4: " + href);
+    	internal(evt, href);
     });
 
     window.Router = Router;

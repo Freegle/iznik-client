@@ -35,7 +35,7 @@ define([
                 }
 
                 // Force reload of window to clear any data.
-                window.location = window.location.protocol + '//' + window.location.host;
+                Router.navigate("/", { trigger: true });	// CC
             }
         })
     }
