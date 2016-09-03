@@ -22,13 +22,29 @@ if ($id && $token) {
         $accessToken = $_SESSION['fbaccesstoken'];
         #error_log("Got token from session $accessToken");
 
-        $ret = $fb->get('/me/accounts', $accessToken);
-        $accounts = $ret->getDecodedBody();
-        #echo("Got accounts " . var_export($accounts, TRUE));
-        $pages = $accounts['data'];
+        $pages = [];
+        $url = '/me/accounts';
+
+        $getPages = $fb->get($url, $accessToken);
+        $pages = $getPages->getGraphEdge();
+
+        $totalPages = array();
+
+        if ($fb->next($pages)) {
+            $pagesArray = $pages->asArray();
+            $totalPages = array_merge($totalPages, $pagesArray);
+            while ($pages = $fb->next($pages)) {
+                $pagesArray = $pages->asArray();
+                $totalPages = array_merge($totalPages, $pagesArray);
+            }
+        } else {
+            $pagesArray = $pages->asArray();
+            $totalPages = array_merge($totalPages, $pagesArray);
+        }
+
         $found = FALSE;
 
-        foreach ($pages as $page) {
+        foreach ($totalPages as $page) {
             #echo("Compare {$page['id']} vs $id");
             if (strcmp($page['id'], $id) === 0) {
                 $f = new GroupFacebook($dbhr, $dbhm);
