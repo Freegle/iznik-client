@@ -1,6 +1,10 @@
 <div class="row">
     <div class="col-md-2 forcebreak">
-        <% if (role == 'Moderator' || role == 'Owner') { %><div class="glyphicons glyphicons-crown warning" /><% } else { %><div class="glyphicons glyphicons-user success" /><% } %>&nbsp;<a href="mailto:{{nameshort}}-owner@yahoogroups.com">{{nameshort}}</a>
+        <% if (role == 'Moderator' || role == 'Owner') { %><div class="glyphicons glyphicons-crown warning" /><% } else { %><div class="glyphicons glyphicons-user success" /><% } %>&nbsp;
+        <a data-realurl="true" target="_blank" class="inline js-group">{{nameshort}}</a>
+        <a data-realurl="true" target="_blank" href="mailto:{{nameshort}}-owner@yahoogroups.com">
+            <span class="glyphicon glyphicon-envelope" />
+        </a>
     </div>
     <div class="col-md-1 js-date">
     </div>

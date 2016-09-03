@@ -607,6 +607,8 @@ define([
             var self = this;
             var p = Iznik.View.prototype.render.call(self);
             p.then(function() {
+                var usersite = $('meta[name=iznikusersite]').attr("content");
+                self.$('.js-group').attr('href', 'https://' + usersite + '/explore/' + self.model.get('id'));
                 var m = new moment(self.model.get('added'));
                 self.$('.js-date').html(m.format('DD-MMM-YYYY'));
 
