@@ -1,0 +1,24 @@
+<h3>{{nameshort}}</h3>
+<p>Group id #{{id}}.</p>
+<div>
+    <% if (obj.onyahoo) { %>
+    <a target="_blank" data-realurl="true" href="https://groups.yahoo.com/group/{{nameshort}}">Yahoo Group</a>
+    <% } else { %>
+    Not on Yahoo
+    <% } %>
+</div>
+
+<div>
+    <% if (obj.facebook) { %>
+        <a target="_blank" data-realurl="true" href="https://www.facebook.com/{{facebook.id}}">Facebook page</a>
+    <% } else { %>
+        Not on Facebook
+    <% } %>
+</div>
+<div>
+    <% if (obj.twitter) { %>
+    <a target="_blank" data-realurl="true" href="https://twitter.com/{{twitter.name}}">Twitter account</a>
+    <% } else { %>
+    Not on Twitter
+    <% } %>
+</div>

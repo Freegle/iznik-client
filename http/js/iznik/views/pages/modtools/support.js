@@ -10,7 +10,8 @@ define([
     'iznik/views/pages/modtools/replay',
     'iznik/models/user/alert',
     'iznik/views/user/user',
-    'tinymce'
+    'tinymce',
+    'typeahead'
 ], function($, _, Backbone, Iznik, moment) {
     Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
         modtools: true,
@@ -20,6 +21,7 @@ define([
         events: {
             'click .js-searchuser': 'searchUser',
             'click .js-searchmsg': 'searchMessage',
+            'click .js-searchgroup': 'searchGroup',
             'keyup .js-searchuserinp': 'keyup',
             'click .js-sendalert': 'sendAlert',
             'click .js-getalerts': 'getAlerts'
@@ -69,6 +71,9 @@ define([
                     }
                 }
             });
+        },
+
+        searchGroup: function() {
         },
 
         searchMessage: function () {
@@ -166,9 +171,72 @@ define([
             })
         },
 
+        substringMatcher: function(strs) {
+            return function findMatches(q, cb) {
+                var matches, substringRegex;
+
+                // an array that will be populated with substring matches
+                matches = [];
+
+                // regex used to determine if a string contains the substring `q`
+                substrRegex = new RegExp(q, 'i');
+
+                // iterate through the pool of strings and for any string that
+                // contains the substring `q`, add it to the `matches` array
+                $.each(strs, function(i, str) {
+                    if (substrRegex.test(str)) {
+                        matches.push(str);
+                    }
+                });
+
+                cb(matches);
+            };
+        },
+
         render: function () {
             var p = Iznik.Views.Page.prototype.render.call(this);
+
+            // Group search uses a typehead.
             p.then(function(self) {
+                $.ajax({
+                    type: 'GET',
+                    url: API + 'groups',
+                    data: {
+                        grouptype: 'Freegle'
+                    }, success: function (ret) {
+                        self.groups = ret.groups;
+                        self.groupNames = [];
+                        _.each(self.groups, function(group) {
+                            self.groupNames.push(group.nameshort);
+                        });
+
+                        self.typeahead = self.$('.js-searchgroupinp').typeahead({
+                            minLength: 2,
+                            hint: false,
+                            highlight: true
+                        }, {
+                            name: 'groups',
+                            source: self.substringMatcher(self.groupNames)
+                        });
+
+                        self.$('.js-searchgroupinp').bind('typeahead:select', function(ev, suggestion) {
+                            console.log('Selection: ' + suggestion);
+                            var mod = new Iznik.Models.Group({
+                                id: suggestion
+                            });
+
+                            mod.fetch().then(function() {
+                                console.log("Fetched group", mod.attributes);
+                                var v = new Iznik.Views.ModTools.Pages.Support.Group({
+                                    model: mod
+                                });
+                                v.render();
+                                self.$('.js-searchgroupres').html(v.$el);
+                            });
+                        });
+                    }
+                })
+
                 // TODO This should be more generic, but it's really part of hosting multiple networks on the same
                 // server, which we don't do.
                 var type = Iznik.Session.isAdmin() ? null : 'Freegle';
@@ -198,6 +266,10 @@ define([
 
             return(p);
         }
+    });
+
+    Iznik.Views.ModTools.Pages.Support.Group = Iznik.View.extend({
+       template: 'modtools_support_group'
     });
 
     Iznik.Views.ModTools.Alert = Iznik.View.extend({

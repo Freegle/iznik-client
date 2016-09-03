@@ -27,6 +27,24 @@
         </div>
     </div>
     <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id=groupfindhead">
+            <h4 class="panel-title">
+                <a role="button" data-toggle="collapse" data-parent="#support" href="#groupfind" aria-expanded="false" aria-controls="find">
+                    Find Group
+                </a>
+            </h4>
+        </div>
+        <div id="groupfind" class="panel-collapse collapse" role="tabpanel" aria-labelledby="groupfindhead">
+            <div class="panel-body">
+                <p class="text-muted">You can find any group.  Just type the name.</p>
+                <div class="input-group botspace">
+                    <input type="text" class="form-control js-searchgroupinp" placeholder="Search group">
+                </div>
+                <div class="js-searchgroupres" />
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-default">
         <div class="panel-heading" role="tab" id="msgfindhead">
             <h4 class="panel-title">
                 <a role="button" data-toggle="collapse" data-parent="#support" href="#msgfind" aria-expanded="true" aria-controls="find">
