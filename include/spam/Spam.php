@@ -73,6 +73,7 @@ class Spam {
                 $msg->setPrivate('fromcountry', $record->country->isoCode);
             } catch (Exception $e) {
                 # Failed to look it up.
+                error_log("Failed to look up $ip " . $e->getMessage());
                 $country = NULL;
             }
 
