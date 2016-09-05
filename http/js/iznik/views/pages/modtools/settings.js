@@ -141,92 +141,251 @@ define([
     
         settingsGroup: function() {
             var self = this;
-    
-            // Because we switch the form based on our group select we need to remove old events to avoid saving new
-            // changes to the previous group.
-            if (self.myGroupForm) {
-                self.myGroupForm.undelegateEvents();
-            }
+            console.log("settingsGroup"); console.trace();
 
-            if (self.groupForm) {
-                self.groupForm.undelegateEvents();
-            }
+            self.waitDOM(self, function() {
+                console.log("In DOM");
+                // Because we switch the form based on our group select we need to remove old events to avoid saving new
+                // changes to the previous group.
+                if (self.myGroupForm) {
+                    self.myGroupForm.undelegateEvents();
+                }
 
-            if (self.groupAppearanceForm) {
-                self.groupAppearanceForm.undelegateEvents();
-            }
+                if (self.groupForm) {
+                    self.groupForm.undelegateEvents();
+                }
 
-            if (self.selected > 0) {
-                self.group = new Iznik.Models.Group({
-                    id: self.selected
-                });
+                if (self.groupAppearanceForm) {
+                    self.groupAppearanceForm.undelegateEvents();
+                }
 
-                self.$('.js-twitterauth').attr('href', '/twitter/twitter_request.php?groupid=' + self.selected);
-                self.$('.js-facebookauth').attr('href', '/facebook/facebook_request.php?groupid=' + self.selected);
-
-                self.group.fetch().then(function() {
-                    // Add license info
-                    var text;
-                    if (self.group.get('licenserequired')) {
-                        if (!self.group.get('licensed')) {
-                            text = '<div class="alert alert-warning">This group is using a trial license for 30 days from <abbr class="timeago" title="' + self.group.get('trial') + '"></abbr>.</div>'
-                        } else {
-                            var mom = new moment(self.group.get('licenseduntil'));
-                            text = 'This group is licensed until ' + mom.format('ll') + '.';
-                        }
-    
-                        self.$('.js-addlicense').show();
-                    } else {
-                        text = 'This group doesn\'t need a license.';
-                        self.$('.js-addlicense').hide();
-                    }
-    
-                    self.$('.js-licenceinfo').html(text);
-                    self.$('.timeago').timeago();
-    
-                    // Our settings for the group are held in the membership, so fire off a request for that.
-                    var membership = new Iznik.Models.Membership({
-                        groupid: self.selected,
-                        userid: Iznik.Session.get('me').id
+                if (self.selected > 0) {
+                    self.group = new Iznik.Models.Group({
+                        id: self.selected
                     });
-    
-                    membership.fetch().then(function() {
-                        self.myGroupModel = new Iznik.Model(membership.get('settings'));
-                        var configoptions = [];
-                        var configs = Iznik.Session.get('configs');
-                        configs.each(function(config) {
-                            configoptions.push({
-                                label: config.get('name'),
-                                value: config.get('id')
-                            });
+
+                    self.$('.js-twitterauth').attr('href', '/twitter/twitter_request.php?groupid=' + self.selected);
+                    self.$('.js-facebookauth').attr('href', '/facebook/facebook_request.php?groupid=' + self.selected);
+
+                    self.group.fetch().then(function() {
+                        // Add license info
+                        var text;
+                        if (self.group.get('licenserequired')) {
+                            if (!self.group.get('licensed')) {
+                                text = '<div class="alert alert-warning">This group is using a trial license for 30 days from <abbr class="timeago" title="' + self.group.get('trial') + '"></abbr>.</div>'
+                            } else {
+                                var mom = new moment(self.group.get('licenseduntil'));
+                                text = 'This group is licensed until ' + mom.format('ll') + '.';
+                            }
+
+                            self.$('.js-addlicense').show();
+                        } else {
+                            text = 'This group doesn\'t need a license.';
+                            self.$('.js-addlicense').hide();
+                        }
+
+                        self.$('.js-licenceinfo').html(text);
+                        self.$('.timeago').timeago();
+
+                        // Our settings for the group are held in the membership, so fire off a request for that.
+                        var membership = new Iznik.Models.Membership({
+                            groupid: self.selected,
+                            userid: Iznik.Session.get('me').id
                         });
-                        self.myGroupFields = [
+
+                        membership.fetch().then(function() {
+                            self.myGroupModel = new Iznik.Model(membership.get('settings'));
+                            var configoptions = [];
+                            var configs = Iznik.Session.get('configs');
+                            configs.each(function(config) {
+                                configoptions.push({
+                                    label: config.get('name'),
+                                    value: config.get('id')
+                                });
+                            });
+                            self.myGroupFields = [
+                                {
+                                    name: 'configid',
+                                    label: 'ModConfig to use for this Group',
+                                    control: 'select',
+                                    options: configoptions
+                                },
+                                {
+                                    name: 'pushnotify',
+                                    label: 'Push notifications?',
+                                    control: 'radio',
+                                    extraClasses: [ 'row' ],
+                                    options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                                },
+                                {
+                                    name: 'showmessages',
+                                    label: 'Show messages in All Groups?',
+                                    control: 'radio',
+                                    extraClasses: [ 'row' ],
+                                    options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                                },
+                                {
+                                    name: 'showmembers',
+                                    label: 'Show members in All Groups?',
+                                    control: 'radio',
+                                    extraClasses: [ 'row' ],
+                                    options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                                },
+                                {
+                                    control: 'button',
+                                    label: 'Save changes',
+                                    type: 'submit',
+                                    extraClasses: [ 'btn-success topspace botspace' ]
+                                }
+                            ];
+
+                            self.myGroupForm = new Backform.Form({
+                                el: $('#mygroupform'),
+                                model: self.myGroupModel,
+                                fields: self.myGroupFields,
+                                events: {
+                                    'submit': function(e) {
+                                        // Send a PATCH to the server for settings.
+                                        e.preventDefault();
+                                        var newdata = self.myGroupModel.toJSON();
+                                        membership.save({
+                                            'settings': newdata
+                                        }, {
+                                            patch: true,
+                                            success: _.bind(self.success, self),
+                                            error: self.error
+                                        });
+                                        return(false);
+                                    }
+                                }
+                            });
+
+                            self.myGroupForm.render();
+                        });
+
+                        // The global group settings.
+                        self.groupModel = new Iznik.Model(self.group.get('settings'));
+
+                        if (!self.groupModel.get('map')) {
+                            self.groupModel.set('map', {
+                                'zoom' : 12
+                            });
+                        }
+
+                        self.groupFields = [
                             {
-                                name: 'configid',
-                                label: 'ModConfig to use for this Group',
-                                control: 'select',
-                                options: configoptions
+                                name: 'communityevents',
+                                label: 'Allow community events?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: '(Freegle only) Whether members can post local community events on this group.'
                             },
                             {
-                                name: 'pushnotify',
-                                label: 'Push notifications?',
+                                name: 'showchat',
+                                label: 'Show chat window for mods?',
                                 control: 'radio',
-                                extraClasses: [ 'row' ],
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: 'This lets groups mods chat to each other on here.'
+                            },
+                            {
+                                name: 'autoapprove.members',
+                                label: 'Auto-approve pending members?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: "Yahoo doesn't let you change from member approval to not approving them - use this to work around that"
+                            },
+                            {
+                                name: 'duplicates.check',
+                                label: 'Flag duplicate messages?',
+                                control: 'radio',
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
                             },
                             {
-                                name: 'showmessages',
-                                label: 'Show messages in All Groups?',
+                                name: 'spammers.check',
+                                label: 'Check for spammer members?',
                                 control: 'radio',
-                                extraClasses: [ 'row' ],
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
                             },
                             {
-                                name: 'showmembers',
-                                label: 'Show members in All Groups?',
+                                name: 'spammers.remove',
+                                label: 'Auto-remove spammer members?',
                                 control: 'radio',
-                                extraClasses: [ 'row' ],
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                            },
+                            {
+                                name: 'spammers.chatreview',
+                                label: 'Check for spam messages to members?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: "(Freegle only) Messages to members come through the system.  It can flag suspicious ones for review so you can check if they are spam or not.  If you turn this off, such replies (some of which may be fine) will be dropped and members won't see them."
+                            },
+                            {
+                                name: 'keywords.offer',
+                                label: 'OFFER keyword',
+                                control: 'input'
+                            },
+                            {
+                                name: 'keywords.taken',
+                                label: 'TAKEN keyword',
+                                control: 'input'
+                            },
+                            {
+                                name: 'keywords.wanted',
+                                label: 'WANTED keyword',
+                                control: 'input'
+                            },
+                            {
+                                name: 'keywords.received',
+                                label: 'RECEIVED keyword',
+                                control: 'input'
+                            },
+                            {
+                                name: 'duplicates.offer',
+                                label: 'OFFER duplicate period',
+                                control: 'input',
+                                type: 'number'
+                            },
+                            {
+                                name: 'duplicates.taken',
+                                label: 'TAKEN duplicate period',
+                                control: 'input',
+                                type: 'number'
+                            },
+                            {
+                                name: 'duplicates.wanted',
+                                label: 'WANTED duplicate period',
+                                control: 'input',
+                                type: 'number'
+                            },
+                            {
+                                name: 'duplicates.received',
+                                label: 'RECEIVED duplicate period',
+                                control: 'input',
+                                type: 'number'
+                            },
+                            {
+                                name: 'reposts.max',
+                                label: 'Max auto-reposts',
+                                control: 'input',
+                                type: 'number'
+                            },
+                            {
+                                name: 'reposts.offer',
+                                label: 'OFFER auto-repost (days)',
+                                control: 'input',
+                                type: 'number'
+                            },
+                            {
+                                name: 'reposts.wanted',
+                                label: 'WANTED auto-repost (days)',
+                                control: 'input',
+                                type: 'number'
+                            },
+                            {
+                                name: 'map.zoom',
+                                label: 'Default zoom for maps',
+                                control: 'input',
+                                type: 'number'
                             },
                             {
                                 control: 'button',
@@ -235,17 +394,16 @@ define([
                                 extraClasses: [ 'btn-success topspace botspace' ]
                             }
                         ];
-    
-                        self.myGroupForm = new Backform.Form({
-                            el: $('#mygroupform'),
-                            model: self.myGroupModel,
-                            fields: self.myGroupFields,
+
+                        self.groupForm = new Backform.Form({
+                            el: $('#groupform'),
+                            model: self.groupModel,
+                            fields: self.groupFields,
                             events: {
                                 'submit': function(e) {
-                                    // Send a PATCH to the server for settings.
                                     e.preventDefault();
-                                    var newdata = self.myGroupModel.toJSON();
-                                    membership.save({
+                                    var newdata = self.groupModel.toJSON();
+                                    self.group.save({
                                         'settings': newdata
                                     }, {
                                         patch: true,
@@ -256,307 +414,153 @@ define([
                                 }
                             }
                         });
-    
-                        self.myGroupForm.render();
-                    });
-    
-                    // The global group settings.
-                    self.groupModel = new Iznik.Model(self.group.get('settings'));
-    
-                    if (!self.groupModel.get('map')) {
-                        self.groupModel.set('map', {
-                            'zoom' : 12
-                        });
-                    }
-    
-                    self.groupFields = [
-                        {
-                            name: 'communityevents',
-                            label: 'Allow community events?',
-                            control: 'radio',
-                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
-                            helpMessage: '(Freegle only) Whether members can post local community events on this group.'
-                        },
-                        {
-                            name: 'showchat',
-                            label: 'Show chat window for mods?',
-                            control: 'radio',
-                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
-                            helpMessage: 'This lets groups mods chat to each other on here.'
-                        },
-                        {
-                            name: 'autoapprove.members',
-                            label: 'Auto-approve pending members?',
-                            control: 'radio',
-                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
-                            helpMessage: "Yahoo doesn't let you change from member approval to not approving them - use this to work around that"
-                        },
-                        {
-                            name: 'duplicates.check',
-                            label: 'Flag duplicate messages?',
-                            control: 'radio',
-                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
-                        },
-                        {
-                            name: 'spammers.check',
-                            label: 'Check for spammer members?',
-                            control: 'radio',
-                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
-                        },
-                        {
-                            name: 'spammers.remove',
-                            label: 'Auto-remove spammer members?',
-                            control: 'radio',
-                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
-                        },
-                        {
-                            name: 'spammers.chatreview',
-                            label: 'Check for spam messages to members?',
-                            control: 'radio',
-                            options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
-                            helpMessage: "(Freegle only) Messages to members come through the system.  It can flag suspicious ones for review so you can check if they are spam or not.  If you turn this off, such replies (some of which may be fine) will be dropped and members won't see them."
-                        },
-                        {
-                            name: 'keywords.offer',
-                            label: 'OFFER keyword',
-                            control: 'input'
-                        },
-                        {
-                            name: 'keywords.taken',
-                            label: 'TAKEN keyword',
-                            control: 'input'
-                        },
-                        {
-                            name: 'keywords.wanted',
-                            label: 'WANTED keyword',
-                            control: 'input'
-                        },
-                        {
-                            name: 'keywords.received',
-                            label: 'RECEIVED keyword',
-                            control: 'input'
-                        },
-                        {
-                            name: 'duplicates.offer',
-                            label: 'OFFER duplicate period',
-                            control: 'input',
-                            type: 'number'
-                        },
-                        {
-                            name: 'duplicates.taken',
-                            label: 'TAKEN duplicate period',
-                            control: 'input',
-                            type: 'number'
-                        },
-                        {
-                            name: 'duplicates.wanted',
-                            label: 'WANTED duplicate period',
-                            control: 'input',
-                            type: 'number'
-                        },
-                        {
-                            name: 'duplicates.received',
-                            label: 'RECEIVED duplicate period',
-                            control: 'input',
-                            type: 'number'
-                        },
-                        {
-                            name: 'reposts.max',
-                            label: 'Max auto-reposts',
-                            control: 'input',
-                            type: 'number'
-                        },
-                        {
-                            name: 'reposts.offer',
-                            label: 'OFFER auto-repost (days)',
-                            control: 'input',
-                            type: 'number'
-                        },
-                        {
-                            name: 'reposts.wanted',
-                            label: 'WANTED auto-repost (days)',
-                            control: 'input',
-                            type: 'number'
-                        },
-                        {
-                            name: 'map.zoom',
-                            label: 'Default zoom for maps',
-                            control: 'input',
-                            type: 'number'
-                        },
-                        {
-                            control: 'button',
-                            label: 'Save changes',
-                            type: 'submit',
-                            extraClasses: [ 'btn-success topspace botspace' ]
-                        }
-                    ];
-    
-                    self.groupForm = new Backform.Form({
-                        el: $('#groupform'),
-                        model: self.groupModel,
-                        fields: self.groupFields,
-                        events: {
-                            'submit': function(e) {
-                                e.preventDefault();
-                                var newdata = self.groupModel.toJSON();
-                                self.group.save({
-                                    'settings': newdata
-                                }, {
-                                    patch: true,
-                                    success: _.bind(self.success, self),
-                                    error: self.error
-                                });
-                                return(false);
-                            }
-                        }
-                    });
-    
-                    self.groupForm.render();
 
-                    // The appearance.
-                    var profile = self.group.get('profile');
-                    self.$('.js-profile').attr('src', profile ? profile : "http://placehold.it/200x200");
+                        self.groupForm.render();
 
-                    // File upload
-                    self.$('.js-profileupload').fileinput({
-                        showUpload: false,
-                        allowedFileExtensions: [ 'jpg', 'jpeg', 'gif', 'png' ],
-                        uploadUrl: API + 'image?imgtype=Group',
-                        showPreview: false,
-                        resizeImage: true,
-                        maxImageWidth: 800,
-                        browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
-                        browseLabel: 'Upload image',
-                        browseClass: 'btn btn-primary nowrap',
-                        showCaption: false,
-                        dropZoneEnabled: false,
-                        buttonLabelClass: '',
-                        fileActionSettings: {
-                            showZoom: false,
-                            showRemove: false,
-                            showUpload: false
-                        },
-                        layoutTemplates: {
-                            footer: '<div class="file-thumbnail-footer">\n' +
-                            '    {actions}\n' +
-                            '</div>'
-                        },
-                        showRemove: false
-                    });
+                        // The appearance.
+                        var profile = self.group.get('profile');
+                        self.$('.js-profile').attr('src', profile ? profile : "https://placehold.it/200x200");
 
-                    // Upload as soon as photos have been resized.
-                    self.$('.js-profileupload').on('fileimagesresized', function(event) {
-                        self.$('.js-profileupload').fileinput('upload');
-                    });
-
-                    // Watch for all uploaded
-                    self.$('.js-profileupload').on('fileuploaded', function(event, data) {
-                        self.group.set('profile', data.response.id);
-                        self.group.save({
-                            id: self.group.get('id'),
-                            profile: data.response.id
-                        }, {
-                            patch: true
-                        });
-                        self.$('.js-profile').attr('src', data.response.path);
-                        self.$('.file-preview').hide();
-                    });
-
-                    self.groupAppearanceForm = new Backform.Form({
-                        el: $('#groupappearanceform'),
-                        model: self.group,
-                        fields: [
-                            {
-                                name: 'tagline',
-                                label: 'Tagline for your group',
-                                control: 'input',
-                                helpMessage: 'This should be short and snappy.  Include some local reference that people in your area will feel connected to.',
+                        // File upload
+                        self.$('.js-profileupload').fileinput({
+                            showUpload: false,
+                            allowedFileExtensions: [ 'jpg', 'jpeg', 'gif', 'png' ],
+                            uploadUrl: API + 'image?imgtype=Group',
+                            showPreview: false,
+                            resizeImage: true,
+                            maxImageWidth: 800,
+                            browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
+                            browseLabel: 'Upload image',
+                            browseClass: 'btn btn-primary nowrap',
+                            showCaption: false,
+                            dropZoneEnabled: false,
+                            buttonLabelClass: '',
+                            fileActionSettings: {
+                                showZoom: false,
+                                showRemove: false,
+                                showUpload: false
                             },
-                            {
-                                name: 'showonyahoo',
-                                label: 'Show Yahoo Group to members?',
-                                control: 'select',
-                                options: [{label: 'Show links to Yahoo group too', value: 1}, {label: 'Don\'t show links to Yahoo group', value:0 }]
+                            layoutTemplates: {
+                                footer: '<div class="file-thumbnail-footer">\n' +
+                                '    {actions}\n' +
+                                '</div>'
                             },
-                            {
-                                control: 'button',
-                                label: 'Save changes',
-                                type: 'submit',
-                                extraClasses: [ 'btn-success topspace botspace' ]
+                            showRemove: false
+                        });
+
+                        // Upload as soon as photos have been resized.
+                        self.$('.js-profileupload').on('fileimagesresized', function(event) {
+                            self.$('.js-profileupload').fileinput('upload');
+                        });
+
+                        // Watch for all uploaded
+                        self.$('.js-profileupload').on('fileuploaded', function(event, data) {
+                            self.group.set('profile', data.response.id);
+                            self.group.save({
+                                id: self.group.get('id'),
+                                profile: data.response.id
+                            }, {
+                                patch: true
+                            });
+                            self.$('.js-profile').attr('src', data.response.path);
+                            self.$('.file-preview').hide();
+                        });
+
+                        self.groupAppearanceForm = new Backform.Form({
+                            el: $('#groupappearanceform'),
+                            model: self.group,
+                            fields: [
+                                {
+                                    name: 'tagline',
+                                    label: 'Tagline for your group',
+                                    control: 'input',
+                                    helpMessage: 'This should be short and snappy.  Include some local reference that people in your area will feel connected to.',
+                                },
+                                {
+                                    name: 'showonyahoo',
+                                    label: 'Show Yahoo Group to members?',
+                                    control: 'select',
+                                    options: [{label: 'Show links to Yahoo group too', value: 1}, {label: 'Don\'t show links to Yahoo group', value:0 }]
+                                },
+                                {
+                                    control: 'button',
+                                    label: 'Save changes',
+                                    type: 'submit',
+                                    extraClasses: [ 'btn-success topspace botspace' ]
+                                }
+                            ],
+                            events: {
+                                'submit': function(e) {
+                                    e.preventDefault();
+                                    self.group.save({
+                                        'tagline': self.group.get('tagline'),
+                                        'showonyahoo': self.group.get('showonyahoo')
+                                    }, {
+                                        patch: true,
+                                        success: _.bind(self.success, self),
+                                        error: self.error
+                                    });
+                                    return(false);
+                                }
                             }
-                        ],
-                        events: {
-                            'submit': function(e) {
-                                e.preventDefault();
-                                self.group.save({
-                                    'tagline': self.group.get('tagline'),
-                                    'showonyahoo': self.group.get('showonyahoo')
-                                }, {
-                                    patch: true,
-                                    success: _.bind(self.success, self),
-                                    error: self.error
-                                });
-                                return(false);
+                        });
+
+                        self.groupAppearanceForm.render();
+                        $('#groupappearanceform input[name=tagline]').attr('maxlength', 120);
+
+                        // Add Twitter info.  Won't show for groups it shouldn't.
+                        var twitter = self.group.get('twitter');
+                        console.log("Got twitter info", self.group, twitter);
+
+                        self.$('.js-twitter').hide();
+
+                        if (twitter) {
+                            self.$('.js-twittername').html(twitter.name);
+                            self.$('.js-twitterurl').attr('href', 'https://twitter.com/' + twitter.name);
+
+                            if (!twitter.valid) {
+                                self.$('.js-twitternotlinked').show();
+                            } else {
+                                var mom = new moment(twitter.authdate);
+                                self.$('.js-twitterauthdate').html(mom.format('ll'));
+                                self.$('.js-twittervalid').show();
                             }
-                        }
-                    });
-
-                    self.groupAppearanceForm.render();
-                    $('#groupappearanceform input[name=tagline]').attr('maxlength', 120);
-
-                    // Add Twitter info.  Won't show for groups it shouldn't.
-                    var twitter = self.group.get('twitter');
-                    console.log("Got twitter info", self.group, twitter);
-
-                    self.$('.js-twitter').hide();
-
-                    if (twitter) {
-                        self.$('.js-twittername').html(twitter.name);
-                        self.$('.js-twitterurl').attr('href', 'https://twitter.com/' + twitter.name);
-
-                        if (!twitter.valid) {
+                        } else {
                             self.$('.js-twitternotlinked').show();
-                        } else {
-                            var mom = new moment(twitter.authdate);
-                            self.$('.js-twitterauthdate').html(mom.format('ll'));
-                            self.$('.js-twittervalid').show();
                         }
-                    } else {
-                        self.$('.js-twitternotlinked').show();
-                    }
 
-                    self.$('.js-facebook').hide();
+                        self.$('.js-facebook').hide();
 
-                    // Add Facebook info.  Won't show for groups it shouldn't.
-                    var facebook = self.group.get('facebook');
-                    console.log("Got facebook info", self.group, facebook);
+                        // Add Facebook info.  Won't show for groups it shouldn't.
+                        var facebook = self.group.get('facebook');
+                        console.log("Got facebook info", self.group, facebook);
 
-                    if (facebook) {
-                        self.$('.js-facebookname').html(facebook.name);
-                        self.$('.js-facebookurl').attr('href', 'https://facebook.com/' + facebook.id);
+                        if (facebook) {
+                            self.$('.js-facebookname').html(facebook.name);
+                            self.$('.js-facebookurl').attr('href', 'https://facebook.com/' + facebook.id);
 
-                        if (!facebook.valid) {
+                            if (!facebook.valid) {
+                                self.$('.js-facebooknotlinked').show();
+                            } else {
+                                var mom = new moment(facebook.authdate);
+                                self.$('.js-facebookauthdate').html(mom.format('ll'));
+                                self.$('.js-facebookvalid').show();
+                            }
+                        } else {
                             self.$('.js-facebooknotlinked').show();
-                        } else {
-                            var mom = new moment(facebook.authdate);
-                            self.$('.js-facebookauthdate').html(mom.format('ll'));
-                            self.$('.js-facebookvalid').show();
                         }
-                    } else {
-                        self.$('.js-facebooknotlinked').show();
-                    }
 
-                    // Layout messes up a bit for radio buttons.
-                    self.groupForm.$(':radio').closest('.form-group').addClass('clearfix');
+                        // Layout messes up a bit for radio buttons.
+                        self.groupForm.$(':radio').closest('.form-group').addClass('clearfix');
 
-                    if (self.group.get('type') == 'Freegle') {
-                        self.$('.js-freegleonly').show();
-                    } else {
-                        self.$('.js-freegleonly').hide();
-                    }
-                });
-            }
+                        if (self.group.get('type') == 'Freegle') {
+                            self.$('.js-freegleonly').show();
+                        } else {
+                            self.$('.js-freegleonly').hide();
+                        }
+                    });
+                }
+            });
         },
     
         addStdMsg: function() {
