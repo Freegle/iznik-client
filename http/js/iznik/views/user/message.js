@@ -54,12 +54,6 @@ define([
                     console.log("Try to send", self.readyToSend);
                     if (self.readyToSend) {
                         self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                            try {
-                                // Clear the local storage, so that we don't get stuck here.
-                                localStorage.removeItem('replyto');
-                                localStorage.removeItem('replytext');
-                            } catch (e) {}
-
                             // Now send it.
                             self.readyToSend = false;
                             self.$('.js-send').click();
@@ -622,6 +616,7 @@ define([
 
                 // If we're not already logged in, we want to be.
                 self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedin) {
+                    console.log("Send; logged in?", loggedin);
                     if (loggedin) {
                         // We are logged in and can proceed.
                         //
@@ -641,10 +636,13 @@ define([
                             });
                         }
 
+                        console.log("Already a member?", member);
+
                         if (!member) {
                             // We're not a member of any groups on which this message appears.  Join one.  Doesn't much
                             // matter which.
                             var tojoin = self.model.get('groups')[0].id;
+                            console.log("To join", tojoin);
                             $.ajax({
                                 url: API + 'memberships',
                                 type: 'PUT',
@@ -677,10 +675,12 @@ define([
                             localStorage.setItem('replyreturn', Backbone.history.getFragment());
                         } catch (e) {}
 
-                        // Set the route route to the individual message.  This will spot the local storage, force us to
+                        // Set the route to the individual message.  This will spot the local storage, force us to
                         // log in, and then send it.  This also means that when the page is reloaded because of a login,
                         // we don't have issues with not seeing/needing to scroll to the message of interest.
-                        Router.navigate('/message/' + self.model.get('id'), true);
+                        //
+                        // We might already be on this page, so we can't call navigate as usual.
+                        Backbone.history.loadUrl('/message/' + self.model.get('id'));
                     }
                 });
 
@@ -740,6 +740,7 @@ define([
                             var replyto = localStorage.getItem('replyto');
                             var replytext = localStorage.getItem('replytext');
                             var thisid = self.model.get('id');
+                            console.log("Continue reply?", replyto, thisid, replytext);
 
                             if (replyto == thisid) {
                                 self.continueReply.call(self, replytext);

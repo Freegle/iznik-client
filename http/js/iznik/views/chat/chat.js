@@ -876,7 +876,11 @@ define([
             var now = (new Date()).getTime();
             // console.log("Consider roster update", status, self.rosterUpdatedStatus, now, self.rosterUpdatedAt, now - self.rosterUpdatedAt);
 
-            if (status != self.rosterUpdatedStatus || now - self.rosterUpdatedAt > 25000) {
+            if (status == 'Away') {
+                // There's no real need to tell the server that we're in Away status - it will time us out into
+                // that anyway.  This saves a lot of update calls in the case where we're loading the page
+                // and minimising many chats, e.g. if we're a mod on many groups.
+            } else if (status != self.rosterUpdatedStatus || now - self.rosterUpdatedAt > 25000) {
                 // console.log("Issue roster update");
                 $.ajax({
                     url: API + 'chat/rooms/' + self.model.get('id'),
