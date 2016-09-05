@@ -467,80 +467,82 @@ class MailRouter
             $contentcheck = !$notspam && !preg_match('/.*?\:(.*)\(.*\)/', $this->msg->getSubject());
             $spamscore = NULL;
 
-            # First check if this message is spam based on our own checks.
-            $rc = $this->spam->check($this->msg);
-            if ($rc) {
-                $groups = $this->msg->getGroups();
+            if (!$notspam) {
+                # First check if this message is spam based on our own checks.
+                $rc = $this->spam->check($this->msg);
+                if ($rc) {
+                    $groups = $this->msg->getGroups();
 
-                if (count($groups) > 0) {
-                    foreach ($groups as $groupid) {
-                        $this->log->log([
-                            'type' => Log::TYPE_MESSAGE,
-                            'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
-                            'msgid' => $this->msg->getID(),
-                            'text' => "{$rc[2]}",
-                            'groupid' => $this->msg->getGroups()[0]
-                        ]);
-                    }
-                } else {
-                    $this->log->log([
-                        'type' => Log::TYPE_MESSAGE,
-                        'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
-                        'msgid' => $this->msg->getID(),
-                        'text' => "{$rc[2]}"
-                    ]);
-                }
-
-                error_log("Classified as spam {$rc[2]}");
-                $ret = MailRouter::FAILURE;
-
-                if ($this->markAsSpam($rc[1], $rc[2])) {
-                    $ret = MailRouter::INCOMING_SPAM;
-                }
-            } else if ($contentcheck) {
-                # Now check if we think this is spam according to SpamAssassin.
-                $this->spamc->command = 'CHECK';
-
-                if ($this->spamc->filter($this->msg->getMessage())) {
-                    $spamscore = $this->spamc->result['SCORE'];
-
-                    if ($spamscore >= 8 && ($this->msg->getEnvelopefrom() != 'from@test.com')) {
-                        # This might be spam.  We'll mark it as such, then it will get reviewed.
-                        #
-                        # Hacky if test to stop our UT messages getting flagged as spam unless we want them to be.
-                        $groups = $this->msg->getGroups();
-
-                        if (count($groups) > 0) {
-                            foreach ($groups as $groupid) {
-                                $this->log->log([
-                                    'type' => Log::TYPE_MESSAGE,
-                                    'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
-                                    'msgid' => $this->msg->getID(),
-                                    'text' => "SpamAssassin score $spamscore",
-                                    'groupid' => $groupid
-                                ]);
-                            }
-                        } else {
+                    if (count($groups) > 0) {
+                        foreach ($groups as $groupid) {
                             $this->log->log([
                                 'type' => Log::TYPE_MESSAGE,
                                 'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
                                 'msgid' => $this->msg->getID(),
-                                'text' => "SpamAssassin score $spamscore"
+                                'text' => "{$rc[2]}",
+                                'groupid' => $this->msg->getGroups()[0]
                             ]);
                         }
-
-                        if ($this->markAsSpam(Spam::REASON_SPAMASSASSIN, "SpamAssassin flagged this as possible spam; score $spamscore (high is bad)")) {
-                            $ret = MailRouter::INCOMING_SPAM;
-                        } else {
-                            error_log("Failed to mark as spam");
-                            $this->msg->recordFailure('Failed to mark spam');
-                            $ret = MailRouter::FAILURE;
-                        }
+                    } else {
+                        $this->log->log([
+                            'type' => Log::TYPE_MESSAGE,
+                            'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
+                            'msgid' => $this->msg->getID(),
+                            'text' => "{$rc[2]}"
+                        ]);
                     }
-                } else {
-                    # We have failed to check that this is spam.  Record the failure but carry on.
-                    error_log("Failed to check spam " . $this->spamc->err);
-                    $this->msg->recordFailure('Spam Assassin check failed ' . $this->spamc->err);
+
+                    error_log("Classified as spam {$rc[2]}");
+                    $ret = MailRouter::FAILURE;
+
+                    if ($this->markAsSpam($rc[1], $rc[2])) {
+                        $ret = MailRouter::INCOMING_SPAM;
+                    }
+                } else if ($contentcheck) {
+                    # Now check if we think this is spam according to SpamAssassin.
+                    $this->spamc->command = 'CHECK';
+
+                    if ($this->spamc->filter($this->msg->getMessage())) {
+                        $spamscore = $this->spamc->result['SCORE'];
+
+                        if ($spamscore >= 8 && ($this->msg->getEnvelopefrom() != 'from@test.com')) {
+                            # This might be spam.  We'll mark it as such, then it will get reviewed.
+                            #
+                            # Hacky if test to stop our UT messages getting flagged as spam unless we want them to be.
+                            $groups = $this->msg->getGroups();
+
+                            if (count($groups) > 0) {
+                                foreach ($groups as $groupid) {
+                                    $this->log->log([
+                                        'type' => Log::TYPE_MESSAGE,
+                                        'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
+                                        'msgid' => $this->msg->getID(),
+                                        'text' => "SpamAssassin score $spamscore",
+                                        'groupid' => $groupid
+                                    ]);
+                                }
+                            } else {
+                                $this->log->log([
+                                    'type' => Log::TYPE_MESSAGE,
+                                    'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
+                                    'msgid' => $this->msg->getID(),
+                                    'text' => "SpamAssassin score $spamscore"
+                                ]);
+                            }
+
+                            if ($this->markAsSpam(Spam::REASON_SPAMASSASSIN, "SpamAssassin flagged this as possible spam; score $spamscore (high is bad)")) {
+                                $ret = MailRouter::INCOMING_SPAM;
+                            } else {
+                                error_log("Failed to mark as spam");
+                                $this->msg->recordFailure('Failed to mark spam');
+                                $ret = MailRouter::FAILURE;
+                            }
+                        }
+                    } else {
+                        # We have failed to check that this is spam.  Record the failure but carry on.
+                        error_log("Failed to check spam " . $this->spamc->err);
+                        $this->msg->recordFailure('Spam Assassin check failed ' . $this->spamc->err);
+                    }
                 }
             }
 
