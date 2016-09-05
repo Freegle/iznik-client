@@ -14,7 +14,7 @@
                     <li>
                         <a href="/" class="margleft nopad text-center">
                             <div class="glyphicons glyphicons-home glyphicon-larger vcenter-left" title="Give stuff" />
-                            <br /><span class="">My Posts</span>
+                            <br /><span class="">My&nbsp;Posts</span>
                         </a>
                     </li>
                     <li>
@@ -32,7 +32,7 @@
                     <li>
                         <a href="/mygroups" class="margleft nopad text-center">
                             <div class="glyphicons glyphicons-group glyphicon-larger vcenter-left" title="Your Freegle Groups" />
-                            <br /><span class="">My Groups</span>
+                            <br /><span class="">My&nbsp;Groups</span>
                         </a>
                     </li>
                     <li>
@@ -52,9 +52,13 @@
                     <li>
                         <a href="#" id="js-notifchat" class="margleft dropdown-toggle nopad text-center" title="Messages from other Freeglers"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <div id="notifchatbutt" class="glyphicons glyphicon-larger glyphicons-conversation vcenter-left" type="button">
-                                <span class="js-totalcount badge badge-unread" style="display: none;" />
+                                <span class="js-totalcount badge badge-unread hidden-xs" style="display: none;" />
                             </div>
-                            <br /><span class="">Conversations</span>
+                            <br />
+                            <span>
+                                Conversations
+                                <span class="js-totalcount badge badge-unread hidden-sm" style="display: none;" />
+                            </span>
                         </a>
                         <ul id="notifchatdropdown" class="dropdown-menu pull-right" role="menu" aria-labelledby="notifchatbutt"/>
                     </li>

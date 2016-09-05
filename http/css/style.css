@@ -33,6 +33,10 @@
     top: 0px !important;
 }
 
+.navbar-collapse {
+    width: 100% !important;
+}
+
 .pageContent, .rightSidebar {
     top: 66px;
 }
