@@ -260,9 +260,11 @@ define([
             title = match ? match[1] : title;
 
             if (unseen > 0) {
+                $('#dropdownmenu .js-totalcount').html(unseen).show();
                 $('#js-notifchat .js-totalcount').html(unseen).show();
                 document.title = '(' + unseen + ') ' + title;
             } else {
+                $('#dropdownmenu .js-totalcount').html(unseen).hide();
                 $('#js-notifchat .js-totalcount').html(unseen).hide();
                 document.title = title;
             }
@@ -874,7 +876,7 @@ define([
             // We make sure we don't update the server too often unless the status changes, whatever the user
             // is doing with this chat.  This helps reduce server load for large numbers of clients.
             var now = (new Date()).getTime();
-            // console.log("Consider roster update", status, self.rosterUpdatedStatus, now, self.rosterUpdatedAt, now - self.rosterUpdatedAt);
+            //console.log("Consider roster update", status, self.rosterUpdatedStatus, now, self.rosterUpdatedAt, now - self.rosterUpdatedAt);
 
             if (status == 'Away') {
                 // There's no real need to tell the server that we're in Away status - it will time us out into

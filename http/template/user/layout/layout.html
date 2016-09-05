@@ -1,9 +1,10 @@
 <nav class="navbar navbar-custom navbar-fixed-top">
-    <div class="completefull container-fluid">
-        <div class="nopad completefull navbar-header">
+    <div class="nopad completefull container-fluid">
+        <div class="nopad nomargin completefull navbar-header">
             <button class="reallyHide btn btn-white js-signin js-loggedoutonly margtopsm pull-right">Sign in</button>
             <button id="dropdownmenu" class="js-menu reallyHide js-loggedinonly navbar-toggle collapsed btn btn-default" type="button" data-toggle="collapse" data-target="#navbar-collapse" aria-haspopup="true" role="button" aria-expanded="false">
                 <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true" />
+                <span class="js-totalcount badge badge-unread" style="display: none;" />
             </button>
             <div class="notop js-home clickme padleft pull-left">
                 <img src="/images/user_logo.png" class="padmd img-responsive img-morerounded inline" />
@@ -12,45 +13,45 @@
                 <ul class="nav navbar-nav navbar-left reallyHide js-loggedinonly">
                     <li>
                         <a href="/" class="margleft nopad text-center">
-                            <div class="glyphicons glyphicons-home glyphicon-larger vcenter" title="Give stuff" />
+                            <div class="glyphicons glyphicons-home glyphicon-larger vcenter-left" title="Give stuff" />
                             <br /><span class="">My Posts</span>
                         </a>
                     </li>
                     <li>
                         <a href="/give/whereami" class="margleft nopad text-center">
-                            <div class="glyphicons glyphicons-gift glyphicon-larger vcenter" title="Give stuff" />
+                            <div class="glyphicons glyphicons-gift glyphicon-larger vcenter-left" title="Give stuff" />
                             <br /><span class="">Give</span>
                         </a>
                     </li>
                     <li>
                         <a href="/find/whereami" class="margleft nopad text-center">
-                            <div class="glyphicons glyphicons-search glyphicon-larger vcenter" title="Find stuff" />
+                            <div class="glyphicons glyphicons-search glyphicon-larger vcenter-left" title="Find stuff" />
                             <br /><span class="">Find</span>
                         </a>
                     </li>
                     <li>
                         <a href="/mygroups" class="margleft nopad text-center">
-                            <div class="glyphicons glyphicons-group glyphicon-larger vcenter" title="Your Freegle Groups" />
+                            <div class="glyphicons glyphicons-group glyphicon-larger vcenter-left" title="Your Freegle Groups" />
                             <br /><span class="">My Groups</span>
                         </a>
                     </li>
                     <li>
                         <a href="/explore" class="margleft nopad text-center">
-                            <div class="glyphicons glyphicons-map glyphicon-larger vcenter" title="Explore Groups" />
+                            <div class="glyphicons glyphicons-map glyphicon-larger vcenter-left" title="Explore Groups" />
                             <br /><span class="">Explore</span>
                         </a>
                     </li>
                     <li>
                         <a href="/communityevents" class="margleft nopad text-center">
-                            <div class="glyphicons glyphicons-calendar glyphicon-larger vcenter" title="Community Events" />
+                            <div class="glyphicons glyphicons-calendar glyphicon-larger vcenter-left" title="Community Events" />
                             <br /><span class="">Events</span>
                         </a>
                     </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right reallyHide js-loggedinonly">
                     <li>
-                        <a href="#" id="js-notifchat" class="dropdown-toggle nopad text-center" title="Messages from other Freeglers"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <div id="notifchatbutt" class="glyphicons glyphicon-larger glyphicons-conversation vcenter" type="button">
+                        <a href="#" id="js-notifchat" class="margleft dropdown-toggle nopad text-center" title="Messages from other Freeglers"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <div id="notifchatbutt" class="glyphicons glyphicon-larger glyphicons-conversation vcenter-left" type="button">
                                 <span class="js-totalcount badge badge-unread" style="display: none;" />
                             </div>
                             <br /><span class="">Conversations</span>
@@ -59,25 +60,25 @@
                     </li>
                     <li>
                         <a href="#" id="js-notifications"  class="margleft nopad text-center" title="Notifications" style="display: none;">
-                            <div class="glyphicons glyphicon-larger glyphicons-globe vcenter"/>
+                            <div class="glyphicons glyphicon-larger glyphicons-globe vcenter-left"/>
                             <span class="navbar-dropdown-text hidden-sm">Notifications</span>
                         </a>
                     </li>
                     <li>
                         <a href="/help"  class="margleft nopad text-center" title="Help and Support">
-                            <div class="glyphicons glyphicons-question-sign glyphicon-larger vcenter" />
+                            <div class="glyphicons glyphicons-question-sign glyphicon-larger vcenter-left" />
                             <br /><span class="">Help</span>
                         </a>
                     </li>
                     <li>
                         <a href="/settings" class="margleft nopad text-center">
-                            <div class="glyphicons glyphicons-cogwheels glyphicon-larger vcenter" title="Settings" />
+                            <div class="glyphicons glyphicons-cogwheels glyphicon-larger vcenter-left" title="Settings" />
                             <br /><span class="">Settings</span>
                         </a>
                     </li>
                     <li>
                         <a href="#"  class="margleft margright nopad text-center js-logout" title="Logout">
-                            <div class="glyphicons glyphicons-log-out glyphicon-larger vcenter" />
+                            <div class="glyphicons glyphicons-log-out glyphicon-larger vcenter-left" />
                             <br /><span class="">Logout</span>
                         </a>
                     </li>

@@ -191,6 +191,12 @@
     float: none !important;
 }
 
+.vcenter-left {
+    display: inline-block !important;
+    vertical-align: middle !important;
+    float: left !important;
+}
+
 .dd {
     min-width: 250px !important;
 }
