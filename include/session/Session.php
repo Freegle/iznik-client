@@ -185,7 +185,8 @@ class Session {
             $token  = devurandom_rand();
             $thash  = sha1($token);
 
-            $sql = "REPLACE INTO sessions (`userid`, `series`, `token`) VALUES (?,?,?);";
+            $sql = "INSERT INTO sessions (`userid`, `series`, `token`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);";
+
             $this->dbhm->preExec($sql, [
                 $userid,
                 $series,
@@ -259,6 +260,14 @@ class Session {
             $sql = $series ? "DELETE FROM sessions WHERE userid = ? AND series = ?;" : "DELETE FROM sessions WHERE userid = ?;";
             $parms = $series ? [ $userid, $series ] : [ $userid ];
             $this->dbhm->preExec($sql, $parms);
+
+            $l = new Log($this->dbhr, $this->dbhm);
+            $l->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_LOGOUT,
+                'byuser' => $userid,
+                'text' => "Series $series"
+            ]);
         }
 
         $_SESSION['id'] = NULL;
