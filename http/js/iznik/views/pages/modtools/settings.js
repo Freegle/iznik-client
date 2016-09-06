@@ -141,24 +141,8 @@ define([
     
         settingsGroup: function() {
             var self = this;
-            console.log("settingsGroup"); console.trace();
 
             self.waitDOM(self, function() {
-                console.log("In DOM");
-                // Because we switch the form based on our group select we need to remove old events to avoid saving new
-                // changes to the previous group.
-                if (self.myGroupForm) {
-                    self.myGroupForm.undelegateEvents();
-                }
-
-                if (self.groupForm) {
-                    self.groupForm.undelegateEvents();
-                }
-
-                if (self.groupAppearanceForm) {
-                    self.groupAppearanceForm.undelegateEvents();
-                }
-
                 if (self.selected > 0) {
                     self.group = new Iznik.Models.Group({
                         id: self.selected
@@ -168,6 +152,23 @@ define([
                     self.$('.js-facebookauth').attr('href', '/facebook/facebook_request.php?groupid=' + self.selected);
 
                     self.group.fetch().then(function() {
+                        // Because we switch the form based on our group select we need to remove old events to avoid saving new
+                        // changes to the previous group.
+                        if (self.myGroupForm) {
+                            self.myGroupForm.undelegateEvents();
+                            self.$('#mygroupform').empty();
+                        }
+
+                        if (self.groupForm) {
+                            self.groupForm.undelegateEvents();
+                            self.$('#groupform').empty();
+                        }
+
+                        if (self.groupAppearanceForm) {
+                            self.groupAppearanceForm.undelegateEvents();
+                            self.$('#groupappearanceform').empty();
+                        }
+
                         // Add license info
                         var text;
                         if (self.group.get('licenserequired')) {
@@ -415,6 +416,7 @@ define([
                             }
                         });
 
+                        console.log("Render backform to", self.groupModel.attributes);
                         self.groupForm.render();
 
                         // The appearance.

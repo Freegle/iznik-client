@@ -61,6 +61,10 @@ class Group extends Entity
                 'TAKEN' => 'TAKEN',
                 'WANTED' => 'WANTED',
                 'RECEIVED' => 'RECEIVED'
+            ], 'reposts' => [
+                'offer' => 2,
+                'wanted' => 14,
+                'max' => 10
             ]
         ];
 
