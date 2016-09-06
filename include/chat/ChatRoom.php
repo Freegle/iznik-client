@@ -314,7 +314,6 @@ class ChatRoom extends Entity
         # Find if we have any unseen messages.  Exclude any pending review.
         $sql = "SELECT COUNT(*) AS count FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?), 0) AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0;";
         $counts = $this->dbhr->preQuery($sql, [ $this->id, $userid, $this->id, $userid  ]);
-        #return(round(rand(1, 10)));
         return($counts[0]['count']);
     }
 

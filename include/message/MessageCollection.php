@@ -73,7 +73,7 @@ class MessageCollection
             # At the moment we only support ordering by arrival DESC.  Note that arrival can either be when this
             # message arrived for the very first time, or when it was reposted.
             $date = ($ctx == NULL || !pres('Date', $ctx)) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
-            $dateq = $ctx == NULL ? ' 1=1 ' : (" (messages_groups.arrival < $date OR messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ") ");
+            $dateq = !$date ? ' 1=1 ' : (" (messages_groups.arrival < $date OR messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ") ");
 
             # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
             # See also Group.

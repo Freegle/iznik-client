@@ -11,6 +11,9 @@ define([
 
         loggedIn: false,
 
+        lastTested: null,
+        testingNow: false,
+
         notificationsSetup: false,
 
         initialize: function () {
@@ -167,229 +170,240 @@ define([
                 console.error("testLoggedIn exception", e.message);
             }
 
-            // Now we may or may not have already triggered, but we still want to refresh our data from the server.  This
-            // means we are loosely up to date.  It also means that if we have been logged out on the server side, we'll
-            // find out.
+            // Now we may or may not have already triggered, but we still want to refresh our data from the server
+            // regularly.  This means we are loosely up to date.  It also means that if we have been logged out on
+            // the server side, we'll find out.
             //
             // We may have a persistent session from local storage which we can use to revive this session if the
             // PHP session has timed out.
-            $.ajax({
-                url: API + 'session',
-                type: 'GET',
-                data: {
-                    persistent: self.get('persistent')
-                },
-                success: function (ret) {
-                    if (ret.ret == 111) {
-                        // Down for maintenance
-                        window.location = '/maintenance_on.html';
-                    } else if ((ret.ret == 0)) {
-                        // Save off the returned session information into local storage.
-                        var now = (new Date()).getTime();
-                        try {
-                            localStorage.setItem('session', JSON.stringify(ret));
+            var now = (new Date()).getTime();
 
-                            // We use this to decide whether to show sign up or sign in.
-                            localStorage.setItem('signedinever', true);
-                        } catch (e) {
+            if (!self.testingNow && (!self.lastTested || now - self.lastTested > 10000)) {
+                self.lastTested = now;
+                self.testingNow = true;
+                console.log("testLoggedIn"); console.trace();
+
+                $.ajax({
+                    url: API + 'session',
+                    type: 'GET',
+                    data: {
+                        persistent: self.get('persistent')
+                    },
+                    success: function (ret) {
+                        if (ret.ret == 111) {
+                            // Down for maintenance
+                            window.location = '/maintenance_on.html';
+                        } else if ((ret.ret == 0)) {
+                            // Save off the returned session information into local storage.
+                            var now = (new Date()).getTime();
+                            try {
+                                localStorage.setItem('session', JSON.stringify(ret));
+
+                                // We use this to decide whether to show sign up or sign in.
+                                localStorage.setItem('signedinever', true);
+                            } catch (e) {
+                            }
+                            self.set(ret);
+
+                            // We get an array of groups back - we want it to be a collection.
+                            self.set('groups', new Iznik.Collection(ret.groups));
+
+                            // We may also get an array of modconfigs.
+                            if (ret.configs) {
+                                self.set('configs', new Iznik.Collection(ret.configs));
+                            }
+
+                            self.loggedIn = true;
+
+                            if (self.testing) {
+                                self.testing = false;
+                                self.trigger('isLoggedIn', true);
+                            }
+
+                            if (Iznik.Session.get('modtools')) {
+                                var admin = Iznik.Session.isAdmin();
+                                var support = Iznik.Session.isAdminOrSupport();
+
+                                // Update our various counts.
+                                var counts = [
+                                    {
+                                        fi: 'pending',
+                                        el: '.js-pendingcount',
+                                        ev: 'pendingcountschanged',
+                                        window: true,
+                                        sound: true
+                                    },
+                                    {
+                                        fi: 'spam',
+                                        el: '.js-spamcount',
+                                        ev: 'spamcountschanged',
+                                        window: true,
+                                        sound: true
+                                    },
+                                    {
+                                        fi: 'pendingother',
+                                        el: '.js-pendingcountother',
+                                        ev: 'pendingcountsotherchanged',
+                                        window: false,
+                                        sound: false
+                                    },
+                                    {
+                                        fi: 'spammembers',
+                                        el: '.js-spammemberscount',
+                                        ev: 'spammembercountschanged',
+                                        window: false,
+                                        sound: false
+                                    },
+                                    {
+                                        fi: 'pendingmembers',
+                                        el: '.js-pendingmemberscount',
+                                        ev: 'pendingmemberscountschanged',
+                                        window: true,
+                                        sound: true
+                                    },
+                                    {
+                                        fi: 'pendingmembersother',
+                                        el: '.js-pendingmemberscountother',
+                                        ev: 'pendingmemberscountsotherchanged',
+                                        window: false,
+                                        sound: false
+                                    },
+                                    {
+                                        fi: 'pendingevents',
+                                        el: '.js-pendingeventscount',
+                                        ev: 'pendingeventscountschanged',
+                                        window: false,
+                                        sound: false
+                                    },
+                                    {
+                                        fi: 'chatreview',
+                                        el: '.js-repliescount',
+                                        ev: 'repliescountschanged',
+                                        window: false,
+                                        sound: false
+                                    },
+                                    {
+                                        fi: 'chatreviewother',
+                                        el: '.js-repliescountother',
+                                        ev: 'repliescountsotherchanged',
+                                        window: false,
+                                        sound: false
+                                    },
+                                    {
+                                        fi: 'socialactions',
+                                        el: '.js-socialactionscount',
+                                        ev: 'socialactionscountschanged',
+                                        window: false,
+                                        sound: false
+                                    },
+                                    {
+                                        fi: 'spammerpendingadd',
+                                        el: '.js-spammerpendingaddcount',
+                                        ev: 'spammerpendingaddcountschanged',
+                                        window: support,
+                                        sound: false
+                                    },
+                                    {
+                                        fi: 'spammerpendingremove',
+                                        el: '.js-spammerpendingremovecount',
+                                        ev: 'spammerpendingremovecountschanged',
+                                        window: admin,
+                                        sound: false
+                                    }
+                                ];
+
+                                var total = 0;
+                                var countschanged = false;
+
+                                _.each(counts, function (count) {
+                                    var countel = $(count.el);
+                                    var currcount = countel.html();
+                                    if (ret.work[count.fi] != currcount) {
+                                        countschanged = true;
+                                    }
+
+                                    if (ret.work[count.fi]) {
+                                        if (count.window) {
+                                            total += ret.work[count.fi];
+                                        }
+
+                                        countel.html(ret.work[count.fi]);
+                                        // console.log("Sound", ret.work[count.fi], currcount, self.playBeep);
+
+                                        if (ret.work[count.fi] > currcount || currcount == 0) {
+                                            // Only trigger this when the counts increase.  This will pick up new messages
+                                            // without screen flicker due to re-rendering when we're processing messages and
+                                            // deleting them.  There's a minor timing window where a message could arrive as
+                                            // one is deleted, leaving the counts the same, but this will resolve itself when
+                                            // our current count drops to zero, or worst case when we refresh.
+                                            Iznik.Session.trigger(count.ev);
+
+                                            if (ret.work[count.fi] > 0 && count.sound) {
+                                                var settings = Iznik.Session.get('me').settings;
+
+                                                if (presdef('playbeep', settings, 1) && self.playBeep) {
+                                                    var sound = new Audio("/sounds/alert.wav");
+                                                    try {
+                                                        // Some browsers prevent us using play unless in response to a
+                                                        // user gesture, so catch any exception.
+                                                        sound.play();
+                                                    } catch (e) {}
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        $(count.el).empty();
+                                    }
+                                })
+
+                                document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
+
+                                if (countschanged) {
+                                    Iznik.Session.trigger('countschanged');
+                                }
+                            }
+                        } else {
+                            try {
+                                var sess = localStorage.getItem('session');
+
+                                if (sess && ret.ret == 1) {
+                                    // We thought we were logged in but we're not.  Clear our local storage and reload.
+                                    // This will look slightly odd but means that the mainline case of still being logged
+                                    // in is handled more quickly.
+                                    try {
+                                        localStorage.removeItem('session');
+                                    } catch (e) {
+                                    }
+                                    window.location.reload();
+                                } else {
+                                    // We're not logged in.
+                                    self.loggedIn = false;
+
+                                    if (self.testing) {
+                                        self.testing = false;
+                                        self.trigger('isLoggedIn', false);
+                                    }
+                                }
+                            } catch (e) {
+                            }
+
+                            // We're not logged in
                         }
-                        self.set(ret);
-
-                        // We get an array of groups back - we want it to be a collection.
-                        self.set('groups', new Iznik.Collection(ret.groups));
-
-                        // We may also get an array of modconfigs.
-                        if (ret.configs) {
-                            self.set('configs', new Iznik.Collection(ret.configs));
-                        }
-
-                        self.loggedIn = true;
+                    },
+                    error: function () {
+                        console.log("Get settings failed");
+                        self.loggedIn = false;
 
                         if (self.testing) {
                             self.testing = false;
-                            self.trigger('isLoggedIn', true);
+                            self.trigger('isLoggedIn', false);
                         }
-
-                        if (Iznik.Session.get('modtools')) {
-                            var admin = Iznik.Session.isAdmin();
-                            var support = Iznik.Session.isAdminOrSupport();
-
-                            // Update our various counts.
-                            var counts = [
-                                {
-                                    fi: 'pending',
-                                    el: '.js-pendingcount',
-                                    ev: 'pendingcountschanged',
-                                    window: true,
-                                    sound: true
-                                },
-                                {
-                                    fi: 'spam',
-                                    el: '.js-spamcount',
-                                    ev: 'spamcountschanged',
-                                    window: true,
-                                    sound: true
-                                },
-                                {
-                                    fi: 'pendingother',
-                                    el: '.js-pendingcountother',
-                                    ev: 'pendingcountsotherchanged',
-                                    window: false,
-                                    sound: false
-                                },
-                                {
-                                    fi: 'spammembers',
-                                    el: '.js-spammemberscount',
-                                    ev: 'spammembercountschanged',
-                                    window: false,
-                                    sound: false
-                                },
-                                {
-                                    fi: 'pendingmembers',
-                                    el: '.js-pendingmemberscount',
-                                    ev: 'pendingmemberscountschanged',
-                                    window: true,
-                                    sound: true
-                                },
-                                {
-                                    fi: 'pendingmembersother',
-                                    el: '.js-pendingmemberscountother',
-                                    ev: 'pendingmemberscountsotherchanged',
-                                    window: false,
-                                    sound: false
-                                },
-                                {
-                                    fi: 'pendingevents',
-                                    el: '.js-pendingeventscount',
-                                    ev: 'pendingeventscountschanged',
-                                    window: false,
-                                    sound: false
-                                },
-                                {
-                                    fi: 'chatreview',
-                                    el: '.js-repliescount',
-                                    ev: 'repliescountschanged',
-                                    window: false,
-                                    sound: false
-                                },
-                                {
-                                    fi: 'chatreviewother',
-                                    el: '.js-repliescountother',
-                                    ev: 'repliescountsotherchanged',
-                                    window: false,
-                                    sound: false
-                                },
-                                {
-                                    fi: 'socialactions',
-                                    el: '.js-socialactionscount',
-                                    ev: 'socialactionscountschanged',
-                                    window: false,
-                                    sound: false
-                                },
-                                {
-                                    fi: 'spammerpendingadd',
-                                    el: '.js-spammerpendingaddcount',
-                                    ev: 'spammerpendingaddcountschanged',
-                                    window: support,
-                                    sound: false
-                                },
-                                {
-                                    fi: 'spammerpendingremove',
-                                    el: '.js-spammerpendingremovecount',
-                                    ev: 'spammerpendingremovecountschanged',
-                                    window: admin,
-                                    sound: false
-                                }
-                            ];
-
-                            var total = 0;
-                            var countschanged = false;
-
-                            _.each(counts, function (count) {
-                                var countel = $(count.el);
-                                var currcount = countel.html();
-                                if (ret.work[count.fi] != currcount) {
-                                    countschanged = true;
-                                }
-
-                                if (ret.work[count.fi]) {
-                                    if (count.window) {
-                                        total += ret.work[count.fi];
-                                    }
-
-                                    countel.html(ret.work[count.fi]);
-                                    // console.log("Sound", ret.work[count.fi], currcount, self.playBeep);
-
-                                    if (ret.work[count.fi] > currcount || currcount == 0) {
-                                        // Only trigger this when the counts increase.  This will pick up new messages
-                                        // without screen flicker due to re-rendering when we're processing messages and
-                                        // deleting them.  There's a minor timing window where a message could arrive as
-                                        // one is deleted, leaving the counts the same, but this will resolve itself when
-                                        // our current count drops to zero, or worst case when we refresh.
-                                        Iznik.Session.trigger(count.ev);
-
-                                        if (ret.work[count.fi] > 0 && count.sound) {
-                                            var settings = Iznik.Session.get('me').settings;
-
-                                            if (presdef('playbeep', settings, 1) && self.playBeep) {
-                                                var sound = new Audio("/sounds/alert.wav");
-                                                try {
-                                                    // Some browsers prevent us using play unless in response to a
-                                                    // user gesture, so catch any exception.
-                                                    sound.play();
-                                                } catch (e) {}
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    $(count.el).empty();
-                                }
-                            })
-
-                            document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
-
-                            if (countschanged) {
-                                Iznik.Session.trigger('countschanged');
-                            }
-                        }
-                    } else {
-                        try {
-                            var sess = localStorage.getItem('session');
-
-                            if (sess && ret.ret == 1) {
-                                // We thought we were logged in but we're not.  Clear our local storage and reload.
-                                // This will look slightly odd but means that the mainline case of still being logged
-                                // in is handled more quickly.
-                                try {
-                                    localStorage.removeItem('session');
-                                } catch (e) {
-                                }
-                                window.location.reload();
-                            } else {
-                                // We're not logged in.
-                                self.loggedIn = false;
-
-                                if (self.testing) {
-                                    self.testing = false;
-                                    self.trigger('isLoggedIn', false);
-                                }
-                            }
-                        } catch (e) {
-                        }
-
-                        // We're not logged in
+                    },
+                    complete: function() {
+                        self.testingNow = false;
                     }
-                },
-                error: function () {
-                    console.log("Get settings failed");
-                    self.loggedIn = false;
-
-                    if (self.testing) {
-                        self.testing = false;
-                        self.trigger('isLoggedIn', false);
-                    }
-                }
-            })
+                });
+            }
         },
 
         forceLogin: function (options) {

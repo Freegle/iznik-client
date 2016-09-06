@@ -1181,7 +1181,6 @@ class Message
             }
         }
 
-        error_log("Check for TN pics in {$this->textbody}");
         if (preg_match_all('/(https:\/\/trashnothing\.com\/pics\/.*)$/m', $this->textbody, $matches)) {
             $urls = [];
             foreach ($matches as $val) {
@@ -1192,7 +1191,6 @@ class Message
 
             $urls = array_unique($urls);
             foreach ($urls as $url) {
-                error_log("Get att at $url");
                 $ctx = stream_context_create(array('http' =>
                     array(
                         'timeout' => 120
