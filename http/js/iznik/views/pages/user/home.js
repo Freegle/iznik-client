@@ -15,7 +15,7 @@ define([
         render: function () {
             var self = this;
 
-            Iznik.Session.askSubscription();
+            // Iznik.Session.askSubscription();
 
             var p = Iznik.Views.Page.prototype.render.call(this, {
                 noSupporters: true
