@@ -261,6 +261,16 @@ class MailRouter
                 ]);
 
                 $ret = MailRouter::TO_SYSTEM;
+            } else if ($replyto && preg_match('/confirm-unsub-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
+                # We have tried to unsubscribe from a group - we need to confirm it.
+                if ($log) { error_log("Confirm unsubscribe"); }
+
+                for ($i = 0; $i < 10; $i++) {
+                    # Yahoo is sluggish - sending the confirm multiple times helps.
+                    $this->mail($replyto, $to, "Yes please", "I confirm this");
+                }
+
+                $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/(.*)-acceptsub(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
                 # This is a notification that a member has applied to the group.
                 #
