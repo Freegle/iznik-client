@@ -270,7 +270,15 @@ define([
         },
 
         showDetails: function() {
-            Router.navigate('/explore/' + this.model.get('id'), true);
+            if (this.model.get('external')) {
+                // External group - open new tab.
+                window.open(this.model.get('external'));
+            } else if (this.model.get('onyahoo') && !this.model.get('onhere')) {
+                // Yahoo group - open new tab.
+                window.open("https://groups.yahoo.com/group/" + this.model.get('nameshort'));
+            } else {
+                Router.navigate('/explore/' + this.model.get('id'), true);
+            }
         }
     });
 
