@@ -1667,9 +1667,7 @@ class Message
             # We can do a simple substitution in the from name.
             $name = str_replace('$groupname', $atts['namedisplay'], $name);
 
-            # TODO Once live
-            #if (ourDomain($to)) {
-            if (strpos($to, USER_DOMAIN) !== FALSE) {
+            if (ourDomain($to)) {
                 # This is a user who we host.  We can therefore send the message via chat.  This is better than
                 # sending it by email and then parsing the email later to work out what we intended to send and
                 # construct a chat message from it :-).
