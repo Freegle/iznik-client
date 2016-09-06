@@ -181,7 +181,7 @@ define([
             if (!self.testingNow && (!self.lastTested || now - self.lastTested > 10000)) {
                 self.lastTested = now;
                 self.testingNow = true;
-                console.log("testLoggedIn"); console.trace();
+                // console.log("testLoggedIn"); console.trace();
 
                 $.ajax({
                     url: API + 'session',
