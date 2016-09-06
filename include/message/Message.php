@@ -1644,7 +1644,28 @@ class Message
             $to = $this->getEnvelopefrom();
             $to = $to ? $to : $this->getFromaddr();
 
-            $mailit = FALSE;
+            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $atts = $g->getPublic();
+
+            # Find who to send it from.  If we have a config to use for this group then it will tell us.
+            $name = $me->getName();
+            $c = new ModConfig($this->dbhr, $this->dbhm);
+            $cid = $c->getForGroup($me->getId(), $groupid);
+            $c = new ModConfig($this->dbhr, $this->dbhm, $cid);
+            $fromname = $c->getPrivate('fromname');
+
+            $bcc = $c->getBcc($action);
+
+            if ($bcc) {
+                $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
+            }
+
+            if ($fromname == 'Groupname Moderator') {
+                $name = '$groupname Moderator';
+            }
+
+            # We can do a simple substitution in the from name.
+            $name = str_replace('$groupname', $atts['namedisplay'], $name);
 
             # TODO Once live
             #if (ourDomain($to)) {
@@ -1652,6 +1673,7 @@ class Message
                 # This is a user who we host.  We can therefore send the message via chat.  This is better than
                 # sending it by email and then parsing the email later to work out what we intended to send and
                 # construct a chat message from it :-).
+                $cconly = TRUE;
                 $r = new ChatRoom($this->dbhr, $this->dbhm);
                 $rid = $r->createUser2Mod($this->getFromuser(), $groupid);
 
@@ -1664,32 +1686,11 @@ class Message
                         $this->id,
                         FALSE,
                         NULL);
+
+                    $this->mailer($me, TRUE, $this->getFromname(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to a Freegle Direct user via chat.)\n\n" . $body);
                 }
             } else {
                 # For other users, we send the message out by mail.
-                $g = new Group($this->dbhr, $this->dbhm, $groupid);
-                $atts = $g->getPublic();
-
-                # Find who to send it from.  If we have a config to use for this group then it will tell us.
-                $name = $me->getName();
-                $c = new ModConfig($this->dbhr, $this->dbhm);
-                $cid = $c->getForGroup($me->getId(), $groupid);
-                $c = new ModConfig($this->dbhr, $this->dbhm, $cid);
-                $fromname = $c->getPrivate('fromname');
-
-                if ($fromname == 'Groupname Moderator') {
-                    $name = '$groupname Moderator';
-                }
-
-                # We can do a simple substitution in the from name.
-                $name = str_replace('$groupname', $atts['namedisplay'], $name);
-
-                $bcc = $c->getBcc($action);
-
-                if ($bcc) {
-                    $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
-                }
-
                 $this->mailer($me, TRUE, $this->getFromname(), $to, $bcc, $name, $g->getModsEmail(), $subject, $body);
             }
         }
