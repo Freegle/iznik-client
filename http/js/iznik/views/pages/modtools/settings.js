@@ -416,7 +416,6 @@ define([
                             }
                         });
 
-                        console.log("Render backform to", self.groupModel.attributes);
                         self.groupForm.render();
 
                         // The appearance.
@@ -450,13 +449,14 @@ define([
                             showRemove: false
                         });
 
-                        // Upload as soon as photos have been resized.
-                        self.$('.js-profileupload').on('fileimagesresized', function(event) {
+                        // Upload as soon as we have it.
+                        self.$('.js-profileupload').on('fileloaded', function(event) {
                             self.$('.js-profileupload').fileinput('upload');
                         });
 
                         // Watch for all uploaded
                         self.$('.js-profileupload').on('fileuploaded', function(event, data) {
+                            console.log("Uploaded");
                             self.group.set('profile', data.response.id);
                             self.group.save({
                                 id: self.group.get('id'),
@@ -512,7 +512,6 @@ define([
 
                         // Add Twitter info.  Won't show for groups it shouldn't.
                         var twitter = self.group.get('twitter');
-                        console.log("Got twitter info", self.group, twitter);
 
                         self.$('.js-twitter').hide();
 
@@ -535,7 +534,6 @@ define([
 
                         // Add Facebook info.  Won't show for groups it shouldn't.
                         var facebook = self.group.get('facebook');
-                        console.log("Got facebook info", self.group, facebook);
 
                         if (facebook) {
                             self.$('.js-facebookname').html(facebook.name);
