@@ -741,22 +741,25 @@ define([
                         console.log("NameToId", nameToId);
                         console.log("Session", Iznik.Session);
     
-                        // If we're a mod on the server but not on Yahoo, then we need to demote ourselves.
-                        _.each(yahooMissing, function(demote) {
-                            $.ajax({
-                                url: API + 'memberships',
-                                type: 'POST',
-                                headers: {
-                                    'X-HTTP-Method-Override': 'PATCH'
-                                },
-                                data: {
-                                    userid: Iznik.Session.get('me').id,
-                                    groupid: nameToId[demote],
-                                    role: 'Member'
-                                }
-                            })
-                        });
-    
+                        // If we're a mod on the server but not on Yahoo, then we need to demote ourselves.  But
+                        // doing this might cause us to lose groups if we log in with multiple Yahoo IDs.  So we
+                        // should only do this if we are sure.  It'll get picked up on the next member sync anyway
+                        // so it's not vital.  TODO
+                        // _.each(yahooMissing, function(demote) {
+                        //     $.ajax({
+                        //         url: API + 'memberships',
+                        //         type: 'POST',
+                        //         headers: {
+                        //             'X-HTTP-Method-Override': 'PATCH'
+                        //         },
+                        //         data: {
+                        //             userid: Iznik.Session.get('me').id,
+                        //             groupid: nameToId[demote],
+                        //             role: 'Member'
+                        //         }
+                        //     })
+                        // });
+
                         if (!self.confirmedMod) {
                             // If we're a mod on Yahoo but not on the server, and it's a group the server knows about,
                             // then we need to prove to the server that we're a mod so that we can auto-add it to
