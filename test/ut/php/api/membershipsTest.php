@@ -896,7 +896,7 @@ class membershipsAPITest extends IznikAPITestCase {
     public function testLarge() {
         error_log(__METHOD__);
 
-        $size = 30000;
+        $size = 1000;
 
         assertTrue($this->user->login('testpw'));
         assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_OWNER));

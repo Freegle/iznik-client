@@ -81,6 +81,7 @@ class RelevantTest extends IznikTestCase
         $g->setPrivate('lat', 8.53333);
         $g->setPrivate('lng', 179.2167);
         $g->setPrivate('poly', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.21 8.54, 179.21 8.53))');
+        $g->setPrivate('onhere', 1);
         $r = new MailRouter($this->dbhr, $this->dbhm);
 
         $msg = $this->unique(file_get_contents('msgs/basic'));

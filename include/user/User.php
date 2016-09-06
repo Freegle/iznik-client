@@ -259,7 +259,7 @@ class User extends Entity
     }
 
     public function isApprovedMember($groupid) {
-        $membs = $this->dbhr->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ?;", [ $this->id, $groupid ]);
+        $membs = $this->dbhr->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ? AND collection = 'Approved';", [ $this->id, $groupid ]);
         return(count($membs) > 0);
     }
 

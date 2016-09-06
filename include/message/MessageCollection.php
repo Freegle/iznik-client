@@ -163,13 +163,15 @@ class MessageCollection
                         $g = new Group($this->dbhr, $this->dbhm, $groupid);
                         $atts = $g->getPublic();
 
-                        # For Freegle groups, we can see the message even if not a member as long as we have publish
-                        # consent for the sender.
-                        #
-                        # For other groups using ModTools, that isn't true, and we don't even want to return the
-                        # information that there was a match on this group.
-                        if (($role == User::ROLE_MEMBER || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) ||
-                            ($atts['type'] == Group::GROUP_FREEGLE && $publishconsent)
+                        # We can see messages if:
+                        # - we're a mod or an owner
+                        # - for Freegle groups which use this platform
+                        #   - we're a member, or
+                        #   - we have publish consent
+                        if ($role == User::ROLE_MODERATOR ||
+                            $role == User::ROLE_OWNER ||
+                            ($atts['type'] == Group::GROUP_FREEGLE && $g->getPrivate('onhere') &&
+                              ($publishconsent || $role == User::ROLE_MEMBER))
                         ) {
                             $groups[$groupid] = $g->getPublic();
                         }

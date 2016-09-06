@@ -315,13 +315,14 @@ function message() {
                                     # Now we have a user and an email.  We need to make sure they're a member of the
                                     # group in question, with an email address we host (so that replies come back here).
                                     list ($eidforgroup, $emailforgroup) = $u->getEmailForYahooGroup($groupid, TRUE);
-                                    
+
                                     $ret = ['ret' => 6, 'status' => 'Failed to join group'];
                                     $rc = true;
 
-                                    if (!$eidforgroup) {
+                                    if (!$eidforgroup || !$u->isApprovedMember($groupid)) {
                                         # Not a member yet.  We need to sign them up to the Yahoo group before we
-                                        # can send it.
+                                        # can send it.  This may result in more applications to Yahoo - but dups are
+                                        # ok.
                                         $m->constructSubject();
                                         $ret = [
                                             'ret' => 0,

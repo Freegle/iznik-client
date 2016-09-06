@@ -60,9 +60,14 @@ define([
             navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this));
         },
 
-        changeHomeGroup: function() {
+        changeHomeGroup: function(val) {
+            // If we weren't passed one, then this is the event and we pick up the current value.
+            if (!val) {
+                val = this.$('.js-homegroup select').val();
+            }
+
             try {
-                localStorage.setItem('myhomegroup', this.$('.js-homegroup select').val());
+                localStorage.setItem('myhomegroup', val);
             } catch (e) {}
         },
 
@@ -115,7 +120,6 @@ define([
                 self.$('.js-closestgroupname').html(first.namedisplay);
 
                 if (!first.onhere) {
-                    // We don't host this group.
                     if (first.external) {
                         // Hosted externally on a different site.
                         self.$('.js-toexternal').attr('href', first.external);
@@ -178,6 +182,7 @@ define([
                     // We have some groups near their chosen location.
                     var homegroup = null;
                     var homegroupfound = false;
+                    var firstonhere = null;
 
                     try {
                         homegroup = localStorage.getItem('myhomegroup');
@@ -189,14 +194,21 @@ define([
                         if (homegroup == groupnear.id) {
                             homegroupfound = true;
                         }
+
+                        if (!firstonhere && groupnear.onhere) {
+                            firstonhere = groupnear.id;
+                        }
                         groups.append('<option value="' + groupnear.id + '" />');
                         groups.find('option:last').text(groupnear.namedisplay);
                     });
 
                     if (homegroupfound) {
                         groups.val(homegroup);
+                    } else if (firstonhere) {
+                        // Record our home group as the closest group we found which is on the platform
+                        self.changeHomeGroup(firstonhere);
                     } else {
-                        self.changeHomeGroup();
+                        self.changeHomeGroup(self.$('.js-homegroup select').val());
                     }
 
                     self.changeGroup();
@@ -209,6 +221,19 @@ define([
                 self.$('.js-homegroup').hide();
                 if (self.groupsnear) {
                     self.changeGroup();
+                }
+
+                // And record our home group as the closest group we found on the platform.
+                var firstonhere = null;
+                _.each(self.groupsnear, function(groupnear) {
+                    if (!firstonhere && groupnear.onhere) {
+                        console.log("Got on here", groupnear);
+                        firstonhere = groupnear.id;
+                    }
+                });
+
+                if (firstonhere) {
+                    self.changeHomeGroup(firstonhere);
                 }
             }
         },

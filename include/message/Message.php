@@ -1202,7 +1202,7 @@ class Message
                 if ($data) {
                     # Now get the link to the actual images.
                     $doc = new DOMDocument();
-                    $doc->loadHTML($data);
+                    @$doc->loadHTML($data);
                     $imgs = $doc->getElementsByTagName('img');
 
                     /* @var DOMNodeList $imgs */

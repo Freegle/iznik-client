@@ -40,6 +40,7 @@ class messagesTest extends IznikAPITestCase {
 
         $g = new Group($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $g->setPrivate('onhere', 1);
 
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -441,6 +442,7 @@ class messagesTest extends IznikAPITestCase {
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.4);
         $g->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $g->setPrivate('onhere', 1);
 
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents('msgs/basic'));
