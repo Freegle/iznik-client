@@ -35,7 +35,6 @@ define([
             self.$('.js-description').removeClass('error-border');
 
             // We accept either a photo or a description.
-            console.log("checkNext", self.uploading, item, self.$('.js-description').val().length, self.photos.length );
             if (self.uploading || item.length == 0) {
                 self.$('.bootstrap-tagsinput').addClass('error-border');
                 self.$('.js-next').fadeOut('slow');
@@ -156,7 +155,7 @@ define([
                     freeInput: true,
                     trimValue: true,
                     tagClass: 'label-primary',
-                    confirmKeys: [9, 13],
+                    confirmKeys: [13],
                     typeaheadjs: {
                         name: 'items',
                         source: self.itemSource
