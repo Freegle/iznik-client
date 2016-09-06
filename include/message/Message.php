@@ -1133,6 +1133,7 @@ class Message
         # Trash Nothing sends attachments too, but just as links - get those.
         #
         # - links to flic.kr, for groups which for some reason don't like images hosted on TN
+        # - links to TN itself
         if (preg_match_all('/(http:\/\/flic\.kr.*)$/m', $this->textbody, $matches)) {
             $urls = [];
             foreach ($matches as $val) {
@@ -1143,7 +1144,6 @@ class Message
 
             $urls = array_unique($urls);
             foreach ($urls as $url) {
-                error_log("Get att at $url");
                 $ctx = stream_context_create(array('http' =>
                     array(
                         'timeout' => 120
@@ -1180,7 +1180,63 @@ class Message
                 }
             }
         }
-        
+
+        error_log("Check for TN pics in {$this->textbody}");
+        if (preg_match_all('/(https:\/\/trashnothing\.com\/pics\/.*)$/m', $this->textbody, $matches)) {
+            $urls = [];
+            foreach ($matches as $val) {
+                foreach ($val as $url) {
+                    $urls[] = $url;
+                }
+            }
+
+            $urls = array_unique($urls);
+            foreach ($urls as $url) {
+                error_log("Get att at $url");
+                $ctx = stream_context_create(array('http' =>
+                    array(
+                        'timeout' => 120
+                    )
+                ));
+
+                $data = @file_get_contents($url, false, $ctx);
+
+                if ($data) {
+                    # Now get the link to the actual images.
+                    $doc = new DOMDocument();
+                    $doc->loadHTML($data);
+                    $imgs = $doc->getElementsByTagName('img');
+
+                    /* @var DOMNodeList $imgs */
+                    foreach ($imgs as $img) {
+                        $src = $img->getAttribute('src');
+                        if (strpos($src, '/img/') !== FALSE) {
+                            $ctx = stream_context_create(array('http' =>
+                                array(
+                                    'timeout' => 120
+                                )
+                            ));
+
+                            $data = @file_get_contents($src, false, $ctx);
+
+                            if ($data) {
+                                # Try to convert to an image.  If it's not an image, this will fail.
+                                $img = new Image($data);
+
+                                if ($img->img) {
+                                    $newdata = $img->getData(100);
+
+                                    if ($newdata && $img->width() > 50 && $img->height() > 50) {
+                                        $this->inlineimgs[] = $newdata;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         # If this is a reuse group, we need to determine the type.
         $g = new Group($this->dbhr, $this->dbhm, $this->groupid);
         if ($g->getPrivate('type') == Group::GROUP_FREEGLE ||

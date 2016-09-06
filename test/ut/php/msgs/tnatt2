@@ -61,8 +61,8 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: base64
 Content-Type: text/plain; charset="UTF-8"
 
-VGVzdCB0byBwaG90b3MKClBob3RvczoKaHR0cDovL2ZsaWMua3IvcC9MRDJva1MKaHR0cDovL2Zs
-aWMua3IvcC9MRlpSWlY=
+VGVzdCBjaGFpcgoKQ2hlY2sgb3V0IHRoZSBwaWN0dXJlcyBhdDoKaHR0cHM6Ly90cmFzaG5vdGhp
+bmcuY29tL3BpY3MvMTM2NzA2
 
 
 --===============8922245711726592217==
@@ -70,11 +70,9 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: base64
 Content-Type: text/html; charset="UTF-8"
 
-VGVzdCB0byBwaG90b3M8YnIgLz48YnIgLz5QaG90b3M6PGJyIC8+PGEgaHJlZj0iaHR0cDovL2Zs
-aWMua3IvcC9MRDJva1MiIHJlbD0ibm9mb2xsb3ciIHN0eWxlPSIiPmh0dHA6Ly9mbGljLmtyL3Av
-TEQyb2tTPC9hPjxiciAvPjxhIGhyZWY9Imh0dHA6Ly9mbGljLmtyL3AvTEZaUlpWIiByZWw9Im5v
-Zm9sbG93IiBzdHlsZT0iIj5odHRwOi8vZmxpYy5rci9wL0xGWlJaVjwvYT4=
-
+VGVzdCBjaGFpcjxiciAvPjxiciAvPkNoZWNrIG91dCB0aGUgcGljdHVyZXMgYXQ6PGJyIC8+PGEg
+aHJlZj0iaHR0cHM6Ly90cmFzaG5vdGhpbmcuY29tL3BpY3MvMTM2NzA2IiByZWw9Im5vZm9sbG93
+IiBzdHlsZT0iIj5odHRwczovL3RyYXNobm90aGluZy5jb20vcGljcy8xMzY3MDY8L2E+
 
 
 --===============8922245711726592217==--

@@ -459,6 +459,14 @@ And something after it.', $stripped);
         assertEquals(1, count($atts));
         $m->delete();
 
+        $msg = $this->unique(file_get_contents('msgs/tnatt2'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->save();
+        $atts = $m->getAttachments();
+        assertEquals(1, count($atts));
+        $m->delete();
+
         error_log(__METHOD__ . " end");
     }
 
