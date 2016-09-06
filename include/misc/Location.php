@@ -504,6 +504,29 @@ class Location extends Entity
             $rc = $this->dbhm->preExec("UPDATE locations SET maxdimension = GetMaxDimension(ourgeometry), lat = Y(GetCenterPoint(ourgeometry)), lng = X(GetCenterPoint(ourgeometry)) WHERE id = {$this->id};", [$val]);
 
             if ($rc) {
+                # We might have postcodes which should now map to this new area rather than wherever they mapped
+                # previously.
+                $g = new geoPHP();
+                $p = $g->load($val);
+                $bbox = $p->getBBox();
+                #error_log("Bounding box " . var_export($bbox, TRUE));
+
+                # We need to decide which postcodes to scan.  Choose a slightly arbitrary larger box.
+                $swlat = $bbox['miny'] - 0.01;
+                $nelat = $bbox['maxy'] + 0.01;
+                $swlng = $bbox['minx'] - 0.01;
+                $nelng = $bbox['maxx'] + 0.01;
+
+                $sql = "SELECT * FROM locations WHERE $swlat <= lat AND lat <= $nelat AND $swlng <= lng AND lng <= $nelng AND type = 'Postcode' AND LOCATE(' ', name) > 0;";
+                #error_log("Find postcodes for new location $sql");
+                $locs = $this->dbhr->preQuery($sql);
+                foreach ($locs as $loc) {
+                    if ($loc['id'] != $this->id) {
+                        #error_log("Re-evaluate {$loc['id']} {$loc['name']}");
+                        $this->setParents($loc['id'], $this->loc['gridid'], 1, $this->id);
+                    }
+                }
+
                 $this->fetch($this->dbhr, $this->dbhm, $this->id, 'locations', 'loc', $this->publicatts);
             }
         }
