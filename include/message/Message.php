@@ -424,6 +424,7 @@ class Message
             $text = preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/\d*/', '', $text);
             $text = preg_replace('/You can see photos here[\s\S]*jpg/m', '', $text);
             $text = preg_replace('/https:\/\/direct.*jpg/m', '', $text);
+            $text = preg_replace('/Photos\:[\s\S]*?jpg/', '', $text);
 
             // FOPs
             $text = preg_replace('/Fair Offer Policy applies \(see https:\/\/[\s\S]*\)/', '', $text);
@@ -1120,6 +1121,56 @@ class Message
             }
         }
 
+        # Trash Nothing sends attachments too, but just as links - get those.
+        #
+        # - links to flic.kr, for groups which for some reason don't like images hosted on TN
+        if (preg_match_all('/(http:\/\/flic\.kr.*)$/m', $this->textbody, $matches)) {
+            $urls = [];
+            foreach ($matches as $val) {
+                foreach ($val as $url) {
+                    $urls[] = $url;
+                }
+            }
+
+            $urls = array_unique($urls);
+            foreach ($urls as $url) {
+                $ctx = stream_context_create(array('http' =>
+                    array(
+                        'timeout' => 120
+                    )
+                ));
+
+                $data = @file_get_contents($url, false, $ctx);
+
+                if ($data) {
+                    # Now get the link to the actual image.  DOMDocument chokes on the HTML so do it the dirty way.
+                    if (preg_match('#<meta property="og:image" content="(.*)"  data-dynamic="true">#', $data, $matches)) {
+                        $imgurl = $matches[1];
+                        $ctx = stream_context_create(array('http' =>
+                            array(
+                                'timeout' => 120
+                            )
+                        ));
+
+                        $data = @file_get_contents($imgurl, false, $ctx);
+
+                        if ($data) {
+                            # Try to convert to an image.  If it's not an image, this will fail.
+                            $img = new Image($data);
+
+                            if ($img->img) {
+                                $newdata = $img->getData(100);
+
+                                if ($newdata && $img->width() > 50 && $img->height() > 50) {
+                                    $this->inlineimgs[] = $newdata;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         # If this is a reuse group, we need to determine the type.
         $g = new Group($this->dbhr, $this->dbhm, $this->groupid);
         if ($g->getPrivate('type') == Group::GROUP_FREEGLE ||

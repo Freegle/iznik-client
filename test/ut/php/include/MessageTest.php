@@ -448,6 +448,20 @@ And something after it.', $stripped);
         error_log(__METHOD__ . " end");
     }
 
+    public function testTN() {
+        error_log(__METHOD__);
+
+        $msg = $this->unique(file_get_contents('msgs/tnatt1'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->save();
+        $atts = $m->getAttachments();
+        assertEquals(1, count($atts));
+        $m->delete();
+
+        error_log(__METHOD__ . " end");
+    }
+
     // For manual testing
 //    public function testSpecial() {
 //        error_log(__METHOD__);
