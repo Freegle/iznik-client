@@ -111,4 +111,17 @@ define([
             return(msgs);
         }
     });
+
+    Iznik.Collections.Chat.Report = Iznik.Collection.extend({
+        url: API + 'chatmessages',
+
+        model: Iznik.Models.Chat.Message,
+
+        comparator: 'id',
+
+        parse: function(ret) {
+            var msgs = ret.chatmeports;
+            return(msgs);
+        }
+    });
 });
