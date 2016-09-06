@@ -18,7 +18,7 @@ require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 class User extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'publishconsent', 'ripaconsent');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';

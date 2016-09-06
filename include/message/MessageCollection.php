@@ -143,6 +143,12 @@ class MessageCollection
         # message API call.
         foreach ($msglist as $msg) {
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
+            $public = $m->getPublic(TRUE, TRUE);
+
+            # See if we have consent to publish this message to non-members.  This is a Freegle function, and depends
+            # on the setting of the sender.  We need to check this otherwise we are in breach of Yahoo's Terms of
+            # Service.
+            $publishconsent = $public['publishconsent'];
 
             $type = $m->getType();
             if (!$messagetype || $type == $messagetype) {
@@ -157,11 +163,13 @@ class MessageCollection
                         $g = new Group($this->dbhr, $this->dbhm, $groupid);
                         $atts = $g->getPublic();
 
-                        # For Freegle groups, we can see the message even if not a member.  For other groups using ModTools,
-                        # that isn't true, and we don't even want to return the information that there was a match on
-                        # this group.
+                        # For Freegle groups, we can see the message even if not a member as long as we have publish
+                        # consent for the sender.
+                        #
+                        # For other groups using ModTools, that isn't true, and we don't even want to return the
+                        # information that there was a match on this group.
                         if (($role == User::ROLE_MEMBER || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) ||
-                            ($atts['type'] == Group::GROUP_FREEGLE)
+                            ($atts['type'] == Group::GROUP_FREEGLE && $publishconsent)
                         ) {
                             $groups[$groupid] = $g->getPublic();
                         }
@@ -176,14 +184,14 @@ class MessageCollection
                         case MessageCollection::QUEUED_YAHOO_USER:
                             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                                 # Only visible to moderators or owners, or self (which returns a role of moderator).
-                                $n = $m->getPublic(TRUE, TRUE);
+                                $n = $public;
                                 unset($n['message']);
                                 $msgs[] = $n;
                                 $limit--;
                             }
                             break;
                         case MessageCollection::APPROVED:
-                            $n = $m->getPublic(TRUE, TRUE);
+                            $n = $public;
                             unset($n['message']);
                             $n['matchedon'] = presdef('matchedon', $msg, NULL);
                             $msgs[] = $n;
@@ -193,7 +201,7 @@ class MessageCollection
                         case MessageCollection::REJECTED:
                             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                                 # Only visible to moderators or owners
-                                $n = $m->getPublic(TRUE, TRUE);
+                                $n = $public;
                                 unset($n['message']);
                                 $n['matchedon'] = presdef('matchedon', $msg, NULL);
                                 $msgs[] = $n;
@@ -203,7 +211,7 @@ class MessageCollection
                         case MessageCollection::SPAM:
                             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                                 # Only visible to moderators or owners
-                                $n = $m->getPublic(TRUE, TRUE);
+                                $n = $public;
                                 unset($n['message']);
                                 $n['matchedon'] = presdef('matchedon', $msg, NULL);
                                 $msgs[] = $n;

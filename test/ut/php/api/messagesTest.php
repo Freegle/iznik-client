@@ -54,11 +54,22 @@ class messagesTest extends IznikAPITestCase {
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::APPROVED);
         $a = new Message($this->dbhr, $this->dbhm, $id);
 
-        # Should be able to see this message even logged out, as this is a Freegle group.
+        # Should be able to see this message even logged out, as this is a Freegle group...once we have consent.
         $ret = $this->call('messages', 'GET', [
             'groupid' => $group1
         ]);
-        error_log("Get when logged out " . var_export($ret, true));
+        error_log("Get when logged out but no permission" . var_export($ret, true));
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(0, count($msgs));
+
+        $sender = new User($this->dbhr, $this->dbhm, $a->getFromuser());
+        $sender->setPrivate('publishconsent', 1);
+
+        $ret = $this->call('messages', 'GET', [
+            'groupid' => $group1
+        ]);
+        error_log("Get when logged out with permission" . var_export($ret, true));
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         assertEquals(1, count($msgs));
@@ -440,6 +451,11 @@ class messagesTest extends IznikAPITestCase {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         error_log("Approved id $id");
+
+        # Ensure we have consent to see this message
+        $a = new Message($this->dbhr, $this->dbhm, $id);
+        $sender = new User($this->dbhr, $this->dbhm, $a->getFromuser());
+        $sender->setPrivate('publishconsent', 1);
 
         $l = new Location($this->dbhr, $this->dbhm);
         $lid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');

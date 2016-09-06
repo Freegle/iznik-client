@@ -595,18 +595,27 @@ class Message
             $ret['fromcountry'] = code_to_country($ret['fromcountry']);
         }
 
-        if (pres('fromuser', $ret)) {
-            $u = new User($this->dbhr, $this->dbhm, $ret['fromuser']);
+        $ret['publishconsent'] = FALSE;
 
-            # Get the user details, relative to the groups this message appears on.
-            $ret['fromuser'] = $u->getPublic($this->getGroups(), $messagehistory, FALSE);
+        if ($this->fromuser) {
+            # We know who sent this.  We may be able to return this (depending on the role we have for the message
+            # and hence the attributes we have already filled in).  We also want to know if we have consent
+            # to republish it.
+            $u = new User($this->dbhr, $this->dbhm, $this->fromuser);
 
-            if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
-                # We can see their emails.
-                $ret['fromuser']['emails'] = $u->getEmails();
+            if (pres('fromuser', $ret)) {
+                # Get the user details, relative to the groups this message appears on.
+                $ret['fromuser'] = $u->getPublic($this->getGroups(), $messagehistory, FALSE);
+
+                if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
+                    # We can see their emails.
+                    $ret['fromuser']['emails'] = $u->getEmails();
+                }
+
+                filterResult($ret['fromuser']);
             }
 
-            filterResult($ret['fromuser']);
+            $ret['publishconsent'] = $u->getPrivate('publishconsent');
         }
 
         if ($related) {
@@ -1134,6 +1143,7 @@ class Message
 
             $urls = array_unique($urls);
             foreach ($urls as $url) {
+                error_log("Get att at $url");
                 $ctx = stream_context_create(array('http' =>
                     array(
                         'timeout' => 120

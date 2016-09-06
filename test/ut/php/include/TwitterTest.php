@@ -67,6 +67,11 @@ class twitterTest extends IznikTestCase {
         assertEquals(MailRouter::APPROVED, $rc);
         error_log("Approved message id $id");
 
+        # Ensure we have consent to see this message
+        $a = new Message($this->dbhr, $this->dbhm, $id);
+        $sender = new User($this->dbhr, $this->dbhm, $a->getFromuser());
+        $sender->setPrivate('publishconsent', 1);
+
         $t = new Twitter($this->dbhr, $this->dbhm, $gid);
 
         # Fake message onto group.
