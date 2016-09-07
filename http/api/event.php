@@ -35,7 +35,8 @@ function event() {
 
                 # The client shouldn't send us more than this; if it does, then something's wrong, so just quietly
                 # drop the data rather than attempt to process something which might be huge.
-                if (count($events) < 1000) {
+                # TODO Too expensive - hack out.
+                if (count($events) < 0) {
                     foreach ($events as $event) {
                         $route = presdef('route', $event, NULL);
                         $target = presdef('target', $event, NULL);

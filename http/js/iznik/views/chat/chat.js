@@ -632,7 +632,7 @@ define([
             this.model.set('unseen', 0);
 
             // Tell the server now, in case they navigate away before the next roster timer.
-            self.updateRoster(self.statusWithOverride('Online'), self.noop);
+            self.updateRoster(self.statusWithOverride('Online'), self.noop, true);
 
             // New messages are in bold - keep them so for a few seconds, to make it easy to see new stuff,
             // then revert.
@@ -870,7 +870,7 @@ define([
             this.updateRoster(status, this.noop);
         },
 
-        updateRoster: function(status, callback) {
+        updateRoster: function(status, callback, force) {
             var self = this;
 
             // We make sure we don't update the server too often unless the status changes, whatever the user
@@ -882,7 +882,7 @@ define([
                 // There's no real need to tell the server that we're in Away status - it will time us out into
                 // that anyway.  This saves a lot of update calls in the case where we're loading the page
                 // and minimising many chats, e.g. if we're a mod on many groups.
-            } else if (status != self.rosterUpdatedStatus || now - self.rosterUpdatedAt > 25000) {
+            } else if (force || status != self.rosterUpdatedStatus || now - self.rosterUpdatedAt > 25000) {
                 // console.log("Issue roster update");
                 $.ajax({
                     url: API + 'chat/rooms/' + self.model.get('id'),

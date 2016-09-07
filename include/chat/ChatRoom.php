@@ -359,6 +359,16 @@ class ChatRoom extends Entity
             }
 
             if ($cansee) {
+                # We also don't want to see chats where all the messages are held for review, because they are likely to
+                # be spam.
+                $unheld = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 AND reviewrejected = 0 LIMIT 1;", [
+                    $room['id']
+                ]);
+
+                $cansee = count($unheld) > 0;
+            }
+
+            if ($cansee) {
                 $show = TRUE;
 
                 if ($room['groupid']) {

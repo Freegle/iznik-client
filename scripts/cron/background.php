@@ -64,6 +64,7 @@ try {
                 $rc = $dbhm->exec($sql, FALSE);
             } catch (Exception $e) {
                 # Something awry in this batch.  Do them one by one to reduce the number we lose.
+                error_log("Batch failed, one at a time");
                 foreach ($sqls as $sql) {
                     try {
                         $dbhm->exec($sql, FALSE);
@@ -83,7 +84,7 @@ try {
 
             if (count($sqls) < 5) {
                 # We didn't get many.  Sleep a bit to let them build up.
-                #error_log("Not many - sleep");
+                error_log("Not many - sleep");
                 sleep(1);
             }
         }
