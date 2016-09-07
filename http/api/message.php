@@ -274,7 +274,7 @@ function message() {
                             if (defined('USER_GROUP_OVERRIDE') && !pres('ignoregroupoverride', $_REQUEST)) {
                                 # We're in testing mode
                                 $g = new Group($dbhr, $dbhm);
-                                $nears = [ $g->findByShortName(USER_GROUP_OVERRIDE)];
+                                $nears = [ $g->findByShortName(USER_GROUP_OVERRIDE) ];
                             }
                             // @codeCoverageIgnoreEnd
 
@@ -323,7 +323,7 @@ function message() {
                                         # Not a member yet.  We need to sign them up to the Yahoo group before we
                                         # can send it.  This may result in more applications to Yahoo - but dups are
                                         # ok.
-                                        $m->constructSubject();
+                                        $m->constructSubject($groupid);
                                         $ret = [
                                             'ret' => 0,
                                             'status' => 'Queued for group membership',
@@ -336,7 +336,7 @@ function message() {
                                         # We're good to go.  Make sure we submit with the email that is a group member
                                         # rather than the one they supplied.
                                         $ret = ['ret' => 7, 'status' => 'Failed to submit'];
-                                        $m->constructSubject();
+                                        $m->constructSubject($groupid);
 
                                         $fromemail = $u->getEmailById($eidforgroup);
 

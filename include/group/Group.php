@@ -23,6 +23,8 @@ class Group extends Entity
     /** @var  $log Log */
     private $log;
 
+    public $defaultSettings;
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts);

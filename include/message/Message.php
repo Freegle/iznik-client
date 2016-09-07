@@ -2544,8 +2544,11 @@ class Message
         return($rc);
     }
 
-    public function constructSubject() {
+    public function constructSubject($groupid) {
         # Construct the subject - do this now as it may get displayed to the user before we get the membership.
+        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
+
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
         $items = $this->dbhr->preQuery("SELECT * FROM messages_items INNER JOIN items ON messages_items.itemid = items.id WHERE msgid = ?;", [ $this->id ]);
         #error_log("Items " . var_export($items, TRUE));
@@ -2559,7 +2562,7 @@ class Message
                 $loc = $l->ensureVague();
             }
 
-            $subject = $this->type . ': ' . $items[0]['name'] . " ($loc)";
+            $subject = $keywords[strtolower($this->type)] . ': ' . $items[0]['name'] . " ($loc)";
             $this->setPrivate('subject', $subject);
         }
     }
