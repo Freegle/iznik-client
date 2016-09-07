@@ -131,9 +131,11 @@ define([
 
                         if (within > 20) {
                             // Switch to pins for large collections
+                            var icon = window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif?a=1';
+                            console.log("Large collection", icon);
                             var marker = new google.maps.Marker({
                                 position: latLng,
-                                icon: '/images/mapmarker.gif',
+                                icon: icon,
                                 title: group.get('namedisplay')
                             });
 
@@ -193,8 +195,8 @@ define([
             }
         },
 
-        resize: function() {
-            var mapWidth = target.outerWidth();
+        resize: function(e) {
+            var mapWidth = e.target.outerWidth();
             target.css('height', mapWidth + 'px');
             google.maps.event.trigger(this.map, "resize");
         },
@@ -239,6 +241,7 @@ define([
 
             // Render the map
             google.maps.event.addDomListener(self.map, 'idle', function() {
+                console.log("Map idle");
                 if (!self.fetched) {
                     // Get all the groups.  There aren't too many, and this means we are responsive when panning or zooming.
                     self.collection = new Iznik.Collections.Group();
