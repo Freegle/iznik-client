@@ -91,6 +91,8 @@ class ChatMessage extends Entity
 
     public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL) {
         try {
+            $review = FALSE;
+
             if ($type != ChatMessage::TYPE_MODMAIL) {
                 # No need to check our own mod mails for spam.
                 $review = $this->checkReview($message);

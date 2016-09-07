@@ -648,22 +648,8 @@ class ChatRoom extends Entity
             $users = $this->dbhr->preQuery($sql, [ $this->id, $lastmessage, $lastmessage ]);
             foreach ($users as $user) {
                 if (!$user['lastmsgseen'] || $user['lastmsgseen'] < $lastseenbyall) {
-                    # TODO
-                    # At the moment, we only want to send chaseups to users who are testing the new site.  Check if
-                    # they have a suitable email.
-                    $u = new User($this->dbhr, $this->dbhm, $user['userid']);
-                    $emails = $u->getEmails();
-                    $newsite = FALSE;
-                    foreach ($emails as $email) {
-                        if (stripos($email['email'], USER_DOMAIN) !== FALSE) {
-                            $newsite = TRUE;
-                        }
-                    }
-
-                    if ($newsite) {
-                        # We've not seen any messages, or seen some but not this one.
-                        $ret[] = [ 'userid' => $user['userid'], 'lastmsgseen' => $user['lastmsgseen'] ];
-                    }
+                    # We've not seen any messages, or seen some but not this one.
+                    $ret[] = [ 'userid' => $user['userid'], 'lastmsgseen' => $user['lastmsgseen'] ];
                 }
             }
         }
@@ -680,7 +666,7 @@ class ChatRoom extends Entity
         $start = date('Y-m-d', strtotime("midnight 2 weeks ago"));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
         $sql = "SELECT DISTINCT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND seenbyall = 0 AND chattype = ? $chatq;";
-        #error_log("$sql");
+        error_log("$sql, $start, $chattype");
         $chats = $this->dbhr->preQuery($sql, [ $start, $chattype ]);
         $notified = 0;
 
@@ -692,7 +678,9 @@ class ChatRoom extends Entity
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
             $chatatts = $r->getPublic();
             $lastseen = $r->lastSeenByAll();
+            #error_log("Last seen by all $lastseen");
             $notseenby = $r->getMembersNotSeen($lastseen ? $lastseen : 0, $chatatts['lastmsg'], $age);
+            #error_log("Members not seen " . var_export($notseenby, TRUE));
 
             foreach ($notseenby as $member) {
                 #error_log("Not seen {$member['userid']}");
@@ -732,7 +720,7 @@ class ChatRoom extends Entity
                 ]);
                 #error_log(var_export($subjs, TRUE));
 
-                $subject = count($subjs) == 0 ? "You have a new message" : $subjs[0]['subject'];
+                $subject = count($subjs) == 0 ? "You have a new message" : "Re: {$subjs[0]['subject']}";
 
                 # Construct the SMTP message.
                 # - The text bodypart is just the user text.  This means that people who aren't showing HTML won't see
@@ -754,19 +742,22 @@ class ChatRoom extends Entity
                 $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
                 $to = $thisu->getEmailPreferred();
 
-                try {
-                    $message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to, $fromname, $replyto, $subject, $textsummary, $html);
-                    $mailer->send($message);
+                if ($to) {
+                    error_log("Notify $to for {$member['userid']} $subject");
+                    try {
+                        $message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to, $fromname, $replyto, $subject, $textsummary, $html);
+                        $mailer->send($message);
 
-                    $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
-                        $lastmsgemailed,
-                        $member['userid'],
-                        $chat['chatid']
-                    ]);
+                        $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
+                            $lastmsgemailed,
+                            $member['userid'],
+                            $chat['chatid']
+                        ]);
 
-                    $notified++;
-                } catch (Exception $e) {
-                    error_log("Send failed with " . $e->getMessage());
+                        $notified++;
+                    } catch (Exception $e) {
+                        error_log("Send to {$member['userid']} failed with " . $e->getMessage());
+                    }
                 }
             }
         }
