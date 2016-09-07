@@ -261,7 +261,9 @@ class ChatRoom extends Entity
                 break;
             case ChatRoom::TYPE_USER2MOD:
                 # If we started it, we're chatting to the group volunteers; otherwise to the user.
-                $ret['name'] = $ret['user1']['id'] == $myid ? "{$ret['group']['namedisplay']} Volunteers" : "{$ret['user1']['displayname']} on {$ret['group']['nameshort']}";
+                $username = $ret['user1']['displayname'];
+                $username = strlen(trim($username)) > 0 ? $username : '(No name)';
+                $ret['name'] = $ret['user1']['id'] == $myid ? "{$ret['group']['namedisplay']} Volunteers" : "$username #{$ret['user1']['id']} on {$ret['group']['nameshort']}";
                 break;
             case ChatRoom::TYPE_MOD2MOD:
                 # Mods chatting to each other.
@@ -666,7 +668,7 @@ class ChatRoom extends Entity
         $start = date('Y-m-d', strtotime("midnight 2 weeks ago"));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
         $sql = "SELECT DISTINCT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND seenbyall = 0 AND chattype = ? $chatq;";
-        error_log("$sql, $start, $chattype");
+        #error_log("$sql, $start, $chattype");
         $chats = $this->dbhr->preQuery($sql, [ $start, $chattype ]);
         $notified = 0;
 
