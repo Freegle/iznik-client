@@ -86,7 +86,7 @@ define([
 
             // Start event tracking.
             if (monitorDOM) {
-                monitorDOM.start();
+                // monitorDOM.start();
             }
 
             if (currentPage) {
