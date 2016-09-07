@@ -128,15 +128,13 @@ define([
             if (this.inDOM() && Iznik.Session.hasOwnProperty('chats')) {
                 // If the number of unread messages relating to this message changes, we want to flag it in the count.  So
                 // look for chats which refer to this message.  Note that chats can refer to multiple.
-                Iznik.Session.chats.fetch().then(function() {
-                    Iznik.Session.chats.each(function (chat) {
-                        self.listenTo(chat, 'change:unseen', self.updateUnread);
-                    });
-
-                    self.updateUnread();
-
-                    self.listenToOnce(Iznik.Session.chats, 'newroom', self.watchChatRooms);
+                Iznik.Session.chats.each(function (chat) {
+                    self.listenTo(chat, 'change:unseen', self.updateUnread);
                 });
+
+                self.updateUnread();
+
+                self.listenToOnce(Iznik.Session.chats, 'newroom', self.watchChatRooms);
             }
         },
 

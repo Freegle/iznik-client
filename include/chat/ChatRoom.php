@@ -377,15 +377,18 @@ class ChatRoom extends Entity
     }
 
     public function canSee($userid) {
-        # This user can see this chat if:
-        # - it's one of the user's own chats, or
-        # - it's a conversation between two users and this user can administer one of them (i.e. is a mod on one of
-        #   their groups.
-        $rooms = $this->listForUser($userid, [ $this->chatroom['chattype'] ]);
-        #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
-        $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
+        if ($userid == $this->chatroom['user1'] || $userid == $this->chatroom['user2']) {
+            # It's one of ours - so we can see it.
+            $cansee = TRUE;
+        } else {
+            # It might be a group chat which we can see.
+            $rooms = $this->listForUser($userid, [ $this->chatroom['chattype'] ]);
+            #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
+            $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
+        }
 
         if (!$cansee) {
+            # If we can't see it by right, but we are a mod for the users in the chat, then we can see it.
             #error_log("$userid can't see {$this->id} of type {$this->chatroom['chattype']}");
             $me = whoAmI($this->dbhr, $this->dbhm);
 
