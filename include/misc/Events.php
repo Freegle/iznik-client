@@ -101,6 +101,7 @@ class Events {
 
         # Get the first client timestamp.
         $sql = "SELECT clienttimestamp FROM logs_events WHERE sessionid = ? ORDER BY id ASC LIMIT 1;";
+        error_log("$sql, $sessionid");
         $firsts = $this->dbhr->preQuery($sql, [
             $sessionid
         ]);

@@ -11,6 +11,7 @@ if (!defined('IZNIK_BASE')) {
     define('BROWSERTRACKING', TRUE);
     define('INCLUDE_TEMPLATE_NAME', TRUE);
     define('SQLLOG', FALSE);
+    define('EVENTLOG', FALSE);
 
     define('COOKIE_NAME', 'session');
 
