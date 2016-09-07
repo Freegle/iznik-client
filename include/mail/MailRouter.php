@@ -144,7 +144,7 @@ class MailRouter
 
     public function route($msg = NULL, $notspam = FALSE) {
         $ret = NULL;
-        $log = FALSE;
+        $log = TRUE;
 
         # We route messages to one of the following destinations:
         # - to a handler for system messages
@@ -576,10 +576,13 @@ class MailRouter
 
                 if (count($groups) > 0) {
                     # We're expecting to do something with this.
-                    if ($log) { error_log("To a group"); }
+                    if ($log) { error_log("To a group; source " . $this->msg->getSource()); }
                     $ret = MailRouter::FAILURE;
+                    $source = $this->msg->getSource();
 
-                    if ($this->msg->getSource() == Message::YAHOO_PENDING) {
+                    if ($source == Message::YAHOO_PENDING || $source == Message::PLATFORM) {
+                        # Yahoo pending messages go back into pending if they're not spam.  Platform messages too -
+                        # because we might want to edit or reject them.
                         if ($log) { error_log("Mark as pending"); }
                         if ($this->markPending($notspam)) {
                             $ret = MailRouter::PENDING;
