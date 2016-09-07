@@ -72,6 +72,7 @@ define([
             "main.php?action=myposts": "userHome",
             "main.php?action=post*t": "userHome",
             "main.php?action=findgroup": "userExplore",
+            "login.php?action=mygroups&subaction=displaypost&msgid=:id&groupid=:id*": "legacyUserMessage2",
             "legacy?action=join&groupid=:id&then=displaygroup": "userExploreGroup",
             "legacy?action=look&groupid=:id": "userExploreGroup",
             "legacy?action=mygroups*t": "userMyGroups",
@@ -460,6 +461,18 @@ define([
         },
 
         legacyUserMessage: function(groupid, messageid) {
+            var self = this;
+
+            require(["iznik/views/pages/user/explore"], function() {
+                var page = new Iznik.Views.User.Pages.LegacyMessage({
+                    id: messageid,
+                    groupid: groupid
+                });
+                self.loadRoute({page: page});
+            });
+        },
+
+        legacyUserMessage2: function(messageid, groupid) {
             var self = this;
 
             require(["iznik/views/pages/user/explore"], function() {
