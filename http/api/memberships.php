@@ -239,7 +239,6 @@ function memberships() {
 
             case 'DELETE': {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
-                error_log("Delete membership email $email admin " . $me->isAdminOrSupport() . " owner " . $me->isModOrOwner($groupid) . " userid $userid vs " . $me->getId());
 
                 if ($email) {
                     # We are unsubscribing when logged out.  There is a DoS attack here, but there's a benefit in

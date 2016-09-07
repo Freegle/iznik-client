@@ -177,13 +177,17 @@ class Location extends Entity
                     $lastcount = count($gridids);
                     $gridids = array_unique($gridids);
 
-                    # See if there will be a location to choose - without actually choosing it yet, be
+                    # See if there will be a location to choose - without actually choosing it yet.
                     # We choose the closest location.
-                    $sql = "SELECT id, name, ST_Distance(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS dist FROM locations  LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = $osmonly AND locations_excluded.locationid IS NULL ORDER BY dist ASC LIMIT 2;";
-                    #error_log($sql);
-                    $intersects = $this->dbhr->preQuery($sql, [
-                        $loc['geometry']
-                    ]);
+                    $intersects = [];
+
+                    if (count($gridids) > 0) {
+                        $sql = "SELECT id, name, ST_Distance(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS dist FROM locations LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = $osmonly AND locations_excluded.locationid IS NULL ORDER BY dist ASC LIMIT 2;";
+                        #error_log($sql);
+                        $intersects = $this->dbhr->preQuery($sql, [
+                            $loc['geometry']
+                        ]);
+                    }
 
                     #error_log("For $id $sql, {$loc['lat']}, {$loc['lng']}");
                 } while (count($gridids) != $lastcount && count($intersects) < 2 && count($gridids) < 10000);
