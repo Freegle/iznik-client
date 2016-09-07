@@ -174,11 +174,16 @@ function memberships() {
 
                     $g = new Group($dbhr, $dbhm, $groupid);
                     if ($g->onYahoo()) {
-                        # This group is on Yahoo too, so we should trigger a membership application to there.
+                        # This group is on Yahoo too, so we should trigger a membership application to there if we
+                        # don't already have one of our emails on the group.
                         #
                         # TODO Need to handle the case where this application is rejected.  In FDv1-2 this could
                         # not occur as FBUser members were pre-approved, but it can now.
-                        $u->triggerYahooApplication($groupid);
+                        list ($eid, $alreadymail) = $u->getEmailForYahooGroup($groupid, TRUE);
+
+                        if (!$eid) {
+                            $u->triggerYahooApplication($groupid);
+                        }
                     }
 
                     $ret = [
