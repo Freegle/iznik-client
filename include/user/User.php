@@ -159,6 +159,11 @@ class User extends Entity
 
         # Make sure we don't return an email if somehow one has snuck in.
         $name = strpos($name, '@') !== FALSE ? substr($name, 0, strpos($name, '@')) : $name;
+
+        if (strlen(trim($name)) === 0) {
+            $name = '(No name)';
+        }
+
         return($name);
     }
 
