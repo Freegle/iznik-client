@@ -2230,7 +2230,7 @@ class Message
         $subj = strtolower($subj);
 
         // Remove any group tag
-        $subj = preg_replace('/^\[.*\](.*)/', "$1", $subj);
+        $subj = preg_replace('/^\[.*?\](.*)/', "$1", $subj);
 
         // Remove duplicate spaces
         $subj = preg_replace('/\s+/', ' ', $subj);
