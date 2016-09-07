@@ -11,6 +11,7 @@ define([
     Iznik.Views.User.Pages.WhatIsIt = Iznik.Views.Page.extend({
         pleaseWait: null,
 
+        tagcount: 0,
         uploading: 0,
 
         events: {
