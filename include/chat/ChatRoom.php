@@ -714,64 +714,66 @@ class ChatRoom extends Entity
                         $minmsg
                     ]);
 
-                $textsummary = '';
-                $htmlsummary = '';
-                $lastmsgemailed = 0;
-                foreach ($unseenmsgs as $unseenmsg) {
-                    if (pres('message', $unseenmsg)) {
-                        $thisone = $unseenmsg['message'];
-                        $textsummary .= $thisone . "\r\n";
-                        $htmlsummary .= $thisone . "<br>";
-                        $lastmsgemailed = max($lastmsgemailed, $unseenmsg['id']);
+                if (count($unseenmsgs) > 0) {
+                    $textsummary = '';
+                    $htmlsummary = '';
+                    $lastmsgemailed = 0;
+                    foreach ($unseenmsgs as $unseenmsg) {
+                        if (pres('message', $unseenmsg)) {
+                            $thisone = $unseenmsg['message'];
+                            $textsummary .= $thisone . "\r\n";
+                            $htmlsummary .= $thisone . "<br>";
+                            $lastmsgemailed = max($lastmsgemailed, $unseenmsg['id']);
+                        }
                     }
-                }
 
-                # As a subject, we should use the last referenced message in this chat.
-                $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.type = ? ORDER BY chat_messages.id DESC LIMIT 1;";
-                #error_log($sql . $chat['chatid']);
-                $subjs = $this->dbhr->preQuery($sql, [
-                    $chat['chatid'],
-                    ChatMessage::TYPE_INTERESTED,
-                ]);
-                #error_log(var_export($subjs, TRUE));
+                    # As a subject, we should use the last referenced message in this chat.
+                    $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.type = ? ORDER BY chat_messages.id DESC LIMIT 1;";
+                    #error_log($sql . $chat['chatid']);
+                    $subjs = $this->dbhr->preQuery($sql, [
+                        $chat['chatid'],
+                        ChatMessage::TYPE_INTERESTED,
+                    ]);
+                    #error_log(var_export($subjs, TRUE));
 
-                $subject = count($subjs) == 0 ? "You have a new message" : "Re: {$subjs[0]['subject']}";
+                    $subject = count($subjs) == 0 ? "You have a new message" : "Re: {$subjs[0]['subject']}";
 
-                # Construct the SMTP message.
-                # - The text bodypart is just the user text.  This means that people who aren't showing HTML won't see
-                #   all the wrapping.  It also means that the kinds of preview notification popups you get on mail
-                #   clients will show something interesting.
-                # - The HTML bodypart will show the user text, but in a way that is designed to encourage people to
-                #   click and reply on the web rather than by email.  This reduces the problems we have with quoting,
-                #   and encourages people to use the (better) web interface, while still allowing email replies for 
-                #   those users who prefer it.  Because we put the text they're replying to inside a visual wrapping,
-                #   it's less likely that they will interleave their response inside it - they will probably reply at
-                #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
-                #   added.
-                $site = $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MOD_SITE : USER_SITE;
-                $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid']);
-                $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD  ? MODLOGO : USERLOGO, $fromname, $url,
-                    $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
+                    # Construct the SMTP message.
+                    # - The text bodypart is just the user text.  This means that people who aren't showing HTML won't see
+                    #   all the wrapping.  It also means that the kinds of preview notification popups you get on mail
+                    #   clients will show something interesting.
+                    # - The HTML bodypart will show the user text, but in a way that is designed to encourage people to
+                    #   click and reply on the web rather than by email.  This reduces the problems we have with quoting,
+                    #   and encourages people to use the (better) web interface, while still allowing email replies for
+                    #   those users who prefer it.  Because we put the text they're replying to inside a visual wrapping,
+                    #   it's less likely that they will interleave their response inside it - they will probably reply at
+                    #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
+                    #   added.
+                    $site = $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MOD_SITE : USER_SITE;
+                    $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid']);
+                    $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD  ? MODLOGO : USERLOGO, $fromname, $url,
+                        $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
 
-                # We ask them to reply to an email address which will direct us back to this chat.
-                $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
-                $to = $thisu->getEmailPreferred();
+                    # We ask them to reply to an email address which will direct us back to this chat.
+                    $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
+                    $to = $thisu->getEmailPreferred();
 
-                if ($to) {
-                    error_log("Notify $to for {$member['userid']} $subject");
-                    try {
-                        $message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to, $fromname, $replyto, $subject, $textsummary, $html);
-                        $mailer->send($message);
+                    if ($to) {
+                        error_log("Notify $to for {$member['userid']} $subject");
+                        try {
+                            $message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to, $fromname, $replyto, $subject, $textsummary, $html);
+                            $mailer->send($message);
 
-                        $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
-                            $lastmsgemailed,
-                            $member['userid'],
-                            $chat['chatid']
-                        ]);
+                            $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
+                                $lastmsgemailed,
+                                $member['userid'],
+                                $chat['chatid']
+                            ]);
 
-                        $notified++;
-                    } catch (Exception $e) {
-                        error_log("Send to {$member['userid']} failed with " . $e->getMessage());
+                            $notified++;
+                        } catch (Exception $e) {
+                            error_log("Send to {$member['userid']} failed with " . $e->getMessage());
+                        }
                     }
                 }
             }
