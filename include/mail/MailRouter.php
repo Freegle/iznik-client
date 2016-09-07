@@ -157,6 +157,18 @@ class MailRouter
             $this->msg = $msg;
         }
 
+        if ($notspam) {
+            # Record that this message has been flagged as not spam.
+            if ($this->log) { error_log("Record message as not spam"); }
+            $this->msg->setPrivate('spamtype', Spam::REASON_NOT_SPAM, TRUE);
+        }
+
+        # Check if we know that this is not spam.  This means if we receive a later copy of it,
+        # then we will know that we don't need to spam check it, otherwise we might move it back into spam
+        # to the annoyance of the moderators.
+        $notspam = $this->msg->getPrivate('spamtype') === Spam::REASON_NOT_SPAM;
+        if ($this->log) { error_log("Consider not spam $notspam from " . $this->msg->getPrivate('spamtype')); }
+
         $to = $this->msg->getEnvelopeto();
         $from = $this->msg->getEnvelopefrom();
         $replyto = $this->msg->getHeader('reply-to');

@@ -135,8 +135,8 @@ class Message
         }
     }
 
-    public function setPrivate($att, $val) {
-        if ($this->$att != $val) {
+    public function setPrivate($att, $val, $always = FALSE) {
+        if ($this->$att != $val || $always) {
             $rc = $this->dbhm->preExec("UPDATE messages SET $att = ? WHERE id = {$this->id};", [$val]);
             if ($rc) {
                 $this->$att = $val;
@@ -1966,6 +1966,10 @@ class Message
             $ret = $msg['id'];
             $changed = '';
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
+
+            # We want the new message to have the spam type of the old message, because we check this to ensure
+            # we don't move messages back from not spam to spam.
+            $this->spamtype = $m->getPrivate('spamtype');
             
             # We want the old message to be on whatever group this message was sent to.
             #

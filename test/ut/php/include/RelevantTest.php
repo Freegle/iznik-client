@@ -149,6 +149,7 @@ class RelevantTest extends IznikTestCase
         # but not for UT where it needs to be predictable.
         sleep(2);
         $rl->recordCheck($uid);
+        sleep(2);
 
         # Now shouldn't find any.
         $msgs = $rl->getMessages($uid, $ints);
