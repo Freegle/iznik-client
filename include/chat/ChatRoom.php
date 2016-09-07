@@ -347,6 +347,16 @@ class ChatRoom extends Entity
                     # We can see this if we're one of the users.
                     # TODO or a mod on the group.
                     $cansee = ($userid == $room['user1'] || $userid == $room['user2']);
+                    if ($cansee) {
+                        # We also don't want to see non-empty chats where all the messages are held for review, because they are likely to
+                        # be spam.
+                        $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0);", [
+                            $room['id']
+                        ]);
+
+                        $cansee = count($unheld) == 0 || $unheld[0]['valid'] > 0;
+                    }
+
                     break;
                 case ChatRoom::TYPE_MOD2MOD:
                     # We can see this if we're one of the mods.
@@ -356,16 +366,6 @@ class ChatRoom extends Entity
                     # We can see this if we're one of the mods on the group, or the user who started it.
                     $cansee = $u->isModOrOwner($room['groupid']) || $userid == $room['user1'];
                     break;
-            }
-
-            if ($cansee) {
-                # We also don't want to see chats where all the messages are held for review, because they are likely to
-                # be spam.
-                $unheld = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 AND reviewrejected = 0 LIMIT 1;", [
-                    $room['id']
-                ]);
-
-                $cansee = count($unheld) > 0;
             }
 
             if ($cansee) {

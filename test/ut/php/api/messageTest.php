@@ -1188,6 +1188,7 @@ class messageAPITest extends IznikAPITestCase
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
         $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $this->group->setPrivate('publish', 1);
 
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);

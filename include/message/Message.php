@@ -2562,7 +2562,7 @@ class Message
                 $loc = $l->ensureVague();
             }
 
-            $subject = $keywords[strtolower($this->type)] . ': ' . $items[0]['name'] . " ($loc)";
+            $subject = presdef(strtolower($this->type), $keywords, $this->type) . ': ' . $items[0]['name'] . " ($loc)";
             $this->setPrivate('subject', $subject);
         }
     }
