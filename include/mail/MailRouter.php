@@ -653,7 +653,7 @@ class MailRouter
                                 # The email address that we replied from might not currently be attached to the
                                 # other user, for example if someone has email forwarding set up.  So make sure we
                                 # have it.
-                                $other =  $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') :
+                                $other = $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') :
                                     $r->getPrivate('user1');
                                 $otheru = new User($this->dbhr, $this->dbhm, $other);
                                 $otheru->addEmail($this->msg->getEnvelopefrom(), 0, FALSE);
@@ -671,6 +671,10 @@ class MailRouter
                                 $ret = MailRouter::TO_USER;
                             }
                         }
+                    } else if (preg_match('/notify@yahoogroups.co.*/', $from)) {
+                        # This is a Yahoo message which shouldn't get passed on to a non-Yahoo user.
+                        if ($log) { error_log("Yahoo Notify - drop"); }
+                        $ret = MailRouter::DROPPED;
                     } else if (!$this->msg->isAutoreply()) {
                         # See if it's a direct reply.  Auto-replies (that we can identify) we just drop.
                         $uid = $u->findByEmail($to);
