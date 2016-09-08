@@ -13,7 +13,7 @@ function memberships() {
     $search = presdef('search', $_REQUEST, NULL);
     $ctx = presdef('context', $_REQUEST, NULL);
     $settings = presdef('settings', $_REQUEST, NULL);
-    $emailfrequency = presdef('emailfrequency', $_REQUEST, NULL);
+    $emailfrequency = array_key_exists('emailfrequency', $_REQUEST) ? intval($_REQUEST['emailfrequency']) : NULL;
     $filter = intval(presdef('filter', $_REQUEST, Group::FILTER_NONE));
 
     # TODO jQuery won't send an empty array, so we have a hack to ensure we can empty out the pending members.  What's
@@ -341,7 +341,7 @@ function memberships() {
                         if ($settings) {
                             $rc &= $u->setGroupSettings($groupid, $settings);
                         } 
-                        
+
                         if ($emailfrequency !== NULL) {
                             $rc &= $u->setMembershipAtt($groupid, 'emailfrequency', intval($emailfrequency));
                         }
