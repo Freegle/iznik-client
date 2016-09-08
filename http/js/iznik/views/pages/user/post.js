@@ -241,7 +241,13 @@ define([
 
                         msg.fetch().then(function() {
                             if (self.msgType == msg.get('type')) {
-                                self.$('.js-items').tagsinput('add', msg.get('subject'));
+                                // Parse out item from subject.
+                                var matches = /(.*?)\:([^)].*)\((.*)\)/.exec(msg.get('subject'));
+                                if (matches && matches.length > 2 && matches[2].length > 0) {
+                                    self.$('.js-items').tagsinput('add', matches[2]);
+                                } else {
+                                    self.$('.js-items').tagsinput('add', msg.get('subject'));
+                                }
 
                                 msg.stripGumf('textbody');
                                 self.$('.js-description').val(msg.get('textbody'));
