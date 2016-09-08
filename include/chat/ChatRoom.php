@@ -778,7 +778,8 @@ class ChatRoom extends Entity
                     $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
                     $to = $thisu->getEmailPreferred();
 
-                    if ($to) {
+                    # ModTools users should never get notified
+                    if ($to && strpos($to, '@' . MOD_SITE) === FALSE) {
                         error_log("Notify $to for {$member['userid']} $subject");
                         try {
                             $message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to, $fromname, $replyto, $subject, $textsummary, $html);
