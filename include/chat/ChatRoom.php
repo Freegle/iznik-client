@@ -328,57 +328,77 @@ class ChatRoom extends Entity
         # - either for a group (possibly a modonly one)
         # - a conversation between two users that we have not closed
         #
-        # Get the groupids to avoid a nested query.
-        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [ $userid ]);
-        $groupids = [0];
-        foreach ($groups as $group) {
-            $groupids[] = $group['groupid'];
-        }
-        $groupq = implode(',', $groupids);
+        # A single query that handles this would be horrific, and having tried it, is also hard to make efficient.  So
+        # break it down into smaller queries that have the dual advantage of working quickly and being comprehensible.
+        $chatids = [];
 
-        $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = ? AND chat_rooms.id = chat_roster.chatid WHERE ((groupid IN ($groupq) OR user1 = ? OR user2 = ?)) $typeq AND (status IS NULL OR status != ?);";
-        #error_log($sql . var_export([ $userid, $userid, $userid, $userid, ChatRoom::STATUS_CLOSED ], TRUE));
-        $rooms = $this->dbhr->preQuery($sql, [ $userid, $userid, $userid, ChatRoom::STATUS_CLOSED ]);
-        foreach ($rooms as $room) {
-            #error_log("Consider {$room['id']} group {$room['groupid']} modonly {$room['modonly']} " . $u->isModOrOwner($room['groupid']));
-            $cansee = FALSE;
-            switch ($room['chattype']) {
-                case ChatRoom::TYPE_USER2USER:
-                    # We can see this if we're one of the users.
-                    # TODO or a mod on the group.
-                    $cansee = ($userid == $room['user1'] || $userid == $room['user2']);
-                    if ($cansee) {
-                        # We also don't want to see non-empty chats where all the messages are held for review, because they are likely to
-                        # be spam.
-                        $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0);", [
-                            $room['id']
-                        ]);
-
-                        $cansee = count($unheld) == 0 || $unheld[0]['valid'] > 0;
-                    }
-
-                    break;
-                case ChatRoom::TYPE_MOD2MOD:
-                    # We can see this if we're one of the mods.
-                    $cansee = $u->isModOrOwner($room['groupid']);
-                    break;
-                case ChatRoom::TYPE_USER2MOD:
-                    # We can see this if we're one of the mods on the group, or the user who started it.
-                    $cansee = $u->isModOrOwner($room['groupid']) || $userid == $room['user1'];
-                    break;
+        if (in_array(ChatRoom::TYPE_USER2MOD, $chattypes) || in_array(ChatRoom::TYPE_MOD2MOD, $chattypes)) {
+            # We want chats marked by groupid.
+            $sql = "SELECT chat_rooms.id FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid;";
+            #error_log("Group chats $sql, $userid");
+            $groups = $this->dbhr->preQuery($sql, [$userid]);
+            foreach ($groups as $group) {
+                $chatids[] = $group['id'];
             }
+        }
 
-            if ($cansee) {
-                $show = TRUE;
+        #error_log("After group " . var_export($chatids, TRUE));
 
-                if ($room['groupid']) {
-                    # See if the group allows chat.
-                    $g = new Group($this->dbhr, $this->dbhm, $room['groupid']);
-                    $show = $g->getSetting('showchat', TRUE);
+        # We also want any chats which we feature in.
+        $sql = "SELECT id FROM chat_rooms WHERE user1 = ? OR user2 = ?;";
+        $users = $this->dbhr->preQuery($sql, [ $userid, $userid ]);
+        #error_log("User chats $sql, $userid");
+        foreach ($users as $user) {
+            $chatids[] = $user['id'];
+        }
+
+        #error_log("After user " . var_export($chatids, TRUE));
+
+        if (count($chatids) > 0) {
+            $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = ? AND chat_rooms.id = chat_roster.chatid WHERE chat_rooms.id IN (" . implode(',', $chatids) . ") $typeq AND (status IS NULL OR status != ?)";
+            #error_log($sql . var_export([ $userid, ChatRoom::STATUS_CLOSED ], TRUE));
+            $rooms = $this->dbhr->preQuery($sql, [ $userid, ChatRoom::STATUS_CLOSED ]);
+            foreach ($rooms as $room) {
+                #error_log("Consider {$room['id']} group {$room['groupid']} modonly {$room['modonly']} " . $u->isModOrOwner($room['groupid']));
+                $cansee = FALSE;
+                switch ($room['chattype']) {
+                    case ChatRoom::TYPE_USER2USER:
+                        # We can see this if we're one of the users.
+                        # TODO or a mod on the group.
+                        $cansee = ($userid == $room['user1'] || $userid == $room['user2']);
+                        if ($cansee) {
+                            # We also don't want to see non-empty chats where all the messages are held for review, because they are likely to
+                            # be spam.
+                            $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0);", [
+                                $room['id']
+                            ]);
+
+                            $cansee = count($unheld) == 0 || $unheld[0]['valid'] > 0;
+                        }
+
+                        break;
+                    case ChatRoom::TYPE_MOD2MOD:
+                        # We can see this if we're one of the mods.
+                        $cansee = $u->isModOrOwner($room['groupid']);
+                        break;
+                    case ChatRoom::TYPE_USER2MOD:
+                        # We can see this if we're one of the mods on the group, or the user who started it.
+                        $cansee = $u->isModOrOwner($room['groupid']) || $userid == $room['user1'];
+                        break;
                 }
 
-                if ($show) {
-                    $ret[] = $room['id'];
+                if ($cansee) {
+                    $show = TRUE;
+
+                    if ($room['groupid']) {
+                        # See if the group allows chat.
+                        $g = new Group($this->dbhr, $this->dbhm, $room['groupid']);
+                        $show = $g->getSetting('showchat', TRUE);
+                    }
+
+                    if ($show) {
+                        $ret[] = $room['id'];
+                    }
                 }
             }
         }
