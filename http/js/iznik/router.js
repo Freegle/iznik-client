@@ -124,6 +124,7 @@ define([
             "edit/:id": "userEdit",
             "message/:id": "userMessage",
             "mygroups": "userMyGroups",
+            "settings/confirmmail/(:key)": "userConfirmMail",
             "settings": "userSettings",
             "explore/:id/join": "userJoinGroup",
             "explore/:id": "userExploreGroup",
@@ -337,6 +338,44 @@ define([
                 });
 
                 Iznik.Session.forceLogin();
+            });
+        },
+
+        userConfirmMail: function (key) {
+            var self = this;
+
+            require(["iznik/views/pages/user/settings"], function() {
+                $.ajax({
+                    type: 'PATCH',
+                    url: API + 'session',
+                    data: {
+                        key: key
+                    },
+                    success: function (ret) {
+                        var v;
+
+                        if (ret.ret == 0) {
+                            v = new Iznik.Views.User.Pages.Settings.VerifySucceeded();
+                        } else {
+                            v = new Iznik.Views.User.Pages.Settings.VerifyFailed();
+                        }
+                        self.listenToOnce(v, 'modalCancelled modalClosed', function () {
+                            // Reload to force session refresh.
+                            // TODO lame.
+                            window.location = '/';
+                        });
+
+                        v.render();
+                    },
+                    error: function () {
+                        var v = new Iznik.Views.User.Pages.Settings.VerifyFailed();
+                        self.listenToOnce(v, 'modalCancelled modalClosed', function () {
+                            Router.navigate('/settings', true)
+                        });
+
+                        v.render();
+                    }
+                });
             });
         },
 

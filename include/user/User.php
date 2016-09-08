@@ -2119,14 +2119,15 @@ class User extends Entity
         if (!$handled) {
             # This email is new to this user.  It may or may not currently be in use for another user.  Either
             # way we want to send a verification mail.
-            $headers = "From: ModTools <" . NOREPLY_ADDR . ">\nContent-Type: multipart/alternative; boundary=\"_I_Z_N_I_K_\"\nMIME-Version: 1.0";
+            $usersite = strpos($_SERVER['HTTP_HOST'], USER_SITE) !== FALSE;
+            $headers = "From: " . SITE_NAME . " <" . NOREPLY_ADDR . ">\nContent-Type: multipart/alternative; boundary=\"_I_Z_N_I_K_\"\nMIME-Version: 1.0";
             $canon = User::canonMail($email);
             $key = uniqid();
             $sql = "INSERT INTO users_emails (email, canon, validatekey, backwards) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE validatekey = ?;";
             $this->dbhm->preExec($sql,
                 [$email, $canon, $key, strrev($canon), $key]);
-            $confirm = "https://" . $_SERVER['HTTP_HOST'] . "/modtools/settings/confirmmail/" . urlencode($key);
-            $this->mailer($email, "Please verify your email", modtools_verify_email($email, $confirm), $headers, "-f" . NOREPLY_ADDR);
+            $confirm = $usersite ? ("https://" . $_SERVER['HTTP_HOST'] . "/settings/confirmmail/" . urlencode($key)) : ("https://" . $_SERVER['HTTP_HOST'] . "/modtools/settings/confirmmail/" . urlencode($key));
+            $this->mailer($email, "Please verify your email", modtools_verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO), $headers, "-f" . NOREPLY_ADDR);
         }
 
         return($handled);

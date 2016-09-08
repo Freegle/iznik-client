@@ -8,18 +8,19 @@
         </div>
         <div class="panel-body">
             <form>
-                <div class="alert alert-info">Type into the boxes and press Enter to save.</div>
                 <div class="form-group">
                     <label for="location">Your name</label>
                     <span class="help-block"><div class="glyphicon glyphicon-globe" />&nbsp;Other freeglers will see this.</span>
                     <div class="row">
                         <div class="col-sm-6">
-                            <input type="text" class="form-control js-name" placeholder="Your name"/>
+                            <div class="input-group clickme">
+                                <input type="text" class="form-control js-name" placeholder="Your name"/>
+                                <span class="input-group-addon js-savename">
+                                    <span class="glyphicon glyphicon-floppy-save" title="Save" />&nbsp;Save
+                                </span>
+                            </div>
                         </div>
-                        <div class="col-sm-1">
-                            <div class="glyphicon glyphicon-ok-sign success js-nameok" style="display: none;" />
-                        </div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-6">
                         </div>
                     </div>
                 </div>
@@ -28,13 +29,14 @@
                     <span class="help-block"><div class="glyphicon glyphicon-lock" />&nbsp;Other freeglers won't see this.</span>
                     <div class="row">
                         <div class="col-sm-6">
-                            <input type="text" id="location" class="form-control js-postcode" placeholder="The full postcode where you live"/>
+                            <div class="input-group clickme">
+                                <input type="text" id="location" class="form-control js-postcode" placeholder="The full postcode where you live"/>
+                                <span class="input-group-addon js-savepostcode">
+                                    <span class="glyphicon glyphicon-floppy-save" title="Save" />&nbsp;Save
+                                </span>
+                            </div>
                         </div>
-                        <div class="col-sm-1">
-                            <div class="glyphicon glyphicons-tick green " style="display: none;" />
-                            <div class="glyphicon glyphicons-cross red" style="display: none;" />
-                        </div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-6">
                             <div class="btn btn-primary js-geoloconly js-getloc">
                                 <div class="glyphicon glyphicon-map-marker" />&nbsp;Find my location
                             </div>
@@ -46,12 +48,21 @@
                     <span class="help-block"><div class="glyphicon glyphicon-lock" />&nbsp;Other freeglers won't see this.</span>
                     <div class="row">
                         <div class="col-sm-6">
-                            <input type="email" class="form-control js-email" placeholder="Your email address"/>
+                            <div class="input-group clickme">
+                                <input type="email" class="form-control js-email" placeholder="Your email address"/>
+                                <span class="input-group-addon js-saveemail">
+                                    <span class="glyphicon glyphicon-floppy-save" title="Save" />&nbsp;Save
+                                </span>
+                            </div>
                         </div>
-                        <div class="col-sm-1">
-                            <div class="glyphicon glyphicon-ok-sign success js-emailok" style="display: none;" />
+                        <div class="col-sm-6">
                         </div>
-                        <div class="col-sm-5">
+                    </div>
+                    <div class="row js-verifyemail" style="display: none;">
+                        <div class="col-xs-12">
+                            <div class="alert alert-info topspace">
+                                We've sent you a verification mail - please check your mailbox and spam folder.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -60,12 +71,14 @@
                     <span class="help-block"><div class="glyphicon glyphicon-lock" />&nbsp;You can use this to log in to Freegle.</span>
                     <div class="row">
                         <div class="col-sm-6">
-                            <input type="password" class="form-control js-password" placeholder="******"/>
+                            <div class="input-group clickme">
+                                <input type="password" class="form-control js-password" placeholder="******"/>
+                                <span class="input-group-addon js-savepassword">
+                                    <span class="glyphicon glyphicon-floppy-save" title="Save" />&nbsp;Save
+                                </span>
+                            </div>
                         </div>
-                        <div class="col-sm-1">
-                            <div class="glyphicon glyphicon-ok-sign success js-passwordok" style="display: none;" />
-                        </div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-6">
                         </div>
                     </div>
                 </div>
