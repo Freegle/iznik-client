@@ -711,6 +711,14 @@ define([
                 // Static map custom markers don't support SSL.
                 this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapareamarker.png');
 
+                // Get a zoom level for the map.
+                var zoom = 12;
+                _.each(self.model.get('groups'), function (group) {
+                    zoom = group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 12;
+                });
+
+                self.model.set('mapzoom', zoom);
+
                 // Hide until we've got a bit into the render otherwise the border shows.
                 this.$el.css('visibility', 'hidden');
                 p = Iznik.Views.User.Message.prototype.render.call(this);
@@ -759,6 +767,7 @@ define([
 
         render: function() {
             var self = this;
+
             var p = Iznik.Views.Modal.prototype.render.call(self);
             p.then(function() {
                 require(['gmaps'], function() {
@@ -766,7 +775,6 @@ define([
                         // Set map to be square - will have height 0 when we open.
                         var map = self.$('.js-map');
                         var mapWidth = map.width();
-                        console.log("Width", mapWidth);
                         map.height(mapWidth);
 
                         var location = self.model.get('location');
