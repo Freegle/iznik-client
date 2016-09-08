@@ -172,6 +172,11 @@ class MailRouter
         $to = $this->msg->getEnvelopeto();
         $from = $this->msg->getEnvelopefrom();
         $replyto = $this->msg->getHeader('reply-to');
+        $fromheader = $this->msg->getHeader('from');
+
+        if ($fromheader) {
+            $fromheader = mailparse_rfc822_parse_addresses($fromheader);
+        }
 
         if ($this->msg->getSource() == Message::YAHOO_SYSTEM) {
             $ret = MailRouter::DROPPED;
@@ -192,7 +197,9 @@ class MailRouter
                 # Get the first header.  This is added by our local EXIM and therefore can't be faked by a remote
                 # system.  Check that it comes from Yahoo.
                 $rcvd = $this->msg->getHeader('received');
-                if ($log) { error_log("Headers " . var_export($rcvd, true)); }
+                if ($log) {
+                    error_log("Headers " . var_export($rcvd, true));
+                }
 
                 if (preg_match('/from .*yahoo\.com \(/', $rcvd)) {
                     # See if we can find the group with this key.  If not then we just drop it - it's either a fake
@@ -200,7 +207,9 @@ class MailRouter
                     $sql = "SELECT id FROM groups WHERE id = ? AND confirmkey = ?;";
                     $groups = $this->dbhr->preQuery($sql, [$groupid, $key]);
 
-                    if ($log) { error_log("Check key $key for group $groupid"); }
+                    if ($log) {
+                        error_log("Check key $key for group $groupid");
+                    }
 
                     foreach ($groups as $group) {
                         # The confirm looks valid.  Promote this user.  We only promote to moderator because we can't
@@ -208,25 +217,35 @@ class MailRouter
                         $u = new User($this->dbhr, $this->dbhm, $userid);
 
                         if ($u->getPublic()['id'] == $userid) {
-                            if ($log) { error_log("Userid $userid is valid"); }
+                            if ($log) {
+                                error_log("Userid $userid is valid");
+                            }
                             $role = $u->getRoleForGroup($groupid, FALSE);
-                            if ($log) { error_log("Role is $role"); }
+                            if ($log) {
+                                error_log("Role is $role");
+                            }
 
                             if ($role == User::ROLE_NONMEMBER) {
                                 # We aren't a member yet.  Add ourselves.
                                 #
                                 # We don't know which email we use but it'll get set on the next sync.
-                                if ($log) { error_log("Not a member yet"); }
+                                if ($log) {
+                                    error_log("Not a member yet");
+                                }
                                 $u->addMembership($groupid, User::ROLE_MODERATOR, NULL);
                                 $ret = MailRouter::TO_SYSTEM;
                             } else if ($role == User::ROLE_MEMBER) {
                                 # We're already a member.  Promote.
-                                if ($log) { error_log("We were a member, promote"); }
+                                if ($log) {
+                                    error_log("We were a member, promote");
+                                }
                                 $u->setRole(User::ROLE_MODERATOR, $groupid);
                                 $ret = MailRouter::TO_SYSTEM;
                             } else {
                                 # Mod or owner.  Don't demote owner to a mod!
-                                if ($log) { error_log("Already a mod/owner, no action"); }
+                                if ($log) {
+                                    error_log("Already a mod/owner, no action");
+                                }
                                 $ret = MailRouter::TO_SYSTEM;
                             }
                         }
@@ -235,6 +254,12 @@ class MailRouter
                         $this->dbhm->preExec("UPDATE groups SET confirmkey = NULL WHERE id = ?;", [$groupid]);
                     }
                 }
+            } else if ($fromheader && preg_match('/confirm-nomail(.*)@yahoogroups.co.*/', $fromheader[0]['address'], $matches) === 1) {
+                # We have requested to turn off email; conform that.  Only once, as if it keeps happening we'll keep
+                # trying to turn it off.
+                if ($log) { error_log("Confirm noemail change"); }
+                $this->mail($replyto, $to, "Yes please", "I confirm this");
+                $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
                 # This is a request by Yahoo to confirm a subscription for one of our members.  We always do that.
                 if ($log) { error_log("Confirm subscription"); }
@@ -576,7 +601,8 @@ class MailRouter
 
                 if (count($groups) > 0) {
                     # We're expecting to do something with this.
-                    if ($log) { error_log("To a group; source " . $this->msg->getSource()); }
+                    $envto = $this->msg->getEnvelopeto();
+                    if ($log) { error_log("To a group; to user $envto source " . $this->msg->getSource()); }
                     $ret = MailRouter::FAILURE;
                     $source = $this->msg->getSource();
 
@@ -591,6 +617,16 @@ class MailRouter
                         if ($log) { error_log("Mark as approved"); }
                         if ($this->markApproved()) {
                             $ret = MailRouter::APPROVED;
+                        }
+                    }
+
+                    # Check for getting group mails to our individual users, which we want to turn off because
+                    # otherwise we'd get swamped.  We get group mails via the modtools@ and republisher@ users.
+                    if (strpos($envto, '@' . USER_DOMAIN) !== FALSE) {
+                        if ($log) { error_log("Turn off mails for $envto"); }
+                        foreach ($groups as $groupid) {
+                            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+                            $this->mail($g->getGroupNoEmail(), $envto, "Turning off mails", "I don't want these");
                         }
                     }
                 } else {
