@@ -835,6 +835,25 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testConfirmNoEmail() {
+        error_log(__METHOD__);
+
+        # Suppress emails
+        $r = $this->getMockBuilder('MailRouter')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('mailer'))
+            ->getMock();
+        $r->method('mailer')->willReturn(false);
+
+        # A request to confirm an application
+        $msg = file_get_contents('msgs/confirmnoemail');
+        $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testMemberApplication() {
         error_log(__METHOD__);
 

@@ -622,7 +622,7 @@ class MailRouter
 
                     # Check for getting group mails to our individual users, which we want to turn off because
                     # otherwise we'd get swamped.  We get group mails via the modtools@ and republisher@ users.
-                    if (strpos($envto, '@' . USER_DOMAIN) !== FALSE) {
+                    if (strpos($envto, '@' . USER_DOMAIN) !== FALSE || (ourDomain($envto) && stripos($envto, 'fbuser') === 0)) {
                         if ($log) { error_log("Turn off mails for $envto"); }
                         foreach ($groups as $groupid) {
                             $g = new Group($this->dbhr, $this->dbhm, $groupid);

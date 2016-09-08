@@ -46,8 +46,10 @@ function messages() {
                         }
                     }
 
-                    # Ensure that if we aren't in any groups, we don't treat this as a systemwide search.
-                    $groups[] = 0;
+                    if (count($groups) == 0) {
+                        # Ensure that if we aren't in any groups, we don't treat this as a systemwide search.
+                        $groups[] = 0;
+                    }
                 }
             }
 

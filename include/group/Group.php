@@ -146,6 +146,10 @@ class Group extends Entity
         return($this->group['nameshort'] . "-unsubscribe@yahoogroups.com");
     }
 
+    public function getGroupNoEmail() {
+        return($this->group['nameshort'] . "-nomail@yahoogroups.com");
+    }
+
     public function delete() {
         $rc = $this->dbhm->preExec("DELETE FROM groups WHERE id = ?;", [$this->id]);
         if ($rc) {

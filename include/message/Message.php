@@ -527,7 +527,7 @@ class Message
 
         if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $this->fromuser == $myid)) {
             # Add replies.
-            $sql = "SELECT DISTINCT t.* FROM chat_messages INNER JOIN (SELECT userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
+            $sql = "SELECT DISTINCT t.* FROM (SELECT userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
             $replies = $this->dbhr->preQuery($sql, [ $this->id ]);
             $ret['replies'] = [];
             foreach ($replies as $reply) {
