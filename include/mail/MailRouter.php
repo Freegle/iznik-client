@@ -258,7 +258,7 @@ class MailRouter
                 # We have requested to turn off email; conform that.  Only once, as if it keeps happening we'll keep
                 # trying to turn it off.
                 if ($log) { error_log("Confirm noemail change"); }
-                $this->mail($replyto, $to, "Yes please", "I confirm this");
+                $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
                 $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
                 # This is a request by Yahoo to confirm a subscription for one of our members.  We always do that.
@@ -266,7 +266,7 @@ class MailRouter
 
                 for ($i = 0; $i < 10; $i++) {
                     # Yahoo is sluggish - sending the confirm multiple times helps.
-                    $this->mail($replyto, $to, "Yes please", "I confirm this");
+                    $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
                 }
 
                 $u = new User($this->dbhr, $this->dbhm);
@@ -285,7 +285,7 @@ class MailRouter
 
                 for ($i = 0; $i < 10; $i++) {
                     # Yahoo is sluggish - sending the confirm multiple times helps.
-                    $this->mail($replyto, $to, "Yes please", "I confirm this");
+                    $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
                 }
 
                 $u = new User($this->dbhr, $this->dbhm);
@@ -304,7 +304,7 @@ class MailRouter
 
                 for ($i = 0; $i < 10; $i++) {
                     # Yahoo is sluggish - sending the confirm multiple times helps.
-                    $this->mail($replyto, $to, "Yes please", "I confirm this");
+                    $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
                 }
 
                 $ret = MailRouter::TO_SYSTEM;
@@ -759,7 +759,7 @@ class MailRouter
     }
 
     public function mail($to, $from, $subject, $body) {
-        $headers = "From: $from <$from>\r\n";
+        $headers = "From: $from <$from>\r\nTo: $to\r\n";
 
         $this->mailer(
             $to,

@@ -275,7 +275,7 @@ define([
                 self.$('.timeago').timeago();
 
                 if (self.model.get('autorepostallowed')) {
-                    console.log("Repost at", self.model.get('autorepostat'), (moment(self.model.get('autorepostat')).fromNow()));
+                    // console.log("Repost at", self.model.get('autorepostat'), (moment(self.model.get('autorepostat')).fromNow()));
                     self.$('.js-autodue').html((moment(self.model.get('autorepostat')).fromNow()));
                 }
             });

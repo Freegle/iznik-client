@@ -682,8 +682,10 @@ class ChatRoom extends Entity
             #error_log("$sql {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [ $this->id, $lastmessage, $lastmessage ]);
             foreach ($users as $user) {
-                if (!$user['lastmsgseen'] || $user['lastmsgseen'] < $lastseenbyall) {
+                #error_log("Last by all $lastseenbyall vs {$user['lastmsgseen']}, last message $lastmessage");
+                if (!$user['lastmsgseen'] || $user['lastmsgseen'] < $lastmessage) {
                     # We've not seen any messages, or seen some but not this one.
+                    #error_log("Need to see this");
                     $ret[] = [ 'userid' => $user['userid'], 'lastmsgseen' => $user['lastmsgseen'] ];
                 }
             }
@@ -734,6 +736,7 @@ class ChatRoom extends Entity
                         $minmsg
                     ]);
 
+                #error_log("Unseen " . var_export($unseenmsgs, TRUE));
                 if (count($unseenmsgs) > 0) {
                     $textsummary = '';
                     $htmlsummary = '';

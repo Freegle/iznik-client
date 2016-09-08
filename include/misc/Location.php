@@ -183,7 +183,6 @@ class Location extends Entity
 
                     if (count($gridids) > 0) {
                         $sql = "SELECT id, name, ST_Distance(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS dist FROM locations LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = $osmonly AND locations_excluded.locationid IS NULL ORDER BY dist ASC LIMIT 2;";
-                        #error_log($sql);
                         $intersects = $this->dbhr->preQuery($sql, [
                             $loc['geometry']
                         ]);
