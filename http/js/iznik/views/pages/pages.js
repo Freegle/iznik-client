@@ -114,7 +114,7 @@ define([
             var p = new Promise(function(resolve, reject) {
                 templateFetch(self.modtools ? 'modtools_layout_layout' : 'user_layout_layout').then(function(tpl) {
                     // Save and restore the minimised chats which would otherwise get zapped.
-                    var chats = $('#notifchatdropdown').children().detach();
+                    var chats = $('#notifchatdropdownlist').children().detach();
 
                     if (self.title) {
                         window.document.title = self.title;
@@ -123,7 +123,7 @@ define([
                     $('#bodyContent').html(window.template(tpl));
                     $('.js-pageContent').html(self.$el);
 
-                    $('#notifchatdropdown').html(chats);
+                    $('#notifchatdropdownlist').html(chats);
 
                     if (chats.length) {
                         $('#js-notifchat').show();

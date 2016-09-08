@@ -14,11 +14,16 @@
                         <ul class="list-inline">
                             <li>
                                 <div class="clickme ">
-                                    <div class="dropdown" id="js-notifchat">
-                                        <div id="notifchatbutt" class="notifchat dropdown-toggle glyphicon glyphicon-larger glyphicon-comment white" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <a href="#" class="dropdown-toggle " id="js-notifchat" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <div id="notifchatbutt" class="notifchat dropdown-toggle glyphicon glyphicon-larger glyphicon-comment white" type="button">
                                             <span class="js-totalcount badge badge-unread" style="display: none;" />
                                         </div>
-                                        <ul id="notifchatdropdown" class="dropdown-menu pull-right" role="menu" aria-labelledby="notifchatbutt"/>
+                                    </a>
+                                    <div id="notifchatdropdown" class="dropdown-menu pull-right" role="menu" aria-labelledby="notifchatbutt">
+                                        <div class="btn btn-primary pull-right js-minimiseall">
+                                            <span class="glyphicon glyphicon-remove" />&nbsp;Close all chats
+                                        </div>
+                                        <ul id="notifchatdropdownlist" class="list-unstyled notifchatdropdown" />
                                     </div>
                                 </div>
                             </li>

@@ -14,6 +14,12 @@ define([
 
         id: "chatHolder",
 
+        minimiseall: function() {
+            Iznik.activeChats.viewManager.each(function(chat) {
+                chat.minimise();
+            });
+        },
+
         waitError: function () {
             // This can validly happen when we switch pages, because we abort outstanding requests
             // and hence our long poll.  So before restarting, check that this view is still in the
@@ -407,7 +413,7 @@ define([
 
                         self.waitDOM(self, function() {
                             Iznik.minimisedChats = new Backbone.CollectionView({
-                                el: $('#notifchatdropdown'),
+                                el: $('#notifchatdropdownlist'),
                                 modelView: Iznik.Views.Chat.Minimised,
                                 collection: Iznik.Session.chats,
                                 modelViewOptions: {
@@ -422,8 +428,11 @@ define([
 
                             self.organise();
                             self.showMin();
-                        })
+                        });
                     });
+
+                    // Not within this DOM.
+                    $('.js-minimiseall').on('click', self.minimiseall);
 
                     // Now ensure we are told about new messages.
                     self.wait();

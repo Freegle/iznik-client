@@ -51,16 +51,20 @@
                 <ul class="nav navbar-nav navbar-right padright reallyHide js-loggedinonly">
                     <li>
                         <a href="#" id="js-notifchat" class="margleft dropdown-toggle nopad text-center" title="Messages from other Freeglers"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <div id="notifchatbutt" class="glyphicons glyphicon-larger glyphicons-conversation vcenter-left" type="button">
-                                <span class="js-totalcount badge badge-unread hidden-xs" style="display: none;" />
-                            </div>
+                            <div id="notifchatbutt" class="glyphicons glyphicon-larger glyphicons-conversation vcenter-left" type="button" />
                             <br />
                             <span>
-                                Conversations
+                                Chat
                                 <span class="js-totalcount badge badge-unread hidden-sm hidden-md hidden-lg" style="display: none;" />
                             </span>
+                            <span class="js-totalcount badge badge-unread hidden-xs" style="display: none;" />
                         </a>
-                        <ul id="notifchatdropdown" class="dropdown-menu pull-right" role="menu" aria-labelledby="notifchatbutt"/>
+                        <div id="notifchatdropdown" class="dropdown-menu pull-right" role="menu" aria-labelledby="notifchatbutt">
+                            <div class="btn btn-primary pull-right js-minimiseall">
+                                <span class="glyphicon glyphicon-remove" />&nbsp;Close all chats
+                            </div>
+                            <ul id="notifchatdropdownlist" class="list-unstyled notifchatdropdown" />
+                        </div>
                     </li>
                     <li>
                         <a href="#" id="js-notifications"  class="margleft nopad text-center" title="Notifications" style="display: none;">
