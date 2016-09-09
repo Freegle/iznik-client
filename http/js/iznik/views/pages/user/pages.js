@@ -62,7 +62,7 @@ define([
 
         changeHomeGroup: function(val) {
             // If we weren't passed one, then this is the event and we pick up the current value.
-            if (!val) {
+            if (val.hasOwnProperty('target')) {
                 val = this.$('.js-homegroup select').val();
             }
 
