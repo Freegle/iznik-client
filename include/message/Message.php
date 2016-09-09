@@ -443,6 +443,9 @@ class Message
             // Redundant line breaks.
             $text = preg_replace('/(?:(?:\r\n|\r|\n)\s*){2}/s', "\n\n", $text);
 
+            // Duff text added by Yahoo Mail app.
+            $text = str_replace('blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; }', '', $text);
+
             $text = trim($text);
         }
         
@@ -2206,6 +2209,10 @@ class Message
         }
 
         # Or we might have this, as a reply from a Yahoo Group message.
+        if (preg_match('/(.*)^To\:.*yahoogroups.*$.*__,_._,___(.*)/ms', $textbody, $matches)) {
+            $textbody = $matches[1] . $matches[2];
+        }
+
         if (preg_match('/(.*)__,_._,___(.*)/ms', $textbody, $matches)) {
             $textbody = $matches[1];
         }
@@ -2215,13 +2222,16 @@ class Message
         $textbody = preg_replace('/^Sent:.*?$/mi', '', $textbody);
 
         # Get rid of sigs
-        $textbody = str_replace('Sent from my iPhone', '', $textbody);
-        $textbody = str_replace('Sent from EE', '', $textbody);
-        $textbody = str_replace('Sent from my Samsung device', '', $textbody);
-        $textbody = str_replace('Sent from my Windows Phone', '', $textbody);
-        $textbody = str_replace('Sent from the trash nothing! Mobile App', '', $textbody);
-        $textbody = preg_replace('/^Sent on the go from.*?$/mi', '', $textbody);
-        $textbody = preg_replace('/^Sent from Yahoo Mail on.*$/', '', $textbody);
+        $textbody = preg_replace('/^Sent from my iPhone.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from EE.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my Samsung device.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my Windows Phone.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from the trash nothing! Mobile App.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent on the go from.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from Yahoo Mail.*/ms', '', $textbody);
+
+        // Duff text added by Yahoo Mail app.
+        $textbody = str_replace('blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; }', '', $textbody);
 
         #error_log("Pruned text to $textbody");
         return(trim($textbody));
