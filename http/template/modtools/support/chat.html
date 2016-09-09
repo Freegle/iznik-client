@@ -1,0 +1,42 @@
+<div class="row">
+    <div class="col-md-1">
+        #{{id}}
+    </div>
+    <div class="col-md-1">
+        <% if (chattype == 'User2User') { %>
+        <div class="glyphicons glyphicons-user success" title="Chat between users" />
+        <% } else { %>
+        <div class="glyphicons glyphicons-crown warning" title="Chat to volunteers" />
+        <% } %>
+    </div>
+    <div class="col-md-2">
+        <abbr class="timeago" title="{{lastdate}}"/>
+    </div>
+    <div class="col-md-2">
+        <% if (chattype == 'Mod2Mod') { %>
+        Mods
+        <% } else { %>
+            User
+            <% if (myuserid == user1.id) { %>
+                #{{user2.id}}
+            <% } else { %>
+                #{{user1.id}}
+            <% } %>
+        <% } %>
+    </div>
+    <div class="col-md-3">
+        <% if (chattype != 'Mod2Mod') { %>
+            <% if (obj.user1 && myuserid == user1.id) { %>
+            {{user2.displayname}}
+            <% } else { %>
+            {{user1.displayname}}
+            <% } %>
+        <% } %>
+    </div>
+    <div class="col-md-3">
+        <div  class="btn btn-white btn-sm js-viewchat" title="View Chat">
+            <div class="glyphicons glyphicons-conversation vcenter" />
+            &nbsp;View Chat
+        </div>
+    </div>
+</div>

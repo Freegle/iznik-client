@@ -2206,8 +2206,8 @@ class Message
         }
 
         # Or we might have this, as a reply from a Yahoo Group message.
-        if (preg_match('/(.*)^To\:.*yahoogroups.*$.*__,_._,___(.*)/ms', $textbody, $matches)) {
-            $textbody = $matches[1] . $matches[2];
+        if (preg_match('/(.*)__,_._,___(.*)/ms', $textbody, $matches)) {
+            $textbody = $matches[1];
         }
 
         # Or we might have some headers
@@ -2221,6 +2221,7 @@ class Message
         $textbody = str_replace('Sent from my Windows Phone', '', $textbody);
         $textbody = str_replace('Sent from the trash nothing! Mobile App', '', $textbody);
         $textbody = preg_replace('/^Sent on the go from.*?$/mi', '', $textbody);
+        $textbody = preg_replace('/^Sent from Yahoo Mail on.*$/', '', $textbody);
 
         #error_log("Pruned text to $textbody");
         return(trim($textbody));

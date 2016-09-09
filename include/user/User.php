@@ -2463,6 +2463,18 @@ class User extends Entity
 
             $thisone['logins'] = $u->getLogins(FALSE);
 
+            # Also return the chats for this user.
+            $r = new ChatRoom($this->dbhr, $this->dbhm);
+            $rooms = $r->listForUser($user['userid'], [ ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD, ChatRoom::TYPE_USER2USER ]);
+            $thisone['chatrooms'] = [];
+
+            if ($rooms) {
+                foreach ($rooms as $room) {
+                    $r = new ChatRoom($this->dbhr, $this->dbhm, $room);
+                    $thisone['chatrooms'][] = $r->getPublic();
+                }
+            }
+
             $ret[] = $thisone;
         }
 

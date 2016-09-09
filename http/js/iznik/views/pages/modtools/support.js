@@ -567,6 +567,37 @@ define([
                 });
 
                 self.sessionCollectionView.render();
+                
+                // Add any chats
+                self.chatCollection = new Iznik.Collection(self.model.get('chatrooms'));
+                self.chatCollection.each(function(chat) {
+                    chat.set('myuserid', self.model.get('id'));
+                });
+
+                // Show most recent first.
+                self.chatCollection.comparator = function(chat) {
+                    return -(new Date(chat.get('lastdate'))).getTime();
+                };
+                self.chatCollection.sort();
+
+                if (self.chatCollection.length == 0) {
+                    self.$('.js-chatsnone').show();
+                } else {
+                    self.$('.js-chatsnone').hide();
+                }
+
+                self.chatCollectionView = new Backbone.CollectionView({
+                    el: self.$('.js-chats'),
+                    modelView: Iznik.Views.ModTools.Member.SupportSearch.Chat,
+                    collection: self.chatCollection
+                });
+
+                self.chatCollectionView.render();
+
+                self.$('.js-chats').showFirst({
+                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                    count: 5
+                });
 
                 // Add message history.  Annoyingly, we might have a groupid for a group which we are not a
                 // member of at the moment, so we may need to fetch some.
@@ -636,6 +667,30 @@ define([
             });
 
             return (p);
+        }
+    });
+
+    Iznik.Views.ModTools.Member.SupportSearch.Chat = Iznik.View.Timeago.extend({
+        template: 'modtools_support_chat',
+
+        events: {
+            'click .js-viewchat': 'view'
+        },
+
+        view: function() {
+            var self = this;
+
+            var chat = new Iznik.Models.Chat.Room({
+                id: self.model.get('id')
+            });
+
+            chat.fetch().then(function() {
+                var v = new Iznik.Views.Chat.Modal({
+                    model: chat
+                });
+
+                v.render();
+            });
         }
     });
 

@@ -3,8 +3,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title js-modal-title">
-                    <div class="pull-left">{{user1.displayname}}</div>
-                    <div class="pull-right">{{user2.displayname}}</div>
+                    <div class="pull-left"><% if (obj.user1) { %>{{user1.displayname}}<% } %></div>
+                    <div class="pull-right"><% if (obj.user2) { %>{{user2.displayname}}<% } %></div>
                  </h4>
             </div>
             <div class="modal-body js-modal-body row">
