@@ -746,7 +746,6 @@ define([
                             var replyto = localStorage.getItem('replyto');
                             var replytext = localStorage.getItem('replytext');
                             var thisid = self.model.get('id');
-                            console.log("Continue reply?", replyto, thisid, replytext);
 
                             if (replyto == thisid) {
                                 self.continueReply.call(self, replytext);

@@ -123,18 +123,29 @@ define([
         },
         
         fallbackInterval: 300000,
-        
+
         fallback: function() {
             // Although we should be notified of new chat messages via the wait() function, this isn't guaranteed.  So
             // we have a fallback poll to pick up any lost messages.
+            //
+            // Don't want to fetch them all in a single blat, though, as that is mean to the server.
             var self = this;
+            self.fallbackFetch = [];
+            var delay = 30000;
             
             if (self.inDOM()) {
-                Iznik.Session.chats.each(function(chat) {
-                    chat.fetch();
-                });
-                
-                _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+                var i = 0;
+
+                (function fallbackOne() {
+                    if (i < Iznik.Session.chats.length) {
+                        Iznik.Session.chats.at(i).fetch();
+                        i++;
+                        _.delay(fallbackOne, delay);
+                    } else {
+                        // Reached end.
+                        _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+                    }
+                })();
             } else {
                 self.destroyIt();
             }
@@ -636,7 +647,7 @@ define([
             // We've seen all the messages.
             if (this.messages.length > 0) {
                 this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
-                console.log("Now seen chat message", this.messages.at(this.messages.length - 1).get('id'));
+                // console.log("Now seen chat message", this.messages.at(this.messages.length - 1).get('id'));
             }
             this.model.set('unseen', 0);
 
