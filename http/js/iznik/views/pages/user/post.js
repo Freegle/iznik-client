@@ -167,6 +167,9 @@ define([
                     self.$('.js-items').tagsinput('add', self.options.item);
                 }
 
+                // Add a max-legnth to the underlying input for free-typing case.
+                self.$('.tt-input').attr('maxlength', 60);
+
                 // File upload
                 self.$('#fileupload').fileinput({
                     uploadExtraData: {
