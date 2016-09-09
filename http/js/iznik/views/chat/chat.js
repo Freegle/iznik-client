@@ -14,6 +14,8 @@ define([
 
         id: "chatHolder",
 
+        bulkUpdateRunning: false,
+
         minimiseall: function() {
             Iznik.activeChats.viewManager.each(function(chat) {
                 chat.minimise();
@@ -148,6 +150,46 @@ define([
                 })();
             } else {
                 self.destroyIt();
+            }
+        },
+
+        bulkUpdateRoster: function() {
+            var self = this;
+
+            var updates = [];
+            Iznik.Session.chats.each(function(chat) {
+                var status = chat.get('rosterstatus');
+
+                if (status && status != 'Away') {
+                    // There's no real need to tell the server that we're in Away status - it will time us out into
+                    // that anyway.  This saves a lot of update calls in the case where we're loading the page
+                    // and minimising many chats, e.g. if we're a mod on many groups.
+                    updates.push({
+                        id: chat.get('id'),
+                        status: status,
+                        lastmsgseen: chat.get('lastmsgseen')
+                    });
+                }
+            });
+
+            if (updates.length > 0) {
+                $.ajax({
+                    url: API + 'chatrooms',
+                    type: 'POST',
+                    data: {
+                        'rosters': updates
+                    }, success: function(ret) {
+                        // Update the returned roster into each active chat.
+                        Iznik.activeChats.viewManager.each(function (chat) {
+                            var roster = ret.rosters[chat.model.get('id')];
+                            if (!_.isUndefined(roster)) {
+                                chat.lastRoster = roster;
+                            }
+                        });
+                    }, complete: function() {
+                        _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
+                    }
+                });
             }
         },
 
@@ -445,6 +487,12 @@ define([
                     // Not within this DOM.
                     $('.js-minimiseall').on('click', self.minimiseall);
 
+                    if (!self.bulkUpdateRunning) {
+                        // We update the roster for all chats periodically.
+                        self.bulkUpdateRunning = true;
+                        _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
+                    }
+
                     // Now ensure we are told about new messages.
                     self.wait();
                     _.delay(_.bind(self.fallback, self), self.fallbackInterval);
@@ -520,8 +568,6 @@ define([
         removed: false,
 
         minimised: true,
-
-        rosterUpdatedAt: 0,
 
         keyUp: function(e) {
             var self = this;
@@ -893,17 +939,8 @@ define([
         updateRoster: function(status, callback, force) {
             var self = this;
 
-            // We make sure we don't update the server too often unless the status changes, whatever the user
-            // is doing with this chat.  This helps reduce server load for large numbers of clients.
-            var now = (new Date()).getTime();
-            //console.log("Consider roster update", status, self.rosterUpdatedStatus, now, self.rosterUpdatedAt, now - self.rosterUpdatedAt);
-
-            if (status == 'Away') {
-                // There's no real need to tell the server that we're in Away status - it will time us out into
-                // that anyway.  This saves a lot of update calls in the case where we're loading the page
-                // and minimising many chats, e.g. if we're a mod on many groups.
-            } else if (force || status != self.rosterUpdatedStatus || now - self.rosterUpdatedAt > 25000) {
-                // console.log("Issue roster update");
+            if (force) {
+                // We want to make sure the server knows right now.
                 $.ajax({
                     url: API + 'chat/rooms/' + self.model.get('id'),
                     type: 'POST',
@@ -912,8 +949,6 @@ define([
                         status: status
                     }, success: function(ret) {
                         if (ret.ret === 0) {
-                            self.rosterUpdatedAt = (new Date()).getTime();
-                            self.rosterUpdatedStatus = status;
                             self.lastRoster = ret.roster;
                         }
 
@@ -921,10 +956,14 @@ define([
                     }
                 });
             } else {
-                // console.log("Suppress update", self.lastRoster);
+                // Save the current status in the chat for the next bulk roster update to the server.
+                // console.log("Set roster status", status, self.model.get('id'));
+                self.model.set('rosterstatus', status);
+
+               // console.log("Suppress update", self.lastRoster);
                 callback({
                     ret: 0,
-                    status: 'Update suppressed',
+                    status: 'Update delayed',
                     roster: self.lastRoster
                 });
             }

@@ -83,6 +83,23 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals($rid, $ret['chatroom']['id']);
 
+        # Bulk update
+        $ret = $this->call('chatrooms', 'POST', [
+            'rosters' => [
+                [
+                    'id' => $rid,
+                    'lastmsgseen' => 2,
+                    'status' => 'Online'
+                ]
+            ]
+        ]);
+
+        $ret = $this->call('chatrooms', 'GET', [
+            'id' => $rid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($rid, $ret['chatroom']['id']);
+
         error_log(__METHOD__ . " end");
     }
 
