@@ -25,25 +25,6 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="location">Your postcode</label>
-                    <span class="help-block"><div class="glyphicon glyphicon-lock" />&nbsp;Other freeglers won't see this.</span>
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <div class="input-group clickme">
-                                <input type="text" id="location" class="form-control js-postcode" placeholder="The full postcode where you live"/>
-                                <span class="input-group-addon js-savepostcode">
-                                    <span class="glyphicon glyphicon-floppy-save" title="Save" />&nbsp;Save
-                                </span>
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <div class="btn btn-primary js-geoloconly js-getloc">
-                                <div class="glyphicon glyphicon-map-marker" />&nbsp;Find my location
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
                     <label for="location">Your email address</label>
                     <span class="help-block"><div class="glyphicon glyphicon-lock" />&nbsp;Other freeglers won't see this.</span>
                     <div class="row">
@@ -81,6 +62,28 @@
                         <div class="col-sm-6">
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label for="location">Your postcode</label>
+                        <span class="help-block"><div class="glyphicon glyphicon-lock" />&nbsp;Other freeglers won't see this.</span>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="input-group clickme">
+                                    <input type="text" id="location" class="form-control js-postcode" placeholder="The full postcode where you live"/>
+                                    <span class="input-group-addon js-savepostcode">
+                                    <span class="glyphicon glyphicon-floppy-save" title="Save" />&nbsp;Save
+                                </span>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="btn btn-primary js-geoloconly js-getloc">
+                                    <div class="glyphicon glyphicon-map-marker" />&nbsp;Find my location
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12 js-locmap" />
                 </div>
             </form>
         </div>
