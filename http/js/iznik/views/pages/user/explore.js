@@ -301,16 +301,25 @@ define([
         },
 
         filter: function(model) {
-            // Show all OFFERs and WANTEDs.
             var thetype = model.get('type');
-            return(thetype == 'Offer' || thetype == 'Wanted');
+
+            if (thetype != 'Offer' && thetype != 'Wanted') {
+                // Not interested in this type of message.
+                return(false);
+            } else {
+                // Only show a search result for an offer which has not been taken or wanted not received.
+                var paired = _.where(model.get('related'), {
+                    type: thetype == 'Offer' ? 'Taken' : 'Received'
+                });
+
+                return (paired.length == 0);
+            }
         },
 
         showHideJoin: function() {
             var self = this;
 
             var role = self.model.get('myrole');
-            console.log("Role", role);
 
             if (role == 'Non-member') {
                 self.$('.js-join').show();
