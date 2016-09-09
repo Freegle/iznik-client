@@ -2800,7 +2800,7 @@ class Message
             $g = new Group($this->dbhr, $this->dbhm, $groupid);
 
             if ($g->getPrivate('onyahoo')) {
-                list ($eid, $email) = $u->getEmailForYahooGroup($groupid);
+                list ($eid, $email) = $u->getEmailForYahooGroup($groupid, TRUE);
                 $headers = 'From: "' . $u->getName() . '" <' . $email . ">\r\n";
                 $this->mailer(
                     $u,
