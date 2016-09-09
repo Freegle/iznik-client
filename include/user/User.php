@@ -2431,8 +2431,10 @@ class User extends Entity
                 ((SELECT userid FROM users_emails WHERE email LIKE $q OR backwards LIKE $qb) UNION
                 (SELECT id AS userid FROM users WHERE fullname LIKE $q) UNION
                 (SELECT id AS userid FROM users WHERE yahooid LIKE $q) UNION
+                (SELECT id AS userid FROM users WHERE id = ?) UNION
                 (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)) t WHERE userid > ? ORDER BY userid ASC";
-        $users = $this->dbhr->preQuery($sql, [$id]);
+        $users = $this->dbhr->preQuery($sql, [$search, $id]);
+        error_log("$sql");
 
         $ret = [];
         foreach ($users as $user) {
