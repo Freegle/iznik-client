@@ -2801,7 +2801,6 @@ class Message
 
             if ($g->getPrivate('onyahoo')) {
                 list ($eid, $email) = $u->getEmailForYahooGroup($groupid, TRUE);
-                $headers = 'From: "' . $u->getName() . '" <' . $email . ">\r\n";
                 $this->mailer(
                     $u,
                     FALSE,
