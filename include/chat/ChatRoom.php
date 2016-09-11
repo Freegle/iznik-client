@@ -678,7 +678,10 @@ class ChatRoom extends Entity
             #   we remind people daily when they have unread messages.
             # - When we have a new message since our last email, we don't email more often than hourly, so that if
             #   someone keeps hammering away in chat we don't flood the recipient with emails.
-            $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster WHERE chatid = ? HAVING secondsago >= $age AND lastemailed IS NULL OR ((lastmsgemailed = ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 24) OR (lastmsgemailed < ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 1));";
+            #
+            # Used to remail - but that never stops if they don't visit the site.
+            # OR ((lastmsgemailed = ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 24)
+            $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster WHERE chatid = ? HAVING secondsago >= $age AND lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 1));";
             #error_log("$sql {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [ $this->id, $lastmessage, $lastmessage ]);
             foreach ($users as $user) {
