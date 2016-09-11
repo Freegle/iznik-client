@@ -18,19 +18,29 @@
         <% } else { %>
             User
             <% if (myuserid == user1.id) { %>
-                #{{user2.id}}
+                <% if (obj.user2) { %>
+                    #{{user2.id}}
+                <% } else { %>
+                ?
+                <% } %>
             <% } else { %>
                 #{{user1.id}}
             <% } %>
         <% } %>
     </div>
     <div class="col-md-3">
-        <% if (chattype != 'Mod2Mod') { %>
+        <% if (chattype == 'User2User') { %>
             <% if (obj.user1 && myuserid == user1.id) { %>
-            {{user2.displayname}}
+                <% if (obj.user2) { %>
+                    {{user2.displayname}}
+                <% } else { %>
+                    (Unknown user)
+                <% } %>
             <% } else { %>
             {{user1.displayname}}
             <% } %>
+        <% } else if (chattype == 'User2Mod') { %>
+            {{user1.displayname}}
         <% } %>
     </div>
     <div class="col-md-3">
