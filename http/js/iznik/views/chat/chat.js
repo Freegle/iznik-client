@@ -140,9 +140,6 @@ define([
 
             if (self.inDOM()) {
                 Iznik.Session.chats.fetch().then(function() {
-                    // Sort so that any new chats appear at the top.
-                    Iznik.Session.chats.sort();
-
                     var i = 0;
 
                     (function fallbackOne() {
