@@ -953,6 +953,7 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 }
 
 #notifchatdropdown {
+    background-color: white;
     position: absolute;
     right: 0px;
     padding: 0px;
