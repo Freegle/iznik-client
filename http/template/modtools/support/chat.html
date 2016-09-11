@@ -15,6 +15,8 @@
     <div class="col-md-2">
         <% if (chattype == 'Mod2Mod') { %>
         Mods
+        <% } else if (chattype == 'User2Mod') { %>
+        To Mods
         <% } else { %>
             User
             <% if (myuserid == user1.id) { %>
