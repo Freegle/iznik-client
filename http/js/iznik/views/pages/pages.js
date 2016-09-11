@@ -49,9 +49,6 @@ define([
             'click .js-notifchat': 'refreshChats'
         },
 
-        refreshChats: function() {
-        },
-
         home: function () {
             var homeurl = this.modtools ? '/modtools' : '/';
 
