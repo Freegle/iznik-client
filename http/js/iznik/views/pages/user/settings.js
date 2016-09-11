@@ -292,4 +292,41 @@ define([
     Iznik.Views.User.Pages.Settings.VerifySucceeded = Iznik.Views.Modal.extend({
         template: 'user_settings_verifysucceeded'
     });
+
+    Iznik.Views.User.Pages.Settings.NoEmail = Iznik.Views.Modal.extend({
+        template: 'user_settings_noemail',
+
+        events: {
+            'click .js-save': 'save'
+        },
+
+        save: function() {
+            var self = this;
+            self.$('.js-email').removeClass('error-border');
+            self.$('.js-verifyemail').hide();
+            var email= this.$('.js-email').val();
+            if (email.length > 0 && isValidEmailAddress(email)) {
+                var me = Iznik.Session.get('me');
+                me.email = email;
+                Iznik.Session.set('me', me);
+                Iznik.Session.save({
+                    id: me.id,
+                    email: email
+                }, {
+                    patch: true,
+                    success: function(model, response, options) {
+                        if (response.ret == 0) {
+                            self.close();
+                        } else if (response.ret == 10) {
+                            self.$('.js-verifyemail').fadeIn('slow');
+                            self.$('.js-close').hide();
+                        }
+                    }
+                });
+            } else {
+                self.$('.js-email').addClass('error-border');
+                self.$('.js-email').focus();
+            }
+        }
+    });
 });

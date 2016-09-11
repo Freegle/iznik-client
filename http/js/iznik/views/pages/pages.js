@@ -202,10 +202,18 @@ define([
                     // chats, which some pages may rely on behing active.
                     self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                         if (loggedIn) {
-                            // Since we're logged in, we can start chat.
-                            ChatHolder({
-                                modtools: self.modtools
-                            }).render();
+                            if (!Iznik.Session.get('me').email) {
+                                // We have no email.  This can happen for some login types.  Force them to provide one.
+                                require(["iznik/views/pages/user/settings"], function() {
+                                    var v = new Iznik.Views.User.Pages.Settings.NoEmail();
+                                    v.render();
+                                });
+                            } else {
+                                // Since we're logged in, we can start chat.
+                                ChatHolder({
+                                    modtools: self.modtools
+                                }).render();
+                            }
                         }
 
                         templateFetch(self.template).then(function(tpl) {

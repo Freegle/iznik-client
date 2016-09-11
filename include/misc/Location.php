@@ -62,6 +62,7 @@ class Location extends Entity
             }
 
             $sql = "SELECT locations_grids.id AS gridid FROM `locations` INNER JOIN locations_grids ON locations.id = ? AND MBRIntersects(locations.geometry, locations_grids.box) LIMIT 1;";
+            #error_log("SELECT locations_grids.id AS gridid FROM `locations` INNER JOIN locations_grids ON locations.id = $id AND MBRIntersects(locations.geometry, locations_grids.box) LIMIT 1;");
             $grids = $this->dbhr->preQuery($sql, [ $id ]);
             foreach ($grids as $grid) {
                 $gridid = $grid['gridid'];
