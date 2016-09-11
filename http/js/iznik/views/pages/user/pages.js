@@ -199,6 +199,7 @@ define([
                     } catch (e) {};
 
                     // Show home group if it's present.
+                    var addedGroups = [];
                     groups.empty();
                     _.each(self.groupsnear, function(groupnear) {
                         if (homegroup == groupnear.id) {
@@ -210,7 +211,23 @@ define([
                         }
                         groups.append('<option value="' + groupnear.id + '" />');
                         groups.find('option:last').text(groupnear.namedisplay);
+                        addedGroups.push(groupnear.id);
                     });
+
+                    // Add remaining Freegle groups we're a member of - maybe we have a reason to post on them.
+                    self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                        if (loggedIn) {
+                            var mygroups = Iznik.Session.get('groups');
+                            mygroups.each(function(group) {
+                                if (group.get('type') == 'Freegle' && addedGroups.indexOf(group.get('id'))) {
+                                    groups.append('<option value="' + group.get('id') + '" />');
+                                    groups.find('option:last').text(group.get('namedisplay'));
+                                }
+                            });
+                        }
+                    });
+
+                    Iznik.Session.testLoggedIn();
 
                     if (homegroupfound) {
                         groups.val(homegroup);
