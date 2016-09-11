@@ -1,4 +1,4 @@
-<?php
+s<?php
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
@@ -226,8 +226,9 @@ class Digest
                     $textsumm = '';
                     $availablehtml = '';
                     $availablesumm = '';
-                    $subject = "[{$gatts['namedisplay']}] What's New (" . count($available) . " message" .
-                        (count($available) == 1 ? ')' : 's)');
+                    $count = count($available) > 0 ? count($available) : 1;
+                    $subject = "[{$gatts['namedisplay']}] 's New ($count message" .
+                        ($count == 1 ? ')' : 's)');
                     $subjinfo = '';
 
                     foreach ($available as $msg) {
