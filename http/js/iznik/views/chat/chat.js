@@ -59,6 +59,7 @@ define([
                         global: false, // don't trigger ajaxStart
                         success: function (ret) {
                             var waiting = false;
+                            //console.log("Received notif", ret);
                             if (ret && ret.hasOwnProperty('text')) {
                                 var data = ret.text;
 
@@ -87,28 +88,30 @@ define([
                                         // within it so that they are displayed.  If it's not, then we don't want
                                         // to keep fetching messages - the notification count will get updated by
                                         // the roster poll.
-                                        var chat = Iznik.Session.chats.get(data.roomid);
+                                        Iznik.Session.chats.fetch({
+                                            modtools: self.options.modtools
+                                        }).then(function() {
+                                            var chat = Iznik.Session.chats.get(data.roomid);
 
-                                        // It's possible that we haven't yet fetched the model for this chat.
-                                        if (chat) {
-                                            console.log("Notification", self, chat, data);
-                                            var chatView = Iznik.activeChats.viewManager.findByModel(chat);
+                                            // It's possible that we haven't yet fetched the model for this chat.
+                                            if (chat) {
+                                                var chatView = Iznik.activeChats.viewManager.findByModel(chat);
 
-                                            if (!chatView.minimised) {
-                                                waiting = true;
-                                                chatView.messages.fetch().then(function () {
-                                                    // Wait for the next one.  Slight timing window here but the fallback
-                                                    // protects us from losing messages forever.
-                                                    self.wait();
+                                                if (!chatView.minimised) {
+                                                    waiting = true;
+                                                    chatView.messages.fetch().then(function () {
+                                                        // Wait for the next one.  Slight timing window here but the fallback
+                                                        // protects us from losing messages forever.
+                                                        self.wait();
 
-                                                    // Also fetch the chat, because the number of unread messages in it will
-                                                    // update counts in various places.
-                                                    chat.fetch().then(function() {
-                                                        console.log("Fetched chat", chat);
+                                                        // Also fetch the chat, because the number of unread messages in it will
+                                                        // update counts in various places.
+                                                        chat.fetch().then(function () {
+                                                        });
                                                     });
-                                                });
+                                                }
                                             }
-                                        }
+                                        });
                                     }
                                 }
                             }
@@ -124,7 +127,7 @@ define([
             }
         },
         
-        fallbackInterval: 300000,
+        fallbackInterval: 30000,
 
         fallback: function() {
             // Although we should be notified of new chat messages via the wait() function, this isn't guaranteed.  So
@@ -133,21 +136,26 @@ define([
             // Don't want to fetch them all in a single blat, though, as that is mean to the server.
             var self = this;
             self.fallbackFetch = [];
-            var delay = 30000;
-            
-            if (self.inDOM()) {
-                var i = 0;
+            var delay = 3000;
 
-                (function fallbackOne() {
-                    if (i < Iznik.Session.chats.length) {
-                        Iznik.Session.chats.at(i).fetch();
-                        i++;
-                        _.delay(fallbackOne, delay);
-                    } else {
-                        // Reached end.
-                        _.delay(_.bind(self.fallback, self), self.fallbackInterval);
-                    }
-                })();
+            if (self.inDOM()) {
+                Iznik.Session.chats.fetch().then(function() {
+                    // Sort so that any new chats appear at the top.
+                    Iznik.Session.chats.sort();
+
+                    var i = 0;
+
+                    (function fallbackOne() {
+                        if (i < Iznik.Session.chats.length) {
+                            Iznik.Session.chats.at(i).fetch();
+                            i++;
+                            _.delay(fallbackOne, delay);
+                        } else {
+                            // Reached end.
+                            _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+                        }
+                    })();
+                });
             } else {
                 self.destroyIt();
             }
@@ -442,7 +450,7 @@ define([
                 Iznik.Session.chats = new Iznik.Collections.Chat.Rooms({
                     modtools: Iznik.Session.get('modtools')
                 });
-                
+
                 p = Iznik.View.prototype.render.call(self).then(function(self) {
                     $("#bodyEnvelope").append(self.$el);
                     Iznik.Session.chats.fetch().then(function () {
@@ -474,6 +482,11 @@ define([
                                     updateCounts: _.bind(self.updateCounts, self),
                                     modtools: self.options.modtools
                                 }
+                            });
+
+                            Iznik.minimisedChats.on('add', function(view) {
+                                // The collection view seems to get messed up, so re-render it to sort it out.
+                                Iznik.minimisedChats.render();
                             });
 
                             Iznik.minimisedChats.render();
@@ -709,6 +722,7 @@ define([
         },
 
         minimise: function() {
+            console.log("Minimise");
             var self = this;
             _.defer(function() {
                 self.$el.hide();
@@ -1045,6 +1059,7 @@ define([
 
         render: function () {
             var self = this;
+            console.log("Render chat", self.model.get('id')); console.trace();
 
             self.$el.attr('id', 'chat-' + self.model.get('id'));
             self.$el.addClass('chat-' + self.model.get('name'));
