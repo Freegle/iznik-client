@@ -258,7 +258,7 @@ class MailRouter
                 # We have requested to turn off email; conform that.  Only once, as if it keeps happening we'll keep
                 # trying to turn it off.
                 if ($log) { error_log("Confirm noemail change"); }
-                $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
+                $this->mail($fromheader[0]['address'], $to, "Yes please", "I confirm this");
                 $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
                 # This is a request by Yahoo to confirm a subscription for one of our members.  We always do that.
