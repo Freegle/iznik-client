@@ -90,12 +90,12 @@ function chatrooms() {
                     }
                 } else {
                     # Bulk roster update
-                    $ret = ['ret' => 0, 'status' => 'Success', 'rosters' => []];
+                    $ret = ['ret' => 0, 'status' => 'Success', 'rosters' => [], 'nolog' => TRUE];
                     $rosters = presdef('rosters', $_REQUEST, []);
                     foreach ($rosters as $roster) {
                         $r = new ChatRoom($dbhr, $dbhm, $roster['id']);
                         if ($r->canSee($myid)) {
-                            $r->updateRoster($myid, $roster['lastmsgseen'], $roster['status']);
+                            $r->updateRoster($myid, presdef('lastmsgseen', $roster, NULL), $roster['status']);
                             $ret['rosters'][$roster['id']] = $r->getRoster();
                             $ret['unseen'][$roster['id']] = $r->unseenForUser($myid);
                         }
