@@ -728,7 +728,6 @@ define([
         },
 
         minimise: function() {
-            console.log("Minimise");
             var self = this;
             _.defer(function() {
                 self.$el.hide();
@@ -1067,7 +1066,7 @@ define([
 
         render: function () {
             var self = this;
-            console.log("Render chat", self.model.get('id')); console.trace();
+            // console.log("Render chat", self.model.get('id')); console.trace();
 
             self.$el.attr('id', 'chat-' + self.model.get('id'));
             self.$el.addClass('chat-' + self.model.get('name'));
