@@ -329,18 +329,18 @@ class Digest
                         $_SERVER['SERVER_NAME'] = USER_DOMAIN;
                         foreach ($tosend as $msg) {
                             foreach ($replacements as $email => $rep) {
-                                $message = Swift_Message::newInstance()
-                                    ->setSubject($msg['subject'])
-                                    ->setFrom([$msg['from'] => $msg['fromname']])
-                                    ->setReturnPath('bounce@direct.ilovefreegle.org')
-                                    ->setReplyTo($msg['replyto'], $msg['replytoname'])
-                                    ->setBody($msg['text'])
-                                    ->addPart($msg['html'], 'text/html');
-
-                                $headers = $message->getHeaders();
-                                $headers->addTextHeader('List-Unsubscribe', '<mailto:{{noemail}}>, <{{unsubscribe}}>');
-
                                 try {
+                                    $message = Swift_Message::newInstance()
+                                        ->setSubject($msg['subject'])
+                                        ->setFrom([$msg['from'] => $msg['fromname']])
+                                        ->setReturnPath('bounce@direct.ilovefreegle.org')
+                                        ->setReplyTo($msg['replyto'], $msg['replytoname'])
+                                        ->setBody($msg['text'])
+                                        ->addPart($msg['html'], 'text/html');
+
+                                    $headers = $message->getHeaders();
+                                    $headers->addTextHeader('List-Unsubscribe', '<mailto:{{noemail}}>, <{{unsubscribe}}>');
+
 //                                    error_log("...$email {$msg['subject']}");
 //                                    if (strpos($email, 'btinternet.com')) {
 //                                        error_log("BT - cause fail");

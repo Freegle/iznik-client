@@ -45,10 +45,6 @@ define([
         
         footer: false,
 
-        events: {
-            'click .js-notifchat': 'refreshChats'
-        },
-
         home: function () {
             var homeurl = this.modtools ? '/modtools' : '/';
 
@@ -70,12 +66,6 @@ define([
 
         logout: function() {
             logout();
-        },
-
-        refreshChats: function() {
-            Iznik.Session.chats.fetch({
-                remove: false
-            });
         },
 
         render: function (options) {

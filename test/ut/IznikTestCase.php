@@ -108,13 +108,15 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
                 break;
             }
 
-            $job = $pheanstalk->peekReady();
-            $data = json_decode($job->getData(), true);
+            try {
+                $job = $pheanstalk->peekReady();
+                $data = json_decode($job->getData(), true);
 
-            if ($data['queued'] > $start) {
-                sleep(2);
-                break;
-            }
+                if ($data['queued'] > $start) {
+                    sleep(2);
+                    break;
+                }
+            } catch (Exception $e) {}
 
             sleep(5);
             $count++;

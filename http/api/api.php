@@ -294,8 +294,8 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     $rsp = substr($rsp, 0, 1000);
                 }
 
-                $sql = "INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '" . presdef('REMOTE_ADDR', $_SERVER, '') . "', " . $dbhr->quote(session_id()) .
-                    ", " . $dbhr->quote($req) . ", " . $dbhr->quote($rsp) . ");";
+                $sql = "INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (" . presdef('id', $_SESSION, 'NULL') . ", '" . o . "', " . $dbhr->quote(session_id()) .
+                    ", " . $dbhr->quote($req) . ", " . $dbhr->quote($terp) . ");";
                 $dbhm->background($sql);
             }
 

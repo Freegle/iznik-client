@@ -139,7 +139,9 @@ define([
             var delay = 3000;
 
             if (self.inDOM()) {
-                Iznik.Session.chats.fetch().then(function() {
+                Iznik.Session.chats.fetch({
+                    modtools: self.options.modtools
+                }).then(function() {
                     self.updateCounts();
 
                     var i = 0;
@@ -348,6 +350,7 @@ define([
                 }, success: function(ret) {
                     if (ret.ret == 0) {
                         Iznik.Session.chats.fetch({
+                            modtools: self.options.modtools,
                             remove: false
                         }).then(function() {
                             // Now create a report message.
@@ -379,6 +382,7 @@ define([
                 }, success: function(ret) {
                     if (ret.ret == 0) {
                         Iznik.Session.chats.fetch({
+                            modtools: self.options.modtools,
                             remove: false
                         }).then(function() {
                             // Defer to give the CollectionView time to respond.
@@ -409,6 +413,7 @@ define([
                     }, success: function(ret) {
                         if (ret.ret == 0) {
                             Iznik.Session.chats.fetch({
+                                modtools: self.options.modtools,
                                 remove: false
                             }).then(function() {
                                 // Defer to give the CollectionView time to respond.
@@ -452,7 +457,9 @@ define([
 
                 p = Iznik.View.prototype.render.call(self).then(function(self) {
                     $("#bodyEnvelope").append(self.$el);
-                    Iznik.Session.chats.fetch().then(function () {
+                    Iznik.Session.chats.fetch({
+                        modtools: Iznik.Session.get('modtools')
+                    }).then(function () {
                         Iznik.Session.chats.each(function (chat) {
                             // If the unread message count changes, we want to update it.
                             self.listenTo(chat, 'change:unseen', self.updateCounts);
@@ -995,7 +1002,9 @@ define([
         },
 
         openChat: function(chatid) {
-            Iznik.Session.chats.fetch().then(function() {
+            Iznik.Session.chats.fetch({
+                modtools: Iznik.Session.get('modtools')
+            }).then(function() {
                 var chatmodel = Iznik.Session.chats.get(chatid);
                 var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
                 chatView.restore();
