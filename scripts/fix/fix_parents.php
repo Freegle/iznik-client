@@ -18,7 +18,7 @@ foreach ($locs as $loc) {
     $l->setParents($loc['id'], $loc['gridid']);
     $count++;
 
-    #if ($count % 1000 == 0) {
+    if ($count % 1000 == 0) {
         error_log("$count..." . count($locs));
-    #}
+    }
 }
