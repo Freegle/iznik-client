@@ -623,9 +623,9 @@ class MailRouter
                     # Check for getting group mails to our individual users, which we want to turn off because
                     # otherwise we'd get swamped.  We get group mails via the modtools@ and republisher@ users.
                     if (strpos($envto, '@' . USER_DOMAIN) !== FALSE || (ourDomain($envto) && stripos($envto, 'fbuser') === 0)) {
-                        if ($log) { error_log("Turn off mails for $envto"); }
                         foreach ($groups as $groupid) {
                             $g = new Group($this->dbhr, $this->dbhm, $groupid);
+                            if ($log) { error_log("Turn off mails for $envto via " . $g->getGroupNoEmail()); }
                             $this->mail($g->getGroupNoEmail(), $envto, "Turning off mails", "I don't want these");
                         }
                     }
@@ -753,20 +753,14 @@ class MailRouter
         }
     }
 
-    # Default mailer is to use the standard PHP one, but this can be overridden in UT.
-    public function mailer() {
-        call_user_func_array('mail', func_get_args());
-    }
-
     public function mail($to, $from, $subject, $body) {
-        $headers = "From: $from <$from>\r\nTo: $to\r\n";
+        list ($transport, $mailer) = getMailer();
 
-        $this->mailer(
-            $to,
-            $subject,
-            $body,
-            $headers,
-            "-f$from"
-        );
+        $message = Swift_Message::newInstance()
+            ->setSubject($subject)
+            ->setFrom($from)
+            ->setTo($to)
+            ->setBody($body);
+        $mailer->send($message);
     }
 }
