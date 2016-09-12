@@ -913,7 +913,11 @@ class Message
         $myid = $me ? $me->getId() : NULL;
         $sess = session_id();
 
-        $rc = $this->dbhm->preExec("INSERT INTO messages (source, sourceheader, date) VALUES(?,?, NOW());", [ Message::PLATFORM, Message::PLATFORM ]);
+        $rc = $this->dbhm->preExec("INSERT INTO messages (source, sourceheader, date, fromip) VALUES(?,?, NOW(), ?);", [
+            Message::PLATFORM,
+            Message::PLATFORM,
+            presdef('REMOTE_ADDR', $_SERVER, NULL)
+        ]);
         $id = $rc ? $this->dbhm->lastInsertId() : NULL;
 
         if ($id) {
