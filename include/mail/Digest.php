@@ -53,47 +53,51 @@ class Digest
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $u->setMembershipAtt($groupid, 'emailfrequency', 0);
         $g = new Group($this->dbhr, $this->dbhm, $groupid);
-        $groupname = $g->getPublic()['namedisplay'];
 
-        # TODO This code will die once we move over.
-        global $dbconfig;
-        $dsnfd = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
+        # We can receive messages for emails from the old system where the group id is no longer valid.
+        if ($g->getId() == $groupid) {
+            $groupname = $g->getPublic()['namedisplay'];
 
-        $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_EMULATE_PREPARES => FALSE
-        ));
+            # TODO This code will die once we move over.
+            global $dbconfig;
+            $dsnfd = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
 
-        $emails = $u->getEmails();
-        foreach ($emails as $email) {
-            $email = $email['email'];
-            $sql = "UPDATE users SET digest = 0 WHERE useremail LIKE " . $dbhfd->quote($email) . " OR groupsemail LIKE " . $dbhfd->quote($email) . ";";
-            #error_log("$sql");
-            $dbhfd->exec($sql);
-        }
-        # TODO end
+            $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_EMULATE_PREPARES => FALSE
+            ));
 
-        $this->log->log([
-            'type' => Log::TYPE_USER,
-            'subtype' => Log::SUBTYPE_MAILOFF,
-            'userid' => $uid,
-            'groupid' => $groupid
-        ]);
+            $emails = $u->getEmails();
+            foreach ($emails as $email) {
+                $email = $email['email'];
+                $sql = "UPDATE users SET digest = 0 WHERE useremail LIKE " . $dbhfd->quote($email) . " OR groupsemail LIKE " . $dbhfd->quote($email) . ";";
+                #error_log("$sql");
+                $dbhfd->exec($sql);
+            }
+            # TODO end
 
-        $email = $u->getEmailPreferred();
-        if ($email) {
-            list ($transport, $mailer) = getMailer();
-            $html = digest_off(USER_DOMAIN, USERLOGO, $groupname);
+            $this->log->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_MAILOFF,
+                'userid' => $uid,
+                'groupid' => $groupid
+            ]);
 
-            $message = Swift_Message::newInstance()
-                ->setSubject("Email Change Confirmation")
-                ->setFrom([NOREPLY_ADDR => 'Do Not Reply'])
-                ->setReturnPath('bounce@direct.ilovefreegle.org')
-                ->setTo([ $email => $u->getName() ])
-                ->setBody("We've turned your emails off on $groupname.")
-                ->addPart($html, 'text/html');
+            $email = $u->getEmailPreferred();
+            if ($email) {
+                list ($transport, $mailer) = getMailer();
+                $html = digest_off(USER_DOMAIN, USERLOGO, $groupname);
 
-            $this->sendOne($mailer, $message);
+                $message = Swift_Message::newInstance()
+                    ->setSubject("Email Change Confirmation")
+                    ->setFrom([NOREPLY_ADDR => 'Do Not Reply'])
+                    ->setReturnPath('bounce@direct.ilovefreegle.org')
+                    ->setTo([ $email => $u->getName() ])
+                    ->setBody("We've turned your emails off on $groupname.")
+                    ->addPart($html, 'text/html');
+
+                $this->sendOne($mailer, $message);
+            }
         }
     }
 
