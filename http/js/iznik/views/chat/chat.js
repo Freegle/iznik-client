@@ -4,7 +4,8 @@ define([
     'backbone',
     'iznik/base',
     'iznik/models/chat/chat',
-    'jquery-resizable'
+    'jquery-resizable',
+    'jquery-visibility'
 ], function($, _, Backbone, Iznik) {
     // This is a singleton view.
     var instance;
@@ -15,6 +16,8 @@ define([
         id: "chatHolder",
 
         bulkUpdateRunning: false,
+
+        tabActive: true,
 
         minimiseall: function() {
             Iznik.activeChats.viewManager.each(function(chat) {
@@ -165,40 +168,44 @@ define([
         bulkUpdateRoster: function() {
             var self = this;
 
-            var updates = [];
-            Iznik.Session.chats.each(function(chat) {
-                var status = chat.get('rosterstatus');
+            if (self.tabActive) {
+                var updates = [];
+                Iznik.Session.chats.each(function (chat) {
+                    var status = chat.get('rosterstatus');
 
-                if (status && status != 'Away') {
-                    // There's no real need to tell the server that we're in Away status - it will time us out into
-                    // that anyway.  This saves a lot of update calls in the case where we're loading the page
-                    // and minimising many chats, e.g. if we're a mod on many groups.
-                    updates.push({
-                        id: chat.get('id'),
-                        status: status,
-                        lastmsgseen: chat.get('lastmsgseen')
-                    });
-                }
-            });
-
-            if (updates.length > 0) {
-                $.ajax({
-                    url: API + 'chatrooms',
-                    type: 'POST',
-                    data: {
-                        'rosters': updates
-                    }, success: function(ret) {
-                        // Update the returned roster into each active chat.
-                        Iznik.activeChats.viewManager.each(function (chat) {
-                            var roster = ret.rosters[chat.model.get('id')];
-                            if (!_.isUndefined(roster)) {
-                                chat.lastRoster = roster;
-                            }
+                    if (status && status != 'Away') {
+                        // There's no real need to tell the server that we're in Away status - it will time us out into
+                        // that anyway.  This saves a lot of update calls in the case where we're loading the page
+                        // and minimising many chats, e.g. if we're a mod on many groups.
+                        updates.push({
+                            id: chat.get('id'),
+                            status: status,
+                            lastmsgseen: chat.get('lastmsgseen')
                         });
-                    }, complete: function() {
-                        _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
                     }
                 });
+
+                if (updates.length > 0) {
+                    $.ajax({
+                        url: API + 'chatrooms',
+                        type: 'POST',
+                        data: {
+                            'rosters': updates
+                        }, success: function (ret) {
+                            // Update the returned roster into each active chat.
+                            Iznik.activeChats.viewManager.each(function (chat) {
+                                var roster = ret.rosters[chat.model.get('id')];
+                                if (!_.isUndefined(roster)) {
+                                    chat.lastRoster = roster;
+                                }
+                            });
+                        }, complete: function () {
+                            _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
+                        }
+                    });
+                }
+            } else {
+                _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
             }
         },
 
@@ -516,6 +523,15 @@ define([
                     self.wait();
                     _.delay(_.bind(self.fallback, self), self.fallbackInterval);
                 });
+
+                $(document).on('hide', function () {
+                    self.tabActive = false;
+                });
+
+                $(document).on('show', function () {
+                    self.tabActive = true;
+                });
+                console.log("Set tab events");
             } else {
                 p = resolvedPromise(self);
             }
