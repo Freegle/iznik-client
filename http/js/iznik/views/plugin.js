@@ -1927,8 +1927,15 @@ define([
                             self.fail();
                         }
                     });
-    
-                    mod.changeAttr(self.attr, self.model.get(self.attr));
+
+                    // console.log("Change attr", mod.get(self.attr), self.model.get(self.attr));
+                    if (mod.get(self.attr) == self.model.get(self.attr)) {
+                        // Already what we want.
+                        // console.log("Already what we want");
+                        mod.trigger('completed', true);
+                    } else {
+                        mod.changeAttr(self.attr, self.model.get(self.attr));
+                    }
                 }
             });
         }
