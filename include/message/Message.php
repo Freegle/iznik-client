@@ -2182,6 +2182,10 @@ class Message
         $p = strpos($textbody, '----Original message----');
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
+        # Or this, which is top-quoted.
+        $p = strpos($textbody, '--------------------------------------------');
+        $textbody = $p ? substr($textbody, 0, $p) : $textbody;
+
         # Or TN's
         #
         # _________________________________________________________________
