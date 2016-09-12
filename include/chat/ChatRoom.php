@@ -423,12 +423,13 @@ class ChatRoom extends Entity
             #error_log("$userid can't see {$this->id} of type {$this->chatroom['chattype']}");
             $me = whoAmI($this->dbhr, $this->dbhm);
 
-            if ($me &&
-                $me->isAdminOrSupport() ||
-                ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER &&
-                 ($me->moderatorForUser($this->chatroom['user1']) ||
-                  $me->moderatorForUser($this->chatroom['user2'])))) {
-                $cansee = TRUE;
+            if ($me) {
+                if ($me->isAdminOrSupport() ||
+                    ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER &&
+                     ($me->moderatorForUser($this->chatroom['user1']) ||
+                      $me->moderatorForUser($this->chatroom['user2'])))) {
+                    $cansee = TRUE;
+                }
             }
         }
 
