@@ -387,11 +387,17 @@ define([
         url: function() {
             // The URL changes based on whether we're wanting a specific group, collection, mod groups only, or
             // group type (e.g. just Freegle).
-            return (API + 'messages?' +
+            //
+            // If we are in the user interface we only ever want OFFERs/WANTEDs.  The TAKEN/RECEIVED messages
+            // are returned attached to those, so we don't need to see them separately.
+            var url = API + 'messages?' +
                 (this.options.groupid > 0 ? ("groupid=" + this.options.groupid + "&") : '') +
                 'collection=' + this.options.collection +
                 '&modtools=' + this.options.modtools +
-                (this.options.type ? ('&grouptype=' + this.options.type) : ''))
+                (this.options.modtools ? '' : '&types[]=Offer&types[]=Wanted') +
+                (this.options.type ? ('&grouptype=' + this.options.type) : '');
+            console.log("Collection url", url);
+            return (url);
         },
 
         parse: function(ret) {

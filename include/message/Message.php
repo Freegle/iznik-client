@@ -994,9 +994,17 @@ class Message
             $to = $this->getTo();
         }
 
-        foreach ($to as $t) {
-            if (preg_match('/(.*)@yahoogroups\.co.*/', $t['address'], $matches)) {
-                $groupname = $matches[1];
+        $rejected = $this->getHeader('x-egroups-rejected-by');
+
+        if (!$rejected) {
+            # Rejected messages can look a bit like messages to the group, but they're not.
+            foreach ($to as $t) {
+                # Check it's to a group (and not the owner).
+                if (preg_match('/(.*)@yahoogroups\.co.*/', $t['address'], $matches) &&
+                    strpos($t['address'], '-owner@') === FALSE) {
+                    $groupname = $matches[1];
+                    error_log("Got $groupname from {$t['address']}");
+                }
             }
         }
 
@@ -1535,9 +1543,10 @@ class Message
                 if ($this->groupid) {
                     # Save the group we're on.  If we crash or fail at this point we leave the message stranded, which is ok
                     # given the perf cost of a transaction.
-                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby,arrival) VALUES (?,?,?,?,?,?,?,?,NOW());", [
+                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, msgtype, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby,arrival) VALUES (?,?,?,?,?,?,?,?,?,NOW());", [
                         $this->id,
                         $this->groupid,
+                        $this->type,
                         $this->yahoopendingid,
                         $this->yahooapprovedid,
                         $this->yahooreject,
@@ -1999,9 +2008,10 @@ class Message
                 #error_log("Not on group, add to $collection");
 
                 if ($collection) {
-                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby, arrival) VALUES (?,?,?,?,?,?,?,?,NOW());", [
+                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, msgtype, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby, arrival) VALUES (?,?,?,?,?,?,?,?,?,NOW());", [
                         $msg['id'],
                         $this->groupid,
+                        $m->getType(),
                         $this->yahoopendingid,
                         $this->yahooapprovedid,
                         $this->yahooreject,
