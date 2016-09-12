@@ -380,7 +380,7 @@ define([
 
         comparator: function(a, b) {
             // Use a comparator to show in most recent first order
-            var ret = (new Date(b.get('date'))).getTime() - (new Date(a.get('date'))).getTime();
+            var ret = (new Date(b.get('arrival'))).getTime() - (new Date(a.get('arrival'))).getTime();
             return(ret);
         },
 
