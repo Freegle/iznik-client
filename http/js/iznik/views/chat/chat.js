@@ -140,6 +140,8 @@ define([
 
             if (self.inDOM()) {
                 Iznik.Session.chats.fetch().then(function() {
+                    self.updateCounts();
+
                     var i = 0;
 
                     (function fallbackOne() {
