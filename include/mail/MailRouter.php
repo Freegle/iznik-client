@@ -694,7 +694,7 @@ class MailRouter
                             $textbody = $original ? $textbody : ($this->msg->getSubject() . "\r\n\r\n$textbody");
 
                             # Get/create the chat room between the two users.
-                            if ($log) { error_log("Create chat between " . $this->msg->getFromuser() . " and " . $uid); }
+                            if ($log) { error_log("Create chat between " . $this->msg->getFromuser() . " (" . $this->msg->getFromaddr() . ") and " . $uid); }
                             $r = new ChatRoom($this->dbhr, $this->dbhm);
                             $rid = $r->createConversation($this->msg->getFromuser(), $uid);
                             if ($log) { error_log("Got chat id $rid"); }
