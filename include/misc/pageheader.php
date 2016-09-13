@@ -179,7 +179,6 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <link rel="stylesheet" href="/css/bootstrap-select.min.css">
     <link rel="stylesheet" href="/css/bootstrap-switch.min.css">
     <link rel="stylesheet" href="/css/datepicker3.css">
-    <link rel="stylesheet" href="/css/bootstrap-tagsinput.css">
     <link rel="stylesheet" href="/js/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css">
     <link rel="stylesheet" href="/css/dd.css">
     <link rel="stylesheet" href="/css/fileinput.css" />

@@ -1224,10 +1224,6 @@ body {
     content: none;
 }
 
-.bootstrap-tagsinput .twitter-typeahead, .bootstrap-tagsinput .twitter-typeahead input {
-    width: 100% !important;
-}
-
 #replayHeader {
     top: 0px;
     z-index: 1500 !important;

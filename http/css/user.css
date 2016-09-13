@@ -596,7 +596,3 @@ fieldset[disabled] .twitter-typeahead .tt-input {
             rgba(255, 255, 255, 1) 100%
     );
 }
-
-.bootstrap-tagsinput .tag {
-    border-radius: 3px;
-}

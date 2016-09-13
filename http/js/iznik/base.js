@@ -13,7 +13,6 @@ define([
     'bootstrap',
     'bootstrap-select',
     'bootstrap-switch',
-    'bootstrap-tagsinput',
     'es6-promise',
     'text',
     'iznik/diff',

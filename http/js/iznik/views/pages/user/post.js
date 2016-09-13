@@ -11,22 +11,19 @@ define([
     Iznik.Views.User.Pages.WhatIsIt = Iznik.Views.Page.extend({
         pleaseWait: null,
 
-        tagcount: 0,
+        suggestions: [],
         uploading: 0,
 
         events: {
             'click .js-next': 'next',
-            'change .js-items': 'checkNext',
+            'change .js-item': 'checkNext',
             'change .tt-hint': 'checkNext',
             'keyup .js-description': 'checkNext',
             'change .bootstrap-tagsinput .tt-input': 'checkNext'
         },
 
         getItem: function () {
-            // We might have some tags input, and also some freeform text.  We are interested in having both.
-            var tags = this.$('.js-items').val();
-            var tags = tags ? (tags.join(' ') + ' ') : '';
-            return (tags + this.$('.tt-input').val());
+            return(this.$('.js-item').val());
         },
 
         checkNext: function () {
@@ -138,11 +135,19 @@ define([
             var self = this;
             self.checkNext();
 
-            if (self.tagcount > 0) {
+            if (self.suggestions.length > 0) {
                 var v = new Iznik.Views.Help.Box();
                 v.template = 'user_give_suggestions';
                 v.render().then(function(v) {
                     self.$('.js-sugghelp').html(v.el);
+                    _.each(self.suggestions, function(suggestion) {
+                        var html = '<li class="btn btn-white js-suggestion">' + suggestion.name + '</li>';
+                        self.$('.js-suggestions').append(html);
+                        self.$('.js-suggestion:last').on('click', function(e) {
+                            console.log("Clicked", e);
+                            self.$('.js-item').val(e.target.innerHTML);
+                        })
+                    })
                 });
             }
         },
@@ -152,23 +157,18 @@ define([
             self.photos = new Iznik.Collection();
 
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
-                self.$('.js-items').tagsinput({
-                    freeInput: true,
-                    trimValue: true,
-                    tagClass: 'label-primary',
-                    confirmKeys: [13],
-                    typeaheadjs: {
-                        name: 'items',
-                        source: self.itemSource
-                    }
+                self.typeahead = self.$('.js-item').typeahead({
+                    minLength: 2,
+                    hint: false,
+                    highlight: true
+                }, {
+                    name: 'items',
+                    source: self.itemSource
                 });
 
                 if (self.options.item) {
-                    self.$('.js-items').tagsinput('add', self.options.item);
+                    self.$('.js-item').val(self.options.item);
                 }
-
-                // Add a max-legnth to the underlying input for free-typing case.
-                self.$('.tt-input').attr('maxlength', 60);
 
                 // File upload
                 self.$('#fileupload').fileinput({
@@ -177,7 +177,7 @@ define([
                         identify: true
                     },
                     showUpload: false,
-                    allowedFileExtensions: [ 'jpg', 'jpeg', 'gif', 'png' ],
+                    allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
                     uploadUrl: API + 'image',
                     resizeImage: true,
                     maxImageWidth: 800,
@@ -193,25 +193,25 @@ define([
                         showUpload: false
                     },
                     layoutTemplates: {
-                       footer: '<div class="file-thumbnail-footer">\n' +
-                               '    {actions}\n' +
-                               '</div>'
+                        footer: '<div class="file-thumbnail-footer">\n' +
+                        '    {actions}\n' +
+                        '</div>'
                     },
                     showRemove: false
                 });
 
                 // Count how many we will upload.
-                self.$('#fileupload').on('fileloaded', function(event) {
+                self.$('#fileupload').on('fileloaded', function (event) {
                     self.uploading++;
                 });
 
                 // Upload as soon as photos have been resized.
-                self.$('#fileupload').on('fileimagesresized', function(event) {
+                self.$('#fileupload').on('fileimagesresized', function (event) {
                     self.$('#fileupload').fileinput('upload');
                 });
 
                 // Watch for all uploaded
-                self.$('#fileupload').on('fileuploaded', function(event, data) {
+                self.$('#fileupload').on('fileuploaded', function (event, data) {
                     // Add the photo to our list
                     var mod = new Iznik.Models.Message.Attachment({
                         id: data.response.id,
@@ -221,9 +221,11 @@ define([
                     self.photos.add(mod);
 
                     // Add any hints about the item
+                    self.$('.js-suggestions').empty();
+                    self.suggestions = [];
+
                     _.each(data.response.items, function (item) {
-                        self.$('.js-items').tagsinput('add', item.name);
-                        self.tagcount++;
+                        self.suggestions.push(item);;
                     });
 
                     self.uploading--;
@@ -242,20 +244,20 @@ define([
                             id: id
                         });
 
-                        msg.fetch().then(function() {
+                        msg.fetch().then(function () {
                             if (self.msgType == msg.get('type')) {
                                 // Parse out item from subject.
                                 var matches = /(.*?)\:([^)].*)\((.*)\)/.exec(msg.get('subject'));
                                 if (matches && matches.length > 2 && matches[2].length > 0) {
-                                    self.$('.js-items').tagsinput('add', matches[2]);
+                                    self.$('.js-item').val(matches[2]);
                                 } else {
-                                    self.$('.js-items').tagsinput('add', msg.get('subject'));
+                                    self.$('.js-item').val(msg.get('subject'));
                                 }
 
                                 msg.stripGumf('textbody');
                                 self.$('.js-description').val(msg.get('textbody'));
 
-                                _.each(msg.get('attachments'), function(att) {
+                                _.each(msg.get('attachments'), function (att) {
                                     self.$('.js-addprompt').addClass('hidden');
                                     var mod = new Iznik.Models.Message.Attachment({
                                         id: att.id,
