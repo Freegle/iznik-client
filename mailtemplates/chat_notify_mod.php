@@ -55,7 +55,7 @@ EOT;
                                                             <table width="100%" cellpadding="0" cellspacing="0" border="0" class="container" align="right">
                                                                 <tr>
                                                                     <td width="100%" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:20px; line-height:26px; font-weight:bold;">
-                                                                        <p>One of your members has asked a question.</p>
+                                                                        <p>One of your members has sent a message</p>
                                                                         <p style="font-size:16px; line-height:20px; font-weight:bold;">$fromname wrote:</p>
                                                                     </td>
                                                                 </tr>

@@ -874,7 +874,7 @@ class ChatRoom extends Entity
                                     $fromname = $g->getPublic()['namedisplay'];
                                     $site = USER_SITE;
                                 } else {
-                                    $subject = "Member query on " . $g->getPrivate('nameshort') . " from " . $otheru->getName() . " (" . $otheru->getEmailPreferred() . ")";
+                                    $subject = "Member message on " . $g->getPrivate('nameshort') . " from " . $otheru->getName() . " (" . $otheru->getEmailPreferred() . ")";
                                     $fromname = $otheru->getName();
                                     $site = MOD_SITE;
                                 }
