@@ -71,82 +71,64 @@ define([
                     // provoking "why hasn't it been approved yet" complaints.
                     self.messages = new Iznik.Collections.Message(null, {
                         modtools: false,
-                        collection: 'Approved',
-                        type: 'Freegle'
-                    });
-                    self.pendingMessages = new Iznik.Collections.Message(null, {
-                        modtools: false,
-                        collection: 'Pending',
-                        type: 'Freegle'
-                    });
-                    self.queuedMessages = new Iznik.Collections.Message(null, {
-                        modtools: false,
-                        collection: 'QueuedYahooUser',
-                        type: 'Freegle'
-                    });
-                    self.rejectedMessages = new Iznik.Collections.Message(null, {
-                        modtools: false,
-                        collection: 'Rejected',
+                        collection: 'AllUser',
                         type: 'Freegle'
                     });
 
                     var count = 0;
-                    var colls = [self.messages, self.pendingMessages, self.queuedMessages, self.rejectedMessages];
 
-                    _.each(colls, function (coll) {
-                        // We listen for events on the messages collection and ripple them through to the relevant offers/wanteds
-                        // collection.  CollectionView will then handle rendering/removing the messages view.
-                        self.listenTo(coll, 'add', function (msg) {
-                            var related = msg.get('related');
+                    // We listen for events on the messages collection and ripple them through to the relevant offers/wanteds
+                    // collection.  CollectionView will then handle rendering/removing the messages view.
+                    self.listenTo(self.messages, 'add', function (msg) {
+                        var related = msg.get('related');
 
-                            if (msg.get('type') == 'Offer') {
-                                var taken = _.where(related, {
-                                    type: 'Taken'
-                                });
+                        if (msg.get('type') == 'Offer') {
+                            var taken = _.where(related, {
+                                type: 'Taken'
+                            });
 
-                                if (taken.length == 0) {
-                                    self.offers.add(msg);
-                                }
-                            } else if (msg.get('type') == 'Wanted') {
-                                var received = _.where(related, {
-                                    type: 'Received'
-                                });
+                            if (taken.length == 0) {
+                                self.offers.add(msg);
+                            }
+                        } else if (msg.get('type') == 'Wanted') {
+                            var received = _.where(related, {
+                                type: 'Received'
+                            });
 
-                                if (received.length == 0) {
-                                    self.wanteds.add(msg);
-                                }
+                            if (received.length == 0) {
+                                self.wanteds.add(msg);
+                            }
+                        } else {
+                            console.log("Got something else", msg);
+                        }
+                    });
+
+                    self.listenTo(self.messages, 'remove', function (msg) {
+                        if (self.model.get('type') == 'Offer') {
+                            self.offers.remove(msg);
+                        } else if (self.model.get('type') == 'Wanted') {
+                            self.wanteds.remove(msg);
+                        }
+                    });
+
+                    // Now get the messages.
+                    self.messages.fetch({
+                        data: {
+                            fromuser: Iznik.Session.get('me').id,
+                            types: ['Offer', 'Wanted'],
+                            limit: 100
+                        }
+                    }).then(function () {
+                        // We want both fetches to finish.
+                        count++;
+
+                        if (count == colls.length) {
+                            if (self.offers.length == 0) {
+                                self.$('.js-nooffers').fadeIn('slow');
                             } else {
-                                console.log("Got something else", msg);
+                                self.$('.js-nooffers').hide();
                             }
-                        });
-
-                        self.listenTo(coll, 'remove', function (msg) {
-                            if (self.model.get('type') == 'Offer') {
-                                self.offers.remove(msg);
-                            } else if (self.model.get('type') == 'Wanted') {
-                                self.wanteds.remove(msg);
-                            }
-                        });
-
-                        // Now get the messages.
-                        coll.fetch({
-                            data: {
-                                fromuser: Iznik.Session.get('me').id,
-                                types: ['Offer', 'Wanted'],
-                                limit: 100
-                            }
-                        }).then(function () {
-                            // We want both fetches to finish.
-                            count++;
-
-                            if (count == colls.length) {
-                                if (self.offers.length == 0) {
-                                    self.$('.js-nooffers').fadeIn('slow');
-                                } else {
-                                    self.$('.js-nooffers').hide();
-                                }
-                            }
-                        });
+                        }
                     });
 
                     // Searches

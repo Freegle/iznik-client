@@ -835,14 +835,14 @@ class Group extends Entity
 
         # Now find messages which are missing on the client, i.e. present in $collections but not present in
         # $messages.
-        /** @var Collection $c */
+        /** @var MessageCollection $c */
         foreach ($cs as $c) {
             $sql = "SELECT id, source, fromaddr, yahoopendingid, yahooapprovedid, subject, date, messageid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0;";
             $ourmsgs = $this->dbhr->preQuery(
                 $sql,
                 [
                     $this->id,
-                    $c->getCollection()
+                    $c->getCollection()[0]
                 ]
             );
 
@@ -864,7 +864,7 @@ class Group extends Entity
                             'id' => $msg['id'],
                             'email' => $msg['fromaddr'],
                             'subject' => $msg['subject'],
-                            'collection' => $c->getCollection(),
+                            'collection' => $c->getCollection()[0],
                             'date' => ISODate($msg['date']),
                             'messageid' => $msg['messageid'],
                             'yahoopendingid' => $msg['yahoopendingid'],

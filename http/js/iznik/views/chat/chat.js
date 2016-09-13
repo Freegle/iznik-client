@@ -973,7 +973,7 @@ define([
 
         updateRoster: function(status, callback, force) {
             var self = this;
-            console.log("Update roster", self.model.get('id'), status, force);
+            // console.log("Update roster", self.model.get('id'), status, force);
 
             if (force) {
                 // We want to make sure the server knows right now.

@@ -396,7 +396,7 @@ define([
                 '&modtools=' + this.options.modtools +
                 (this.options.modtools ? '' : '&types[]=Offer&types[]=Wanted') +
                 (this.options.type ? ('&grouptype=' + this.options.type) : '');
-            console.log("Collection url", url);
+            // console.log("Collection url", url);
             return (url);
         },
 

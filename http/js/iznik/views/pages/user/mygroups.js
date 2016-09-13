@@ -28,6 +28,8 @@ define([
                         collection: 'Approved'
                     });
 
+                    console.log("My groups message collection", self.collection);
+
                     self.collectionView = new Backbone.CollectionView({
                         el: self.$('.js-list'),
                         modelView: Iznik.Views.User.Message.Replyable,
