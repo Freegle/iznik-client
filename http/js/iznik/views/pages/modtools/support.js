@@ -434,7 +434,8 @@ define([
 
         events: {
             'click .js-logs': 'logs',
-            'click .js-spammer': 'spammer'
+            'click .js-spammer': 'spammer',
+            'click .js-purge': 'purge'
         },
 
         groups: [],
@@ -474,6 +475,30 @@ define([
             v.render();
         },
 
+        purge: function() {
+            var self = this;
+            var v = new Iznik.Views.Confirm({
+                model: self.model
+            });
+            v.template = 'modtools_members_purgeconfirm';
+
+            self.listenToOnce(v, 'confirmed', function() {
+                $.ajax({
+                    url: API + 'user',
+                    type: 'DELETE',
+                    data: {
+                        id: self.model.get('id')
+                    }, success: function(ret) {
+                        if (ret.ret == 0) {
+                            self.$el.fadeOut('slow');
+                        }
+                    }
+                });
+            });
+
+            v.render();
+        },
+
         addMessage: function(message) {
             var self = this;
 
@@ -503,6 +528,10 @@ define([
         render: function () {
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
+                if (Iznik.Session.isAdmin()) {
+                    self.$('.js-adminonly').removeClass('hidden');
+                }
+
                 // Add any group memberships.
                 self.$('.js-memberof').empty();
 
