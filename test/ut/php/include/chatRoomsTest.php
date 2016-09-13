@@ -106,7 +106,7 @@ class chatRoomsTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
     
-    public function testChase() {
+    public function testNotifyUser2User() {
         error_log(__METHOD__ );
 
         # Set up a chatroom
@@ -150,11 +150,13 @@ class chatRoomsTest extends IznikTestCase {
             ->setMethods(array('mailer'))
             ->getMock();
         
-        $r->method('mailer')->with(
-            'test2@test.com',
-            'Re: OFFER: Test item (location)');
-        
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        $this->msgsSent = [];
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+        assertEquals('Re: OFFER: Test item (location)', $this->msgsSent[0]['subject']);
 
         # Now pretend we've seen the messages.  Should flag the message as seen by all.
         $r->updateRoster($u1, $cm, ChatRoom::STATUS_ONLINE);
@@ -227,6 +229,68 @@ class chatRoomsTest extends IznikTestCase {
         $id = $r->createUser2Mod($u1, $this->groupid);
         error_log("Chat room $id for $u1 <-> $u2");
         assertNull($id);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    private $msgsSent = [];
+
+    public function mailer(Swift_Message $message) {
+        error_log("Send " . $message->getSubject() . " to " . var_export($message->getTo(), TRUE));
+        $this->msgsSent[] = [
+            'subject' => $message->getSubject(),
+            'to' => $message->getTo()
+        ];
+    }
+
+    public function testNotifyUser2Mod() {
+        error_log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = new User($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        $u1u = new User($this->dbhr, $this->dbhm, $u1);
+        $u2u = new User($this->dbhr, $this->dbhm, $u2);
+        $u1u->addMembership($this->groupid, User::ROLE_MEMBER);
+        $u2u->addMembership($this->groupid, User::ROLE_OWNER);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createUser2Mod($u1, $this->groupid);
+        error_log("Chat room $id for $u1 <-> group {$this->groupid}");
+        assertNotNull($id);
+
+        # Create a query from the user to the mods
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        $cm = $m->create($id, $u1, "Help me", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
+        error_log("Created chat message $cm");
+
+        $r = $this->getMockBuilder('ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        # Notify mod
+        $this->msgsSent = [];
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
+        assertEquals("Member query on testgroup from Test User 2 (test2@test.com)", $this->msgsSent[0]['subject']);
+
+        # Fake mod reply
+        $cm2 = $m->create($id, $u2, "Here's some help", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
+
+        # Notify user
+        $this->msgsSent = [];
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
+        assertEquals("You have a message from the testgroup volunteers", $this->msgsSent[0]['subject']);
 
         error_log(__METHOD__ . " end");
     }
