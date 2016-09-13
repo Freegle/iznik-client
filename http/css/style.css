@@ -1335,11 +1335,26 @@ body {
     .footer {
         height: 40px;
     }
+
+    #notifchatdropdown {
+        min-width: 80vw;
+    }
+
+    #notifchatdropdownlist {
+        background: white;
+        overflow-y: scroll;
+        top: 60px;
+        width: 100vw;
+        max-height: 90vh;
+        position: fixed;
+    }
 }
 
 /* Extra Small Devices, Phones */
 @media only screen and (min-width : 480px) {
-
+    #notifchatdropdown {
+        min-width: 400px;
+    }
 }
 
 /* Small Devices, Tablets */
@@ -1357,7 +1372,7 @@ body {
     }
 
     #notifchatdropdown {
-        min-width: 400px;
+        min-width: 600px;
     }
 
     .footer {

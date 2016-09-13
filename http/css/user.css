@@ -109,7 +109,7 @@
     color: #000080 !important
 }
 
-@media (max-width: 767) {
+@media (max-width: 767px) {
     .navbar-custom .navbar-nav .open .dropdown-menu > li > a {
         color: #ffffff;
     }

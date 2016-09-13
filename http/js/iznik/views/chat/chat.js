@@ -146,6 +146,7 @@ define([
                     modtools: self.options.modtools
                 }).then(function() {
                     self.updateCounts();
+                    Iznik.minimisedChats.render();
 
                     var i = 0;
 
