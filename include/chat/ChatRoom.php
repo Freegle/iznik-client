@@ -751,43 +751,48 @@ class ChatRoom extends Entity
                 $modids[] = $mod['userid'];
             }
 
-            # Now get any current roster information.
-            $modseen = FALSE;
-            $rosters = $this->dbhr->preQuery("SELECT * FROM chat_roster WHERE chatid = ? AND userid IN (" . implode(',', $modids) . ");",
-                [
-                    $this->id
-                ]);
-            foreach ($rosters as $roster) {
-                if ($roster['lastmsgemailed'] >= $lastmessage || $roster['lastmsgseen'] >= $lastmessage) {
-                    $modseen = TRUE;
-                }
-            }
-
-            if (!$modseen) {
-                # We will need to mail them.  First add any remaining mods into the roster so that we can record
-                # what we do.
-                foreach ($mods as $mod) {
-                    $sql = "INSERT IGNORE INTO chat_roster (chatid, userid, status) VALUES (?, ?, 'Offline');";
-                    $this->dbhm->preExec($sql, [ $this->id, $mod['userid']]);
-                }
-
-                # Now return info to trigger mails to all mods.
+            if (count($modids) > 0) {
+                # If for some reason we have no mods, we can't mail them.
+                #
+                # Now get any current roster information.
+                $modseen = FALSE;
                 $rosters = $this->dbhr->preQuery("SELECT * FROM chat_roster WHERE chatid = ? AND userid IN (" . implode(',', $modids) . ");",
                     [
                         $this->id
                     ]);
                 foreach ($rosters as $roster) {
-                    $maxseen = presdef('lastmsgseen', $roster, 0);
-                    $maxmailed = presdef('lastemailed', $roster, 0);
-                    $max = max($maxseen, $maxmailed);
+                    #error_log("Chat {$this->id} " . var_export($roster, TRUE));
+                    if ($roster['lastmsgemailed'] >= $lastmessage || $roster['lastmsgseen'] >= $lastmessage) {
+                        $modseen = TRUE;
+                    }
+                }
 
-                    $ret[] = [
-                        'userid' => $roster['userid'],
-                        'lastmsgseen' => $roster['lastmsgseen'],
-                        'lastmsgemailed' => $roster['lastmsgemailed'],
-                        'last' => $max,
-                        'role' => User::ROLE_MODERATOR
-                    ];
+                if (!$modseen) {
+                    # We will need to mail them.  First add any remaining mods into the roster so that we can record
+                    # what we do.
+                    foreach ($mods as $mod) {
+                        $sql = "INSERT IGNORE INTO chat_roster (chatid, userid, status) VALUES (?, ?, 'Offline');";
+                        $this->dbhm->preExec($sql, [ $this->id, $mod['userid']]);
+                    }
+
+                    # Now return info to trigger mails to all mods.
+                    $rosters = $this->dbhr->preQuery("SELECT * FROM chat_roster WHERE chatid = ? AND userid IN (" . implode(',', $modids) . ");",
+                        [
+                            $this->id
+                        ]);
+                    foreach ($rosters as $roster) {
+                        $maxseen = presdef('lastmsgseen', $roster, 0);
+                        $maxmailed = presdef('lastemailed', $roster, 0);
+                        $max = max($maxseen, $maxmailed);
+
+                        $ret[] = [
+                            'userid' => $roster['userid'],
+                            'lastmsgseen' => $roster['lastmsgseen'],
+                            'lastmsgemailed' => $roster['lastmsgemailed'],
+                            'last' => $max,
+                            'role' => User::ROLE_MODERATOR
+                        ];
+                    }
                 }
             }
         }
@@ -823,8 +828,6 @@ class ChatRoom extends Entity
                 # Now we have a member who has not seen all of the messages in this chat.  Find the other one.
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
                 $otheru = new User($this->dbhr, $this->dbhm, $other);
-                $fromname = $otheru->getName();
-
                 $thisu = new User($this->dbhr, $this->dbhm, $member['userid']);
                 
                 # Now collect a summary of what they've missed.
@@ -843,7 +846,7 @@ class ChatRoom extends Entity
                         if (pres('message', $unseenmsg)) {
                             $thisone = $unseenmsg['message'];
                             $textsummary .= $thisone . "\r\n";
-                            $htmlsummary .= $thisone . "<br>";
+                            $htmlsummary .= nl2br($thisone) . "<br>";
                             $lastmsgemailed = max($lastmsgemailed, $unseenmsg['id']);
                         }
                     }
@@ -860,6 +863,7 @@ class ChatRoom extends Entity
                         switch ($chattype) {
                             case ChatRoom::TYPE_USER2USER:
                                 $subject = count($subjs) == 0 ? "You have a new message" : "Re: {$subjs[0]['subject']}";
+                                $fromname = $otheru->getName();
                                 $site = USER_SITE;
                                 break;
                             case ChatRoom::TYPE_USER2MOD:
@@ -867,9 +871,11 @@ class ChatRoom extends Entity
                                 $g = new Group($this->dbhr, $this->dbhm, $chat['groupid']);
                                 if ($member['role'] == User::ROLE_MEMBER) {
                                     $subject = "You have a message from the " . $g->getPublic()['namedisplay'] . " volunteers";
+                                    $fromname = $g->getPublic()['namedisplay'];
                                     $site = USER_SITE;
                                 } else {
-                                    $subject = "Member query on " . $g->getPrivate('nameshort') . " from " . $thisu->getName() . " (" . $thisu->getEmailPreferred() . ")";
+                                    $subject = "Member query on " . $g->getPrivate('nameshort') . " from " . $otheru->getName() . " (" . $otheru->getEmailPreferred() . ")";
+                                    $fromname = 'ModTools';
                                     $site = MOD_SITE;
                                 }
                                 break;
@@ -896,11 +902,14 @@ class ChatRoom extends Entity
                             case ChatRoom::TYPE_USER2USER:
                                 $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD  ? MODLOGO : USERLOGO, $fromname, $url,
                                     $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
-                                $fromname = $thisu->getName();
                                 break;
                             case ChatRoom::TYPE_USER2MOD:
-                                $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary);
-                                $fromname = 'ModTools';
+                                if ($member['role'] == User::ROLE_MEMBER) {
+                                    $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD  ? MODLOGO : USERLOGO, $fromname, $url,
+                                        $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
+                                } else {
+                                    $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary);
+                                }
                                 break;
                         }
 

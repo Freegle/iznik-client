@@ -9,12 +9,12 @@ global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
 
-# TODO Other types?
 $c = new ChatRoom($dbhr, $dbhm);
-$count = $c->notifyByEmail(NULL, ChatRoom::TYPE_USER2USER, TRUE);
-error_log("Sent $count to members");
 
-#$count = $c->notifyByEmail(NULL, ChatRoom::TYPE_USER2MOD, TRUE);
-#error_log("Sent $count to mods");
+$count = $c->notifyByEmail(NULL, ChatRoom::TYPE_USER2MOD, TRUE);
+error_log("Sent $count for User2Mod");
+
+$count = $c->notifyByEmail(NULL, ChatRoom::TYPE_USER2USER, TRUE);
+error_log("Sent $count to User2User");
 
 unlockScript($lockh);
