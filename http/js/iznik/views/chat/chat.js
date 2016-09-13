@@ -659,7 +659,7 @@ define([
                 // will be preserved.
                 self.removed = true;
                 self.$el.hide();
-                self.updateRoster('Closed', _.bind(self.zapViews, self));
+                self.updateRoster('Closed', _.bind(self.zapViews, self), true);
             });
 
             v.render();
@@ -756,7 +756,7 @@ define([
 
             try {
                 localStorage.setItem(this.lsID() + '-minimised', 1);
-            } catch (e) { window.alert(e.message)};
+            } catch (e) { console.error(e.message)};
 
             this.trigger('minimised');
         },
@@ -973,6 +973,7 @@ define([
 
         updateRoster: function(status, callback, force) {
             var self = this;
+            console.log("Update roster", self.model.get('id'), status, force);
 
             if (force) {
                 // We want to make sure the server knows right now.
