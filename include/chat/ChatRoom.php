@@ -723,7 +723,7 @@ class ChatRoom extends Entity
 
             foreach ($users as $user) {
                 $maxseen = presdef('lastmsgseen', $user, 0);
-                $maxmailed = presdef('lastemailed', $user, 0);
+                $maxmailed = presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
 
                 if ($max < $lastmessage) {
