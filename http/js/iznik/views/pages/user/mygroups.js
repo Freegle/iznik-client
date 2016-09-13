@@ -13,7 +13,7 @@ define([
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.MyGroups = Iznik.Views.User.Pages.Group.extend({
         template: "user_mygroups_main",
-        
+
         render: function () {
             var p = Iznik.Views.User.Pages.Group.prototype.render.call(this);
 

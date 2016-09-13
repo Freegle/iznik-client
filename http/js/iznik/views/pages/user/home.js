@@ -12,6 +12,16 @@ define([
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
         template: "user_home_main",
 
+        filter: function(model) {
+            // Only show a search result for an offer which has not been taken or wanted not received.
+            var thetype = model.get('type');
+            var paired = _.where(model.get('related'), {
+                type: thetype == 'Offer' ? 'Taken' : 'Received'
+            });
+
+            return (paired.length == 0);
+        },
+
         render: function () {
             var self = this;
 
@@ -48,7 +58,8 @@ define([
                             chatid: self.options.chatid
                         },
                         modelView: Iznik.Views.User.Home.Offer,
-                        collection: self.offers
+                        collection: self.offers,
+                        visibleModelsFilter: self.filter
                     });
 
                     self.offersView.render();
@@ -61,7 +72,8 @@ define([
                             page: self,
                             chatid: self.options.chatid
                         },
-                        collection: self.wanteds
+                        collection: self.wanteds,
+                        visibleModelsFilter: self.filter
                     });
 
                     self.wantedsView.render();
@@ -119,15 +131,10 @@ define([
                             limit: 100
                         }
                     }).then(function () {
-                        // We want both fetches to finish.
-                        count++;
-
-                        if (count == colls.length) {
-                            if (self.offers.length == 0) {
-                                self.$('.js-nooffers').fadeIn('slow');
-                            } else {
-                                self.$('.js-nooffers').hide();
-                            }
+                        if (self.offers.length == 0) {
+                            self.$('.js-nooffers').fadeIn('slow');
+                        } else {
+                            self.$('.js-nooffers').hide();
                         }
                     });
 
