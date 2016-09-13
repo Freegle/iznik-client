@@ -145,7 +145,6 @@ define([
             if (outcomes && outcomes.length > 0) {
                 // Hide completed posts by default.
                 // TODO option to show
-                console.log("Hide completed", self);
                 self.$el.hide();
             }
 
@@ -209,42 +208,44 @@ define([
                     self.$('.js-attlist').append(v.el);
                 });
 
-                var replies = self.model.get('replies');
-                self.replies = new Iznik.Collection(replies);
+                if (self.$('.js-replies').length > 0) {
+                    var replies = self.model.get('replies');
+                    self.replies = new Iznik.Collection(replies);
 
-                if (replies && replies.length > 0) {
-                    // Show and update the reply details.
-                    if (replies.length > 0) {
-                        self.$('.js-noreplies').hide();
-                        self.$('.js-replies').empty();
-                        self.listenTo(self.model, 'change:replies', self.updateReplies);
-                        self.updateReplies();
+                    if (replies && replies.length > 0) {
+                        // Show and update the reply details.
+                        if (replies.length > 0) {
+                            self.$('.js-noreplies').hide();
+                            self.$('.js-replies').empty();
+                            self.listenTo(self.model, 'change:replies', self.updateReplies);
+                            self.updateReplies();
 
-                        self.repliesView = new Backbone.CollectionView({
-                            el: self.$('.js-replies'),
-                            modelView: Iznik.Views.User.Message.Reply,
-                            modelViewOptions: {
-                                collection: self.replies,
-                                message: self.model,
-                                offers: self.options.offers
-                            },
-                            collection: self.replies
-                        });
+                            self.repliesView = new Backbone.CollectionView({
+                                el: self.$('.js-replies'),
+                                modelView: Iznik.Views.User.Message.Reply,
+                                modelViewOptions: {
+                                    collection: self.replies,
+                                    message: self.model,
+                                    offers: self.options.offers
+                                },
+                                collection: self.replies
+                            });
 
-                        self.repliesView.render();
+                            self.repliesView.render();
 
-                        // We might have been asked to open up one of these messages because we're showing the corresponding
-                        // chat.
-                        if (self.options.chatid ) {
-                            var model = self.replies.get(self.options.chatid);
-                            if (model) {
-                                var view = self.repliesView.viewManager.findByModel(model);
-                                // Slightly hackily jump up to find the owning message and click to expand.
-                                view.$el.closest('.panel-heading').find('.js-caret').click();
+                            // We might have been asked to open up one of these messages because we're showing the corresponding
+                            // chat.
+                            if (self.options.chatid ) {
+                                var model = self.replies.get(self.options.chatid);
+                                if (model) {
+                                    var view = self.repliesView.viewManager.findByModel(model);
+                                    // Slightly hackily jump up to find the owning message and click to expand.
+                                    view.$el.closest('.panel-heading').find('.js-caret').click();
+                                }
                             }
+                        } else {
+                            self.$('.js-noreplies').show();
                         }
-                    } else {
-                        self.$('.js-noreplies').show();
                     }
                 }
 

@@ -411,8 +411,16 @@ define([
                 // returns them in a separate object for bandwidth reasons.
                 _.each(ret.messages, function(message, index, list) {
                     var groups = [];
+                    var arrival = 0;
+
                     _.each(message.groups, function(group, index2, list2) {
                         var groupdata = ret.groups[group.groupid];
+
+                        // Arrival at the message level shows when it first hit the platform.  But in this context
+                        // we are interested in showing the latest time it was posted on any of the groups which
+                        // we are looking at.
+                        var arrivalepoch = (new Date(group.arrival)).getTime();
+                        arrival = Math.max(arrivalepoch, arrival);
 
                         // Need to know whether it's our message when rendering the group info.
                         group.mine = message.mine;
@@ -438,6 +446,7 @@ define([
                         groups.push(_.extend([], groupdata, group));
                     });
 
+                    message.arrival = (new Date(arrival)).toISOString();
                     message.groups = groups;
                 });
 

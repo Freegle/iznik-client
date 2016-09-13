@@ -531,7 +531,6 @@ define([
                 $(document).on('show', function () {
                     self.tabActive = true;
                 });
-                console.log("Set tab events");
             } else {
                 p = resolvedPromise(self);
             }
