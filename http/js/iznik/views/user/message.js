@@ -379,7 +379,10 @@ define([
         dm: function() {
             var self = this;
             require(['iznik/views/chat/chat'], function(ChatHolder) {
-                ChatHolder().openChat(self.model.get('user').id);
+                var chat = self.model.get('chat');
+                var myid = Iznik.Session.get('me').id;
+                var user = chat.user1.id != myid ? chat.user1.id : chat.user2.id;
+                ChatHolder().openChat(user);
             })
         },
 

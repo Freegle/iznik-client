@@ -530,7 +530,7 @@ class Message
 
         if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $this->fromuser == $myid)) {
             # Add replies.
-            $sql = "SELECT DISTINCT t.* FROM (SELECT userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
+            $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
             $replies = $this->dbhr->preQuery($sql, [ $this->id ]);
             $ret['replies'] = [];
             foreach ($replies as $reply) {
@@ -538,7 +538,7 @@ class Message
                 if ($reply['userid']) {
                     $u = new User($this->dbhr, $this->dbhm, $reply['userid']);
                     $thisone = [
-                        'id' => $reply['chatid'],
+                        'id' => $reply['id'],
                         'user' => $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE),
                         'chatid' => $reply['chatid']
                     ];
@@ -2608,10 +2608,11 @@ class Message
         $this->setPrivate('fromuser', $fromuser->getId());
 
         # If this message is already on this group, that's fine.
-        $rc = $this->dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection, arrival) VALUES (?,?,?,NOW());", [
+        $rc = $this->dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection, arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
             $this->id,
             $groupid,
-            MessageCollection::QUEUED_YAHOO_USER
+            MessageCollection::QUEUED_YAHOO_USER,
+            $this->getType()
         ]);
 
         if ($rc) {
