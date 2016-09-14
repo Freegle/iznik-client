@@ -23,18 +23,17 @@ define([
         },
 
         getItem: function () {
-            return(this.$('.js-item').val());
+            return(this.$('.js-item').typeahead('val'));
         },
 
         checkNext: function () {
             var self = this;
             var item = this.getItem();
-            self.$('.bootstrap-tagsinput').removeClass('error-border');
             self.$('.js-description').removeClass('error-border');
 
             // We accept either a photo or a description.
             if (self.uploading || item.length == 0) {
-                self.$('.bootstrap-tagsinput').addClass('error-border');
+                self.$('.js-item').addClass('error-border');
                 self.$('.js-next').fadeOut('slow');
                 self.$('.js-ok').fadeOut('slow');
             } else if (self.$('.js-description').val().length > 0 || self.photos.length > 0) {
@@ -51,8 +50,8 @@ define([
 
             var item = this.getItem();
             if (item.length == 0) {
-                self.$('.tt-input').focus();
-                self.$('.bootstrap-tagsinput').addClass('error-border');
+                self.$('.js-item').focus();
+                self.$('.js-item').addClass('error-border');
             }
 
             var locationid = null;
@@ -145,7 +144,7 @@ define([
                         self.$('.js-suggestions').append(html);
                         self.$('.js-suggestion:last').on('click', function(e) {
                             console.log("Clicked", e);
-                            self.$('.js-item').val(e.target.innerHTML);
+                            self.$('.js-item').typeahead('val', e.target.innerHTML);
                         })
                     })
                 });
@@ -167,7 +166,7 @@ define([
                 });
 
                 if (self.options.item) {
-                    self.$('.js-item').val(self.options.item);
+                    self.$('.js-item').typeahead('val', self.options.item);
                 }
 
                 // File upload
