@@ -132,6 +132,7 @@ define([
                         if (within > 20) {
                             // Switch to pins for large collections
                             var icon = window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif?a=1';
+                            icon = 'images/mapmarker.gif',	// CC
                             console.log("Large collection", icon);
                             var marker = new google.maps.Marker({
                                 position: latLng,
