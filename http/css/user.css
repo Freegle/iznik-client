@@ -296,6 +296,7 @@ h1,h2,h3,h4 {
 
 #notifchatdropdown li {
     border-bottom: solid 1px black;
+    background-color: white;
 }
 
 #js-notifchat ul, #js-notifchat li {

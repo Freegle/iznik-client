@@ -1341,7 +1341,7 @@ body {
     }
 
     #notifchatdropdownlist {
-        background: white;
+        background-color: white !important;
         overflow-y: scroll;
         top: 60px;
         width: 100vw;

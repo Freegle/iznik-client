@@ -183,7 +183,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <link rel="stylesheet" href="/css/dd.css">
     <link rel="stylesheet" href="/css/fileinput.css" />
 
-    <link rel="stylesheet" type="text/css" href="/css/style.css?a=73">
+    <link rel="stylesheet" type="text/css" href="/css/style.css?a=76">
     <!--[if lt IE 9]>
     <link rel="stylesheet" type="text/css" href="/css/ie-only.css">
     <![endif]-->
@@ -202,7 +202,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
         ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=3"><?php
     } else {
-        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=120"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=121"><?php
     }
     ?>
 
