@@ -32,12 +32,16 @@
     <% } %>
 </div>
 <div class="row-fluid">
-    <div class="chat-content col-xs-12 nopad">
+    <div class="col-xs-12">
         <% if (obj.chattype == 'User2Mod') { %>
-        <div class="alert alert-info">
+        <div class="topspace alert alert-info">
             Our lovely volunteers have lives and are not online 24/7.  Please be patient until you receive a reply.
         </div>
         <% } %>
+    </div>
+</div>
+<div class="row-fluid">
+    <div class="chat-content col-xs-12 nopad">
         <div class="chat-messages-panel js-leftpanel">
             <ul class="overscrolly list-unstyled chat-messages js-messages nopad" />
         </div>
