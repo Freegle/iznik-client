@@ -30,6 +30,7 @@ class ChatMessage extends Entity
     {
         $this->fetch($dbhr, $dbhm, $id, 'chat_messages', 'chatmessage', $this->publicatts);
         $this->log = new Log($dbhr, $dbhm);
+        $this->spamwords = $dbhr->preQuery("SELECT * FROM spam_keywords;");
     }
 
     /**
@@ -83,6 +84,15 @@ class ChatMessage extends Entity
                 # At least one URL which we don't trust.
                 error_log("...$badurl not trusted");
                 $check = TRUE;
+            }
+        }
+
+        # Check keywords
+        foreach ($this->spamwords as $word) {
+            if (stripos($message, $word['word']) !== FALSE &&
+                (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
+                $check = TRUE;
+                error_log("...{$word['word']}");
             }
         }
 

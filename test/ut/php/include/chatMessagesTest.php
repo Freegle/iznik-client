@@ -187,6 +187,9 @@ class chatMessagesTest extends IznikTestCase {
         # Others.
         assertTrue($m->checkReview('<script'));
 
+        # Keywords
+        assertTrue($m->checkReview('spamspamspam'));
+
         error_log(__METHOD__ . " end");
     }
 }
