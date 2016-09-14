@@ -381,6 +381,8 @@ define([
         },
 
         openChatToMods: function(groupid) {
+            var self = this;
+
             $.ajax({
                 type: 'PUT',
                 url: API + 'chat/rooms',
@@ -406,6 +408,8 @@ define([
         },
 
         openChat: function(userid) {
+            var self = this;
+
             var v = new Iznik.Views.PleaseWait({
                 label: 'chat openChat'
             });

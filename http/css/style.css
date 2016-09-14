@@ -1341,10 +1341,25 @@ body {
     }
 
     #notifchatdropdownlist {
+        width: 80vw;
+    }
+
+    #notifchatdropdownactions {
+        background-color: white !important;
+        border-bottom: none !important;
+    }
+
+    .notifaction {
+        padding: 5px;
+        border-radius: 3px;
+        border: 1px black solid;
+        width: 130px;
+    }
+
+    #notifchatdropdownlist {
         background-color: white !important;
         overflow-y: scroll;
-        top: 60px;
-        width: 100vw;
+        top: 90px;
         max-height: 90vh;
         position: fixed;
     }
@@ -1354,6 +1369,10 @@ body {
 @media only screen and (min-width : 480px) {
     #notifchatdropdown {
         min-width: 400px;
+    }
+
+    #notifchatdropdownlist {
+        width: 400px;
     }
 }
 
@@ -1372,7 +1391,11 @@ body {
     }
 
     #notifchatdropdown {
-        min-width: 600px;
+        min-width: 500px;
+    }
+
+    #notifchatdropdownlist {
+        width: 500px;
     }
 
     .footer {
