@@ -144,7 +144,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
                     console.log("Got SW registrations", registrations);
                     for (var registration in registrations) {
                         console.log("Registration", registration);
-                        if (registration) {
+                        if (registration && typeof registration.unregister === 'function') {
                             registration.unregister();
                         }
                     }
@@ -179,12 +179,11 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <link rel="stylesheet" href="/css/bootstrap-select.min.css">
     <link rel="stylesheet" href="/css/bootstrap-switch.min.css">
     <link rel="stylesheet" href="/css/datepicker3.css">
-    <link rel="stylesheet" href="/css/bootstrap-tagsinput.css">
     <link rel="stylesheet" href="/js/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css">
     <link rel="stylesheet" href="/css/dd.css">
     <link rel="stylesheet" href="/css/fileinput.css" />
 
-    <link rel="stylesheet" type="text/css" href="/css/style.css?a=66">
+    <link rel="stylesheet" type="text/css" href="/css/style.css?a=84">
     <!--[if lt IE 9]>
     <link rel="stylesheet" type="text/css" href="/css/ie-only.css">
     <![endif]-->
@@ -201,9 +200,9 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <!-- And then some custom styles for our different apps -->
     <?php
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
-        ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=3"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=4"><?php
     } else {
-        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=120"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=121"><?php
     }
     ?>
 

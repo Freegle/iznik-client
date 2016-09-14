@@ -13,7 +13,7 @@ function memberships() {
     $search = presdef('search', $_REQUEST, NULL);
     $ctx = presdef('context', $_REQUEST, NULL);
     $settings = presdef('settings', $_REQUEST, NULL);
-    $emailfrequency = presdef('emailfrequency', $_REQUEST, NULL);
+    $emailfrequency = array_key_exists('emailfrequency', $_REQUEST) ? intval($_REQUEST['emailfrequency']) : NULL;
     $filter = intval(presdef('filter', $_REQUEST, Group::FILTER_NONE));
 
     # TODO jQuery won't send an empty array, so we have a hack to ensure we can empty out the pending members.  What's
@@ -174,11 +174,16 @@ function memberships() {
 
                     $g = new Group($dbhr, $dbhm, $groupid);
                     if ($g->onYahoo()) {
-                        # This group is on Yahoo too, so we should trigger a membership application to there.
+                        # This group is on Yahoo too, so we should trigger a membership application to there if we
+                        # don't already have one of our emails on the group.
                         #
                         # TODO Need to handle the case where this application is rejected.  In FDv1-2 this could
                         # not occur as FBUser members were pre-approved, but it can now.
-                        $u->triggerYahooApplication($groupid);
+                        list ($eid, $alreadymail) = $u->getEmailForYahooGroup($groupid, TRUE);
+
+                        if (!$eid) {
+                            $u->triggerYahooApplication($groupid);
+                        }
                     }
 
                     $ret = [
@@ -234,7 +239,6 @@ function memberships() {
 
             case 'DELETE': {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
-                error_log("Delete membership email $email admin " . $me->isAdminOrSupport() . " owner " . $me->isModOrOwner($groupid) . " userid $userid vs " . $me->getId());
 
                 if ($email) {
                     # We are unsubscribing when logged out.  There is a DoS attack here, but there's a benefit in
@@ -337,7 +341,7 @@ function memberships() {
                         if ($settings) {
                             $rc &= $u->setGroupSettings($groupid, $settings);
                         } 
-                        
+
                         if ($emailfrequency !== NULL) {
                             $rc &= $u->setMembershipAtt($groupid, 'emailfrequency', intval($emailfrequency));
                         }

@@ -12,7 +12,7 @@ global $dbhr, $dbhm;
 $lockh = lockScript(basename(__FILE__));
 
 $m = new Message($dbhr, $dbhm);
-$mysqltime = date ("Y-m-d", strtotime("Midnight 90 days ago"));
+$mysqltime = date("Y-m-d", max(strtotime("06-sep-2016"), strtotime("Midnight 90 days ago")));
 $count = $m->autoRepost(Group::GROUP_FREEGLE, $mysqltime);
 
 error_log("Sent $count");

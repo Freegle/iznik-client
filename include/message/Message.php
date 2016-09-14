@@ -135,8 +135,8 @@ class Message
         }
     }
 
-    public function setPrivate($att, $val) {
-        if ($this->$att != $val) {
+    public function setPrivate($att, $val, $always = FALSE) {
+        if ($this->$att != $val || $always) {
             $rc = $this->dbhm->preExec("UPDATE messages SET $att = ? WHERE id = {$this->id};", [$val]);
             if ($rc) {
                 $this->$att = $val;
@@ -424,6 +424,7 @@ class Message
             $text = preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/\d*/', '', $text);
             $text = preg_replace('/You can see photos here[\s\S]*jpg/m', '', $text);
             $text = preg_replace('/https:\/\/direct.*jpg/m', '', $text);
+            $text = preg_replace('/Photos\:[\s\S]*?jpg/', '', $text);
 
             // FOPs
             $text = preg_replace('/Fair Offer Policy applies \(see https:\/\/[\s\S]*\)/', '', $text);
@@ -441,6 +442,9 @@ class Message
 
             // Redundant line breaks.
             $text = preg_replace('/(?:(?:\r\n|\r|\n)\s*){2}/s', "\n\n", $text);
+
+            // Duff text added by Yahoo Mail app.
+            $text = str_replace('blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; }', '', $text);
 
             $text = trim($text);
         }
@@ -526,7 +530,7 @@ class Message
 
         if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $this->fromuser == $myid)) {
             # Add replies.
-            $sql = "SELECT DISTINCT t.* FROM chat_messages INNER JOIN (SELECT userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
+            $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
             $replies = $this->dbhr->preQuery($sql, [ $this->id ]);
             $ret['replies'] = [];
             foreach ($replies as $reply) {
@@ -534,7 +538,7 @@ class Message
                 if ($reply['userid']) {
                     $u = new User($this->dbhr, $this->dbhm, $reply['userid']);
                     $thisone = [
-                        'id' => $reply['chatid'],
+                        'id' => $reply['id'],
                         'user' => $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE),
                         'chatid' => $reply['chatid']
                     ];
@@ -594,18 +598,27 @@ class Message
             $ret['fromcountry'] = code_to_country($ret['fromcountry']);
         }
 
-        if (pres('fromuser', $ret)) {
-            $u = new User($this->dbhr, $this->dbhm, $ret['fromuser']);
+        $ret['publishconsent'] = FALSE;
 
-            # Get the user details, relative to the groups this message appears on.
-            $ret['fromuser'] = $u->getPublic($this->getGroups(), $messagehistory, FALSE);
+        if ($this->fromuser) {
+            # We know who sent this.  We may be able to return this (depending on the role we have for the message
+            # and hence the attributes we have already filled in).  We also want to know if we have consent
+            # to republish it.
+            $u = new User($this->dbhr, $this->dbhm, $this->fromuser);
 
-            if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
-                # We can see their emails.
-                $ret['fromuser']['emails'] = $u->getEmails();
+            if (pres('fromuser', $ret)) {
+                # Get the user details, relative to the groups this message appears on.
+                $ret['fromuser'] = $u->getPublic($this->getGroups(), $messagehistory, FALSE);
+
+                if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
+                    # We can see their emails.
+                    $ret['fromuser']['emails'] = $u->getEmails();
+                }
+
+                filterResult($ret['fromuser']);
             }
 
-            filterResult($ret['fromuser']);
+            $ret['publishconsent'] = $u->getPrivate('publishconsent');
         }
 
         if ($related) {
@@ -900,7 +913,11 @@ class Message
         $myid = $me ? $me->getId() : NULL;
         $sess = session_id();
 
-        $rc = $this->dbhm->preExec("INSERT INTO messages (source, sourceheader) VALUES(?,?);", [ Message::PLATFORM, Message::PLATFORM ]);
+        $rc = $this->dbhm->preExec("INSERT INTO messages (source, sourceheader, date, fromip) VALUES(?,?, NOW(), ?);", [
+            Message::PLATFORM,
+            Message::PLATFORM,
+            presdef('REMOTE_ADDR', $_SERVER, NULL)
+        ]);
         $id = $rc ? $this->dbhm->lastInsertId() : NULL;
 
         if ($id) {
@@ -977,9 +994,17 @@ class Message
             $to = $this->getTo();
         }
 
-        foreach ($to as $t) {
-            if (preg_match('/(.*)@yahoogroups\.co.*/', $t['address'], $matches)) {
-                $groupname = $matches[1];
+        $rejected = $this->getHeader('x-egroups-rejected-by');
+
+        if (!$rejected) {
+            # Rejected messages can look a bit like messages to the group, but they're not.
+            foreach ($to as $t) {
+                # Check it's to a group (and not the owner).
+                if (preg_match('/(.*)@yahoogroups\.co.*/', $t['address'], $matches) &&
+                    strpos($t['address'], '-owner@') === FALSE) {
+                    $groupname = $matches[1];
+                    error_log("Got $groupname from {$t['address']}");
+                }
             }
         }
 
@@ -1113,6 +1138,111 @@ class Message
                             # logo.
                             if ($newdata && $img->width() > 50 && $img->height() > 50) {
                                 $this->inlineimgs[] = $newdata;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        # Trash Nothing sends attachments too, but just as links - get those.
+        #
+        # - links to flic.kr, for groups which for some reason don't like images hosted on TN
+        # - links to TN itself
+        if (preg_match_all('/(http:\/\/flic\.kr.*)$/m', $this->textbody, $matches)) {
+            $urls = [];
+            foreach ($matches as $val) {
+                foreach ($val as $url) {
+                    $urls[] = $url;
+                }
+            }
+
+            $urls = array_unique($urls);
+            foreach ($urls as $url) {
+                $ctx = stream_context_create(array('http' =>
+                    array(
+                        'timeout' => 120
+                    )
+                ));
+
+                $data = @file_get_contents($url, false, $ctx);
+
+                if ($data) {
+                    # Now get the link to the actual image.  DOMDocument chokes on the HTML so do it the dirty way.
+                    if (preg_match('#<meta property="og:image" content="(.*)"  data-dynamic="true">#', $data, $matches)) {
+                        $imgurl = $matches[1];
+                        $ctx = stream_context_create(array('http' =>
+                            array(
+                                'timeout' => 120
+                            )
+                        ));
+
+                        $data = @file_get_contents($imgurl, false, $ctx);
+
+                        if ($data) {
+                            # Try to convert to an image.  If it's not an image, this will fail.
+                            $img = new Image($data);
+
+                            if ($img->img) {
+                                $newdata = $img->getData(100);
+
+                                if ($newdata && $img->width() > 50 && $img->height() > 50) {
+                                    $this->inlineimgs[] = $newdata;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (preg_match_all('/(https:\/\/trashnothing\.com\/pics\/.*)$/m', $this->textbody, $matches)) {
+            $urls = [];
+            foreach ($matches as $val) {
+                foreach ($val as $url) {
+                    $urls[] = $url;
+                }
+            }
+
+            $urls = array_unique($urls);
+            foreach ($urls as $url) {
+                $ctx = stream_context_create(array('http' =>
+                    array(
+                        'timeout' => 120
+                    )
+                ));
+
+                $data = @file_get_contents($url, false, $ctx);
+
+                if ($data) {
+                    # Now get the link to the actual images.
+                    $doc = new DOMDocument();
+                    @$doc->loadHTML($data);
+                    $imgs = $doc->getElementsByTagName('img');
+
+                    /* @var DOMNodeList $imgs */
+                    foreach ($imgs as $img) {
+                        $src = $img->getAttribute('src');
+                        if (strpos($src, '/img/') !== FALSE) {
+                            $ctx = stream_context_create(array('http' =>
+                                array(
+                                    'timeout' => 120
+                                )
+                            ));
+
+                            $data = @file_get_contents($src, false, $ctx);
+
+                            if ($data) {
+                                # Try to convert to an image.  If it's not an image, this will fail.
+                                $img = new Image($data);
+
+                                if ($img->img) {
+                                    $newdata = $img->getData(100);
+
+                                    if ($newdata && $img->width() > 50 && $img->height() > 50) {
+                                        $this->inlineimgs[] = $newdata;
+                                    }
+                                }
                             }
                         }
                     }
@@ -1413,9 +1543,10 @@ class Message
                 if ($this->groupid) {
                     # Save the group we're on.  If we crash or fail at this point we leave the message stranded, which is ok
                     # given the perf cost of a transaction.
-                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby,arrival) VALUES (?,?,?,?,?,?,?,?,NOW());", [
+                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, msgtype, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby,arrival) VALUES (?,?,?,?,?,?,?,?,?,NOW());", [
                         $this->id,
                         $this->groupid,
+                        $this->type,
                         $this->yahoopendingid,
                         $this->yahooapprovedid,
                         $this->yahooreject,
@@ -1529,52 +1660,55 @@ class Message
             $to = $this->getEnvelopefrom();
             $to = $to ? $to : $this->getFromaddr();
 
-            $mailit = FALSE;
+            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $atts = $g->getPublic();
 
-            # TODO Once live
-            #if (ourDomain($to)) {
-            if (strpos($to, USER_DOMAIN) !== FALSE) {
+            # Find who to send it from.  If we have a config to use for this group then it will tell us.
+            $name = $me->getName();
+            $c = new ModConfig($this->dbhr, $this->dbhm);
+            $cid = $c->getForGroup($me->getId(), $groupid);
+            $c = new ModConfig($this->dbhr, $this->dbhm, $cid);
+            $fromname = $c->getPrivate('fromname');
+
+            $bcc = $c->getBcc($action);
+
+            if ($bcc) {
+                $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
+            }
+
+            if ($fromname == 'Groupname Moderator') {
+                $name = '$groupname Moderator';
+            }
+
+            # We can do a simple substitution in the from name.
+            $name = str_replace('$groupname', $atts['namedisplay'], $name);
+
+            if (ourDomain($to)) {
                 # This is a user who we host.  We can therefore send the message via chat.  This is better than
                 # sending it by email and then parsing the email later to work out what we intended to send and
                 # construct a chat message from it :-).
+                $cconly = TRUE;
                 $r = new ChatRoom($this->dbhr, $this->dbhm);
                 $rid = $r->createUser2Mod($this->getFromuser(), $groupid);
 
                 if ($rid) {
                     $m = new ChatMessage($this->dbhr, $this->dbhm);
-                    $m->create($rid,
+                    $mid = $m->create($rid,
                         $myid,
                         "$subject\r\n\r\n$body",
                         ChatMessage::TYPE_MODMAIL,
                         $this->id,
                         FALSE,
                         NULL);
+
+                    $this->mailer($me, TRUE, $this->getFromname(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to a Freegle Direct user via chat.)\n\n" . $body);
+
+                    # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
+                    # appearing as unread to us and other mods.
+                    $r->updateRoster($myid, $mid, ChatRoom::STATUS_ONLINE);
                 }
             } else {
                 # For other users, we send the message out by mail.
-                $g = new Group($this->dbhr, $this->dbhm, $groupid);
-                $atts = $g->getPublic();
-
-                # Find who to send it from.  If we have a config to use for this group then it will tell us.
-                $name = $me->getName();
-                $c = new ModConfig($this->dbhr, $this->dbhm);
-                $cid = $c->getForGroup($me->getId(), $groupid);
-                $c = new ModConfig($this->dbhr, $this->dbhm, $cid);
-                $fromname = $c->getPrivate('fromname');
-
-                if ($fromname == 'Groupname Moderator') {
-                    $name = '$groupname Moderator';
-                }
-
-                # We can do a simple substitution in the from name.
-                $name = str_replace('$groupname', $atts['namedisplay'], $name);
-
-                $bcc = $c->getBcc($action);
-
-                if ($bcc) {
-                    $bcc = str_replace('$groupname', $atts['nameshort'], $bcc);
-                }
-
                 $this->mailer($me, TRUE, $this->getFromname(), $to, $bcc, $name, $g->getModsEmail(), $subject, $body);
             }
         }
@@ -1852,6 +1986,10 @@ class Message
             $ret = $msg['id'];
             $changed = '';
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
+
+            # We want the new message to have the spam type of the old message, because we check this to ensure
+            # we don't move messages back from not spam to spam.
+            $this->spamtype = $m->getPrivate('spamtype');
             
             # We want the old message to be on whatever group this message was sent to.
             #
@@ -1874,9 +2012,10 @@ class Message
                 #error_log("Not on group, add to $collection");
 
                 if ($collection) {
-                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby, arrival) VALUES (?,?,?,?,?,?,?,?,NOW());", [
+                    $this->dbhm->preExec("INSERT INTO messages_groups (msgid, groupid, msgtype, yahoopendingid, yahooapprovedid, yahooreject, yahooapprove, collection, approvedby, arrival) VALUES (?,?,?,?,?,?,?,?,?,NOW());", [
                         $msg['id'],
                         $this->groupid,
+                        $m->getType(),
                         $this->yahoopendingid,
                         $this->yahooapprovedid,
                         $this->yahooreject,
@@ -2061,6 +2200,10 @@ class Message
         $p = strpos($textbody, '----Original message----');
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
+        # Or this, which is top-quoted.
+        $p = strpos($textbody, '--------------------------------------------');
+        $textbody = $p ? substr($textbody, 0, $p) : $textbody;
+
         # Or TN's
         #
         # _________________________________________________________________
@@ -2092,17 +2235,25 @@ class Message
             $textbody = $matches[1] . $matches[2];
         }
 
+        if (preg_match('/(.*)__,_._,___(.*)/ms', $textbody, $matches)) {
+            $textbody = $matches[1];
+        }
+
         # Or we might have some headers
         $textbody = preg_replace('/^From:.*?$/mi', '', $textbody);
         $textbody = preg_replace('/^Sent:.*?$/mi', '', $textbody);
 
         # Get rid of sigs
-        $textbody = str_replace('Sent from my iPhone', '', $textbody);
-        $textbody = str_replace('Sent from EE', '', $textbody);
-        $textbody = str_replace('Sent from my Samsung device', '', $textbody);
-        $textbody = str_replace('Sent from my Windows Phone', '', $textbody);
-        $textbody = str_replace('Sent from the trash nothing! Mobile App', '', $textbody);
-        $textbody = preg_replace('/^Sent on the go from.*?$/mi', '', $textbody);
+        $textbody = preg_replace('/^Sent from my iPhone.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from EE.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my Samsung device.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my Windows Phone.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from the trash nothing! Mobile App.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent on the go from.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from Yahoo Mail.*/ms', '', $textbody);
+
+        // Duff text added by Yahoo Mail app.
+        $textbody = str_replace('blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; }', '', $textbody);
 
         #error_log("Pruned text to $textbody");
         return(trim($textbody));
@@ -2112,7 +2263,7 @@ class Message
         $subj = strtolower($subj);
 
         // Remove any group tag
-        $subj = preg_replace('/^\[.*\](.*)/', "$1", $subj);
+        $subj = preg_replace('/^\[.*?\](.*)/', "$1", $subj);
 
         // Remove duplicate spaces
         $subj = preg_replace('/\s+/', ' ', $subj);
@@ -2426,8 +2577,11 @@ class Message
         return($rc);
     }
 
-    public function constructSubject() {
+    public function constructSubject($groupid) {
         # Construct the subject - do this now as it may get displayed to the user before we get the membership.
+        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
+
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
         $items = $this->dbhr->preQuery("SELECT * FROM messages_items INNER JOIN items ON messages_items.itemid = items.id WHERE msgid = ?;", [ $this->id ]);
         #error_log("Items " . var_export($items, TRUE));
@@ -2441,7 +2595,7 @@ class Message
                 $loc = $l->ensureVague();
             }
 
-            $subject = $this->type . ': ' . $items[0]['name'] . " ($loc)";
+            $subject = presdef(strtolower($this->type), $keywords, $this->type) . ': ' . $items[0]['name'] . " ($loc)";
             $this->setPrivate('subject', $subject);
         }
     }
@@ -2454,10 +2608,11 @@ class Message
         $this->setPrivate('fromuser', $fromuser->getId());
 
         # If this message is already on this group, that's fine.
-        $rc = $this->dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection, arrival) VALUES (?,?,?,NOW());", [
+        $rc = $this->dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection, arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
             $this->id,
             $groupid,
-            MessageCollection::QUEUED_YAHOO_USER
+            MessageCollection::QUEUED_YAHOO_USER,
+            $this->getType()
         ]);
 
         if ($rc) {
@@ -2679,8 +2834,7 @@ class Message
             $g = new Group($this->dbhr, $this->dbhm, $groupid);
 
             if ($g->getPrivate('onyahoo')) {
-                list ($eid, $email) = $u->getEmailForYahooGroup($groupid);
-                $headers = 'From: "' . $u->getName() . '" <' . $email . ">\r\n";
+                list ($eid, $email) = $u->getEmailForYahooGroup($groupid, TRUE);
                 $this->mailer(
                     $u,
                     FALSE,

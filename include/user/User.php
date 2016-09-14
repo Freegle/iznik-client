@@ -18,7 +18,7 @@ require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 class User extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'publishconsent', 'ripaconsent');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -159,6 +159,11 @@ class User extends Entity
 
         # Make sure we don't return an email if somehow one has snuck in.
         $name = strpos($name, '@') !== FALSE ? substr($name, 0, strpos($name, '@')) : $name;
+
+        if (strlen(trim($name)) === 0) {
+            $name = '(No name)';
+        }
+
         return($name);
     }
 
@@ -259,7 +264,7 @@ class User extends Entity
     }
 
     public function isApprovedMember($groupid) {
-        $membs = $this->dbhr->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ?;", [ $this->id, $groupid ]);
+        $membs = $this->dbhr->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ? AND collection = 'Approved';", [ $this->id, $groupid ]);
         return(count($membs) > 0);
     }
 
@@ -2114,14 +2119,15 @@ class User extends Entity
         if (!$handled) {
             # This email is new to this user.  It may or may not currently be in use for another user.  Either
             # way we want to send a verification mail.
-            $headers = "From: ModTools <" . NOREPLY_ADDR . ">\nContent-Type: multipart/alternative; boundary=\"_I_Z_N_I_K_\"\nMIME-Version: 1.0";
+            $usersite = strpos($_SERVER['HTTP_HOST'], USER_SITE) !== FALSE;
+            $headers = "From: " . SITE_NAME . " <" . NOREPLY_ADDR . ">\nContent-Type: multipart/alternative; boundary=\"_I_Z_N_I_K_\"\nMIME-Version: 1.0";
             $canon = User::canonMail($email);
             $key = uniqid();
             $sql = "INSERT INTO users_emails (email, canon, validatekey, backwards) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE validatekey = ?;";
             $this->dbhm->preExec($sql,
                 [$email, $canon, $key, strrev($canon), $key]);
-            $confirm = "https://" . $_SERVER['HTTP_HOST'] . "/modtools/settings/confirmmail/" . urlencode($key);
-            $this->mailer($email, "Please verify your email", modtools_verify_email($email, $confirm), $headers, "-f" . NOREPLY_ADDR);
+            $confirm = $usersite ? ("https://" . $_SERVER['HTTP_HOST'] . "/settings/confirmmail/" . urlencode($key)) : ("https://" . $_SERVER['HTTP_HOST'] . "/modtools/settings/confirmmail/" . urlencode($key));
+            $this->mailer($email, "Please verify your email", modtools_verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO), $headers, "-f" . NOREPLY_ADDR);
         }
 
         return($handled);
@@ -2159,10 +2165,11 @@ class User extends Entity
         }
 
         if (!$email) {
-            # If they have a Yahoo ID, that'll do nicely - it's public info.
+            # If they have a Yahoo ID, that'll do nicely - it's public info.  But some Yahoo IDs are actually
+            # email addresses (don't ask) and we don't want those.
             $yahooid = $this->getPrivate('yahooid');
 
-            if ($yahooid) {
+            if ($yahooid && strpos($yahooid, '@') === FALSE) {
                 $email = $yahooid . '-' . $this->id . '@' . USER_DOMAIN;
             } else {
                 # Their own email might already be of that nature, which would be lovely.
@@ -2425,8 +2432,10 @@ class User extends Entity
                 ((SELECT userid FROM users_emails WHERE email LIKE $q OR backwards LIKE $qb) UNION
                 (SELECT id AS userid FROM users WHERE fullname LIKE $q) UNION
                 (SELECT id AS userid FROM users WHERE yahooid LIKE $q) UNION
+                (SELECT id AS userid FROM users WHERE id = ?) UNION
                 (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)) t WHERE userid > ? ORDER BY userid ASC";
-        $users = $this->dbhr->preQuery($sql, [$id]);
+        $users = $this->dbhr->preQuery($sql, [$search, $id]);
+        error_log("$sql");
 
         $ret = [];
         foreach ($users as $user) {
@@ -2456,6 +2465,18 @@ class User extends Entity
             $thisone['sessions'] = $u->getSessions($this->dbhr, $this->dbhm, $user['userid']);
 
             $thisone['logins'] = $u->getLogins(FALSE);
+
+            # Also return the chats for this user.
+            $r = new ChatRoom($this->dbhr, $this->dbhm);
+            $rooms = $r->listForUser($user['userid'], [ ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD, ChatRoom::TYPE_USER2USER ]);
+            $thisone['chatrooms'] = [];
+
+            if ($rooms) {
+                foreach ($rooms as $room) {
+                    $r = new ChatRoom($this->dbhr, $this->dbhm, $room);
+                    $thisone['chatrooms'][] = $r->getPublic();
+                }
+            }
 
             $ret[] = $thisone;
         }

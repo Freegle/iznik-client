@@ -36,6 +36,7 @@ class Log
     const SUBTYPE_REPLIED = 'Replied';
     const SUBTYPE_MAILED = 'Mailed';
     const SUBTYPE_LOGIN = 'Login';
+    const SUBTYPE_LOGOUT = 'Logout';
     const SUBTYPE_CLASSIFIED_SPAM = 'ClassifiedSpam';
     const SUBTYPE_SUSPECT = 'Suspect';
     const SUBTYPE_SENT = 'Sent';

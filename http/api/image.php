@@ -54,18 +54,19 @@ function image() {
             # This next line is to simplify UT.
             $photo = presdef('photo', $_FILES, NULL) ? $_FILES['photo'] : $_REQUEST['photo'];
             $imgtype = presdef('imgtype', $_REQUEST, Attachment::TYPE_MESSAGE);
+            $mimetype = presdef('type', $photo, NULL);
 
             # Make sure what we have looks plausible - the file upload plugin should ensure this is the case.
             if ($photo &&
                 pres('tmp_name', $photo) &&
-                presdef('type', $photo, NULL) == 'image/jpeg') {
+                strpos($mimetype, 'image/') === 0) {
 
                 # We may need to rotate.
                 $data = file_get_contents($photo['tmp_name']);
                 $image = imagecreatefromstring($data);
                 $exif = exif_read_data($photo['tmp_name']);
 
-                if(!empty($exif['Orientation'])) {
+                if($exif && !empty($exif['Orientation'])) {
                     switch($exif['Orientation']) {
                         case 8:
                             $image = imagerotate($image,90,0);

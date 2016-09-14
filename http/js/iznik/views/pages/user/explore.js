@@ -131,9 +131,11 @@ define([
 
                         if (within > 20) {
                             // Switch to pins for large collections
+                            var icon = window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif?a=1';
+                            console.log("Large collection", icon);
                             var marker = new google.maps.Marker({
                                 position: latLng,
-                                icon: iznikroot + 'images/mapmarker.gif',	// CC
+                                icon: icon,
                                 title: group.get('namedisplay')
                             });
 
@@ -193,8 +195,8 @@ define([
             }
         },
 
-        resize: function() {
-            var mapWidth = target.outerWidth();
+        resize: function(e) {
+            var mapWidth = e.target.outerWidth();
             target.css('height', mapWidth + 'px');
             google.maps.event.trigger(this.map, "resize");
         },
@@ -239,6 +241,7 @@ define([
 
             // Render the map
             google.maps.event.addDomListener(self.map, 'idle', function() {
+                console.log("Map idle");
                 if (!self.fetched) {
                     // Get all the groups.  There aren't too many, and this means we are responsive when panning or zooming.
                     self.collection = new Iznik.Collections.Group();
@@ -270,7 +273,15 @@ define([
         },
 
         showDetails: function() {
-            Router.navigate('/explore/' + this.model.get('id'), true);
+            if (this.model.get('external')) {
+                // External group - open new tab.
+                window.open(this.model.get('external'));
+            } else if (this.model.get('onyahoo') && !this.model.get('onhere')) {
+                // Yahoo group - open new tab.
+                window.open("https://groups.yahoo.com/group/" + this.model.get('nameshort'));
+            } else {
+                Router.navigate('/explore/' + this.model.get('id'), true);
+            }
         }
     });
 
@@ -290,16 +301,25 @@ define([
         },
 
         filter: function(model) {
-            // Show all OFFERs and WANTEDs.
             var thetype = model.get('type');
-            return(thetype == 'Offer' || thetype == 'Wanted');
+
+            if (thetype != 'Offer' && thetype != 'Wanted') {
+                // Not interested in this type of message.
+                return(false);
+            } else {
+                // Only show a search result for an offer which has not been taken or wanted not received.
+                var paired = _.where(model.get('related'), {
+                    type: thetype == 'Offer' ? 'Taken' : 'Received'
+                });
+
+                return (paired.length == 0);
+            }
         },
 
         showHideJoin: function() {
             var self = this;
 
             var role = self.model.get('myrole');
-            console.log("Role", role);
 
             if (role == 'Non-member') {
                 self.$('.js-join').show();

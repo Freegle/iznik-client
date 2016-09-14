@@ -23,6 +23,8 @@ class Group extends Entity
     /** @var  $log Log */
     private $log;
 
+    public $defaultSettings;
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts);
@@ -61,6 +63,10 @@ class Group extends Entity
                 'TAKEN' => 'TAKEN',
                 'WANTED' => 'WANTED',
                 'RECEIVED' => 'RECEIVED'
+            ], 'reposts' => [
+                'offer' => 2,
+                'wanted' => 14,
+                'max' => 10
             ]
         ];
 
@@ -140,6 +146,10 @@ class Group extends Entity
         return($this->group['nameshort'] . "-unsubscribe@yahoogroups.com");
     }
 
+    public function getGroupNoEmail() {
+        return($this->group['nameshort'] . "-nomail@yahoogroups.com");
+    }
+
     public function delete() {
         $rc = $this->dbhm->preExec("DELETE FROM groups WHERE id = ?;", [$this->id]);
         if ($rc) {
@@ -186,7 +196,7 @@ class Group extends Entity
                 $this->id,
                 MessageCollection::PENDING
             ])[0]['count'] : 0,
-            $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages.date >= '$mysqltime' AND messages_groups.deleted = 0 " . ($showmessages ? "AND messages.heldby IS NULL" : "") . ";", [
+            $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages.arrival >= '$mysqltime' AND messages_groups.deleted = 0 " . ($showmessages ? "AND messages.heldby IS NULL" : "") . ";", [
                 $this->id,
                 MessageCollection::SPAM
             ])[0]['count'],
@@ -825,14 +835,14 @@ class Group extends Entity
 
         # Now find messages which are missing on the client, i.e. present in $collections but not present in
         # $messages.
-        /** @var Collection $c */
+        /** @var MessageCollection $c */
         foreach ($cs as $c) {
             $sql = "SELECT id, source, fromaddr, yahoopendingid, yahooapprovedid, subject, date, messageid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0;";
             $ourmsgs = $this->dbhr->preQuery(
                 $sql,
                 [
                     $this->id,
-                    $c->getCollection()
+                    $c->getCollection()[0]
                 ]
             );
 
@@ -854,7 +864,7 @@ class Group extends Entity
                             'id' => $msg['id'],
                             'email' => $msg['fromaddr'],
                             'subject' => $msg['subject'],
-                            'collection' => $c->getCollection(),
+                            'collection' => $c->getCollection()[0],
                             'date' => ISODate($msg['date']),
                             'messageid' => $msg['messageid'],
                             'yahoopendingid' => $msg['yahoopendingid'],

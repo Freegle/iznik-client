@@ -171,6 +171,9 @@ class Facebook
                     $id
                 ]);
 
+            # We have publish permissions for users who login via our platform.
+            $u->setPrivate('publishconsent', 1);
+
             # We might have syncd the membership without a good name.
             $u->setPrivate('firstname', $firstname);
             $u->setPrivate('lastname', $lastname);

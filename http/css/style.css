@@ -33,6 +33,10 @@
     top: 0px !important;
 }
 
+.navbar-collapse {
+    width: 100% !important;
+}
+
 .pageContent, .rightSidebar {
     top: 66px;
 }
@@ -189,6 +193,12 @@
     display: inline-block !important;
     vertical-align: middle !important;
     float: none !important;
+}
+
+.vcenter-left {
+    display: inline-block !important;
+    vertical-align: middle !important;
+    float: left !important;
 }
 
 .dd {
@@ -943,6 +953,7 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 }
 
 #notifchatdropdown {
+    background-color: white;
     position: absolute;
     right: 0px;
     padding: 0px;
@@ -1213,10 +1224,6 @@ body {
     content: none;
 }
 
-.bootstrap-tagsinput .twitter-typeahead, .bootstrap-tagsinput .twitter-typeahead input {
-    width: 100% !important;
-}
-
 #replayHeader {
     top: 0px;
     z-index: 1500 !important;
@@ -1328,11 +1335,45 @@ body {
     .footer {
         height: 40px;
     }
+
+    #notifchatdropdown {
+        min-width: 80vw;
+    }
+
+    #notifchatdropdownlist {
+        width: 80vw;
+    }
+
+    #notifchatdropdownactions {
+        background-color: white !important;
+        border-bottom: none !important;
+    }
+
+    .notifaction {
+        padding: 5px;
+        border-radius: 3px;
+        border: 1px black solid;
+        width: 130px;
+    }
+
+    #notifchatdropdownlist {
+        background-color: white !important;
+        overflow-y: scroll;
+        top: 90px;
+        max-height: 90vh;
+        position: fixed;
+    }
 }
 
 /* Extra Small Devices, Phones */
 @media only screen and (min-width : 480px) {
+    #notifchatdropdown {
+        min-width: 400px;
+    }
 
+    #notifchatdropdownlist {
+        width: 400px;
+    }
 }
 
 /* Small Devices, Tablets */
@@ -1350,7 +1391,11 @@ body {
     }
 
     #notifchatdropdown {
-        min-width: 400px;
+        min-width: 500px;
+    }
+
+    #notifchatdropdownlist {
+        width: 500px;
     }
 
     .footer {

@@ -16,6 +16,7 @@ class MessageCollection
     const DRAFT = 'Draft';
     const QUEUED_YAHOO_USER = 'QueuedYahooUser'; # Awaiting a user on the Yahoo group before it can be sent
     const REJECTED = 'Rejected'; # Rejected by mod; user can see and resend.
+    const ALLUSER = 'AllUser';
 
     /** @var  $dbhr LoggedPDO */
     public $dbhr;
@@ -31,7 +32,7 @@ class MessageCollection
     {
         return $this->collection;
     }
-    
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $collection)
     {
         $this->dbhr = $dbhr;
@@ -44,17 +45,27 @@ class MessageCollection
             case MessageCollection::DRAFT:
             case MessageCollection::QUEUED_YAHOO_USER:
             case MessageCollection::REJECTED:
-                $this->collection = $collection;
+                $this->collection = [ $collection ];
+                break;
+            case MessageCollection::ALLUSER:
+                # The ones users should be able to see, e.g. on home page.
+                $this->collection = [
+                    MessageCollection::APPROVED,
+                    MessageCollection::PENDING,
+                    MessageCollection::REJECTED,
+                    MessageCollection::QUEUED_YAHOO_USER
+                ];
                 break;
             default:
-                $this->collection = NULL;
+                $this->collection = [];
         }
     }
 
     function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL, $recentonly = FALSE) {
         $msgids = [];
 
-        if ($this->collection == MessageCollection::DRAFT) {
+
+        if (in_array(MessageCollection::DRAFT, $this->collection)) {
             # Draft messages are handled differently, as they're not attached to any group.
             $me = whoAmI($this->dbhr, $this->dbhm);
             $sql = "SELECT msgid FROM messages_drafts WHERE session = ? OR (userid = ? AND userid IS NOT NULL);";
@@ -67,20 +78,29 @@ class MessageCollection
             foreach ($msgs as $msg) {
                 $msgids[] = ['id' => $msg['msgid']];
             }
-        } else {
+        }
+
+        $collection = array_filter($this->collection, function($val) {
+            return($val != MessageCollection::DRAFT);
+        });
+
+        if (count($collection) > 0) {
             $typeq = $types ? (" AND `type` IN (" . implode(',', $types) . ") ") : '';
 
             # At the moment we only support ordering by arrival DESC.  Note that arrival can either be when this
             # message arrived for the very first time, or when it was reposted.
             $date = ($ctx == NULL || !pres('Date', $ctx)) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
-            $dateq = $ctx == NULL ? ' 1=1 ' : (" (messages_groups.arrival < $date OR messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ") ");
+            $dateq = !$date ? ' 1=1 ' : (" (messages_groups.arrival < $date OR messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ") ");
 
             # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
             # See also Group.
             #
             # This fits with Yahoo's policy on deleting pending activity.
+            #
+            # This code assumes that if we're called to retrieve SPAM, it's the only collection.  That's true at
+            # the moment as the only use of multiple collection values is via ALLUSER, which doesn't include SPAM.
             $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
-            $oldest = ($recentonly || $this->collection == MessageCollection::SPAM) ? " AND messages_groups.arrival >= '$mysqltime' " : '';
+            $oldest = ($recentonly || in_array(MessageCollection::SPAM, $collection)) ? " AND messages_groups.arrival >= '$mysqltime' " : '';
 
             # We may have some groups to filter by.
             $groupq = count($groupids) > 0 ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
@@ -89,30 +109,24 @@ class MessageCollection
             # the query is as fast as possible, which means:
             # - access as few tables as we need to
             # - use multicolumn indexes
+            $collectionq = " AND collection IN ('" . implode("','", $collection) . "') ";
             if ($userids) {
                 # We only query on a small set of userids, so it's more efficient to get the list of messages from them
                 # first.
                 $seltab = "(SELECT id, arrival, fromuser, deleted, `type` FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
-                $sql = "SELECT msgid AS id, messages.arrival FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $groupq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC LIMIT $limit";
+                $sql = "SELECT msgid AS id, messages.arrival, messages_groups.collection FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $groupq $collectionq AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC LIMIT $limit";
             } else if (count($groupids) > 0) {
                 # The messages_groups table has a multi-column index which makes it quick to find the relevant messages.
-                if ($typeq != '') {
-                    # We need to touch the messages table to find this.
-                    $sql = "SELECT id, messages.arrival FROM messages INNER JOIN (SELECT msgid FROM messages_groups WHERE 1=1 $groupq AND collection = ? AND messages_groups.deleted = 0 AND $dateq $oldest ORDER BY arrival DESC, msgid DESC LIMIT $limit) t ON messages.id = t.msgid AND messages.deleted IS NULL $typeq ORDER BY messages.arrival DESC LIMIT $limit;";
-                } else {
-                    # We can do it all from messages_groups.
-                    $sql = "SELECT msgid as id, arrival FROM messages_groups WHERE 1=1 $groupq AND collection = ? AND messages_groups.deleted = 0 AND $dateq $oldest ORDER BY arrival DESC LIMIT $limit;";
-                }
+                $typeq = $types ? (" AND `msgtype` IN (" . implode(',', $types) . ") ") : '';
+                $sql = "SELECT msgid as id, arrival, messages_groups.collection FROM messages_groups WHERE 1=1 $groupq $collectionq AND messages_groups.deleted = 0 AND $dateq $oldest $typeq ORDER BY arrival DESC LIMIT $limit;";
             } else {
                 # We are not searching within a specific group, so we have no choice but to do a larger join.
-                $sql = "SELECT msgid AS id, messages.arrival FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq AND collection = ? AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC LIMIT $limit";
+                $sql = "SELECT msgid AS id, messages.arrival, messages_groups.collection FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC LIMIT $limit";
             }
 
-            #error_log("Messages get $sql, {$this->collection}");
+            #error_log("Messages get $sql");
 
-            $msglist = $this->dbhr->preQuery($sql, [
-                $this->collection
-            ]);
+            $msglist = $this->dbhr->preQuery($sql);
 
             # Get an array of just the message ids.  Save off context for next time.
             $ctx = [ 'Date' => NULL, 'id' => PHP_INT_MAX ];
@@ -143,6 +157,12 @@ class MessageCollection
         # message API call.
         foreach ($msglist as $msg) {
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
+            $public = $m->getPublic(TRUE, TRUE);
+
+            # See if we have consent to publish this message to non-members.  This is a Freegle function, and depends
+            # on the setting of the sender.  We need to check this otherwise we are in breach of Yahoo's Terms of
+            # Service.
+            $publishconsent = $public['publishconsent'];
 
             $type = $m->getType();
             if (!$messagetype || $type == $messagetype) {
@@ -157,11 +177,15 @@ class MessageCollection
                         $g = new Group($this->dbhr, $this->dbhm, $groupid);
                         $atts = $g->getPublic();
 
-                        # For Freegle groups, we can see the message even if not a member.  For other groups using ModTools,
-                        # that isn't true, and we don't even want to return the information that there was a match on
-                        # this group.
-                        if (($role == User::ROLE_MEMBER || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) ||
-                            ($atts['type'] == Group::GROUP_FREEGLE)
+                        # We can see messages if:
+                        # - we're a mod or an owner
+                        # - for Freegle groups which use this platform
+                        #   - we're a member, or
+                        #   - we have publish consent
+                        if ($role == User::ROLE_MODERATOR ||
+                            $role == User::ROLE_OWNER ||
+                            ($atts['type'] == Group::GROUP_FREEGLE && $g->getPrivate('onhere') &&
+                              ($publishconsent || $role == User::ROLE_MEMBER))
                         ) {
                             $groups[$groupid] = $g->getPublic();
                         }
@@ -171,19 +195,19 @@ class MessageCollection
                 }
 
                 if ($cansee) {
-                    switch ($this->collection) {
+                    switch (presdef('collection', $msg, MessageCollection::APPROVED)) {
                         case MessageCollection::DRAFT:
                         case MessageCollection::QUEUED_YAHOO_USER:
                             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                                 # Only visible to moderators or owners, or self (which returns a role of moderator).
-                                $n = $m->getPublic(TRUE, TRUE);
+                                $n = $public;
                                 unset($n['message']);
                                 $msgs[] = $n;
                                 $limit--;
                             }
                             break;
                         case MessageCollection::APPROVED:
-                            $n = $m->getPublic(TRUE, TRUE);
+                            $n = $public;
                             unset($n['message']);
                             $n['matchedon'] = presdef('matchedon', $msg, NULL);
                             $msgs[] = $n;
@@ -193,7 +217,7 @@ class MessageCollection
                         case MessageCollection::REJECTED:
                             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                                 # Only visible to moderators or owners
-                                $n = $m->getPublic(TRUE, TRUE);
+                                $n = $public;
                                 unset($n['message']);
                                 $n['matchedon'] = presdef('matchedon', $msg, NULL);
                                 $msgs[] = $n;
@@ -203,7 +227,7 @@ class MessageCollection
                         case MessageCollection::SPAM:
                             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                                 # Only visible to moderators or owners
-                                $n = $m->getPublic(TRUE, TRUE);
+                                $n = $public;
                                 unset($n['message']);
                                 $n['matchedon'] = presdef('matchedon', $msg, NULL);
                                 $msgs[] = $n;

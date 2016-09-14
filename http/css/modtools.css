@@ -167,6 +167,10 @@
     top: -14px;
 }
 
+#notifchatdropdownlist {
+    top: 69px !important;
+}
+
 .pageContent.landing {
     background: white;
     -moz-box-shadow: 0 0px 100px #45941a;

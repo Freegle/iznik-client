@@ -22,7 +22,6 @@ requirejs.config({
         "bootstrap" : [ 'jquery' ],
         "bootstrap-select": [ "bootstrap" ],
         "bootstrap-switch": [ "bootstrap" ],
-        "bootstrap-tagsinput": [ "bootstrap" ],
         "wicket": [ "jquery" ],
         "wicket-gmap3": [ "wicket" ],
         "ga": {

@@ -10,7 +10,8 @@ define([
     'iznik/views/pages/modtools/replay',
     'iznik/models/user/alert',
     'iznik/views/user/user',
-    'tinymce'
+    'tinymce',
+    'typeahead'
 ], function($, _, Backbone, Iznik, moment) {
     Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
         modtools: true,
@@ -20,6 +21,7 @@ define([
         events: {
             'click .js-searchuser': 'searchUser',
             'click .js-searchmsg': 'searchMessage',
+            'click .js-searchgroup': 'searchGroup',
             'keyup .js-searchuserinp': 'keyup',
             'click .js-sendalert': 'sendAlert',
             'click .js-getalerts': 'getAlerts'
@@ -69,6 +71,9 @@ define([
                     }
                 }
             });
+        },
+
+        searchGroup: function() {
         },
 
         searchMessage: function () {
@@ -166,9 +171,72 @@ define([
             })
         },
 
+        substringMatcher: function(strs) {
+            return function findMatches(q, cb) {
+                var matches, substringRegex;
+
+                // an array that will be populated with substring matches
+                matches = [];
+
+                // regex used to determine if a string contains the substring `q`
+                substrRegex = new RegExp(q, 'i');
+
+                // iterate through the pool of strings and for any string that
+                // contains the substring `q`, add it to the `matches` array
+                $.each(strs, function(i, str) {
+                    if (substrRegex.test(str)) {
+                        matches.push(str);
+                    }
+                });
+
+                cb(matches);
+            };
+        },
+
         render: function () {
             var p = Iznik.Views.Page.prototype.render.call(this);
+
+            // Group search uses a typehead.
             p.then(function(self) {
+                $.ajax({
+                    type: 'GET',
+                    url: API + 'groups',
+                    data: {
+                        grouptype: 'Freegle'
+                    }, success: function (ret) {
+                        self.groups = ret.groups;
+                        self.groupNames = [];
+                        _.each(self.groups, function(group) {
+                            self.groupNames.push(group.nameshort);
+                        });
+
+                        self.typeahead = self.$('.js-searchgroupinp').typeahead({
+                            minLength: 2,
+                            hint: false,
+                            highlight: true
+                        }, {
+                            name: 'groups',
+                            source: self.substringMatcher(self.groupNames)
+                        });
+
+                        self.$('.js-searchgroupinp').bind('typeahead:select', function(ev, suggestion) {
+                            console.log('Selection: ' + suggestion);
+                            var mod = new Iznik.Models.Group({
+                                id: suggestion
+                            });
+
+                            mod.fetch().then(function() {
+                                console.log("Fetched group", mod.attributes);
+                                var v = new Iznik.Views.ModTools.Pages.Support.Group({
+                                    model: mod
+                                });
+                                v.render();
+                                self.$('.js-searchgroupres').html(v.$el);
+                            });
+                        });
+                    }
+                })
+
                 // TODO This should be more generic, but it's really part of hosting multiple networks on the same
                 // server, which we don't do.
                 var type = Iznik.Session.isAdmin() ? null : 'Freegle';
@@ -198,6 +266,10 @@ define([
 
             return(p);
         }
+    });
+
+    Iznik.Views.ModTools.Pages.Support.Group = Iznik.View.extend({
+       template: 'modtools_support_group'
     });
 
     Iznik.Views.ModTools.Alert = Iznik.View.extend({
@@ -362,7 +434,8 @@ define([
 
         events: {
             'click .js-logs': 'logs',
-            'click .js-spammer': 'spammer'
+            'click .js-spammer': 'spammer',
+            'click .js-purge': 'purge'
         },
 
         groups: [],
@@ -402,6 +475,30 @@ define([
             v.render();
         },
 
+        purge: function() {
+            var self = this;
+            var v = new Iznik.Views.Confirm({
+                model: self.model
+            });
+            v.template = 'modtools_members_purgeconfirm';
+
+            self.listenToOnce(v, 'confirmed', function() {
+                $.ajax({
+                    url: API + 'user',
+                    type: 'DELETE',
+                    data: {
+                        id: self.model.get('id')
+                    }, success: function(ret) {
+                        if (ret.ret == 0) {
+                            self.$el.fadeOut('slow');
+                        }
+                    }
+                });
+            });
+
+            v.render();
+        },
+
         addMessage: function(message) {
             var self = this;
 
@@ -431,6 +528,10 @@ define([
         render: function () {
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
+                if (Iznik.Session.isAdmin()) {
+                    self.$('.js-adminonly').removeClass('hidden');
+                }
+
                 // Add any group memberships.
                 self.$('.js-memberof').empty();
 
@@ -495,6 +596,37 @@ define([
                 });
 
                 self.sessionCollectionView.render();
+                
+                // Add any chats
+                self.chatCollection = new Iznik.Collection(self.model.get('chatrooms'));
+                self.chatCollection.each(function(chat) {
+                    chat.set('myuserid', self.model.get('id'));
+                });
+
+                // Show most recent first.
+                self.chatCollection.comparator = function(chat) {
+                    return -(new Date(chat.get('lastdate'))).getTime();
+                };
+                self.chatCollection.sort();
+
+                if (self.chatCollection.length == 0) {
+                    self.$('.js-chatsnone').show();
+                } else {
+                    self.$('.js-chatsnone').hide();
+                }
+
+                self.chatCollectionView = new Backbone.CollectionView({
+                    el: self.$('.js-chats'),
+                    modelView: Iznik.Views.ModTools.Member.SupportSearch.Chat,
+                    collection: self.chatCollection
+                });
+
+                self.chatCollectionView.render();
+
+                self.$('.js-chats').showFirst({
+                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                    count: 5
+                });
 
                 // Add message history.  Annoyingly, we might have a groupid for a group which we are not a
                 // member of at the moment, so we may need to fetch some.
@@ -567,6 +699,30 @@ define([
         }
     });
 
+    Iznik.Views.ModTools.Member.SupportSearch.Chat = Iznik.View.Timeago.extend({
+        template: 'modtools_support_chat',
+
+        events: {
+            'click .js-viewchat': 'view'
+        },
+
+        view: function() {
+            var self = this;
+
+            var chat = new Iznik.Models.Chat.Room({
+                id: self.model.get('id')
+            });
+
+            chat.fetch().then(function() {
+                var v = new Iznik.Views.Chat.Modal({
+                    model: chat
+                });
+
+                v.render();
+            });
+        }
+    });
+
     Iznik.Views.ModTools.Member.SupportSearch.MemberOf = Iznik.View.extend({
         template: 'modtools_support_memberof',
 
@@ -607,6 +763,8 @@ define([
             var self = this;
             var p = Iznik.View.prototype.render.call(self);
             p.then(function() {
+                var usersite = $('meta[name=iznikusersite]').attr("content");
+                self.$('.js-group').attr('href', 'https://' + usersite + '/explore/' + self.model.get('id'));
                 var m = new moment(self.model.get('added'));
                 self.$('.js-date').html(m.format('DD-MMM-YYYY'));
 

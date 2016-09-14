@@ -133,6 +133,8 @@ define([
                         window.location.reload();
                     });
                 }
+            }, {
+                scope: 'email'
             });
         },
         

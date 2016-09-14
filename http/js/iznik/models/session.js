@@ -389,7 +389,7 @@ define([
                         self.trigger('isLoggedIn', false);
                     }
                 }
-            })
+            });
         },
 
         forceLogin: function (options) {

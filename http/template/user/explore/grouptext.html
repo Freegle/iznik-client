@@ -18,7 +18,7 @@
             </span>
         </a>
         <% } else if (obj.external) { %>
-        <a href="{{external}}" class="pull-right">
+        <a href="{{external}}" data-realurl="true" class="pull-right">
             <span class="btn btn-white">
                 <img src='/images/heart_empty.png' class='smallicon' />&nbsp;Visit site
             </span>
@@ -27,7 +27,7 @@
     </div>
     <div class="col-xs-3">
         <% if (obj.onyahoo && obj.showonyahoo) { %>
-        <a href="https://groups.yahoo.com/group/{{nameshort}}">
+        <a data-realurl="true" target="_blank" href="https://groups.yahoo.com/group/{{nameshort}}">
             <span class="btn btn-white">
                 <img src='/images/yahoo.png' class='smallicon' />&nbsp;Explore on Yahoo
             </span>

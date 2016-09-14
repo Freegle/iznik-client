@@ -6,22 +6,22 @@
                 <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" ></abbr><br />
                 <span class="js-chat black">Read more&nbsp;>></span>
             <% } else { %>
-                <% if (user.id != me.id) { %>
-                {{user.displayname}}<br />
-                <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" ></abbr>
+                <% if (chat.user1.id != me.id || chat.user2.id != me.id) { %>
+                <% if (chat.user1.id != me.id) { %>{{chat.user1.displayname}}<% } else { %>{{chat.user2.displayname}}<% } %>
+                <abbr class="timeago" title="{{lastdate}}" ></abbr>
                 <% } else { %>
                 You replied to yourself<br />
                 <% } %>
                 <% if (obj.snippet) { %>
                 <span class="js-chat text-muted">{{snippet}}...</span><br />
                 <% } %>
-                <% if (user.id != me.id) { %>
+                <% if (chat.user1.id != me.id || chat.user2.id != me.id) { %>
                 <span class="js-chat black">Read more&nbsp;>></span>
                 <% } %>
             <% } %>
         </div>
         <li class="col-xs-4 nopad">
-            <% if (user.id != me.id) { %>
+            <% if (chat.user1.id != me.id || chat.user2.id != me.id) { %>
             <ul class="list-unstyled list-inline pull-right">
                 <li>
                     <% if (chat.chattype == 'User2User') { %>
@@ -45,7 +45,8 @@
                     <% } %>
                 </li>
                 <% if (chat.chattype == 'User2User') { %>
-                    <% if (message.type == 'Offer' && message.mine && user.id != me.id) { %>
+
+                <% if (message.type == 'Offer' && message.mine && (chat.user1.id != me.id || chat.user2.id != me.id)) { %>
                         <% if (obj.promised) { %>
                         <li>
                             <div class="btn btn-warning js-renege" title="Remove promise">

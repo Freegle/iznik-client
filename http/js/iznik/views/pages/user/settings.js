@@ -21,8 +21,12 @@ define([
             'switchChange.bootstrapSwitch .js-onholiday': 'onholiday',
             'changeDate .js-onholidaytill': 'onholidaytill',
             'keyup .js-name': 'nameChange',
+            'click .js-savename': 'nameChange',
+            'click .js-savepostcode': 'locChange',
             'keyup .js-email': 'emailChange',
-            'keyup .js-password': 'passwordChange'
+            'click .js-saveemail': 'emailChange',
+            'keyup .js-password': 'passwordChange',
+            'click .js-savepassword': 'passwordChange'
         },
 
         onholidaytill: function() {
@@ -62,10 +66,19 @@ define([
             }
         },
 
+        startSave: function(el) {
+            $(el).find('.glyphicon-floppy-save').removeClass('glyphicon-floppy-save').addClass('glyphicon-refresh rotate');
+        },
+
+        endSave: function(el) {
+            $(el).find('.glyphicon-refresh').removeClass('glyphicon-refresh rotate').addClass('glyphicon-floppy-saved');
+        },
+
         nameChange: function(e) {
             var self = this;
             self.$('.js-name').removeClass('error-border');
-            if (e.which === 13) {
+            if (e.type == 'click' || e.which === 13) {
+                self.startSave(self.$('.js-savename'));
                 var name = this.$('.js-name').val();
                 if (name.length > 0) {
                     var me = Iznik.Session.get('me');
@@ -78,7 +91,7 @@ define([
                         patch: true,
                         success: function(model, response, options) {
                             if (response.ret == 0) {
-                                self.$('.js-nameok').fadeIn();
+                                self.endSave(self.$('.js-savename'));
                             }
                         }
                     });
@@ -90,8 +103,11 @@ define([
         },
 
         emailChange: function(e) {
+            var self = this;
             self.$('.js-email').removeClass('error-border');
-            if (e.which === 13) {
+            if (e.type == 'click' || e.which === 13) {
+                self.$('.js-verifyemail').hide();
+                self.startSave(self.$('.js-saveemail'));
                 var email= this.$('.js-email').val();
                 if (email.length > 0 && isValidEmailAddress(email)) {
                     var me = Iznik.Session.get('me');
@@ -104,7 +120,10 @@ define([
                         patch: true,
                         success: function(model, response, options) {
                             if (response.ret == 0) {
-                                self.$('.js-emailok').fadeIn();
+                                self.endSave(self.$('.js-saveemail'));
+                            } else if (response.ret == 10) {
+                                self.endSave(self.$('.js-saveemail'));
+                                self.$('.js-verifyemail').fadeIn('slow');
                             }
                         }
                     });
@@ -116,8 +135,10 @@ define([
         },
 
         passwordChange: function(e) {
+            var self = this;
             self.$('.js-password').removeClass('error-border');
-            if (e.which === 13) {
+            if (e.type == 'click' || e.which === 13) {
+                self.startSave(self.$('.js-savepassword'));
                 var password = this.$('.js-password').val();
                 if (password.length > 0) {
                     var me = Iznik.Session.get('me');
@@ -129,7 +150,7 @@ define([
                         patch: true,
                         success: function(model, response, options) {
                             if (response.ret == 0) {
-                                self.$('.js-passwordok').fadeIn();
+                                self.endSave(self.$('.js-savepassword'));
                             }
                         }
                     });
@@ -162,11 +183,10 @@ define([
                 });
 
                 var me = Iznik.Session.get('me');
-                console.log("Settings me ", JSON.parse(JSON.stringify(me)));
                 self.$('.js-name').val(me.displayname);
                 self.$('.js-email').val(me.email);
 
-                console.log("On holiday?", me.onholidaytill, me.onholidaytill != undefined);
+                // console.log("On holiday?", me.onholidaytill, me.onholidaytill != undefined);
                 self.$(".js-switch").bootstrapSwitch({
                     onText: 'Mails Paused',
                     offText: 'Mails On',
@@ -186,6 +206,8 @@ define([
                 });
 
                 self.collectionView.render();
+
+                self.delegateEvents();
             });
 
             return (p);
@@ -260,6 +282,51 @@ define([
                 var freq = parseInt(self.model.get('mysettings').emailfrequency);
                 self.$('.js-frequency').val(freq);
             })
+        }
+    });
+
+    Iznik.Views.User.Pages.Settings.VerifyFailed = Iznik.Views.Modal.extend({
+        template: 'user_settings_verifyfailed'
+    });
+
+    Iznik.Views.User.Pages.Settings.VerifySucceeded = Iznik.Views.Modal.extend({
+        template: 'user_settings_verifysucceeded'
+    });
+
+    Iznik.Views.User.Pages.Settings.NoEmail = Iznik.Views.Modal.extend({
+        template: 'user_settings_noemail',
+
+        events: {
+            'click .js-save': 'save'
+        },
+
+        save: function() {
+            var self = this;
+            self.$('.js-email').removeClass('error-border');
+            self.$('.js-verifyemail').hide();
+            var email= this.$('.js-email').val();
+            if (email.length > 0 && isValidEmailAddress(email)) {
+                var me = Iznik.Session.get('me');
+                me.email = email;
+                Iznik.Session.set('me', me);
+                Iznik.Session.save({
+                    id: me.id,
+                    email: email
+                }, {
+                    patch: true,
+                    success: function(model, response, options) {
+                        if (response.ret == 0) {
+                            self.close();
+                        } else if (response.ret == 10) {
+                            self.$('.js-verifyemail').fadeIn('slow');
+                            self.$('.js-close').hide();
+                        }
+                    }
+                });
+            } else {
+                self.$('.js-email').addClass('error-border');
+                self.$('.js-email').focus();
+            }
         }
     });
 });

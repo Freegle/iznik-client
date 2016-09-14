@@ -144,7 +144,7 @@ class MailRouter
 
     public function route($msg = NULL, $notspam = FALSE) {
         $ret = NULL;
-        $log = FALSE;
+        $log = TRUE;
 
         # We route messages to one of the following destinations:
         # - to a handler for system messages
@@ -157,9 +157,26 @@ class MailRouter
             $this->msg = $msg;
         }
 
+        if ($notspam) {
+            # Record that this message has been flagged as not spam.
+            if ($this->log) { error_log("Record message as not spam"); }
+            $this->msg->setPrivate('spamtype', Spam::REASON_NOT_SPAM, TRUE);
+        }
+
+        # Check if we know that this is not spam.  This means if we receive a later copy of it,
+        # then we will know that we don't need to spam check it, otherwise we might move it back into spam
+        # to the annoyance of the moderators.
+        $notspam = $this->msg->getPrivate('spamtype') === Spam::REASON_NOT_SPAM;
+        if ($this->log) { error_log("Consider not spam $notspam from " . $this->msg->getPrivate('spamtype')); }
+
         $to = $this->msg->getEnvelopeto();
         $from = $this->msg->getEnvelopefrom();
         $replyto = $this->msg->getHeader('reply-to');
+        $fromheader = $this->msg->getHeader('from');
+
+        if ($fromheader) {
+            $fromheader = mailparse_rfc822_parse_addresses($fromheader);
+        }
 
         if ($this->msg->getSource() == Message::YAHOO_SYSTEM) {
             $ret = MailRouter::DROPPED;
@@ -180,7 +197,9 @@ class MailRouter
                 # Get the first header.  This is added by our local EXIM and therefore can't be faked by a remote
                 # system.  Check that it comes from Yahoo.
                 $rcvd = $this->msg->getHeader('received');
-                if ($log) { error_log("Headers " . var_export($rcvd, true)); }
+                if ($log) {
+                    error_log("Headers " . var_export($rcvd, true));
+                }
 
                 if (preg_match('/from .*yahoo\.com \(/', $rcvd)) {
                     # See if we can find the group with this key.  If not then we just drop it - it's either a fake
@@ -188,7 +207,9 @@ class MailRouter
                     $sql = "SELECT id FROM groups WHERE id = ? AND confirmkey = ?;";
                     $groups = $this->dbhr->preQuery($sql, [$groupid, $key]);
 
-                    if ($log) { error_log("Check key $key for group $groupid"); }
+                    if ($log) {
+                        error_log("Check key $key for group $groupid");
+                    }
 
                     foreach ($groups as $group) {
                         # The confirm looks valid.  Promote this user.  We only promote to moderator because we can't
@@ -196,25 +217,35 @@ class MailRouter
                         $u = new User($this->dbhr, $this->dbhm, $userid);
 
                         if ($u->getPublic()['id'] == $userid) {
-                            if ($log) { error_log("Userid $userid is valid"); }
+                            if ($log) {
+                                error_log("Userid $userid is valid");
+                            }
                             $role = $u->getRoleForGroup($groupid, FALSE);
-                            if ($log) { error_log("Role is $role"); }
+                            if ($log) {
+                                error_log("Role is $role");
+                            }
 
                             if ($role == User::ROLE_NONMEMBER) {
                                 # We aren't a member yet.  Add ourselves.
                                 #
                                 # We don't know which email we use but it'll get set on the next sync.
-                                if ($log) { error_log("Not a member yet"); }
+                                if ($log) {
+                                    error_log("Not a member yet");
+                                }
                                 $u->addMembership($groupid, User::ROLE_MODERATOR, NULL);
                                 $ret = MailRouter::TO_SYSTEM;
                             } else if ($role == User::ROLE_MEMBER) {
                                 # We're already a member.  Promote.
-                                if ($log) { error_log("We were a member, promote"); }
+                                if ($log) {
+                                    error_log("We were a member, promote");
+                                }
                                 $u->setRole(User::ROLE_MODERATOR, $groupid);
                                 $ret = MailRouter::TO_SYSTEM;
                             } else {
                                 # Mod or owner.  Don't demote owner to a mod!
-                                if ($log) { error_log("Already a mod/owner, no action"); }
+                                if ($log) {
+                                    error_log("Already a mod/owner, no action");
+                                }
                                 $ret = MailRouter::TO_SYSTEM;
                             }
                         }
@@ -223,13 +254,19 @@ class MailRouter
                         $this->dbhm->preExec("UPDATE groups SET confirmkey = NULL WHERE id = ?;", [$groupid]);
                     }
                 }
+            } else if ($fromheader && preg_match('/confirm-nomail(.*)@yahoogroups.co.*/', $fromheader[0]['address'], $matches) === 1) {
+                # We have requested to turn off email; conform that.  Only once, as if it keeps happening we'll keep
+                # trying to turn it off.
+                if ($log) { error_log("Confirm noemail change"); }
+                $this->mail($fromheader[0]['address'], $to, "Yes please", "I confirm this");
+                $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
                 # This is a request by Yahoo to confirm a subscription for one of our members.  We always do that.
                 if ($log) { error_log("Confirm subscription"); }
 
                 for ($i = 0; $i < 10; $i++) {
                     # Yahoo is sluggish - sending the confirm multiple times helps.
-                    $this->mail($replyto, $to, "Yes please", "I confirm this");
+                    $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
                 }
 
                 $u = new User($this->dbhr, $this->dbhm);
@@ -248,7 +285,7 @@ class MailRouter
 
                 for ($i = 0; $i < 10; $i++) {
                     # Yahoo is sluggish - sending the confirm multiple times helps.
-                    $this->mail($replyto, $to, "Yes please", "I confirm this");
+                    $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
                 }
 
                 $u = new User($this->dbhr, $this->dbhm);
@@ -259,6 +296,16 @@ class MailRouter
                     'user' => $uid,
                     'text' => $to
                 ]);
+
+                $ret = MailRouter::TO_SYSTEM;
+            } else if ($replyto && preg_match('/confirm-unsub-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
+                # We have tried to unsubscribe from a group - we need to confirm it.
+                if ($log) { error_log("Confirm unsubscribe"); }
+
+                for ($i = 0; $i < 10; $i++) {
+                    # Yahoo is sluggish - sending the confirm multiple times helps.
+                    $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
+                }
 
                 $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/(.*)-acceptsub(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
@@ -461,12 +508,13 @@ class MailRouter
                 $ret = MailRouter::TO_SYSTEM;
             }
         } else {
-            # We use SpamAssassin to weed out obvious spam.  We only call this if the message subject line is
+            # We use SpamAssassin to weed out obvious spam.  We only do a content check if the message subject line is
             # not in the standard format.  Most generic spam isn't in that format, and some of our messages
             # would otherwise get flagged - so this improves overall reliability.
+            $contentcheck = !$notspam && !preg_match('/.*?\:(.*)\(.*\)/', $this->msg->getSubject());
             $spamscore = NULL;
 
-            if (!$notspam && !preg_match('/.*?\:(.*)\(.*\)/', $this->msg->getSubject())) {
+            if (!$notspam) {
                 # First check if this message is spam based on our own checks.
                 $rc = $this->spam->check($this->msg);
                 if ($rc) {
@@ -497,8 +545,8 @@ class MailRouter
                     if ($this->markAsSpam($rc[1], $rc[2])) {
                         $ret = MailRouter::INCOMING_SPAM;
                     }
-                } else {
-                    # Now check if we think this is just plain spam.  We don't check
+                } else if ($contentcheck) {
+                    # Now check if we think this is spam according to SpamAssassin.
                     $this->spamc->command = 'CHECK';
 
                     if ($this->spamc->filter($this->msg->getMessage())) {
@@ -553,10 +601,14 @@ class MailRouter
 
                 if (count($groups) > 0) {
                     # We're expecting to do something with this.
-                    if ($log) { error_log("To a group"); }
+                    $envto = $this->msg->getEnvelopeto();
+                    if ($log) { error_log("To a group; to user $envto source " . $this->msg->getSource()); }
                     $ret = MailRouter::FAILURE;
+                    $source = $this->msg->getSource();
 
-                    if ($this->msg->getSource() == Message::YAHOO_PENDING) {
+                    if ($source == Message::YAHOO_PENDING || $source == Message::PLATFORM) {
+                        # Yahoo pending messages go back into pending if they're not spam.  Platform messages too -
+                        # because we might want to edit or reject them.
                         if ($log) { error_log("Mark as pending"); }
                         if ($this->markPending($notspam)) {
                             $ret = MailRouter::PENDING;
@@ -565,6 +617,16 @@ class MailRouter
                         if ($log) { error_log("Mark as approved"); }
                         if ($this->markApproved()) {
                             $ret = MailRouter::APPROVED;
+                        }
+                    }
+
+                    # Check for getting group mails to our individual users, which we want to turn off because
+                    # otherwise we'd get swamped.  We get group mails via the modtools@ and republisher@ users.
+                    if (strpos($envto, '@' . USER_DOMAIN) !== FALSE || (ourDomain($envto) && stripos($envto, 'fbuser') === 0)) {
+                        foreach ($groups as $groupid) {
+                            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+                            if ($log) { error_log("Turn off mails for $envto via " . $g->getGroupNoEmail()); }
+                            $this->mail($g->getGroupNoEmail(), $envto, "Turning off mails", "I don't want these");
                         }
                     }
                 } else {
@@ -591,7 +653,7 @@ class MailRouter
                                 # The email address that we replied from might not currently be attached to the
                                 # other user, for example if someone has email forwarding set up.  So make sure we
                                 # have it.
-                                $other =  $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') :
+                                $other = $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') :
                                     $r->getPrivate('user1');
                                 $otheru = new User($this->dbhr, $this->dbhm, $other);
                                 $otheru->addEmail($this->msg->getEnvelopefrom(), 0, FALSE);
@@ -609,6 +671,10 @@ class MailRouter
                                 $ret = MailRouter::TO_USER;
                             }
                         }
+                    } else if (preg_match('/notify@yahoogroups.co.*/', $from)) {
+                        # This is a Yahoo message which shouldn't get passed on to a non-Yahoo user.
+                        if ($log) { error_log("Yahoo Notify - drop"); }
+                        $ret = MailRouter::DROPPED;
                     } else if (!$this->msg->isAutoreply()) {
                         # See if it's a direct reply.  Auto-replies (that we can identify) we just drop.
                         $uid = $u->findByEmail($to);
@@ -628,7 +694,7 @@ class MailRouter
                             $textbody = $original ? $textbody : ($this->msg->getSubject() . "\r\n\r\n$textbody");
 
                             # Get/create the chat room between the two users.
-                            if ($log) { error_log("Create chat between " . $this->msg->getFromuser() . " and " . $uid); }
+                            if ($log) { error_log("Create chat between " . $this->msg->getFromuser() . " (" . $this->msg->getFromaddr() . ") and " . $uid); }
                             $r = new ChatRoom($this->dbhr, $this->dbhm);
                             $rid = $r->createConversation($this->msg->getFromuser(), $uid);
                             if ($log) { error_log("Got chat id $rid"); }
@@ -687,20 +753,14 @@ class MailRouter
         }
     }
 
-    # Default mailer is to use the standard PHP one, but this can be overridden in UT.
-    public function mailer() {
-        call_user_func_array('mail', func_get_args());
-    }
-
     public function mail($to, $from, $subject, $body) {
-        $headers = "From: $from <$from>\r\n";
+        list ($transport, $mailer) = getMailer();
 
-        $this->mailer(
-            $to,
-            $subject,
-            $body,
-            $headers,
-            "-f$from"
-        );
+        $message = Swift_Message::newInstance()
+            ->setSubject($subject)
+            ->setFrom($from)
+            ->setTo($to)
+            ->setBody($body);
+        $mailer->send($message);
     }
 }

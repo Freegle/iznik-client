@@ -251,7 +251,7 @@ define([
                     all: false,
                     mod: false,
                     choose: false,
-                    id: 'eventGroupSelect'
+                    id: 'eventGroupSelect-' + self.model.get('id')
                 });
 
                 // The group select render is a bit unusual because the dropdown requires us to have added it to the

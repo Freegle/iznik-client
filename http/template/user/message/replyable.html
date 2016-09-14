@@ -19,13 +19,13 @@
                 <div class="js-attlist" />
             </div>
             <div class="hidden-xs col-sm-2 js-mapzoom">
-                <% if (obj.location && obj.mylocation) { %>
-                <div class="mapimage margleft topspace pull-right">
-                    <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&zoom={{zoom}}&center={{mylocation.lat}},{{mylocation.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{location.lat}},{{location.lng}}&sensor=false" />
+                <% if (obj.location) { %>
+                <div class="mapimage margleft topspace pull-right location">
+                    <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&zoom={{mapzoom}}&center={{location.lat}},{{location.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{location.lat}},{{location.lng}}&sensor=false" />
                 </div>
                 <% } else if (obj.area) { %>
-                <div class="mapimage margleft topspace pull-right">
-                    <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&zoom={{zoom}}&center={{area.lat}},{{area.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{area.lat}},{{area.lng}}&sensor=false" />
+                <div class="mapimage margleft topspace pull-right area">
+                    <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&zoom={{mapzoom}}&center={{area.lat}},{{area.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{area.lat}},{{area.lng}}&sensor=false" />
                 </div>
                 <% } %>
             </div>
@@ -76,7 +76,7 @@
         <div class="panel-footer">
             <div class="row js-replybox">
                 <div class="col-xs-9 nopadright">
-                    <textarea rows="3" class="form-control completefull js-replytext" placeholder="Interested?  Please explain why you'd like it and when you can collect.  Always be polite and helpful."></textarea>
+                    <textarea rows="3" class="form-control completefull js-replytext" placeholder="<% if (obj.type == 'Offer') { %>Interested?  Please explain why you'd like it and when you can collect.  Always be polite and helpful.<% } else { %>Can you help?  If you have what they're looking for, let them know.<% } %>"></textarea>
                 </div>
                 <div class="col-xs-3">
                     <button class="btn btn-success btn-lg js-send topspace">

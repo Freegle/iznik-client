@@ -54,12 +54,6 @@ define([
                     console.log("Try to send", self.readyToSend);
                     if (self.readyToSend) {
                         self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                            try {
-                                // Clear the local storage, so that we don't get stuck here.
-                                localStorage.removeItem('replyto');
-                                localStorage.removeItem('replytext');
-                            } catch (e) {}
-
                             // Now send it.
                             self.readyToSend = false;
                             self.$('.js-send').click();
@@ -134,15 +128,13 @@ define([
             if (this.inDOM() && Iznik.Session.hasOwnProperty('chats')) {
                 // If the number of unread messages relating to this message changes, we want to flag it in the count.  So
                 // look for chats which refer to this message.  Note that chats can refer to multiple.
-                Iznik.Session.chats.fetch().then(function() {
-                    Iznik.Session.chats.each(function (chat) {
-                        self.listenTo(chat, 'change:unseen', self.updateUnread);
-                    });
-
-                    self.updateUnread();
-
-                    self.listenToOnce(Iznik.Session.chats, 'newroom', self.watchChatRooms);
+                Iznik.Session.chats.each(function (chat) {
+                    self.listenTo(chat, 'change:unseen', self.updateUnread);
                 });
+
+                self.updateUnread();
+
+                self.listenToOnce(Iznik.Session.chats, 'newroom', self.watchChatRooms);
             }
         },
 
@@ -153,7 +145,6 @@ define([
             if (outcomes && outcomes.length > 0) {
                 // Hide completed posts by default.
                 // TODO option to show
-                console.log("Hide completed", self);
                 self.$el.hide();
             }
 
@@ -217,42 +208,44 @@ define([
                     self.$('.js-attlist').append(v.el);
                 });
 
-                var replies = self.model.get('replies');
-                self.replies = new Iznik.Collection(replies);
+                if (self.$('.js-replies').length > 0) {
+                    var replies = self.model.get('replies');
+                    self.replies = new Iznik.Collection(replies);
 
-                if (replies && replies.length > 0) {
-                    // Show and update the reply details.
-                    if (replies.length > 0) {
-                        self.$('.js-noreplies').hide();
-                        self.$('.js-replies').empty();
-                        self.listenTo(self.model, 'change:replies', self.updateReplies);
-                        self.updateReplies();
+                    if (replies && replies.length > 0) {
+                        // Show and update the reply details.
+                        if (replies.length > 0) {
+                            self.$('.js-noreplies').hide();
+                            self.$('.js-replies').empty();
+                            self.listenTo(self.model, 'change:replies', self.updateReplies);
+                            self.updateReplies();
 
-                        self.repliesView = new Backbone.CollectionView({
-                            el: self.$('.js-replies'),
-                            modelView: Iznik.Views.User.Message.Reply,
-                            modelViewOptions: {
-                                collection: self.replies,
-                                message: self.model,
-                                offers: self.options.offers
-                            },
-                            collection: self.replies
-                        });
+                            self.repliesView = new Backbone.CollectionView({
+                                el: self.$('.js-replies'),
+                                modelView: Iznik.Views.User.Message.Reply,
+                                modelViewOptions: {
+                                    collection: self.replies,
+                                    message: self.model,
+                                    offers: self.options.offers
+                                },
+                                collection: self.replies
+                            });
 
-                        self.repliesView.render();
+                            self.repliesView.render();
 
-                        // We might have been asked to open up one of these messages because we're showing the corresponding
-                        // chat.
-                        if (self.options.chatid ) {
-                            var model = self.replies.get(self.options.chatid);
-                            if (model) {
-                                var view = self.repliesView.viewManager.findByModel(model);
-                                // Slightly hackily jump up to find the owning message and click to expand.
-                                view.$el.closest('.panel-heading').find('.js-caret').click();
+                            // We might have been asked to open up one of these messages because we're showing the corresponding
+                            // chat.
+                            if (self.options.chatid ) {
+                                var model = self.replies.get(self.options.chatid);
+                                if (model) {
+                                    var view = self.repliesView.viewManager.findByModel(model);
+                                    // Slightly hackily jump up to find the owning message and click to expand.
+                                    view.$el.closest('.panel-heading').find('.js-caret').click();
+                                }
                             }
+                        } else {
+                            self.$('.js-noreplies').show();
                         }
-                    } else {
-                        self.$('.js-noreplies').show();
                     }
                 }
 
@@ -283,7 +276,7 @@ define([
                 self.$('.timeago').timeago();
 
                 if (self.model.get('autorepostallowed')) {
-                    console.log("Repost at", self.model.get('autorepostat'), (moment(self.model.get('autorepostat')).fromNow()));
+                    // console.log("Repost at", self.model.get('autorepostat'), (moment(self.model.get('autorepostat')).fromNow()));
                     self.$('.js-autodue').html((moment(self.model.get('autorepostat')).fromNow()));
                 }
             });
@@ -386,7 +379,10 @@ define([
         dm: function() {
             var self = this;
             require(['iznik/views/chat/chat'], function(ChatHolder) {
-                ChatHolder().openChat(self.model.get('user').id);
+                var chat = self.model.get('chat');
+                var myid = Iznik.Session.get('me').id;
+                var user = chat.user1.id != myid ? chat.user1.id : chat.user2.id;
+                ChatHolder().openChat(user);
             })
         },
 
@@ -622,6 +618,7 @@ define([
 
                 // If we're not already logged in, we want to be.
                 self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedin) {
+                    console.log("Send; logged in?", loggedin);
                     if (loggedin) {
                         // We are logged in and can proceed.
                         //
@@ -641,10 +638,13 @@ define([
                             });
                         }
 
+                        console.log("Already a member?", member);
+
                         if (!member) {
                             // We're not a member of any groups on which this message appears.  Join one.  Doesn't much
                             // matter which.
                             var tojoin = self.model.get('groups')[0].id;
+                            console.log("To join", tojoin);
                             $.ajax({
                                 url: API + 'memberships',
                                 type: 'PUT',
@@ -677,10 +677,12 @@ define([
                             localStorage.setItem('replyreturn', Backbone.history.getFragment());
                         } catch (e) {}
 
-                        // Set the route route to the individual message.  This will spot the local storage, force us to
+                        // Set the route to the individual message.  This will spot the local storage, force us to
                         // log in, and then send it.  This also means that when the page is reloaded because of a login,
                         // we don't have issues with not seeing/needing to scroll to the message of interest.
-                        Router.navigate('/message/' + self.model.get('id'), true);
+                        //
+                        // We might already be on this page, so we can't call navigate as usual.
+                        Backbone.history.loadUrl('/message/' + self.model.get('id'));
                     }
                 });
 
@@ -712,6 +714,14 @@ define([
 
                 // Static map custom markers don't support SSL.
                 this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapareamarker.png');
+
+                // Get a zoom level for the map.
+                var zoom = 12;
+                _.each(self.model.get('groups'), function (group) {
+                    zoom = group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 12;
+                });
+
+                self.model.set('mapzoom', zoom);
 
                 // Hide until we've got a bit into the render otherwise the border shows.
                 this.$el.css('visibility', 'hidden');
@@ -760,6 +770,7 @@ define([
 
         render: function() {
             var self = this;
+
             var p = Iznik.Views.Modal.prototype.render.call(self);
             p.then(function() {
                 require(['gmaps'], function() {
@@ -767,7 +778,6 @@ define([
                         // Set map to be square - will have height 0 when we open.
                         var map = self.$('.js-map');
                         var mapWidth = map.width();
-                        console.log("Width", mapWidth);
                         map.height(mapWidth);
 
                         var location = self.model.get('location');

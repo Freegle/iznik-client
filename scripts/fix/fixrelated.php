@@ -5,7 +5,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 
-$msgs = $dbhr->preQuery("SELECT id FROM messages;");
+$msgs = $dbhr->preQuery("SELECT id FROM messages WHERE subject like '[%[%';");
 
 $total = count($msgs);
 $count = 0;

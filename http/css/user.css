@@ -109,7 +109,7 @@
     color: #000080 !important
 }
 
-@media (max-width: 767) {
+@media (max-width: 767px) {
     .navbar-custom .navbar-nav .open .dropdown-menu > li > a {
         color: #ffffff;
     }
@@ -296,6 +296,7 @@ h1,h2,h3,h4 {
 
 #notifchatdropdown li {
     border-bottom: solid 1px black;
+    background-color: white;
 }
 
 #js-notifchat ul, #js-notifchat li {
@@ -595,8 +596,4 @@ fieldset[disabled] .twitter-typeahead .tt-input {
             rgba(255, 255, 255, 0) 0%,
             rgba(255, 255, 255, 1) 100%
     );
-}
-
-.bootstrap-tagsinput .tag {
-    border-radius: 3px;
 }

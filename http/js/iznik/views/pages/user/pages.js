@@ -60,9 +60,14 @@ define([
             navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this));
         },
 
-        changeHomeGroup: function() {
+        changeHomeGroup: function(val) {
+            // If we weren't passed one, then this is the event and we pick up the current value.
+            if (val.hasOwnProperty('target')) {
+                val = this.$('.js-homegroup select').val();
+            }
+
             try {
-                localStorage.setItem('myhomegroup', this.$('.js-homegroup select').val());
+                localStorage.setItem('myhomegroup', val);
             } catch (e) {}
         },
 
@@ -79,6 +84,16 @@ define([
                 }, success: function(ret) {
                     if (ret.ret == 0) {
                         self.recordLocation(ret.locations[0], true);
+
+                        // Update our map if we have one.
+                        var map = self.$('.js-locmap');
+                        if (map.length > 0) {
+                            var width = self.$('.js-postcode').width();
+                            map.css('width', width);
+                            map.css('height', width);
+                            var mapicon = window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif';
+                            map.html('<img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=' + width + 'x' + width + '&zoom=12&center=' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&maptype=roadmap&markers=icon:' + mapicon + '|' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&sensor=true" />');
+                        }
                     }
                 }
             });
@@ -115,7 +130,6 @@ define([
                 self.$('.js-closestgroupname').html(first.namedisplay);
 
                 if (!first.onhere) {
-                    // We don't host this group.
                     if (first.external) {
                         // Hosted externally on a different site.
                         self.$('.js-toexternal').attr('href', first.external);
@@ -178,25 +192,50 @@ define([
                     // We have some groups near their chosen location.
                     var homegroup = null;
                     var homegroupfound = false;
+                    var firstonhere = null;
 
                     try {
                         homegroup = localStorage.getItem('myhomegroup');
                     } catch (e) {};
 
                     // Show home group if it's present.
+                    var addedGroups = [];
                     groups.empty();
                     _.each(self.groupsnear, function(groupnear) {
                         if (homegroup == groupnear.id) {
                             homegroupfound = true;
                         }
+
+                        if (!firstonhere && groupnear.onhere) {
+                            firstonhere = groupnear.id;
+                        }
                         groups.append('<option value="' + groupnear.id + '" />');
                         groups.find('option:last').text(groupnear.namedisplay);
+                        addedGroups.push(groupnear.id);
                     });
+
+                    // Add remaining Freegle groups we're a member of - maybe we have a reason to post on them.
+                    self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                        if (loggedIn) {
+                            var mygroups = Iznik.Session.get('groups');
+                            mygroups.each(function(group) {
+                                if (group.get('type') == 'Freegle' && addedGroups.indexOf(group.get('id'))) {
+                                    groups.append('<option value="' + group.get('id') + '" />');
+                                    groups.find('option:last').text(group.get('namedisplay'));
+                                }
+                            });
+                        }
+                    });
+
+                    Iznik.Session.testLoggedIn();
 
                     if (homegroupfound) {
                         groups.val(homegroup);
+                    } else if (firstonhere) {
+                        // Record our home group as the closest group we found which is on the platform
+                        self.changeHomeGroup(firstonhere);
                     } else {
-                        self.changeHomeGroup();
+                        self.changeHomeGroup(self.$('.js-homegroup select').val());
                     }
 
                     self.changeGroup();
@@ -209,6 +248,19 @@ define([
                 self.$('.js-homegroup').hide();
                 if (self.groupsnear) {
                     self.changeGroup();
+                }
+
+                // And record our home group as the closest group we found on the platform.
+                var firstonhere = null;
+                _.each(self.groupsnear, function(groupnear) {
+                    if (!firstonhere && groupnear.onhere) {
+                        console.log("Got on here", groupnear);
+                        firstonhere = groupnear.id;
+                    }
+                });
+
+                if (firstonhere) {
+                    self.changeHomeGroup(firstonhere);
                 }
             }
         },

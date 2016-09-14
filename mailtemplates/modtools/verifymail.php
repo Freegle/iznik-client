@@ -1,7 +1,6 @@
 <?php
 
-function modtools_verify_email($email, $confirm) {
-    $logo = MODLOGO;
+function modtools_verify_email($email, $confirm, $logo) {
     $html = <<<EOT
 --_I_Z_N_I_K_
 Content-Type: text/plain; charset="utf-8"; format="fixed"
@@ -52,7 +51,7 @@ Content-Transfer-Encoding: quoted-printable
             .centerClass{ margin:0 auto !important; }
             .imgClass{ width:100% !important; height:auto; }
             .wrapper{ width:320px; padding: 0 !important; }
-            .header{ width:320px; padding: 0 !important; background-image: url(http://placehold.it/320x400) !important; }
+            .header{ width:320px; padding: 0 !important; background-image: url(https://placehold.it/320x400) !important; }
             .container{ width:300px;  padding: 0 !important; }
             .mobile{ width:300px; display:block; padding: 0 !important; text-align:center !important;}
             .mobile50{ width:300px; padding: 0 !important; text-align:center; }
@@ -111,7 +110,7 @@ Content-Transfer-Encoding: quoted-printable
                                                             <table width="280" cellpadding="0" cellspacing="0" border="0" class="container" align="left">
                                                                 <tr>
                                                                     <td width="280" class="mobile" style="font-size:12px; line-height:18px;">
-                                                                        <img src="$logo" width="280" height="280" style="margin:0; padding:0; border:none; display:block;" alt="" class="imgClass" />
+                                                                        <img src="$logo" width="280" height="280" style="margin:0; padding:20; border:none; display:block;" alt="" class="imgClass" />
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
@@ -154,7 +153,8 @@ Content-Transfer-Encoding: quoted-printable
                                                                                 <td width="170" height="36" bgcolor="#00008B" align="center" valign="middle"
                                                                                     style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                         line-height:18px; border-radius:3px;">
-                                                                                    <a href="$confirm" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">$confirm</a>
+                                                                                    <a href="$confirm" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Yes, this is my email</a>
+                                                                                    <p>If that's not clickable, copy and paste this: $confirm</p>
                                                                                 </td>
                                                                             </tr>
                                                                         </table>

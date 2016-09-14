@@ -3,9 +3,11 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'autosize',
     'iznik/models/chat/chat',
-    'jquery-resizable'
-], function($, _, Backbone, Iznik) {
+    'jquery-resizable',
+    'jquery-visibility'
+], function($, _, Backbone, Iznik, autosize) {
     // This is a singleton view.
     var instance;
 
@@ -13,6 +15,23 @@ define([
         template: 'chat_holder',
 
         id: "chatHolder",
+
+        bulkUpdateRunning: false,
+
+        tabActive: true,
+
+        minimiseall: function() {
+            Iznik.activeChats.viewManager.each(function(chat) {
+                chat.minimise();
+            });
+        },
+
+        allseen: function() {
+            console.log("allseen");
+            Iznik.minimisedChats.viewManager.each(function(chat) {
+                chat.allseen();
+            });
+        },
 
         waitError: function () {
             // This can validly happen when we switch pages, because we abort outstanding requests
@@ -51,6 +70,7 @@ define([
                         global: false, // don't trigger ajaxStart
                         success: function (ret) {
                             var waiting = false;
+                            //console.log("Received notif", ret);
                             if (ret && ret.hasOwnProperty('text')) {
                                 var data = ret.text;
 
@@ -79,28 +99,30 @@ define([
                                         // within it so that they are displayed.  If it's not, then we don't want
                                         // to keep fetching messages - the notification count will get updated by
                                         // the roster poll.
-                                        var chat = Iznik.Session.chats.get(data.roomid);
+                                        Iznik.Session.chats.fetch({
+                                            modtools: self.options.modtools
+                                        }).then(function() {
+                                            var chat = Iznik.Session.chats.get(data.roomid);
 
-                                        // It's possible that we haven't yet fetched the model for this chat.
-                                        if (chat) {
-                                            console.log("Notification", self, chat, data);
-                                            var chatView = Iznik.activeChats.viewManager.findByModel(chat);
+                                            // It's possible that we haven't yet fetched the model for this chat.
+                                            if (chat) {
+                                                var chatView = Iznik.activeChats.viewManager.findByModel(chat);
 
-                                            if (!chatView.minimised) {
-                                                waiting = true;
-                                                chatView.messages.fetch().then(function () {
-                                                    // Wait for the next one.  Slight timing window here but the fallback
-                                                    // protects us from losing messages forever.
-                                                    self.wait();
+                                                if (!chatView.minimised) {
+                                                    waiting = true;
+                                                    chatView.messages.fetch().then(function () {
+                                                        // Wait for the next one.  Slight timing window here but the fallback
+                                                        // protects us from losing messages forever.
+                                                        self.wait();
 
-                                                    // Also fetch the chat, because the number of unread messages in it will
-                                                    // update counts in various places.
-                                                    chat.fetch().then(function() {
-                                                        console.log("Fetched chat", chat);
+                                                        // Also fetch the chat, because the number of unread messages in it will
+                                                        // update counts in various places.
+                                                        chat.fetch().then(function () {
+                                                        });
                                                     });
-                                                });
+                                                }
                                             }
-                                        }
+                                        });
                                     }
                                 }
                             }
@@ -116,21 +138,93 @@ define([
             }
         },
         
-        fallbackInterval: 300000,
-        
+        fallbackInterval: 30000,
+
         fallback: function() {
             // Although we should be notified of new chat messages via the wait() function, this isn't guaranteed.  So
             // we have a fallback poll to pick up any lost messages.
+            //
+            // Don't want to fetch them all in a single blat, though, as that is mean to the server.
             var self = this;
-            
+            self.fallbackFetch = [];
+            var delay = 3000;
+
             if (self.inDOM()) {
-                Iznik.Session.chats.each(function(chat) {
-                    chat.fetch();
+                Iznik.Session.chats.fetch({
+                    modtools: self.options.modtools
+                }).then(function() {
+                    self.updateCounts();
+
+                    // For some reason we don't quite understand yet, the element can get detached so make sure it's
+                    // there.
+                    var el = Iznik.minimisedChats.$el;
+                    if (el.closest('body').length == 0) {
+                        console.log("Chats detached");
+                        el.detach();
+                        $($('#notifchatdropdown').find('li')[1]).html(el);
+                    }
+
+                    Iznik.minimisedChats.render();
+
+                    var i = 0;
+
+                    (function fallbackOne() {
+                        if (i < Iznik.Session.chats.length) {
+                            Iznik.Session.chats.at(i).fetch();
+                            i++;
+                            _.delay(fallbackOne, delay);
+                        } else {
+                            // Reached end.
+                            _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+                        }
+                    })();
                 });
-                
-                _.delay(_.bind(self.fallback, self), self.fallbackInterval);
             } else {
                 self.destroyIt();
+            }
+        },
+
+        bulkUpdateRoster: function() {
+            var self = this;
+
+            if (self.tabActive) {
+                var updates = [];
+                Iznik.Session.chats.each(function (chat) {
+                    var status = chat.get('rosterstatus');
+
+                    if (status && status != 'Away') {
+                        // There's no real need to tell the server that we're in Away status - it will time us out into
+                        // that anyway.  This saves a lot of update calls in the case where we're loading the page
+                        // and minimising many chats, e.g. if we're a mod on many groups.
+                        updates.push({
+                            id: chat.get('id'),
+                            status: status,
+                            lastmsgseen: chat.get('lastmsgseen')
+                        });
+                    }
+                });
+
+                if (updates.length > 0) {
+                    $.ajax({
+                        url: API + 'chatrooms',
+                        type: 'POST',
+                        data: {
+                            'rosters': updates
+                        }, success: function (ret) {
+                            // Update the returned roster into each active chat.
+                            Iznik.activeChats.viewManager.each(function (chat) {
+                                var roster = ret.rosters[chat.model.get('id')];
+                                if (!_.isUndefined(roster)) {
+                                    chat.lastRoster = roster;
+                                }
+                            });
+                        }, complete: function () {
+                            _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
+                        }
+                    });
+                }
+            } else {
+                _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
             }
         },
 
@@ -249,10 +343,12 @@ define([
         updateCounts: function() {
             var self = this;
             var unseen = 0;
-            Iznik.Session.chats.each(function(chat) {
-                var chatView = Iznik.activeChats.viewManager.findByModel(chat);
-                unseen += chat.get('unseen');
-            });
+            if (Iznik.activeChats) {
+                Iznik.Session.chats.each(function(chat) {
+                    var chatView = Iznik.activeChats.viewManager.findByModel(chat);
+                    unseen += chat.get('unseen');
+                });
+            }
 
             // We'll adjust the count in the window title.
             var title = document.title;
@@ -260,9 +356,11 @@ define([
             title = match ? match[1] : title;
 
             if (unseen > 0) {
+                $('#dropdownmenu .js-totalcount').html(unseen).show();
                 $('#js-notifchat .js-totalcount').html(unseen).show();
                 document.title = '(' + unseen + ') ' + title;
             } else {
+                $('#dropdownmenu .js-totalcount').html(unseen).hide();
                 $('#js-notifchat .js-totalcount').html(unseen).hide();
                 document.title = title;
             }
@@ -280,6 +378,7 @@ define([
                 }, success: function(ret) {
                     if (ret.ret == 0) {
                         Iznik.Session.chats.fetch({
+                            modtools: self.options.modtools,
                             remove: false
                         }).then(function() {
                             // Now create a report message.
@@ -302,6 +401,8 @@ define([
         },
 
         openChatToMods: function(groupid) {
+            var self = this;
+
             $.ajax({
                 type: 'PUT',
                 url: API + 'chat/rooms',
@@ -311,6 +412,7 @@ define([
                 }, success: function(ret) {
                     if (ret.ret == 0) {
                         Iznik.Session.chats.fetch({
+                            modtools: self.options.modtools,
                             remove: false
                         }).then(function() {
                             // Defer to give the CollectionView time to respond.
@@ -326,6 +428,8 @@ define([
         },
 
         openChat: function(userid) {
+            var self = this;
+
             var v = new Iznik.Views.PleaseWait({
                 label: 'chat openChat'
             });
@@ -341,6 +445,7 @@ define([
                     }, success: function(ret) {
                         if (ret.ret == 0) {
                             Iznik.Session.chats.fetch({
+                                modtools: self.options.modtools,
                                 remove: false
                             }).then(function() {
                                 // Defer to give the CollectionView time to respond.
@@ -381,10 +486,12 @@ define([
                 Iznik.Session.chats = new Iznik.Collections.Chat.Rooms({
                     modtools: Iznik.Session.get('modtools')
                 });
-                
+
                 p = Iznik.View.prototype.render.call(self).then(function(self) {
                     $("#bodyEnvelope").append(self.$el);
-                    Iznik.Session.chats.fetch().then(function () {
+                    Iznik.Session.chats.fetch({
+                        modtools: Iznik.Session.get('modtools')
+                    }).then(function () {
                         Iznik.Session.chats.each(function (chat) {
                             // If the unread message count changes, we want to update it.
                             self.listenTo(chat, 'change:unseen', self.updateCounts);
@@ -405,7 +512,7 @@ define([
 
                         self.waitDOM(self, function() {
                             Iznik.minimisedChats = new Backbone.CollectionView({
-                                el: $('#notifchatdropdown'),
+                                el: $('#notifchatdropdownlist'),
                                 modelView: Iznik.Views.Chat.Minimised,
                                 collection: Iznik.Session.chats,
                                 modelViewOptions: {
@@ -415,17 +522,40 @@ define([
                                 }
                             });
 
+                            Iznik.minimisedChats.on('add', function(view) {
+                                // The collection view seems to get messed up, so re-render it to sort it out.
+                                Iznik.minimisedChats.render();
+                            });
+
                             Iznik.minimisedChats.render();
                             Iznik.Session.trigger('chatsfetched');
 
                             self.organise();
                             self.showMin();
-                        })
+                        });
                     });
+
+                    // Not within this DOM.
+                    $('.js-minimiseall').on('click', self.minimiseall);
+                    $('.js-allseen').on('click', self.allseen);
+
+                    if (!self.bulkUpdateRunning) {
+                        // We update the roster for all chats periodically.
+                        self.bulkUpdateRunning = true;
+                        _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
+                    }
 
                     // Now ensure we are told about new messages.
                     self.wait();
                     _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+                });
+
+                $(document).on('hide', function () {
+                    self.tabActive = false;
+                });
+
+                $(document).on('show', function () {
+                    self.tabActive = true;
                 });
             } else {
                 p = resolvedPromise(self);
@@ -449,6 +579,35 @@ define([
         click: function() {
             // The maximised chat view is listening on this.
             this.model.trigger('restore', this.model.get('id'));
+        },
+
+        allseen: function() {
+            var self = this;
+            
+            if (self.model.get('unseen') > 0) {
+                // We have to get the messages to find out which the last one is.
+                self.messages = new Iznik.Collections.Chat.Messages({
+                    roomid: self.model.get('id')
+                });
+                self.messages.fetch().then(function() {
+                    console.log("Fetched", self.messages);
+                    if (self.messages.length > 0) {
+                        var lastmsgseen = self.messages.at(self.messages.length - 1).get('id');
+                        console.log("Last seen", lastmsgseen);
+                        $.ajax({
+                            url: API + 'chat/rooms/' + self.model.get('id'),
+                            type: 'POST',
+                            data: {
+                                lastmsgseen: lastmsgseen,
+                                status: 'Away'
+                            }
+                        });
+                    
+                        self.model.set('unseen', 0);
+                        self.model.set('lastmsgseen', lastmsgseen);
+                    }
+                });                
+            }
         },
 
         updateCount: function() {
@@ -499,11 +658,11 @@ define([
 
         minimised: true,
 
-        rosterUpdatedAt: 0,
-
         keyUp: function(e) {
             var self = this;
-            if (e.which === 13) {
+            if (e.which === 13 && e.altKey) {
+                this.$('.js-message').val(this.$('.js-message').val() + "\n");
+            } else if (e.which === 13) {
                 this.send();
                 e.preventDefault();
                 e.stopPropagation();
@@ -527,7 +686,11 @@ define([
                     self.messageFocus();
                     self.messages.fetch().then();
                 });
-                this.model.send(message);
+
+                self.model.send(message);
+
+                // If we've grown the textarea, shrink it.
+                self.$('textarea').css('height', '');
             }
         },
 
@@ -556,7 +719,7 @@ define([
                 // will be preserved.
                 self.removed = true;
                 self.$el.hide();
-                self.updateRoster('Closed', _.bind(self.zapViews, self));
+                self.updateRoster('Closed', _.bind(self.zapViews, self), true);
             });
 
             v.render();
@@ -618,19 +781,23 @@ define([
             });
         },
 
+        allseen: function() {
+            if (this.messages.length > 0) {
+                this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
+                // console.log("Now seen chat message", this.messages.at(this.messages.length - 1).get('id'));
+            }
+            this.model.set('unseen', 0);
+        },
+
         messageFocus: function() {
             var self = this;
             console.log("Focus", self);
 
             // We've seen all the messages.
-            if (this.messages.length > 0) {
-                this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
-                console.log("Now seen chat message", this.messages.at(this.messages.length - 1).get('id'));
-            }
-            this.model.set('unseen', 0);
+            self.allseen();
 
             // Tell the server now, in case they navigate away before the next roster timer.
-            self.updateRoster(self.statusWithOverride('Online'), self.noop);
+            self.updateRoster(self.statusWithOverride('Online'), self.noop, true);
 
             // New messages are in bold - keep them so for a few seconds, to make it easy to see new stuff,
             // then revert.
@@ -653,7 +820,7 @@ define([
 
             try {
                 localStorage.setItem(this.lsID() + '-minimised', 1);
-            } catch (e) { window.alert(e.message)};
+            } catch (e) { console.error(e.message)};
 
             this.trigger('minimised');
         },
@@ -672,6 +839,12 @@ define([
 
         adjust: function() {
             var self = this;
+
+            // The text area shouldn't grow too high, but should go above a single line if there's room.
+            var maxinpheight = self.$el.innerHeight() - this.$('.js-chatheader').outerHeight();
+            var mininpheight = Math.round(self.$el.innerHeight() * .2);
+            self.$('textarea').css('max-height', maxinpheight);
+            self.$('textarea').css('min-height', mininpheight);
 
             var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter input').outerHeight();
             // console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
@@ -868,16 +1041,12 @@ define([
             this.updateRoster(status, this.noop);
         },
 
-        updateRoster: function(status, callback) {
+        updateRoster: function(status, callback, force) {
             var self = this;
+            // console.log("Update roster", self.model.get('id'), status, force);
 
-            // We make sure we don't update the server too often unless the status changes, whatever the user
-            // is doing with this chat.  This helps reduce server load for large numbers of clients.
-            var now = (new Date()).getTime();
-            // console.log("Consider roster update", status, self.rosterUpdatedStatus, now, self.rosterUpdatedAt, now - self.rosterUpdatedAt);
-
-            if (status != self.rosterUpdatedStatus || now - self.rosterUpdatedAt > 25000) {
-                // console.log("Issue roster update");
+            if (force) {
+                // We want to make sure the server knows right now.
                 $.ajax({
                     url: API + 'chat/rooms/' + self.model.get('id'),
                     type: 'POST',
@@ -886,8 +1055,6 @@ define([
                         status: status
                     }, success: function(ret) {
                         if (ret.ret === 0) {
-                            self.rosterUpdatedAt = (new Date()).getTime();
-                            self.rosterUpdatedStatus = status;
                             self.lastRoster = ret.roster;
                         }
 
@@ -895,10 +1062,14 @@ define([
                     }
                 });
             } else {
-                // console.log("Suppress update", self.lastRoster);
+                // Save the current status in the chat for the next bulk roster update to the server.
+                // console.log("Set roster status", status, self.model.get('id'));
+                self.model.set('rosterstatus', status);
+
+               // console.log("Suppress update", self.lastRoster);
                 callback({
                     ret: 0,
-                    status: 'Update suppressed',
+                    status: 'Update delayed',
                     roster: self.lastRoster
                 });
             }
@@ -917,7 +1088,9 @@ define([
         },
 
         openChat: function(chatid) {
-            Iznik.Session.chats.fetch().then(function() {
+            Iznik.Session.chats.fetch({
+                modtools: Iznik.Session.get('modtools')
+            }).then(function() {
                 var chatmodel = Iznik.Session.chats.get(chatid);
                 var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
                 chatView.restore();
@@ -980,6 +1153,7 @@ define([
 
         render: function () {
             var self = this;
+            // console.log("Render chat", self.model.get('id')); console.trace();
 
             self.$el.attr('id', 'chat-' + self.model.get('id'));
             self.$el.addClass('chat-' + self.model.get('name'));
@@ -992,6 +1166,9 @@ define([
 
             var p = Iznik.View.prototype.render.call(self);
             p.then(function(self) {
+                // Input text autosize
+                autosize(self.$('textarea'));
+
                 if (!self.options.modtools) {
                     self.$('.js-privacy').hide();
                 } else {

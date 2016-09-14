@@ -45,13 +45,6 @@ define([
         
         footer: false,
 
-        events: {
-            'click .js-notifchat': 'refreshChats'
-        },
-
-        refreshChats: function() {
-        },
-
         home: function () {
             var homeurl = this.modtools ? '/modtools' : '/';
 
@@ -75,18 +68,12 @@ define([
             logout();
         },
 
-        refreshChats: function() {
-            Iznik.Session.chats.fetch({
-                remove: false
-            });
-        },
-
         render: function (options) {
             var self = this;
 
             // Start event tracking.
             if (monitorDOM) {
-                monitorDOM.start();
+                // monitorDOM.start();
             }
 
             if (currentPage) {
@@ -114,7 +101,7 @@ define([
             var p = new Promise(function(resolve, reject) {
                 templateFetch(self.modtools ? 'modtools_layout_layout' : 'user_layout_layout').then(function(tpl) {
                     // Save and restore the minimised chats which would otherwise get zapped.
-                    var chats = $('#notifchatdropdown').children().detach();
+                    var chats = $('#notifchatdropdownlist').children().detach();
 
                     if (self.title) {
                         window.document.title = self.title;
@@ -123,7 +110,7 @@ define([
                     $('#bodyContent').html(window.template(tpl));
                     $('.js-pageContent').html(self.$el);
 
-                    $('#notifchatdropdown').html(chats);
+                    $('#notifchatdropdownlist').html(chats);
 
                     if (chats.length) {
                         $('#js-notifchat').show();
@@ -202,10 +189,18 @@ define([
                     // chats, which some pages may rely on behing active.
                     self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                         if (loggedIn) {
-                            // Since we're logged in, we can start chat.
-                            ChatHolder({
-                                modtools: self.modtools
-                            }).render();
+                            if (!Iznik.Session.get('me').email) {
+                                // We have no email.  This can happen for some login types.  Force them to provide one.
+                                require(["iznik/views/pages/user/settings"], function() {
+                                    var v = new Iznik.Views.User.Pages.Settings.NoEmail();
+                                    v.render();
+                                });
+                            } else {
+                                // Since we're logged in, we can start chat.
+                                ChatHolder({
+                                    modtools: self.modtools
+                                }).render();
+                            }
                         }
 
                         templateFetch(self.template).then(function(tpl) {

@@ -382,9 +382,9 @@ class MailRouterTest extends IznikTestCase {
         # Suppress emails
         $r = $this->getMockBuilder('MailRouter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
-            ->setMethods(array('mailer'))
+            ->setMethods(array('mail'))
             ->getMock();
-        $r->method('mailer')->willReturn(false);
+        $r->method('mail')->willReturn(false);
 
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
@@ -822,15 +822,53 @@ class MailRouterTest extends IznikTestCase {
         # Suppress emails
         $r = $this->getMockBuilder('MailRouter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
-            ->setMethods(array('mailer'))
+            ->setMethods(array('mail'))
             ->getMock();
-        $r->method('mailer')->willReturn(false);
+        $r->method('mail')->willReturn(false);
 
         # A request to confirm an application
         $msg = file_get_contents('msgs/application');
         $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_SYSTEM, $rc);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testConfirmNoEmail() {
+        error_log(__METHOD__);
+
+        # Suppress emails
+        $r = $this->getMockBuilder('MailRouter')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('mail'))
+            ->getMock();
+        $r->method('mail')->willReturn(false);
+
+        # A request to confirm an application
+        $msg = file_get_contents('msgs/confirmnoemail');
+        $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testYahooNotify() {
+        error_log(__METHOD__);
+
+        # Suppress emails
+        $r = $this->getMockBuilder('MailRouter')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('mail'))
+            ->getMock();
+        $r->method('mail')->willReturn(false);
+
+        # A request to confirm an application
+        $msg = file_get_contents('msgs/replytext');
+        $id = $r->received(Message::EMAIL, 'notify@yahoogroups.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::DROPPED, $rc);
 
         error_log(__METHOD__ . " end");
     }
@@ -844,9 +882,9 @@ class MailRouterTest extends IznikTestCase {
         # Suppress emails
         $r = $this->getMockBuilder('MailRouter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
-            ->setMethods(array('mailer'))
+            ->setMethods(array('mail'))
             ->getMock();
-        $r->method('mailer')->willReturn(false);
+        $r->method('mail')->willReturn(false);
 
         # A request to confirm an application
         $msg = file_get_contents('msgs/approvemember');
@@ -913,9 +951,9 @@ class MailRouterTest extends IznikTestCase {
         # Suppress emails
         $r = $this->getMockBuilder('MailRouter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
-            ->setMethods(array('mailer'))
+            ->setMethods(array('mail'))
             ->getMock();
-        $r->method('mailer')->willReturn(false);
+        $r->method('mail')->willReturn(false);
 
         # Set up a pending member.
         $u = new User($this->dbhr, $this->dbhm);
@@ -946,9 +984,9 @@ class MailRouterTest extends IznikTestCase {
         # Suppress emails
         $r = $this->getMockBuilder('MailRouter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
-            ->setMethods(array('mailer'))
+            ->setMethods(array('mail'))
             ->getMock();
-        $r->method('mailer')->willReturn(false);
+        $r->method('mail')->willReturn(false);
 
         # Set up a pending member.
         $u = new User($this->dbhr, $this->dbhm);
@@ -976,9 +1014,9 @@ class MailRouterTest extends IznikTestCase {
         # Suppress emails
         $r = $this->getMockBuilder('MailRouter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
-            ->setMethods(array('mailer'))
+            ->setMethods(array('mail'))
             ->getMock();
-        $r->method('mailer')->willReturn(false);
+        $r->method('mail')->willReturn(false);
 
         $msg = file_get_contents('msgs/invite');
         $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'test@test.com', $msg);
@@ -999,7 +1037,7 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testMailer() {
+    public function testMail() {
         error_log(__METHOD__);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);

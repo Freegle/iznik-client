@@ -10,7 +10,8 @@ if (!defined('IZNIK_BASE')) {
     define('REDIS_CONNECT', '/var/run/redis/redis.sock');
     define('BROWSERTRACKING', TRUE);
     define('INCLUDE_TEMPLATE_NAME', TRUE);
-    define('SQLLOG', TRUE);
+    define('SQLLOG', FALSE);
+    define('EVENTLOG', FALSE);
 
     define('COOKIE_NAME', 'session');
 

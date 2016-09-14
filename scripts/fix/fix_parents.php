@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/misc/Location.php');
 
 $l = new Location($dbhr, $dbhm);
 
-$locs = $dbhm->query("SELECT id, name, gridid FROM locations;");
+$locs = $dbhm->query("SELECT id, name, gridid FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0;");
 
 $count = 0;
 
@@ -18,7 +18,7 @@ foreach ($locs as $loc) {
     $l->setParents($loc['id'], $loc['gridid']);
     $count++;
 
-    #if ($count % 1000 == 0) {
+    if ($count % 1000 == 0) {
         error_log("$count..." . count($locs));
-    #}
+    }
 }

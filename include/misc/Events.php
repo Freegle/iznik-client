@@ -60,7 +60,7 @@ class Events {
     
     public function listSessions($userid = NULL) {
         $userq = $userid ? " WHERE userid = $userid " : '';
-        $sql = "SELECT DISTINCT(sessionid) FROM logs_events $userq ORDER BY id DESC;";
+        $sql = "SELECT DISTINCT(sessionid) FROM logs_events $userq ORDER BY id DESC LIMIT 100;";
         $sessions = $this->dbhr->preQuery($sql);
         $ret = [];
         
@@ -101,6 +101,7 @@ class Events {
 
         # Get the first client timestamp.
         $sql = "SELECT clienttimestamp FROM logs_events WHERE sessionid = ? ORDER BY id ASC LIMIT 1;";
+        error_log("$sql, $sessionid");
         $firsts = $this->dbhr->preQuery($sql, [
             $sessionid
         ]);

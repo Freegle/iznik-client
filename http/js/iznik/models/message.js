@@ -357,6 +357,9 @@ define([
                 // Redundant line breaks
                 text = text.replace(/(?:(?:\r\n|\r|\n)\s*){2}/m, "\n\n");
 
+                // Duff text added by Yahoo Mail app
+                text = text.replace('blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; }', '');
+
                 text = text.trim();
                 // console.log("Stripped photo", text);
             } else {
@@ -377,18 +380,24 @@ define([
 
         comparator: function(a, b) {
             // Use a comparator to show in most recent first order
-            var ret = (new Date(b.get('date'))).getTime() - (new Date(a.get('date'))).getTime();
+            var ret = (new Date(b.get('arrival'))).getTime() - (new Date(a.get('arrival'))).getTime();
             return(ret);
         },
 
         url: function() {
             // The URL changes based on whether we're wanting a specific group, collection, mod groups only, or
             // group type (e.g. just Freegle).
-            return (API + 'messages?' +
+            //
+            // If we are in the user interface we only ever want OFFERs/WANTEDs.  The TAKEN/RECEIVED messages
+            // are returned attached to those, so we don't need to see them separately.
+            var url = API + 'messages?' +
                 (this.options.groupid > 0 ? ("groupid=" + this.options.groupid + "&") : '') +
                 'collection=' + this.options.collection +
                 '&modtools=' + this.options.modtools +
-                (this.options.type ? ('&grouptype=' + this.options.type) : ''))
+                (this.options.modtools ? '' : '&types[]=Offer&types[]=Wanted') +
+                (this.options.type ? ('&grouptype=' + this.options.type) : '');
+            // console.log("Collection url", url);
+            return (url);
         },
 
         parse: function(ret) {
@@ -402,8 +411,16 @@ define([
                 // returns them in a separate object for bandwidth reasons.
                 _.each(ret.messages, function(message, index, list) {
                     var groups = [];
+                    var arrival = 0;
+
                     _.each(message.groups, function(group, index2, list2) {
                         var groupdata = ret.groups[group.groupid];
+
+                        // Arrival at the message level shows when it first hit the platform.  But in this context
+                        // we are interested in showing the latest time it was posted on any of the groups which
+                        // we are looking at.
+                        var arrivalepoch = (new Date(group.arrival)).getTime();
+                        arrival = Math.max(arrivalepoch, arrival);
 
                         // Need to know whether it's our message when rendering the group info.
                         group.mine = message.mine;
@@ -429,6 +446,7 @@ define([
                         groups.push(_.extend([], groupdata, group));
                     });
 
+                    message.arrival = (new Date(arrival)).toISOString();
                     message.groups = groups;
                 });
 

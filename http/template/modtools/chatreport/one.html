@@ -1,0 +1,30 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <div class="row">
+            <div class="panel-title">
+                <h4 class="padleft">
+                    {{fromuser.displayname}} <span class="small text-muted">#{{fromuser.id}}</span> => {{touser.displayname}} <span class="small text-muted">#{{touser.id}}</span> <span class="text-muted">member of</span> {{group.nameshort}}
+                    <div class="pull-right small text-muted padright">#{{id}}</div>
+                </h4>
+                <div class="padleft"><% if (obj.spamscore) { %>Spam score {{spamscore}} <% } %><abbr class="small margleft timeago faded" title="{{date}}" ></abbr>
+            </div>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div class="completefull nomargin">
+            <pre>{{message}}</pre>
+        </div>
+        <div class="clearfix"></div>
+        <div class="panel-footer">
+            <button type="button" class="btn btn-info js-view">
+                <span class="glyphicon glyphicon-comment" />&nbsp;View Chat</span>
+            </button>
+            <button type="button" class="btn btn-success js-approve">
+                <span class="glyphicon glyphicon-ok" />&nbsp;Not Spam
+            </button>
+            <button type="button" class="btn btn-danger js-delete">
+                <span class="glyphicon glyphicon-trash" />&nbsp;Spam
+            </button>
+        </div>
+    </div>
+</div>

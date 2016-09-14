@@ -267,6 +267,73 @@ class messageAPITest extends IznikAPITestCase
         error_log(__METHOD__ . " end");
     }
 
+    public function testSpamToApproved()
+    {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        # Create a group with a message on it
+        $msg = file_get_contents('msgs/spam');
+        $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from1@test.com', 'to@test.com', $msg);
+        error_log("Created spam message $id");
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+
+        $a = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals($id, $a->getID());
+        assertTrue(array_key_exists('subject', $a->getPublic()));
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($group1, User::ROLE_OWNER);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
+            'groupid' => $group1,
+            'collection' => 'Spam'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['message']['id']);
+
+        # Mark as not spam.
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'groupid' => $group1,
+            'action' => 'NotSpam'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Try again to see it - should be gone from spam into approved
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        error_log("Should be in approved " . var_export($ret['message']['groups'], TRUE));
+        assertEquals('Approved', $ret['message']['groups'][0]['collection']);
+
+        # Now send it again - should stay in approved.
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id2 = $r->received(Message::YAHOO_APPROVED, 'from1@test.com', 'to@test.com', $msg);
+        error_log("Created spam message $id");
+        $rc = $r->route();
+        #assertEquals(MailRouter::INCOMING_SPAM, $rc);
+        self::assertEquals($id, $id2);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        error_log("Should still be in approved " . var_export($ret['message']['groups'], TRUE));
+        assertEquals('Approved', $ret['message']['groups'][0]['collection']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testApprove()
     {
         error_log(__METHOD__);
@@ -1121,6 +1188,7 @@ class messageAPITest extends IznikAPITestCase
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
         $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $this->group->setPrivate('publish', 1);
 
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);

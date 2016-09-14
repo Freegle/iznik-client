@@ -49,6 +49,7 @@ define([
 
         fetch: function() {
             // Which chat types we fetch depends on whether we're in ModTools or the User i/f.
+            // console.log("Fetch chats"); console.trace();
             return Iznik.Collection.prototype.fetch.call(this, {
                 data: {
                     chattypes: this.options.modtools ? [ 'Mod2Mod', 'User2Mod' ] : [ 'User2User', 'User2Mod' ]
@@ -108,6 +109,19 @@ define([
 
         parse: function(ret) {
             var msgs = ret.chatmessages;
+            return(msgs);
+        }
+    });
+
+    Iznik.Collections.Chat.Report = Iznik.Collection.extend({
+        url: API + 'chatmessages',
+
+        model: Iznik.Models.Chat.Message,
+
+        comparator: 'id',
+
+        parse: function(ret) {
+            var msgs = ret.chatmeports;
             return(msgs);
         }
     });

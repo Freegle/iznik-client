@@ -72,6 +72,7 @@ define([
             "main.php?action=myposts": "userHome",
             "main.php?action=post*t": "userHome",
             "main.php?action=findgroup": "userExplore",
+            "login.php?action=mygroups&subaction=displaypost&msgid=:id&groupid=:id*": "legacyUserMessage2",
             "legacy?action=join&groupid=:id&then=displaygroup": "userExploreGroup",
             "legacy?action=look&groupid=:id": "userExploreGroup",
             "legacy?action=mygroups*t": "userMyGroups",
@@ -123,6 +124,7 @@ define([
             "edit/:id": "userEdit",
             "message/:id": "userMessage",
             "mygroups": "userMyGroups",
+            "settings/confirmmail/(:key)": "userConfirmMail",
             "settings": "userSettings",
             "explore/:id/join": "userJoinGroup",
             "explore/:id": "userExploreGroup",
@@ -204,6 +206,7 @@ define([
                         });
                     } else {
                         require(["iznik/views/pages/user/landing"], function() {
+                            console.log("Load landing");
                             var page = new Iznik.Views.User.Pages.Landing();
                             self.loadRoute({page: page});
                         });
@@ -338,6 +341,44 @@ define([
             });
         },
 
+        userConfirmMail: function (key) {
+            var self = this;
+
+            require(["iznik/views/pages/user/settings"], function() {
+                $.ajax({
+                    type: 'PATCH',
+                    url: API + 'session',
+                    data: {
+                        key: key
+                    },
+                    success: function (ret) {
+                        var v;
+
+                        if (ret.ret == 0) {
+                            v = new Iznik.Views.User.Pages.Settings.VerifySucceeded();
+                        } else {
+                            v = new Iznik.Views.User.Pages.Settings.VerifyFailed();
+                        }
+                        self.listenToOnce(v, 'modalCancelled modalClosed', function () {
+                            // Reload to force session refresh.
+                            // TODO lame.
+                            window.location = '/';
+                        });
+
+                        v.render();
+                    },
+                    error: function () {
+                        var v = new Iznik.Views.User.Pages.Settings.VerifyFailed();
+                        self.listenToOnce(v, 'modalCancelled modalClosed', function () {
+                            Router.navigate('/settings', true)
+                        });
+
+                        v.render();
+                    }
+                });
+            });
+        },
+
         userSettings: function () {
             var self = this;
 
@@ -459,6 +500,18 @@ define([
         },
 
         legacyUserMessage: function(groupid, messageid) {
+            var self = this;
+
+            require(["iznik/views/pages/user/explore"], function() {
+                var page = new Iznik.Views.User.Pages.LegacyMessage({
+                    id: messageid,
+                    groupid: groupid
+                });
+                self.loadRoute({page: page});
+            });
+        },
+
+        legacyUserMessage2: function(messageid, groupid) {
             var self = this;
 
             require(["iznik/views/pages/user/explore"], function() {

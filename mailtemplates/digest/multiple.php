@@ -106,7 +106,7 @@ EOT;
         $html .= '<h2><span style="color:green;">New Posts</span></h2>';
         $html .= "<p>Here's what people are freegling since we last mailed you.</p></td></tr>";
         $html .= '<tr><td colspan="2"><strong>' . $availablesumm . '</strong></td></tr>';
-        $html .= '<tr><td colspan="2"><p>Scroll down for details and to reply (we used to put links here but they don\'t work reliably).</p></td></tr>';
+        $html .= '<tr><td colspan="2"><p>Scroll down for details and to reply.</p></td></tr>';
         $html .= '<tr><td colspan="2"><font color=gray><hr></font></td></tr>';
         $html .= '<tr><td colspan="2">' . $available . '</td></tr>';
     }

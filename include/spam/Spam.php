@@ -21,6 +21,7 @@ class Spam {
     CONST SEEN_THRESHOLD = 16; // Number of groups to join or apply to before considered suspect
     CONST ESCALATE_THRESHOLD = 2; // Level of suspicion before a user is escalated to support/admin for review
 
+    CONST REASON_NOT_SPAM = 'NotSpam';
     CONST REASON_COUNTRY_BLOCKED = 'CountryBlocked';
     CONST REASON_IP_USED_FOR_DIFFERENT_USERS = 'IPUsedForDifferentUsers';
     CONST REASON_IP_USED_FOR_DIFFERENT_GROUPS = 'IPUsedForDifferentGroups';
@@ -73,6 +74,7 @@ class Spam {
                 $msg->setPrivate('fromcountry', $record->country->isoCode);
             } catch (Exception $e) {
                 # Failed to look it up.
+                error_log("Failed to look up $ip " . $e->getMessage());
                 $country = NULL;
             }
 

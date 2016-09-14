@@ -364,7 +364,14 @@ And something after it.', $stripped);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
         assertEquals('Replying.', $stripped);
+
         error_log(__METHOD__ . " end");
+        $msg = $this->unique(file_get_contents('msgs/notif_reply_text5'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $stripped = $m->stripQuoted();
+        assertEquals("Ok, here's a reply.", $stripped);
+
     }
     
     public function testCensor() {
@@ -444,6 +451,28 @@ And something after it.', $stripped);
         $m = new Message($this->dbhr, $this->dbhm);
         assertEquals(0, $m->autoRepost(Group::GROUP_FREEGLE, '2016-03-01', $gid));
         assertEquals(1, $m->autoRepost(Group::GROUP_FREEGLE, '2016-01-01', $gid));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testTN() {
+        error_log(__METHOD__);
+
+        $msg = $this->unique(file_get_contents('msgs/tnatt1'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->save();
+        $atts = $m->getAttachments();
+        assertEquals(1, count($atts));
+        $m->delete();
+
+        $msg = $this->unique(file_get_contents('msgs/tnatt2'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m->save();
+        $atts = $m->getAttachments();
+        assertEquals(1, count($atts));
+        $m->delete();
 
         error_log(__METHOD__ . " end");
     }

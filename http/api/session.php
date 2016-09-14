@@ -103,7 +103,25 @@ function session() {
             $f = NULL;
             $ret = array('ret' => 1, 'status' => 'Invalid login details');
 
-            if ($action) {
+            if ($fblogin) {
+                # We've been asked to log in via Facebook.
+                $f = new Facebook($dbhr, $dbhm);
+                list ($session, $ret) = $f->login();
+                /** @var Session $session */
+                $id = $session ? $session->getUserId() : NULL;
+            } else if ($yahoologin) {
+                # Yahoo.
+                $y = Yahoo::getInstance($dbhr, $dbhm);
+                list ($session, $ret) = $y->login($returnto);
+                /** @var Session $session */
+                $id = $session ? $session->getUserId() : NULL;
+            } else if ($googlelogin) {
+                # Google
+                $g = new Google($dbhr, $dbhm, $mobile);
+                list ($session, $ret) = $g->login($googleauthcode);
+                /** @var Session $session */
+                $id = $session ? $session->getUserId() : NULL;
+            } else if ($action) {
                 switch ($action) {
                     case 'LostPassword': {
                         $id = $user->findByEmail($email);
@@ -134,26 +152,11 @@ function session() {
                     if ($u->login($password, $force)) {
                         $ret = array('ret' => 0, 'status' => 'Success');
                         $id = $possid;
+
+                        # We have publish permissions for users who login via our platform.
+                        $u->setPrivate('publishconsent', 1);
                     }
                 }
-            } else if ($fblogin) {
-                # We've been asked to log in via Facebook.
-                $f = new Facebook($dbhr, $dbhm);
-                list ($session, $ret) = $f->login();
-                /** @var Session $session */
-                $id = $session ? $session->getUserId() : NULL;
-            } else if ($yahoologin) {
-                # Yahoo.
-                $y = Yahoo::getInstance($dbhr, $dbhm);
-                list ($session, $ret) = $y->login($returnto);
-                /** @var Session $session */
-                $id = $session ? $session->getUserId() : NULL;
-            } else if ($googlelogin) {
-                # Google
-                $g = new Google($dbhr, $dbhm, $mobile);
-                list ($session, $ret) = $g->login($googleauthcode);
-                /** @var Session $session */
-                $id = $session ? $session->getUserId() : NULL;
             }
 
             if ($id) {

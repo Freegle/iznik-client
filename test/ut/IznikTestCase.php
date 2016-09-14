@@ -11,7 +11,7 @@ require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/Assert
  * @backupStaticAttributes disabled
  */
 abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
-    const LOG_SLEEP=60;
+    const LOG_SLEEP=600;
 
     private $dbhr, $dbhm;
 
@@ -90,6 +90,10 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
     }
 
     public function waitBackground() {
+        # We wait until either the queue is empty, or the first item on it has been put there since we started
+        # waiting (and therefore anything we put on has been handled).
+        $start = time();
+
         $pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
         $count = 0;
         do {
@@ -103,6 +107,16 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
                 sleep(2);
                 break;
             }
+
+            try {
+                $job = $pheanstalk->peekReady();
+                $data = json_decode($job->getData(), true);
+
+                if ($data['queued'] > $start) {
+                    sleep(2);
+                    break;
+                }
+            } catch (Exception $e) {}
 
             sleep(5);
             $count++;
