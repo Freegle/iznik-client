@@ -3,10 +3,11 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'autosize',
     'iznik/models/chat/chat',
     'jquery-resizable',
     'jquery-visibility'
-], function($, _, Backbone, Iznik) {
+], function($, _, Backbone, Iznik, autosize) {
     // This is a singleton view.
     var instance;
 
@@ -342,10 +343,12 @@ define([
         updateCounts: function() {
             var self = this;
             var unseen = 0;
-            Iznik.Session.chats.each(function(chat) {
-                var chatView = Iznik.activeChats.viewManager.findByModel(chat);
-                unseen += chat.get('unseen');
-            });
+            if (Iznik.activeChats) {
+                Iznik.Session.chats.each(function(chat) {
+                    var chatView = Iznik.activeChats.viewManager.findByModel(chat);
+                    unseen += chat.get('unseen');
+                });
+            }
 
             // We'll adjust the count in the window title.
             var title = document.title;
@@ -657,7 +660,9 @@ define([
 
         keyUp: function(e) {
             var self = this;
-            if (e.which === 13) {
+            if (e.which === 13 && e.altKey) {
+                this.$('.js-message').val(this.$('.js-message').val() + "\n");
+            } else if (e.which === 13) {
                 this.send();
                 e.preventDefault();
                 e.stopPropagation();
@@ -681,7 +686,11 @@ define([
                     self.messageFocus();
                     self.messages.fetch().then();
                 });
-                this.model.send(message);
+
+                self.model.send(message);
+
+                // If we've grown the textarea, shrink it.
+                self.$('textarea').css('height', '');
             }
         },
 
@@ -830,6 +839,12 @@ define([
 
         adjust: function() {
             var self = this;
+
+            // The text area shouldn't grow too high, but should go above a single line if there's room.
+            var maxinpheight = self.$el.innerHeight() - this.$('.js-chatheader').outerHeight();
+            var mininpheight = Math.round(self.$el.innerHeight() * .2);
+            self.$('textarea').css('max-height', maxinpheight);
+            self.$('textarea').css('min-height', mininpheight);
 
             var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter input').outerHeight();
             // console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
@@ -1151,6 +1166,9 @@ define([
 
             var p = Iznik.View.prototype.render.call(self);
             p.then(function(self) {
+                // Input text autosize
+                autosize(self.$('textarea'));
+
                 if (!self.options.modtools) {
                     self.$('.js-privacy').hide();
                 } else {
