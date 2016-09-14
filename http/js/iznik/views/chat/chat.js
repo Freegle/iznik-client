@@ -25,6 +25,13 @@ define([
             });
         },
 
+        allseen: function() {
+            console.log("allseen");
+            Iznik.minimisedChats.viewManager.each(function(chat) {
+                chat.allseen();
+            });
+        },
+
         waitError: function () {
             // This can validly happen when we switch pages, because we abort outstanding requests
             // and hence our long poll.  So before restarting, check that this view is still in the
@@ -146,6 +153,16 @@ define([
                     modtools: self.options.modtools
                 }).then(function() {
                     self.updateCounts();
+
+                    // For some reason we don't quite understand yet, the element can get detached so make sure it's
+                    // there.
+                    var el = Iznik.minimisedChats.$el;
+                    if (el.closest('body').length == 0) {
+                        console.log("Chats detached");
+                        el.detach();
+                        $($('#notifchatdropdown').find('li')[1]).html(el);
+                    }
+
                     Iznik.minimisedChats.render();
 
                     var i = 0;
@@ -517,6 +534,7 @@ define([
 
                     // Not within this DOM.
                     $('.js-minimiseall').on('click', self.minimiseall);
+                    $('.js-allseen').on('click', self.allseen);
 
                     if (!self.bulkUpdateRunning) {
                         // We update the roster for all chats periodically.
@@ -558,6 +576,35 @@ define([
         click: function() {
             // The maximised chat view is listening on this.
             this.model.trigger('restore', this.model.get('id'));
+        },
+
+        allseen: function() {
+            var self = this;
+            
+            if (self.model.get('unseen') > 0) {
+                // We have to get the messages to find out which the last one is.
+                self.messages = new Iznik.Collections.Chat.Messages({
+                    roomid: self.model.get('id')
+                });
+                self.messages.fetch().then(function() {
+                    console.log("Fetched", self.messages);
+                    if (self.messages.length > 0) {
+                        var lastmsgseen = self.messages.at(self.messages.length - 1).get('id');
+                        console.log("Last seen", lastmsgseen);
+                        $.ajax({
+                            url: API + 'chat/rooms/' + self.model.get('id'),
+                            type: 'POST',
+                            data: {
+                                lastmsgseen: lastmsgseen,
+                                status: 'Away'
+                            }
+                        });
+                    
+                        self.model.set('unseen', 0);
+                        self.model.set('lastmsgseen', lastmsgseen);
+                    }
+                });                
+            }
         },
 
         updateCount: function() {
@@ -725,16 +772,20 @@ define([
             });
         },
 
-        messageFocus: function() {
-            var self = this;
-            console.log("Focus", self);
-
-            // We've seen all the messages.
+        allseen: function() {
             if (this.messages.length > 0) {
                 this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
                 // console.log("Now seen chat message", this.messages.at(this.messages.length - 1).get('id'));
             }
             this.model.set('unseen', 0);
+        },
+
+        messageFocus: function() {
+            var self = this;
+            console.log("Focus", self);
+
+            // We've seen all the messages.
+            self.allseen();
 
             // Tell the server now, in case they navigate away before the next roster timer.
             self.updateRoster(self.statusWithOverride('Online'), self.noop, true);
