@@ -842,11 +842,11 @@ define([
 
             // The text area shouldn't grow too high, but should go above a single line if there's room.
             var maxinpheight = self.$el.innerHeight() - this.$('.js-chatheader').outerHeight();
-            var mininpheight = Math.round(self.$el.innerHeight() * .2);
+            var mininpheight = Math.round(self.$el.innerHeight() * .15);
             self.$('textarea').css('max-height', maxinpheight);
             self.$('textarea').css('min-height', mininpheight);
 
-            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter input').outerHeight();
+            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter textarea').outerHeight() - 10;
             // console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
             this.$('.js-leftpanel, .js-roster').height(newHeight);
 
