@@ -341,10 +341,11 @@ function message() {
                                         $fromemail = $u->getEmailById($eidforgroup);
 
                                         # Make sure it's attached to this group.
-                                        $dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection,arrival) VALUES (?,?,?,NOW());", [
+                                        $dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection,arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
                                             $draft['msgid'],
                                             $groupid,
-                                            MessageCollection::PENDING
+                                            MessageCollection::PENDING,
+                                            $m->getType()
                                         ]);
 
                                         if ($m->submit($u, $fromemail, $groupid)) {
