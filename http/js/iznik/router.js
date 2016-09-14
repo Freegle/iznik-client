@@ -1116,7 +1116,7 @@ define([
     }
 
     // We can flag anchors as not to be handled via Backbone using data-realurl
-    $(document).on('click', 'a:not([data-realurl]):not([data-toggle])', function (evt) {
+    /*$(document).on('click', 'a:not([data-realurl]):not([data-toggle])', function (evt) {
         // Only trigger for our own anchors, except selectpicker which relies on #.
         // console.log("a click", $(this), $(this).parents('#bodyEnvelope').length);
     	  var href = $(this).attr('href');
@@ -1130,7 +1130,7 @@ define([
         	console.log("LINK 3");
         	internal(evt, href);
         }
-    });
+    });*/
     $(document).on('click', 'a', function (evt) {
     	var href = $(this).attr('href');
     	console.log("LINK 4: " + href);
