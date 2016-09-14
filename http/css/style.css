@@ -946,12 +946,6 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     padding: 2px;
 }
 
-#notifchatbutt .badge {
-    position: relative;
-    top: -15px;
-    left: -35px;
-}
-
 #notifchatdropdown {
     background-color: white;
     position: absolute;
@@ -1338,6 +1332,8 @@ body {
 
     #notifchatdropdown {
         min-width: 80vw;
+        z-index: 20000;
+        height: 90vh;
     }
 
     #notifchatdropdownlist {
@@ -1362,6 +1358,7 @@ body {
         top: 90px;
         max-height: 90vh;
         position: fixed;
+        -webkit-backface-visibility: hidden;
     }
 }
 

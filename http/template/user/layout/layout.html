@@ -1,3 +1,21 @@
+<div id="notifchatdropdown" class="pull-right" style="display: none">
+    <ul class="list-unstyled">
+        <li id="notifchatdropdownactions">
+            <div class="row padleft">
+                <div class="margleft notifaction clickme col-xs-6 js-minimiseall">
+                    <span class="glyphicon glyphicon-remove" />&nbsp;Close all chats
+                </div>
+                <div class="margleft notifaction col-xs-6 clickme js-allseen">
+                    <span class="glyphicon glyphicon-ok" />&nbsp;Mark all read
+                </div>
+            </div>
+        </li>
+        <li>
+            <ul id="notifchatdropdownlist" class="list-unstyled">
+            </ul>
+        </li>
+    </ul>
+</div>
 <nav class="navbar navbar-custom navbar-fixed-top">
     <div class="nopad completefull container-fluid">
         <div class="nopad nomargin completefull navbar-header">
@@ -51,7 +69,7 @@
                 <ul class="nav navbar-nav navbar-right padright reallyHide js-loggedinonly">
                     <li>
                         <a href="#" id="js-notifchat" class="margleft dropdown-toggle nopad text-center" title="Messages from other Freeglers"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <div id="notifchatbutt" class="glyphicons glyphicon-larger glyphicons-conversation vcenter-left" type="button" />
+                            <div class="glyphicons glyphicon-larger glyphicons-conversation vcenter-left" type="button" />
                             <br />
                             <span>
                                 Chat
@@ -59,24 +77,6 @@
                             </span>
                             <span class="js-totalcount badge badge-unread hidden-xs" style="display: none;" />
                         </a>
-                        <div id="notifchatdropdown" class="dropdown-menu pull-right" role="menu" aria-labelledby="notifchatbutt">
-                            <ul class="list-unstyled">
-                                <li id="notifchatdropdownactions">
-                                    <div class="row padleft">
-                                        <div class="margleft notifaction clickme col-xs-6 js-minimiseall">
-                                            <span class="glyphicon glyphicon-remove" />&nbsp;Close all chats
-                                        </div>
-                                        <div class="margleft notifaction col-xs-6 clickme js-allseen">
-                                            <span class="glyphicon glyphicon-ok" />&nbsp;Mark all read
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <ul id="notifchatdropdownlist" class="list-unstyled">
-                                    </ul>
-                                </li>
-                            </ul>
-                        </div>
                     </li>
                     <li>
                         <a href="#" id="js-notifications"  class="margleft nopad text-center" title="Notifications" style="display: none;">

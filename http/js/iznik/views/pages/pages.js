@@ -118,6 +118,18 @@ define([
                         $('#js-notifchat').hide();
                     }
 
+                    $('#js-notifchat').click(function(e) {
+                        $('#notifchatdropdown').show();
+                        e.preventDefault();
+                        e.stopPropagation();
+                    });
+
+                    $(document).click(function(e) {
+                        if (!$(e.target).closest('#js-notifchatdropdown').length) {
+                            $('#notifchatdropdown').hide();
+                        }
+                    });
+
                     $('#botleft').empty();
 
                     if (self.modtools) {

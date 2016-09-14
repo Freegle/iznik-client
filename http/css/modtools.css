@@ -167,8 +167,18 @@
     top: -14px;
 }
 
+#notifchatdropdown {
+    top: 65px !important;
+}
+
 #notifchatdropdownlist {
-    top: 69px !important;
+    top: auto !important;
+}
+
+#js-notifchat .badge {
+    position: relative;
+    top: -15px;
+    left: -35px;
 }
 
 .pageContent.landing {
