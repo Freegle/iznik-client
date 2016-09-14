@@ -157,47 +157,52 @@ class Location extends Entity
                 $thisgrid = $this->dbhr->preQuery("SELECT * FROM locations_grids WHERE id = ?;", [ $gridid ])[0];
                 $lat = $loc['lat'] < ($thisgrid['swlat'] + 0.05) ? $thisgrid['swlat'] - 0.1 : $thisgrid['swlat'] + 0.1;
                 $lng = $loc['lng'] < ($thisgrid['swlng'] + 0.05) ? $thisgrid['swlng'] - 0.1 : $thisgrid['swlng'] + 0.1;
-                $nearest = $this->dbhr->preQuery("SELECT * FROM locations_grids WHERE swlat = ? AND swlng = ?;", [ $lat, $lng ])[0];
-                #error_log("{$loc['lat']}, {$loc['lng']} in [{$thisgrid['swlat']}, {$thisgrid['swlng']}, {$thisgrid['nelat']}, {$thisgrid['nelng']}] closest adjacent {$nearest['id']} from $lat, $lng");
-                $lastcount = 0;
+                $nearest = $this->dbhr->preQuery("SELECT * FROM locations_grids WHERE swlat = ? AND swlng = ?;", [ $lat, $lng ]);
 
-                do {
-                    if ($lastcount == 1) {
-                        # Last time we just checked the grid it's in. Now add the next nearest.
-                        $gridid[] = $nearest['id'];
-                    } else if ($lastcount != 0) {
-                        # Now find grids which touch the ones we already have, i.e. work outwards
-                        $sql = "SELECT touches FROM locations_grids_touches WHERE gridid IN (" . implode(',', $gridids) . ");";
-                        error_log("for {$loc['id']} $sql");
-                        $neighbours = $this->dbhr->preQuery($sql, [ $gridid ]);
-                        foreach ($neighbours as $neighbour) {
-                            $gridids[] = $neighbour['touches'];
+                if (count($nearest) > 0) {
+                    $nearest = $nearest[0];
+
+                    #error_log("{$loc['lat']}, {$loc['lng']} in [{$thisgrid['swlat']}, {$thisgrid['swlng']}, {$thisgrid['nelat']}, {$thisgrid['nelng']}] closest adjacent {$nearest['id']} from $lat, $lng");
+                    $lastcount = 0;
+
+                    do {
+                        if ($lastcount == 1) {
+                            # Last time we just checked the grid it's in. Now add the next nearest.
+                            $gridid[] = $nearest['id'];
+                        } else if ($lastcount != 0) {
+                            # Now find grids which touch the ones we already have, i.e. work outwards
+                            $sql = "SELECT touches FROM locations_grids_touches WHERE gridid IN (" . implode(',', $gridids) . ");";
+                            error_log("for {$loc['id']} $sql");
+                            $neighbours = $this->dbhr->preQuery($sql, [ $gridid ]);
+                            foreach ($neighbours as $neighbour) {
+                                $gridids[] = $neighbour['touches'];
+                            }
                         }
+
+                        $lastcount = count($gridids);
+                        $gridids = array_unique($gridids);
+
+                        # See if there will be a location to choose - without actually choosing it yet.
+                        # We choose the closest location.
+                        $intersects = [];
+
+                        if (count($gridids) > 0) {
+                            $sql = "SELECT id, name, ST_Distance(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS dist FROM locations LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = $osmonly AND locations_excluded.locationid IS NULL ORDER BY dist ASC LIMIT 2;";
+                            $intersects = $this->dbhr->preQuery($sql, [
+                                $loc['geometry']
+                            ]);
+                        }
+
+                        #error_log("For $id $sql, {$loc['lat']}, {$loc['lng']}");
+                    } while (count($gridids) != $lastcount && count($intersects) < 2 && count($gridids) < 10000);
+
+                    if (count($intersects) > 1 || (count($intersects) == 1 && $intersects[0]['id'] != $id)) {
+                        # Quicker query if we omit AND id != $id and handle it here.
+                        $iid = $intersects[0]['id'] != $id ? $intersects[0]['id'] : $intersects[1]['id'];
+                        $name = $intersects[0]['id'] != $id ? $intersects[0]['name'] : $intersects[1]['name'];
+                        $areaid = $iid;
+                        error_log("Choose areaid #$areaid $name");
                     }
-                    
-                    $lastcount = count($gridids);
-                    $gridids = array_unique($gridids);
-
-                    # See if there will be a location to choose - without actually choosing it yet.
-                    # We choose the closest location.
-                    $intersects = [];
-
-                    if (count($gridids) > 0) {
-                        $sql = "SELECT id, name, ST_Distance(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS dist FROM locations LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = $osmonly AND locations_excluded.locationid IS NULL ORDER BY dist ASC LIMIT 2;";
-                        $intersects = $this->dbhr->preQuery($sql, [
-                            $loc['geometry']
-                        ]);
-                    }
-
-                    #error_log("For $id $sql, {$loc['lat']}, {$loc['lng']}");
-                } while (count($gridids) != $lastcount && count($intersects) < 2 && count($gridids) < 10000);
-
-                if (count($intersects) > 1 || (count($intersects) == 1 && $intersects[0]['id'] != $id)) {
-                    # Quicker query if we omit AND id != $id and handle it here.
-                    $iid = $intersects[0]['id'] != $id ? $intersects[0]['id'] : $intersects[1]['id'];
-                    $name = $intersects[0]['id'] != $id ? $intersects[0]['name'] : $intersects[1]['name'];
-                    $areaid = $iid;
-                    error_log("Choose areaid #$areaid $name");
                 }
             }
 
