@@ -172,10 +172,14 @@ define([
                 // buttons we should show.
                 var approved = false;
                 var rejected = false;
+                var pending = false;
 
                 _.each(groups, function(group) {
                     if (group.collection == 'Approved') {
                         approved = true;
+                    }
+                    if (group.collection == 'Pending') {
+                        pending = true;
                     }
                     if (group.collection == 'Rejected') {
                         rejected = true;
@@ -188,7 +192,7 @@ define([
                     self.$('.js-groups').append(v.el);
                 });
 
-                if (approved) {
+                if (approved || pending) {
                     self.$('.js-taken').show();
                     self.$('.js-received').show();
                 }
