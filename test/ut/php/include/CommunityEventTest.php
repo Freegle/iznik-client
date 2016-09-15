@@ -65,9 +65,16 @@ class communityEventTest extends IznikTestCase {
         $events = $c->listForUser($uid, TRUE, $ctx);
         assertEquals(0, count($events));
 
+        # Right group - shouldn't see pending.
         $u->addMembership($this->groupid);
         $ctx = NULL;
         $events = $c->listForUser($uid, TRUE, $ctx);
+        assertEquals(0, count($events));
+
+        # Mark not pending - should see.
+        $c->setPrivate('pending', 0);
+        $ctx = NULL;
+        $events = $c->listForUser($uid, FALSE, $ctx);
         assertEquals(1, count($events));
         assertEquals($id, $events[0]['id']);
 
