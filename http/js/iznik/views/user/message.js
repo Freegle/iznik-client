@@ -148,7 +148,9 @@ define([
                 self.$el.hide();
             }
 
+            // Make safe and decent for display.
             this.model.stripGumf('textbody');
+            this.model.set('textbody', strip_tags(this.model.get('textbody')));
 
             // The server will have returned us a snippet.  But if we've stripped out the gumf and we have something
             // short, use that instead.

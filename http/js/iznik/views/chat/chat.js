@@ -1294,6 +1294,12 @@ define([
             if (this.model.get('id')) {
                 var message = this.model.get('message');
                 if (message) {
+                    // Remove duplicate newlines.
+                    message = message.replace(/\n\s*\n\s*\n/g, '\n\n');
+                    
+                    // Strip HTML tags
+                    message = strip_tags(message, '<a>');
+
                     // Insert some wbrs to allow us to word break long words (e.g. URLs).
                     // It might have line breaks in if it comes originally from an email.
                     message = this.model.set('message', wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, '<br />'));
