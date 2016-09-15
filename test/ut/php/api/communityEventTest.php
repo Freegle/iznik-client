@@ -99,23 +99,21 @@ class communityEventAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
+        # Shouldn't show for us as pending.
         $ret = $this->call('communityevent', 'GET', [
             'pending' => true
         ]);
         error_log("Result of get all " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['communityevents']));
-        assertEquals($id, $ret['communityevents'][0]['id']);
+        assertEquals(0, count($ret['communityevents']));
 
-        # Check it shows for this group.
         $ret = $this->call('communityevent', 'GET', [
             'pending' => TRUE,
             'groupid' => $this->groupid
         ]);
         error_log("Result of get for group " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['communityevents']));
-        assertEquals($id, $ret['communityevents'][0]['id']);
+        assertEquals(0, count($ret['communityevents']));
 
         # Log in as the mod
         assertTrue($this->user2->login('testpw'));
