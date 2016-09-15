@@ -125,7 +125,7 @@ define([
                     });
 
                     $(document).click(function(e) {
-                        if (!$(e.target).closest('#js-notifchatdropdown').length) {
+                        if (!$(e.target).closest('#notifchatdropdown').length) {
                             $('#notifchatdropdown').hide();
                         }
                     });
