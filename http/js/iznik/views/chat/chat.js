@@ -160,8 +160,7 @@ define([
                     var el = Iznik.minimisedChats.$el;
                     if (el.closest('body').length == 0) {
                         console.log("Chats detached");
-                        el.detach();
-                        $($('#notifchatdropdown').find('li')[1]).html(el);
+                        self.createMinimised();
                     }
 
                     Iznik.minimisedChats.render();
@@ -474,6 +473,28 @@ define([
             }
         },
 
+        createMinimised: function() {
+            var self = this;
+
+            Iznik.minimisedChats = new Backbone.CollectionView({
+                el: $('#notifchatdropdownlist'),
+                modelView: Iznik.Views.Chat.Minimised,
+                collection: Iznik.Session.chats,
+                modelViewOptions: {
+                    organise: _.bind(self.organise, self),
+                    updateCounts: _.bind(self.updateCounts, self),
+                    modtools: self.options.modtools
+                }
+            });
+
+            Iznik.minimisedChats.on('add', function(view) {
+                // The collection view seems to get messed up, so re-render it to sort it out.
+                Iznik.minimisedChats.render();
+            });
+
+            Iznik.minimisedChats.render();
+        },
+
         render: function() {
             var self = this;
             var p;
@@ -511,25 +532,8 @@ define([
                         Iznik.activeChats.render();
 
                         self.waitDOM(self, function() {
-                            Iznik.minimisedChats = new Backbone.CollectionView({
-                                el: $('#notifchatdropdownlist'),
-                                modelView: Iznik.Views.Chat.Minimised,
-                                collection: Iznik.Session.chats,
-                                modelViewOptions: {
-                                    organise: _.bind(self.organise, self),
-                                    updateCounts: _.bind(self.updateCounts, self),
-                                    modtools: self.options.modtools
-                                }
-                            });
-
-                            Iznik.minimisedChats.on('add', function(view) {
-                                // The collection view seems to get messed up, so re-render it to sort it out.
-                                Iznik.minimisedChats.render();
-                            });
-
-                            Iznik.minimisedChats.render();
+                            self.createMinimised();
                             Iznik.Session.trigger('chatsfetched');
-
                             self.organise();
                             self.showMin();
                         });
