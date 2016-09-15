@@ -463,6 +463,8 @@ class User extends Entity
     public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
+        Session::clearSessionCache();
+
         # Check if we're banned
         $sql = "SELECT * FROM users_banned WHERE userid = ? AND groupid = ?;";
         $banneds = $this->dbhr->preQuery($sql, [
@@ -781,18 +783,26 @@ class User extends Entity
     }
 
     public function isModOrOwner($groupid) {
-        $sql = "SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner') AND groupid = ?;";
-        #error_log("$sql {$this->id}, $groupid");
-        $groups = $this->dbhr->preQuery($sql, [
-            $this->id,
-            $groupid
-        ]);
+        # Very frequently used.  Cache in session.
+        if (array_key_exists('modorowner', $_SESSION) && array_key_exists($this->id, $_SESSION['modorowner']) && array_key_exists($groupid, $_SESSION['modorowner'][$this->id])) {
+            #error_log("{$this->id} group $groupid cached");
+            return($_SESSION['modorowner'][$this->id][$groupid]);
+        } else {
+            $sql = "SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner') AND groupid = ?;";
+            #error_log("$sql {$this->id}, $groupid");
+            $groups = $this->dbhr->preQuery($sql, [
+                $this->id,
+                $groupid
+            ]);
 
-        foreach ($groups as $group) {
-            return true;
+            foreach ($groups as $group) {
+                $_SESSION['modorowner'][$this->id][$groupid] = TRUE;
+                return TRUE;
+            }
+
+            $_SESSION['modorowner'][$this->id][$groupid] = FALSE;
+            return(FALSE);
         }
-
-        return(false);
     }
 
     public function getLogins($credentials = TRUE) {

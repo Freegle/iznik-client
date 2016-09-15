@@ -245,6 +245,7 @@ class LoggedPDO {
     }
 
     private function prex($sql, $params = NULL, $select, $log) {
+        #error_log($sql);
         $try = 0;
         $ret = NULL;
         $msg = '';

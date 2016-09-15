@@ -109,6 +109,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
     # conflicts within the Percona cluster.
     $apicallretries = 0;
 
+    # This is an optimisation for User.php.
+    $_SESSION['modorowner'] = presdef('modorowner', $_SESSION, []);
+
     do {
         # Duplicate POST protection
         if ((DUPLICATE_POST_PROTECTION > 0) && array_key_exists('REQUEST_METHOD', $_SERVER) && ($_REQUEST['type'] == 'POST')) {
@@ -326,5 +329,10 @@ if ($_REQUEST['type'] == 'OPTIONS') {
     # Any outstanding transaction is a bug; force a rollback to avoid locks lasting beyond this call.
     if ($dbhm->inTransaction()) {
         $dbhm->rollBack();
+    }
+
+    if ($_REQUEST['type'] != 'GET') {
+        # This might have changed things.
+        $_SESSION['modorowner'] = [];
     }
 }

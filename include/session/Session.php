@@ -132,6 +132,7 @@ class Session {
         # clearing it we need to get write access in case there is actually something in the session.
         session_reopen();
         $_SESSION['cache'] = [];
+        $_SESSION['modorowner'] = [];
     }
 
     public function getUserId() {
