@@ -2207,7 +2207,7 @@ class User extends Entity
         return($email);
     }
 
-    public function triggerYahooApplication($groupid) {
+    public function triggerYahooApplication($groupid, $log = TRUE) {
         $g = new Group($this->dbhr, $this->dbhm, $groupid);
         $email = $this->inventEmail();
         $emailid = $this->addEmail($email, 0);
@@ -2234,13 +2234,15 @@ class User extends Entity
             $mailer->send($message);
         }
 
-        $this->log->log([
-            'type' => Log::TYPE_USER,
-            'subtype' => Log::SUBTYPE_YAHOO_APPLIED,
-            'user' => $this->id,
-            'groupid' => $groupid,
-            'text' => $email
-        ]);
+        if ($log) {
+            $this->log->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_YAHOO_APPLIED,
+                'user' => $this->id,
+                'groupid' => $groupid,
+                'text' => $email
+            ]);
+        }
 
         return($email);
     }

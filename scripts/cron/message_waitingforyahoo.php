@@ -29,7 +29,7 @@ foreach ($messages as $message) {
             $outcome = ' submitted';
             $submitted++;
         } else {
-            $u->triggerYahooApplication($message['groupid']);
+            $u->triggerYahooApplication($message['groupid'], FALSE);
             $outcome = ' still queued';
             $queued++;
         }
