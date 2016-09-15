@@ -375,11 +375,19 @@ class ChatRoom extends Entity
                         if ($cansee) {
                             # We also don't want to see non-empty chats where all the messages are held for review, because they are likely to
                             # be spam.
-                            $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0);", [
+                            $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0) ORDER BY valid ASC;", [
                                 $room['id']
                             ]);
 
-                            $cansee = count($unheld) == 0 || $unheld[0]['valid'] > 0;
+                            $validcount = 0;
+                            $invalidcount = 0;
+                            foreach ($unheld as $un) {
+                                $validcount == $un['valid'] = 1 ? ++$validcount : $validcount;
+                                $invalidcount == $un['invalid'] = 1 ? ++$invalidcount : $invalidcount;
+                            }
+
+                            $cansee = $validcount > 0;
+                            error_log("Cansee for {$room['id']} is $cansee from " . var_export($unheld, TRUE));
                         }
 
                         break;
