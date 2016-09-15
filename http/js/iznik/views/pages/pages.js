@@ -131,7 +131,7 @@ define([
                         }
 
                         // If we click outside the dropdown menu, hide that.
-                        $('.collapse').collapse('hide');
+                        $('.navbar-collapse').collapse('hide');
                     });
 
                     $('#botleft').empty();
