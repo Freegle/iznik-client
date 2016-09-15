@@ -8,15 +8,46 @@ define([
     Iznik.Models.Chat.Room = Iznik.Model.extend({
         urlRoot: API + 'chat/rooms',
 
+        sendingID: -1,
+        sending: [],
+
         send: function(message) {
             var self = this;
 
+            // Create a model for the message.
             var msg = new Iznik.Models.Chat.Message({
                 message: message,
                 roomid: this.get('id')
             });
+
+            // Add it to our sending queue
+            self.sending.push(msg);
+            self.sendQueue();
+        },
+
+        sendQueue: function() {
+            var self = this;
+
+            // Try to send any queued messages.
+            var msg = self.sending.pop();
             msg.save().then(function() {
-                self.trigger('sent', msg.get('id'));
+                // Maintain the lastmsgseen flag.  We might send multiple messages which complete in
+                // different order, so don't go backwards.
+                var lastmsg = msg.get('lastmsgseen');
+                self.set('lastmsgseen', Math.max(lastmsg, msg.get('id')));
+                self.set('unseen', 0);
+
+                if (self.sending.length > 0) {
+                    // We have another message to send.
+                    _.delay(_.bind(self.sendQueue, self), 100);
+                } else {
+                    // We have sent them all. Get the messages back so that any views update.
+                    self.messages.fetch({
+                        remove: true
+                    }).then(function() {
+                        self.trigger('sent');
+                    });
+                }
             });
         },
 

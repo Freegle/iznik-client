@@ -674,20 +674,18 @@ define([
             var self = this;
             var message = this.$('.js-message').val();
             if (message.length > 0) {
-                self.$('.js-message').prop('disabled', true);
-                self.listenToOnce(this.model, 'sent', function(id) {
-                    self.model.set('lastmsgseen', id);
-                    self.model.set('unseen', 0);
+                // We get called back when the message has actually been sent to the server.
+                self.listenToOnce(this.model, 'sent', function() {
                     self.options.updateCounts();
-
-                    self.$('.js-message').val('');
-                    self.$('.js-message').prop('disabled', false);
-                    self.$('.js-message').focus();
-                    self.messageFocus();
-                    self.messages.fetch().then();
+                    self.scrollBottom();
                 });
 
                 self.model.send(message);
+
+                // We have initiated the send, so set up for the next one.
+                self.$('.js-message').val('');
+                self.$('.js-message').focus();
+                self.messageFocus();
 
                 // If we've grown the textarea, shrink it.
                 self.$('textarea').css('height', '');
@@ -839,14 +837,13 @@ define([
 
         adjust: function() {
             var self = this;
-
             // The text area shouldn't grow too high, but should go above a single line if there's room.
             var maxinpheight = self.$el.innerHeight() - this.$('.js-chatheader').outerHeight();
             var mininpheight = Math.round(self.$el.innerHeight() * .15);
             self.$('textarea').css('max-height', maxinpheight);
             self.$('textarea').css('min-height', mininpheight);
 
-            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter textarea').outerHeight() - 10;
+            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter').outerHeight() - this.$('.js-modwarning').outerHeight() - 20 ;
             // console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
             this.$('.js-leftpanel, .js-roster').height(newHeight);
 
