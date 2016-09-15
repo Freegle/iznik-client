@@ -7,7 +7,11 @@
         <% } %>
     </div>
     <div class="col-xs-4">
+        <% if (obj.external) { %>
+        <a href="{{external}}">{{namedisplay}}</a><br>
+        <% } else { %>
         <a href="/explore/{{nameshort}}">{{namedisplay}}</a><br>
+        <% } %>
         {{obj.tagline}}
     </div>
     <div class="col-xs-3">
