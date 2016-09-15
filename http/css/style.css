@@ -1343,6 +1343,8 @@ body {
     #notifchatdropdownactions {
         background-color: white !important;
         border-bottom: none !important;
+        position: fixed;
+        top
     }
 
     .notifaction {
