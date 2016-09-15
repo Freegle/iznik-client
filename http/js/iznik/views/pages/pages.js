@@ -119,7 +119,13 @@ define([
                     }
 
                     $('#js-notifchat').click(function(e) {
-                        $('#notifchatdropdown').show();
+                        var display = $('#notifchatdropdown').css('display');
+
+                        if (display === 'none') {
+                            $('#notifchatdropdown').show();
+                        } else {
+                            $('#notifchatdropdown').hide();
+                        }
                         e.preventDefault();
                         e.stopPropagation();
                     });
