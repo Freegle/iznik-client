@@ -2708,12 +2708,18 @@ class Message
             $this->setPrivate('textbody', $txtbody);
             $this->setPrivate('htmlbody', $htmlbody);
 
+            # Strip possible group name.
+            $subject = $this->subject;
+            if (preg_match('/\[.*?\](.*)/', $subject, $matches)) {
+                $subject = trim($matches[1]);
+            }
+
             # Now construct the actual message to send.
             try {
                 list ($transport, $mailer) = getMailer();
                 
                 $message = Swift_Message::newInstance()
-                    ->setSubject($this->subject)
+                    ->setSubject($subject)
                     ->setFrom([$fromemail => $fromuser->getName()])
                     ->setTo([$g->getGroupEmail()])
                     ->setDate(time())
