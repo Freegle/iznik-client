@@ -1840,7 +1840,7 @@ define([
                             panControl: false,
                             streetViewControl: false,
                             zoomControl: true,
-                            minZoom: 12,
+                            minZoom: 11,
                             zoomControlOptions: {
                                 position: google.maps.ControlPosition.LEFT_TOP,
                                 style: google.maps.ZoomControlStyle.SMALL
@@ -1924,6 +1924,7 @@ define([
                         self.areas = new Iznik.Collections.Locations();
                         self.listenTo(self.areas, 'add', function(area) {
                             var poly = area.get('polygon');
+                            console.log("Poly", poly);
                             var lat = area.get('lat');
                             var lng = area.get('lng');
 
