@@ -916,6 +916,9 @@ define([
             var self = this;
             self.minimised = false;
 
+            // Hide the chat list if it's open.
+            $('#notifchatdropdown').hide();
+
             if (large) {
                 // We want a larger and more prominent chat.
                 try {
