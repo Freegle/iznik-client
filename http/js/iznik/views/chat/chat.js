@@ -676,11 +676,34 @@ define([
             if (message.length > 0) {
                 // We get called back when the message has actually been sent to the server.
                 self.listenToOnce(this.model, 'sent', function() {
-                    self.options.updateCounts();
-                    self.scrollBottom();
+                    // Get the full set of messages back.  This will replace any temporary
+                    // messages added, and also ensure we don't miss any that arrived while we
+                    // were sending ours.
+                    self.messages.fetch({
+                        remove: true
+                    }).then(function() {
+                        self.options.updateCounts();
+                        self.scrollBottom();
+                    });
                 });
 
                 self.model.send(message);
+
+                // Create another model with a fake id and add it to the collection.  This will populate our view
+                // views while we do the real save in the background.  Makes us look fast.
+                var tempmod = new Iznik.Models.Chat.Message({
+                    id: self.messages.last().get('id') + 1,
+                    chatid: self.model.get('id'),
+                    message: message,
+                    date: (new Date()).toISOString(),
+                    sameaslast: true,
+                    sameasnext: false,
+                    seenbyall: 0,
+                    type: 'Default',
+                    user: Iznik.Session.get('me')
+                });
+
+                self.messages.add(tempmod);
 
                 // We have initiated the send, so set up for the next one.
                 self.$('.js-message').val('');
@@ -789,7 +812,6 @@ define([
 
         messageFocus: function() {
             var self = this;
-            console.log("Focus", self);
 
             // We've seen all the messages.
             self.allseen();

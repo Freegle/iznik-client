@@ -8,7 +8,6 @@ define([
     Iznik.Models.Chat.Room = Iznik.Model.extend({
         urlRoot: API + 'chat/rooms',
 
-        sendingID: -1,
         sending: [],
 
         send: function(message) {
@@ -30,7 +29,12 @@ define([
 
             // Try to send any queued messages.
             var msg = self.sending.pop();
-            msg.save().then(function() {
+            msg.save({
+                error: function() {
+                    // Failed - retry later in case transient network issue.
+                    _.delay(_.bind(self.sendQueue, self), 10000);
+                }
+            }).then(function() {
                 // Maintain the lastmsgseen flag.  We might send multiple messages which complete in
                 // different order, so don't go backwards.
                 var lastmsg = msg.get('lastmsgseen');
@@ -41,12 +45,8 @@ define([
                     // We have another message to send.
                     _.delay(_.bind(self.sendQueue, self), 100);
                 } else {
-                    // We have sent them all. Get the messages back so that any views update.
-                    self.messages.fetch({
-                        remove: true
-                    }).then(function() {
-                        self.trigger('sent');
-                    });
+                    // We have sent them all.
+                    self.trigger('sent');
                 }
             });
         },
