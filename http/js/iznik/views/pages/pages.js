@@ -125,9 +125,13 @@ define([
                     });
 
                     $(document).click(function(e) {
+                        // If we click outside the chat dropdown, hide it.
                         if (!$(e.target).closest('#notifchatdropdown').length) {
                             $('#notifchatdropdown').hide();
                         }
+
+                        // If we click outside the dropdown menu, hide that.
+                        $('.collapse').collapse('hide');
                     });
 
                     $('#botleft').empty();
