@@ -71,7 +71,7 @@ EOT;
                                                                 <tr>
                                                                     <td>
                                                                         <h1>$subject</h1>
-                                                                        <p>Dear $toname,</p>
+                                                                        <p>Dear $toname (for $groupname),</p>
                                                                     </td>    
                                                                 </tr>                                                                    
                                                                 <tr>
