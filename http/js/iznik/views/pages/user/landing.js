@@ -66,29 +66,40 @@ define([
         },
 
         render: function() {
+            var self = this;
+            console.log("Render contact");
+
             var p = Iznik.Views.Page.prototype.render.call(this);
-            p.then(function (self) {
+            p.then(function () {
+                console.log("Test logged");
                 self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
-                    var groups = Iznik.Session.get('groups');
+                    console.log("Logged in", loggedIn);
+                    if (loggedIn) {
+                        var groups = Iznik.Session.get('groups');
 
-                    if (groups.length >= 0) {
-                        self.groupSelect = new Iznik.Views.Group.Select({
-                            systemWide: false,
-                            all: false,
-                            mod: false,
-                            choose: true,
-                            id: 'contactGroupSelect'
-                        });
+                        if (groups.length >= 0) {
+                            self.groupSelect = new Iznik.Views.Group.Select({
+                                systemWide: false,
+                                all: false,
+                                mod: false,
+                                choose: true,
+                                id: 'contactGroupSelect'
+                            });
 
-                        self.groupSelect.render().then(function() {
-                            self.$('.js-groupselect').html(self.groupSelect.el);
-                        });
+                            self.groupSelect.render().then(function() {
+                                self.$('.js-groupselect').html(self.groupSelect.el);
+                            });
 
-                        self.$('.js-contactmods').show();
+                            self.$('.js-contactmods').show();
+                        }
+                    } else {
+                        console.log("Show");
+                        self.$('.js-signinfirst').show();
                     }
                 });
 
                 Iznik.Session.testLoggedIn();
+                console.log("Tested");
             });
 
             return (p);
