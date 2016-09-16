@@ -25,9 +25,19 @@ function session() {
                     'push' => $n->get($ret['me']['id'])
                 ];
 
-                $ret['configs'] = $me->getConfigs();
+                # We cache the configs as they are expensive to get.
+                if (pres('configs', $_SESSION)) {
+                    $ret['configs'] = $_SESSION['configs'];
+                    $ret['configscached'] = TRUE;
+                } else {
+                    $ret['configs'] = $me->getConfigs();
+                    $_SESSION['configs'] = $ret['configs'];
+                }
+
                 $ret['emails'] = $me->getEmails();
-                $ret['groups'] = $me->getMemberships();
+
+                # Get groups including work.
+                $ret['groups'] = $me->getMemberships(FALSE, NULL, TRUE);
                 $ret['work'] = [];
 
                 foreach ($ret['groups'] as &$group) {
@@ -86,8 +96,6 @@ function session() {
 
         case 'POST': {
             # Login
-            session_reopen();
-
             $fblogin = array_key_exists('fblogin', $_REQUEST) ? filter_var($_REQUEST['fblogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $googlelogin = array_key_exists('googlelogin', $_REQUEST) ? filter_var($_REQUEST['googlelogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $yahoologin = array_key_exists('yahoologin', $_REQUEST) ? filter_var($_REQUEST['yahoologin'], FILTER_VALIDATE_BOOLEAN) : FALSE;

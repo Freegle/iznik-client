@@ -201,7 +201,11 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals($mid1, $ret['chatmessage']['id']);
 
         # Should be able to post
-        $ret = $this->call('chatmessages', 'POST', [ 'roomid' => $this->cid, 'message' => 'Test' ]);
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $this->cid,
+            'message' => 'Test',
+            'dup' => 1
+        ]);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
 

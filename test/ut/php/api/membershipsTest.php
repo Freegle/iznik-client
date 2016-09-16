@@ -850,7 +850,8 @@ class membershipsAPITest extends IznikAPITestCase {
         $ret = $this->call('memberships', 'POST', [
             'userid' => $uid,
             'groupid' => $this->groupid,
-            'action' => 'Hold'
+            'action' => 'Hold',
+            'dup' => 1
         ]);
         assertEquals(2, $ret['ret']);
 

@@ -56,6 +56,9 @@ function stdmsg() {
                         # Update the other attributes.
                         $s->setAttributes($_REQUEST);
                     }
+
+                    # Clear cache.
+                    $_SESSION['modconfigs'] = NULL;
                 }
 
                 break;
@@ -76,6 +79,9 @@ function stdmsg() {
                         'ret' => 0,
                         'status' => 'Success'
                     ];
+
+                    # Clear cache.
+                    $_SESSION['modconfigs'] = NULL;
                 }
                 break;
             }
@@ -95,6 +101,9 @@ function stdmsg() {
                         'ret' => 0,
                         'status' => 'Success'
                     ];
+
+                    # Clear cache.
+                    $_SESSION['modconfigs'] = NULL;
                 }
             }
         }

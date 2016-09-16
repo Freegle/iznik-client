@@ -686,7 +686,7 @@ class User extends Entity
         return($rc);
     }
 
-    public function getMemberships($modonly = FALSE, $grouptype = NULL) {
+    public function getMemberships($modonly = FALSE, $grouptype = NULL, $getwork = FALSE) {
         $ret = [];
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
@@ -716,19 +716,21 @@ class User extends Entity
 
             $one['mysettings'] = $this->getGroupSettings($group['groupid']);
 
-            # We only need finding out how much work there is if we are interested in seeing it.
-            $showmessages = !array_key_exists('showmessages', $one['mysettings']) || $one['mysettings']['showmessages'];
-            $showmembers = !array_key_exists('showmembers', $one['mysettings']) || $one['mysettings']['showmembers'];
+            if ($getwork) {
+                # We only need finding out how much work there is if we are interested in seeing it.
+                $showmessages = !array_key_exists('showmessages', $one['mysettings']) || $one['mysettings']['showmessages'];
+                $showmembers = !array_key_exists('showmembers', $one['mysettings']) || $one['mysettings']['showmembers'];
 
-            if ((($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER)) &&
-                ($showmessages || $showmembers)) {
-                if (!$g) {
-                    # We need to have an actual group object for this.
-                    $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+                if ((($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER)) &&
+                    ($showmessages || $showmembers)) {
+                    if (!$g) {
+                        # We need to have an actual group object for this.
+                        $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+                    }
+
+                    # Give a summary of outstanding work.
+                    $one['work'] = $g->getWorkCounts($one['mysettings'], $this->id);
                 }
-
-                # Give a summary of outstanding work.
-                $one['work'] = $g->getWorkCounts($one['mysettings'], $this->id);
             }
 
             $ret[] = $one;
@@ -803,19 +805,13 @@ class User extends Entity
     }
 
     public function getModeratorships() {
-        # This gets called a lot - cache it.
-        $key = "memberships.{$this->id}";
-        if (!pres($key, $_SESSION['cache'])) {
-            $ret = [];
-            $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner');", [ $this->id ]);
-            foreach ($groups as $group) {
-                $ret[] = $group['groupid'];
-            }
-
-            $_SESSION['cache'][$key] = $ret;
+        $ret = [];
+        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner');", [ $this->id ]);
+        foreach ($groups as $group) {
+            $ret[] = $group['groupid'];
         }
 
-        return($_SESSION['cache'][$key]);
+        return($ret);
     }
 
     public function isModOrOwner($groupid) {

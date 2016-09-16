@@ -232,7 +232,7 @@ class userTest extends IznikTestCase {
         $u->setRole(User::ROLE_OWNER, $group1);
         assertEquals($u->getRoleForGroup($group1), User::ROLE_OWNER);
         assertTrue($u->isModOrOwner($group1));
-        assertTrue(array_key_exists('work', $u->getMemberships()[0]));
+        assertTrue(array_key_exists('work', $u->getMemberships(FALSE, NULL, TRUE)[0]));
         $settings = $u->getGroupSettings($group1);
         error_log("Settings " . var_export($settings, TRUE));
         assertEquals('test', $settings['testsetting']);
@@ -250,7 +250,7 @@ class userTest extends IznikTestCase {
         $u->setRole(User::ROLE_MODERATOR, $group1);
         assertEquals($u->getRoleForGroup($group1), User::ROLE_MODERATOR);
         assertTrue($u->isModOrOwner($group1));
-        assertTrue(array_key_exists('work', $u->getMemberships()[0]));
+        assertTrue(array_key_exists('work', $u->getMemberships(FALSE, NULL, TRUE)[0]));
         $modships = $u->getModeratorships();
         assertEquals(1, count($modships));
 

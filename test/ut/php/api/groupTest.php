@@ -228,7 +228,7 @@ class groupAPITest extends IznikAPITestCase {
         $ret = $this->call('group', 'POST', [
             'action' => 'AddLicense',
             'id' => $this->groupid,
-            'voucher' => 'wibble'
+            'voucher' => 'wibble2'
         ]);
         assertEquals(2, $ret['ret']);
 

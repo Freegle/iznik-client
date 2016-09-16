@@ -117,24 +117,26 @@ if ($_REQUEST['type'] == 'OPTIONS') {
         if ((DUPLICATE_POST_PROTECTION > 0) && array_key_exists('REQUEST_METHOD', $_SERVER) && ($_REQUEST['type'] == 'POST')) {
             $req = $_SERVER['REQUEST_URI'] . serialize($_REQUEST);
 
-            # Repeat logins are OK.
-            #
-            # So are correlations, which are repeatable without ill effects.
-            if ($_SESSION &&
-                ($call != 'session') && ($call != 'correlate') && ($call != 'chatrooms') && ($call != 'events') &&
-                ($call != 'upload') &&
-                array_key_exists('POSTLASTTIME', $_SESSION)) {
-                $ago = time() - $_SESSION['POSTLASTTIME'];
+            # Some actions are ok, so we exclude those.
+            if ($_SESSION) {
+                if ( !in_array($call, [ 'session', 'correlate', 'chatrooms', 'events', 'upload'] ) &&
+                    array_key_exists('POSTLASTTIME', $_SESSION)) {
+                    $ago = time() - $_SESSION['POSTLASTTIME'];
 
-                if (($ago < DUPLICATE_POST_PROTECTION) && ($req == $_SESSION['POSTLASTDATA'])) {
-                    $ret = array('ret' => 999, 'text' => 'Duplicate request - rejected.', 'data' => $_REQUEST);
-                    echo json_encode($ret);
-                    break;
+                    if (($ago < DUPLICATE_POST_PROTECTION) && ($req == $_SESSION['POSTLASTDATA'])) {
+                        $ret = array('ret' => 999, 'text' => 'Duplicate request - rejected.', 'data' => $_REQUEST);
+                        echo json_encode($ret);
+                        break;
+                    }
                 }
-            }
 
-            $_SESSION['POSTLASTTIME'] = time();
-            $_SESSION['POSTLASTDATA'] = $req;
+                $_SESSION['POSTLASTTIME'] = time();
+                $_SESSION['POSTLASTDATA'] = $req;
+            }
+        } else {
+            # Not a POST call we're interested in - so reset our protection.
+            unset($_SESSION['POSTLASTTIME']);
+            unset($_SESSION['POSTLASTDATA']);
         }
 
         try {
@@ -278,9 +280,6 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             if ($apicallretries > 0) {
                 error_log("API call $call worked after $apicallretries");
             }
-
-            # We don't want to cache things in our session cache beyond this call.
-            $_SESSION['cache'] = [];
 
             if (BROWSERTRACKING && (presdef('type', $_REQUEST, NULL) != 'GET') &&
                 (gettype($ret) == 'array' && !array_key_exists('nolog', $ret))) {

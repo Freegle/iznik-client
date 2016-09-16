@@ -387,7 +387,8 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $group1,
-            'action' => 'Approve'
+            'action' => 'Approve',
+            'dup' => 1
         ]);
         assertEquals(2, $ret['ret']);
 
@@ -510,7 +511,8 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $group1,
-            'action' => 'Reject'
+            'action' => 'Reject',
+            'dup' => 1
         ]);
         assertEquals(2, $ret['ret']);
 
@@ -644,7 +646,8 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $group1,
-            'action' => 'Reply'
+            'action' => 'Reply',
+            'dup' => 1
         ]);
         assertEquals(2, $ret['ret']);
 
@@ -718,7 +721,8 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $group1,
-            'action' => 'Delete'
+            'action' => 'Delete',
+            'dup' => 1
         ]);
         assertEquals(2, $ret['ret']);
 
@@ -925,7 +929,8 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $group1,
-            'action' => 'Hold'
+            'action' => 'Hold',
+            'dup' => 1
         ]);
         assertEquals(2, $ret['ret']);
 

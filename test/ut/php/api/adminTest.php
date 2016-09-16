@@ -68,12 +68,13 @@ class adminAPITest extends IznikAPITestCase
         # Or logged in as non-mod
         assertTrue($this->user->login('testpw'));
         $this->user->addMembership($this->groupid);
+        $admindata['dup'] = 1;
         $ret = $this->call('admin', 'POST', $admindata);
         assertEquals(2, $ret['ret']);
 
         # Can create as mod
         $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
-        $admindata['dup'] = TRUE;
+        $admindata['dup']++;
         $ret = $this->call('admin', 'POST', $admindata);
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];

@@ -68,8 +68,6 @@ class sessionClassTest extends IznikTestCase {
         prepareSession($this->dbhm, $this->dbhm);
         prepareSession($this->dbhm, $this->dbhm);
 
-        session_reopen();
-
         error_log(__METHOD__ . " end");
     }
 
