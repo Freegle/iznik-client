@@ -977,6 +977,7 @@ define([
                 // We've just opened this chat - so we have had a decent chance to see any unread messages.
                 v.close();
                 self.messageFocus();
+                self.scrollBottom();
                 self.trigger('restored');
             });
         },
