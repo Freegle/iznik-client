@@ -120,10 +120,10 @@ class sessionTest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         assertNotNull($u->addEmail('test@test.com'));
-        $u = new User($this->dbhm, $this->dbhm, $id);
+        $u = User::get($this->dbhm, $this->dbhm, $id);
 
         $g = new Group($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
@@ -222,10 +222,10 @@ class sessionTest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         assertNotNull($u->addEmail('test@test.com'));
-        $u = new User($this->dbhm, $this->dbhm, $id);
+        $u = User::get($this->dbhm, $this->dbhm, $id);
 
         $ret = $this->call('session', 'PATCH', [
             'firstname' => 'Test2',
@@ -252,7 +252,7 @@ class sessionTest extends IznikAPITestCase
         assertEquals('User2', $ret['me']['lastname']);
 
         # Set to an email already in use
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         assertNotNull($u->addEmail('test3@test.com'));
         $ret = $this->call('session', 'PATCH', [
@@ -262,7 +262,7 @@ class sessionTest extends IznikAPITestCase
         assertEquals(10, $ret['ret']);
 
         # Change password and check it works.
-        $u = new User($this->dbhm, $this->dbhm, $id);
+        $u = User::get($this->dbhm, $this->dbhm, $id);
         $u->addLogin(User::LOGIN_NATIVE, $u->getId(), 'testpw');
         $ret = $this->call('session', 'POST', [
             'email' =>'test3@test.com',
@@ -287,11 +287,11 @@ class sessionTest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         error_log("Created user $id");
         assertNotNull($u->addEmail('test@test.com'));
-        $u = new User($this->dbhm, $this->dbhm, $id);
+        $u = User::get($this->dbhm, $this->dbhm, $id);
 
         $g = new Group($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
@@ -366,7 +366,7 @@ class sessionTest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         error_log("Created user $id");
 
@@ -397,7 +397,7 @@ class sessionTest extends IznikAPITestCase
 
         $email = 'test-' . rand() . '@blackhole.io';
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
 
         $ret = $this->call('session', 'POST', [

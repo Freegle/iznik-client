@@ -96,7 +96,7 @@ function whoAmI(LoggedPDO $dbhr, $dbhm, $writeaccess = false)
 
     if ($id) {
         # We are logged in.  Get our details
-        $ret = new User($dbhr, $dbhm, $id);
+        $ret = User::get($dbhr, $dbhm, $id);
         #error_log("Found " . $ret->getId());
     }
 
@@ -131,7 +131,6 @@ class Session {
         # this won't get written to the actual session anyway, but it's a convenient place to store things.  When
         # clearing it we need to get write access in case there is actually something in the session.
         session_reopen();
-        $_SESSION['cache'] = [];
         $_SESSION['modorowner'] = [];
     }
 

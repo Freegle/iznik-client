@@ -15,7 +15,7 @@ function comment() {
         ${"user$i"} = presdef("user$i", $_REQUEST, NULL);
     }
 
-    $u = new User($dbhr, $dbhm, $userid);
+    $u = User::get($dbhr, $dbhm, $userid);
 
     # Access control is done inside the calls, rather than in here.
     #

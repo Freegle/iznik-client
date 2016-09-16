@@ -81,7 +81,7 @@ class Events {
                     $thisone['viewy'] = $session['viewy'];
 
                     if ($session['userid']) {
-                        $u = new User($this->dbhr, $this->dbhm, $session['userid']);
+                        $u = User::get($this->dbhr, $this->dbhm, $session['userid']);
                         $thisone['user'] = $u->getPublic(NULL, FALSE);
                     }
 

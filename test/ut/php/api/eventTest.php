@@ -96,9 +96,9 @@ EOT
             ]);
             assertEquals(2, $ret['ret']);
 
-            $u = new User($this->dbhr, $this->dbhm);
+            $u = User::get($this->dbhr, $this->dbhm);
             $this->uid = $u->create(NULL, NULL, 'Test User');
-            $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
+            $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
             $this->user->addEmail('test@test.com');
             $pw = randstr(32);
             assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, $pw));

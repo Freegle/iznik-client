@@ -31,7 +31,7 @@ class EventDigest
     }
 
     public function off($uid, $groupid) {
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->setMembershipAtt($groupid, 'eventsallowed', 0);
         $g = new Group($this->dbhr, $this->dbhm, $groupid);
 
@@ -146,7 +146,7 @@ class EventDigest
 
                 if ($this->errorlog) { error_log("Consider " . count($users) . " users "); }
                 foreach ($users as $user) {
-                    $u = new User($this->dbhr, $this->dbhm, $user['userid']);
+                    $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
                     if ($this->errorlog) {
                         error_log("Consider user {$user['userid']}");
                     }

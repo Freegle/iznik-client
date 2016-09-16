@@ -27,7 +27,7 @@ foreach ($mods as $mod) {
         $gid = $g->findByShortName($mod['groupname']);
 
         if ($gid) {
-            $u = new User($dbhr, $dbhm);
+            $u = User::get($dbhr, $dbhm);
             $uid1 = $u->findByEmail($mod['email']);
             $uid2 = $u->findByYahooId($mod['yahooid']);
 
@@ -43,7 +43,7 @@ foreach ($mods as $mod) {
 
             if ($uid) {
                 error_log("Found group $gid mod $uid {$mod['yahooid']}");
-                $u = new User($dbhr, $dbhm, $uid);
+                $u = User::get($dbhr, $dbhm, $uid);
                 $u->addLogin('Yahoo', $mod['yahooid']);
                 $emailid = $u->addEmail($mod['email'], 1);
 

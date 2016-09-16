@@ -244,6 +244,12 @@ class LoggedPDO {
         return("sqlsess" . session_id());
     }
 
+    public function clearCache() {
+        $this->time = -1;
+
+        return($this->getRedis()->setex($this->sessionKey(), LoggedPDO::CACHE_EXPIRY, microtime(TRUE)));
+    }
+
     private function prex($sql, $params = NULL, $select, $log) {
         #error_log($sql);
         $try = 0;
@@ -259,7 +265,7 @@ class LoggedPDO {
             if (preg_match('/INSERT|REPLACE|UPDATE|DELETE/', $sql)) {
                 # Ok, this is a modification op.  Zap our SQL cache.
                 #error_log("Invalidate cache with $sql");
-                $rc = $this->getRedis()->setex($this->sessionKey(), LoggedPDO::CACHE_EXPIRY, microtime(TRUE));
+                $rc = $this->clearCache();
             } else if ($this->readonly) {
                 # This is a readonly connection, so it's acceptable for the data to be slightly out of date.  We can
                 # query our redis cache.

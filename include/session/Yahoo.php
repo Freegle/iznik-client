@@ -64,14 +64,14 @@ class Yahoo
                 $yahooid = substr($yahooid, 0, $p);
 
                 # See if we know this user already.  We might have an entry for them by email, or by Yahoo ID.
-                $u = new User($this->dbhr, $this->dbhm);
+                $u = User::get($this->dbhr, $this->dbhm);
                 $eid = $u->findByEmail($attrs['contact/email']);
                 $yid = $u->findByYahooId($yahooid);
                 #error_log("Email $eid  from {$attrs['contact/email']} Yahoo $yid");
 
                 if ($eid && $yid && $eid != $yid) {
                     # This is a duplicate user.  Merge them.
-                    $u = new User($this->dbhr, $this->dbhm);
+                    $u = User::get($this->dbhr, $this->dbhm);
                     $u->merge($eid, $yid, "Yahoo Login - YahooId $yahooid = $yid, Email {$attrs['contact/email']} = $eid");
                     #error_log("Yahoo login found duplicate user, merge $yid into $eid");
                 }
@@ -90,7 +90,7 @@ class Yahoo
 
                     if ($id) {
                         # Make sure that we have the Yahoo email recorded as one of the emails for this user.
-                        $u = new User($this->dbhr, $this->dbhm, $id);
+                        $u = User::get($this->dbhr, $this->dbhm, $id);
                         $u->addEmail($attrs['contact/email'], 0, FALSE);
 
                         # Now Set up a login entry.
@@ -106,7 +106,7 @@ class Yahoo
                     }
                 }
 
-                $u = new User($this->dbhr, $this->dbhm, $id);
+                $u = User::get($this->dbhr, $this->dbhm, $id);
 
                 # We have publish permissions for users who login via our platform.
                 $u->setPrivate('publishconsent', 1);
@@ -135,6 +135,7 @@ class Yahoo
                         [
                             $id
                         ]);
+                    User::clearCache($id);
 
                     $l = new Log($this->dbhr, $this->dbhm);
                     $l->log([

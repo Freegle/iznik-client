@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 $sql = "SELECT logs.* FROM logs INNER JOIN users ON logs.user = users.id AND users.systemrole IN ('Moderator', 'Support', 'Admin') WHERE type = 'User' and subtype = 'Split' ;";
 $logs = $dbhr->preQuery($sql);
 
-$u = new User($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 
 $count = 0;
 

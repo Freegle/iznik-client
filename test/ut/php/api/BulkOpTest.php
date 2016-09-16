@@ -33,9 +33,9 @@ class bulkOpAPITest extends IznikAPITestCase {
         # Create a moderator and log in as them
         $g = new Group($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
         $this->user->addMembership($this->groupid);
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -214,9 +214,9 @@ class bulkOpAPITest extends IznikAPITestCase {
         # Try as a mod, but the wrong one.
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup2', Group::GROUP_REUSE);
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $user = new User($this->dbhr, $this->dbhm, $uid);
+        $user = User::get($this->dbhr, $this->dbhm, $uid);
         $user->addEmail('test2@test.com');
         $user->addMembership($gid, User::ROLE_OWNER);
         assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -267,9 +267,9 @@ class bulkOpAPITest extends IznikAPITestCase {
         # Try as a mod, but the wrong one.
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup2', Group::GROUP_REUSE);
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $user = new User($this->dbhr, $this->dbhm, $uid);
+        $user = User::get($this->dbhr, $this->dbhm, $uid);
         $user->addEmail('test2@test.com');
         $user->addMembership($gid, User::ROLE_OWNER);
         assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));

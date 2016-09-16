@@ -30,19 +30,19 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $dbhm->preExec("DELETE FROM chat_rooms WHERE name = 'test';");
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $this->uid2 = $u->create(NULL, NULL, 'Test User');
-        $this->user2 = new User($this->dbhr, $this->dbhm, $this->uid2);
+        $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
         assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $this->uid3 = $u->create(NULL, NULL, 'Test User');
-        $this->user3 = new User($this->dbhr, $this->dbhm, $this->uid3);
+        $this->user3 = User::get($this->dbhr, $this->dbhm, $this->uid3);
         assertGreaterThan(0, $this->user3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $g = new Group($this->dbhr, $this->dbhm);

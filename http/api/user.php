@@ -18,14 +18,14 @@ function user() {
 
     if (!$id && $yahooUserId) {
         # We don't know our unique ID, but we do know the Yahoo one. Find it.
-        $u = new User($dbhr, $dbhm);
+        $u = User::get($dbhr, $dbhm);
         $id = $u->findByYahooUserId($yahooUserId);
     }
 
     $email = presdef('email', $_REQUEST, NULL);
     if (!$id && $email) {
         # We still don't know our unique ID, but we do know an email.  Find it.
-        $u = new User($dbhr, $dbhm);
+        $u = User::get($dbhr, $dbhm);
         $id = $u->findByEmail($email);
     }
 
@@ -40,7 +40,7 @@ function user() {
             $modmailsonly = array_key_exists('modmailsonly', $_REQUEST) ? filter_var($_REQUEST['modmailsonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $ctx = presdef('logcontext', $_REQUEST, NULL);
 
-            $u = new User($dbhr, $dbhm, $id);
+            $u = User::get($dbhr, $dbhm, $id);
 
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
@@ -86,7 +86,7 @@ function user() {
                     # This user already exists.  If we are trying to register again with the same password, then
                     # the user is probably just a bit confused, but it's the same person - so treat this as a success.
                     # So try to login.
-                    $u = new User($dbhr, $dbhm, $id);
+                    $u = User::get($dbhr, $dbhm, $id);
                     $rc = $u->login($password);
 
                     if ($rc) {
@@ -142,7 +142,7 @@ function user() {
         }
 
         case 'PATCH': {
-            $u = new User($dbhr, $dbhm, $id);
+            $u = User::get($dbhr, $dbhm, $id);
             $p = new Plugin($dbhr, $dbhm);
             $l = new Log($dbhr, $dbhm);
 
@@ -205,7 +205,7 @@ function user() {
         }
 
         case 'POST': {
-            $u = new User($dbhr, $dbhm, $id);
+            $u = User::get($dbhr, $dbhm, $id);
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             $role = $me ? $me->getRoleForGroup($groupid) : User::ROLE_NONMEMBER;
 
@@ -223,7 +223,7 @@ function user() {
         }
 
         case 'DELETE': {
-            $u = new User($dbhr, $dbhm, $id);
+            $u = User::get($dbhr, $dbhm, $id);
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             if ($me && $me->isAdmin()) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];

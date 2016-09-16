@@ -44,7 +44,7 @@ class statsTest extends IznikTestCase {
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Test set members.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         error_log("Created user $uid");
         $u->addEmail('test@test.com');

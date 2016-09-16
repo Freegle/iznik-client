@@ -11,7 +11,7 @@ $at = 0;
 
 $sql = "SELECT canon, COUNT( * ) FROM users_emails GROUP BY canon HAVING COUNT( * ) > 1";
 $emails = $dbhr->preQuery($sql);
-$u = new User($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 
 $total = count($emails);
 error_log("Got $total");

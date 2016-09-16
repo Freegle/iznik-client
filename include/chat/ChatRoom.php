@@ -239,7 +239,7 @@ class ChatRoom extends Entity
 
         if (pres('user1', $ret)) {
             # This is a conversation between two people.   
-            $u = new User($this->dbhr, $this->dbhm, $ret['user1']);
+            $u = User::get($this->dbhr, $this->dbhm, $ret['user1']);
             unset($ret['user1']);
             $ctx = NULL;
             $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
@@ -247,7 +247,7 @@ class ChatRoom extends Entity
 
         if (pres('user2', $ret)) {
             # This is a conversation between two people.   
-            $u = new User($this->dbhr, $this->dbhm, $ret['user2']);
+            $u = User::get($this->dbhr, $this->dbhm, $ret['user2']);
             unset($ret['user2']);
             $ctx = NULL;
             $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
@@ -327,7 +327,7 @@ class ChatRoom extends Entity
 
     public function listForUser($userid, $chattypes) {
         $ret = [];
-        $u = new User($this->dbhr, $this->dbhm, $userid);
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
         $typeq = " AND chattype IN ('" . implode("','", $chattypes) . "') ";
 
         # The chats we can see are:
@@ -507,7 +507,7 @@ class ChatRoom extends Entity
         $roster = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
 
         foreach ($roster as &$rost) {
-            $u = new User($this->dbhr, $this->dbhm, $rost['userid']);
+            $u = User::get($this->dbhr, $this->dbhm, $rost['userid']);
             switch ($rost['status']) {
                 case ChatRoom::STATUS_ONLINE:
                     # We last heard that they were online; but if we've not heard from them recently then fade them out.
@@ -593,11 +593,11 @@ class ChatRoom extends Entity
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
                 $thisone['chatroom'] = $r->getPublic();
 
-                $u = new User($this->dbhr, $this->dbhm, $msg['userid']);
+                $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
                 $thisone['fromuser'] = $u->getPublic();
 
                 $touserid = $msg['userid'] == $thisone['chatroom']['user1']['id'] ? $thisone['chatroom']['user2']['id'] : $thisone['chatroom']['user1']['id'];
-                $u = new User($this->dbhr, $this->dbhm, $touserid);
+                $u = User::get($this->dbhr, $this->dbhm, $touserid);
                 $thisone['touser'] = $u->getPublic();
 
                 $g = new Group($this->dbhr, $this->dbhm, $msg['groupid']);
@@ -656,7 +656,7 @@ class ChatRoom extends Entity
                 }
 
                 if (!array_key_exists($msg['userid'], $users)) {
-                    $u = new User($this->dbhr, $this->dbhm, $msg['userid']);
+                    $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
                     $users[$msg['userid']] = $u->getPublic(NULL, FALSE);
                 }
 
@@ -835,8 +835,8 @@ class ChatRoom extends Entity
                 #error_log("Not seen {$member['userid']}");
                 # Now we have a member who has not seen all of the messages in this chat.  Find the other one.
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
-                $otheru = new User($this->dbhr, $this->dbhm, $other);
-                $thisu = new User($this->dbhr, $this->dbhm, $member['userid']);
+                $otheru = User::get($this->dbhr, $this->dbhm, $other);
+                $thisu = User::get($this->dbhr, $this->dbhm, $member['userid']);
                 
                 # Now collect a summary of what they've missed.
                 $unseenmsgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE chatid = ? AND id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",

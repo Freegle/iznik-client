@@ -228,7 +228,7 @@ class Alert extends Entity
             error_log("..." . count($mods) . " volunteers");
 
             foreach ($mods as $mod) {
-                $u = new User($this->dbhr, $this->dbhm, $mod['userid']);
+                $u = User::get($this->dbhr, $this->dbhm, $mod['userid']);
 
                 $emails = $u->getEmails();
                 foreach ($emails as $email) {

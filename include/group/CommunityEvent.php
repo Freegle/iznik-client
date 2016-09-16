@@ -148,7 +148,7 @@ class CommunityEvent extends Entity
         # appears, or if we're support/admin.
         $canmodify = $this->event['userid'] == $userid;
         #error_log("Check user {$this->event['userid']}, $userid");
-        $u = new User($this->dbhr, $this->dbhm, $userid);
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         #error_log("Can mod? $canmodify");
         if (!$canmodify) {

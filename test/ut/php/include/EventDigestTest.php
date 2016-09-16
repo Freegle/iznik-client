@@ -46,7 +46,7 @@ class eventDigestTest extends IznikTestCase {
 
 
         # And two users, one who wants events and one who doesn't.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u->create(NULL, NULL, "Test User");
         $eid1 = $u->addEmail('test1@test.com');
         $u->addEmail('test1@' . USER_DOMAIN);

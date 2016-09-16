@@ -283,7 +283,7 @@ function message() {
 
                                 # Now we know which group we'd like to post on.  Make sure we have a user set up.
                                 $email = presdef('email', $_REQUEST, NULL);
-                                $u = new User($dbhr, $dbhm);
+                                $u = User::get($dbhr, $dbhm);
                                 $uid = $u->findByEmail($email);
 
                                 if (!$uid) {
@@ -300,7 +300,7 @@ function message() {
                                     $u->login($pw);
                                     $u->welcome($email, $pw);
                                 } else {
-                                    $u = new User($dbhr, $dbhm, $uid);
+                                    $u = User::get($dbhr, $dbhm, $uid);
                                     $eid = $u->getIdForEmail($email)['id'];
 
                                     if ($u->getEmailPreferred() != $email) {

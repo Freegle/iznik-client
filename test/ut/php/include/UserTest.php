@@ -41,7 +41,7 @@ class userTest extends IznikTestCase {
     public function testBasic() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         error_log("Created $id");
         $atts = $u->getPublic();
@@ -57,7 +57,7 @@ class userTest extends IznikTestCase {
 
         assertGreaterThan(0, $u->delete());
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
         $atts = $u->getPublic();
         assertNull($atts['firstname']);
@@ -73,7 +73,7 @@ class userTest extends IznikTestCase {
     public function testEmails() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         assertEquals(0, count($u->getEmails()));
 
@@ -145,7 +145,7 @@ class userTest extends IznikTestCase {
     public function testLogins() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         assertEquals(0, count($u->getEmails()));
 
@@ -184,7 +184,7 @@ class userTest extends IznikTestCase {
     public function testErrors() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         assertEquals(0, $u->addEmail('test-owner@yahoogroups.com'));
 
         $mock = $this->getMockBuilder('LoggedPDO')
@@ -206,13 +206,14 @@ class userTest extends IznikTestCase {
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
 
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
         $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = $id;");
+        User::clearCache($id);
         $eid = $u->addEmail('test@test.com');
         assertGreaterThan(0, $eid);
         $u->setPrivate('yahooUserId', 1);
-        $u = new User($this->dbhm, $this->dbhm, $id);
+        $u = User::get($this->dbhm, $this->dbhm, $id);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
         assertEquals($u->getRoleForGroup($group1), User::ROLE_NONMEMBER);
         assertFalse($u->isModOrOwner($group1));
@@ -287,7 +288,12 @@ class userTest extends IznikTestCase {
         assertEquals($u->getRoleForGroup($group1), User::ROLE_MODERATOR);
         assertEquals(User::ROLE_MODERATOR, $m->getRoleForMessage());
         $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
+        error_log("Check role for group");
         assertEquals($u->getRoleForGroup($group1), User::ROLE_OWNER);
+        error_log("Check role for message");
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
+        assertEquals(User::SYSTEMROLE_ADMIN, $me->getPrivate('systemrole'));
         assertEquals(User::ROLE_OWNER, $m->getRoleForMessage());
 
         # Ban ourselves; can't rejoin
@@ -319,11 +325,11 @@ class userTest extends IznikTestCase {
         $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
         $group3 = $g->create('testgroup3', Group::GROUP_REUSE);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id1 = $u->create(NULL, NULL, 'Test User');
         $id2 = $u->create(NULL, NULL, 'Test User');
-        $u1 = new User($this->dbhr, $this->dbhm, $id1);
-        $u2 = new User($this->dbhr, $this->dbhm, $id2);
+        $u1 = User::get($this->dbhr, $this->dbhm, $id1);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2);
         assertGreaterThan(0, $u1->addEmail('test1@test.com'));
         assertGreaterThan(0, $u1->addEmail('test2@test.com', 0));
 
@@ -345,8 +351,8 @@ class userTest extends IznikTestCase {
         assertTrue($u1->merge($id1, $id2, "UT"));
 
         # Pick up new settings.
-        $u1 = new User($this->dbhr, $this->dbhm, $id1);
-        $u2 = new User($this->dbhr, $this->dbhm, $id2);
+        $u1 = User::get($this->dbhr, $this->dbhm, $id1, FALSE);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2, FALSE);
 
         assertEquals(1, $u1->getGroupSettings($group2)['test'] );
         assertNotNull($u1->getGroupSettings($group2)['configid']);
@@ -390,11 +396,11 @@ class userTest extends IznikTestCase {
         $g = new Group($this->dbhr, $this->dbhm);
         $group = $g->create('testgroup', Group::GROUP_REUSE);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id1 = $u->create(NULL, NULL, 'Test User');
         $id2 = $u->create(NULL, NULL, 'Test User');
-        $u1 = new User($this->dbhr, $this->dbhm, $id1);
-        $u2 = new User($this->dbhr, $this->dbhm, $id2);
+        $u1 = User::get($this->dbhr, $this->dbhm, $id1);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2);
         $eid1 = $u1->addEmail('test1@test.com');
         $eid2 = $u2->addEmail('test2@test.com');
 
@@ -406,7 +412,7 @@ class userTest extends IznikTestCase {
         assertTrue($u1->merge($id1, $id2, "UT"));
 
         # Pick up new settings.
-        $u1 = new User($this->dbhm, $this->dbhm, $id1);
+        $u1 = User::get($this->dbhm, $this->dbhm, $id1);
 
         $membershipid = $this->dbhm->preQuery("SELECT id FROM memberships WHERE userid = ?;", [ $id1 ])[0]['id'];
         error_log("Membershipid $membershipid");
@@ -428,7 +434,7 @@ class userTest extends IznikTestCase {
         $g = new Group($this->dbhr, $this->dbhm);
         $group = $g->create('testgroup', Group::GROUP_REUSE);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id1 = $u->create(NULL, NULL, 'Test User');
         $eid1 = $u->addEmail('test1@test.com');
         $eid2 = $u->addEmail('test2@test.com');
@@ -458,11 +464,11 @@ class userTest extends IznikTestCase {
         $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
         $group3 = $g->create('testgroup3', Group::GROUP_REUSE);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id1 = $u->create(NULL, NULL, 'Test User');
         $id2 = $u->create(NULL, NULL, 'Test User');
-        $u1 = new User($this->dbhr, $this->dbhm, $id1);
-        $u2 = new User($this->dbhr, $this->dbhm, $id2);
+        $u1 = User::get($this->dbhr, $this->dbhm, $id1);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2);
         assertGreaterThan(0, $u1->addEmail('test1@test.com'));
         assertGreaterThan(0, $u1->addEmail('test2@test.com', 1));
 
@@ -496,8 +502,8 @@ class userTest extends IznikTestCase {
         assertFalse($u1->merge($id1, $id2, "UT"));
 
         # Pick up new settings.
-        $u1 = new User($this->dbhr, $this->dbhm, $id1);
-        $u2 = new User($this->dbhr, $this->dbhm, $id2);
+        $u1 = User::get($this->dbhr, $this->dbhm, $id1);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2);
 
         # Both exist
         assertNotNull($u1->getId());
@@ -510,7 +516,7 @@ class userTest extends IznikTestCase {
 
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
 
         assertEquals(User::SYSTEMROLE_ADMIN, $u->systemRoleMax(User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_ADMIN));
         assertEquals(User::SYSTEMROLE_ADMIN, $u->systemRoleMax(User::SYSTEMROLE_ADMIN, User::SYSTEMROLE_SUPPORT));
@@ -530,7 +536,7 @@ class userTest extends IznikTestCase {
 
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
 
         assertEquals(User::ROLE_OWNER, $u->roleMax(User::ROLE_MEMBER, User::ROLE_OWNER));
         assertEquals(User::ROLE_OWNER, $u->roleMax(User::ROLE_OWNER, User::ROLE_MODERATOR));
@@ -550,7 +556,7 @@ class userTest extends IznikTestCase {
 
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
 
         assertEquals(User::ROLE_MEMBER, $u->roleMin(User::ROLE_MEMBER, User::ROLE_OWNER));
         assertEquals(User::ROLE_MODERATOR, $u->roleMin(User::ROLE_OWNER, User::ROLE_MODERATOR));
@@ -569,7 +575,7 @@ class userTest extends IznikTestCase {
     public function testMail() {
         error_log(__METHOD__ );
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $g = new Group($this->dbhr, $this->dbhm);
         $group = $g->create('testgroup1', Group::GROUP_REUSE);
@@ -613,9 +619,9 @@ class userTest extends IznikTestCase {
     public function testComments() {
         error_log(__METHOD__);
 
-        $u1 = new User($this->dbhr, $this->dbhm);
+        $u1 = User::get($this->dbhr, $this->dbhm);
         $id1 = $u1->create('Test', 'User', NULL);
-        $u2 = new User($this->dbhr, $this->dbhm);
+        $u2 = User::get($this->dbhr, $this->dbhm);
         $id2 = $u2->create('Test', 'User', NULL);
         assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u1->login('testpw'));
@@ -679,11 +685,11 @@ class userTest extends IznikTestCase {
     public function testCheck(){
         error_log(__METHOD__);
 
-        $u1 = new User($this->dbhr, $this->dbhm);
+        $u1 = User::get($this->dbhr, $this->dbhm);
         $id1 = $u1->create('Test', 'User', NULL);
         assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u1->login('testpw'));
-        $u2 = new User($this->dbhr, $this->dbhm);
+        $u2 = User::get($this->dbhr, $this->dbhm);
         $id2 = $u2->create('Test', 'User', NULL);
 
         $g = new Group($this->dbhr, $this->dbhm);
@@ -696,7 +702,7 @@ class userTest extends IznikTestCase {
             $u1->addMembership($gid, User::ROLE_MODERATOR);
             $u2->addMembership($gid);
 
-            $u2 = new User($this->dbhr, $this->dbhm, $id2);
+            $u2 = User::get($this->dbhr, $this->dbhm, $id2, FALSE);
             $atts = $u2->getPublic();
 
             error_log("$i");
@@ -718,9 +724,9 @@ class userTest extends IznikTestCase {
         $_SERVER['HTTP_HOST'] = 'localhost';
 
         # Test add when it's not in use anywhere
-        $u1 = new User($this->dbhr, $this->dbhm);
+        $u1 = User::get($this->dbhr, $this->dbhm);
         $id1 = $u1->create('Test', 'User', NULL);
-        $u1 = new User($this->dbhr, $this->dbhm, $id1);
+        $u1 = User::get($this->dbhr, $this->dbhm, $id1);
         assertFalse($u1->verifyEmail('bit-bucket@test.smtp.org'));
 
         # Confirm it
@@ -731,9 +737,9 @@ class userTest extends IznikTestCase {
         }
 
         # Test add when it's in use for another user
-        $u2 = new User($this->dbhr, $this->dbhm);
+        $u2 = User::get($this->dbhr, $this->dbhm);
         $id2 = $u2->create('Test', 'User', NULL);
-        $u2 = new User($this->dbhr, $this->dbhm, $id2);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2);
         assertFalse($u2->verifyEmail('bit-bucket@test.smtp.org'));
 
         # Now confirm that- should trigger a merge.
@@ -769,27 +775,27 @@ class userTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # No emails - should invent something.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $email = $u->inventEmail();
         error_log("No emails, invented $email");
         assertFalse(strpos($email, 'test'));
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->addEmail('test@test.com');
         $email = $u->inventEmail();
         error_log("Unusable email, invented $email");
         assertFalse(strpos($email, 'test'));
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->setPrivate('yahooid', '-wibble');
         $email = $u->inventEmail();
         error_log("Yahoo ID, invented $email");
         assertNotFalse(strpos($email, 'wibble'));
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->addEmail('wobble@wobble.com');
         $email = $u->inventEmail();
@@ -807,9 +813,9 @@ class userTest extends IznikTestCase {
     public function testSpecial() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail('chris@phdcc.com');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
 
 
         list ($eidforgroup, $emailforgroup) = $u->getEmailForYahooGroup(21560, TRUE);

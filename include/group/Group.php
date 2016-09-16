@@ -327,7 +327,7 @@ class Group extends Entity
         $ctx = [ 'Added' => NULL ];
 
         foreach ($members as $member) {
-            $u = new User($this->dbhr, $this->dbhm, $member['userid']);
+            $u = User::get($this->dbhr, $this->dbhm, $member['userid']);
             $thisone = $u->getPublic($groupids, TRUE);
             #error_log("{$member['userid']} has " . count($thisone['comments']));
 
@@ -379,7 +379,7 @@ class Group extends Entity
             $thisone['heldby'] = $member['heldby'];
 
             if (pres('heldby', $thisone)) {
-                $u = new User($this->dbhr, $this->dbhm, $thisone['heldby']);
+                $u = User::get($this->dbhr, $this->dbhm, $thisone['heldby']);
                 $thisone['heldby'] = $u->getPublic();
             }
 
@@ -460,7 +460,7 @@ class Group extends Entity
 
             # First make sure we have users set up for all the new members.  The input might have duplicate members;
             # save off the uid, and work out the role.
-            $u = new User($this->dbhm, $this->dbhm);
+            $u = User::get($this->dbhm, $this->dbhm);
             $overallroles = [];
             $count = 0;
 
@@ -506,7 +506,7 @@ class Group extends Entity
                         $uid = $u->create(NULL, NULL, $name, "During SetMembers for {$this->group['nameshort']}", presdef('yahooUserId', $memb, NULL), presdef('yahooid', $memb, NULL));
                         #error_log("Create $uid will have email " . presdef('email', $memb, '') . " yahooid " . presdef('yahooid', $memb, ''));
                     } else {
-                        $u = new User($this->dbhr, $this->dbhm, $uid);
+                        $u = User::get($this->dbhr, $this->dbhm, $uid);
                     }
 
                     # Make sure that the email is associated with this user.  Note that this may be required even
@@ -656,6 +656,7 @@ class Group extends Entity
                         # If this is a mod/owner, make sure the systemrole reflects that.
                         if ($overallrole == User::ROLE_MODERATOR || $overallrole == User::ROLE_OWNER) {
                             $sql = "UPDATE users SET systemrole = 'Moderator' WHERE id = {$member['uid']} AND systemrole = 'User';";
+                            User::clearCache($member['uid']);
                             $bulksql .= $sql;
                         }
 

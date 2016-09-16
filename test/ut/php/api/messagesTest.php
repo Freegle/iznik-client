@@ -64,7 +64,7 @@ class messagesTest extends IznikAPITestCase {
         $msgs = $ret['messages'];
         assertEquals(0, count($msgs));
 
-        $sender = new User($this->dbhr, $this->dbhm, $a->getFromuser());
+        $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
         $sender->setPrivate('publishconsent', 1);
 
         $ret = $this->call('messages', 'GET', [
@@ -78,9 +78,9 @@ class messagesTest extends IznikAPITestCase {
         assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
         # Now join and check we can see see it.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $id);
+        $u = User::get($this->dbhr, $this->dbhm, $id);
         $u->addMembership($group1);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -259,9 +259,9 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(0, count($msgs));
 
         # Now join - shouldn't be able to see a spam message
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $id);
+        $u = User::get($this->dbhr, $this->dbhm, $id);
         $u->addMembership($group1);
 
         $ret = $this->call('messages', 'GET', [
@@ -335,9 +335,9 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(0, count($msgs));
 
         # Now join - shouldn't be able to see a pending message
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $id);
+        $u = User::get($this->dbhr, $this->dbhm, $id);
         $u->addMembership($group1);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -387,9 +387,9 @@ class messagesTest extends IznikAPITestCase {
         # Should fail - not a mod
         assertEquals(2, $ret['ret']);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1, User::ROLE_MODERATOR);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -456,7 +456,7 @@ class messagesTest extends IznikAPITestCase {
 
         # Ensure we have consent to see this message
         $a = new Message($this->dbhr, $this->dbhm, $id);
-        $sender = new User($this->dbhr, $this->dbhm, $a->getFromuser());
+        $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
         $sender->setPrivate('publishconsent', 1);
 
         $l = new Location($this->dbhr, $this->dbhm);

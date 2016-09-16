@@ -69,7 +69,7 @@ class twitterTest extends IznikTestCase {
 
         # Ensure we have consent to see this message
         $a = new Message($this->dbhr, $this->dbhm, $id);
-        $sender = new User($this->dbhr, $this->dbhm, $a->getFromuser());
+        $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
         $sender->setPrivate('publishconsent', 1);
 
         $t = new Twitter($this->dbhr, $this->dbhm, $gid);

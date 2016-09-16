@@ -52,9 +52,9 @@ class correlateTest extends IznikAPITestCase {
         $m = new Message($this->dbhr, $this->dbhm, $msgid);
 
         # Create a mod
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $id);
+        $u = User::get($this->dbhr, $this->dbhm, $id);
         $u->addMembership($group1, User::ROLE_MODERATOR);
 
         $ret = $this->call('messages', 'POST', [
@@ -135,9 +135,9 @@ class correlateTest extends IznikAPITestCase {
         $m = new Message($this->dbhr, $this->dbhm, $msgid);
 
         # Create a mod
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $id);
+        $u = User::get($this->dbhr, $this->dbhm, $id);
         $u->addMembership($group1, User::ROLE_MODERATOR);
 
         $ret = $this->call('messages', 'POST', [

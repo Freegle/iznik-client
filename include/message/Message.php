@@ -522,7 +522,7 @@ class Message
             #error_log("{$this->id} approved by {$group['approvedby']}");
 
             if (pres('approvedby', $group)) {
-                $u = new User($this->dbhr, $this->dbhm, $group['approvedby']);
+                $u = User::get($this->dbhr, $this->dbhm, $group['approvedby']);
                 $ctx = NULL;
                 $group['approvedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
             }
@@ -536,7 +536,7 @@ class Message
             foreach ($replies as $reply) {
                 $ctx = NULL;
                 if ($reply['userid']) {
-                    $u = new User($this->dbhr, $this->dbhm, $reply['userid']);
+                    $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
                     $thisone = [
                         'id' => $reply['id'],
                         'user' => $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE),
@@ -604,7 +604,7 @@ class Message
             # We know who sent this.  We may be able to return this (depending on the role we have for the message
             # and hence the attributes we have already filled in).  We also want to know if we have consent
             # to republish it.
-            $u = new User($this->dbhr, $this->dbhm, $this->fromuser);
+            $u = User::get($this->dbhr, $this->dbhm, $this->fromuser);
 
             if (pres('fromuser', $ret)) {
                 # Get the user details, relative to the groups this message appears on.
@@ -639,7 +639,7 @@ class Message
         }
 
         if (pres('heldby', $ret)) {
-            $u = new User($this->dbhr, $this->dbhm, $ret['heldby']);
+            $u = User::get($this->dbhr, $this->dbhm, $ret['heldby']);
             $ret['heldby'] = $u->getPublic();
             filterResult($ret['heldby']);
         }
@@ -1262,7 +1262,7 @@ class Message
 
         if ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED  || $source == Message::EMAIL) {
             # Make sure we have a user for the sender.
-            $u = new User($this->dbhr, $this->dbhm);
+            $u = User::get($this->dbhr, $this->dbhm);
 
             # If there is a Yahoo uid in here - which there isn't always - we might be able to find them that way.
             #
@@ -1314,7 +1314,7 @@ class Message
 
             if ($userid) {
                 # We have a user.
-                $u = new User($this->dbhm, $this->dbhm, $userid);
+                $u = User::get($this->dbhm, $this->dbhm, $userid);
 
                 # We might not have this yahoo user id associated with this user.
                 if ($yahoouid) {
@@ -2519,6 +2519,7 @@ class Message
                                 $this->locationid,
                                 $this->fromuser
                             ]);
+                            User::clearCache($this->fromuser);
                         }
                     }
                 }
@@ -2832,7 +2833,7 @@ class Message
 
         # This message may be on one or more Yahoo groups; if so we need to send a TAKEN.
         $subj = $this->reverseSubject();
-        $u = new User($this->dbhr, $this->dbhm, $this->fromuser);
+        $u = User::get($this->dbhr, $this->dbhm, $this->fromuser);
 
         $groups = $this->getGroups();
 
@@ -2930,7 +2931,7 @@ class Message
 
                     if ($g->getPrivate('onyahoo')) {
                         # Resend it to Yahoo.
-                        $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+                        $u = User::get($this->dbhr, $this->dbhm, $m->getFromuser());
                         $m->setPrivate('textbody', $m->stripGumf());
                         $m->submit($u, $m->getFromaddr(), $message['groupid']);
                     }

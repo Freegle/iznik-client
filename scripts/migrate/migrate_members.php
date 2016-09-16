@@ -14,7 +14,7 @@ $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
 ));
 
 $g = new Group($dbhr, $dbhm);
-$u = new User($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 
 if (1==0) {
     error_log("Migrate FD users");
@@ -32,7 +32,7 @@ if (1==0) {
             if (!$eid) {
                 $uid = $u->create(NULL, NULL, $user['facebookname'], 'Migrated from FD');
             } else {
-                $u = new User($dbhr, $dbhm, $eid);
+                $u = User::get($dbhr, $dbhm, $eid);
                 $u->setPrivate('fullname', $user['facebookname']);
             }
 
@@ -106,7 +106,7 @@ if (1==0) {
                         $u->merge($id, $yid, $reason);
                     }
 
-                    $u = new User($dbhr, $dbhm, $id);
+                    $u = User::get($dbhr, $dbhm, $id);
                     $emailid = $u->addEmail($user['useremail'], 0, FALSE);
                     $emailid = $u->addEmail($user['groupsemail'], 0, FALSE);
                     $membs = $u->getMemberships();

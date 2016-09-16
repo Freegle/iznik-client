@@ -99,7 +99,7 @@ function session() {
             $action = presdef('action', $_REQUEST, NULL);
 
             $id = NULL;
-            $user = new User($dbhr, $dbhm);
+            $user = User::get($dbhr, $dbhm);
             $f = NULL;
             $ret = array('ret' => 1, 'status' => 'Invalid login details');
 
@@ -128,7 +128,7 @@ function session() {
                         $ret = [ 'ret' => 2, "We don't know that email address" ];
                         
                         if ($id) {
-                            $u = new User($dbhr, $dbhm, $id);
+                            $u = User::get($dbhr, $dbhm, $id);
                             $u->forgotPassword($email);
                             $ret = [ 'ret' => 0, 'status' => "Success" ];
                         }    
@@ -143,7 +143,7 @@ function session() {
                 $possid = $user->findByEmail($email);
                 if ($possid) {
                     $ret = array('ret' => 3, 'status' => "The password is wrong.  Maybe you've forgotten it?");
-                    $u = new User($dbhr, $dbhm, $possid);
+                    $u = User::get($dbhr, $dbhm, $possid);
 
                     # If we are currently logged in as an admin, then we can force a log in as anyone else.  This is
                     # very useful for debugging.
@@ -161,7 +161,7 @@ function session() {
 
             if ($id) {
                 # Return some more useful info.
-                $u = new User($dbhr, $dbhm, $id);
+                $u = User::get($dbhr, $dbhm, $id);
                 $ret['user'] = $u->getPublic();
                 $ret['persistent'] = presdef('persistent', $_SESSION, NULL);
             }

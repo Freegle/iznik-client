@@ -76,9 +76,9 @@ class messageAPITest extends IznikAPITestCase
         assertEquals($id, $ret['message']['id']);
 
         # When logged in should be able to see message history.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -153,9 +153,9 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(1, $ret['ret']);
 
         # Now join - shouldn't be able to see a pending message as user
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -213,9 +213,9 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(1, $ret['ret']);
 
         # Now join - shouldn't be able to see a spam message as user
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -287,9 +287,9 @@ class messageAPITest extends IznikAPITestCase
         assertEquals($id, $a->getID());
         assertTrue(array_key_exists('subject', $a->getPublic()));
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1, User::ROLE_OWNER);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -347,7 +347,7 @@ class messageAPITest extends IznikAPITestCase
         $r = new MailRouter($this->dbhr, $this->dbhm);
 
         # Send from a user at our domain, so that we can cover the reply going back to them
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
         $u->addEmail('from@test.com');
@@ -377,9 +377,9 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(1, $ret['ret']);
 
         # Now join - shouldn't be able to approve as a member
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -500,9 +500,9 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to reject as a member
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -551,7 +551,7 @@ class messageAPITest extends IznikAPITestCase
         # The message should exist as rejected.  Log in as the sender.
         $uid = $m->getFromuser();
         error_log("Found sender as $uid");
-        $u = new User($this->dbhm, $this->dbhm, $uid);
+        $u = User::get($this->dbhm, $this->dbhm, $uid);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
@@ -634,9 +634,9 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to mail as a member
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -708,9 +708,9 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to delete as a member
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -804,9 +804,9 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(1, $ret['ret']);
 
         # Now join - shouldn't be able to do this as a member
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -915,9 +915,9 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to hold as a member
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -989,9 +989,9 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to edit as a member
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
@@ -1239,7 +1239,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('Queued for group membership', $ret['status']);
         $applied = $ret['appliedemail'];
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail($email);
 
         # This assumes the playground group is set to auto-approve and moderate new messages.
@@ -1456,9 +1456,9 @@ class messageAPITest extends IznikAPITestCase
 
         # Now to get coverage, invoke the submission arm in here, rather than on the separate mail server.  This
         # assumes we run tests faster than Yahoo responds.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail($email);
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         error_log("User id $uid");
 //        $eid = $u->addEmail($applied);
 //        error_log("Added email $eid");
@@ -1513,7 +1513,7 @@ class messageAPITest extends IznikAPITestCase
         $g = new Group($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@test.com');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -1539,7 +1539,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(2, $ret['ret']);
 
         # Promise it to the other user.
-        $u = new User($this->dbhr, $this->dbhm, $uid1);
+        $u = User::get($this->dbhr, $this->dbhm, $uid1);
         assertTrue($u->login('testpw'));
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -1586,7 +1586,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals($uid3, $ret['message']['promises'][0]['userid']);
         
         # Check we can't promise on someone else's message.
-        $u = new User($this->dbhr, $this->dbhm, $uid3);
+        $u = User::get($this->dbhr, $this->dbhm, $uid3);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
@@ -1616,7 +1616,7 @@ class messageAPITest extends IznikAPITestCase
         $g = new Group($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));

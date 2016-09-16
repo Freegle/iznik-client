@@ -12,7 +12,7 @@ $attr = "yahooid";
 
 $sql = "SELECT $attr, COUNT(*) c FROM users WHERE $attr IS NOT NULL GROUP BY $attr HAVING c > 1;";
 $yids = $dbhr->preQuery($sql);
-$u = new User($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 
 foreach ($yids as $yid) {
     $users = $dbhr->preQuery("SELECT id FROM users WHERE $attr = ?;", [ $yid[$attr]]);

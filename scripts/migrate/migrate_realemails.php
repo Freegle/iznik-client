@@ -13,7 +13,7 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$u = new User($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 
 function handle($dbhr, $dbhm, $u, $realmail, $user) {
     # We have found the real email corresponding to this membership.  It might be that this real email is already
@@ -23,7 +23,7 @@ function handle($dbhr, $dbhm, $u, $realmail, $user) {
     if (!$id || $id == $user['id']) {
         # But it doesn't.
         error_log("Add $realmail} to {$user['id']} {$user['email']}");
-        $u = new User($dbhr, $dbhm, $user['id']);
+        $u = User::get($dbhr, $dbhm, $user['id']);
         $rc = $u->addEmail($realmail, 0, FALSE);
 
         if ($rc) {
@@ -32,7 +32,7 @@ function handle($dbhr, $dbhm, $u, $realmail, $user) {
     } else {
         # It does, so we have to do some merging.  Then make sure the useremail is the prerred
         error_log("Merge of {$user['id']} {$user['email']} and $id $realmail required");
-        $u = new User($dbhr, $dbhm, $user['id']);
+        $u = User::get($dbhr, $dbhm, $user['id']);
         $rc = $u->merge($user['id'], $id, "RealEmails - $realmail = $id, {$user['email']} = {$user['id']}");
 
         if ($rc) {

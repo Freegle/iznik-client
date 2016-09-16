@@ -11,7 +11,7 @@ $dbh = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$u = new User($dbhm, $dbhm);
+$u = User::get($dbhm, $dbhm);
 
 $users = $dbh->query("SELECT useremail FROM users WHERE centralmailsdisabled = 1;");
 $at = 0;
@@ -19,7 +19,7 @@ foreach ($users as $user) {
     $eid = $u->findByEmail($user['useremail']);
 
     if ($eid) {
-        $u = new User($dbhm, $dbhm, $eid);
+        $u = User::get($dbhm, $dbhm, $eid);
         $u->setPrivate('newslettersallowed', 0);
     }
 

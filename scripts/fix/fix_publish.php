@@ -11,7 +11,7 @@ $count = 0;
 $sql = "SELECT id FROM users;";
 $users = $dbhr->preQuery($sql);
 foreach ($users as $user) {
-    $u = new User($dbhr, $dbhm, $user['id']);
+    $u = User::get($dbhr, $dbhm, $user['id']);
     $emails = $u->getEmails();
     $ours = FALSE;
     foreach ($emails as $email) {

@@ -214,7 +214,7 @@ class MailRouter
                     foreach ($groups as $group) {
                         # The confirm looks valid.  Promote this user.  We only promote to moderator because we can't
                         # distinguish between owner and moderator via this route.
-                        $u = new User($this->dbhr, $this->dbhm, $userid);
+                        $u = User::get($this->dbhr, $this->dbhm, $userid);
 
                         if ($u->getPublic()['id'] == $userid) {
                             if ($log) {
@@ -269,7 +269,7 @@ class MailRouter
                     $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
                 }
 
-                $u = new User($this->dbhr, $this->dbhm);
+                $u = User::get($this->dbhr, $this->dbhm);
                 $uid = $u->findByEmail($to);
                 $this->log->log([
                     'type' => Log::TYPE_USER,
@@ -288,7 +288,7 @@ class MailRouter
                     $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
                 }
 
-                $u = new User($this->dbhr, $this->dbhm);
+                $u = User::get($this->dbhr, $this->dbhm);
                 $uid = $u->findByEmail($to);
                 $this->log->log([
                     'type' => Log::TYPE_USER,
@@ -355,7 +355,7 @@ class MailRouter
                         $g = new Group($this->dbhr, $this->dbhm, $gid);
 
                         # Check that this user exists.
-                        $u = new User($this->dbhr, $this->dbhm);
+                        $u = User::get($this->dbhr, $this->dbhm);
                         $uid = $u->findByEmail($email);
 
                         if (!$uid) {
@@ -363,7 +363,7 @@ class MailRouter
                             $u->create(NULL, NULL, $name, "Yahoo application from $email to $nameshort");
                             $emailid = $u->addEmail($email, 0);
                         } else {
-                            $u = new User($this->dbhr, $this->dbhm, $uid);
+                            $u = User::get($this->dbhr, $this->dbhm, $uid);
                             $emailid = $u->getIdForEmail($email)['id'];
 
                             if ($name && stripos('FBUser', $name) === FALSE) {
@@ -412,13 +412,13 @@ class MailRouter
                     $gid = $g->findByShortName($nameshort);
 
                     if ($gid) {
-                        $u = new User($this->dbhr, $this->dbhm);
+                        $u = User::get($this->dbhr, $this->dbhm);
                         $uid = $u->findByEmail($email);
 
                         if ($uid) {
                             # We have the user and the group.  Mark the membership as no longer pending (if
                             if ($log) { error_log("Found them $uid"); }
-                            $u = new User($this->dbhr, $this->dbhm, $uid);
+                            $u = User::get($this->dbhr, $this->dbhm, $uid);
 
                             $u->markYahooApproved($gid);
 
@@ -446,7 +446,7 @@ class MailRouter
                     $gid = $g->findByShortName($nameshort);
 
                     if ($gid) {
-                        $u = new User($this->dbhr, $this->dbhm);
+                        $u = User::get($this->dbhr, $this->dbhm);
                         $uid = $u->findByEmail($to);
 
                         if ($uid) {
@@ -454,7 +454,7 @@ class MailRouter
                             if ($log) {
                                 error_log("Found them $uid");
                             }
-                            $u = new User($this->dbhr, $this->dbhm, $uid);
+                            $u = User::get($this->dbhr, $this->dbhm, $uid);
                             $u->markYahooApproved($gid);
 
                             # Dispatch any messages which are queued awaiting this group membership.
@@ -633,7 +633,7 @@ class MailRouter
                     # It's not to one of our groups - but it could be a reply to one of our users - either directly
                     # (which happens after posting on a group) or in reply to an email notification (which happens
                     # in subsequent exchanges).
-                    $u = new User($this->dbhr, $this->dbhm);
+                    $u = User::get($this->dbhr, $this->dbhm);
                     $to = $this->msg->getEnvelopeto();
                     if ($log) { error_log("Look for reply $to"); }
                     $uid = NULL;
@@ -655,7 +655,7 @@ class MailRouter
                                 # have it.
                                 $other = $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') :
                                     $r->getPrivate('user1');
-                                $otheru = new User($this->dbhr, $this->dbhm, $other);
+                                $otheru = User::get($this->dbhr, $this->dbhm, $other);
                                 $otheru->addEmail($this->msg->getEnvelopefrom(), 0, FALSE);
 
                                 # Now add this into the conversation as a message.  This will notify them.

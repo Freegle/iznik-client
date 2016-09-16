@@ -14,7 +14,7 @@ $dsn = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
 $users = $dbhr->preQuery("SELECT id, fullname FROM users WHERE fullname LIKE 'FBUser%';");
 $at = 0;
 foreach ($users as $user) {
-    $u = new User($dbhm, $dbhm, $user['id']);
+    $u = User::get($dbhm, $dbhm, $user['id']);
 
     if (!$u->isModerator()) {
         $emails = $u->getEmails();
@@ -44,7 +44,7 @@ $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigram
 $users = $dbhr->preQuery("SELECT id, fullname FROM users WHERE fullname LIKE 'A freegler';");
 $at = 0;
 foreach ($users as $user) {
-    $u = new User($dbhm, $dbhm, $user['id']);
+    $u = User::get($dbhm, $dbhm, $user['id']);
 
     if (!$u->isModerator()) {
             $length = \Wordle\array_weighted_rand($lengths);
@@ -67,12 +67,12 @@ exit(0);
 
 $fbusers = $dbh->query("SELECT * FROM facebook;");
 $at = 0;
-$u = new User($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 
 foreach ($fbusers as $fbuser) {
     $uid = $u->findByEmail($fbuser['email']);
     if ($uid) {
-        $u = new User($dbhm, $dbhm, $uid);
+        $u = User::get($dbhm, $dbhm, $uid);
 
         if (!$u->isModerator()) {
             $gotpreferred = FALSE;

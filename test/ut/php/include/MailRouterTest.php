@@ -51,17 +51,17 @@ class MailRouterTest extends IznikTestCase {
     public function testHam() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         error_log("Created user $uid");
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->setPrivate('yahooUserId', -1);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
 
         # Create a different user which will cause a merge.
-        $u2 = new User($this->dbhr, $this->dbhm);
+        $u2 = User::get($this->dbhr, $this->dbhm);
         $uid2 = $u->create(NULL, NULL, 'Test User');
-        $u2 = new User($this->dbhr, $this->dbhm, $uid2);
+        $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
         $u2->setPrivate('yahooUserId', -time());
         assertGreaterThan(0, $u->addEmail('test2@test.com'));
 
@@ -155,7 +155,7 @@ class MailRouterTest extends IznikTestCase {
 
         # A user who is not a member
         error_log("Not member");
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $key = $g->getConfirmKey();
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -165,9 +165,9 @@ class MailRouterTest extends IznikTestCase {
 
         # A user who is a member
         error_log("Already member");
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($gid, User::ROLE_MEMBER);
         $key = $g->getConfirmKey();
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -178,9 +178,9 @@ class MailRouterTest extends IznikTestCase {
 
         # A user who is an owner - shouldn't be demoted
         error_log("Owner");
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($gid, User::ROLE_OWNER);
         $key = $g->getConfirmKey();
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -434,7 +434,7 @@ class MailRouterTest extends IznikTestCase {
         error_log("Pending id $id");
 
         # Approve
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u->addMembership($gid, User::ROLE_OWNER);
@@ -796,9 +796,9 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Large attachments should get scaled down during the save.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
 
         $msg = file_get_contents('msgs/attachment_large');
@@ -956,7 +956,7 @@ class MailRouterTest extends IznikTestCase {
         $r->method('mail')->willReturn(false);
 
         # Set up a pending member.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@test.com');
         error_log("Add membership to $gid");
@@ -989,7 +989,7 @@ class MailRouterTest extends IznikTestCase {
         $r->method('mail')->willReturn(false);
 
         # Set up a pending member.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@test.com');
         error_log("Add membership to $gid");
@@ -1064,10 +1064,10 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Create the sending user
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         error_log("Created user $uid");
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
 
         # Send a message.
@@ -1160,7 +1160,7 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Create the sending user
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('from@test.com');
         error_log("Created user $uid");
@@ -1186,7 +1186,7 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Create the sending user
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         error_log("Created user $uid");
 
@@ -1209,7 +1209,7 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Create the sending user
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         error_log("Created user $uid");
 
@@ -1232,7 +1232,7 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Create the sending user
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         error_log("Created user $uid");
 

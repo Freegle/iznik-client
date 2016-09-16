@@ -83,7 +83,7 @@ class Admin extends Entity
         $members = $this->dbhr->preQuery($sql, [ $groupid ]);
 
         foreach ($members as $member) {
-            $u = new User($this->dbhr, $this->dbhm, $member['userid']);
+            $u = User::get($this->dbhr, $this->dbhm, $member['userid']);
             $preferred = $u->getEmailPreferred();
 
             # We send to members who have joined via our platform, or to all users if we host the group.

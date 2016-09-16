@@ -5,7 +5,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 
-$u = new User($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 
 $messages = $dbhr->preQuery("SELECT id, fromuser, fromaddr FROM messages");
 

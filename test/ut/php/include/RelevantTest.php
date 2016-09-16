@@ -68,7 +68,7 @@ class RelevantTest extends IznikTestCase
         $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)', 0);
 
         # Create a user
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         error_log("Created user $uid");
         $u->addEmail('test@test.com');

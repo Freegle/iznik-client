@@ -103,14 +103,14 @@ class Facebook
             $fullname = presdef('name', $fbme, NULL);
 
             # See if we know this user already.  We might have an entry for them by email, or by Facebook ID.
-            $u = new User($this->dbhr, $this->dbhm);
+            $u = User::get($this->dbhr, $this->dbhm);
             $eid = $fbemail ? $u->findByEmail($fbemail) : NULL;
             $fid = $fbuid ? $u->findByLogin('Facebook', $fbuid) : NULL;
             error_log("Email $eid  from $fbemail Facebook $fid, f $firstname, l $lastname, full $fullname");
 
             if ($eid && $fid && $eid != $fid) {
                 # This is a duplicate user.  Merge them.
-                $u = new User($this->dbhr, $this->dbhm);
+                $u = User::get($this->dbhr, $this->dbhm);
                 $u->merge($eid, $fid, "Facebook Login - FacebookID $fid, Email $fbemail = $eid");
             }
 
@@ -128,7 +128,7 @@ class Facebook
 
                 if ($id) {
                     # Make sure that we have the Yahoo email recorded as one of the emails for this user.
-                    $u = new User($this->dbhr, $this->dbhm, $id);
+                    $u = User::get($this->dbhr, $this->dbhm, $id);
 
                     if ($fbemail) {
                         $u->addEmail($fbemail, 0, FALSE);
@@ -147,7 +147,7 @@ class Facebook
                 }
             } else {
                 # We know them - but we might not have all the details.
-                $u = new User($this->dbhr, $this->dbhm, $id);
+                $u = User::get($this->dbhr, $this->dbhm, $id);
 
                 if (!$eid) {
                     $u->addEmail($fbemail, 0, FALSE);
@@ -189,6 +189,7 @@ class Facebook
                     [
                         $id
                     ]);
+                User::clearCache($id);
 
                 $l = new Log($this->dbhr, $this->dbhm);
                 $l->log([

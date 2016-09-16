@@ -18,14 +18,14 @@ $bigrams  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_st
 $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
 
 $users = $dbh->query("SELECT * FROM facebook WHERE hidename = 1;");
-$u = new User($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 $at = 0;
 
 foreach ($users as $user) {
     $uid = $u->findByEmail($user['email']);
 
     if ($uid) {
-        $u = new User($dbhr, $dbhm, $uid);
+        $u = User::get($dbhr, $dbhm, $uid);
 
         if (!$u->isModerator()) {
             $length = \Wordle\array_weighted_rand($lengths);

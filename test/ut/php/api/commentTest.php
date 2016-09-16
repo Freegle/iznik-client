@@ -27,16 +27,16 @@ class commentAPITest extends IznikAPITestCase {
 
         $g = new Group($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
         $this->user->addMembership($this->groupid, User::ROLE_OWNER);
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($this->user->login('testpw'));
 
         $this->uid2 = $u->create(NULL, NULL, 'Test User');
-        $this->user2 = new User($this->dbhr, $this->dbhm, $this->uid2);
+        $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
     }
 
     protected function tearDown() {

@@ -14,7 +14,7 @@ $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
 ));
 
 $g = new Group($dbhr, $dbhm);
-$u = new User($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 
 $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -43,7 +43,7 @@ foreach ($groups as $group) {
         foreach ($users as $user) {
             try {
                 $uid = $u->findByEmail($user['useremail']);
-                $u = new User($dbhr, $dbhm, $uid);
+                $u = User::get($dbhr, $dbhm, $uid);
 
                 $dig = $user['digest'] ? $user['maxdigestdelay'] : 0;
                 $current = $u->getMembershipAtt($gid, 'emailfrequency');

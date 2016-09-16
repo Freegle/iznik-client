@@ -188,6 +188,7 @@ class Spam {
                     $reason,
                     $userid
                 ]);
+            User::clearCache($userid);
         }
     }
 
@@ -218,7 +219,7 @@ class Spam {
         $spammers = $this->dbhr->preQuery($sql);
 
         foreach ($spammers as &$spammer) {
-            $u = new User($this->dbhr, $this->dbhm, $spammer['userid']);
+            $u = User::get($this->dbhr, $this->dbhm, $spammer['userid']);
             $spammer['user'] = $u->getPublic(NULL, TRUE, $seeall);
             $spammer['user']['email'] = $u->getEmailPreferred();
 
@@ -234,7 +235,7 @@ class Spam {
             $spammer['user']['otheremails'] = $others;
 
             if ($spammer['byuserid']) {
-                $u = new User($this->dbhr, $this->dbhm, $spammer['byuserid']);
+                $u = User::get($this->dbhr, $this->dbhm, $spammer['byuserid']);
                 $spammer['byuser'] = $u->getPublic();
             }
 
@@ -272,7 +273,7 @@ class Spam {
             $spamcheck = $g->getSetting('spammers', [ 'check' => 1, 'remove' => 1]);
             error_log("Spam check " . var_export($spamcheck, TRUE));
             if ($spamcheck['check'] && $spamcheck['remove']) {
-                $u = new User($this->dbhr, $this->dbhm, $spammer['userid']);
+                $u = User::get($this->dbhr, $this->dbhm, $spammer['userid']);
                 error_log("Remove spammer {$spammer['userid']}");
                 $u->removeMembership($spammer['groupid'], TRUE, TRUE);
                 $count++;

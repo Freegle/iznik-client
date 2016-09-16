@@ -17,6 +17,12 @@ require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
 class User extends Entity
 {
+    # We have a cache of users, because we create users a _lot_, and this can speed things up significantly by avoiding
+    # hitting the DB.
+    static $cache = [];
+    static $cacheDeleted = [];
+    const CACHE_SIZE = 100;
+
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'publishconsent', 'ripaconsent');
 
@@ -50,32 +56,59 @@ class User extends Entity
     {
         $this->log = new Log($dbhr, $dbhm);
         $this->notif = new Notifications($dbhr, $dbhm);
-        
+
         $this->fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts);
     }
 
-    # Override fetch for caching purposes.
-    function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts)
-    {
+    public static function get(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $usecache = TRUE) {
         if ($id) {
-            if (pres('cache', $_SESSION) && $id == pres('id', $_SESSION)) {
-                # We're getting our own user.  This is very common, even within a single API call, so cache it.
-                #error_log(session_id() . " got me? " . var_export(pres('me', $_SESSION['cache']), TRUE));
-                if (!pres('me', $_SESSION['cache'])) {
-                    parent::fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts);
-                    $_SESSION['cache']['me'] = $this->user;
-                    #error_log(session_id() . " stored me " . $_SESSION['cache']['me']);
+            # We cache the constructed user.
+            if ($usecache && array_key_exists($id, User::$cache)) {
+                # We found it.
+                #error_log("Found $id in cache");
+
+                # @var User
+                $u = User::$cache[$id];
+
+                if (!User::$cacheDeleted[$id]) {
+                    # And it's not zapped - so we can use it.
+                    #error_log("Not zapped");
+                    return ($u);
                 } else {
-                    parent::fetch($dbhr, $dbhm, NULL, 'users', 'user', $this->publicatts);
-                    $this->id = $id;
-                    $this->user = $_SESSION['cache']['me'];
+                    # It's zapped - so refetch.  It's important that we do this using the original DB handles, because
+                    # whatever caused us to zap the cache might have done a modification operation which in turn
+                    # zapped the SQL read cache.
+                    #error_log("Zapped, refetch " . $id);
+                    $u->fetch($u->dbhr, $u->dbhm, $id, 'users', 'user', $u->publicatts);
+                    User::$cache[$id] = $u;
+                    User::$cacheDeleted[$id] = FALSE;
+                    return($u);
                 }
-            } else {
-                # Some other user - just fetch.
-                parent::fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts);
             }
+        }
+
+        # Not cached.
+        #error_log("$id not in cache");
+        $u = new User($dbhr, $dbhm, $id);
+
+        if ($id && count(User::$cache) < User::CACHE_SIZE) {
+            # Store for next time
+            #error_log("store $id in cache");
+            User::$cache[$id] = $u;
+            User::$cacheDeleted[$id] = FALSE;
+        }
+
+        return($u);
+    }
+
+    public static function clearCache($id = NULL) {
+        # Remove this user from our cache.
+        #error_log("Clear $id from cache");
+        if ($id) {
+            User::$cacheDeleted[$id] = TRUE;
         } else {
-            parent::fetch($dbhr, $dbhm, NULL, 'users', 'user', $this->publicatts);
+            User::$cache = [];
+            User::$cacheDeleted = [];
         }
     }
 
@@ -98,6 +131,7 @@ class User extends Entity
                         [
                             $this->id
                         ]);
+                    User::clearCache($this->id);
 
                     $l = new Log($this->dbhr, $this->dbhm);
                     $l->log([
@@ -438,6 +472,8 @@ class User extends Entity
     }
 
     private function updateSystemRole($role) {
+        User::clearCache($this->id);
+
         if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
             $sql = "UPDATE users SET systemrole = ? WHERE id = ? AND systemrole = ?;";
             $this->dbhm->preExec($sql, [ User::SYSTEMROLE_MODERATOR, $this->id, User::SYSTEMROLE_USER ]);
@@ -741,7 +777,7 @@ class User extends Entity
 
                     foreach ($shareds as $shared) {
                         $thisone['cansee'] = ModConfig::CANSEE_SHARED;
-                        $u = new User($this->dbhr, $this->dbhm, $shared['userid']);
+                        $u = User::get($this->dbhr, $this->dbhm, $shared['userid']);
                         $g = new Group($this->dbhr, $this->dbhm, $shared['groupid']);
                         $ctx = NULL;
                         $thisone['sharedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
@@ -750,7 +786,7 @@ class User extends Entity
                 }
             }
 
-            $u = new User($this->dbhr, $this->dbhm, $thisone['createdby']);
+            $u = User::get($this->dbhr, $this->dbhm, $thisone['createdby']);
 
             if ($u->getId()) {
                 $ctx = NULL;
@@ -877,24 +913,26 @@ class User extends Entity
             }
         }
 
-        # Now find if we have any membership of the group which might also give us a role.
-        $membs = $this->dbhr->preQuery("SELECT role FROM memberships WHERE userid = ? AND groupid = ?;", [
+        if ($role === User::ROLE_NONMEMBER) {
+            # Now find if we have any membership of the group which might also give us a role.
+            $membs = $this->dbhr->preQuery("SELECT role FROM memberships WHERE userid = ? AND groupid = ?;", [
                 $this->id,
                 $groupid
             ]);
 
-        foreach ($membs as $memb) {
-            switch ($memb['role']) {
-                case 'Moderator':
-                    $role = User::ROLE_MODERATOR;
-                    break;
-                case 'Owner':
-                    $role = User::ROLE_OWNER;
-                    break;
-                case 'Member':
-                    # Upgrade from none to member.
-                    $role = $role == User::ROLE_NONMEMBER ? User::ROLE_MEMBER : $role;
-                    break;
+            foreach ($membs as $memb) {
+                switch ($memb['role']) {
+                    case 'Moderator':
+                        $role = User::ROLE_MODERATOR;
+                        break;
+                    case 'Owner':
+                        $role = User::ROLE_OWNER;
+                        break;
+                    case 'Member':
+                        # Upgrade from none to member.
+                        $role = $role == User::ROLE_NONMEMBER ? User::ROLE_MEMBER : $role;
+                        break;
+                }
             }
         }
 
@@ -906,7 +944,7 @@ class User extends Entity
         # within the context of a known group.  We can administer a user when:
         # - they're only a user themselves
         # - we are a mod on one of the groups on which they are a member.
-        $u = new User($this->dbhr, $this->dbhm, $userid);
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         $usermemberships = [];
         $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Member');", [ $userid ]);
@@ -1068,7 +1106,7 @@ class User extends Entity
 
                 if (pres('byuser', $log)) {
                     if (!pres($log['byuser'], $users)) {
-                        $u = new User($this->dbhr, $this->dbhm, $log['byuser']);
+                        $u = User::get($this->dbhr, $this->dbhm, $log['byuser']);
                         $users[$log['byuser']] = $u->getPublic(NULL, FALSE, FALSE);
                     }
 
@@ -1077,7 +1115,7 @@ class User extends Entity
 
                 if (pres('user', $log)) {
                     if (!pres($log['user'], $users)) {
-                        $u = new User($this->dbhr, $this->dbhm, $log['user']);
+                        $u = User::get($this->dbhr, $this->dbhm, $log['user']);
                         $users[$log['user']] = $u->getPublic(NULL, FALSE, FALSE);
                     }
 
@@ -1570,6 +1608,8 @@ class User extends Entity
                     $users = $this->dbhm->preQuery("SELECT $att FROM users WHERE id = $id2;");
                     foreach ($users as $user) {
                         $this->dbhm->preExec("UPDATE users SET $att = NULL WHERE id = $id2;");
+                        User::clearCache($id1);
+                        User::clearCache($id2);
 
                         if ($att != 'fullname') {
                             $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1 AND $att IS NULL;", [$user[$att]]);
@@ -1616,6 +1656,7 @@ class User extends Entity
                             $this->systemRoleMax($u1['systemrole'], $u2['systemrole'])
                         ]);
                     }
+                    User::clearCache($id1);
                 }
 
                 if ($rc) {
@@ -1640,7 +1681,7 @@ class User extends Entity
                     # Finally, delete id2.
                     #error_log("Delete $id2");
                     error_log("Merged $id1 < $id2, $reason");
-                    $deleteme = new User($this->dbhr, $this->dbhm, $id2);
+                    $deleteme = User::get($this->dbhr, $this->dbhm, $id2);
                     $rc = $deleteme->delete(NULL, NULL, NULL, FALSE);
                 }
 
@@ -1942,7 +1983,7 @@ class User extends Entity
             $comment['date'] = ISODate($comment['date']);
 
             if (pres('byuserid', $comment)) {
-                $u = new User($this->dbhr, $this->dbhm, $comment['byuserid']);
+                $u = User::get($this->dbhr, $this->dbhm, $comment['byuserid']);
 
                 # Don't ask for comments to stop stack overflow.
                 $ctx = NULL;
@@ -1966,7 +2007,7 @@ class User extends Entity
             $comment['date'] = ISODate($comment['date']);
 
             if (pres('byuserid', $comment)) {
-                $u = new User($this->dbhr, $this->dbhm, $comment['byuserid']);
+                $u = User::get($this->dbhr, $this->dbhm, $comment['byuserid']);
                 $comment['byuser'] = $u->getPublic();
             }
 
@@ -2452,7 +2493,7 @@ class User extends Entity
         foreach ($users as $user) {
             $ctx['id'] = $user['userid'];
 
-            $u = new User($this->dbhr, $this->dbhm, $user['userid']);
+            $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
             $thisone = $u->getPublic();
 
             # We might not have the emails.
@@ -2461,7 +2502,9 @@ class User extends Entity
 
             # We also want the Yahoo details.  Get them all in a single query for performance.
             $sql = "SELECT memberships.id AS membershipid, memberships_yahoo.* FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid WHERE userid = ?;";
+            #error_log("$sql {$user['userid']}");
             $membs = $this->dbhr->preQuery($sql, [ $user['userid']]);
+
             foreach ($thisone['memberof'] as &$member) {
                 foreach ($membs as $memb) {
                     if ($memb['membershipid'] == $member['membershipid']) {
@@ -2496,11 +2539,8 @@ class User extends Entity
     }
 
     public function setPrivate($att, $val) {
-        if (presdef('id', $_SESSION, NULL) == $this->id) {
-            # We cache our user details in our session
-            Session::clearSessionCache();
-        }
-        
+        User::clearCache($this->id);
         parent::setPrivate($att, $val);
+        #error_log("set $att = $val");
     }
 }

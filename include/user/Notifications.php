@@ -103,7 +103,7 @@ class Notifications
             [ $groupid ]);
 
         foreach ($mods as $mod) {
-            $u = new User($this->dbhr, $this->dbhm, $mod['userid']);
+            $u = User::get($this->dbhr, $this->dbhm, $mod['userid']);
             $settings = $u->getGroupSettings($groupid);
 
             if (!array_key_exists('pushnotify', $settings) || $settings['pushnotify']) {

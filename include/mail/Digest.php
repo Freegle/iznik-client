@@ -53,31 +53,13 @@ class Digest
     }
 
     public function off($uid, $groupid) {
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->setMembershipAtt($groupid, 'emailfrequency', 0);
         $g = new Group($this->dbhr, $this->dbhm, $groupid);
 
         # We can receive messages for emails from the old system where the group id is no longer valid.
         if ($g->getId() == $groupid) {
             $groupname = $g->getPublic()['namedisplay'];
-
-            # TODO This code will die once we move over.
-            global $dbconfig;
-            $dsnfd = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
-
-            $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_EMULATE_PREPARES => FALSE
-            ));
-
-            $emails = $u->getEmails();
-            foreach ($emails as $email) {
-                $email = $email['email'];
-                $sql = "UPDATE users SET digest = 0 WHERE useremail LIKE " . $dbhfd->quote($email) . " OR groupsemail LIKE " . $dbhfd->quote($email) . ";";
-                #error_log("$sql");
-                $dbhfd->exec($sql);
-            }
-            # TODO end
 
             $this->log->log([
                 'type' => Log::TYPE_USER,
@@ -296,7 +278,7 @@ class Digest
                         [ $groupid, $frequency ]);
 
                     foreach ($users as $user) {
-                        $u = new User($this->dbhr, $this->dbhm, $user['userid']);
+                        $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
                         if ($this->errorlog) { error_log("Consider user {$user['userid']}"); }
 
                         # We are only interested in sending digests to users for whom we have a preferred address -

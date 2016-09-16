@@ -12,7 +12,7 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$u = new User($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 
 $mods = $dbhold->query("SELECT * FROM moderators;");
 foreach ($mods as $mod) {

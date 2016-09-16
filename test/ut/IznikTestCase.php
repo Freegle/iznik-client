@@ -61,6 +61,7 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
         @session_destroy();
         @session_start();
         $_SESSION['POSTLASTDATA'] = NULL;
+        User::clearCache();
 
         set_time_limit(600);
     }

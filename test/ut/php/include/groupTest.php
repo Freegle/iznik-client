@@ -72,11 +72,11 @@ class groupTest extends IznikTestCase {
         assertNull($g->getPrivate('invalidid'));
 
         # Test set members.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $cid = $c->create('TestConfig');
         $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
         $this->user->addMembership($g->getId(), User::ROLE_MODERATOR);
         $mods = $g->getMods();
@@ -96,7 +96,7 @@ class groupTest extends IznikTestCase {
         assertEquals(User::ROLE_MODERATOR, $membs[0]['role']);
 
         # Now try as an owner.
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->addMembership($gid, User::ROLE_OWNER);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -134,7 +134,7 @@ class groupTest extends IznikTestCase {
         $g = new Group($this->dbhr, $this->dbhm, $gid);
 
         # Create owner
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $eid = $u->addEmail('test@test.com');
         error_log("Create owner $id with email $eid");
@@ -219,7 +219,7 @@ class groupTest extends IznikTestCase {
         # Test that the merge history is there.
         $this->waitBackground();
         error_log("Check merge history for {$membs[0]['userid']}");
-        $u = new User($this->dbhr, $this->dbhm, $membs[0]['userid']);
+        $u = User::get($this->dbhr, $this->dbhm, $membs[0]['userid']);
         $ctx = NULL;
         $atts = $u->getPublic(NULL, FALSE, TRUE, $ctx);
         error_log("Merge history " . var_export($atts, TRUE));
@@ -232,7 +232,7 @@ class groupTest extends IznikTestCase {
     public function testSplit() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->setPrivate('yahooid', '-testyahooid');
         $u->setPrivate('yahooUserId', '-testyahoouserid');
@@ -281,9 +281,9 @@ class groupTest extends IznikTestCase {
 
         # Test errors in set members
         error_log("Set Members errors");
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
         $this->user->addMembership($id);
 
