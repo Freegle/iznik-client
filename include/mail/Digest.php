@@ -34,7 +34,10 @@ class Digest
         $this->errorlog = $errorlog;
         
         $this->freqText = [
-            Digest::NEVER => 'never',
+
+
+
+           Digest::NEVER => 'never',
             Digest::IMMEDIATE => 'immediately',
             Digest::HOUR1 => 'every hour',
             Digest::HOUR2 => 'every two hours',
@@ -231,7 +234,7 @@ class Digest
                     $availablehtml = '';
                     $availablesumm = '';
                     $count = count($available) > 0 ? count($available) : 1;
-                    $subject = "[{$gatts['namedisplay']}] 's New ($count message" .
+                    $subject = "[{$gatts['namedisplay']}] What's New ($count message" .
                         ($count == 1 ? ')' : 's)');
                     $subjinfo = '';
 
