@@ -42,6 +42,7 @@ requirejs.onError = function (err) {
 
 // Global error catcher so that we log to the server.
 window.onerror = function(message, file, line) {
+    console.error(message, file, line);
     $.ajax({
         url: API + 'error',
         type: 'PUT',

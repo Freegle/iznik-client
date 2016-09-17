@@ -11,7 +11,6 @@ function error() {
             $type = $dbhm->quote(presdef('errortype', $_REQUEST, NULL));
             $text = $dbhm->quote(presdef('errortext', $_REQUEST, NULL));
             $sql = "INSERT INTO logs_errors (type, text, userid) VALUES ($type, $text, $userid);";
-            error_log($sql);
             $dbhm->background($sql);
             break;
     }

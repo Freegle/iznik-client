@@ -157,110 +157,112 @@ define([
             var self = this;
             // console.log("Record location ", this.$('.js-postcode').typeahead('val'), location.name, changegroup);
 
-            if (this.$('.js-postcode').typeahead('val') != location.name && changegroup) {
-                // We've changed location.  We might need to change group too.
-                try {
-                    localStorage.removeItem('myhomegroup');
-                } catch (e) {}
-            }
-
-            this.$('.js-postcode').typeahead('val', location.name);
-            self.$('.js-next').fadeIn('slow');
-            self.$('.js-ok').fadeIn('slow');
-
-            // console.log("Record location", location);
-            self.groupsnear = location.groupsnear;
-            // console.log("Groupsnear length", self.groupsnear.length);
-
-            try {
-                var l = location;
-
-                // Save space.
-                delete l.groupsnear;
-
-                Iznik.Session.setSetting('mylocation', l);
-                localStorage.setItem('mylocation', JSON.stringify(l))
-            } catch (e) {
-                console.log("Exception", e.message);
-            };
-
-            var groups = self.$('.js-groups');
-
-            if (groups.length > 0) {
-                // We have a group select dropdown on the page.
-                if (self.groupsnear) {
-                    // We have some groups near their chosen location.
-                    var homegroup = null;
-                    var homegroupfound = false;
-                    var firstonhere = null;
-
+            if (!_.isUndefined(location)) {
+                if (this.$('.js-postcode').typeahead('val') != location.name && changegroup) {
+                    // We've changed location.  We might need to change group too.
                     try {
-                        homegroup = localStorage.getItem('myhomegroup');
-                    } catch (e) {};
+                        localStorage.removeItem('myhomegroup');
+                    } catch (e) {}
+                }
 
-                    // Show home group if it's present.
-                    var addedGroups = [];
-                    groups.empty();
-                    _.each(self.groupsnear, function(groupnear) {
-                        if (homegroup == groupnear.id) {
-                            homegroupfound = true;
+                this.$('.js-postcode').typeahead('val', location.name);
+                self.$('.js-next').fadeIn('slow');
+                self.$('.js-ok').fadeIn('slow');
+
+                // console.log("Record location", location);
+                self.groupsnear = location.groupsnear;
+                // console.log("Groupsnear length", self.groupsnear.length);
+
+                try {
+                    var l = location;
+
+                    // Save space.
+                    delete l.groupsnear;
+
+                    Iznik.Session.setSetting('mylocation', l);
+                    localStorage.setItem('mylocation', JSON.stringify(l))
+                } catch (e) {
+                    console.log("Exception", e.message);
+                };
+
+                var groups = self.$('.js-groups');
+
+                if (groups.length > 0) {
+                    // We have a group select dropdown on the page.
+                    if (self.groupsnear) {
+                        // We have some groups near their chosen location.
+                        var homegroup = null;
+                        var homegroupfound = false;
+                        var firstonhere = null;
+
+                        try {
+                            homegroup = localStorage.getItem('myhomegroup');
+                        } catch (e) {};
+
+                        // Show home group if it's present.
+                        var addedGroups = [];
+                        groups.empty();
+                        _.each(self.groupsnear, function(groupnear) {
+                            if (homegroup == groupnear.id) {
+                                homegroupfound = true;
+                            }
+
+                            if (!firstonhere && groupnear.onhere) {
+                                firstonhere = groupnear.id;
+                            }
+                            groups.append('<option value="' + groupnear.id + '" />');
+                            groups.find('option:last').text(groupnear.namedisplay);
+                            addedGroups.push(groupnear.id);
+                        });
+
+                        // Add remaining Freegle groups we're a member of - maybe we have a reason to post on them.
+                        self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                            if (loggedIn) {
+                                var mygroups = Iznik.Session.get('groups');
+                                mygroups.each(function(group) {
+                                    if (group.get('type') == 'Freegle' && addedGroups.indexOf(group.get('id'))) {
+                                        groups.append('<option value="' + group.get('id') + '" />');
+                                        groups.find('option:last').text(group.get('namedisplay'));
+                                    }
+                                });
+                            }
+                        });
+
+                        Iznik.Session.testLoggedIn();
+
+                        if (homegroupfound) {
+                            groups.val(homegroup);
+                        } else if (firstonhere) {
+                            // Record our home group as the closest group we found which is on the platform
+                            self.changeHomeGroup(firstonhere);
+                        } else {
+                            self.changeHomeGroup(self.$('.js-homegroup select').val());
                         }
 
+                        self.changeGroup();
+                        groups.on('change', _.bind(self.changeGroup, self));
+                        self.$('.js-homegroup').fadeIn('slow');
+                    }
+                } else {
+                    // We don't have a groups drop down.  Hide that section, but still check for whether we need to
+                    // redirect to Yahoo.
+                    self.$('.js-homegroup').hide();
+                    if (self.groupsnear) {
+                        self.changeGroup();
+                    }
+
+                    // And record our home group as the closest group we found on the platform.
+                    var firstonhere = null;
+                    _.each(self.groupsnear, function(groupnear) {
                         if (!firstonhere && groupnear.onhere) {
+                            console.log("Got on here", groupnear);
                             firstonhere = groupnear.id;
                         }
-                        groups.append('<option value="' + groupnear.id + '" />');
-                        groups.find('option:last').text(groupnear.namedisplay);
-                        addedGroups.push(groupnear.id);
                     });
 
-                    // Add remaining Freegle groups we're a member of - maybe we have a reason to post on them.
-                    self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
-                        if (loggedIn) {
-                            var mygroups = Iznik.Session.get('groups');
-                            mygroups.each(function(group) {
-                                if (group.get('type') == 'Freegle' && addedGroups.indexOf(group.get('id'))) {
-                                    groups.append('<option value="' + group.get('id') + '" />');
-                                    groups.find('option:last').text(group.get('namedisplay'));
-                                }
-                            });
-                        }
-                    });
-
-                    Iznik.Session.testLoggedIn();
-
-                    if (homegroupfound) {
-                        groups.val(homegroup);
-                    } else if (firstonhere) {
-                        // Record our home group as the closest group we found which is on the platform
+                    if (firstonhere) {
                         self.changeHomeGroup(firstonhere);
-                    } else {
-                        self.changeHomeGroup(self.$('.js-homegroup select').val());
                     }
-
-                    self.changeGroup();
-                    groups.on('change', _.bind(self.changeGroup, self));
-                    self.$('.js-homegroup').fadeIn('slow');
-                }
-            } else {
-                // We don't have a groups drop down.  Hide that section, but still check for whether we need to
-                // redirect to Yahoo.
-                self.$('.js-homegroup').hide();
-                if (self.groupsnear) {
-                    self.changeGroup();
-                }
-
-                // And record our home group as the closest group we found on the platform.
-                var firstonhere = null;
-                _.each(self.groupsnear, function(groupnear) {
-                    if (!firstonhere && groupnear.onhere) {
-                        console.log("Got on here", groupnear);
-                        firstonhere = groupnear.id;
-                    }
-                });
-
-                if (firstonhere) {
-                    self.changeHomeGroup(firstonhere);
                 }
             }
         },

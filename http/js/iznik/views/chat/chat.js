@@ -989,31 +989,34 @@ define([
             // Tried using .animate(), but it seems to be too expensive for the browser, so leave that for now.
             var self = this;
             var msglist = self.$('.js-messages');
-            var height = msglist[0].scrollHeight;
 
-            if (self.scrollTimer && self.scrollTo < height) {
-                // We have a timer outstanding to scroll to somewhere less far down that we now want to.  No point
-                // in doing that.
-                // console.log("Clear old scroll timer",  self.model.get('id'), self.scrollTo, height);
-                clearTimeout(self.scrollTimer);
-                self.scrollTimer = null;
-            }
-            
-            // We want to scroll immediately, and add a fallback a few seconds later for when things haven't quite
-            // finished rendering yet.
-            msglist.scrollTop(height);
-            // console.log("Scroll now to ", self.model.get('id'), height);
+            if (msglist.length > 0) {
+                var height = msglist[0].scrollHeight;
 
-            if (!self.scrollTimer) {
-                // We don't already have a fallback scroll running.
-                self.scrollTo = height;
-                self.scrollTimer = setTimeout(_.bind(function() {
-                    // console.log("Scroll later", this);
-                    var msglist = this.$('.js-messages');
-                    var height = msglist[0].scrollHeight;
-                    msglist.scrollTop(height);
-                    // console.log("Scroll later to ", this.model.get('id'), height);
-                }, self), 5000);
+                if (self.scrollTimer && self.scrollTo < height) {
+                    // We have a timer outstanding to scroll to somewhere less far down that we now want to.  No point
+                    // in doing that.
+                    // console.log("Clear old scroll timer",  self.model.get('id'), self.scrollTo, height);
+                    clearTimeout(self.scrollTimer);
+                    self.scrollTimer = null;
+                }
+
+                // We want to scroll immediately, and add a fallback a few seconds later for when things haven't quite
+                // finished rendering yet.
+                msglist.scrollTop(height);
+                // console.log("Scroll now to ", self.model.get('id'), height);
+
+                if (!self.scrollTimer) {
+                    // We don't already have a fallback scroll running.
+                    self.scrollTo = height;
+                    self.scrollTimer = setTimeout(_.bind(function() {
+                        // console.log("Scroll later", this);
+                        var msglist = this.$('.js-messages');
+                        var height = msglist[0].scrollHeight;
+                        msglist.scrollTop(height);
+                        // console.log("Scroll later to ", this.model.get('id'), height);
+                    }, self), 5000);
+                }
             }
         },
 
