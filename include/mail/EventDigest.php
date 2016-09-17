@@ -33,7 +33,7 @@ class EventDigest
     public function off($uid, $groupid) {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->setMembershipAtt($groupid, 'eventsallowed', 0);
-        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
         # We can receive messages for emails from the old system where the group id is no longer valid.
         if ($g->getId() == $groupid) {
@@ -65,7 +65,7 @@ class EventDigest
     }
 
     public function send($groupid, $ccto = NULL) {
-        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $gatts = $g->getPublic();
         $sent = 0;
 
@@ -214,6 +214,7 @@ class EventDigest
         }
 
         $this->dbhm->preExec("UPDATE groups SET lasteventsroundup = NOW() WHERE id = ?;", [ $groupid ]);
+        Group::clearCache($groupid);
 
         return($sent);
     }

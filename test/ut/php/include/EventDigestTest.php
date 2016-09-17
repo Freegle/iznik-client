@@ -40,7 +40,7 @@ class eventDigestTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Create a group with two events on it.
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', TRUE);
 

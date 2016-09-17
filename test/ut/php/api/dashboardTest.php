@@ -63,7 +63,7 @@ class dashboardTest extends IznikAPITestCase {
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_OTHER);
         $group2 = $g->create('testgroup2', Group::GROUP_OTHER);
         $u1->addMembership($group1);

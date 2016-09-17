@@ -76,7 +76,7 @@ class RelevantTest extends IznikTestCase
         assertTrue($u->login('testpw'));
 
         # Post a WANTED, an OFFER and a search.
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('lat', 8.53333);
         $g->setPrivate('lng', 179.2167);

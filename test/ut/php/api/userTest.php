@@ -30,7 +30,7 @@ class userAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users WHERE yahooUserId = '1';");
 
         # Create a moderator and log in as them
-        $this->group = new Group($this->dbhr, $this->dbhm);
+        $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhr, $this->dbhm);

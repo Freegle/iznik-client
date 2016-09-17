@@ -26,7 +26,7 @@ $dbhd = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 # First get groups from ModTools
 $oldgroups = $dbhold->query("SELECT * FROM groups WHERE groupname != '';");
@@ -46,7 +46,7 @@ foreach ($oldgroups as $group) {
     );
 
     $id = $g->findByShortName($group['groupname']);
-    $g = new Group($dbhr, $dbhm, $id);
+    $g = Group::get($dbhr, $dbhm, $id);
 
     $settings = [];
 
@@ -105,7 +105,7 @@ foreach ($fgroups as $fgroup) {
     );
 
     $id = $g->findByShortName($fgroup['groupname']);
-    $g = new Group($dbhr, $dbhm, $id);
+    $g = Group::get($dbhr, $dbhm, $id);
 
     if (intval($group['freeglegroupid'])) {
         $type = Group::GROUP_FREEGLE;

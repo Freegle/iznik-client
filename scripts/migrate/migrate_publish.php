@@ -12,7 +12,7 @@ $dbhf = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 $pgroups = $dbhf->query("SELECT * FROM perch_groups;");
 foreach ($pgroups as $pgroup) {

@@ -13,7 +13,7 @@ $dbhd = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 $sql = "SELECT * FROM groups WHERE grouppublish = 1;";
 $fgroups = $dbhd->query($sql);

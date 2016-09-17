@@ -30,7 +30,7 @@ class chatMessagesTest extends IznikTestCase {
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
     }
 
@@ -76,7 +76,7 @@ class chatMessagesTest extends IznikTestCase {
 
         # Put a valid message on a group.
         error_log("Put valid message on");
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
         $msg = $this->unique(file_get_contents('msgs/offer'));
@@ -100,7 +100,7 @@ class chatMessagesTest extends IznikTestCase {
     public function testPairing() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
         $msg = $this->unique(file_get_contents('msgs/offer'));

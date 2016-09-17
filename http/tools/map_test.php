@@ -12,13 +12,13 @@ $groupname = presdef('groupname', $_REQUEST, NULL);
 if (!$groupname) {
     echo "<p>Need to put groupname parameter in.</p>";
 } else {
-    $g = new Group($dbhr, $dbhm);
+    $g = Group::get($dbhr, $dbhm);
     $gid = $g->findByShortName($groupname);
 
     if (!$gid) {
         echo "<p>Couldn't find group $groupname.</p>";
     } else {
-        $g = new Group($dbhr, $dbhm, $gid);
+        $g = Group::get($dbhr, $dbhm, $gid);
 
         $c = new MessageCollection($dbhr, $dbhm, MessageCollection::APPROVED);
         $ctx = NULL;

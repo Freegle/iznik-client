@@ -30,7 +30,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users WHERE yahooUserId LIKE '-testid%';");
         $dbhm->preExec("DELETE FROM users_emails WHERE backwards LIKE 'moctset%';");
 
-        $this->group = new Group($this->dbhr, $this->dbhm);
+        $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
         $this->group->setPrivate('onyahoo', TRUE);
         $u = User::get($this->dbhr, $this->dbhm);
@@ -362,6 +362,7 @@ class membershipsAPITest extends IznikAPITestCase {
         assertFalse(pres('members', $ret));
 
         # Member - shouldn't see members list
+        error_log("Login as " . $this->user->getId());
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('memberships', 'PATCH', [
             'groupid' => $this->groupid,
@@ -409,9 +410,13 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         
         # Fake background job.
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        User::clearCache();
+        Group::clearCache();
         $g->processSetMembers();
         User::clearCache();
+        Group::clearCache();
+        $this->dbhr->clearCache();
 
         # Test user search - here as we want to check the Yahoo details too.
         $u = User::get($this->dbhr, $this->dbhm);
@@ -448,7 +453,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
         # Test merge by yahooid and yahooUserId
         error_log("Test merge");
-        $this->group = new Group($this->dbhr, $this->dbhm, $this->groupid);
+        $this->group = Group::get($this->dbhr, $this->dbhm, $this->groupid);
         $this->group->setPrivate('lastyahoomembersync', NULL);
 
         $members = [
@@ -940,7 +945,7 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         error_log("Done PATCH");
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $g->processSetMembers($this->groupid);
         User::clearCache();
         

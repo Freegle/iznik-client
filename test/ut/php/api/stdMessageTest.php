@@ -31,7 +31,7 @@ class stdMessageAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM mod_configs WHERE name LIKE 'UTTest%';");
 
         # Create a moderator and log in as them
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
@@ -168,7 +168,7 @@ class stdMessageAPITest extends IznikAPITestCase {
         assertEquals('UTTest2', $ret['stdmsg']['title']);
 
         # Try as a mod, but the wrong one.
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup2', Group::GROUP_REUSE);
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
@@ -221,7 +221,7 @@ class stdMessageAPITest extends IznikAPITestCase {
         assertEquals(4, $ret['ret']);
 
         # Try as a mod, but the wrong one.
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup2', Group::GROUP_REUSE);
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');

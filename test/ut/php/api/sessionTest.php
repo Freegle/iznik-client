@@ -125,9 +125,9 @@ class sessionTest extends IznikAPITestCase
         assertNotNull($u->addEmail('test@test.com'));
         $u = User::get($this->dbhm, $this->dbhm, $id);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
-        $g = new Group($this->dbhr, $this->dbhm, $group1);
+        $g = Group::get($this->dbhr, $this->dbhm, $group1);
         $u->addMembership($group1);
 
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -293,11 +293,11 @@ class sessionTest extends IznikAPITestCase
         assertNotNull($u->addEmail('test@test.com'));
         $u = User::get($this->dbhm, $this->dbhm, $id);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
-        $g1 = new Group($this->dbhr, $this->dbhm, $group1);
-        $g2 = new Group($this->dbhr, $this->dbhm, $group2);
+        $g1 = Group::get($this->dbhr, $this->dbhm, $group1);
+        $g2 = Group::get($this->dbhr, $this->dbhm, $group2);
         $u->addMembership($group1, User::ROLE_MODERATOR);
         $u->addMembership($group2, User::ROLE_MODERATOR);
 

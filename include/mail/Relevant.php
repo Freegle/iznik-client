@@ -188,7 +188,7 @@ class Relevant {
                         $atts = $m->getPublic(FALSE, FALSE, TRUE);
                         $groups = $atts['groups'];
                         foreach ($groups as $group) {
-                            $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+                            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
                             $gatts = $g->getPublic();
 
                             $sql = "SELECT groupid FROM groups WHERE groupname = " . $dbhold->quote($gatts['nameshort']) . ";";

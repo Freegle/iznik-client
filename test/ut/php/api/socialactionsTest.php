@@ -45,7 +45,7 @@ class socialactionsAPITest extends IznikAPITestCase
         $uid = $u->create('Test', 'User', 'Test User');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
         # Delete the last share so that there will be at least one.

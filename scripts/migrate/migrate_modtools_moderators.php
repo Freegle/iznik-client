@@ -13,7 +13,7 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 $mods = $dbhold->query("SELECT groups.groupname, moderators.email, moderators.name, moderators.yahooid,
  groupsmoderated.showinallmessages, groupsmoderated.showinallmembers
@@ -23,7 +23,7 @@ INNER JOIN moderators ON moderators.uniqueid = groupsmoderated.moderatorid;");
 
 foreach ($mods as $mod) {
     try {
-        $g = new Group($dbhr, $dbhm);
+        $g = Group::get($dbhr, $dbhm);
         $gid = $g->findByShortName($mod['groupname']);
 
         if ($gid) {

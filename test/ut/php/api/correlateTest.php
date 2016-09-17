@@ -39,7 +39,7 @@ class correlateTest extends IznikAPITestCase {
     public function testPending() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
@@ -121,7 +121,7 @@ class correlateTest extends IznikAPITestCase {
     public function testApproved() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it

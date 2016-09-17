@@ -92,7 +92,7 @@ class Newsletter extends Entity
         $g = NULL;
         $gatts = NULL;
         if ($groupid) {
-            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $gatts = $g->getPublic();
         }
 

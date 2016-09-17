@@ -44,7 +44,7 @@ class searchTest extends IznikTestCase
     {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
 
         $msg = $this->unique(file_get_contents('msgs/basic'));

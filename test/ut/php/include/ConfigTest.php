@@ -51,7 +51,7 @@ class configTest extends IznikTestCase {
         assertNotNull($c);
 
         # Use on a group
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');

@@ -14,12 +14,12 @@ if (count($opts) < 2) {
     $email = $opts['e'];
     $groupname = $opts['g'];
 
-    $g = new Group($dbhr, $dbhm);
+    $g = Group::get($dbhr, $dbhm);
     $gid = $g->findByShortName($groupname);
 
     if ($gid) {
         error_log("Found group #$gid");
-        $g = new Group($dbhr, $dbhm, $gid);
+        $g = Group::get($dbhr, $dbhm, $gid);
         $u = User::get($dbhr, $dbhm);
         $uid = $u->findByEmail($email);
 

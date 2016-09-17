@@ -38,7 +38,7 @@ class alertAPITest extends IznikAPITestCase
         $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
         assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onyahoo', 1);
     }

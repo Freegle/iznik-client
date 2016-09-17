@@ -30,7 +30,7 @@ class spammersAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE email IN ('test@test.com', 'test2@test.com', 'test3@test.com', 'test4@test.com');");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
 
-        $this->group = new Group($this->dbhr, $this->dbhm);
+        $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
 
         $u = User::get($this->dbhr, $this->dbhm);
@@ -42,7 +42,7 @@ class spammersAPITest extends IznikAPITestCase {
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Delete any UT playground messages
-        $g = new Group($dbhr, $dbhm);
+        $g = Group::get($dbhr, $dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
         $sql = "DELETE FROM messages_groups WHERE groupid = $gid AND yahooapprovedid < 500;";
         $this->dbhm->preExec($sql);

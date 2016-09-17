@@ -74,7 +74,7 @@ class Admin extends Entity
         $done = 0;
         $groupid = $this->admin['groupid'];
 
-        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $atts = $g->getPublic();
         $groupname = $atts['namedisplay'];
         $onyahoo = $atts['onyahoo'];

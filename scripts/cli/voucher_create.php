@@ -11,7 +11,7 @@ if (count($opts) < 1) {
     echo "Usage: hhvm voucher_create.php -n <number of vouchers to create>\n";
 } else {
     $num = $opts['n'];
-    $g = new Group($dbhr, $dbhm);
+    $g = Group::get($dbhr, $dbhm);
 
     echo "Create $num Vouchers:\n\n";
 

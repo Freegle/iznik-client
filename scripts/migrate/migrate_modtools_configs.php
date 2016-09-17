@@ -21,7 +21,7 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 
 $c = new ModConfig($dbhr, $dbhm);
 $u = User::get($dbhr, $dbhm);
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 $oldconfs = $dbhold->query("SELECT * FROM configs;");
 foreach ($oldconfs as $config) {

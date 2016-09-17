@@ -14,7 +14,7 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 ));
 
 $l = new Location($dbhr, $dbhm);
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 $oldlocs = $dbhold->query("SELECT locations_approved.*, groups.groupname FROM locations_approved INNER JOIN groups ON locations_approved.groupid = groups.groupid;");
 foreach ($oldlocs as $loc) {

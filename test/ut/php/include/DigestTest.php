@@ -48,7 +48,7 @@ class digestTest extends IznikTestCase {
         }));
 
         # Create a group with a message on it.
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', 1);
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -88,7 +88,7 @@ class digestTest extends IznikTestCase {
         $d = new Digest($this->dbhm, $this->dbhm);
 
         # Create a group with a message on it.
-        $g = new Group($this->dbhm, $this->dbhm);
+        $g = Group::get($this->dbhm, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', 1);
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -142,7 +142,7 @@ class digestTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Create a group with a message on it.
-        $g = new Group($this->dbhm, $this->dbhm);
+        $g = Group::get($this->dbhm, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', 1);
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -200,7 +200,7 @@ class digestTest extends IznikTestCase {
         }));
 
         # Create a group with two messages on it, one taken.
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', TRUE);
 

@@ -1011,7 +1011,7 @@ class Message
         if ($groupname) {
             if (!$this->groupid) {
                 # Check if it's a group we host.
-                $g = new Group($this->dbhr, $this->dbhm);
+                $g = Group::get($this->dbhr, $this->dbhm);
                 $this->groupid = $g->findByShortName($groupname);
             }
         }
@@ -1251,7 +1251,7 @@ class Message
         }
 
         # If this is a reuse group, we need to determine the type.
-        $g = new Group($this->dbhr, $this->dbhm, $this->groupid);
+        $g = Group::get($this->dbhr, $this->dbhm, $this->groupid);
         if ($g->getPrivate('type') == Group::GROUP_FREEGLE ||
             $g->getPrivate('type') == Group::GROUP_REUSE
         ) {
@@ -1660,7 +1660,7 @@ class Message
             $to = $this->getEnvelopefrom();
             $to = $to ? $to : $this->getFromaddr();
 
-            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $atts = $g->getPublic();
 
             # Find who to send it from.  If we have a config to use for this group then it will tell us.
@@ -2415,7 +2415,7 @@ class Message
 
     public function suggestSubject($groupid, $subject) {
         $newsubj = $subject;
-        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
         # This method is used to improve subjects, and also to map - because we need to make sure we understand the
         # subject format before can map.
@@ -2580,7 +2580,7 @@ class Message
 
     public function constructSubject($groupid) {
         # Construct the subject - do this now as it may get displayed to the user before we get the membership.
-        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
 
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
@@ -2661,7 +2661,7 @@ class Message
             $this->setPrivate('lat', $atts['location']['lat']);
             $this->setPrivate('lng', $atts['location']['lng']);
 
-            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $this->setPrivate('envelopeto', $g->getGroupEmail());
 
             # The from IP and country.
@@ -2805,7 +2805,7 @@ class Message
         $key = strtoupper($type == Message::TYPE_OFFER ? Message::TYPE_TAKEN : Message::TYPE_RECEIVED);
         
         foreach ($groups as $groupid) {
-            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $defs = $g->getDefaults()['keywords'];
             $keywords = $g->getSetting('keywords', $defs);
 
@@ -2838,7 +2838,7 @@ class Message
         $groups = $this->getGroups();
 
         foreach ($groups as $groupid) {
-            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
             if ($g->getPrivate('onyahoo')) {
                 list ($eid, $email) = $u->getEmailForYahooGroup($groupid, TRUE);
@@ -2905,7 +2905,7 @@ class Message
         $groupq = $groupid ? " AND id = $groupid " : "";
         $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq;", [ $type ]);
         foreach ($groups as $group) {
-            $g = new Group($this->dbhr, $this->dbhm, $group['id']);
+            $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
             $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10]);
 
             # We want approved messages which haven't got a related message, i.e. aren't TAKEN/RECEIVED, which don't have

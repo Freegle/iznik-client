@@ -27,7 +27,7 @@ class chatRoomsTest extends IznikTestCase {
 
         $dbhm->preExec("DELETE FROM chat_rooms WHERE name = 'test';");
 
-        $g = new Group($dbhr, $dbhm);
+        $g = Group::get($dbhr, $dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
     }
 

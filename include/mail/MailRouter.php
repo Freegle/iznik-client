@@ -252,6 +252,7 @@ class MailRouter
 
                         # Key is single use after a successful confirm.
                         $this->dbhm->preExec("UPDATE groups SET confirmkey = NULL WHERE id = ?;", [$groupid]);
+                        Group::clearCache($groupid);
                     }
                 }
             } else if ($fromheader && preg_match('/confirm-nomail(.*)@yahoogroups.co.*/', $fromheader[0]['address'], $matches) === 1) {
@@ -348,11 +349,11 @@ class MailRouter
 
                 if ($approve && $reject && $email) {
                     $nameshort = $this->msg->getHeader('x-egroups-moderators');
-                    $g = new Group($this->dbhr, $this->dbhm);
+                    $g = Group::get($this->dbhr, $this->dbhm);
                     $gid = $g->findByShortName($nameshort);
 
                     if ($gid) {
-                        $g = new Group($this->dbhr, $this->dbhm, $gid);
+                        $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
                         # Check that this user exists.
                         $u = User::get($this->dbhr, $this->dbhm);
@@ -408,7 +409,7 @@ class MailRouter
                 if (preg_match('/^(.*) joined your/m', $all, $matches)) {
                     $email = $matches[1];
                     if ($log) { error_log("Email is $email"); }
-                    $g = new Group($this->dbhr, $this->dbhm);
+                    $g = Group::get($this->dbhr, $this->dbhm);
                     $gid = $g->findByShortName($nameshort);
 
                     if ($gid) {
@@ -442,7 +443,7 @@ class MailRouter
                 if (preg_match('/Because you are already a member/m', $all, $matches) ||
                     preg_match('/has approved your request for membership/m', $all, $matches)) {
                     if ($log) { error_log("Now or already a member"); }
-                    $g = new Group($this->dbhr, $this->dbhm);
+                    $g = Group::get($this->dbhr, $this->dbhm);
                     $gid = $g->findByShortName($nameshort);
 
                     if ($gid) {
@@ -624,7 +625,7 @@ class MailRouter
                     # otherwise we'd get swamped.  We get group mails via the modtools@ and republisher@ users.
                     if (strpos($envto, '@' . USER_DOMAIN) !== FALSE || (ourDomain($envto) && stripos($envto, 'fbuser') === 0)) {
                         foreach ($groups as $groupid) {
-                            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+                            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
                             if ($log) { error_log("Turn off mails for $envto via " . $g->getGroupNoEmail()); }
                             $this->mail($g->getGroupNoEmail(), $envto, "Turning off mails", "I don't want these");
                         }

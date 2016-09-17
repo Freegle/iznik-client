@@ -129,7 +129,7 @@ class CommunityEvent extends Entity
         $groups = $this->dbhr->preQuery("SELECT * FROM communityevents_groups WHERE eventid = ?", [ $this->id ]);
 
         foreach ($groups as $group) {
-            $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
             $atts['groups'][] = $g->getPublic();
         }
 

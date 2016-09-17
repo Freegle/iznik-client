@@ -269,7 +269,7 @@ class Spam {
 
         foreach ($spammers as $spammer) {
             error_log("Found spammer {$spammer['userid']}");
-            $g = new Group($this->dbhr, $this->dbhm, $spammer['groupid']);
+            $g = Group::get($this->dbhr, $this->dbhm, $spammer['groupid']);
             $spamcheck = $g->getSetting('spammers', [ 'check' => 1, 'remove' => 1]);
             error_log("Spam check " . var_export($spamcheck, TRUE));
             if ($spamcheck['check'] && $spamcheck['remove']) {
@@ -286,7 +286,7 @@ class Spam {
         $spammsgs = $this->dbhr->preQuery($sql, [ Spam::TYPE_SPAMMER ]);
 
         foreach ($spammsgs as $spammsg) {
-            $g = new Group($this->dbhr, $this->dbhm, $spammsg['groupid']);
+            $g = Group::get($this->dbhr, $this->dbhm, $spammsg['groupid']);
 
             # Only remove on Freegle groups by default.
             $spamcheck = $g->getSetting('spammers', [ 'check' => 1, 'remove' => $g->getPrivate('type') == Group::GROUP_FREEGLE]);

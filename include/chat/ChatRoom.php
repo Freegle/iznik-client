@@ -232,7 +232,7 @@ class ChatRoom extends Entity
         $ret = $this->getAtts($this->publicatts);
 
         if (pres('groupid', $ret)) {
-            $g = new Group($this->dbhr, $this->dbhm, $ret['groupid']);
+            $g = Group::get($this->dbhr, $this->dbhm, $ret['groupid']);
             unset($ret['groupid']);
             $ret['group'] = $g->getPublic();
         }
@@ -406,7 +406,7 @@ class ChatRoom extends Entity
 
                     if ($room['chattype'] == ChatRoom::TYPE_MOD2MOD && $room['groupid']) {
                         # See if the group allows chat.
-                        $g = new Group($this->dbhr, $this->dbhm, $room['groupid']);
+                        $g = Group::get($this->dbhr, $this->dbhm, $room['groupid']);
                         $show = $g->getSetting('showchat', TRUE);
                     }
 
@@ -600,7 +600,7 @@ class ChatRoom extends Entity
                 $u = User::get($this->dbhr, $this->dbhm, $touserid);
                 $thisone['touser'] = $u->getPublic();
 
-                $g = new Group($this->dbhr, $this->dbhm, $msg['groupid']);
+                $g = Group::get($this->dbhr, $this->dbhm, $msg['groupid']);
                 $thisone['group'] = $g->getPublic();
 
                 $thisone['date'] = ISODate($thisone['date']);
@@ -876,7 +876,7 @@ class ChatRoom extends Entity
                                 break;
                             case ChatRoom::TYPE_USER2MOD:
                                 # We might either be notifying a user, or the mods.
-                                $g = new Group($this->dbhr, $this->dbhm, $chat['groupid']);
+                                $g = Group::get($this->dbhr, $this->dbhm, $chat['groupid']);
                                 if ($member['role'] == User::ROLE_MEMBER) {
                                     $subject = "You have a message from the " . $g->getPublic()['namedisplay'] . " volunteers";
                                     $fromname = $g->getPublic()['namedisplay'];

@@ -35,7 +35,7 @@ class AlertTest extends IznikTestCase {
     public function testMultiple() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
         $a = new Alert($this->dbhr, $this->dbhm);
@@ -56,7 +56,7 @@ class AlertTest extends IznikTestCase {
     public function testErrors() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
         $u = User::get($this->dbhr, $this->dbhm);

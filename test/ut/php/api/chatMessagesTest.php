@@ -45,7 +45,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->user3 = User::get($this->dbhr, $this->dbhm, $this->uid3);
         assertGreaterThan(0, $this->user3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
 
         $c = new ChatRoom($this->dbhr, $this->dbhm);

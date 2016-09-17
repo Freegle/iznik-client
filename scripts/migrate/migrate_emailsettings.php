@@ -13,7 +13,7 @@ $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 $u = User::get($dbhr, $dbhm);
 
 $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
@@ -36,7 +36,7 @@ foreach ($groups as $group) {
     $gid = $g->findByShortName($group['groupname']);
 
     if ($gid) {
-        $g = new Group($dbhr, $dbhm, $gid);
+        $g = Group::get($dbhr, $dbhm, $gid);
 
         $users = $dbhfd->query("SELECT * FROM users WHERE groupid = {$group['groupid']} AND deletedfromyahoo = 0;");
         $count = 0;

@@ -14,7 +14,7 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 ));
 
 $u = User::get($dbhr, $dbhm);
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 #$dbhm->preExec("DELETE FROM users_comments;");
 

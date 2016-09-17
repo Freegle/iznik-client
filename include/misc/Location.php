@@ -458,7 +458,7 @@ class Location extends Entity
         $ret = [];
         foreach ($groups as $group) {
             if ($expand) {
-                $g = new Group($this->dbhr, $this->dbhm, $group['id']);
+                $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
                 $thisone = $g->getPublic();
 
                 $thisone['distance'] = $group['hav'];

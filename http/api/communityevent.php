@@ -9,7 +9,7 @@ function communityevent() {
 
     if ($groupid) {
         # This might be a legacy groupid.
-        $g = new Group($dbhr, $dbhm, $groupid);
+        $g = Group::get($dbhr, $dbhm, $groupid);
         $groupid = $g->getId();
     }
 

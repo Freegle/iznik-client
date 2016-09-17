@@ -30,7 +30,7 @@ while (($line = fgets($handle)) !== false) {
 }
 
 foreach ($groups as $groupid => $msglist) {
-    $g = new Group($dbhr, $dbhm, $groupid);
+    $g = Group::get($dbhr, $dbhm, $groupid);
 
     $list = "";
     foreach ($msglist as $msgid) {

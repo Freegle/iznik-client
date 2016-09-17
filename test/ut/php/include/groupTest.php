@@ -45,10 +45,10 @@ class groupTest extends IznikTestCase {
     public function testDefaults() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
         $this->dbhm->preExec("UPDATE groups SET settings = NULL WHERE id = ?;", [ $gid ]);
-        $g = new Group($this->dbhr, $this->dbhm, $gid);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
         $atts = $g->getPublic();
 
         assertEquals(1, $atts['settings']['duplicates']['check']);
@@ -63,9 +63,9 @@ class groupTest extends IznikTestCase {
     public function testBasic() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
-        $g = new Group($this->dbhr, $this->dbhm, $gid);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
         $atts = $g->getPublic();
         assertEquals('testgroup', $atts['nameshort']);
         assertEquals($atts['id'], $g->getPrivate('id'));
@@ -128,10 +128,10 @@ class groupTest extends IznikTestCase {
     public function testMerge() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
         assertNotNull($gid);
-        $g = new Group($this->dbhr, $this->dbhm, $gid);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         # Create owner
         $u = User::get($this->dbhm, $this->dbhm);
@@ -257,7 +257,7 @@ class groupTest extends IznikTestCase {
         );
 
         # Create duplicate group
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $id = $g->create('testgroup', Group::GROUP_REUSE);
         assertNotNull($id);
         $id2 = $g->create('testgroup', Group::GROUP_REUSE);
@@ -275,7 +275,7 @@ class groupTest extends IznikTestCase {
         $id2 = $g->create('testgroup2', Group::GROUP_REUSE);
         assertNull($id2);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $id2 = $g->findByShortName('zzzz');
         assertNull($id2);
 
@@ -288,7 +288,7 @@ class groupTest extends IznikTestCase {
         $this->user->addMembership($id);
 
         # Error in preExec
-        $g = new Group($this->dbhr, $this->dbhm, $id);
+        $g = Group::get($this->dbhr, $this->dbhm, $id);
         $mock = $this->getMockBuilder('LoggedPDO')
             ->setConstructorArgs([
                 "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
@@ -342,7 +342,7 @@ class groupTest extends IznikTestCase {
     public function testVoucher() {
         error_log(__METHOD__ );
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $id = $g->create('testgroup', Group::GROUP_REUSE);
         assertNotNull($id);
         assertNull($g->getPrivate('licensed'));
@@ -352,7 +352,7 @@ class groupTest extends IznikTestCase {
         assertNotNull($voucher);
         assertFalse($g->redeemVoucher('wibble'));
         assertTrue($g->redeemVoucher($voucher));
-        $g = new Group($this->dbhr, $this->dbhm, $id);
+        $g = Group::get($this->dbhr, $this->dbhm, $id);
         assertNotNull($g->getPrivate('licensed'));
         assertNotNull($g->getPrivate('licenseduntil'));
 
@@ -366,7 +366,7 @@ class groupTest extends IznikTestCase {
         $groups = $this->dbhr->preQuery($sql);
         foreach ($groups as $group) {
             error_log("Get legacy {$group['legacyid']}");
-            $g = new Group($this->dbhr, $this->dbhm, $group['legacyid']);
+            $g = Group::get($this->dbhr, $this->dbhm, $group['legacyid']);
             error_log("Returned id " . $g->getId());
             assertEquals($group['id'], $g->getId());
         }

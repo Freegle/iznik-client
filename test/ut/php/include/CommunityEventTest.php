@@ -23,7 +23,7 @@ class communityEventTest extends IznikTestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $g = new Group($dbhr, $dbhm);
+        $g = Group::get($dbhr, $dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
     }
 

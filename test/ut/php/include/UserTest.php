@@ -125,7 +125,7 @@ class userTest extends IznikTestCase {
         assertEquals('test3@test.com', $emails[0]['email']);
 
         # Add them as memberships and check we get the right ones.
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $emailid1 = $u->getIdForEmail('test@test.com')['id'];
         $emailid3 = $u->getIdForEmail('test3@test.com')['id'];
@@ -202,7 +202,7 @@ class userTest extends IznikTestCase {
     public function testMemberships() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
 
@@ -306,9 +306,9 @@ class userTest extends IznikTestCase {
         assertEquals(1, count($membs));
         assertFalse($u->addMembership($group2));
 
-        $g = new Group($this->dbhr, $this->dbhm, $group1);
+        $g = Group::get($this->dbhr, $this->dbhm, $group1);
         $g->delete();
-        $g = new Group($this->dbhr, $this->dbhm, $group2);
+        $g = Group::get($this->dbhr, $this->dbhm, $group2);
         $g->delete();
 
         $membs = $u->getMemberships();
@@ -320,7 +320,7 @@ class userTest extends IznikTestCase {
     public function testMerge() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
         $group3 = $g->create('testgroup3', Group::GROUP_REUSE);
@@ -393,7 +393,7 @@ class userTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Simulates processing from real emails migration script.
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group = $g->create('testgroup', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhr, $this->dbhm);
@@ -431,7 +431,7 @@ class userTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Simulates processing from real emails migration script.
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group = $g->create('testgroup', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhr, $this->dbhm);
@@ -459,7 +459,7 @@ class userTest extends IznikTestCase {
     public function testMergeError() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
         $group3 = $g->create('testgroup3', Group::GROUP_REUSE);
@@ -577,7 +577,7 @@ class userTest extends IznikTestCase {
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group = $g->create('testgroup1', Group::GROUP_REUSE);
 
         # Suppress mails.
@@ -626,7 +626,7 @@ class userTest extends IznikTestCase {
         assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u1->login('testpw'));
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
 
         # Try to add a comment when not a mod.
@@ -692,12 +692,12 @@ class userTest extends IznikTestCase {
         $u2 = User::get($this->dbhr, $this->dbhm);
         $id2 = $u2->create('Test', 'User', NULL);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $groupids = [];
 
         for ($i = 0; $i < Spam::SEEN_THRESHOLD + 1; $i++) {
             $gid = $g->create("testgroup$i", Group::GROUP_REUSE);
-            $g = new Group($this->dbhr, $this->dbhm);
+            $g = Group::get($this->dbhr, $this->dbhm);
             $groupids[] = $gid;
             $u1->addMembership($gid, User::ROLE_MODERATOR);
             $u2->addMembership($gid);

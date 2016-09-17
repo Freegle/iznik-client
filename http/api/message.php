@@ -13,7 +13,7 @@ function message() {
         # This is a legacy ID used for migrating old links from earlier versions.  Map it to the real id.
         #
         # The groupid is probably legacy too, so we need to get the real one.
-        $g = new Group($dbhr, $dbhm, $groupid);
+        $g = Group::get($dbhr, $dbhm, $groupid);
         $sql = "SELECT msgid FROM messages_groups WHERE groupid = ? AND yahooapprovedid = ?;";
         $msgs = $dbhr->preQuery($sql, [
             $g->getId(),
@@ -96,7 +96,7 @@ function message() {
                     ];
 
                     foreach ($ret['message']['groups'] as &$group) {
-                        $g = new Group($dbhr, $dbhm, $group['groupid']);
+                        $g = Group::get($dbhr, $dbhm, $group['groupid']);
                         $ret['groups'][$group['groupid']] = $g->getPublic();
                     }
 
@@ -273,7 +273,7 @@ function message() {
                             // @codeCoverageIgnoreStart
                             if (defined('USER_GROUP_OVERRIDE') && !pres('ignoregroupoverride', $_REQUEST)) {
                                 # We're in testing mode
-                                $g = new Group($dbhr, $dbhm);
+                                $g = Group::get($dbhr, $dbhm);
                                 $nears = [ $g->findByShortName(USER_GROUP_OVERRIDE) ];
                             }
                             // @codeCoverageIgnoreEnd

@@ -44,7 +44,7 @@ function memberships() {
     }
 
     $u = User::get($dbhr, $dbhm, $userid);
-    $g = new Group($dbhr, $dbhm, $groupid);
+    $g = Group::get($dbhr, $dbhm, $groupid);
 
     if ($collection) {
         switch ($_REQUEST['type']) {
@@ -137,7 +137,7 @@ function memberships() {
 
                                 foreach ($members as $member) {
                                     if (!pres($member['groupid'], $ret['groups'])) {
-                                        $g = new Group($dbhr, $dbhm, $member['groupid']);
+                                        $g = Group::get($dbhr, $dbhm, $member['groupid']);
                                         $ret['groups'][$member['groupid']] = $g->getPublic();
                                     }
                                 }
@@ -172,7 +172,7 @@ function memberships() {
 
                     $u->addMembership($groupid, $role, $emailid);
 
-                    $g = new Group($dbhr, $dbhm, $groupid);
+                    $g = Group::get($dbhr, $dbhm, $groupid);
                     if ($g->onYahoo()) {
                         # This group is on Yahoo too, so we should trigger a membership application to there if we
                         # don't already have one of our emails on the group.

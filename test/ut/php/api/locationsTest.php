@@ -56,7 +56,7 @@ class locationsAPITest extends IznikAPITestCase
             }
         }
 
-        $this->group = new Group($this->dbhr, $this->dbhm);
+        $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhr, $this->dbhm);

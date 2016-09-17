@@ -38,7 +38,7 @@ class messagesTest extends IznikAPITestCase {
     public function testApproved() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
 
@@ -233,7 +233,7 @@ class messagesTest extends IznikAPITestCase {
     public function testSpam() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
@@ -310,7 +310,7 @@ class messagesTest extends IznikAPITestCase {
     public function testPending() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
@@ -372,7 +372,7 @@ class messagesTest extends IznikAPITestCase {
     public function testPut() {
         error_log(__METHOD__ . " start");
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
         $msg = $this->unique(file_get_contents('msgs/basic'));
 
@@ -435,7 +435,7 @@ class messagesTest extends IznikAPITestCase {
     public function testNear() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
 
         # Need a location and polygon for near testing.

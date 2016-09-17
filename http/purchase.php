@@ -12,7 +12,7 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 
 global $dbhr, $dbhm;
 
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 $l = new Log($dbhr, $dbhm);
 
 try {

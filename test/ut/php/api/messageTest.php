@@ -44,7 +44,7 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
@@ -107,7 +107,7 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
@@ -132,7 +132,7 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
@@ -188,7 +188,7 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
@@ -271,7 +271,7 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Create a group with a message on it
@@ -338,7 +338,7 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -470,7 +470,7 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_OTHER);
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -607,7 +607,7 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_OTHER);
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -690,7 +690,7 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -785,7 +785,7 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         $origmsg = file_get_contents('msgs/spam');
@@ -898,7 +898,7 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -972,7 +972,7 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_OTHER);
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -1057,7 +1057,7 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         # Can create drafts when not logged in.
@@ -1188,7 +1188,7 @@ class messageAPITest extends IznikAPITestCase
         # - create a draft with a location
         # - find the closest group to that location
         # - submit it
-        $this->group = new Group($this->dbhr, $this->dbhm);
+        $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
@@ -1215,7 +1215,7 @@ class messageAPITest extends IznikAPITestCase
         $attid = $ret['id'];
 
         # Find a location
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
         $ret = $this->call('message', 'PUT', [
@@ -1404,7 +1404,7 @@ class messageAPITest extends IznikAPITestCase
         # - create a draft with a location
         # - find the closest group to that location
         # - submit it
-        $this->group = new Group($this->dbhr, $this->dbhm);
+        $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
@@ -1430,7 +1430,7 @@ class messageAPITest extends IznikAPITestCase
         $attid = $ret['id'];
 
         # Find a location
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
         $ret = $this->call('message', 'PUT', [
@@ -1487,7 +1487,7 @@ class messageAPITest extends IznikAPITestCase
         error_log(__METHOD__);
 
         # At the moment a crosspost results in two separate messages - see comment in Message::save().
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
 
@@ -1515,7 +1515,7 @@ class messageAPITest extends IznikAPITestCase
     public function testPromise() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
 
         $u = User::get($this->dbhr, $this->dbhm);
@@ -1618,7 +1618,7 @@ class messageAPITest extends IznikAPITestCase
 
         $email = 'test-' . rand() . '@blackhole.io';
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhr, $this->dbhm);

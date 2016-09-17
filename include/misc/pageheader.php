@@ -34,10 +34,10 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         require_once(IZNIK_BASE . '/include/db.php');
         require_once(IZNIK_BASE . '/include/group/Group.php');
         global $dbhr, $dbhm;
-        $g = new Group($dbhr, $dbhm);
+        $g = Group::get($dbhr, $dbhm);
         $gid = $g->findByShortName($matches[1]);
         if ($gid) {
-            $g = new Group($dbhr, $dbhm, $gid);
+            $g = Group::get($dbhr, $dbhm, $gid);
             $atts = $g->getPublic();
             ?>
             <title><?php echo $atts['namedisplay']; ?></title>

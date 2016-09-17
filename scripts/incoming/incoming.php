@@ -41,11 +41,11 @@ if (preg_match('/List-Unsubscribe: <mailto:(.*)-unsubscribe@yahoogroups.co/', $m
         # otherwise we'd get swamped.  We get group mails via the modtools@ and republisher@ users.
         #
         # We do this here rather than in the router because we don't want to create a message in the DB for it.
-        $g = new Group($dbhr, $dbhm);
+        $g = Group::get($dbhr, $dbhm);
         $gid = $g->findByShortName($groupname);
 
         if ($gid) {
-            $g = new Group($dbhr, $dbhm, $gid);
+            $g = Group::get($dbhr, $dbhm, $gid);
 
             list ($transport, $mailer) = getMailer();
 

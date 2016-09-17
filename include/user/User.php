@@ -63,13 +63,12 @@ class User extends Entity
     public static function get(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $usecache = TRUE) {
         if ($id) {
             # We cache the constructed user.
-            if ($usecache && array_key_exists($id, User::$cache)) {
+            if ($usecache && array_key_exists($id, User::$cache) && User::$cache[$id]->getId() == $id) {
                 # We found it.
-                #error_log("Found $id in cache");
-
                 # @var User
                 $u = User::$cache[$id];
-
+                #error_log("Found $id in cache with " . $u->getId());
+                
                 if (!User::$cacheDeleted[$id]) {
                     # And it's not zapped - so we can use it.
                     #error_log("Not zapped");
@@ -80,6 +79,7 @@ class User extends Entity
                     # zapped the SQL read cache.
                     #error_log("Zapped, refetch " . $id);
                     $u->fetch($u->dbhr, $u->dbhm, $id, 'users', 'user', $u->publicatts);
+                    #error_log("Fetched $id as " . $u->getId());
                     User::$cache[$id] = $u;
                     User::$cacheDeleted[$id] = FALSE;
                     return($u);
@@ -516,7 +516,7 @@ class User extends Entity
         # memberships_yahoo), and if the membership already exists, then this would cause us to delete and re-add it,
         # which would result in the row in the child table being deleted.
         #
-        #error_log("Add membership {$this->id} to $groupid with $emailid");
+        #error_log("Add membership role $role for {$this->id} to $groupid with $emailid");
         $rc = $this->dbhm->preExec("INSERT INTO memberships (userid, groupid, role, collection) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), role = ?;", [
             $this->id,
             $groupid,
@@ -525,7 +525,7 @@ class User extends Entity
             $role
         ]);
         $membershipid = $this->dbhm->lastInsertId();
-        #error_log("Insert returned $rc membership $membershipid");
+        error_log("Insert returned $rc membership $membershipid");
 
         if ($rc && $emailid) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
@@ -633,7 +633,7 @@ class User extends Entity
 
             # It would be odd for them to be on Yahoo with no email but handle it anyway.
             if ($email['email']) {
-                $g = new Group($this->dbhr, $this->dbhm, $groupid);
+                $g = Group::get($this->dbhr, $this->dbhm, $groupid);
                 $p = new Plugin($this->dbhr, $this->dbhm);
                 $p->add($groupid, [
                     'type' => $type,
@@ -692,24 +692,14 @@ class User extends Entity
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
         $sql = "SELECT groupid, role, configid, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND groups.publish = 1 WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
+        #error_log("getMemberships $sql {$this->id} " . var_export($groups, TRUE));
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
 
-        $cache = new Redis();
-        $cache->pconnect(REDIS_CONNECT);
-
         foreach ($groups as $group) {
             $g = NULL;
-            # We cache the groups in redis - there are a lot of ops involved in getting all of our groups.
-            $cachekey = "group-{$group['groupid']}";
-            $cached = $cache->get($cachekey);
-            if ($cached) {
-                $one = json_decode($cached, TRUE);
-            } else {
-                $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
-                $one = $g->getPublic();
-                $cache->setex($cachekey, REDIS_TTL, json_encode($one));
-            }
+            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+            $one = $g->getPublic();
 
             $one['role'] = $group['role'];
             $one['configid'] = $c->getForGroup($this->id, $group['groupid']);
@@ -725,7 +715,7 @@ class User extends Entity
                     ($showmessages || $showmembers)) {
                     if (!$g) {
                         # We need to have an actual group object for this.
-                        $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+                        $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
                     }
 
                     # Give a summary of outstanding work.
@@ -752,20 +742,10 @@ class User extends Entity
 
         $sql = "SELECT DISTINCT * FROM ((SELECT configid AS id FROM memberships WHERE groupid IN (" . implode(',', $modships) . ") AND role IN ('Owner', 'Moderator') AND configid IS NOT NULL) UNION (SELECT id FROM mod_configs WHERE createdby = {$this->id} OR `default` = 1)) t;";
         $ids = $this->dbhr->preQuery($sql);
-        $cache = new Redis();
-        $cache->pconnect(REDIS_CONNECT);
 
         foreach ($ids as $id) {
-            # We cache the configs in redis - there are a lot of ops involved in getting the config and all its standard messages.
-            $cachekey = "modconfig-{$id['id']}";
-            $cached = $cache->get($cachekey);
-            if ($cached) {
-                $thisone = json_decode($cached, TRUE);
-            } else {
-                $c = new ModConfig($this->dbhr, $this->dbhm, $id['id']);
-                $thisone = $c->getPublic(FALSE);
-                $cache->setex($cachekey, REDIS_TTL, json_encode($thisone));
-            }
+            $c = new ModConfig($this->dbhr, $this->dbhm, $id['id']);
+            $thisone = $c->getPublic(FALSE);
 
             if ($me) {
                 if ($thisone['createdby'] == $me->getId()) {
@@ -780,7 +760,7 @@ class User extends Entity
                     foreach ($shareds as $shared) {
                         $thisone['cansee'] = ModConfig::CANSEE_SHARED;
                         $u = User::get($this->dbhr, $this->dbhm, $shared['userid']);
-                        $g = new Group($this->dbhr, $this->dbhm, $shared['groupid']);
+                        $g = Group::get($this->dbhr, $this->dbhm, $shared['groupid']);
                         $ctx = NULL;
                         $thisone['sharedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
                         $thisone['sharedon'] = $g->getPublic();
@@ -1120,7 +1100,7 @@ class User extends Entity
 
                 if (pres('groupid', $log)) {
                     if (!pres($log['groupid'], $groups)) {
-                        $g = new Group($this->dbhr, $this->dbhm, $log['groupid']);
+                        $g = Group::get($this->dbhr, $this->dbhm, $log['groupid']);
 
                         if ($g->getId()) {
                             $groups[$log['groupid']] = $g->getPublic();
@@ -1726,7 +1706,7 @@ class User extends Entity
             }
 
             if ($to) {
-                $g = new Group($this->dbhr, $this->dbhm, $groupid);
+                $g = Group::get($this->dbhr, $this->dbhm, $groupid);
                 $atts = $g->getPublic();
 
                 $me = whoAmI($this->dbhr, $this->dbhm);
@@ -2255,7 +2235,7 @@ class User extends Entity
     }
 
     public function triggerYahooApplication($groupid, $log = TRUE) {
-        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $email = $this->inventEmail();
         $emailid = $this->addEmail($email, 0);
         #error_log("Added email $email id $emailid");
@@ -2456,7 +2436,7 @@ class User extends Entity
 
             #error_log("{$log['subtype']} gives $thisone {$log['groupid']}");
             if ($thisone && $log['groupid']) {
-                $g = new Group($this->dbhr, $this->dbhm, $log['groupid']);
+                $g = Group::get($this->dbhr, $this->dbhm, $log['groupid']);
                 $ret[] = [
                     'timestamp' => ISODate($log['timestamp']),
                     'type' => $thisone,

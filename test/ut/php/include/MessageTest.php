@@ -61,7 +61,7 @@ class messageTest extends IznikTestCase {
         }
 
         # Delete any UT playground messages
-        $g = new Group($dbhr, $dbhm);
+        $g = Group::get($dbhr, $dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
         $sql = "DELETE FROM messages_groups WHERE groupid = $gid AND yahooapprovedid < 500;";
         $this->dbhm->preExec($sql);
@@ -174,9 +174,9 @@ class messageTest extends IznikTestCase {
         $l = new Location($this->dbhr, $this->dbhm);
         $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
-        $g = new Group($this->dbhr, $this->dbhm, $gid);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.4);
@@ -230,9 +230,9 @@ class messageTest extends IznikTestCase {
     public function testMerge() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
-        $g = new Group($this->dbhr, $this->dbhm, $gid);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
@@ -316,9 +316,9 @@ class messageTest extends IznikTestCase {
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals('TAKEN: Ninky nonk train and night garden characters St NIcks', $m->reverseSubject());
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
-        $g = new Group($this->dbhr, $this->dbhm, $gid);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
@@ -417,7 +417,7 @@ And something after it.', $stripped);
     public function testAutoRepost() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
 
         $m = new Message($this->dbhr, $this->dbhm);

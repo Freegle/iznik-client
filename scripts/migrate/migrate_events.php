@@ -15,7 +15,7 @@ $dbh = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 
 $c = new CommunityEvent($dbhr, $dbhm);
 $u = User::get($dbhr, $dbhm);
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 $events = $dbh->query("SELECT events.*, facebook.email, groups.groupname FROM events LEFT JOIN facebook ON events.from = facebook.facebookid INNER JOIN groups ON groups.groupid = events.groupid;");
 

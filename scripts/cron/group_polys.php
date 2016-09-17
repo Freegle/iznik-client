@@ -34,7 +34,7 @@ function canon($name) {
 }
 
 $kml = simplexml_load_file(GATKML);
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 if ($kml) {
     $kgroups = $kml->Document->Folder->children();
