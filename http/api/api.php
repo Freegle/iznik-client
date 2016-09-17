@@ -61,6 +61,7 @@ require_once(IZNIK_BASE . '/http/api/stdmsg.php');
 require_once(IZNIK_BASE . '/http/api/bulkop.php');
 require_once(IZNIK_BASE . '/http/api/comment.php');
 require_once(IZNIK_BASE . '/http/api/dashboard.php');
+require_once(IZNIK_BASE . '/http/api/error.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
 require_once(IZNIK_BASE . '/http/api/message.php');
 require_once(IZNIK_BASE . '/http/api/item.php');
@@ -153,6 +154,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'dashboard':
                     $ret = dashboard();
+                    break;
+                case 'error':
+                    $ret = error();
                     break;
                 case 'exception':
                     # For UT

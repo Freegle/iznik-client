@@ -255,7 +255,7 @@ class ModConfig extends Entity
 
         $systemrole = $me->getPublic()['systemrole'];
 
-        error_log("Cansee {$this->id} systemrole $systemrole");
+        #error_log("Cansee {$this->id} systemrole $systemrole");
 
         if ($systemrole == User::SYSTEMROLE_SUPPORT ||
             $systemrole == User::SYSTEMROLE_ADMIN) {

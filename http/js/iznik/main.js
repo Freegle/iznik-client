@@ -40,6 +40,18 @@ requirejs.onError = function (err) {
     }
 };
 
+// Global error catcher so that we log to the server.
+window.onerror = function(message, file, line) {
+    $.ajax({
+        url: API + 'error',
+        type: 'PUT',
+        data: {
+            'errortype': 'Exception',
+            'errortext': message + ' in ' + file + ' line ' + line
+        }
+    });
+};
+
 require([
     'jquery',
     'underscore',
