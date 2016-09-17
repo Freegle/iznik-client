@@ -40,40 +40,43 @@ define([
                         v.close();
 
                         if (ret.dashboard) {
-                            var happy = new Iznik.Collections.DateCounts(ret.dashboard.Happy);
-                            var fine = new Iznik.Collections.DateCounts(ret.dashboard.Fine);
-                            var unhappy = new Iznik.Collections.DateCounts(ret.dashboard.Unhappy);
-                            var graph = new Iznik.Views.StackGraph({
-                                target: self.$('.js-happinessgraph').get()[0],
-                                data: [
-                                    {
-                                        tag: 'Happy',
-                                        data: happy,
-                                        colour: 'green'
-                                    },
-                                    {
-                                        tag: 'Fine',
-                                        data: fine,
-                                        colour: 'lightblue'
-                                    },
-                                    {
-                                        tag: 'Unhappy',
-                                        data: unhappy,
-                                        colour: 'red'
-                                    }
-                                ]
-                            });
+                            if (Iznik.Session.isFreegleMod()) {
+                                self.$('.js-freegleonly').show();
+                                var happy = new Iznik.Collections.DateCounts(ret.dashboard.Happy);
+                                var fine = new Iznik.Collections.DateCounts(ret.dashboard.Fine);
+                                var unhappy = new Iznik.Collections.DateCounts(ret.dashboard.Unhappy);
+                                var graph = new Iznik.Views.StackGraph({
+                                    target: self.$('.js-happinessgraph').get()[0],
+                                    data: [
+                                        {
+                                            tag: 'Happy',
+                                            data: happy,
+                                            colour: 'green'
+                                        },
+                                        {
+                                            tag: 'Fine',
+                                            data: fine,
+                                            colour: 'lightblue'
+                                        },
+                                        {
+                                            tag: 'Unhappy',
+                                            data: unhappy,
+                                            colour: 'red'
+                                        }
+                                    ]
+                                });
 
-                            graph.render();
+                                graph.render();
 
-                            var coll = new Iznik.Collections.DateCounts(ret.dashboard.SupportQueries);
-                            var graph = new Iznik.Views.DateGraph({
-                                target: self.$('.js-supportqueriesgraph').get()[0],
-                                data: coll,
-                                title: 'Support Queries'
-                            });
+                                var coll = new Iznik.Collections.DateCounts(ret.dashboard.SupportQueries);
+                                var graph = new Iznik.Views.DateGraph({
+                                    target: self.$('.js-supportqueriesgraph').get()[0],
+                                    data: coll,
+                                    title: 'Support Queries'
+                                });
 
-                            graph.render();
+                                graph.render();
+                            }
 
                             var coll = new Iznik.Collections.DateCounts(ret.dashboard.ApprovedMessageCount);
                             var graph = new Iznik.Views.DateGraph({

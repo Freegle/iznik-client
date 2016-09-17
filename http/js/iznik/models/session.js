@@ -574,6 +574,18 @@ define([
         isAdmin: function () {
             var me = this.get('me');
             return (me && me.systemrole == 'Admin');
+        },
+
+        isFreegleMod: function() {
+            var ret = false;
+
+            this.get('groups').each(function (group) {
+                if (group.get('type') == 'Freegle' && (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
+                    ret = true;
+                }
+            });
+
+            return(ret);
         }
     });
 });
