@@ -1172,7 +1172,9 @@ define([
                 self.$('.js-count').html(unseen).show();
 
                 if (self.messages) {
-                    self.messages.fetch();
+                    self.messages.fetch({
+                        remove: true
+                    });
                 }
             } else {
                 self.$('.js-count').html(unseen).hide();
@@ -1501,7 +1503,9 @@ define([
                 });
 
                 self.collectionView.render();
-                self.messages.fetch();
+                self.messages.fetch({
+                    remove: true
+                });
             });
 
             return (p);
