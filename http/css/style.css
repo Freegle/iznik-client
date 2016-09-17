@@ -974,6 +974,10 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     transform-origin: right bottom;
 }
 
+.chat-window textarea {
+    color: black !important;
+}
+
 @keyframes chatIn {
     0% {
         transform: scale(0.1);
