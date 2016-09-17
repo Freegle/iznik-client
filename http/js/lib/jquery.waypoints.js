@@ -564,7 +564,7 @@
 
     /* Private */
     Group.findOrCreate = function(options) {
-        return groups[options.axis][options.name] || Group::get(options)
+        return groups[options.axis][options.name] || new Group(options)
     }
 
     Waypoint.Group = Group
