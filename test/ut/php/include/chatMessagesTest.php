@@ -192,6 +192,17 @@ class chatMessagesTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testCheckSpam() {
+        error_log(__METHOD__);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+
+        # Keywords
+        assertTrue($m->checkSpam('viagra'));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
 

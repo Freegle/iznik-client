@@ -30,7 +30,7 @@ class ChatMessage extends Entity
     {
         $this->fetch($dbhr, $dbhm, $id, 'chat_messages', 'chatmessage', $this->publicatts);
         $this->log = new Log($dbhr, $dbhm);
-        $this->spamwords = $dbhr->preQuery("SELECT * FROM spam_keywords WHERE action = 'Review';");
+        $this->spamwords = $dbhr->preQuery("SELECT * FROM spam_keywords;");
     }
 
     /**
@@ -82,33 +82,50 @@ class ChatMessage extends Entity
 
             if ($valid < $count) {
                 # At least one URL which we don't trust.
-                error_log("...$badurl not trusted");
                 $check = TRUE;
             }
         }
 
         # Check keywords
         foreach ($this->spamwords as $word) {
-            if (stripos($message, $word['word']) !== FALSE &&
+            if ($word['action'] == 'Review' &&
+                stripos($message, $word['word']) !== FALSE &&
                 (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
                 $check = TRUE;
-                error_log("...{$word['word']}");
             }
         }
 
         return($check);
     }
 
+    public function checkSpam($message) {
+        $spam = FALSE;
+
+        # Check keywords
+        foreach ($this->spamwords as $word) {
+            if ($word['action'] == 'Spam' &&
+                stripos($message, $word['word']) !== FALSE &&
+                (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
+                $spam = TRUE;
+            }
+        }
+
+        return($spam);
+    }
+
     public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL) {
         try {
-            $review = FALSE;
+            $review = 0;
+            $spam = 0;
+            $u = new User($this->dbhr, $this->dbhm, $userid);
 
-            if ($type != ChatMessage::TYPE_MODMAIL) {
-                # No need to check our own mod mails for spam.
+            # Mods may need to refer to spam keywords in replies.
+            if (!$u->isModerator()) {
                 $review = $this->checkReview($message);
+                $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, spamscore, reportreason, refchatid) VALUES (?,?,?,?,?,?,?,?,?,?)", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid) VALUES (?,?,?,?,?,?,?,?,?,?,?)", [
                 $chatid,
                 $userid,
                 $message,
@@ -116,6 +133,7 @@ class ChatMessage extends Entity
                 $refmsgid,
                 $platform,
                 $review,
+                $spam,
                 $spamscore,
                 $reportreason,
                 $refchatid
