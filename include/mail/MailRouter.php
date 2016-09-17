@@ -645,11 +645,12 @@ class MailRouter
                         $chatid = intval($matches[1]);
                         $userid = intval($matches[2]);
                         $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+                        $u = User::get($this->dbhr, $this->dbhm, $userid);
 
                         if ($r->getId()) {
                             # It's a valid chat.
-                            if ($r->getPrivate('user1') == $userid || $r->getPrivate('user2') == $userid) {
-                                # ...and the user we're replying to is part of it.
+                            if ($r->getPrivate('user1') == $userid || $r->getPrivate('user2') == $userid || $u->isModerator()) {
+                                # ...and the user we're replying to is part of it or a mod.
                                 #
                                 # The email address that we replied from might not currently be attached to the
                                 # other user, for example if someone has email forwarding set up.  So make sure we
