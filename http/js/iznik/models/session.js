@@ -397,6 +397,11 @@ define([
                         }
                     }
                 });
+            } else {
+                if (self.testing) {
+                    self.testing = false;
+                    self.trigger('isLoggedIn', self.loggedIn);
+                }
             }
         },
 
