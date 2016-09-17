@@ -9,7 +9,7 @@ require_once UT_DIR . '/IznikAPITestCase.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class alertAPITest extends IznikAPITestCase
+class errorAPITest extends IznikAPITestCase
 {
     public $dbhr, $dbhm;
 
