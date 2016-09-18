@@ -1,6 +1,11 @@
 <h3>{{nameshort}}</h3>
 <p>Group id #{{id}}.</p>
 <div>
+    <% if (obj.onhere) { %>
+    <a target="_blank" data-realurl="true" href="https://www.ilovefreegle.org/explore/{{id}}">Freegle Direct</a>
+    <% } %>
+</div>
+<div>
     <% if (obj.onyahoo) { %>
     <a target="_blank" data-realurl="true" href="https://groups.yahoo.com/group/{{nameshort}}">Yahoo Group</a>
     <% } else { %>
