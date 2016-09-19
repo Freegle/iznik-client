@@ -5,9 +5,6 @@ function message() {
     $me = whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
 
-    $dbhr->setErrorLog(TRUE);
-    $dbhm->setErrorLog(TRUE);
-
     $collection = presdef('collection', $_REQUEST, MessageCollection::APPROVED);
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
     $id = presdef('id', $_REQUEST, NULL);

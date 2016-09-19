@@ -323,7 +323,7 @@ class Digest
                                     $message = Swift_Message::newInstance()
                                         ->setSubject($msg['subject'])
                                         ->setFrom([$msg['from'] => $msg['fromname']])
-                                        ->setReturnPath($rep['bounce'])
+                                        ->setReturnPath($rep['{{bounce}}'])
                                         ->setReplyTo($msg['replyto'], $msg['replytoname'])
                                         ->setBody($msg['text'])
                                         ->addPart($msg['html'], 'text/html');

@@ -106,7 +106,7 @@ class Facebook
             $u = User::get($this->dbhr, $this->dbhm);
             $eid = $fbemail ? $u->findByEmail($fbemail) : NULL;
             $fid = $fbuid ? $u->findByLogin('Facebook', $fbuid) : NULL;
-            error_log("Email $eid  from $fbemail Facebook $fid, f $firstname, l $lastname, full $fullname");
+            #error_log("Email $eid  from $fbemail Facebook $fid, f $firstname, l $lastname, full $fullname");
 
             if ($eid && $fid && $eid != $fid) {
                 # This is a duplicate user.  Merge them.
