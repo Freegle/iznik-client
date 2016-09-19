@@ -39,8 +39,14 @@ define([
         continueReply: function(text) {
             // This is when we were in the middle of replying to a message.
             var self = this;
-            console.log("Set reply", text);
             this.$('.js-replytext').val(text);
+
+            // Remove local storage so that we don't get stuck sending the same message, for example if we reload the
+            // page.
+            try {
+                localStorage.removeItem('replyto');
+                localStorage.removeItem('replytext');
+            } catch (e) {}
 
             // We might get called back twice because of the html, body selector (which we need for browser compatibility)
             // so make sure we only actually click send once.
@@ -51,7 +57,6 @@ define([
                 },
                 2000,
                 function() {
-                    console.log("Try to send", self.readyToSend);
                     if (self.readyToSend) {
                         self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                             // Now send it.

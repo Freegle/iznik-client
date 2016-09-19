@@ -32,6 +32,7 @@ define([
             msg.save({
                 error: function() {
                     // Failed - retry later in case transient network issue.
+                    self.sending.unshift($msg);
                     _.delay(_.bind(self.sendQueue, self), 10000);
                 }
             }).then(function() {
