@@ -196,7 +196,7 @@ define([
         },
 
         resize: function(e) {
-            var mapWidth = e.target.outerWidth();
+            var mapWidth = $(e.target).outerWidth();
             target.css('height', mapWidth + 'px');
             google.maps.event.trigger(this.map, "resize");
         },
