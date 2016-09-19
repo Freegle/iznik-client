@@ -170,9 +170,6 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 case 'socialactions':
                     $ret = socialactions();
                     break;
-                case 'upload':
-                    $ret = upload();
-                    break;
                 case 'messages':
                     $ret = messages();
                     break;

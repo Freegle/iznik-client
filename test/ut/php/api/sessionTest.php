@@ -34,6 +34,23 @@ class sessionTest extends IznikAPITestCase
         error_log(__METHOD__ . " end");
     }
 
+
+    public function testLargeRequest()
+    {
+        error_log(__METHOD__);
+
+        $str = '';
+        while (strlen($str) < 200000) {
+            $str .= '1234123412';
+        }
+
+        $ret = $this->call('session', 'POST', [
+            'junk' => $str
+        ]);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testYahoo()
     {
         error_log(__METHOD__);
