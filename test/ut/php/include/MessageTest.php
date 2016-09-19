@@ -435,12 +435,13 @@ And something after it.', $stripped);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
-        $msg = str_replace('Basic test', 'OFFER: Test due (Tuvalu High Street)', $msg);
+        $msg = $this->unique(file_get_contents('msgs/attachment'));
+        $msg = str_replace('Test att', 'OFFER: Test due (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id2 = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        error_log("Due message $id2");
         $m = new Message($this->dbhr, $this->dbhm, $id2);
         $m->setPrivate('sourceheader', 'Platform');
         $rc = $r->route();

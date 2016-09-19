@@ -99,24 +99,32 @@ define([
 
             // We might or might not have the chats, depending on whether we're logged in at this point.
             if (Iznik.Session.hasOwnProperty('chats')) {
+                var fetch = false;
+
                 Iznik.Session.chats.each(function(chat) {
                     var refmsgids = chat.get('refmsgids');
                     _.each(refmsgids, function(refmsgid) {
                         if (refmsgid == self.model.get('id')) {
+                            // This message is referenced in a chat.
                             var thisun = chat.get('unseen');
                             unread += thisun;
 
                             if (thisun > 0) {
-                                // This chat might indicate a new replier we've not got listed.
+                                // This chat might indicate a new replier we've not got listed.  Get the replies
+                                // to make sure.
                                 // TODO Could make this perform better than doing a full fetch.
-                                self.model.fetch().then(function() {
-                                    self.replies.add(self.model.get('replies'));
-                                    self.updateReplies();
-                                });
+                                fetch = true;
                             }
                         }
                     });
                 });
+
+                if (fetch) {
+                    self.model.fetch().then(function() {
+                        self.replies.add(self.model.get('replies'));
+                        self.updateReplies();
+                    });
+                }
             }
 
             if (unread > 0) {
