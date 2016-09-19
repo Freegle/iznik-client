@@ -171,10 +171,6 @@
     top: 65px !important;
 }
 
-#notifchatdropdownlist {
-    top: auto !important;
-}
-
 #js-notifchat .badge {
     position: relative;
     top: -15px;
