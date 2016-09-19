@@ -1020,181 +1020,6 @@ class User extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
 
-        if ($history) {
-            # Add in the message history - from any of the emails associated with this user.
-            $atts['messagehistory'] = [];
-            $sql = NULL;
-
-            if ($groupids && count($groupids) > 0) {
-                # On these groups
-                $groupq = implode(',', $groupids);
-                $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC;";
-            } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
-                # We can see all groups.
-                $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC;";
-            }
-
-            if ($sql) {
-                $atts['messagehistory'] = $this->dbhr->preQuery($sql, [
-                    MessageCollection::APPROVED,
-                    $this->id
-                ]);
-
-                foreach ($atts['messagehistory'] as &$hist) {
-                    $hist['arrival'] = ISODate($hist['arrival']);
-                    $hist['date'] = ISODate($hist['date']);
-                }
-            }
-        }
-
-        # Add in a count of recent "modmail" type logs which a mod might care about.
-        #
-        # Exclude the logs which are due to standard message syncing.
-        $modships = $me ? $me->getModeratorships() : [];
-        $modships = count($modships) == 0 ? [0] : $modships;
-        $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID')";
-        $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? $modmailq AND groupid IN (" . implode(',', $modships) . ");";
-        $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
-        $modmails = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
-        #error_log("$sql, {$this->id}, $mysqltime");
-        $atts['modmails'] = $modmails[0]['count'];
-
-        if ($logs) {
-            # Add in the log entries we have for this user.  We exclude some logs of little interest to mods.
-            # - creation - either of ourselves or others during syncing.
-            # - deletion of users due to syncing
-            $me = whoAmI($this->dbhr, $this->dbhm);
-            $startq = $ctx ? " AND id < {$ctx['id']} " : '';
-            $modq = $modmailsonly ? $modmailq : '';
-            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged', 'YahooConfirmed')) AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list','Received later copy of message with same Message-ID')) $modq ORDER BY id DESC LIMIT 50;";
-            $logs = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
-            $atts['logs'] = [];
-            $groups = [];
-            $users = [];
-            $configs = [];
-
-            if (!$ctx) {
-                $ctx = [ 'id' => 0 ];
-            }
-
-            foreach ($logs as $log) {
-                $ctx['id'] = $ctx['id'] == 0 ? $log['id'] : min($ctx['id'], $log['id']);
-
-                if (pres('byuser', $log)) {
-                    if (!pres($log['byuser'], $users)) {
-                        $u = User::get($this->dbhr, $this->dbhm, $log['byuser']);
-                        $users[$log['byuser']] = $u->getPublic(NULL, FALSE, FALSE);
-                    }
-
-                    $log['byuser'] = $users[$log['byuser']];
-                }
-
-                if (pres('user', $log)) {
-                    if (!pres($log['user'], $users)) {
-                        $u = User::get($this->dbhr, $this->dbhm, $log['user']);
-                        $users[$log['user']] = $u->getPublic(NULL, FALSE, FALSE);
-                    }
-
-                    $log['user'] = $users[$log['user']];
-                }
-
-                if (pres('groupid', $log)) {
-                    if (!pres($log['groupid'], $groups)) {
-                        $g = Group::get($this->dbhr, $this->dbhm, $log['groupid']);
-
-                        if ($g->getId()) {
-                            $groups[$log['groupid']] = $g->getPublic();
-                            $groups[$log['groupid']]['myrole'] = $me ? $me->getRoleForGroup($log['groupid']) : User::ROLE_NONMEMBER;
-                        }
-                    }
-
-                    if ($g->getId() &&
-                        $groups[$log['groupid']]['myrole'] != User::ROLE_OWNER &&
-                        $groups[$log['groupid']]['myrole'] != User::ROLE_MODERATOR) {
-                        # We can only see logs for this group if we have a mod role, or if we have appropriate system
-                        # rights.  Skip this log.
-                        continue;
-                    }
-
-                    $log['group'] = presdef($log['groupid'], $groups, NULL);
-                }
-
-                if (pres('configid', $log)) {
-                    if (!pres($log['configid'], $configs)) {
-                        $c = new ModConfig($this->dbhr, $this->dbhm, $log['configid']);
-
-                        if ($c->getId()) {
-                            $configs[$log['configid']] = $c->getPublic();
-                        }
-                    }
-
-                    if (pres($log['configid'], $configs)) {
-                        $log['config'] = $configs[$log['configid']];
-                    }
-                }
-
-                if (pres('stdmsgid', $log)) {
-                    $s = new StdMessage($this->dbhr, $this->dbhm, $log['stdmsgid']);
-                    $log['stdmsg'] = $s->getPublic();
-                }
-
-                if (pres('msgid', $log)) {
-                    $m = new Message($this->dbhr, $this->dbhm, $log['msgid']);
-
-                    if ($m->getID()) {
-                        $log['message'] = $m->getPublic(FALSE);
-                    } else {
-                        # The message has been deleted.
-                        $log['message'] = [
-                            'id' => $log['msgid'],
-                            'deleted' => true
-                        ];
-
-                        # See if we can find out why.
-                        $sql = "SELECT * FROM logs WHERE msgid = ? AND type = 'Message' AND subtype = 'Deleted' ORDER BY id DESC LIMIT 1;";
-                        $deletelogs = $this->dbhr->preQuery($sql, [ $log['msgid'] ]);
-                        foreach ($deletelogs as $deletelog) {
-                            $log['message']['deletereason'] = $deletelog['text'];
-                        }
-                    }
-
-                    # Prune large attributes.
-                    unset($log['message']['textbody']);
-                    unset($log['message']['htmlbody']);
-                    unset($log['message']['message']);
-                }
-
-                $log['timestamp'] = ISODate($log['timestamp']);
-
-                $atts['logs'][] = $log;
-            }
-
-            # Get merge history
-            $ids = [ $this->id ];
-            $merges = [];
-            do {
-                $added = FALSE;
-                $sql = "SELECT * FROM logs WHERE type = 'User' AND subtype = 'Merged' AND user IN (" . implode(',', $ids) . ");";
-                $logs = $this->dbhr->preQuery($sql);
-                foreach ($logs as $log) {
-                    #error_log("Consider merge log {$log['text']}");
-                    if (preg_match('/Merged (.*) into (.*?) \((.*)\)/', $log['text'], $matches)) {
-                        #error_log("Matched " . var_export($matches, TRUE));
-                        #error_log("Check ids {$matches[1]} and {$matches[2]}");
-                        foreach ([ $matches[1], $matches[2] ] as $id) {
-                            if (!in_array($id, $ids, TRUE)) {
-                                $added = TRUE;
-                                $ids[] = $id;
-                                $merges[] = [ 'timestamp' => ISODate($log['timestamp']), 'from' => $matches[1], 'to' => $matches[2], 'reason' => $matches[3] ];
-                            }
-                        }
-                    }
-                }
-            } while ($added);
-
-            $atts['merges'] = $merges;
-        }
-
         $atts['displayname'] = $this->getName();
 
         if ($me && $this->id == $me->getId()) {
@@ -1208,133 +1033,315 @@ class User extends Entity
             $atts['onholidaytill'] = $this->user['onholidaytill'] ? ISODate($this->user['onholidaytill']) : NULL;
         }
 
-        if ($comments) {
-            $atts['comments'] = $this->getComments();
-        }
+        # Some info is only relevant for ModTools, rather than the user site.
+        if (MODTOOLS) {
+            if ($history) {
+                # Add in the message history - from any of the emails associated with this user.
+                $atts['messagehistory'] = [];
+                $sql = NULL;
 
-        if ($this->user['suspectcount'] > 0) {
-            # This user is flagged as suspicious.  The memberships are visible iff the currently logged in user
-            # - has a system role which allows it
-            # - is a mod on a group which this user is also on.
-            $visible = $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT;
-            $memberof = [];
+                if ($groupids && count($groupids) > 0) {
+                    # On these groups
+                    $groupq = implode(',', $groupids);
+                    $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC;";
+                } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
+                    # We can see all groups.
+                    $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC;";
+                }
 
-            # Check the groups.
-            $sql = "SELECT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
-            $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
-            foreach ($groups as $group) {
-                $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
-                $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+                if ($sql) {
+                    $atts['messagehistory'] = $this->dbhr->preQuery($sql, [
+                        MessageCollection::APPROVED,
+                        $this->id
+                    ]);
 
-                $memberof[] = [
-                    'id' => $group['groupid'],
-                    'membershipid' => $group['id'],
-                    'namedisplay' => $name,
-                    'nameshort' => $group['nameshort'],
-                    'added' => ISODate($group['added']),
-                    'collection' => $group['collection'],
-                    'role' => $group['role'],
-                    'emailid' => $group['emailid'],
-                    'emailfrequency' => $group['emailfrequency'],
-                    'eventsallowed' => $group['eventsallowed'],
-                    'type' => $group['type']
-                ];
-
-                if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
-                    $visible = TRUE;
+                    foreach ($atts['messagehistory'] as &$hist) {
+                        $hist['arrival'] = ISODate($hist['arrival']);
+                        $hist['date'] = ISODate($hist['date']);
+                    }
                 }
             }
 
-            if ($visible) {
-                $atts['suspectcount'] = $this->user['suspectcount'];
-                $atts['suspectreason'] = $this->user['suspectreason'];
+            # Add in a count of recent "modmail" type logs which a mod might care about.
+            #
+            # Exclude the logs which are due to standard message syncing.
+            $modships = $me ? $me->getModeratorships() : [];
+            $modships = count($modships) == 0 ? [0] : $modships;
+            $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID')";
+            $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? $modmailq AND groupid IN (" . implode(',', $modships) . ");";
+            $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
+            $modmails = $this->dbhr->preQuery($sql, [$this->id, $mysqltime]);
+            #error_log("$sql, {$this->id}, $mysqltime");
+            $atts['modmails'] = $modmails[0]['count'];
+
+            if ($logs) {
+                # Add in the log entries we have for this user.  We exclude some logs of little interest to mods.
+                # - creation - either of ourselves or others during syncing.
+                # - deletion of users due to syncing
+                $me = whoAmI($this->dbhr, $this->dbhm);
+                $startq = $ctx ? " AND id < {$ctx['id']} " : '';
+                $modq = $modmailsonly ? $modmailq : '';
+                $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged', 'YahooConfirmed')) AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list','Received later copy of message with same Message-ID')) $modq ORDER BY id DESC LIMIT 50;";
+                $logs = $this->dbhr->preQuery($sql, [$this->id, $this->id]);
+                $atts['logs'] = [];
+                $groups = [];
+                $users = [];
+                $configs = [];
+
+                if (!$ctx) {
+                    $ctx = ['id' => 0];
+                }
+
+                foreach ($logs as $log) {
+                    $ctx['id'] = $ctx['id'] == 0 ? $log['id'] : min($ctx['id'], $log['id']);
+
+                    if (pres('byuser', $log)) {
+                        if (!pres($log['byuser'], $users)) {
+                            $u = User::get($this->dbhr, $this->dbhm, $log['byuser']);
+                            $users[$log['byuser']] = $u->getPublic(NULL, FALSE, FALSE);
+                        }
+
+                        $log['byuser'] = $users[$log['byuser']];
+                    }
+
+                    if (pres('user', $log)) {
+                        if (!pres($log['user'], $users)) {
+                            $u = User::get($this->dbhr, $this->dbhm, $log['user']);
+                            $users[$log['user']] = $u->getPublic(NULL, FALSE, FALSE);
+                        }
+
+                        $log['user'] = $users[$log['user']];
+                    }
+
+                    if (pres('groupid', $log)) {
+                        if (!pres($log['groupid'], $groups)) {
+                            $g = Group::get($this->dbhr, $this->dbhm, $log['groupid']);
+
+                            if ($g->getId()) {
+                                $groups[$log['groupid']] = $g->getPublic();
+                                $groups[$log['groupid']]['myrole'] = $me ? $me->getRoleForGroup($log['groupid']) : User::ROLE_NONMEMBER;
+                            }
+                        }
+
+                        if ($g->getId() &&
+                            $groups[$log['groupid']]['myrole'] != User::ROLE_OWNER &&
+                            $groups[$log['groupid']]['myrole'] != User::ROLE_MODERATOR
+                        ) {
+                            # We can only see logs for this group if we have a mod role, or if we have appropriate system
+                            # rights.  Skip this log.
+                            continue;
+                        }
+
+                        $log['group'] = presdef($log['groupid'], $groups, NULL);
+                    }
+
+                    if (pres('configid', $log)) {
+                        if (!pres($log['configid'], $configs)) {
+                            $c = new ModConfig($this->dbhr, $this->dbhm, $log['configid']);
+
+                            if ($c->getId()) {
+                                $configs[$log['configid']] = $c->getPublic();
+                            }
+                        }
+
+                        if (pres($log['configid'], $configs)) {
+                            $log['config'] = $configs[$log['configid']];
+                        }
+                    }
+
+                    if (pres('stdmsgid', $log)) {
+                        $s = new StdMessage($this->dbhr, $this->dbhm, $log['stdmsgid']);
+                        $log['stdmsg'] = $s->getPublic();
+                    }
+
+                    if (pres('msgid', $log)) {
+                        $m = new Message($this->dbhr, $this->dbhm, $log['msgid']);
+
+                        if ($m->getID()) {
+                            $log['message'] = $m->getPublic(FALSE);
+                        } else {
+                            # The message has been deleted.
+                            $log['message'] = [
+                                'id' => $log['msgid'],
+                                'deleted' => true
+                            ];
+
+                            # See if we can find out why.
+                            $sql = "SELECT * FROM logs WHERE msgid = ? AND type = 'Message' AND subtype = 'Deleted' ORDER BY id DESC LIMIT 1;";
+                            $deletelogs = $this->dbhr->preQuery($sql, [$log['msgid']]);
+                            foreach ($deletelogs as $deletelog) {
+                                $log['message']['deletereason'] = $deletelog['text'];
+                            }
+                        }
+
+                        # Prune large attributes.
+                        unset($log['message']['textbody']);
+                        unset($log['message']['htmlbody']);
+                        unset($log['message']['message']);
+                    }
+
+                    $log['timestamp'] = ISODate($log['timestamp']);
+
+                    $atts['logs'][] = $log;
+                }
+
+                # Get merge history
+                $ids = [$this->id];
+                $merges = [];
+                do {
+                    $added = FALSE;
+                    $sql = "SELECT * FROM logs WHERE type = 'User' AND subtype = 'Merged' AND user IN (" . implode(',', $ids) . ");";
+                    $logs = $this->dbhr->preQuery($sql);
+                    foreach ($logs as $log) {
+                        #error_log("Consider merge log {$log['text']}");
+                        if (preg_match('/Merged (.*) into (.*?) \((.*)\)/', $log['text'], $matches)) {
+                            #error_log("Matched " . var_export($matches, TRUE));
+                            #error_log("Check ids {$matches[1]} and {$matches[2]}");
+                            foreach ([$matches[1], $matches[2]] as $id) {
+                                if (!in_array($id, $ids, TRUE)) {
+                                    $added = TRUE;
+                                    $ids[] = $id;
+                                    $merges[] = ['timestamp' => ISODate($log['timestamp']), 'from' => $matches[1], 'to' => $matches[2], 'reason' => $matches[3]];
+                                }
+                            }
+                        }
+                    }
+                } while ($added);
+
+                $atts['merges'] = $merges;
+            }
+
+            if ($comments) {
+                $atts['comments'] = $this->getComments();
+            }
+
+            if ($this->user['suspectcount'] > 0) {
+                # This user is flagged as suspicious.  The memberships are visible iff the currently logged in user
+                # - has a system role which allows it
+                # - is a mod on a group which this user is also on.
+                $visible = $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT;
+                $memberof = [];
+
+                # Check the groups.
+                $sql = "SELECT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
+                $groups = $this->dbhr->preQuery($sql, [$this->id]);
+                foreach ($groups as $group) {
+                    $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
+                    $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+
+                    $memberof[] = [
+                        'id' => $group['groupid'],
+                        'membershipid' => $group['id'],
+                        'namedisplay' => $name,
+                        'nameshort' => $group['nameshort'],
+                        'added' => ISODate($group['added']),
+                        'collection' => $group['collection'],
+                        'role' => $group['role'],
+                        'emailid' => $group['emailid'],
+                        'emailfrequency' => $group['emailfrequency'],
+                        'eventsallowed' => $group['eventsallowed'],
+                        'type' => $group['type']
+                    ];
+
+                    if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
+                        $visible = TRUE;
+                    }
+                }
+
+                if ($visible) {
+                    $atts['suspectcount'] = $this->user['suspectcount'];
+                    $atts['suspectreason'] = $this->user['suspectreason'];
+                    $atts['memberof'] = $memberof;
+                }
+            }
+
+            $box = NULL;
+
+            if ($memberof && !array_key_exists('memberof', $atts) &&
+                ($systemrole == User::ROLE_MODERATOR || $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT)
+            ) {
+                # We haven't provided the complete list; get the recent ones (which preserves some privacy for the user but
+                # allows us to spot abuse) and any which are on our groups.
+                $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
+                $modids = array_merge([0], $me->getModeratorships());
+                $sql = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
+                $groups = $this->dbhr->preQuery($sql, [$this->id]);
+                $memberof = [];
+
+                foreach ($groups as $group) {
+                    $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+
+                    $memberof[] = [
+                        'id' => $group['groupid'],
+                        'membershipid' => $group['id'],
+                        'namedisplay' => $name,
+                        'nameshort' => $group['nameshort'],
+                        'added' => ISODate($group['added']),
+                        'collection' => $group['collection'],
+                        'role' => $group['role'],
+                        'emailid' => $group['emailid'],
+                        'emailfrequency' => $group['emailfrequency'],
+                        'eventsallowed' => $group['eventsallowed'],
+                        'type' => $group['type']
+                    ];
+
+                    if ($group['lat'] && $group['lng']) {
+                        $box = [
+                            'swlat' => $box == NULL ? $group['lat'] : min($group['lat'], $box['swlat']),
+                            'swlng' => $box == NULL ? $group['lng'] : min($group['lng'], $box['swlng']),
+                            'nelng' => $box == NULL ? $group['lng'] : max($group['lng'], $box['nelng']),
+                            'nelat' => $box == NULL ? $group['lat'] : max($group['lat'], $box['nelat'])
+                        ];
+                    }
+                }
+
                 $atts['memberof'] = $memberof;
             }
-        }
 
-        $box = NULL;
+            if ($applied &&
+                $systemrole == User::ROLE_MODERATOR ||
+                $systemrole == User::SYSTEMROLE_ADMIN ||
+                $systemrole == User::SYSTEMROLE_SUPPORT
+            ) {
+                # As well as being a member of a group, they might have joined and left, or applied and been rejected.
+                # This is useful info for moderators.  If the user is suspicious then return the complete list; otherwise
+                # just the recent ones.
+                $groupq = ($groupids && count($groupids) > 0) ? (" AND (DATEDIFF(NOW(), added) <= 31 OR groupid IN (" . implode(',', $groupids) . ")) ") : ' AND DATEDIFF(NOW(), added) <= 31 ';
+                $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid = ? $groupq ORDER BY added DESC;";
+                $membs = $this->dbhr->preQuery($sql, [$this->id]);
+                foreach ($membs as &$memb) {
+                    $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
+                    $memb['namedisplay'] = $name;
+                    $memb['added'] = ISODate($memb['added']);
+                    $memb['id'] = $memb['groupid'];
+                    unset($memb['groupid']);
 
-        if ($memberof && !array_key_exists('memberof', $atts) &&
-            ($systemrole == User::ROLE_MODERATOR || $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT)) {
-            # We haven't provided the complete list; get the recent ones (which preserves some privacy for the user but
-            # allows us to spot abuse) and any which are on our groups.
-            $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
-            $modids = array_merge([0], $me->getModeratorships());
-            $sql = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
-            $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
-            $memberof = [];
-
-            foreach ($groups as $group) {
-                $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
-
-                $memberof[] = [
-                    'id' => $group['groupid'],
-                    'membershipid' => $group['id'],
-                    'namedisplay' => $name,
-                    'nameshort' => $group['nameshort'],
-                    'added' => ISODate($group['added']),
-                    'collection' => $group['collection'],
-                    'role' => $group['role'],
-                    'emailid' => $group['emailid'],
-                    'emailfrequency' => $group['emailfrequency'],
-                    'eventsallowed' => $group['eventsallowed'],
-                    'type' => $group['type']
-                ];
-
-                if ($group['lat'] && $group['lng']) {
-                    $box = [
-                        'swlat' => $box == NULL ? $group['lat'] : min($group['lat'], $box['swlat']),
-                        'swlng' => $box == NULL ? $group['lng'] : min($group['lng'], $box['swlng']),
-                        'nelng' => $box == NULL ? $group['lng'] : max($group['lng'], $box['nelng']),
-                        'nelat' => $box == NULL ? $group['lat'] : max($group['lat'], $box['nelat'])
-                    ];
+                    if ($memb['lat'] && $memb['lng']) {
+                        $box = [
+                            'swlat' => $box == NULL ? $memb['lat'] : min($memb['lat'], $box['swlat']),
+                            'swlng' => $box == NULL ? $memb['lng'] : min($memb['lng'], $box['swlng']),
+                            'nelng' => $box == NULL ? $memb['lng'] : max($memb['lng'], $box['nelng']),
+                            'nelat' => $box == NULL ? $memb['lat'] : max($memb['lat'], $box['nelat'])
+                        ];
+                    }
                 }
+
+                $atts['applied'] = $membs;
+                $atts['activearea'] = $box;
+                $atts['activedistance'] = $box ? round(Location::getDistance($box['swlat'], $box['swlng'], $box['nelat'], $box['nelng'])) : NULL;
             }
 
-            $atts['memberof'] = $memberof;
-        }
-
-        if ($applied &&
-            $systemrole == User::ROLE_MODERATOR ||
-            $systemrole == User::SYSTEMROLE_ADMIN ||
-            $systemrole == User::SYSTEMROLE_SUPPORT) {
-            # As well as being a member of a group, they might have joined and left, or applied and been rejected.
-            # This is useful info for moderators.  If the user is suspicious then return the complete list; otherwise
-            # just the recent ones.
-            $groupq = ($groupids && count($groupids) > 0) ? (" AND (DATEDIFF(NOW(), added) <= 31 OR groupid IN (" . implode(',', $groupids) . ")) ") : ' AND DATEDIFF(NOW(), added) <= 31 ';
-            $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid = ? $groupq ORDER BY added DESC;";
-            $membs = $this->dbhr->preQuery($sql, [ $this->id ]);
-            foreach ($membs as &$memb) {
-                $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
-                $memb['namedisplay'] = $name;
-                $memb['added'] = ISODate($memb['added']);
-                $memb['id'] = $memb['groupid'];
-                unset($memb['groupid']);
-
-                if ($memb['lat'] && $memb['lng']) {
-                    $box = [
-                        'swlat' => $box == NULL ? $memb['lat'] : min($memb['lat'], $box['swlat']),
-                        'swlng' => $box == NULL ? $memb['lng'] : min($memb['lng'], $box['swlng']),
-                        'nelng' => $box == NULL ? $memb['lng'] : max($memb['lng'], $box['nelng']),
-                        'nelat' => $box == NULL ? $memb['lat'] : max($memb['lat'], $box['nelat'])
-                    ];
+            if ($systemrole == User::ROLE_MODERATOR ||
+                $systemrole == User::SYSTEMROLE_ADMIN ||
+                $systemrole == User::SYSTEMROLE_SUPPORT
+            ) {
+                # Also fetch whether they're on the spammer list.
+                $sql = "SELECT * FROM spam_users WHERE userid = ?;";
+                $spammers = $this->dbhr->preQuery($sql, [$this->id]);
+                foreach ($spammers as $spammer) {
+                    $spammer['added'] = ISODate($spammer['added']);
+                    $atts['spammer'] = $spammer;
                 }
-            }
-
-            $atts['applied'] = $membs;
-            $atts['activearea'] = $box;
-            $atts['activedistance'] = $box ? round(Location::getDistance($box['swlat'], $box['swlng'], $box['nelat'], $box['nelng'])) : NULL;
-        }
-
-        if ($systemrole == User::ROLE_MODERATOR ||
-            $systemrole == User::SYSTEMROLE_ADMIN ||
-            $systemrole == User::SYSTEMROLE_SUPPORT) {
-            # Also fetch whether they're on the spammer list.
-            $sql = "SELECT * FROM spam_users WHERE userid = ?;";
-            $spammers = $this->dbhr->preQuery($sql, [ $this->id ]);
-            foreach ($spammers as $spammer) {
-                $spammer['added'] = ISODate($spammer['added']);
-                $atts['spammer'] = $spammer;
             }
         }
 

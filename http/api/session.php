@@ -25,19 +25,21 @@ function session() {
                     'push' => $n->get($ret['me']['id'])
                 ];
 
-                # We cache the configs as they are expensive to get.
-                if (pres('configs', $_SESSION)) {
-                    $ret['configs'] = $_SESSION['configs'];
-                    $ret['configscached'] = TRUE;
-                } else {
-                    $ret['configs'] = $me->getConfigs();
-                    $_SESSION['configs'] = $ret['configs'];
+                if (MODTOOLS) {
+                    # We cache the configs as they are expensive to get.
+                    if (pres('configs', $_SESSION)) {
+                        $ret['configs'] = $_SESSION['configs'];
+                        $ret['configscached'] = TRUE;
+                    } else {
+                        $ret['configs'] = $me->getConfigs();
+                        $_SESSION['configs'] = $ret['configs'];
+                    }
                 }
 
                 $ret['emails'] = $me->getEmails();
 
-                # Get groups including work.
-                $ret['groups'] = $me->getMemberships(FALSE, NULL, TRUE);
+                # Get groups including work when we're on ModTools; don't need that on the user site.
+                $ret['groups'] = $me->getMemberships(FALSE, NULL, MODTOOLS);
                 $ret['work'] = [];
 
                 foreach ($ret['groups'] as &$group) {
@@ -53,7 +55,7 @@ function session() {
 
                     $ammod = $me->isModerator();
 
-                    if ($ammod) {
+                    if (MODTOOLS && $ammod) {
                         # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
                         # in here - but it's of no interest to members so there's no point delaying them by
                         # fetching it.
@@ -75,15 +77,17 @@ function session() {
                     }
                 }
 
-                $s = new Spam($dbhr, $dbhm);
-                $ret['work']['spammerpendingadd'] = $s->collectionCount(Spam::TYPE_PENDING_ADD);
-                $ret['work']['spammerpendingremove'] = $s->collectionCount(Spam::TYPE_PENDING_REMOVE);
+                if (MODTOOLS) {
+                    $s = new Spam($dbhr, $dbhm);
+                    $ret['work']['spammerpendingadd'] = $s->collectionCount(Spam::TYPE_PENDING_ADD);
+                    $ret['work']['spammerpendingremove'] = $s->collectionCount(Spam::TYPE_PENDING_REMOVE);
 
-                # Show social actions from last 4 days.
-                $ctx = NULL;
-                $starttime = date("Y-m-d H:i:s", strtotime("midnight 4 days ago"));
-                $f = new GroupFacebook($dbhr, $dbhm);
-                $ret['work']['socialactions'] = count($f->listSocialActions($ctx, $starttime));
+                    # Show social actions from last 4 days.
+                    $ctx = NULL;
+                    $starttime = date("Y-m-d H:i:s", strtotime("midnight 4 days ago"));
+                    $f = new GroupFacebook($dbhr, $dbhm);
+                    $ret['work']['socialactions'] = count($f->listSocialActions($ctx, $starttime));
+                }
 
                 $c = new ChatMessage($dbhr, $dbhm);
                 $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));

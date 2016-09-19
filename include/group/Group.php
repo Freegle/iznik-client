@@ -295,9 +295,11 @@ class Group extends Entity
         $atts['settings'] = array_merge($this->defaultSettings, json_decode($atts['settings'], true));
         $atts['founded'] = ISODate($this->group['founded']);
 
-        $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = {$this->id} AND role IN ('Owner', 'Moderator');";
-        $counts = $this->dbhr->preQuery($sql);
-        $atts['nummods'] = $counts[0]['count'];
+        if (MODTOOLS) {
+            $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = {$this->id} AND role IN ('Owner', 'Moderator');";
+            $counts = $this->dbhr->preQuery($sql);
+            $atts['nummods'] = $counts[0]['count'];
+        }
 
         foreach (['trial', 'licensed', 'licenseduntil'] as $datefield) {
             $atts[$datefield] = $atts[$datefield] ? ISODate($atts[$datefield]) : NULL;
