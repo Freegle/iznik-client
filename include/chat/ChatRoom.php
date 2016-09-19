@@ -6,6 +6,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/mailtemplates/chat_notify.php');
 require_once(IZNIK_BASE . '/mailtemplates/chat_notify_mod.php');
+require_once(IZNIK_BASE . '/mailtemplates/chat_chaseup_mod.php');
 
 class ChatRoom extends Entity
 {
@@ -238,15 +239,18 @@ class ChatRoom extends Entity
         }
 
         if (pres('user1', $ret)) {
-            # This is a conversation between two people.   
             $u = User::get($this->dbhr, $this->dbhm, $ret['user1']);
             unset($ret['user1']);
             $ctx = NULL;
             $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
+
+            if (pres('group', $ret)) {
+                # As a mod we can see the email
+                $ret['user1']['email'] = $u->getEmailPreferred();
+            }
         }
 
         if (pres('user2', $ret)) {
-            # This is a conversation between two people.   
             $u = User::get($this->dbhr, $this->dbhm, $ret['user2']);
             unset($ret['user2']);
             $ctx = NULL;
@@ -269,7 +273,8 @@ class ChatRoom extends Entity
                 # If we started it, we're chatting to the group volunteers; otherwise to the user.
                 $username = $ret['user1']['displayname'];
                 $username = strlen(trim($username)) > 0 ? $username : '(No name)';
-                $ret['name'] = $ret['user1']['id'] == $myid ? "{$ret['group']['namedisplay']} Volunteers" : "$username #{$ret['user1']['id']} on {$ret['group']['nameshort']}";
+                $email = presdef('email', $ret['user1'], 'No email');
+                $ret['name'] = $ret['user1']['id'] == $myid ? "{$ret['group']['namedisplay']} Volunteers" : "$username ($email) on {$ret['group']['nameshort']}";
                 break;
             case ChatRoom::TYPE_MOD2MOD:
                 # Mods chatting to each other.
@@ -950,6 +955,93 @@ class ChatRoom extends Entity
         }
 
         return($notified);
+    }
+
+    public function chaseupMods($id = NULL, $age = 566400) {
+        $notreplied = [];
+
+        # Chase up recent User2Mod chats where there has been no mod input.
+        $mysqltime = date ("Y-m-d", strtotime("Midnight 7 days ago"));
+        $idq = $id ? " AND chat_rooms.id = $id " : '';
+        $sql = "SELECT DISTINCT chat_rooms.id FROM chat_rooms INNER JOIN chat_messages ON chat_rooms.id = chat_messages.chatid WHERE chat_messages.date >= '$mysqltime' AND chat_rooms.chattype = 'User2Mod' $idq;";
+        $chats = $this->dbhr->preQuery($sql);
+        
+        foreach ($chats as $chat) {
+            $c = new ChatRoom($this->dbhr, $this->dbhm, $chat['id']);
+            list ($msgs, $users) = $c->getMessages();
+
+            # If we have only one user in here then it must tbe the one who started the query.
+            if (count($users) == 1) {
+                foreach ($users as $uid => $user) {
+                    $u = new User($this->dbhr, $this->dbhm, $uid);
+                    $msgs = array_reverse($msgs);
+                    $last = $msgs[0];
+                    $timeago = strtotime($last['date']);
+
+                    $groupid = $c->getPrivate('groupid');
+                    $role = $u->getRoleForGroup($groupid);
+
+                    # Don't chaseup for non-member or mod/owner queries.
+                    if ($role == User::ROLE_MEMBER && time() - $timeago >= $age) {
+                        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+
+                        if ($g->getPrivate('type') == Group::GROUP_FREEGLE) {
+                            error_log("{$chat['id']} on " . $g->getPrivate('nameshort') . " to " . $u->getName() . " (" . $u->getEmailPreferred() . ") last message {$last['date']} total " . count($msgs));
+
+                            if (!array_key_exists($groupid, $notreplied)) {
+                                $notreplied[$groupid] = [];
+
+                                # Construct a message.
+                                $url = 'https://' . MOD_SITE . '/chat/' . $chat['id'];
+                                $subject = "Member message on " . $g->getPrivate('nameshort') . " from " . $u->getName() . " (" . $u->getEmailPreferred() . ")";
+                                $fromname = $u->getName();
+
+                                $textsummary = '';
+                                $htmlsummary = '';
+                                $msgs = array_reverse($msgs);
+
+                                foreach ($msgs as $unseenmsg) {
+                                    if (pres('message', $unseenmsg)) {
+                                        $thisone = $unseenmsg['message'];
+                                        $textsummary .= $thisone . "\r\n";
+                                        $htmlsummary .= nl2br($thisone) . "<br>";
+                                    }
+                                }
+
+                                $html = chat_chaseup_mod(MOD_SITE, MODLOGO, $fromname, $url, $htmlsummary);
+
+                                # Get the mods.
+                                $mods = $g->getMods();
+
+                                foreach ($mods as $modid) {
+                                    $thisu = User::get($this->dbhr, $this->dbhm, $modid);
+                                    # We ask them to reply to an email address which will direct us back to this chat.
+                                    $replyto = 'notify-' . $chat['id'] . '-' . $uid . '@' . USER_DOMAIN;
+                                    $to = $thisu->getEmailPreferred();
+                                    $message = Swift_Message::newInstance()
+                                        ->setSubject($subject)
+                                        ->setFrom([NOREPLY_ADDR => $fromname])
+                                        ->setTo([$to => $thisu->getName()])
+                                        ->setReplyTo($replyto)
+                                        ->setBody($textsummary);
+                                    $message->addPart($html, 'text/html');
+                                    $this->mailer($message);
+                                }
+                            }
+
+                            $notreplied[$groupid][] = $c;
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach ($notreplied as $groupid => $chatlist) {
+            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            error_log("#$groupid " . $g->getPrivate('nameshort') . " " . count($chatlist));
+        }
+        
+        return($chats);
     }
 
     public function delete() {

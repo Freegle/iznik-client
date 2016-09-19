@@ -284,6 +284,9 @@ class chatRoomsTest extends IznikTestCase {
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
         assertEquals("Member message on testgroup from Test User 1 (test1@test.com)", $this->msgsSent[0]['subject']);
 
+        # Chase up mods after unreasonably short interval
+        self::assertEquals(1, count($r->chaseupMods($id, 0)));
+
         # Fake mod reply
         $cm2 = $m->create($id, $u2, "Here's some help", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
 

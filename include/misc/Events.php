@@ -63,7 +63,7 @@ class Events {
         $sql = "SELECT DISTINCT(sessionid) FROM logs_events $userq ORDER BY id DESC LIMIT 100;";
         $sessions = $this->dbhr->preQuery($sql);
         $ret = [];
-        
+
         foreach ($sessions as $session) {
             $sessid = $session['sessionid'];
             $thisone = [
