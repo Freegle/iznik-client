@@ -138,7 +138,7 @@ define([
             }
         },
         
-        fallbackInterval: 30000,
+        fallbackInterval: 300000,
 
         fallback: function() {
             // Although we should be notified of new chat messages via the wait() function, this isn't guaranteed.  So
@@ -147,7 +147,7 @@ define([
             // Don't want to fetch them all in a single blat, though, as that is mean to the server.
             var self = this;
             self.fallbackFetch = [];
-            var delay = 3000;
+            var delay = 30000;
 
             if (self.inDOM()) {
                 Iznik.Session.chats.fetch({
