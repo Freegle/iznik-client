@@ -1551,7 +1551,8 @@ define([
             'click .js-delete': 'exclude',
             'click #js-shade': 'shade',
             'keyup .js-wkt': 'paste',
-            'click .js-discard': 'discard'
+            'click .js-discard': 'discard',
+            'click .js-postcodetest': 'postcodeTest'
         },
 
         discard: function() {
@@ -1561,6 +1562,25 @@ define([
     
         paste: function() {
             this.mapWKT(this.$('.js-wkt').val(), null);
+        },
+
+        postcodeTest: function() {
+            var self = this;
+
+            $.ajax({
+                type: 'GET',
+                url: API + 'locations',
+                data: {
+                    typeahead: self.$('.js-postcode').val()
+                }, success: function (ret) {
+                    if (ret.ret == 0 && ret.locations.length > 0) {
+                        $('.js-postcodegroup').html('Group ' + ret.locations[0].groupsnear[0].nameshort);
+                        $('.js-postcodearea').html('Area ' + ret.locations[0].area.name);
+                    } else {
+                        $('.js-postcodegroup').html("Can't find nearby group");
+                    }
+                }
+            });
         },
     
         shade: function() {
