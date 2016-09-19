@@ -27,4 +27,9 @@ if (!defined('IZNIK_BASE')) {
     if (!defined('MINIFY')) {
         define('MINIFY', FALSE);
     }
+
+    if (!defined('MODTOOLS')) {
+        # Err on the safe side so that cron scripts etc return all data.
+        define('MODTOOLS', TRUE);
+    }
 }
