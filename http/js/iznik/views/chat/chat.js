@@ -141,18 +141,22 @@ define([
         fallbackInterval: 300000,
 
         fallback: function() {
-            // Although we should be notified of new chat messages via the wait() function, this isn't guaranteed.  So
-            // we have a fallback poll to pick up any lost messages.
-            //
-            // Don't want to fetch them all in a single blat, though, as that is mean to the server.
             var self = this;
-            self.fallbackFetch = [];
-            var delay = 30000;
 
             if (self.inDOM()) {
+                // Although we should be notified of new chat messages via the wait() function, this isn't guaranteed.  So
+                // we have a fallback poll to pick up any lost messages.  This will return the last message we've seen
+                // in each chat - so we scan first to remember the old ones.  That way we can decide whether we need
+                // to refetch the chat.
+                var lastseens = [];
+                Iznik.Session.chats.each(function(chat) {
+                    lastseens[chat.get('id')] = chat.get('lastmsgseen');
+                });
+
                 Iznik.Session.chats.fetch({
                     modtools: self.options.modtools
                 }).then(function() {
+                    // First make sure that the minimised chat list and counts are up to date.
                     self.updateCounts();
 
                     // For some reason we don't quite understand yet, the element can get detached so make sure it's
@@ -165,18 +169,35 @@ define([
 
                     Iznik.minimisedChats.render();
 
-                    var i = 0;
-
-                    (function fallbackOne() {
-                        if (i < Iznik.Session.chats.length) {
-                            Iznik.Session.chats.at(i).fetch();
-                            i++;
-                            _.delay(fallbackOne, delay);
-                        } else {
-                            // Reached end.
-                            _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+                    // Now work out which chats if any we need to refetch.
+                    self.fallbackFetch = [];
+                    Iznik.Session.chats.each(function(chat) {
+                        if (lastseens[chat.get('id')] != chat.get('lastmsgseen')) {
+                            console.log("Need to refresh", chat);
+                            self.fallbackFetch.push(chat);
                         }
-                    })();
+                    });
+
+                    if (self.fallbackFetch.length > 0) {
+                        // Don't want to fetch them all in a single blat, though, as that is mean to the server and
+                        // not needed for a background fallback.
+                        var delay = 30000;
+                        var i = 0;
+
+                        (function fallbackOne() {
+                            if (i < self.fallbackFetch.length) {
+                                self.fallbackFetch[i].fetch();
+                                i++;
+                                _.delay(fallbackOne, delay);
+                            } else {
+                                // Reached end.
+                                _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+                            }
+                        })();
+                    } else {
+                        // None to fetch - just wait for next time.
+                        _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+                    }
                 });
             } else {
                 self.destroyIt();
