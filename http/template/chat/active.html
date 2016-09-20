@@ -5,7 +5,7 @@
             <% if (!obj.group) { %>
             <span class="glyphicon glyphicon-menu-down dropdown-toggle clickme" type="button" id="chat-dropdown-{{id}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" />
             <ul class="dropdown-menu" aria-labelledby="chat-dropdown-{{id}}">
-                <li title="Hide this conversation from your list."><a class="js-remove" href="#">Hide this conversation</a></li>
+                <li title="Remove this conversation from your list."><a class="js-remove" href="#">Remove this chat</a></li>
                 <li title="Report this person to our volunteers."><a class="js-report" href="#">Report this person</a></li>
             </ul>
             <% } %>
@@ -34,7 +34,7 @@
 <div class="row-fluid">
     <div class="col-xs-12">
         <% if (obj.chattype == 'User2Mod') { %>
-        <div class="topspace alert alert-info">
+        <div class="js-modwarning topspace alert alert-info">
             Our lovely volunteers have lives and are not online 24/7.  Please be patient until you receive a reply.
         </div>
         <% } %>

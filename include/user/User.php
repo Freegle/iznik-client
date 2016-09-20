@@ -17,6 +17,12 @@ require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
 class User extends Entity
 {
+    # We have a cache of users, because we create users a _lot_, and this can speed things up significantly by avoiding
+    # hitting the DB.
+    static $cache = [];
+    static $cacheDeleted = [];
+    const CACHE_SIZE = 100;
+
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'publishconsent', 'ripaconsent');
 
@@ -50,32 +56,59 @@ class User extends Entity
     {
         $this->log = new Log($dbhr, $dbhm);
         $this->notif = new Notifications($dbhr, $dbhm);
-        
+
         $this->fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts);
     }
 
-    # Override fetch for caching purposes.
-    function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts)
-    {
+    public static function get(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $usecache = TRUE) {
         if ($id) {
-            if (pres('cache', $_SESSION) && $id == pres('id', $_SESSION)) {
-                # We're getting our own user.  This is very common, even within a single API call, so cache it.
-                #error_log(session_id() . " got me? " . var_export(pres('me', $_SESSION['cache']), TRUE));
-                if (!pres('me', $_SESSION['cache'])) {
-                    parent::fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts);
-                    $_SESSION['cache']['me'] = $this->user;
-                    #error_log(session_id() . " stored me " . $_SESSION['cache']['me']);
+            # We cache the constructed user.
+            if ($usecache && array_key_exists($id, User::$cache) && User::$cache[$id]->getId() == $id) {
+                # We found it.
+                # @var User
+                $u = User::$cache[$id];
+                #error_log("Found $id in cache with " . $u->getId());
+                
+                if (!User::$cacheDeleted[$id]) {
+                    # And it's not zapped - so we can use it.
+                    #error_log("Not zapped");
+                    return ($u);
                 } else {
-                    parent::fetch($dbhr, $dbhm, NULL, 'users', 'user', $this->publicatts);
-                    $this->id = $id;
-                    $this->user = $_SESSION['cache']['me'];
+                    # It's zapped - so refetch.  It's important that we do this using the original DB handles, because
+                    # whatever caused us to zap the cache might have done a modification operation which in turn
+                    # zapped the SQL read cache.
+                    #error_log("Zapped, refetch " . $id);
+                    $u->fetch($u->dbhr, $u->dbhm, $id, 'users', 'user', $u->publicatts);
+                    #error_log("Fetched $id as " . $u->getId());
+                    User::$cache[$id] = $u;
+                    User::$cacheDeleted[$id] = FALSE;
+                    return($u);
                 }
-            } else {
-                # Some other user - just fetch.
-                parent::fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts);
             }
+        }
+
+        # Not cached.
+        #error_log("$id not in cache");
+        $u = new User($dbhr, $dbhm, $id);
+
+        if ($id && count(User::$cache) < User::CACHE_SIZE) {
+            # Store for next time
+            #error_log("store $id in cache");
+            User::$cache[$id] = $u;
+            User::$cacheDeleted[$id] = FALSE;
+        }
+
+        return($u);
+    }
+
+    public static function clearCache($id = NULL) {
+        # Remove this user from our cache.
+        #error_log("Clear $id from cache");
+        if ($id) {
+            User::$cacheDeleted[$id] = TRUE;
         } else {
-            parent::fetch($dbhr, $dbhm, NULL, 'users', 'user', $this->publicatts);
+            User::$cache = [];
+            User::$cacheDeleted = [];
         }
     }
 
@@ -98,6 +131,7 @@ class User extends Entity
                         [
                             $this->id
                         ]);
+                    User::clearCache($this->id);
 
                     $l = new Log($this->dbhr, $this->dbhm);
                     $l->log([
@@ -438,6 +472,8 @@ class User extends Entity
     }
 
     private function updateSystemRole($role) {
+        User::clearCache($this->id);
+
         if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
             $sql = "UPDATE users SET systemrole = ? WHERE id = ? AND systemrole = ?;";
             $this->dbhm->preExec($sql, [ User::SYSTEMROLE_MODERATOR, $this->id, User::SYSTEMROLE_USER ]);
@@ -463,6 +499,8 @@ class User extends Entity
     public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
+        Session::clearSessionCache();
+
         # Check if we're banned
         $sql = "SELECT * FROM users_banned WHERE userid = ? AND groupid = ?;";
         $banneds = $this->dbhr->preQuery($sql, [
@@ -478,7 +516,7 @@ class User extends Entity
         # memberships_yahoo), and if the membership already exists, then this would cause us to delete and re-add it,
         # which would result in the row in the child table being deleted.
         #
-        #error_log("Add membership {$this->id} to $groupid with $emailid");
+        #error_log("Add membership role $role for {$this->id} to $groupid with $emailid");
         $rc = $this->dbhm->preExec("INSERT INTO memberships (userid, groupid, role, collection) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), role = ?;", [
             $this->id,
             $groupid,
@@ -487,7 +525,7 @@ class User extends Entity
             $role
         ]);
         $membershipid = $this->dbhm->lastInsertId();
-        #error_log("Insert returned $rc membership $membershipid");
+        error_log("Insert returned $rc membership $membershipid");
 
         if ($rc && $emailid) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
@@ -595,7 +633,7 @@ class User extends Entity
 
             # It would be odd for them to be on Yahoo with no email but handle it anyway.
             if ($email['email']) {
-                $g = new Group($this->dbhr, $this->dbhm, $groupid);
+                $g = Group::get($this->dbhr, $this->dbhm, $groupid);
                 $p = new Plugin($this->dbhr, $this->dbhm);
                 $p->add($groupid, [
                     'type' => $type,
@@ -648,49 +686,41 @@ class User extends Entity
         return($rc);
     }
 
-    public function getMemberships($modonly = FALSE, $grouptype = NULL) {
+    public function getMemberships($modonly = FALSE, $grouptype = NULL, $getwork = FALSE) {
         $ret = [];
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
         $sql = "SELECT groupid, role, configid, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND groups.publish = 1 WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
+        #error_log("getMemberships $sql {$this->id} " . var_export($groups, TRUE));
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
 
-        $cache = new Redis();
-        $cache->pconnect(REDIS_CONNECT);
-
         foreach ($groups as $group) {
             $g = NULL;
-            # We cache the groups in redis - there are a lot of ops involved in getting all of our groups.
-            $cachekey = "group-{$group['groupid']}";
-            $cached = $cache->get($cachekey);
-            if ($cached) {
-                $one = json_decode($cached, TRUE);
-            } else {
-                $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
-                $one = $g->getPublic();
-                $cache->setex($cachekey, REDIS_TTL, json_encode($one));
-            }
+            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+            $one = $g->getPublic();
 
             $one['role'] = $group['role'];
             $one['configid'] = $c->getForGroup($this->id, $group['groupid']);
 
             $one['mysettings'] = $this->getGroupSettings($group['groupid']);
 
-            # We only need finding out how much work there is if we are interested in seeing it.
-            $showmessages = !array_key_exists('showmessages', $one['mysettings']) || $one['mysettings']['showmessages'];
-            $showmembers = !array_key_exists('showmembers', $one['mysettings']) || $one['mysettings']['showmembers'];
+            if ($getwork) {
+                # We only need finding out how much work there is if we are interested in seeing it.
+                $showmessages = !array_key_exists('showmessages', $one['mysettings']) || $one['mysettings']['showmessages'];
+                $showmembers = !array_key_exists('showmembers', $one['mysettings']) || $one['mysettings']['showmembers'];
 
-            if ((($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER)) &&
-                ($showmessages || $showmembers)) {
-                if (!$g) {
-                    # We need to have an actual group object for this.
-                    $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+                if ((($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER)) &&
+                    ($showmessages || $showmembers)) {
+                    if (!$g) {
+                        # We need to have an actual group object for this.
+                        $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+                    }
+
+                    # Give a summary of outstanding work.
+                    $one['work'] = $g->getWorkCounts($one['mysettings'], $this->id);
                 }
-
-                # Give a summary of outstanding work.
-                $one['work'] = $g->getWorkCounts($one['mysettings'], $this->id);
             }
 
             $ret[] = $one;
@@ -712,20 +742,10 @@ class User extends Entity
 
         $sql = "SELECT DISTINCT * FROM ((SELECT configid AS id FROM memberships WHERE groupid IN (" . implode(',', $modships) . ") AND role IN ('Owner', 'Moderator') AND configid IS NOT NULL) UNION (SELECT id FROM mod_configs WHERE createdby = {$this->id} OR `default` = 1)) t;";
         $ids = $this->dbhr->preQuery($sql);
-        $cache = new Redis();
-        $cache->pconnect(REDIS_CONNECT);
 
         foreach ($ids as $id) {
-            # We cache the configs in redis - there are a lot of ops involved in getting the config and all its standard messages.
-            $cachekey = "modconfig-{$id['id']}";
-            $cached = $cache->get($cachekey);
-            if ($cached) {
-                $thisone = json_decode($cached, TRUE);
-            } else {
-                $c = new ModConfig($this->dbhr, $this->dbhm, $id['id']);
-                $thisone = $c->getPublic(FALSE);
-                $cache->setex($cachekey, REDIS_TTL, json_encode($thisone));
-            }
+            $c = new ModConfig($this->dbhr, $this->dbhm, $id['id']);
+            $thisone = $c->getPublic(FALSE);
 
             if ($me) {
                 if ($thisone['createdby'] == $me->getId()) {
@@ -739,8 +759,8 @@ class User extends Entity
 
                     foreach ($shareds as $shared) {
                         $thisone['cansee'] = ModConfig::CANSEE_SHARED;
-                        $u = new User($this->dbhr, $this->dbhm, $shared['userid']);
-                        $g = new Group($this->dbhr, $this->dbhm, $shared['groupid']);
+                        $u = User::get($this->dbhr, $this->dbhm, $shared['userid']);
+                        $g = Group::get($this->dbhr, $this->dbhm, $shared['groupid']);
                         $ctx = NULL;
                         $thisone['sharedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
                         $thisone['sharedon'] = $g->getPublic();
@@ -748,7 +768,7 @@ class User extends Entity
                 }
             }
 
-            $u = new User($this->dbhr, $this->dbhm, $thisone['createdby']);
+            $u = User::get($this->dbhr, $this->dbhm, $thisone['createdby']);
 
             if ($u->getId()) {
                 $ctx = NULL;
@@ -765,34 +785,36 @@ class User extends Entity
     }
 
     public function getModeratorships() {
-        # This gets called a lot - cache it.
-        $key = "memberships.{$this->id}";
-        if (!pres($key, $_SESSION['cache'])) {
-            $ret = [];
-            $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner');", [ $this->id ]);
-            foreach ($groups as $group) {
-                $ret[] = $group['groupid'];
-            }
-
-            $_SESSION['cache'][$key] = $ret;
+        $ret = [];
+        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner');", [ $this->id ]);
+        foreach ($groups as $group) {
+            $ret[] = $group['groupid'];
         }
 
-        return($_SESSION['cache'][$key]);
+        return($ret);
     }
 
     public function isModOrOwner($groupid) {
-        $sql = "SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner') AND groupid = ?;";
-        #error_log("$sql {$this->id}, $groupid");
-        $groups = $this->dbhr->preQuery($sql, [
-            $this->id,
-            $groupid
-        ]);
+        # Very frequently used.  Cache in session.
+        if (array_key_exists('modorowner', $_SESSION) && array_key_exists($this->id, $_SESSION['modorowner']) && array_key_exists($groupid, $_SESSION['modorowner'][$this->id])) {
+            #error_log("{$this->id} group $groupid cached");
+            return($_SESSION['modorowner'][$this->id][$groupid]);
+        } else {
+            $sql = "SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner') AND groupid = ?;";
+            #error_log("$sql {$this->id}, $groupid");
+            $groups = $this->dbhr->preQuery($sql, [
+                $this->id,
+                $groupid
+            ]);
 
-        foreach ($groups as $group) {
-            return true;
+            foreach ($groups as $group) {
+                $_SESSION['modorowner'][$this->id][$groupid] = TRUE;
+                return TRUE;
+            }
+
+            $_SESSION['modorowner'][$this->id][$groupid] = FALSE;
+            return(FALSE);
         }
-
-        return(false);
     }
 
     public function getLogins($credentials = TRUE) {
@@ -867,24 +889,26 @@ class User extends Entity
             }
         }
 
-        # Now find if we have any membership of the group which might also give us a role.
-        $membs = $this->dbhr->preQuery("SELECT role FROM memberships WHERE userid = ? AND groupid = ?;", [
+        if ($role === User::ROLE_NONMEMBER) {
+            # Now find if we have any membership of the group which might also give us a role.
+            $membs = $this->dbhr->preQuery("SELECT role FROM memberships WHERE userid = ? AND groupid = ?;", [
                 $this->id,
                 $groupid
             ]);
 
-        foreach ($membs as $memb) {
-            switch ($memb['role']) {
-                case 'Moderator':
-                    $role = User::ROLE_MODERATOR;
-                    break;
-                case 'Owner':
-                    $role = User::ROLE_OWNER;
-                    break;
-                case 'Member':
-                    # Upgrade from none to member.
-                    $role = $role == User::ROLE_NONMEMBER ? User::ROLE_MEMBER : $role;
-                    break;
+            foreach ($membs as $memb) {
+                switch ($memb['role']) {
+                    case 'Moderator':
+                        $role = User::ROLE_MODERATOR;
+                        break;
+                    case 'Owner':
+                        $role = User::ROLE_OWNER;
+                        break;
+                    case 'Member':
+                        # Upgrade from none to member.
+                        $role = $role == User::ROLE_NONMEMBER ? User::ROLE_MEMBER : $role;
+                        break;
+                }
             }
         }
 
@@ -896,7 +920,7 @@ class User extends Entity
         # within the context of a known group.  We can administer a user when:
         # - they're only a user themselves
         # - we are a mod on one of the groups on which they are a member.
-        $u = new User($this->dbhr, $this->dbhm, $userid);
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         $usermemberships = [];
         $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Member');", [ $userid ]);
@@ -996,181 +1020,6 @@ class User extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
 
-        if ($history) {
-            # Add in the message history - from any of the emails associated with this user.
-            $atts['messagehistory'] = [];
-            $sql = NULL;
-
-            if ($groupids && count($groupids) > 0) {
-                # On these groups
-                $groupq = implode(',', $groupids);
-                $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC;";
-            } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
-                # We can see all groups.
-                $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC;";
-            }
-
-            if ($sql) {
-                $atts['messagehistory'] = $this->dbhr->preQuery($sql, [
-                    MessageCollection::APPROVED,
-                    $this->id
-                ]);
-
-                foreach ($atts['messagehistory'] as &$hist) {
-                    $hist['arrival'] = ISODate($hist['arrival']);
-                    $hist['date'] = ISODate($hist['date']);
-                }
-            }
-        }
-
-        # Add in a count of recent "modmail" type logs which a mod might care about.
-        #
-        # Exclude the logs which are due to standard message syncing.
-        $modships = $me ? $me->getModeratorships() : [];
-        $modships = count($modships) == 0 ? [0] : $modships;
-        $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID')";
-        $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? $modmailq AND groupid IN (" . implode(',', $modships) . ");";
-        $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
-        $modmails = $this->dbhr->preQuery($sql, [ $this->id, $mysqltime ]);
-        #error_log("$sql, {$this->id}, $mysqltime");
-        $atts['modmails'] = $modmails[0]['count'];
-
-        if ($logs) {
-            # Add in the log entries we have for this user.  We exclude some logs of little interest to mods.
-            # - creation - either of ourselves or others during syncing.
-            # - deletion of users due to syncing
-            $me = whoAmI($this->dbhr, $this->dbhm);
-            $startq = $ctx ? " AND id < {$ctx['id']} " : '';
-            $modq = $modmailsonly ? $modmailq : '';
-            $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged', 'YahooConfirmed')) AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list','Received later copy of message with same Message-ID')) $modq ORDER BY id DESC LIMIT 50;";
-            $logs = $this->dbhr->preQuery($sql, [ $this->id, $this->id ]);
-            $atts['logs'] = [];
-            $groups = [];
-            $users = [];
-            $configs = [];
-
-            if (!$ctx) {
-                $ctx = [ 'id' => 0 ];
-            }
-
-            foreach ($logs as $log) {
-                $ctx['id'] = $ctx['id'] == 0 ? $log['id'] : min($ctx['id'], $log['id']);
-
-                if (pres('byuser', $log)) {
-                    if (!pres($log['byuser'], $users)) {
-                        $u = new User($this->dbhr, $this->dbhm, $log['byuser']);
-                        $users[$log['byuser']] = $u->getPublic(NULL, FALSE, FALSE);
-                    }
-
-                    $log['byuser'] = $users[$log['byuser']];
-                }
-
-                if (pres('user', $log)) {
-                    if (!pres($log['user'], $users)) {
-                        $u = new User($this->dbhr, $this->dbhm, $log['user']);
-                        $users[$log['user']] = $u->getPublic(NULL, FALSE, FALSE);
-                    }
-
-                    $log['user'] = $users[$log['user']];
-                }
-
-                if (pres('groupid', $log)) {
-                    if (!pres($log['groupid'], $groups)) {
-                        $g = new Group($this->dbhr, $this->dbhm, $log['groupid']);
-
-                        if ($g->getId()) {
-                            $groups[$log['groupid']] = $g->getPublic();
-                            $groups[$log['groupid']]['myrole'] = $me ? $me->getRoleForGroup($log['groupid']) : User::ROLE_NONMEMBER;
-                        }
-                    }
-
-                    if ($g->getId() &&
-                        $groups[$log['groupid']]['myrole'] != User::ROLE_OWNER &&
-                        $groups[$log['groupid']]['myrole'] != User::ROLE_MODERATOR) {
-                        # We can only see logs for this group if we have a mod role, or if we have appropriate system
-                        # rights.  Skip this log.
-                        continue;
-                    }
-
-                    $log['group'] = presdef($log['groupid'], $groups, NULL);
-                }
-
-                if (pres('configid', $log)) {
-                    if (!pres($log['configid'], $configs)) {
-                        $c = new ModConfig($this->dbhr, $this->dbhm, $log['configid']);
-
-                        if ($c->getId()) {
-                            $configs[$log['configid']] = $c->getPublic();
-                        }
-                    }
-
-                    if (pres($log['configid'], $configs)) {
-                        $log['config'] = $configs[$log['configid']];
-                    }
-                }
-
-                if (pres('stdmsgid', $log)) {
-                    $s = new StdMessage($this->dbhr, $this->dbhm, $log['stdmsgid']);
-                    $log['stdmsg'] = $s->getPublic();
-                }
-
-                if (pres('msgid', $log)) {
-                    $m = new Message($this->dbhr, $this->dbhm, $log['msgid']);
-
-                    if ($m->getID()) {
-                        $log['message'] = $m->getPublic(FALSE);
-                    } else {
-                        # The message has been deleted.
-                        $log['message'] = [
-                            'id' => $log['msgid'],
-                            'deleted' => true
-                        ];
-
-                        # See if we can find out why.
-                        $sql = "SELECT * FROM logs WHERE msgid = ? AND type = 'Message' AND subtype = 'Deleted' ORDER BY id DESC LIMIT 1;";
-                        $deletelogs = $this->dbhr->preQuery($sql, [ $log['msgid'] ]);
-                        foreach ($deletelogs as $deletelog) {
-                            $log['message']['deletereason'] = $deletelog['text'];
-                        }
-                    }
-
-                    # Prune large attributes.
-                    unset($log['message']['textbody']);
-                    unset($log['message']['htmlbody']);
-                    unset($log['message']['message']);
-                }
-
-                $log['timestamp'] = ISODate($log['timestamp']);
-
-                $atts['logs'][] = $log;
-            }
-
-            # Get merge history
-            $ids = [ $this->id ];
-            $merges = [];
-            do {
-                $added = FALSE;
-                $sql = "SELECT * FROM logs WHERE type = 'User' AND subtype = 'Merged' AND user IN (" . implode(',', $ids) . ");";
-                $logs = $this->dbhr->preQuery($sql);
-                foreach ($logs as $log) {
-                    #error_log("Consider merge log {$log['text']}");
-                    if (preg_match('/Merged (.*) into (.*?) \((.*)\)/', $log['text'], $matches)) {
-                        #error_log("Matched " . var_export($matches, TRUE));
-                        #error_log("Check ids {$matches[1]} and {$matches[2]}");
-                        foreach ([ $matches[1], $matches[2] ] as $id) {
-                            if (!in_array($id, $ids, TRUE)) {
-                                $added = TRUE;
-                                $ids[] = $id;
-                                $merges[] = [ 'timestamp' => ISODate($log['timestamp']), 'from' => $matches[1], 'to' => $matches[2], 'reason' => $matches[3] ];
-                            }
-                        }
-                    }
-                }
-            } while ($added);
-
-            $atts['merges'] = $merges;
-        }
-
         $atts['displayname'] = $this->getName();
 
         if ($me && $this->id == $me->getId()) {
@@ -1184,133 +1033,315 @@ class User extends Entity
             $atts['onholidaytill'] = $this->user['onholidaytill'] ? ISODate($this->user['onholidaytill']) : NULL;
         }
 
-        if ($comments) {
-            $atts['comments'] = $this->getComments();
-        }
+        # Some info is only relevant for ModTools, rather than the user site.
+        if (MODTOOLS) {
+            if ($history) {
+                # Add in the message history - from any of the emails associated with this user.
+                $atts['messagehistory'] = [];
+                $sql = NULL;
 
-        if ($this->user['suspectcount'] > 0) {
-            # This user is flagged as suspicious.  The memberships are visible iff the currently logged in user
-            # - has a system role which allows it
-            # - is a mod on a group which this user is also on.
-            $visible = $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT;
-            $memberof = [];
+                if ($groupids && count($groupids) > 0) {
+                    # On these groups
+                    $groupq = implode(',', $groupids);
+                    $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC;";
+                } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
+                    # We can see all groups.
+                    $sql = "SELECT messages.id, messages.arrival, messages.date, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC;";
+                }
 
-            # Check the groups.
-            $sql = "SELECT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
-            $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
-            foreach ($groups as $group) {
-                $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
-                $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+                if ($sql) {
+                    $atts['messagehistory'] = $this->dbhr->preQuery($sql, [
+                        MessageCollection::APPROVED,
+                        $this->id
+                    ]);
 
-                $memberof[] = [
-                    'id' => $group['groupid'],
-                    'membershipid' => $group['id'],
-                    'namedisplay' => $name,
-                    'nameshort' => $group['nameshort'],
-                    'added' => ISODate($group['added']),
-                    'collection' => $group['collection'],
-                    'role' => $group['role'],
-                    'emailid' => $group['emailid'],
-                    'emailfrequency' => $group['emailfrequency'],
-                    'eventsallowed' => $group['eventsallowed'],
-                    'type' => $group['type']
-                ];
-
-                if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
-                    $visible = TRUE;
+                    foreach ($atts['messagehistory'] as &$hist) {
+                        $hist['arrival'] = ISODate($hist['arrival']);
+                        $hist['date'] = ISODate($hist['date']);
+                    }
                 }
             }
 
-            if ($visible) {
-                $atts['suspectcount'] = $this->user['suspectcount'];
-                $atts['suspectreason'] = $this->user['suspectreason'];
+            # Add in a count of recent "modmail" type logs which a mod might care about.
+            #
+            # Exclude the logs which are due to standard message syncing.
+            $modships = $me ? $me->getModeratorships() : [];
+            $modships = count($modships) == 0 ? [0] : $modships;
+            $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID')";
+            $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? $modmailq AND groupid IN (" . implode(',', $modships) . ");";
+            $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
+            $modmails = $this->dbhr->preQuery($sql, [$this->id, $mysqltime]);
+            #error_log("$sql, {$this->id}, $mysqltime");
+            $atts['modmails'] = $modmails[0]['count'];
+
+            if ($logs) {
+                # Add in the log entries we have for this user.  We exclude some logs of little interest to mods.
+                # - creation - either of ourselves or others during syncing.
+                # - deletion of users due to syncing
+                $me = whoAmI($this->dbhr, $this->dbhm);
+                $startq = $ctx ? " AND id < {$ctx['id']} " : '';
+                $modq = $modmailsonly ? $modmailq : '';
+                $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged', 'YahooConfirmed')) AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list','Received later copy of message with same Message-ID')) $modq ORDER BY id DESC LIMIT 50;";
+                $logs = $this->dbhr->preQuery($sql, [$this->id, $this->id]);
+                $atts['logs'] = [];
+                $groups = [];
+                $users = [];
+                $configs = [];
+
+                if (!$ctx) {
+                    $ctx = ['id' => 0];
+                }
+
+                foreach ($logs as $log) {
+                    $ctx['id'] = $ctx['id'] == 0 ? $log['id'] : min($ctx['id'], $log['id']);
+
+                    if (pres('byuser', $log)) {
+                        if (!pres($log['byuser'], $users)) {
+                            $u = User::get($this->dbhr, $this->dbhm, $log['byuser']);
+                            $users[$log['byuser']] = $u->getPublic(NULL, FALSE, FALSE);
+                        }
+
+                        $log['byuser'] = $users[$log['byuser']];
+                    }
+
+                    if (pres('user', $log)) {
+                        if (!pres($log['user'], $users)) {
+                            $u = User::get($this->dbhr, $this->dbhm, $log['user']);
+                            $users[$log['user']] = $u->getPublic(NULL, FALSE, FALSE);
+                        }
+
+                        $log['user'] = $users[$log['user']];
+                    }
+
+                    if (pres('groupid', $log)) {
+                        if (!pres($log['groupid'], $groups)) {
+                            $g = Group::get($this->dbhr, $this->dbhm, $log['groupid']);
+
+                            if ($g->getId()) {
+                                $groups[$log['groupid']] = $g->getPublic();
+                                $groups[$log['groupid']]['myrole'] = $me ? $me->getRoleForGroup($log['groupid']) : User::ROLE_NONMEMBER;
+                            }
+                        }
+
+                        if ($g->getId() &&
+                            $groups[$log['groupid']]['myrole'] != User::ROLE_OWNER &&
+                            $groups[$log['groupid']]['myrole'] != User::ROLE_MODERATOR
+                        ) {
+                            # We can only see logs for this group if we have a mod role, or if we have appropriate system
+                            # rights.  Skip this log.
+                            continue;
+                        }
+
+                        $log['group'] = presdef($log['groupid'], $groups, NULL);
+                    }
+
+                    if (pres('configid', $log)) {
+                        if (!pres($log['configid'], $configs)) {
+                            $c = new ModConfig($this->dbhr, $this->dbhm, $log['configid']);
+
+                            if ($c->getId()) {
+                                $configs[$log['configid']] = $c->getPublic();
+                            }
+                        }
+
+                        if (pres($log['configid'], $configs)) {
+                            $log['config'] = $configs[$log['configid']];
+                        }
+                    }
+
+                    if (pres('stdmsgid', $log)) {
+                        $s = new StdMessage($this->dbhr, $this->dbhm, $log['stdmsgid']);
+                        $log['stdmsg'] = $s->getPublic();
+                    }
+
+                    if (pres('msgid', $log)) {
+                        $m = new Message($this->dbhr, $this->dbhm, $log['msgid']);
+
+                        if ($m->getID()) {
+                            $log['message'] = $m->getPublic(FALSE);
+                        } else {
+                            # The message has been deleted.
+                            $log['message'] = [
+                                'id' => $log['msgid'],
+                                'deleted' => true
+                            ];
+
+                            # See if we can find out why.
+                            $sql = "SELECT * FROM logs WHERE msgid = ? AND type = 'Message' AND subtype = 'Deleted' ORDER BY id DESC LIMIT 1;";
+                            $deletelogs = $this->dbhr->preQuery($sql, [$log['msgid']]);
+                            foreach ($deletelogs as $deletelog) {
+                                $log['message']['deletereason'] = $deletelog['text'];
+                            }
+                        }
+
+                        # Prune large attributes.
+                        unset($log['message']['textbody']);
+                        unset($log['message']['htmlbody']);
+                        unset($log['message']['message']);
+                    }
+
+                    $log['timestamp'] = ISODate($log['timestamp']);
+
+                    $atts['logs'][] = $log;
+                }
+
+                # Get merge history
+                $ids = [$this->id];
+                $merges = [];
+                do {
+                    $added = FALSE;
+                    $sql = "SELECT * FROM logs WHERE type = 'User' AND subtype = 'Merged' AND user IN (" . implode(',', $ids) . ");";
+                    $logs = $this->dbhr->preQuery($sql);
+                    foreach ($logs as $log) {
+                        #error_log("Consider merge log {$log['text']}");
+                        if (preg_match('/Merged (.*) into (.*?) \((.*)\)/', $log['text'], $matches)) {
+                            #error_log("Matched " . var_export($matches, TRUE));
+                            #error_log("Check ids {$matches[1]} and {$matches[2]}");
+                            foreach ([$matches[1], $matches[2]] as $id) {
+                                if (!in_array($id, $ids, TRUE)) {
+                                    $added = TRUE;
+                                    $ids[] = $id;
+                                    $merges[] = ['timestamp' => ISODate($log['timestamp']), 'from' => $matches[1], 'to' => $matches[2], 'reason' => $matches[3]];
+                                }
+                            }
+                        }
+                    }
+                } while ($added);
+
+                $atts['merges'] = $merges;
+            }
+
+            if ($comments) {
+                $atts['comments'] = $this->getComments();
+            }
+
+            if ($this->user['suspectcount'] > 0) {
+                # This user is flagged as suspicious.  The memberships are visible iff the currently logged in user
+                # - has a system role which allows it
+                # - is a mod on a group which this user is also on.
+                $visible = $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT;
+                $memberof = [];
+
+                # Check the groups.
+                $sql = "SELECT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
+                $groups = $this->dbhr->preQuery($sql, [$this->id]);
+                foreach ($groups as $group) {
+                    $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
+                    $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+
+                    $memberof[] = [
+                        'id' => $group['groupid'],
+                        'membershipid' => $group['id'],
+                        'namedisplay' => $name,
+                        'nameshort' => $group['nameshort'],
+                        'added' => ISODate($group['added']),
+                        'collection' => $group['collection'],
+                        'role' => $group['role'],
+                        'emailid' => $group['emailid'],
+                        'emailfrequency' => $group['emailfrequency'],
+                        'eventsallowed' => $group['eventsallowed'],
+                        'type' => $group['type']
+                    ];
+
+                    if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
+                        $visible = TRUE;
+                    }
+                }
+
+                if ($visible) {
+                    $atts['suspectcount'] = $this->user['suspectcount'];
+                    $atts['suspectreason'] = $this->user['suspectreason'];
+                    $atts['memberof'] = $memberof;
+                }
+            }
+
+            $box = NULL;
+
+            if ($memberof && !array_key_exists('memberof', $atts) &&
+                ($systemrole == User::ROLE_MODERATOR || $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT)
+            ) {
+                # We haven't provided the complete list; get the recent ones (which preserves some privacy for the user but
+                # allows us to spot abuse) and any which are on our groups.
+                $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
+                $modids = array_merge([0], $me->getModeratorships());
+                $sql = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
+                $groups = $this->dbhr->preQuery($sql, [$this->id]);
+                $memberof = [];
+
+                foreach ($groups as $group) {
+                    $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+
+                    $memberof[] = [
+                        'id' => $group['groupid'],
+                        'membershipid' => $group['id'],
+                        'namedisplay' => $name,
+                        'nameshort' => $group['nameshort'],
+                        'added' => ISODate($group['added']),
+                        'collection' => $group['collection'],
+                        'role' => $group['role'],
+                        'emailid' => $group['emailid'],
+                        'emailfrequency' => $group['emailfrequency'],
+                        'eventsallowed' => $group['eventsallowed'],
+                        'type' => $group['type']
+                    ];
+
+                    if ($group['lat'] && $group['lng']) {
+                        $box = [
+                            'swlat' => $box == NULL ? $group['lat'] : min($group['lat'], $box['swlat']),
+                            'swlng' => $box == NULL ? $group['lng'] : min($group['lng'], $box['swlng']),
+                            'nelng' => $box == NULL ? $group['lng'] : max($group['lng'], $box['nelng']),
+                            'nelat' => $box == NULL ? $group['lat'] : max($group['lat'], $box['nelat'])
+                        ];
+                    }
+                }
+
                 $atts['memberof'] = $memberof;
             }
-        }
 
-        $box = NULL;
+            if ($applied &&
+                $systemrole == User::ROLE_MODERATOR ||
+                $systemrole == User::SYSTEMROLE_ADMIN ||
+                $systemrole == User::SYSTEMROLE_SUPPORT
+            ) {
+                # As well as being a member of a group, they might have joined and left, or applied and been rejected.
+                # This is useful info for moderators.  If the user is suspicious then return the complete list; otherwise
+                # just the recent ones.
+                $groupq = ($groupids && count($groupids) > 0) ? (" AND (DATEDIFF(NOW(), added) <= 31 OR groupid IN (" . implode(',', $groupids) . ")) ") : ' AND DATEDIFF(NOW(), added) <= 31 ';
+                $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid = ? $groupq ORDER BY added DESC;";
+                $membs = $this->dbhr->preQuery($sql, [$this->id]);
+                foreach ($membs as &$memb) {
+                    $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
+                    $memb['namedisplay'] = $name;
+                    $memb['added'] = ISODate($memb['added']);
+                    $memb['id'] = $memb['groupid'];
+                    unset($memb['groupid']);
 
-        if ($memberof && !array_key_exists('memberof', $atts) &&
-            ($systemrole == User::ROLE_MODERATOR || $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT)) {
-            # We haven't provided the complete list; get the recent ones (which preserves some privacy for the user but
-            # allows us to spot abuse) and any which are on our groups.
-            $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
-            $modids = array_merge([0], $me->getModeratorships());
-            $sql = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
-            $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
-            $memberof = [];
-
-            foreach ($groups as $group) {
-                $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
-
-                $memberof[] = [
-                    'id' => $group['groupid'],
-                    'membershipid' => $group['id'],
-                    'namedisplay' => $name,
-                    'nameshort' => $group['nameshort'],
-                    'added' => ISODate($group['added']),
-                    'collection' => $group['collection'],
-                    'role' => $group['role'],
-                    'emailid' => $group['emailid'],
-                    'emailfrequency' => $group['emailfrequency'],
-                    'eventsallowed' => $group['eventsallowed'],
-                    'type' => $group['type']
-                ];
-
-                if ($group['lat'] && $group['lng']) {
-                    $box = [
-                        'swlat' => $box == NULL ? $group['lat'] : min($group['lat'], $box['swlat']),
-                        'swlng' => $box == NULL ? $group['lng'] : min($group['lng'], $box['swlng']),
-                        'nelng' => $box == NULL ? $group['lng'] : max($group['lng'], $box['nelng']),
-                        'nelat' => $box == NULL ? $group['lat'] : max($group['lat'], $box['nelat'])
-                    ];
+                    if ($memb['lat'] && $memb['lng']) {
+                        $box = [
+                            'swlat' => $box == NULL ? $memb['lat'] : min($memb['lat'], $box['swlat']),
+                            'swlng' => $box == NULL ? $memb['lng'] : min($memb['lng'], $box['swlng']),
+                            'nelng' => $box == NULL ? $memb['lng'] : max($memb['lng'], $box['nelng']),
+                            'nelat' => $box == NULL ? $memb['lat'] : max($memb['lat'], $box['nelat'])
+                        ];
+                    }
                 }
+
+                $atts['applied'] = $membs;
+                $atts['activearea'] = $box;
+                $atts['activedistance'] = $box ? round(Location::getDistance($box['swlat'], $box['swlng'], $box['nelat'], $box['nelng'])) : NULL;
             }
 
-            $atts['memberof'] = $memberof;
-        }
-
-        if ($applied &&
-            $systemrole == User::ROLE_MODERATOR ||
-            $systemrole == User::SYSTEMROLE_ADMIN ||
-            $systemrole == User::SYSTEMROLE_SUPPORT) {
-            # As well as being a member of a group, they might have joined and left, or applied and been rejected.
-            # This is useful info for moderators.  If the user is suspicious then return the complete list; otherwise
-            # just the recent ones.
-            $groupq = ($groupids && count($groupids) > 0) ? (" AND (DATEDIFF(NOW(), added) <= 31 OR groupid IN (" . implode(',', $groupids) . ")) ") : ' AND DATEDIFF(NOW(), added) <= 31 ';
-            $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid = ? $groupq ORDER BY added DESC;";
-            $membs = $this->dbhr->preQuery($sql, [ $this->id ]);
-            foreach ($membs as &$memb) {
-                $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
-                $memb['namedisplay'] = $name;
-                $memb['added'] = ISODate($memb['added']);
-                $memb['id'] = $memb['groupid'];
-                unset($memb['groupid']);
-
-                if ($memb['lat'] && $memb['lng']) {
-                    $box = [
-                        'swlat' => $box == NULL ? $memb['lat'] : min($memb['lat'], $box['swlat']),
-                        'swlng' => $box == NULL ? $memb['lng'] : min($memb['lng'], $box['swlng']),
-                        'nelng' => $box == NULL ? $memb['lng'] : max($memb['lng'], $box['nelng']),
-                        'nelat' => $box == NULL ? $memb['lat'] : max($memb['lat'], $box['nelat'])
-                    ];
+            if ($systemrole == User::ROLE_MODERATOR ||
+                $systemrole == User::SYSTEMROLE_ADMIN ||
+                $systemrole == User::SYSTEMROLE_SUPPORT
+            ) {
+                # Also fetch whether they're on the spammer list.
+                $sql = "SELECT * FROM spam_users WHERE userid = ?;";
+                $spammers = $this->dbhr->preQuery($sql, [$this->id]);
+                foreach ($spammers as $spammer) {
+                    $spammer['added'] = ISODate($spammer['added']);
+                    $atts['spammer'] = $spammer;
                 }
-            }
-
-            $atts['applied'] = $membs;
-            $atts['activearea'] = $box;
-            $atts['activedistance'] = $box ? round(Location::getDistance($box['swlat'], $box['swlng'], $box['nelat'], $box['nelng'])) : NULL;
-        }
-
-        if ($systemrole == User::ROLE_MODERATOR ||
-            $systemrole == User::SYSTEMROLE_ADMIN ||
-            $systemrole == User::SYSTEMROLE_SUPPORT) {
-            # Also fetch whether they're on the spammer list.
-            $sql = "SELECT * FROM spam_users WHERE userid = ?;";
-            $spammers = $this->dbhr->preQuery($sql, [ $this->id ]);
-            foreach ($spammers as $spammer) {
-                $spammer['added'] = ISODate($spammer['added']);
-                $atts['spammer'] = $spammer;
             }
         }
 
@@ -1560,6 +1591,8 @@ class User extends Entity
                     $users = $this->dbhm->preQuery("SELECT $att FROM users WHERE id = $id2;");
                     foreach ($users as $user) {
                         $this->dbhm->preExec("UPDATE users SET $att = NULL WHERE id = $id2;");
+                        User::clearCache($id1);
+                        User::clearCache($id2);
 
                         if ($att != 'fullname') {
                             $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1 AND $att IS NULL;", [$user[$att]]);
@@ -1606,6 +1639,7 @@ class User extends Entity
                             $this->systemRoleMax($u1['systemrole'], $u2['systemrole'])
                         ]);
                     }
+                    User::clearCache($id1);
                 }
 
                 if ($rc) {
@@ -1630,7 +1664,7 @@ class User extends Entity
                     # Finally, delete id2.
                     #error_log("Delete $id2");
                     error_log("Merged $id1 < $id2, $reason");
-                    $deleteme = new User($this->dbhr, $this->dbhm, $id2);
+                    $deleteme = User::get($this->dbhr, $this->dbhm, $id2);
                     $rc = $deleteme->delete(NULL, NULL, NULL, FALSE);
                 }
 
@@ -1679,7 +1713,7 @@ class User extends Entity
             }
 
             if ($to) {
-                $g = new Group($this->dbhr, $this->dbhm, $groupid);
+                $g = Group::get($this->dbhr, $this->dbhm, $groupid);
                 $atts = $g->getPublic();
 
                 $me = whoAmI($this->dbhr, $this->dbhm);
@@ -1932,7 +1966,7 @@ class User extends Entity
             $comment['date'] = ISODate($comment['date']);
 
             if (pres('byuserid', $comment)) {
-                $u = new User($this->dbhr, $this->dbhm, $comment['byuserid']);
+                $u = User::get($this->dbhr, $this->dbhm, $comment['byuserid']);
 
                 # Don't ask for comments to stop stack overflow.
                 $ctx = NULL;
@@ -1956,7 +1990,7 @@ class User extends Entity
             $comment['date'] = ISODate($comment['date']);
 
             if (pres('byuserid', $comment)) {
-                $u = new User($this->dbhr, $this->dbhm, $comment['byuserid']);
+                $u = User::get($this->dbhr, $this->dbhm, $comment['byuserid']);
                 $comment['byuser'] = $u->getPublic();
             }
 
@@ -2207,8 +2241,8 @@ class User extends Entity
         return($email);
     }
 
-    public function triggerYahooApplication($groupid) {
-        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+    public function triggerYahooApplication($groupid, $log = TRUE) {
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $email = $this->inventEmail();
         $emailid = $this->addEmail($email, 0);
         #error_log("Added email $email id $emailid");
@@ -2234,13 +2268,15 @@ class User extends Entity
             $mailer->send($message);
         }
 
-        $this->log->log([
-            'type' => Log::TYPE_USER,
-            'subtype' => Log::SUBTYPE_YAHOO_APPLIED,
-            'user' => $this->id,
-            'groupid' => $groupid,
-            'text' => $email
-        ]);
+        if ($log) {
+            $this->log->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_YAHOO_APPLIED,
+                'user' => $this->id,
+                'groupid' => $groupid,
+                'text' => $email
+            ]);
+        }
 
         return($email);
     }
@@ -2407,7 +2443,7 @@ class User extends Entity
 
             #error_log("{$log['subtype']} gives $thisone {$log['groupid']}");
             if ($thisone && $log['groupid']) {
-                $g = new Group($this->dbhr, $this->dbhm, $log['groupid']);
+                $g = Group::get($this->dbhr, $this->dbhm, $log['groupid']);
                 $ret[] = [
                     'timestamp' => ISODate($log['timestamp']),
                     'type' => $thisone,
@@ -2435,13 +2471,12 @@ class User extends Entity
                 (SELECT id AS userid FROM users WHERE id = ?) UNION
                 (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)) t WHERE userid > ? ORDER BY userid ASC";
         $users = $this->dbhr->preQuery($sql, [$search, $id]);
-        error_log("$sql");
 
         $ret = [];
         foreach ($users as $user) {
             $ctx['id'] = $user['userid'];
 
-            $u = new User($this->dbhr, $this->dbhm, $user['userid']);
+            $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
             $thisone = $u->getPublic();
 
             # We might not have the emails.
@@ -2450,7 +2485,9 @@ class User extends Entity
 
             # We also want the Yahoo details.  Get them all in a single query for performance.
             $sql = "SELECT memberships.id AS membershipid, memberships_yahoo.* FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid WHERE userid = ?;";
+            #error_log("$sql {$user['userid']}");
             $membs = $this->dbhr->preQuery($sql, [ $user['userid']]);
+
             foreach ($thisone['memberof'] as &$member) {
                 foreach ($membs as $memb) {
                     if ($memb['membershipid'] == $member['membershipid']) {
@@ -2485,11 +2522,8 @@ class User extends Entity
     }
 
     public function setPrivate($att, $val) {
-        if (presdef('id', $_SESSION, NULL) == $this->id) {
-            # We cache our user details in our session
-            Session::clearSessionCache();
-        }
-        
+        User::clearCache($this->id);
         parent::setPrivate($att, $val);
+        #error_log("set $att = $val");
     }
 }

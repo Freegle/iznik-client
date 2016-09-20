@@ -39,80 +39,120 @@ define([
                     success: function(ret) {
                         v.close();
 
-                        var coll = new Iznik.Collections.DateCounts(ret.dashboard.ApprovedMessageCount);
-                        var graph = new Iznik.Views.DateGraph({
-                            target: self.$('.js-messagegraph').get()[0],
-                            data: coll,
-                            title: 'Message History'
-                        });
+                        if (ret.dashboard) {
+                            if (Iznik.Session.isFreegleMod()) {
+                                self.$('.js-freegleonly').show();
+                                var happy = new Iznik.Collections.DateCounts(ret.dashboard.Happy);
+                                var fine = new Iznik.Collections.DateCounts(ret.dashboard.Fine);
+                                var unhappy = new Iznik.Collections.DateCounts(ret.dashboard.Unhappy);
+                                var graph = new Iznik.Views.StackGraph({
+                                    target: self.$('.js-happinessgraph').get()[0],
+                                    data: [
+                                        {
+                                            tag: 'Happy',
+                                            data: happy,
+                                            colour: 'green'
+                                        },
+                                        {
+                                            tag: 'Fine',
+                                            data: fine,
+                                            colour: 'lightblue'
+                                        },
+                                        {
+                                            tag: 'Unhappy',
+                                            data: unhappy,
+                                            colour: 'red'
+                                        }
+                                    ]
+                                });
 
-                        graph.render();
+                                graph.render();
 
-                        coll = new Iznik.Collections.DateCounts(ret.dashboard.SpamMessageCount);
-                        graph = new Iznik.Views.DateGraph({
-                            target: self.$('.js-spammessagegraph').get()[0],
-                            data: coll,
-                            title: 'Spam Detection'
-                        });
+                                var coll = new Iznik.Collections.DateCounts(ret.dashboard.SupportQueries);
+                                var graph = new Iznik.Views.DateGraph({
+                                    target: self.$('.js-supportqueriesgraph').get()[0],
+                                    data: coll,
+                                    title: 'Support Queries'
+                                });
 
-                        graph.render();
+                                graph.render();
+                            }
 
-                        coll = new Iznik.Collections.DateCounts(ret.dashboard.SpamMemberCount);
-                        graph = new Iznik.Views.DateGraph({
-                            target: self.$('.js-spammembergraph').get()[0],
-                            data: coll,
-                            title: 'Spammer Detection'
-                        });
+                            var coll = new Iznik.Collections.DateCounts(ret.dashboard.ApprovedMessageCount);
+                            var graph = new Iznik.Views.DateGraph({
+                                target: self.$('.js-messagegraph').get()[0],
+                                data: coll,
+                                title: 'Message History'
+                            });
 
-                        graph.render();
+                            graph.render();
 
-                        graph = new Iznik.Views.TypeChart({
-                            target: self.$('.js-typechart').get()[0],
-                            data: ret.dashboard.MessageBreakdown,
-                            title: 'Message Balance'
-                        });
+                            coll = new Iznik.Collections.DateCounts(ret.dashboard.SpamMessageCount);
+                            graph = new Iznik.Views.DateGraph({
+                                target: self.$('.js-spammessagegraph').get()[0],
+                                data: coll,
+                                title: 'Spam Detection'
+                            });
 
-                        graph.render();
+                            graph.render();
 
-                        graph = new Iznik.Views.DeliveryChart({
-                            target: self.$('.js-deliverychart').get()[0],
-                            data: ret.dashboard.YahooDeliveryBreakdown,
-                            title: 'How Yahoo users get mail (excludes FD/TN)'
-                        });
+                            coll = new Iznik.Collections.DateCounts(ret.dashboard.SpamMemberCount);
+                            graph = new Iznik.Views.DateGraph({
+                                target: self.$('.js-spammembergraph').get()[0],
+                                data: coll,
+                                title: 'Spammer Detection'
+                            });
 
-                        graph.render();
+                            graph.render();
 
-                        graph = new Iznik.Views.PostingChart({
-                            target: self.$('.js-postingchart').get()[0],
-                            data: ret.dashboard.YahooPostingBreakdown,
-                            title: 'Yahoo users\' posting status'
-                        });
+                            graph = new Iznik.Views.TypeChart({
+                                target: self.$('.js-typechart').get()[0],
+                                data: ret.dashboard.MessageBreakdown,
+                                title: 'Message Balance'
+                            });
 
-                        graph.render();
+                            graph.render();
 
-                        graph = new Iznik.Views.SourceChart({
-                            target: self.$('.js-sourcechart').get()[0],
-                            data: ret.dashboard.PostMethodBreakdown,
-                            title: 'How people send messages'
-                        });
+                            graph = new Iznik.Views.DeliveryChart({
+                                target: self.$('.js-deliverychart').get()[0],
+                                data: ret.dashboard.YahooDeliveryBreakdown,
+                                title: 'How Yahoo users get mail (excludes FD/TN)'
+                            });
 
-                        graph.render();
+                            graph.render();
 
-                        if (ret.dashboard.hasOwnProperty('modinfo')) {
-                            self.$('.js-modlist').empty();
-                            self.$('.js-modinfo').show();
-                            _.each(ret.dashboard.modinfo, function(modinfo) {
-                                if (modinfo.lastactive) {
-                                    var v = new Iznik.Views.ModTools.Pages.Landing.ModInfo({
-                                        model: new Iznik.Model(modinfo)
-                                    });
-                                    v.render().then(function() {
-                                        self.$('.js-modlist').append(v.el);
-                                    });
-                                }
-                            })
-                        } else {
-                            self.$('.js-modinfo').hide();
+                            graph = new Iznik.Views.PostingChart({
+                                target: self.$('.js-postingchart').get()[0],
+                                data: ret.dashboard.YahooPostingBreakdown,
+                                title: 'Yahoo users\' posting status'
+                            });
+
+                            graph.render();
+
+                            graph = new Iznik.Views.SourceChart({
+                                target: self.$('.js-sourcechart').get()[0],
+                                data: ret.dashboard.PostMethodBreakdown,
+                                title: 'How people send messages'
+                            });
+
+                            graph.render();
+
+                            if (ret.dashboard.hasOwnProperty('modinfo')) {
+                                self.$('.js-modlist').empty();
+                                self.$('.js-modinfo').show();
+                                _.each(ret.dashboard.modinfo, function(modinfo) {
+                                    if (modinfo.lastactive) {
+                                        var v = new Iznik.Views.ModTools.Pages.Landing.ModInfo({
+                                            model: new Iznik.Model(modinfo)
+                                        });
+                                        v.render().then(function() {
+                                            self.$('.js-modlist').append(v.el);
+                                        });
+                                    }
+                                })
+                            } else {
+                                self.$('.js-modinfo').hide();
+                            }
                         }
                     }
                 })

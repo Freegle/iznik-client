@@ -86,7 +86,7 @@ function partner($dbhr, $key) {
     return($ret);
 }
 
-function whoAmI(LoggedPDO $dbhr, $dbhm, $writeaccess = false)
+function whoAmI(LoggedPDO $dbhr, $dbhm)
 {
     prepareSession($dbhr, $dbhm);
 
@@ -96,20 +96,8 @@ function whoAmI(LoggedPDO $dbhr, $dbhm, $writeaccess = false)
 
     if ($id) {
         # We are logged in.  Get our details
-        $ret = new User($dbhr, $dbhm, $id);
+        $ret = User::get($dbhr, $dbhm, $id);
         #error_log("Found " . $ret->getId());
-    }
-
-    if (!pres('cache', $_SESSION)) {
-        # We cache some information for the duration of a call.  Usually we'll have called session_write_close so
-        # this won't get written to the actual session anyway, but it's a convenient place to store things.
-        $_SESSION['cache'] = [];
-    }
-
-    if (!$writeaccess) {
-        # Release write access on the session to allow multiple AJAX requests to
-        # complete in parallel.
-        session_write_close();
     }
 
     return($ret);
@@ -127,11 +115,8 @@ class Session {
     private $id;
 
     public static function clearSessionCache() {
-        # We cache some information for the duration of a call.  Usually we'll have called session_write_close so
-        # this won't get written to the actual session anyway, but it's a convenient place to store things.  When
-        # clearing it we need to get write access in case there is actually something in the session.
-        session_reopen();
-        $_SESSION['cache'] = [];
+        # We cache some information for the duration of a call.
+        $_SESSION['modorowner'] = [];
     }
 
     public function getUserId() {
@@ -198,7 +183,6 @@ class Session {
             #error_log("Created session $id");
         }
 
-        session_reopen();
         $_SESSION['id'] = $userid;
         $_SESSION['logged_in'] = TRUE;
         #error_log("Logged in as $userid in " . session_id());
@@ -251,8 +235,6 @@ class Session {
         # Deleting the cookie will mean that we can no longer use this cookie to sign in on any device - which means
         # that if you log out on one device, the others will get logged out too (once the PHP session goes, anyway).
         #error_log(var_export($this->dbhr, true));
-        session_reopen();
-
         if ($userid) {
             # If we're doing an explicit logout we're called with a null $series and want to zap all sessions for this
             # user.  Otherwise we only want to delete the session with this series, otherwise a failed login for this
@@ -272,18 +254,5 @@ class Session {
 
         $_SESSION['id'] = NULL;
         $_SESSION['logged_in'] = FALSE;
-    }
-}
-
-function session_reopen() {
-    try {
-        # Generally we close the session for write access in whoAmI().  This allows us to get
-        # write access back.
-        ini_set('session.use_only_cookies', false);
-        ini_set('session.use_cookies', false);
-        ini_set('session.cache_limiter', null);
-        @session_start(); // Reopen the (previously closed) session for writing.
-    } catch (Exception $e) {
-        # Trap the warning if this is called multiple times.
     }
 }

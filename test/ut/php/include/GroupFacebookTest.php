@@ -32,7 +32,7 @@ class groupFacebookTest extends IznikTestCase {
     public function testBasic() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
         $t = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
         $t->getPostsToShare('a', "last week");

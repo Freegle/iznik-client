@@ -7,10 +7,12 @@ define([
     // Stickily dismissible help boxes.
     Iznik.Views.Help.Box = Iznik.View.extend({
         events: {
-            'click .js-close': 'close'
+            'click .js-close': 'close',
+            'click .js-show': 'show'
         },
 
         close: function () {
+            var self = this;
             // We hide this box and try to set local storage to keep it hidden.
             try {
                 localStorage.setItem('help.' + this.template, true);
@@ -18,6 +20,19 @@ define([
             }
 
             this.$el.fadeOut('slow');
+        },
+
+        show: function (e) {
+            // We hide this box and try to set local storage to keep it hidden.
+            try {
+                localStorage.removeItem('help.' + this.template);
+            } catch (e) {
+            }
+
+            this.render();
+
+            e.preventDefault();
+            e.stopPropagation();
         },
 
         render: function () {
@@ -36,6 +51,7 @@ define([
                 // We need to render it.
                 p = Iznik.View.prototype.render.call(this);
             } else {
+                this.$el.html('<a href="#" class="pull-right js-show"><span class="glyphicon glyphicon-question-sign" />&nbsp;Show help</a><br class="clearfix" />');
                 p = new Promise(function(resolve, reject) {
                     resolve(self);
                 });

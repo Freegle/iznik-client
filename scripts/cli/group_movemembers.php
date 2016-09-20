@@ -13,7 +13,7 @@ if (count($opts) < 2) {
 } else {
     $from = $opts['f'];
     $to = $opts['t'];
-    $g = new Group($dbhr, $dbhm);
+    $g = Group::get($dbhr, $dbhm);
 
     $srcid = $g->findByShortName($from);
     $dstid = $g->findByShortName($to);

@@ -14,18 +14,18 @@ if (count($opts) < 2) {
     $email = $opts['e'];
     $groupname = $opts['g'];
 
-    $g = new Group($dbhr, $dbhm);
+    $g = Group::get($dbhr, $dbhm);
     $gid = $g->findByShortName($groupname);
 
     if ($gid) {
         error_log("Found group #$gid");
-        $g = new Group($dbhr, $dbhm, $gid);
-        $u = new User($dbhr, $dbhm);
+        $g = Group::get($dbhr, $dbhm, $gid);
+        $u = User::get($dbhr, $dbhm);
         $uid = $u->findByEmail($email);
 
         if ($uid) {
             # This logic here is similar to that in Digest::send, but with more logging.
-            $u = new User($dbhr, $dbhm, $uid);
+            $u = User::get($dbhr, $dbhm, $uid);
             $email = $u->getEmailPreferred();
             error_log("Found user #$uid with preferred email $email");
             if ($email) {

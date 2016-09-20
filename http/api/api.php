@@ -61,6 +61,7 @@ require_once(IZNIK_BASE . '/http/api/stdmsg.php');
 require_once(IZNIK_BASE . '/http/api/bulkop.php');
 require_once(IZNIK_BASE . '/http/api/comment.php');
 require_once(IZNIK_BASE . '/http/api/dashboard.php');
+require_once(IZNIK_BASE . '/http/api/error.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
 require_once(IZNIK_BASE . '/http/api/message.php');
 require_once(IZNIK_BASE . '/http/api/item.php');
@@ -109,29 +110,34 @@ if ($_REQUEST['type'] == 'OPTIONS') {
     # conflicts within the Percona cluster.
     $apicallretries = 0;
 
+    # This is an optimisation for User.php.
+    $_SESSION['modorowner'] = presdef('modorowner', $_SESSION, []);
+
     do {
         # Duplicate POST protection
         if ((DUPLICATE_POST_PROTECTION > 0) && array_key_exists('REQUEST_METHOD', $_SERVER) && ($_REQUEST['type'] == 'POST')) {
             $req = $_SERVER['REQUEST_URI'] . serialize($_REQUEST);
 
-            # Repeat logins are OK.
-            #
-            # So are correlations, which are repeatable without ill effects.
-            if ($_SESSION &&
-                ($call != 'session') && ($call != 'correlate') && ($call != 'chatrooms') && ($call != 'events') &&
-                ($call != 'upload') &&
-                array_key_exists('POSTLASTTIME', $_SESSION)) {
-                $ago = time() - $_SESSION['POSTLASTTIME'];
+            # Some actions are ok, so we exclude those.
+            if ($_SESSION) {
+                if ( !in_array($call, [ 'session', 'correlate', 'chatrooms', 'events', 'upload'] ) &&
+                    array_key_exists('POSTLASTTIME', $_SESSION)) {
+                    $ago = time() - $_SESSION['POSTLASTTIME'];
 
-                if (($ago < DUPLICATE_POST_PROTECTION) && ($req == $_SESSION['POSTLASTDATA'])) {
-                    $ret = array('ret' => 999, 'text' => 'Duplicate request - rejected.', 'data' => $_REQUEST);
-                    echo json_encode($ret);
-                    break;
+                    if (($ago < DUPLICATE_POST_PROTECTION) && ($req == $_SESSION['POSTLASTDATA'])) {
+                        $ret = array('ret' => 999, 'text' => 'Duplicate request - rejected.', 'data' => $_REQUEST);
+                        echo json_encode($ret);
+                        break;
+                    }
                 }
-            }
 
-            $_SESSION['POSTLASTTIME'] = time();
-            $_SESSION['POSTLASTDATA'] = $req;
+                $_SESSION['POSTLASTTIME'] = time();
+                $_SESSION['POSTLASTDATA'] = $req;
+            }
+        } else {
+            # Not a POST call we're interested in - so reset our protection.
+            unset($_SESSION['POSTLASTTIME']);
+            unset($_SESSION['POSTLASTDATA']);
         }
 
         try {
@@ -149,6 +155,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 case 'dashboard':
                     $ret = dashboard();
                     break;
+                case 'error':
+                    $ret = error();
+                    break;
                 case 'exception':
                     # For UT
                     throw new Exception();
@@ -160,9 +169,6 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'socialactions':
                     $ret = socialactions();
-                    break;
-                case 'upload':
-                    $ret = upload();
                     break;
                 case 'messages':
                     $ret = messages();
@@ -276,9 +282,6 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 error_log("API call $call worked after $apicallretries");
             }
 
-            # We don't want to cache things in our session cache beyond this call.
-            $_SESSION['cache'] = [];
-
             if (BROWSERTRACKING && (presdef('type', $_REQUEST, NULL) != 'GET') &&
                 (gettype($ret) == 'array' && !array_key_exists('nolog', $ret))) {
                 # Save off the API call and result, except for the (very frequent) event tracking calls.  Don't
@@ -326,5 +329,10 @@ if ($_REQUEST['type'] == 'OPTIONS') {
     # Any outstanding transaction is a bug; force a rollback to avoid locks lasting beyond this call.
     if ($dbhm->inTransaction()) {
         $dbhm->rollBack();
+    }
+
+    if ($_REQUEST['type'] != 'GET') {
+        # This might have changed things.
+        $_SESSION['modorowner'] = [];
     }
 }

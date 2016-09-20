@@ -11,7 +11,7 @@ if (!defined('IZNIK_BASE')) {
     define('BROWSERTRACKING', TRUE);
     define('INCLUDE_TEMPLATE_NAME', TRUE);
     define('SQLLOG', FALSE);
-    define('EVENTLOG', FALSE);
+    define('EVENTLOG', TRUE);
 
     define('COOKIE_NAME', 'session');
 
@@ -26,5 +26,10 @@ if (!defined('IZNIK_BASE')) {
 
     if (!defined('MINIFY')) {
         define('MINIFY', FALSE);
+    }
+
+    if (!defined('MODTOOLS')) {
+        # Err on the safe side so that cron scripts etc return all data.
+        define('MODTOOLS', TRUE);
     }
 }

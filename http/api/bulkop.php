@@ -53,6 +53,9 @@ function bulkop() {
                             'id' => $b->create($name, $configid)
                         ];
                     }
+
+                    # Clear cache.
+                    $_SESSION['modconfigs'] = NULL;
                 }
 
                 break;
@@ -85,6 +88,9 @@ function bulkop() {
                         'ret' => 0,
                         'status' => 'Success'
                     ];
+
+                    # Clear cache.
+                    $_SESSION['modconfigs'] = NULL;
                 }
                 break;
             }
@@ -104,6 +110,9 @@ function bulkop() {
                         'ret' => 0,
                         'status' => 'Success'
                     ];
+
+                    # Clear cache.
+                    $_SESSION['modconfigs'] = NULL;
                 }
 
                 break;

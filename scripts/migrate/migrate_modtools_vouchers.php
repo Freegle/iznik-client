@@ -15,7 +15,7 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 $sql = "SELECT * FROM moderators WHERE licensesfree > 0;";
 $mods = $dbhold->query($sql);
 
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 foreach ($mods as $mod) {
     $vouchers = [];

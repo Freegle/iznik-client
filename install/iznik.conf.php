@@ -67,6 +67,7 @@ switch($host) {
         define('CHAT_HOST', 'iznik.modtools.org');
         define('MANIFEST_STARTURL', 'modtools');
         define('COOKIE_DOMAIN', 'modtools.org');
+        define('MODTOOLS', TRUE);
         break;
     case 'dev.modtools.org':
     case 'modtools.org':
@@ -76,6 +77,7 @@ switch($host) {
         define('CHAT_HOST', 'modtools.org');
         define('MANIFEST_STARTURL', 'modtools');
         define('COOKIE_DOMAIN', 'modtools.org');
+        define('MODTOOLS', TRUE);
         break;
     case 'iznik.ilovefreegle.org':
         define('SITE_NAME', 'Freegle');
@@ -84,6 +86,7 @@ switch($host) {
         define('CHAT_HOST', 'chat.ilovefreegle.org');
         define('MANIFEST_STARTURL', '');
         define('COOKIE_DOMAIN', 'ilovefreegle.org');
+        define('MODTOOLS', FALSE);
         break;
 }
 

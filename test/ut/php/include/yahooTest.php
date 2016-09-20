@@ -90,12 +90,13 @@ class yahooTest extends IznikTestCase {
 
         # Login again - should also work
         $this->dbhm->preExec("UPDATE users SET fullname = NULL WHERE id = $id;");
+        User::clearCache($id);
         list($session, $ret) = $y->login();
         assertNotNull($session);
         assertEquals(0, $ret['ret']);
 
         # Create another user and move the email over to simulate a duplicate
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         error_log("Users $id and $uid");
         $rc = $this->dbhm->preExec("UPDATE users_emails SET userid = $uid WHERE userid = $id;");

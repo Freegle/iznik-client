@@ -126,6 +126,69 @@ define([
         }
     });
 
+    Iznik.Views.StackGraph = Iznik.View.extend({
+        template: 'dashboard_stack',
+
+        render: function () {
+            var self = this;
+
+            function apiLoaded() {
+                // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+                _.defer(function () {
+                    Iznik.View.prototype.render.call(self).then(function(self) {
+                        var arr = [['Date']];
+
+                        for (var i = 0; i < self.options.data.length; i++) {
+                            arr[0].push(self.options.data[i].tag);
+                        }
+
+                        var colours = [];
+                        _.each(self.options.data, function(row) {
+                            colours.push({color: row.colour});
+                        });
+                        console.log("COlours", colours);
+
+                        var bydate = {};
+                        _.each(self.options.data, function (row) {
+                            row.data.each(function(point) {
+                                if (!bydate[point.get('date')]) {
+                                    bydate[point.get('date')] = {};
+                                }
+
+                                bydate[point.get('date')][row.tag] = point.get('count');
+                            });
+                        });
+
+                        _.each(bydate, function(counts, thedate) {
+                            var line = [ thedate ];
+                            _.each(counts, function(count) {
+                                line.push(count);
+                            });
+
+                            arr.push(line);
+                        });
+
+                        self.data = google.visualization.arrayToDataTable(arr);
+                        self.chart = new google.visualization.ColumnChart(self.options.target);
+                        self.chartOptions = {
+                            title: self.options.title,
+                            chartArea: {'width': '80%', 'height': '80%'},
+                            isStacked: 'percent',
+                            legend: 'none',
+                            series: colours
+                        };
+                        self.chart.draw(self.data, self.chartOptions);
+                    });
+                });
+            }
+
+            google.load('visualization', '1.0', {
+                'packages':['corechart', 'annotationchart'],
+                'callback': apiLoaded
+            });
+        }
+    });
+
     Iznik.Views.DeliveryChart = Iznik.View.extend({
         template: 'dashboard_delivery',
 

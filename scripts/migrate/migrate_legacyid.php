@@ -12,7 +12,7 @@ $dbhd = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 $dbhm->preExec("UPDATE groups SET legacyid = NULL;");
 $groups = $dbhd->query("SELECT * FROM groups;");
@@ -21,7 +21,7 @@ foreach ($groups as $group) {
     $gid = $g->findByShortName($nameshort);
 
     if ($gid) {
-        $g = new Group($dbhr, $dbhm, $gid);
+        $g = Group::get($dbhr, $dbhm, $gid);
         $g->setPrivate('legacyid', $group['groupid']);
     }
 }

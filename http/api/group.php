@@ -19,12 +19,12 @@ function group() {
     $action = presdef('action', $_REQUEST, NULL);
 
     if ($nameshort) {
-        $g = new Group($dbhr, $dbhm);
+        $g = Group::get($dbhr, $dbhm);
         $id = $g->findByShortName($nameshort);
     }
 
     if ($id || ($action == 'Create') || ($action == 'Contact')) {
-        $g = new Group($dbhr, $dbhm, $id);
+        $g = Group::get($dbhr, $dbhm, $id);
 
         switch ($_REQUEST['type']) {
             case 'GET': {

@@ -61,6 +61,7 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
         @session_destroy();
         @session_start();
         $_SESSION['POSTLASTDATA'] = NULL;
+        User::clearCache();
 
         set_time_limit(600);
     }
@@ -69,6 +70,8 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
         parent::tearDown ();
         try {
             $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+            $this->dbhm->preExec("DELETE FROM messages WHERE subject = 'OFFER: a thing (Tuvalu)';");
+            $this->dbhm->preExec("DELETE FROM communityevents WHERE title = 'Test Event';");
             @session_destroy();
         } catch (Exception $e) {
             error_log("Session exception " . $e->getMessage());

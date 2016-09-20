@@ -16,7 +16,7 @@ $groups = $dbhr->query($sql);
 $r = new ChatRoom($dbhr, $dbhm);
 
 foreach ($groups as $group) {
-    $g = new Group($dbhr, $dbhm, $group['id']);
+    $g = Group::get($dbhr, $dbhm, $group['id']);
     echo("Group #{$group['id']} " . $g->getPrivate('nameshort') . "\n");
     $r->create($g->getPrivate('nameshort') . ' Mods', $group['id'], TRUE, TRUE);
     $r->setPrivate('description', $g->getPrivate('nameshort') . ' Mods');

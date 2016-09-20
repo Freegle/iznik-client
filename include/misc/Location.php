@@ -201,7 +201,7 @@ class Location extends Entity
                         $iid = $intersects[0]['id'] != $id ? $intersects[0]['id'] : $intersects[1]['id'];
                         $name = $intersects[0]['id'] != $id ? $intersects[0]['name'] : $intersects[1]['name'];
                         $areaid = $iid;
-                        error_log("Choose areaid #$areaid $name");
+                        #error_log("Choose areaid #$areaid $name");
                     }
                 }
             }
@@ -458,7 +458,7 @@ class Location extends Entity
         $ret = [];
         foreach ($groups as $group) {
             if ($expand) {
-                $g = new Group($this->dbhr, $this->dbhm, $group['id']);
+                $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
                 $thisone = $g->getPublic();
 
                 $thisone['distance'] = $group['hav'];
@@ -486,6 +486,12 @@ class Location extends Entity
             $l = new Location($this->dbhr, $this->dbhm, $pc['id']);
             $thisone['groupsnear'] = $l->groupsNear(Location::NEARBY, TRUE);
 
+            if ($thisone['areaid']) {
+                $l = new Location($this->dbhr, $this->dbhm, $thisone['areaid']);
+                $thisone['area'] = $l->getPublic();
+                unset($thisone['areaid']);
+            }
+
             $ret[] = $thisone;
         }
         return($ret);
@@ -505,6 +511,31 @@ class Location extends Entity
         return($ret);
     }
 
+    public function remapPostcodes($val, $gridid) {
+        # We might have postcodes which should now map to this new area rather than wherever they mapped
+        # previously.
+        $g = new geoPHP();
+        $p = $g->load($val);
+        $bbox = $p->getBBox();
+        #error_log("Bounding box " . var_export($bbox, TRUE));
+
+        # We need to decide which postcodes to scan.  Choose a slightly arbitrary larger box.
+        $swlat = $bbox['miny'] - 0.01;
+        $nelat = $bbox['maxy'] + 0.01;
+        $swlng = $bbox['minx'] - 0.01;
+        $nelng = $bbox['maxx'] + 0.01;
+
+        $sql = "SELECT * FROM locations WHERE $swlat <= lat AND lat <= $nelat AND $swlng <= lng AND lng <= $nelng AND type = 'Postcode' AND LOCATE(' ', name) > 0;";
+        #error_log("Find postcodes for new location $sql");
+        $locs = $this->dbhr->preQuery($sql);
+        foreach ($locs as $loc) {
+            if ($loc['id'] != $this->id) {
+                #error_log("Re-evaluate {$loc['id']} {$loc['name']}");
+                $this->setParents($loc['id'], $loc['gridid'], 1, $this->id);
+            }
+        }
+    }
+
     public function setGeometry($val) {
         $rc = $this->dbhm->preExec("UPDATE locations SET `type` = 'Polygon', `ourgeometry` = GeomFromText(?) WHERE id = {$this->id};", [$val]);
         if ($rc) {
@@ -512,28 +543,7 @@ class Location extends Entity
             $rc = $this->dbhm->preExec("UPDATE locations SET maxdimension = GetMaxDimension(ourgeometry), lat = Y(GetCenterPoint(ourgeometry)), lng = X(GetCenterPoint(ourgeometry)) WHERE id = {$this->id};", [$val]);
 
             if ($rc) {
-                # We might have postcodes which should now map to this new area rather than wherever they mapped
-                # previously.
-                $g = new geoPHP();
-                $p = $g->load($val);
-                $bbox = $p->getBBox();
-                #error_log("Bounding box " . var_export($bbox, TRUE));
-
-                # We need to decide which postcodes to scan.  Choose a slightly arbitrary larger box.
-                $swlat = $bbox['miny'] - 0.01;
-                $nelat = $bbox['maxy'] + 0.01;
-                $swlng = $bbox['minx'] - 0.01;
-                $nelng = $bbox['maxx'] + 0.01;
-
-                $sql = "SELECT * FROM locations WHERE $swlat <= lat AND lat <= $nelat AND $swlng <= lng AND lng <= $nelng AND type = 'Postcode' AND LOCATE(' ', name) > 0;";
-                #error_log("Find postcodes for new location $sql");
-                $locs = $this->dbhr->preQuery($sql);
-                foreach ($locs as $loc) {
-                    if ($loc['id'] != $this->id) {
-                        #error_log("Re-evaluate {$loc['id']} {$loc['name']}");
-                        $this->setParents($loc['id'], $this->loc['gridid'], 1, $this->id);
-                    }
-                }
+                $this->remapPostcodes($val, $this->loc['gridid']);
 
                 $this->fetch($this->dbhr, $this->dbhm, $this->id, 'locations', 'loc', $this->publicatts);
             }

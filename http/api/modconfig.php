@@ -47,6 +47,9 @@ function modconfig() {
                             'status' => 'Success',
                             'id' => $c->create($name, $me->getId(), $id)
                         ];
+
+                        # Clear cache.
+                        $_SESSION['modconfigs'] = NULL;
                     }
                 }
 
@@ -67,6 +70,9 @@ function modconfig() {
                         'ret' => 0,
                         'status' => 'Success',
                     ];
+
+                    # Clear cache.
+                    $_SESSION['modconfigs'] = NULL;
                 }
 
                 break;
@@ -86,6 +92,9 @@ function modconfig() {
                         'ret' => 0,
                         'status' => 'Success',
                     ];
+
+                    # Clear cache.
+                    $_SESSION['modconfigs'] = NULL;
                 }
 
                 break;

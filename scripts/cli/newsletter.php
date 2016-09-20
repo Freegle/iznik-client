@@ -32,7 +32,7 @@ if (count($opts) == 0) {
 
     if ($n->getId() == $id) {
         if ($email) {
-            $u = new User($dbhr, $dbhm);
+            $u = User::get($dbhr, $dbhm);
             $eid = $u->findByEmail($email);
 
             if ($eid) {

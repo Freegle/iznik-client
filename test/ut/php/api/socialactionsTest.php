@@ -41,11 +41,11 @@ class socialactionsAPITest extends IznikAPITestCase
         error_log(__METHOD__);
 
         # Log in as a mod of the Playground group, which has a Facebook page.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
         # Delete the last share so that there will be at least one.

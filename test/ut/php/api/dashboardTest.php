@@ -27,9 +27,9 @@ class dashboardTest extends IznikAPITestCase {
         assertEquals(1, $ret['ret']);
 
         # Now log in
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        $u = new User($this->dbhr, $this->dbhm, $id);
+        $u = User::get($this->dbhr, $this->dbhm, $id);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
         error_log("After login {$_SESSION['id']}");
@@ -55,15 +55,15 @@ class dashboardTest extends IznikAPITestCase {
     public function testGroups() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id1 = $u->create('Test', 'User', NULL);
         $id2 = $u->create('Test', 'User', NULL);
-        $u1 = new User($this->dbhr, $this->dbhm, $id1);
-        $u2 = new User($this->dbhr, $this->dbhm, $id2);
+        $u1 = User::get($this->dbhr, $this->dbhm, $id1);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_OTHER);
         $group2 = $g->create('testgroup2', Group::GROUP_OTHER);
         $u1->addMembership($group1);

@@ -63,7 +63,7 @@ class Events {
         $sql = "SELECT DISTINCT(sessionid) FROM logs_events $userq ORDER BY id DESC LIMIT 100;";
         $sessions = $this->dbhr->preQuery($sql);
         $ret = [];
-        
+
         foreach ($sessions as $session) {
             $sessid = $session['sessionid'];
             $thisone = [
@@ -81,7 +81,7 @@ class Events {
                     $thisone['viewy'] = $session['viewy'];
 
                     if ($session['userid']) {
-                        $u = new User($this->dbhr, $this->dbhm, $session['userid']);
+                        $u = User::get($this->dbhr, $this->dbhm, $session['userid']);
                         $thisone['user'] = $u->getPublic(NULL, FALSE);
                     }
 

@@ -30,12 +30,12 @@ class userAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users WHERE yahooUserId = '1';");
 
         # Create a moderator and log in as them
-        $this->group = new Group($this->dbhr, $this->dbhm);
+        $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
         assertEquals(1, $this->user->addMembership($this->groupid));
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -144,6 +144,7 @@ class userAPITest extends IznikAPITestCase {
         assertEquals(2, $ret['ret']);
 
         $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = ?;", [ $this->uid ]);
+        User::clearCache($this->uid);
 
         # Shouldn't be able to do this as a member
         $ret = $this->call('user', 'PATCH', [
@@ -249,7 +250,7 @@ class userAPITest extends IznikAPITestCase {
     public function testDelete() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
 
         $ret = $this->call('user', 'DELETE', [

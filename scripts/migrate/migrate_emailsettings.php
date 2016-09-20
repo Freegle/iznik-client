@@ -13,8 +13,8 @@ $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$g = new Group($dbhr, $dbhm);
-$u = new User($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 
 $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -36,14 +36,14 @@ foreach ($groups as $group) {
     $gid = $g->findByShortName($group['groupname']);
 
     if ($gid) {
-        $g = new Group($dbhr, $dbhm, $gid);
+        $g = Group::get($dbhr, $dbhm, $gid);
 
         $users = $dbhfd->query("SELECT * FROM users WHERE groupid = {$group['groupid']} AND deletedfromyahoo = 0;");
         $count = 0;
         foreach ($users as $user) {
             try {
                 $uid = $u->findByEmail($user['useremail']);
-                $u = new User($dbhr, $dbhm, $uid);
+                $u = User::get($dbhr, $dbhm, $uid);
 
                 $dig = $user['digest'] ? $user['maxdigestdelay'] : 0;
                 $current = $u->getMembershipAtt($gid, 'emailfrequency');

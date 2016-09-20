@@ -81,14 +81,14 @@ class Google
             $fullname = $me['displayName'];
 
             # See if we know this user already.  We might have an entry for them by email, or by Facebook ID.
-            $u = new User($this->dbhr, $this->dbhm);
+            $u = User::get($this->dbhr, $this->dbhm);
             $eid = $googlemail ? $u->findByEmail($googlemail) : NULL;
             $gid = $googleuid ? $u->findByLogin('Google', $googleuid) : NULL;
             #error_log("Email $eid  from $googlemail Google $gid, f $firstname, l $lastname, full $fullname");
 
             if ($eid && $gid && $eid != $gid) {
                 # This is a duplicate user.  Merge them.
-                $u = new User($this->dbhr, $this->dbhm);
+                $u = User::get($this->dbhr, $this->dbhm);
                 $u->merge($eid, $gid, "Google Login - GoogleID $gid, Email $googlemail = $eid");
             }
 
@@ -106,7 +106,7 @@ class Google
 
                 if ($id) {
                     # Make sure that we have the Yahoo email recorded as one of the emails for this user.
-                    $u = new User($this->dbhr, $this->dbhm, $id);
+                    $u = User::get($this->dbhr, $this->dbhm, $id);
 
                     if ($googlemail) {
                         $u->addEmail($googlemail, 0, FALSE);
@@ -125,7 +125,7 @@ class Google
                 }
             } else {
                 # We know them - but we might not have all the details.
-                $u = new User($this->dbhr, $this->dbhm, $id);
+                $u = User::get($this->dbhr, $this->dbhm, $id);
 
                 if (!$eid) {
                     $u->addEmail($googlemail, 0, FALSE);
@@ -167,6 +167,7 @@ class Google
                     [
                         $id
                     ]);
+                User::clearCache($id);
 
                 $l = new Log($this->dbhr, $this->dbhm);
                 $l->log([

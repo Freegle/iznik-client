@@ -7,6 +7,12 @@ require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 
 class Group extends Entity
 {
+    # We have a cache of users, because we create users a _lot_, and this can speed things up significantly by avoiding
+    # hitting the DB.
+    static $cache = [];
+    static $cacheDeleted = [];
+    const CACHE_SIZE = 100;
+    
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'logo',
         'onyahoo', 'onhere', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'lat', 'lng',
@@ -75,6 +81,63 @@ class Group extends Entity
         }
 
         $this->log = new Log($dbhr, $dbhm);
+    }
+
+    public static function get(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $gsecache = TRUE) {
+        if ($id) {
+            # We cache the constructed group.
+            if ($gsecache && array_key_exists($id, Group::$cache) && Group::$cache[$id]->getId() == $id) {
+                # We found it.
+                #error_log("Found $id in cache");
+
+                # @var Group
+                $g = Group::$cache[$id];
+
+                if (!Group::$cacheDeleted[$id]) {
+                    # And it's not zapped - so we can use it.
+                    #error_log("Not zapped");
+                    return ($g);
+                } else {
+                    # It's zapped - so refetch.  It's important that we do this using the original DB handles, because
+                    # whatever caused us to zap the cache might have done a modification operation which in turn
+                    # zapped the SQL read cache.
+                    #error_log("Zapped, refetch " . $id);
+                    $g->fetch($g->dbhr, $g->dbhm, $id, 'groups', 'group', $g->publicatts);
+
+                    if (!$g->group['settings'] || strlen($g->group['settings']) == 0) {
+                        $g->group['settings'] = json_encode($g->defaultSettings);
+                    }
+
+                    Group::$cache[$id] = $g;
+                    Group::$cacheDeleted[$id] = FALSE;
+                    return($g);
+                }
+            }
+        }
+
+        # Not cached.
+        #error_log("$id not in cache");
+        $g = new Group($dbhr, $dbhm, $id);
+
+        if ($id && count(Group::$cache) < Group::CACHE_SIZE) {
+            # Store for next time
+            #error_log("store $id in cache");
+            Group::$cache[$id] = $g;
+            Group::$cacheDeleted[$id] = FALSE;
+        }
+
+        return($g);
+    }
+
+    public static function clearCache($id = NULL) {
+        # Remove this group from our cache.
+        #error_log("Clear $id from cache");
+        if ($id) {
+            Group::$cacheDeleted[$id] = TRUE;
+        } else {
+            Group::$cache = [];
+            Group::$cacheDeleted = [];
+        }
     }
 
     /**
@@ -232,9 +295,11 @@ class Group extends Entity
         $atts['settings'] = array_merge($this->defaultSettings, json_decode($atts['settings'], true));
         $atts['founded'] = ISODate($this->group['founded']);
 
-        $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = {$this->id} AND role IN ('Owner', 'Moderator');";
-        $counts = $this->dbhr->preQuery($sql);
-        $atts['nummods'] = $counts[0]['count'];
+        if (MODTOOLS) {
+            $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = {$this->id} AND role IN ('Owner', 'Moderator');";
+            $counts = $this->dbhr->preQuery($sql);
+            $atts['nummods'] = $counts[0]['count'];
+        }
 
         foreach (['trial', 'licensed', 'licenseduntil'] as $datefield) {
             $atts[$datefield] = $atts[$datefield] ? ISODate($atts[$datefield]) : NULL;
@@ -327,7 +392,7 @@ class Group extends Entity
         $ctx = [ 'Added' => NULL ];
 
         foreach ($members as $member) {
-            $u = new User($this->dbhr, $this->dbhm, $member['userid']);
+            $u = User::get($this->dbhr, $this->dbhm, $member['userid']);
             $thisone = $u->getPublic($groupids, TRUE);
             #error_log("{$member['userid']} has " . count($thisone['comments']));
 
@@ -379,7 +444,7 @@ class Group extends Entity
             $thisone['heldby'] = $member['heldby'];
 
             if (pres('heldby', $thisone)) {
-                $u = new User($this->dbhr, $this->dbhm, $thisone['heldby']);
+                $u = User::get($this->dbhr, $this->dbhm, $thisone['heldby']);
                 $thisone['heldby'] = $u->getPublic();
             }
 
@@ -416,7 +481,7 @@ class Group extends Entity
         $count = 0;
 
         foreach ($groups as $group) {
-            $g = new Group($this->dbhm, $this->dbhm, $group['groupid']);
+            $g = Group::get($this->dbhm, $this->dbhm, $group['groupid']);
             try {
                 # Use master for sync to avoid caching, which can break our sync process.
                 error_log("Sync group " . $g->getPrivate('nameshort') . " $count / " . count($groups) . " time {$group['synctime']}");
@@ -460,7 +525,7 @@ class Group extends Entity
 
             # First make sure we have users set up for all the new members.  The input might have duplicate members;
             # save off the uid, and work out the role.
-            $u = new User($this->dbhm, $this->dbhm);
+            $u = User::get($this->dbhm, $this->dbhm);
             $overallroles = [];
             $count = 0;
 
@@ -506,7 +571,7 @@ class Group extends Entity
                         $uid = $u->create(NULL, NULL, $name, "During SetMembers for {$this->group['nameshort']}", presdef('yahooUserId', $memb, NULL), presdef('yahooid', $memb, NULL));
                         #error_log("Create $uid will have email " . presdef('email', $memb, '') . " yahooid " . presdef('yahooid', $memb, ''));
                     } else {
-                        $u = new User($this->dbhr, $this->dbhm, $uid);
+                        $u = User::get($this->dbhr, $this->dbhm, $uid);
                     }
 
                     # Make sure that the email is associated with this user.  Note that this may be required even
@@ -551,6 +616,7 @@ class Group extends Entity
 
             $me = whoAmI($this->dbhr, $this->dbhm);
             $myrole = $me ? $me->getRoleForGroup($this->id) : User::ROLE_NONMEMBER;
+            #error_log("myrole in setGroup $myrole id " . $me->getId() . " from " . $me->getRoleForGroup($this->id) . " session " . $_SESSION['id']);
 
             # Save off the list of members which currently exist, so that after we've processed the ones which currently
             # exist, we can remove any which should no longer be present.
@@ -568,7 +634,7 @@ class Group extends Entity
             $bulksql = '';
             $tried = 0;
 
-            error_log("Update members {$this->group['nameshort']}");
+            error_log("Update members {$this->group['nameshort']} role $myrole");
 
             for ($count = 0; $count < count($members); $count++) {
                 # Long
@@ -656,6 +722,7 @@ class Group extends Entity
                         # If this is a mod/owner, make sure the systemrole reflects that.
                         if ($overallrole == User::ROLE_MODERATOR || $overallrole == User::ROLE_OWNER) {
                             $sql = "UPDATE users SET systemrole = 'Moderator' WHERE id = {$member['uid']} AND systemrole = 'User';";
+                            User::clearCache($member['uid']);
                             $bulksql .= $sql;
                         }
 
@@ -733,6 +800,7 @@ class Group extends Entity
             if ($collection == MessageCollection::APPROVED) {
                 # Record the sync.
                 $this->dbhm->preExec("UPDATE groups SET lastyahoomembersync = NOW() WHERE id = ?;", [$this->id]);
+                Group::clearCache($this->id);
             }
         } catch (Exception $e) {
             $ret = [ 'ret' => 2, 'status' => "Sync failed with " . $e->getMessage() ];
@@ -747,6 +815,7 @@ class Group extends Entity
         $str = json_encode($settings);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $this->dbhm->preExec("UPDATE groups SET settings = ? WHERE id = ?;", [ $str, $this->id ]);
+        Group::clearCache($this->id);
         $this->group['settings'] = $str;
         $this->log->log([
             'type' => Log::TYPE_GROUP,
@@ -811,6 +880,7 @@ class Group extends Entity
                 $this->dbhm->preExec("UPDATE groups SET lastyahoomessagesync = NOW() WHERE id = ?;", [
                     $this->id
                 ]);
+                Group::clearCache($this->id);
             }
         }
 
@@ -892,6 +962,7 @@ class Group extends Entity
             $key = randstr(32);
             $sql = "UPDATE groups SET confirmkey = ? WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $key, $this->id ]);
+            Group::clearCache($this->id);
         }
 
         return($key);
@@ -921,6 +992,7 @@ class Group extends Entity
 
             $sql = "UPDATE groups SET licensed = CURDATE(), licenseduntil = CASE WHEN licenseduntil > CURDATE() THEN licenseduntil + INTERVAL 1 YEAR ELSE CURDATE() + INTERVAL 1 YEAR END WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $this->id ]);
+            Group::clearCache($this->id);
 
             if ($rc) {
                 $sql = "UPDATE vouchers SET used = NOW(), userid = ?, groupid = ? WHERE id = ?;";

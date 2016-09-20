@@ -16,7 +16,7 @@ if (count($opts) < 1) {
     $groupid = $m->getPublic()['groups'][0]['groupid'];
 
     if ($groupid) {
-        $u = new User($dbhr, $dbhm, $m->getFromuser());
+        $u = User::get($dbhr, $dbhm, $m->getFromuser());
         $m->setPrivate('textbody', $m->stripGumf());
         $m->submit($u, $m->getFromaddr(), $groupid);
         error_log("Reposted");

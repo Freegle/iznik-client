@@ -19,7 +19,7 @@ $dbhd = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 $groups = $dbhf->query("SELECT * FROM perch_groups WHERE groupPublished = 1;");
 foreach ($groups as $group) {

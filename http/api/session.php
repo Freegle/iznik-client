@@ -25,9 +25,21 @@ function session() {
                     'push' => $n->get($ret['me']['id'])
                 ];
 
-                $ret['configs'] = $me->getConfigs();
+                if (MODTOOLS) {
+                    # We cache the configs as they are expensive to get.
+                    if (pres('configs', $_SESSION)) {
+                        $ret['configs'] = $_SESSION['configs'];
+                        $ret['configscached'] = TRUE;
+                    } else {
+                        $ret['configs'] = $me->getConfigs();
+                        $_SESSION['configs'] = $ret['configs'];
+                    }
+                }
+
                 $ret['emails'] = $me->getEmails();
-                $ret['groups'] = $me->getMemberships();
+
+                # Get groups including work when we're on ModTools; don't need that on the user site.
+                $ret['groups'] = $me->getMemberships(FALSE, NULL, MODTOOLS);
                 $ret['work'] = [];
 
                 foreach ($ret['groups'] as &$group) {
@@ -43,7 +55,7 @@ function session() {
 
                     $ammod = $me->isModerator();
 
-                    if ($ammod) {
+                    if (MODTOOLS && $ammod) {
                         # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
                         # in here - but it's of no interest to members so there's no point delaying them by
                         # fetching it.
@@ -65,15 +77,17 @@ function session() {
                     }
                 }
 
-                $s = new Spam($dbhr, $dbhm);
-                $ret['work']['spammerpendingadd'] = $s->collectionCount(Spam::TYPE_PENDING_ADD);
-                $ret['work']['spammerpendingremove'] = $s->collectionCount(Spam::TYPE_PENDING_REMOVE);
+                if (MODTOOLS) {
+                    $s = new Spam($dbhr, $dbhm);
+                    $ret['work']['spammerpendingadd'] = $s->collectionCount(Spam::TYPE_PENDING_ADD);
+                    $ret['work']['spammerpendingremove'] = $s->collectionCount(Spam::TYPE_PENDING_REMOVE);
 
-                # Show social actions from last 4 days.
-                $ctx = NULL;
-                $starttime = date("Y-m-d H:i:s", strtotime("midnight 4 days ago"));
-                $f = new GroupFacebook($dbhr, $dbhm);
-                $ret['work']['socialactions'] = count($f->listSocialActions($ctx, $starttime));
+                    # Show social actions from last 4 days.
+                    $ctx = NULL;
+                    $starttime = date("Y-m-d H:i:s", strtotime("midnight 4 days ago"));
+                    $f = new GroupFacebook($dbhr, $dbhm);
+                    $ret['work']['socialactions'] = count($f->listSocialActions($ctx, $starttime));
+                }
 
                 $c = new ChatMessage($dbhr, $dbhm);
                 $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
@@ -86,8 +100,6 @@ function session() {
 
         case 'POST': {
             # Login
-            session_reopen();
-
             $fblogin = array_key_exists('fblogin', $_REQUEST) ? filter_var($_REQUEST['fblogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $googlelogin = array_key_exists('googlelogin', $_REQUEST) ? filter_var($_REQUEST['googlelogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $yahoologin = array_key_exists('yahoologin', $_REQUEST) ? filter_var($_REQUEST['yahoologin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
@@ -99,7 +111,7 @@ function session() {
             $action = presdef('action', $_REQUEST, NULL);
 
             $id = NULL;
-            $user = new User($dbhr, $dbhm);
+            $user = User::get($dbhr, $dbhm);
             $f = NULL;
             $ret = array('ret' => 1, 'status' => 'Invalid login details');
 
@@ -128,7 +140,7 @@ function session() {
                         $ret = [ 'ret' => 2, "We don't know that email address" ];
                         
                         if ($id) {
-                            $u = new User($dbhr, $dbhm, $id);
+                            $u = User::get($dbhr, $dbhm, $id);
                             $u->forgotPassword($email);
                             $ret = [ 'ret' => 0, 'status' => "Success" ];
                         }    
@@ -143,7 +155,7 @@ function session() {
                 $possid = $user->findByEmail($email);
                 if ($possid) {
                     $ret = array('ret' => 3, 'status' => "The password is wrong.  Maybe you've forgotten it?");
-                    $u = new User($dbhr, $dbhm, $possid);
+                    $u = User::get($dbhr, $dbhm, $possid);
 
                     # If we are currently logged in as an admin, then we can force a log in as anyone else.  This is
                     # very useful for debugging.
@@ -161,7 +173,7 @@ function session() {
 
             if ($id) {
                 # Return some more useful info.
-                $u = new User($dbhr, $dbhm, $id);
+                $u = User::get($dbhr, $dbhm, $id);
                 $ret['user'] = $u->getPublic();
                 $ret['persistent'] = presdef('persistent', $_SESSION, NULL);
             }

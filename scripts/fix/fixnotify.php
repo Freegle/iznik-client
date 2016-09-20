@@ -7,7 +7,7 @@ require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 
 $l = new Notifications($dbhr, $dbhm);
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 $gid = $g->findByShortName('EdinburghFreegle');
 #$l->notifyGroupMods($gid);

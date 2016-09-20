@@ -13,7 +13,7 @@ $dbhd = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 $sql = "SELECT * FROM groups WHERE grouppublish = 1;";
 $fgroups = $dbhd->query($sql);
@@ -21,7 +21,7 @@ $fgroups = $dbhd->query($sql);
 foreach ($fgroups as $fgroup) {
     error_log("FD group {$fgroup['groupname']}");
     $gid = $g->findByShortName($fgroup['groupname']);
-    $g = new Group($dbhr, $dbhm, $gid);
+    $g = Group::get($dbhr, $dbhm, $gid);
     $settings = $g->getPublic()['settings'];
     $settings['communityevents'] = $fgroup['eventsdisabled'] ? 0 : 1;
     $g->setPrivate('lasteventsroundup', $fgroup['lasteventroundup']);

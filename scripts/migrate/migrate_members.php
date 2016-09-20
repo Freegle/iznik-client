@@ -13,8 +13,8 @@ $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$g = new Group($dbhr, $dbhm);
-$u = new User($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 
 if (1==0) {
     error_log("Migrate FD users");
@@ -32,7 +32,7 @@ if (1==0) {
             if (!$eid) {
                 $uid = $u->create(NULL, NULL, $user['facebookname'], 'Migrated from FD');
             } else {
-                $u = new User($dbhr, $dbhm, $eid);
+                $u = User::get($dbhr, $dbhm, $eid);
                 $u->setPrivate('fullname', $user['facebookname']);
             }
 
@@ -69,7 +69,7 @@ if (1==0) {
         $gid = $g->findByShortName($group['groupname']);
 
         if ($gid) {
-            $g = new Group($dbhr, $dbhm, $gid);
+            $g = Group::get($dbhr, $dbhm, $gid);
 
             # Only add users who have joined recently.  This means we won't readd old members that have not been
             # removed from Iznik yet because there hasn't been a member sync.
@@ -106,7 +106,7 @@ if (1==0) {
                         $u->merge($id, $yid, $reason);
                     }
 
-                    $u = new User($dbhr, $dbhm, $id);
+                    $u = User::get($dbhr, $dbhm, $id);
                     $emailid = $u->addEmail($user['useremail'], 0, FALSE);
                     $emailid = $u->addEmail($user['groupsemail'], 0, FALSE);
                     $membs = $u->getMemberships();
@@ -179,7 +179,7 @@ foreach ($groups as $group) {
     $gid = $g->findByShortName($group['groupname']);
 
     if ($gid) {
-        $g = new Group($dbhr, $dbhm, $gid);
+        $g = Group::get($dbhr, $dbhm, $gid);
 
         $lastsync = $g->getPrivate('lastyahoomembersync');
         $lastsync = $lastsync ? strtotime($lastsync) : NULL;

@@ -23,7 +23,7 @@ class communityEventTest extends IznikTestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $g = new Group($dbhr, $dbhm);
+        $g = Group::get($dbhr, $dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
     }
 
@@ -57,7 +57,7 @@ class communityEventTest extends IznikTestCase {
         assertEquals($start, $atts['dates'][0]['end']);
 
         # Check that a user sees what we want them to see.
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
 
         # Not in the right group - shouldn't see.
@@ -65,9 +65,16 @@ class communityEventTest extends IznikTestCase {
         $events = $c->listForUser($uid, TRUE, $ctx);
         assertEquals(0, count($events));
 
+        # Right group - shouldn't see pending.
         $u->addMembership($this->groupid);
         $ctx = NULL;
         $events = $c->listForUser($uid, TRUE, $ctx);
+        assertEquals(0, count($events));
+
+        # Mark not pending - should see.
+        $c->setPrivate('pending', 0);
+        $ctx = NULL;
+        $events = $c->listForUser($uid, FALSE, $ctx);
         assertEquals(1, count($events));
         assertEquals($id, $events[0]['id']);
 

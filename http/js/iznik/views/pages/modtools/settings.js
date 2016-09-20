@@ -1551,7 +1551,8 @@ define([
             'click .js-delete': 'exclude',
             'click #js-shade': 'shade',
             'keyup .js-wkt': 'paste',
-            'click .js-discard': 'discard'
+            'click .js-discard': 'discard',
+            'click .js-postcodetest': 'postcodeTest'
         },
 
         discard: function() {
@@ -1561,6 +1562,25 @@ define([
     
         paste: function() {
             this.mapWKT(this.$('.js-wkt').val(), null);
+        },
+
+        postcodeTest: function() {
+            var self = this;
+
+            $.ajax({
+                type: 'GET',
+                url: API + 'locations',
+                data: {
+                    typeahead: self.$('.js-postcode').val()
+                }, success: function (ret) {
+                    if (ret.ret == 0 && ret.locations.length > 0) {
+                        $('.js-postcodegroup').html('Group ' + ret.locations[0].groupsnear[0].nameshort);
+                        $('.js-postcodearea').html('Area ' + ret.locations[0].area.name);
+                    } else {
+                        $('.js-postcodegroup').html("Can't find nearby group");
+                    }
+                }
+            });
         },
     
         shade: function() {
@@ -1840,7 +1860,7 @@ define([
                             panControl: false,
                             streetViewControl: false,
                             zoomControl: true,
-                            minZoom: 12,
+                            minZoom: 11,
                             zoomControlOptions: {
                                 position: google.maps.ControlPosition.LEFT_TOP,
                                 style: google.maps.ZoomControlStyle.SMALL
@@ -1924,6 +1944,7 @@ define([
                         self.areas = new Iznik.Collections.Locations();
                         self.listenTo(self.areas, 'add', function(area) {
                             var poly = area.get('polygon');
+                            console.log("Poly", poly);
                             var lat = area.get('lat');
                             var lng = area.get('lng');
 

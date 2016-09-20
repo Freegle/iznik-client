@@ -9,6 +9,6 @@ $sql = "SELECT users_emails.userid, groupid FROM users_emails INNER JOIN members
 $membs = $dbhr->preQuery($sql);
 
 foreach ($membs as $memb) {
-    $u = new User($dbhr, $dbhm, $memb['userid']);
+    $u = User::get($dbhr, $dbhm, $memb['userid']);
     $u->removeMembership($memb['groupid']);
 }

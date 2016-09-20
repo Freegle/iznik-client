@@ -31,7 +31,7 @@ class MailRouterTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM spam_whitelist_subjects WHERE subject LIKE 'Test spam subject%';");
 
         # Delete any UT playground messages
-        $g = new Group($dbhr, $dbhm);
+        $g = Group::get($dbhr, $dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
         $sql = "DELETE FROM messages_groups WHERE groupid = $gid AND yahooapprovedid < 500;";
         $this->dbhm->preExec($sql);
@@ -51,17 +51,17 @@ class MailRouterTest extends IznikTestCase {
     public function testHam() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         error_log("Created user $uid");
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->setPrivate('yahooUserId', -1);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
 
         # Create a different user which will cause a merge.
-        $u2 = new User($this->dbhr, $this->dbhm);
+        $u2 = User::get($this->dbhr, $this->dbhm);
         $uid2 = $u->create(NULL, NULL, 'Test User');
-        $u2 = new User($this->dbhr, $this->dbhm, $uid2);
+        $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
         $u2->setPrivate('yahooUserId', -time());
         assertGreaterThan(0, $u->addEmail('test2@test.com'));
 
@@ -85,7 +85,7 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(MailRouter::APPROVED, $rc);
 
         # Test group override
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup1", Group::GROUP_REUSE);
         $msg = $this->unique(file_get_contents('msgs/fromyahoo'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -127,9 +127,9 @@ class MailRouterTest extends IznikTestCase {
 
         $msg = file_get_contents('msgs/confirmmod_real');
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
-        $g = new Group($this->dbhr, $this->dbhm, $gid);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         # Try with an invalid from
         error_log("Invalid key");
@@ -155,7 +155,7 @@ class MailRouterTest extends IznikTestCase {
 
         # A user who is not a member
         error_log("Not member");
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $key = $g->getConfirmKey();
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -165,9 +165,9 @@ class MailRouterTest extends IznikTestCase {
 
         # A user who is a member
         error_log("Already member");
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($gid, User::ROLE_MEMBER);
         $key = $g->getConfirmKey();
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -178,9 +178,9 @@ class MailRouterTest extends IznikTestCase {
 
         # A user who is an owner - shouldn't be demoted
         error_log("Owner");
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($gid, User::ROLE_OWNER);
         $key = $g->getConfirmKey();
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -221,7 +221,7 @@ class MailRouterTest extends IznikTestCase {
         $groups = [];
 
         for ($i = 0; $i < Spam::SUBJECT_THRESHOLD + 2; $i++) {
-            $g = new Group($this->dbhr, $this->dbhm);
+            $g = Group::get($this->dbhr, $this->dbhm);
             $g->create("testgroup$i", Group::GROUP_REUSE);
             $groups[] = $g;
 
@@ -386,7 +386,7 @@ class MailRouterTest extends IznikTestCase {
             ->getMock();
         $r->method('mail')->willReturn(false);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setSettings([ 'autoapprove' => [ 'members' => 1 ]]);
 
@@ -416,7 +416,7 @@ class MailRouterTest extends IznikTestCase {
     function testPendingToApproved() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         error_log("First copy on $gid");
 
@@ -434,7 +434,7 @@ class MailRouterTest extends IznikTestCase {
         error_log("Pending id $id");
 
         # Approve
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u->addMembership($gid, User::ROLE_OWNER);
@@ -514,7 +514,7 @@ class MailRouterTest extends IznikTestCase {
     function testDelayedPending() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         error_log("First copy on $gid");
 
@@ -687,7 +687,7 @@ class MailRouterTest extends IznikTestCase {
         # Our subject is whitelisted and therefore should go through ok
         for ($i = 0; $i < Spam::SUBJECT_THRESHOLD + 2; $i++) {
             error_log("Group $i");
-            $g = new Group($this->dbhr, $this->dbhm);
+            $g = Group::get($this->dbhr, $this->dbhm);
             $g->create("testgroup$i", Group::GROUP_REUSE);
 
             $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -732,7 +732,7 @@ class MailRouterTest extends IznikTestCase {
     public function testMultipleGroups() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
 
         for ($i = 0; $i < Spam::GROUP_THRESHOLD + 2; $i++) {
             error_log("Group $i");
@@ -796,9 +796,9 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Large attachments should get scaled down during the save.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
 
         $msg = file_get_contents('msgs/attachment_large');
@@ -876,7 +876,7 @@ class MailRouterTest extends IznikTestCase {
     public function testMemberApplication() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
 
         # Suppress emails
@@ -945,7 +945,7 @@ class MailRouterTest extends IznikTestCase {
     public function testMemberJoinedApplication() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
 
         # Suppress emails
@@ -956,7 +956,7 @@ class MailRouterTest extends IznikTestCase {
         $r->method('mail')->willReturn(false);
 
         # Set up a pending member.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@test.com');
         error_log("Add membership to $gid");
@@ -978,7 +978,7 @@ class MailRouterTest extends IznikTestCase {
     public function testAlreadyJoinedApplication() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
 
         # Suppress emails
@@ -989,7 +989,7 @@ class MailRouterTest extends IznikTestCase {
         $r->method('mail')->willReturn(false);
 
         # Set up a pending member.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@test.com');
         error_log("Add membership to $gid");
@@ -1064,10 +1064,10 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Create the sending user
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         error_log("Created user $uid");
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         assertGreaterThan(0, $u->addEmail('test@test.com'));
 
         # Send a message.
@@ -1160,12 +1160,12 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Create the sending user
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('from@test.com');
         error_log("Created user $uid");
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup1", Group::GROUP_REUSE);
         $u->addMembership($gid);
 
@@ -1186,11 +1186,11 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Create the sending user
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         error_log("Created user $uid");
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup1", Group::GROUP_REUSE);
         $u->addMembership($gid);
 
@@ -1209,11 +1209,11 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Create the sending user
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         error_log("Created user $uid");
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup1", Group::GROUP_REUSE);
         $u->addMembership($gid);
 
@@ -1232,11 +1232,11 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Create the sending user
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         error_log("Created user $uid");
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup1", Group::GROUP_REUSE);
         $u->addMembership($gid);
 

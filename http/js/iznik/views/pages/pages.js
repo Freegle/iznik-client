@@ -73,7 +73,7 @@ define([
 
             // Start event tracking.
             if (monitorDOM) {
-                // monitorDOM.start();
+                monitorDOM.start();
             }
 
             if (currentPage) {
@@ -117,6 +117,28 @@ define([
                     } else {
                         $('#js-notifchat').hide();
                     }
+
+                    $('#js-notifchat').click(function(e) {
+                        var display = $('#notifchatdropdown').css('display');
+
+                        if (display === 'none') {
+                            $('#notifchatdropdown').show();
+                        } else {
+                            $('#notifchatdropdown').hide();
+                        }
+                        e.preventDefault();
+                        e.stopPropagation();
+                    });
+
+                    $(document).click(function(e) {
+                        // If we click outside the chat dropdown, hide it.
+                        if (!$(e.target).closest('#notifchatdropdown').length) {
+                            $('#notifchatdropdown').hide();
+                        }
+
+                        // If we click outside the dropdown menu, hide that.
+                        $('.navbar-collapse').collapse('hide');
+                    });
 
                     $('#botleft').empty();
 

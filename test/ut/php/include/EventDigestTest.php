@@ -40,13 +40,13 @@ class eventDigestTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Create a group with two events on it.
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', TRUE);
 
 
         # And two users, one who wants events and one who doesn't.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u->create(NULL, NULL, "Test User");
         $eid1 = $u->addEmail('test1@test.com');
         $u->addEmail('test1@' . USER_DOMAIN);

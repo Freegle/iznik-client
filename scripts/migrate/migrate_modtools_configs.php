@@ -20,8 +20,8 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 ));
 
 $c = new ModConfig($dbhr, $dbhm);
-$u = new User($dbhr, $dbhm);
-$g = new Group($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 $oldconfs = $dbhold->query("SELECT * FROM configs;");
 foreach ($oldconfs as $config) {
@@ -36,7 +36,7 @@ foreach ($oldconfs as $config) {
             error_log("New mod, create user for them");
             try {
                 $modid = $u->create(NULL, NULL, $mod['name'], "Migrated from ModTools Configs");
-                $u2 = new User($dbhr, $dbhm, $modid);
+                $u2 = User::get($dbhr, $dbhm, $modid);
                 $u2->addEmail($mod['email'], 1);
             } catch (Exception $e) {
                 error_log("Mod create failed " . $e->getMessage());
@@ -128,7 +128,7 @@ foreach ($oldconfs as $config) {
 
                     if (!$modid) {
                         error_log("Don't know {$mod['email']}");
-                        $u2 = new User($dbhr, $dbhm);
+                        $u2 = User::get($dbhr, $dbhm);
                         $modid = $u2->create(NULL, NULL, $mod['name'], "Migrated from ModTools Configs");
 
                         # Create a membership for this mod
@@ -136,7 +136,7 @@ foreach ($oldconfs as $config) {
                         $u2->addMembership($gid, User::ROLE_MODERATOR, $emailid);
                     } else {
                         error_log("Already know {$mod['email']} as $modid");
-                        $u2 = new User($dbhr, $dbhm, $modid);
+                        $u2 = User::get($dbhr, $dbhm, $modid);
                         if (!$u2->isModOrOwner($gid)) {
                             error_log("But not mod");
                             $u2->addMembership($gid, User::ROLE_MODERATOR, $u2->getIdForEmail($mod['email'])['id']);

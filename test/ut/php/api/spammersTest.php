@@ -30,19 +30,19 @@ class spammersAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE email IN ('test@test.com', 'test2@test.com', 'test3@test.com', 'test4@test.com');");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
 
-        $this->group = new Group($this->dbhr, $this->dbhm);
+        $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
         $this->user->addEmail('test2@test.com');
         assertEquals(1, $this->user->addMembership($this->groupid));
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Delete any UT playground messages
-        $g = new Group($dbhr, $dbhm);
+        $g = Group::get($dbhr, $dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
         $sql = "DELETE FROM messages_groups WHERE groupid = $gid AND yahooapprovedid < 500;";
         $this->dbhm->preExec($sql);
@@ -58,7 +58,7 @@ class spammersAPITest extends IznikAPITestCase {
     public function testBasic() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         assertGreaterThan(0, $u->addEmail('test3@test.com'));
         assertGreaterThan(0, $u->addEmail('test4@test.com'));

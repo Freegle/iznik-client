@@ -12,7 +12,7 @@ $at = 0;
 $sql = "SELECT * FROM users WHERE yahooid LIKE '%@%';";
 $users = $dbhr->preQuery($sql);
 
-$u = new User($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 $total = count($users);
 error_log("Got $total");
 

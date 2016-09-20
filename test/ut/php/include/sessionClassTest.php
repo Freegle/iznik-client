@@ -36,7 +36,7 @@ class sessionClassTest extends IznikTestCase {
         $me = whoAmI($this->dbhm, $this->dbhm);
         assertNull($me);
 
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
 
         $s = new Session($this->dbhm, $this->dbhm);
@@ -68,15 +68,13 @@ class sessionClassTest extends IznikTestCase {
         prepareSession($this->dbhm, $this->dbhm);
         prepareSession($this->dbhm, $this->dbhm);
 
-        session_reopen();
-
         error_log(__METHOD__ . " end");
     }
 
     public function testCookie() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
 
         $s = new Session($this->dbhm, $this->dbhm);

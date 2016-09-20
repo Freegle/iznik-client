@@ -45,7 +45,7 @@ if (strpos($_SERVER['REQUEST_URI'], '?') !== FALSE) {
 $uid = presdef('u', $_REQUEST, NULL);
 $key = presdef('k', $_REQUEST, NULL);
 if ($uid && $key) {
-    $u = new User($dbhr, $dbhm, $uid);
+    $u = User::get($dbhr, $dbhm, $uid);
     $u->linkLogin($key);
 }
 

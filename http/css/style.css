@@ -946,12 +946,6 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     padding: 2px;
 }
 
-#notifchatbutt .badge {
-    position: relative;
-    top: -15px;
-    left: -35px;
-}
-
 #notifchatdropdown {
     background-color: white;
     position: absolute;
@@ -978,6 +972,10 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     bottom: 0;
     animation: chatIn 2s;
     transform-origin: right bottom;
+}
+
+.chat-window textarea {
+    color: black !important;
 }
 
 @keyframes chatIn {
@@ -1338,6 +1336,8 @@ body {
 
     #notifchatdropdown {
         min-width: 80vw;
+        z-index: 20000;
+        height: 90vh;
     }
 
     #notifchatdropdownlist {
@@ -1347,6 +1347,7 @@ body {
     #notifchatdropdownactions {
         background-color: white !important;
         border-bottom: none !important;
+        position: fixed;
     }
 
     .notifaction {
@@ -1359,9 +1360,10 @@ body {
     #notifchatdropdownlist {
         background-color: white !important;
         overflow-y: scroll;
-        top: 90px;
+        top: 100px;
         max-height: 90vh;
         position: fixed;
+        -webkit-backface-visibility: hidden;
     }
 }
 

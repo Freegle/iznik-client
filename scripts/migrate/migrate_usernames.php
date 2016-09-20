@@ -24,7 +24,7 @@ $sql = "SELECT id FROM users;";
 $users = $dbhr->query($sql);
 
 foreach ($users as $user) {
-    $u = new User($dbhr, $dbhm, $user['id']);
+    $u = User::get($dbhr, $dbhm, $user['id']);
     $emails = $u->getEmails();
 
     foreach ($emails as $email) {

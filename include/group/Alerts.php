@@ -204,7 +204,7 @@ class Alert extends Entity
             # second group as having been reached?
             $sql = "SELECT COUNT(*) AS count, CASE WHEN ((response = 'Clicked') OR (response = 'Read' AND `type` = 'ModEmail')) THEN 'Reached' ELSE 'None' END AS rsp FROM alerts_tracking WHERE alertid = ? AND groupid = ? GROUP BY rsp;";
             $data = $this->dbhr->preQuery($sql, [ $this->id, $group['groupid'] ]);
-            $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
             $ret['responses']['groups'][] = [
                 'group' => $g->getPublic(),
                 'summary' => $data[0]
@@ -218,7 +218,7 @@ class Alert extends Entity
         list ($transport, $mailer) = getMailer();
         $done = 0;
 
-        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $from = $this->getFrom();
 
         if ($tryhard) {
@@ -228,7 +228,7 @@ class Alert extends Entity
             error_log("..." . count($mods) . " volunteers");
 
             foreach ($mods as $mod) {
-                $u = new User($this->dbhr, $this->dbhm, $mod['userid']);
+                $u = User::get($this->dbhr, $this->dbhm, $mod['userid']);
 
                 $emails = $u->getEmails();
                 foreach ($emails as $email) {

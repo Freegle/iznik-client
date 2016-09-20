@@ -34,7 +34,10 @@ class Digest
         $this->errorlog = $errorlog;
         
         $this->freqText = [
-            Digest::NEVER => 'never',
+
+
+
+           Digest::NEVER => 'never',
             Digest::IMMEDIATE => 'immediately',
             Digest::HOUR1 => 'every hour',
             Digest::HOUR2 => 'every two hours',
@@ -50,31 +53,13 @@ class Digest
     }
 
     public function off($uid, $groupid) {
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->setMembershipAtt($groupid, 'emailfrequency', 0);
-        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
         # We can receive messages for emails from the old system where the group id is no longer valid.
         if ($g->getId() == $groupid) {
             $groupname = $g->getPublic()['namedisplay'];
-
-            # TODO This code will die once we move over.
-            global $dbconfig;
-            $dsnfd = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
-
-            $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_EMULATE_PREPARES => FALSE
-            ));
-
-            $emails = $u->getEmails();
-            foreach ($emails as $email) {
-                $email = $email['email'];
-                $sql = "UPDATE users SET digest = 0 WHERE useremail LIKE " . $dbhfd->quote($email) . " OR groupsemail LIKE " . $dbhfd->quote($email) . ";";
-                #error_log("$sql");
-                $dbhfd->exec($sql);
-            }
-            # TODO end
 
             $this->log->log([
                 'type' => Log::TYPE_USER,
@@ -102,7 +87,7 @@ class Digest
     }
 
     public function send($groupid, $frequency) {
-        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $gatts = $g->getPublic();
         $sent = 0;
 
@@ -231,7 +216,7 @@ class Digest
                     $availablehtml = '';
                     $availablesumm = '';
                     $count = count($available) > 0 ? count($available) : 1;
-                    $subject = "[{$gatts['namedisplay']}] 's New ($count message" .
+                    $subject = "[{$gatts['namedisplay']}] What's New ($count message" .
                         ($count == 1 ? ')' : 's)');
                     $subjinfo = '';
 
@@ -293,7 +278,7 @@ class Digest
                         [ $groupid, $frequency ]);
 
                     foreach ($users as $user) {
-                        $u = new User($this->dbhr, $this->dbhm, $user['userid']);
+                        $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
                         if ($this->errorlog) { error_log("Consider user {$user['userid']}"); }
 
                         # We are only interested in sending digests to users for whom we have a preferred address -
@@ -305,6 +290,7 @@ class Digest
                             # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
                             $replacements[$email] = [
                                 '{{toname}}' => $u->getName(),
+                                '{{bounce}}' => "bounce-{$user['userid']}@" . USER_DOMAIN,
                                 '{{unsubscribe}}' => 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email),
                                 '{{email}}' => $email,
                                 '{{frequency}}' => $this->freqText[$frequency],
@@ -337,7 +323,7 @@ class Digest
                                     $message = Swift_Message::newInstance()
                                         ->setSubject($msg['subject'])
                                         ->setFrom([$msg['from'] => $msg['fromname']])
-                                        ->setReturnPath('bounce@direct.ilovefreegle.org')
+                                        ->setReturnPath($rep['{{bounce}}'])
                                         ->setReplyTo($msg['replyto'], $msg['replytoname'])
                                         ->setBody($msg['text'])
                                         ->addPart($msg['html'], 'text/html');

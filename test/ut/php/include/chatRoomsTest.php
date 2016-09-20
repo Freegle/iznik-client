@@ -27,7 +27,7 @@ class chatRoomsTest extends IznikTestCase {
 
         $dbhm->preExec("DELETE FROM chat_rooms WHERE name = 'test';");
 
-        $g = new Group($dbhr, $dbhm);
+        $g = Group::get($dbhr, $dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
     }
 
@@ -56,7 +56,7 @@ class chatRoomsTest extends IznikTestCase {
     public function testConversation() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $u1 = $u->create(NULL, NULL, "Test User 1");
         $u->addEmail('test1@test.com');
         $u2 = $u->create(NULL, NULL, "Test User 2");
@@ -110,7 +110,7 @@ class chatRoomsTest extends IznikTestCase {
         error_log(__METHOD__ );
 
         # Set up a chatroom
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $u1 = $u->create(NULL, NULL, "Test User 1");
         $u->addEmail('test1@test.com');
         $u->addEmail('test1@' . USER_DOMAIN);
@@ -191,7 +191,7 @@ class chatRoomsTest extends IznikTestCase {
         error_log(__METHOD__ );
 
         # Set up a chatroom
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $u1 = $u->create(NULL, NULL, "Test User 1");
         $u->addEmail('test1@test.com');
         $u->addEmail('test1@' . USER_DOMAIN);
@@ -247,7 +247,7 @@ class chatRoomsTest extends IznikTestCase {
         error_log(__METHOD__ );
 
         # Set up a chatroom
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $u1 = $u->create(NULL, NULL, "Test User 1");
         $u->addEmail('test1@test.com');
         $u->addEmail('test1@' . USER_DOMAIN);
@@ -255,8 +255,8 @@ class chatRoomsTest extends IznikTestCase {
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 
-        $u1u = new User($this->dbhr, $this->dbhm, $u1);
-        $u2u = new User($this->dbhr, $this->dbhm, $u2);
+        $u1u = User::get($this->dbhr, $this->dbhm, $u1);
+        $u2u = User::get($this->dbhr, $this->dbhm, $u2);
         $u1u->addMembership($this->groupid, User::ROLE_MEMBER);
         $u2u->addMembership($this->groupid, User::ROLE_OWNER);
 
@@ -283,6 +283,9 @@ class chatRoomsTest extends IznikTestCase {
         $this->msgsSent = [];
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
         assertEquals("Member message on testgroup from Test User 1 (test1@test.com)", $this->msgsSent[0]['subject']);
+
+        # Chase up mods after unreasonably short interval
+        self::assertEquals(1, count($r->chaseupMods($id, 0)));
 
         # Fake mod reply
         $cm2 = $m->create($id, $u2, "Here's some help", ChatMessage::TYPE_DEFAULT, NULL, TRUE);

@@ -20,6 +20,10 @@ class Stats
     CONST POST_METHOD_BREAKDOWN = 'PostMethodBreakdown';
     CONST YAHOO_DELIVERY_BREAKDOWN = 'YahooDeliveryBreakdown';
     CONST YAHOO_POSTING_BREAKDOWN = 'YahooPostingBreakdown';
+    CONST SUPPORTQUERIES_COUNT = 'SupportQueries';
+    CONST FEEDBACK_HAPPY = 'Happy';
+    CONST FEEDBACK_FINE = 'Fine';
+    CONST FEEDBACK_UNHAPPY = 'Unhappy';
 
     CONST TYPE_COUNT = 1;
     CONST TYPE_BREAKDOWN = 2;
@@ -81,6 +85,39 @@ class Stats
                 [
                     $this->groupid,
                     $date
+                ])[0]['count']);
+        $this->setCount($date, Stats::SUPPORTQUERIES_COUNT,
+            $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_rooms WHERE DATE(created) = ? AND groupid = ?;",
+                [
+                    $date,
+                    $this->groupid
+                ])[0]['count']);
+        $this->setCount($date, Stats::SUPPORTQUERIES_COUNT,
+            $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_rooms WHERE DATE(created) = ? AND groupid = ?;",
+                [
+                    $date,
+                    $this->groupid
+                ])[0]['count']);
+        $this->setCount($date, Stats::FEEDBACK_HAPPY,
+            $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes INNER JOIN messages ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE DATE(messages_outcomes.timestamp) = ? AND groupid = ? AND happiness = ?;",
+                [
+                    $date,
+                    $this->groupid,
+                    Stats::FEEDBACK_HAPPY
+                ])[0]['count']);
+        $this->setCount($date, Stats::FEEDBACK_FINE,
+            $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes INNER JOIN messages ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE DATE(messages_outcomes.timestamp) = ? AND groupid = ? AND happiness = ?;",
+                [
+                    $date,
+                    $this->groupid,
+                    Stats::FEEDBACK_FINE
+                ])[0]['count']);
+        $this->setCount($date, Stats::FEEDBACK_UNHAPPY,
+            $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes INNER JOIN messages ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE DATE(messages_outcomes.timestamp) = ? AND groupid = ? AND happiness = ?;",
+                [
+                    $date,
+                    $this->groupid,
+                    Stats::FEEDBACK_UNHAPPY
                 ])[0]['count']);
 
         # Message breakdowns take the previous 30 days
@@ -153,6 +190,10 @@ class Stats
                 Stats::APPROVED_MEMBER_COUNT => 0,
                 Stats::SPAM_MESSAGE_COUNT => 0,
                 Stats::SPAM_MEMBER_COUNT => 0,
+                Stats::SUPPORTQUERIES_COUNT => 0,
+                Stats::FEEDBACK_FINE => 0,
+                Stats::FEEDBACK_HAPPY => 0,
+                Stats::FEEDBACK_UNHAPPY => 0,
                 Stats::MESSAGE_BREAKDOWN => [],
                 Stats::POST_METHOD_BREAKDOWN => [],
                 Stats::YAHOO_DELIVERY_BREAKDOWN => [],
@@ -164,6 +205,10 @@ class Stats
                 case Stats::APPROVED_MESSAGE_COUNT:
                 case Stats::APPROVED_MEMBER_COUNT:
                 case Stats::SPAM_MESSAGE_COUNT:
+                case Stats::SUPPORTQUERIES_COUNT:
+                case Stats::FEEDBACK_FINE:
+                case Stats::FEEDBACK_HAPPY:
+                case Stats::FEEDBACK_UNHAPPY:
                 case Stats::SPAM_MEMBER_COUNT:
                     $ret[$stat['type']] = $stat['count'];
                     break;
@@ -188,7 +233,7 @@ class Stats
         $start = date('Y-m-d', strtotime("30 days ago", strtotime($date)));
         $end = date('Y-m-d', strtotime($enddate, strtotime($date)));
 
-        foreach ([Stats::APPROVED_MESSAGE_COUNT, Stats::APPROVED_MEMBER_COUNT, Stats::SPAM_MESSAGE_COUNT, Stats::SPAM_MEMBER_COUNT] as $type) {
+        foreach ([Stats::APPROVED_MESSAGE_COUNT, Stats::APPROVED_MEMBER_COUNT, Stats::SPAM_MESSAGE_COUNT, Stats::SPAM_MEMBER_COUNT, Stats::SUPPORTQUERIES_COUNT, Stats::FEEDBACK_HAPPY, Stats::FEEDBACK_FINE, Stats::FEEDBACK_UNHAPPY] as $type) {
             $ret[$type] = [];
 
             $counts = $this->dbhr->preQuery("SELECT SUM(count) AS count, date FROM stats WHERE date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") AND type = ? GROUP BY date;",

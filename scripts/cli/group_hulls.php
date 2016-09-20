@@ -11,7 +11,7 @@ if (count($opts) > 1) {
     echo "Usage: hhvm group_hulls.php (-n <groupname>)\n";
 } else {
     $groupname = presdef('n', $opts, NULL);
-    $g = new Group($dbhr, $dbhm);
+    $g = Group::get($dbhr, $dbhm);
     $gid = $groupname ? $g->findByShortName($groupname) : NULL;
 
     $sql = "SELECT id, nameshort FROM groups WHERE type = 'Freegle' " . ($gid ? " AND id = $gid" : "") . " ORDER BY nameshort ASC;";

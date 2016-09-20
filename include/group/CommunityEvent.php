@@ -89,16 +89,20 @@ class CommunityEvent extends Entity
 
     public function listForGroup($pending, $groupid = NULL, &$ctx) {
         $ret = [];
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
 
         # We allow visibility of pending events to users who aren't logged in.  Nothing confidential in them.
         $pendingq = $pending ? " AND pending = 1 " : " AND pending = 0 ";
+        $roleq = $pending ? " AND role IN ('Owner', 'Moderator') " : '';
         $ctxq = $ctx ? " end > {$ctx['end']} " : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $sql = "SELECT communityevents.id, communityevents_dates.end FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid = ? AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
+        $sql = "SELECT communityevents.id, communityevents_dates.end FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid = ? AND groupid IN (SELECT groupid FROM memberships WHERE userid = ? $roleq) AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
         #error_log("$sql, $userid, $mysqltime");
         $events = $this->dbhr->preQuery($sql, [
             $groupid,
+            $myid,
             $mysqltime
         ]);
 
@@ -125,7 +129,7 @@ class CommunityEvent extends Entity
         $groups = $this->dbhr->preQuery("SELECT * FROM communityevents_groups WHERE eventid = ?", [ $this->id ]);
 
         foreach ($groups as $group) {
-            $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
             $atts['groups'][] = $g->getPublic();
         }
 
@@ -144,7 +148,7 @@ class CommunityEvent extends Entity
         # appears, or if we're support/admin.
         $canmodify = $this->event['userid'] == $userid;
         #error_log("Check user {$this->event['userid']}, $userid");
-        $u = new User($this->dbhr, $this->dbhm, $userid);
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         #error_log("Can mod? $canmodify");
         if (!$canmodify) {

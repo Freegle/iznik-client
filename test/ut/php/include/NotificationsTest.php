@@ -35,7 +35,7 @@ class notificationsTest extends IznikTestCase {
     public function testBasic() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         error_log("Created $id");
 
@@ -57,7 +57,7 @@ class notificationsTest extends IznikTestCase {
     public function testErrors() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         error_log("Created $id");
 

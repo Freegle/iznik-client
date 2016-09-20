@@ -42,6 +42,7 @@ class UserSearch extends Entity
                     $locationid,
                     $userid
                 ]);
+                User::clearCache($userid);
             }
         }
 

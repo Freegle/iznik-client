@@ -43,8 +43,8 @@ function memberships() {
             $collection = NULL;
     }
 
-    $u = new User($dbhr, $dbhm, $userid);
-    $g = new Group($dbhr, $dbhm, $groupid);
+    $u = User::get($dbhr, $dbhm, $userid);
+    $g = Group::get($dbhr, $dbhm, $groupid);
 
     if ($collection) {
         switch ($_REQUEST['type']) {
@@ -57,7 +57,7 @@ function memberships() {
                     $uid = $u->findByEmail($email);
 
                     if ($uid) {
-                        $u = new User($dbhr, $dbhm, $uid);
+                        $u = User::get($dbhr, $dbhm, $uid);
                         $memberships = $u->getMemberships(FALSE, presdef('grouptype', $_REQUEST, NULL));
                         $ret = ['ret' => 0, 'status' => 'Success', 'memberships' => [] ];
                         foreach ($memberships as $membership) {
@@ -109,7 +109,7 @@ function memberships() {
                                 ];
 
                                 if ($logs) {
-                                    $u = new User($dbhr, $dbhm, $userid);
+                                    $u = User::get($dbhr, $dbhm, $userid);
                                     $atts = $u->getPublic(NULL, TRUE, $logs, $logctx, FALSE, FALSE, FALSE, $modmailsonly);
                                     $ret['member']['logs'] = $atts['logs'];
                                     $ret['member']['merges'] = $atts['merges'];
@@ -118,7 +118,7 @@ function memberships() {
                             } else {
                                 if ($me->isAdminOrSupport()) {
                                     # Get any sessions.
-                                    $u = new User($dbhr, $dbhm);
+                                    $u = User::get($dbhr, $dbhm);
                                     foreach ($members as &$member) {
                                         if (pres('userid', $member)) {
                                             $member['sessions'] = $u->getSessions($dbhr, $dbhm, $member['userid']);
@@ -137,7 +137,7 @@ function memberships() {
 
                                 foreach ($members as $member) {
                                     if (!pres($member['groupid'], $ret['groups'])) {
-                                        $g = new Group($dbhr, $dbhm, $member['groupid']);
+                                        $g = Group::get($dbhr, $dbhm, $member['groupid']);
                                         $ret['groups'][$member['groupid']] = $g->getPublic();
                                     }
                                 }
@@ -154,7 +154,7 @@ function memberships() {
 
                 # We might have been passed a userid; if not, then assume we're acting on ourselves.
                 $userid = $userid ? $userid : ($me ? $me->getId() : NULL);
-                $u = new User($dbhr, $dbhm, $userid);
+                $u = User::get($dbhr, $dbhm, $userid);
 
                 if ($u && $me && $u->getId() && $me->getId()) {
                     if ($userid && $userid != $me->getId()) {
@@ -172,7 +172,7 @@ function memberships() {
 
                     $u->addMembership($groupid, $role, $emailid);
 
-                    $g = new Group($dbhr, $dbhm, $groupid);
+                    $g = Group::get($dbhr, $dbhm, $groupid);
                     if ($g->onYahoo()) {
                         # This group is on Yahoo too, so we should trigger a membership application to there if we
                         # don't already have one of our emails on the group.
@@ -248,7 +248,7 @@ function memberships() {
                     $uid = $u->findByEmail($email);
 
                     if ($uid) {
-                        $u = new User($dbhm, $dbhm, $uid);
+                        $u = User::get($dbhm, $dbhm, $uid);
                         $ret = ['ret' => 4, 'status' => "Can't remove from that group" ];
                         if ($u->isApprovedMember($groupid) && !$u->isModOrOwner($groupid)) {
                             $ret = ['ret' => 0, 'status' => 'Success' ];

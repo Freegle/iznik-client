@@ -138,21 +138,25 @@ define([
             }
         },
         
-        fallbackInterval: 30000,
+        fallbackInterval: 300000,
 
         fallback: function() {
-            // Although we should be notified of new chat messages via the wait() function, this isn't guaranteed.  So
-            // we have a fallback poll to pick up any lost messages.
-            //
-            // Don't want to fetch them all in a single blat, though, as that is mean to the server.
             var self = this;
-            self.fallbackFetch = [];
-            var delay = 3000;
 
             if (self.inDOM()) {
+                // Although we should be notified of new chat messages via the wait() function, this isn't guaranteed.  So
+                // we have a fallback poll to pick up any lost messages.  This will return the last message we've seen
+                // in each chat - so we scan first to remember the old ones.  That way we can decide whether we need
+                // to refetch the chat.
+                var lastseens = [];
+                Iznik.Session.chats.each(function(chat) {
+                    lastseens[chat.get('id')] = chat.get('lastmsgseen');
+                });
+
                 Iznik.Session.chats.fetch({
                     modtools: self.options.modtools
                 }).then(function() {
+                    // First make sure that the minimised chat list and counts are up to date.
                     self.updateCounts();
 
                     // For some reason we don't quite understand yet, the element can get detached so make sure it's
@@ -160,24 +164,40 @@ define([
                     var el = Iznik.minimisedChats.$el;
                     if (el.closest('body').length == 0) {
                         console.log("Chats detached");
-                        el.detach();
-                        $($('#notifchatdropdown').find('li')[1]).html(el);
+                        self.createMinimised();
                     }
 
                     Iznik.minimisedChats.render();
 
-                    var i = 0;
-
-                    (function fallbackOne() {
-                        if (i < Iznik.Session.chats.length) {
-                            Iznik.Session.chats.at(i).fetch();
-                            i++;
-                            _.delay(fallbackOne, delay);
-                        } else {
-                            // Reached end.
-                            _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+                    // Now work out which chats if any we need to refetch.
+                    self.fallbackFetch = [];
+                    Iznik.Session.chats.each(function(chat) {
+                        if (lastseens[chat.get('id')] != chat.get('lastmsgseen')) {
+                            console.log("Need to refresh", chat);
+                            self.fallbackFetch.push(chat);
                         }
-                    })();
+                    });
+
+                    if (self.fallbackFetch.length > 0) {
+                        // Don't want to fetch them all in a single blat, though, as that is mean to the server and
+                        // not needed for a background fallback.
+                        var delay = 30000;
+                        var i = 0;
+
+                        (function fallbackOne() {
+                            if (i < self.fallbackFetch.length) {
+                                self.fallbackFetch[i].fetch();
+                                i++;
+                                _.delay(fallbackOne, delay);
+                            } else {
+                                // Reached end.
+                                _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+                            }
+                        })();
+                    } else {
+                        // None to fetch - just wait for next time.
+                        _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+                    }
                 });
             } else {
                 self.destroyIt();
@@ -474,6 +494,28 @@ define([
             }
         },
 
+        createMinimised: function() {
+            var self = this;
+
+            Iznik.minimisedChats = new Backbone.CollectionView({
+                el: $('#notifchatdropdownlist'),
+                modelView: Iznik.Views.Chat.Minimised,
+                collection: Iznik.Session.chats,
+                modelViewOptions: {
+                    organise: _.bind(self.organise, self),
+                    updateCounts: _.bind(self.updateCounts, self),
+                    modtools: self.options.modtools
+                }
+            });
+
+            Iznik.minimisedChats.on('add', function(view) {
+                // The collection view seems to get messed up, so re-render it to sort it out.
+                Iznik.minimisedChats.render();
+            });
+
+            Iznik.minimisedChats.render();
+        },
+
         render: function() {
             var self = this;
             var p;
@@ -511,25 +553,8 @@ define([
                         Iznik.activeChats.render();
 
                         self.waitDOM(self, function() {
-                            Iznik.minimisedChats = new Backbone.CollectionView({
-                                el: $('#notifchatdropdownlist'),
-                                modelView: Iznik.Views.Chat.Minimised,
-                                collection: Iznik.Session.chats,
-                                modelViewOptions: {
-                                    organise: _.bind(self.organise, self),
-                                    updateCounts: _.bind(self.updateCounts, self),
-                                    modtools: self.options.modtools
-                                }
-                            });
-
-                            Iznik.minimisedChats.on('add', function(view) {
-                                // The collection view seems to get messed up, so re-render it to sort it out.
-                                Iznik.minimisedChats.render();
-                            });
-
-                            Iznik.minimisedChats.render();
+                            self.createMinimised();
                             Iznik.Session.trigger('chatsfetched');
-
                             self.organise();
                             self.showMin();
                         });
@@ -674,20 +699,41 @@ define([
             var self = this;
             var message = this.$('.js-message').val();
             if (message.length > 0) {
-                self.$('.js-message').prop('disabled', true);
-                self.listenToOnce(this.model, 'sent', function(id) {
-                    self.model.set('lastmsgseen', id);
-                    self.model.set('unseen', 0);
-                    self.options.updateCounts();
-
-                    self.$('.js-message').val('');
-                    self.$('.js-message').prop('disabled', false);
-                    self.$('.js-message').focus();
-                    self.messageFocus();
-                    self.messages.fetch().then();
+                // We get called back when the message has actually been sent to the server.
+                self.listenToOnce(this.model, 'sent', function() {
+                    // Get the full set of messages back.  This will replace any temporary
+                    // messages added, and also ensure we don't miss any that arrived while we
+                    // were sending ours.
+                    self.messages.fetch({
+                        remove: true
+                    }).then(function() {
+                        self.options.updateCounts();
+                        self.scrollBottom();
+                    });
                 });
 
                 self.model.send(message);
+
+                // Create another model with a fake id and add it to the collection.  This will populate our view
+                // views while we do the real save in the background.  Makes us look fast.
+                var tempmod = new Iznik.Models.Chat.Message({
+                    id: self.messages.last().get('id') + 1,
+                    chatid: self.model.get('id'),
+                    message: message,
+                    date: (new Date()).toISOString(),
+                    sameaslast: true,
+                    sameasnext: false,
+                    seenbyall: 0,
+                    type: 'Default',
+                    user: Iznik.Session.get('me')
+                });
+
+                self.messages.add(tempmod);
+
+                // We have initiated the send, so set up for the next one.
+                self.$('.js-message').val('');
+                self.$('.js-message').focus();
+                self.messageFocus();
 
                 // If we've grown the textarea, shrink it.
                 self.$('textarea').css('height', '');
@@ -791,7 +837,6 @@ define([
 
         messageFocus: function() {
             var self = this;
-            console.log("Focus", self);
 
             // We've seen all the messages.
             self.allseen();
@@ -839,14 +884,13 @@ define([
 
         adjust: function() {
             var self = this;
-
             // The text area shouldn't grow too high, but should go above a single line if there's room.
             var maxinpheight = self.$el.innerHeight() - this.$('.js-chatheader').outerHeight();
-            var mininpheight = Math.round(self.$el.innerHeight() * .2);
+            var mininpheight = Math.round(self.$el.innerHeight() * .15);
             self.$('textarea').css('max-height', maxinpheight);
             self.$('textarea').css('min-height', mininpheight);
 
-            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter input').outerHeight();
+            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter').outerHeight() - this.$('.js-modwarning').outerHeight() - 20 ;
             // console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
             this.$('.js-leftpanel, .js-roster').height(newHeight);
 
@@ -916,6 +960,9 @@ define([
             var self = this;
             self.minimised = false;
 
+            // Hide the chat list if it's open.
+            $('#notifchatdropdown').hide();
+
             if (large) {
                 // We want a larger and more prominent chat.
                 try {
@@ -951,6 +998,7 @@ define([
                 // We've just opened this chat - so we have had a decent chance to see any unread messages.
                 v.close();
                 self.messageFocus();
+                self.scrollBottom();
                 self.trigger('restored');
             });
         },
@@ -962,31 +1010,34 @@ define([
             // Tried using .animate(), but it seems to be too expensive for the browser, so leave that for now.
             var self = this;
             var msglist = self.$('.js-messages');
-            var height = msglist[0].scrollHeight;
 
-            if (self.scrollTimer && self.scrollTo < height) {
-                // We have a timer outstanding to scroll to somewhere less far down that we now want to.  No point
-                // in doing that.
-                // console.log("Clear old scroll timer",  self.model.get('id'), self.scrollTo, height);
-                clearTimeout(self.scrollTimer);
-                self.scrollTimer = null;
-            }
-            
-            // We want to scroll immediately, and add a fallback a few seconds later for when things haven't quite
-            // finished rendering yet.
-            msglist.scrollTop(height);
-            // console.log("Scroll now to ", self.model.get('id'), height);
+            if (msglist.length > 0) {
+                var height = msglist[0].scrollHeight;
 
-            if (!self.scrollTimer) {
-                // We don't already have a fallback scroll running.
-                self.scrollTo = height;
-                self.scrollTimer = setTimeout(_.bind(function() {
-                    // console.log("Scroll later", this);
-                    var msglist = this.$('.js-messages');
-                    var height = msglist[0].scrollHeight;
-                    msglist.scrollTop(height);
-                    // console.log("Scroll later to ", this.model.get('id'), height);
-                }, self), 5000);
+                if (self.scrollTimer && self.scrollTo < height) {
+                    // We have a timer outstanding to scroll to somewhere less far down that we now want to.  No point
+                    // in doing that.
+                    // console.log("Clear old scroll timer",  self.model.get('id'), self.scrollTo, height);
+                    clearTimeout(self.scrollTimer);
+                    self.scrollTimer = null;
+                }
+
+                // We want to scroll immediately, and add a fallback a few seconds later for when things haven't quite
+                // finished rendering yet.
+                msglist.scrollTop(height);
+                // console.log("Scroll now to ", self.model.get('id'), height);
+
+                if (!self.scrollTimer) {
+                    // We don't already have a fallback scroll running.
+                    self.scrollTo = height;
+                    self.scrollTimer = setTimeout(_.bind(function() {
+                        // console.log("Scroll later", this);
+                        var msglist = this.$('.js-messages');
+                        var height = msglist[0].scrollHeight;
+                        msglist.scrollTop(height);
+                        // console.log("Scroll later to ", this.model.get('id'), height);
+                    }, self), 5000);
+                }
             }
         },
 
@@ -1142,7 +1193,9 @@ define([
                 self.$('.js-count').html(unseen).show();
 
                 if (self.messages) {
-                    self.messages.fetch();
+                    self.messages.fetch({
+                        remove: true
+                    });
                 }
             } else {
                 self.$('.js-count').html(unseen).hide();
@@ -1294,6 +1347,12 @@ define([
             if (this.model.get('id')) {
                 var message = this.model.get('message');
                 if (message) {
+                    // Remove duplicate newlines.
+                    message = message.replace(/\n\s*\n\s*\n/g, '\n\n');
+                    
+                    // Strip HTML tags
+                    message = strip_tags(message, '<a>');
+
                     // Insert some wbrs to allow us to word break long words (e.g. URLs).
                     // It might have line breaks in if it comes originally from an email.
                     message = this.model.set('message', wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, '<br />'));
@@ -1348,7 +1407,7 @@ define([
                         // ModMails may related to a message which has been rejected.  If so, add a button to
                         // edit and resend.
                         var msg = self.model.get('refmsg');
-                        var groups = msg.groups
+                        var groups = msg.groups;
 
                         _.each(groups, function(group) {
                             if (group.collection == 'Rejected') {
@@ -1465,7 +1524,9 @@ define([
                 });
 
                 self.collectionView.render();
-                self.messages.fetch();
+                self.messages.fetch({
+                    remove: true
+                });
             });
 
             return (p);

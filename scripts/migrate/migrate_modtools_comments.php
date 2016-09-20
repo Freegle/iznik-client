@@ -13,8 +13,8 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$u = new User($dbhr, $dbhm);
-$g = new Group($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 #$dbhm->preExec("DELETE FROM users_comments;");
 
@@ -30,7 +30,7 @@ foreach ($oldusers as $user) {
         #error_log("Unknown {$user['email']} {$user['yahooid']}, skip");
     } else {
         #error_log("Found $id for {$user['email']} {$user['yahooid']} on {$user['groupname']}");
-        $u = new User($dbhr, $dbhm, $id);
+        $u = User::get($dbhr, $dbhm, $id);
         $mysqldate = date ("Y-m-d", strtotime($user['date']));
         $gid = $g->findByShortName($user['groupname']);
 

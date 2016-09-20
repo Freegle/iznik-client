@@ -41,7 +41,7 @@ class newsletterTest extends IznikTestCase {
     public function testBasic() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
 
         $n = new Newsletter($this->dbhr, $this->dbhm);
@@ -58,7 +58,7 @@ class newsletterTest extends IznikTestCase {
         $a->setPrivate('articleid', $artid);
 
         # And two users, one who wants newsletters and one who doesn't.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u->create(NULL, NULL, "Test User");
         $eid1 = $u->addEmail('test1@blackhole.io');
         $u->addMembership($gid, User::ROLE_MEMBER, $eid1);

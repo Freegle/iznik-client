@@ -1,4 +1,4 @@
-div class="panel-heading">
+<div class="panel-heading">
     <a class="nodecor js-caret" data-toggle="collapse" href="#wanted-{{id}}">
         <div class="msgsubj panel-title">
             <div class="row">
@@ -37,11 +37,13 @@ div class="panel-heading">
         <div class="panel-body nopad">
             <div class="row topspace">
                 <div class="col-xs-10">
-                    <% if (textbody.length == 0) { %>
-                    <em>There's no description.</em>
-                    <% } else { %>
-                    {{textbody}}
-                    <% } %>
+                    <div class="prewrap">
+                        <% if (textbody.length == 0) { %>
+<em>There's no description.</em>
+                        <% } else { %>
+{{textbody}}
+                        <% } %>
+                    </div>
                 </div>
                 <div class="nopad col-xs-2">
                     <ul class="list-inline list-unstyled js-attlist" />

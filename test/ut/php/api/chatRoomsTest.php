@@ -28,12 +28,12 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         $dbhm->preExec("DELETE FROM chat_rooms WHERE name = 'test';");
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
     }
 
@@ -55,7 +55,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertEquals(1, $ret['ret']);
         assertFalse(pres('chatrooms', $ret));
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
 
         $c = new ChatRoom($this->dbhr, $this->dbhm);
@@ -198,7 +198,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertEquals($rid, $ret['chatrooms'][0]['id']);
 
         # Now create a group mod
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u->addMembership($this->groupid);

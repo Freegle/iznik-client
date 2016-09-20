@@ -33,7 +33,7 @@ class groupAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users WHERE yahooUserId = '1';");
 
         # Create a moderator and log in as them
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $this->group = $g;
 
         $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
@@ -41,9 +41,9 @@ class groupAPITest extends IznikAPITestCase {
         # This plus the test below ensure that if an attribute is 0 we still get it back.
         $g->setPrivate('showonyahoo', 0);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $emailid = $this->user->addEmail('test@test.com');
         $this->user->addMembership($this->groupid, User::ROLE_MEMBER, $emailid);
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -228,7 +228,7 @@ class groupAPITest extends IznikAPITestCase {
         $ret = $this->call('group', 'POST', [
             'action' => 'AddLicense',
             'id' => $this->groupid,
-            'voucher' => 'wibble'
+            'voucher' => 'wibble2'
         ]);
         assertEquals(2, $ret['ret']);
 

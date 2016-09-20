@@ -21,7 +21,7 @@ foreach ($messages as $message) {
     $uid = $m->getFromuser();
 
     if ($uid) {
-        $u = new User($dbhr, $dbhm, $uid);
+        $u = User::get($dbhr, $dbhm, $uid);
         list ($eid, $email) = $u->getEmailForYahooGroup($message['groupid'], TRUE);
 
         if ($eid) {
@@ -29,7 +29,7 @@ foreach ($messages as $message) {
             $outcome = ' submitted';
             $submitted++;
         } else {
-            $u->triggerYahooApplication($message['groupid']);
+            $u->triggerYahooApplication($message['groupid'], FALSE);
             $outcome = ' still queued';
             $queued++;
         }

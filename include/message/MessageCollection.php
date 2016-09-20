@@ -174,7 +174,7 @@ class MessageCollection
 
                 foreach ($thisgroups as $groupid) {
                     if (!array_key_exists($groupid, $groups)) {
-                        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+                        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
                         $atts = $g->getPublic();
 
                         # We can see messages if:

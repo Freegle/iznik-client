@@ -60,7 +60,7 @@ class Dashboard {
                     $lastactive = $approved[0]['lastactive'];
                 }
 
-                $u = new User($this->dbhr, $this->dbhm, $mod['userid']);
+                $u = User::get($this->dbhr, $this->dbhm, $mod['userid']);
 
                 $active[$mod['userid']] = [
                     'displayname' => $u->getName(),

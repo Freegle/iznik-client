@@ -19,7 +19,7 @@ class Relevant {
     }
 
     public function off($uid) {
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->setPrivate('relevantallowed', 1);
 
         $this->log->log([
@@ -85,7 +85,7 @@ class Relevant {
         $ids = [];
 
         # We want to search in the groups near the last location we have for this user.
-        $u = new User($this->dbhr, $this->dbhm, $userid);
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
         $lastloc = $u->getPrivate('lastlocation');
 
         # We are interested in messages since the last check - or if this is the first, fairly recent ones.
@@ -136,6 +136,7 @@ class Relevant {
 
     public function recordCheck($userid) {
         $this->dbhm->preExec("UPDATE users SET lastrelevantcheck = NOW() WHERE id = ?;", [ $userid ]);
+        User::clearCache($userid);
     }
 
     # Split out for UT to override
@@ -161,7 +162,7 @@ class Relevant {
         $users = $this->dbhr->preQuery($sql);
 
         foreach ($users as $user) {
-            $u = new User($this->dbhr, $this->dbhm, $user['id']);
+            $u = User::get($this->dbhr, $this->dbhm, $user['id']);
 
             $hol = $u->getPrivate('onholidaytill');
             $till = $hol ? strtotime($hol) : 0;
@@ -187,7 +188,7 @@ class Relevant {
                         $atts = $m->getPublic(FALSE, FALSE, TRUE);
                         $groups = $atts['groups'];
                         foreach ($groups as $group) {
-                            $g = new Group($this->dbhr, $this->dbhm, $group['groupid']);
+                            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
                             $gatts = $g->getPublic();
 
                             $sql = "SELECT groupid FROM groups WHERE groupname = " . $dbhold->quote($gatts['nameshort']) . ";";

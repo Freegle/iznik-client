@@ -48,7 +48,7 @@ class digestTest extends IznikTestCase {
         }));
 
         # Create a group with a message on it.
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', 1);
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -65,7 +65,7 @@ class digestTest extends IznikTestCase {
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
         # and a real one to get the digest.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
@@ -88,7 +88,7 @@ class digestTest extends IznikTestCase {
         $d = new Digest($this->dbhm, $this->dbhm);
 
         # Create a group with a message on it.
-        $g = new Group($this->dbhm, $this->dbhm);
+        $g = Group::get($this->dbhm, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', 1);
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -105,7 +105,7 @@ class digestTest extends IznikTestCase {
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
         # and a real one to get the digest.
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
@@ -115,7 +115,7 @@ class digestTest extends IznikTestCase {
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
 
         # And another who only has a membership on Yahoo and therefore shouldn't get one.
-        $u2 = new User($this->dbhm, $this->dbhm);
+        $u2 = User::get($this->dbhm, $this->dbhm);
         $uid2 = $u2->create(NULL, NULL, 'Test User');
         $u2->addEmail('test2@blackhole.io');
         error_log("Created user $uid2");
@@ -142,7 +142,7 @@ class digestTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Create a group with a message on it.
-        $g = new Group($this->dbhm, $this->dbhm);
+        $g = Group::get($this->dbhm, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', 1);
         $msg = $this->unique(file_get_contents('msgs/basic'));
@@ -159,7 +159,7 @@ class digestTest extends IznikTestCase {
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
         # and a real one to get the digest.
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
@@ -169,7 +169,7 @@ class digestTest extends IznikTestCase {
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
 
         # And another who only has a membership on Yahoo and therefore shouldn't get one.
-        $u2 = new User($this->dbhm, $this->dbhm);
+        $u2 = User::get($this->dbhm, $this->dbhm);
         $uid2 = $u2->create(NULL, NULL, 'Test User');
         $u2->addEmail('test2@blackhole.io');
         error_log("Created user $uid2");
@@ -200,7 +200,7 @@ class digestTest extends IznikTestCase {
         }));
 
         # Create a group with two messages on it, one taken.
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onyahoo', TRUE);
 
@@ -236,7 +236,7 @@ class digestTest extends IznikTestCase {
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
         # and a real one to get the digest.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);

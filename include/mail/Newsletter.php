@@ -61,7 +61,7 @@ class Newsletter extends Entity
     }
 
     public function off($uid) {
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->setPrivate('newslettersallowed', 0);
 
         $this->log->log([
@@ -92,7 +92,7 @@ class Newsletter extends Entity
         $g = NULL;
         $gatts = NULL;
         if ($groupid) {
-            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $gatts = $g->getPublic();
         }
 
@@ -137,7 +137,7 @@ class Newsletter extends Entity
         $scan = 0;
 
         foreach ($users as $user) {
-            $u = new User($this->dbhr, $this->dbhm, $user['userid']);
+            $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
 
             # We are only interested in sending events to users for whom we have a preferred address -
             # otherwise where would we send them?

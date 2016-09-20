@@ -27,7 +27,7 @@ class configTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup1'");
 
-        $this->user = new User($this->dbhm, $this->dbhm);
+        $this->user = User::get($this->dbhm, $this->dbhm);
         $this->uid = $this->user->create('Test', 'User', NULL);
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
     }
@@ -51,11 +51,11 @@ class configTest extends IznikTestCase {
         assertNotNull($c);
 
         # Use on a group
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1, User::ROLE_MODERATOR);
         $c->useOnGroup($uid, $group1);
         assertEquals($id, $c->getForGroup($uid, $group1));
@@ -75,7 +75,7 @@ class configTest extends IznikTestCase {
         # Another mod on this group with no config set up should pick this one up as shared.
         $c->setPrivate('default', FALSE);
         $uid2 = $u->create(NULL, NULL, 'Test User');
-        $u2 = new User($this->dbhr, $this->dbhm, $uid2);
+        $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
         assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u2->addMembership($group1, User::ROLE_OWNER);
         assertEquals($id, $c->getForGroup($uid, $group1));

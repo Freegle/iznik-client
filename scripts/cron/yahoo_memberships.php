@@ -12,7 +12,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 # life and let us know that we are actually a member (which will trigger submission of the message).
 $msgs = $dbhr->query("SELECT messages.fromuser, messages_groups.groupid, groups.nameshort FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN groups ON groups.id = messages_groups.groupid WHERE messages_groups.collection = 'QueuedYahooUser';");
 foreach ($msgs as $msg) {
-    $u = new User($dbhr, $dbhm, $msg['fromuser']);
+    $u = User::get($dbhr, $dbhm, $msg['fromuser']);
     list ($eid, $email) = $u->getEmailForYahooGroup($msg['groupid'], TRUE);
     error_log("...group {$msg['nameshort']} user #{$msg['fromuser']} email {$email}");
     $headers = "From: $email>\r\n";

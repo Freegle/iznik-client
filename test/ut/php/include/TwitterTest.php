@@ -33,7 +33,7 @@ class twitterTest extends IznikTestCase {
     public function testBasic() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
         $t = new Twitter($this->dbhr, $this->dbhm, $gid);
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
@@ -53,7 +53,7 @@ class twitterTest extends IznikTestCase {
     public function testMessages() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
         $msg = $this->unique(file_get_contents('msgs/attachment'));
@@ -69,7 +69,7 @@ class twitterTest extends IznikTestCase {
 
         # Ensure we have consent to see this message
         $a = new Message($this->dbhr, $this->dbhm, $id);
-        $sender = new User($this->dbhr, $this->dbhm, $a->getFromuser());
+        $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
         $sender->setPrivate('publishconsent', 1);
 
         $t = new Twitter($this->dbhr, $this->dbhm, $gid);
@@ -94,7 +94,7 @@ class twitterTest extends IznikTestCase {
     public function testErrors() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhm, $this->dbhm);
+        $g = Group::get($this->dbhm, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
         $t = new Twitter($this->dbhr, $this->dbhm, $gid);
@@ -126,7 +126,7 @@ class twitterTest extends IznikTestCase {
     public function testEvents() {
         error_log(__METHOD__);
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
         $e = new CommunityEvent($this->dbhr, $this->dbhm);

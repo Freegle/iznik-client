@@ -12,7 +12,7 @@ $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$u = new User($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 
 # Fix users wrongly subscribed to Minehead from Strood/Medway.
 $users = $dbhfd->query("SELECT * FROM users WHERE usergroup LIKE '%strood%' or usergroup LIKE '%medway%';");
@@ -21,7 +21,7 @@ foreach ($users as $user) {
     $uid = $u->findByEmail($user['useremail']);
     if ($uid) {
         #error_log("Found $uid");
-        $u = new User($dbhr, $dbhm, $uid);
+        $u = User::get($dbhr, $dbhm, $uid);
         if ($u->isMember(21531) && !$u->isModOrOwner(21531)) {
             list($eid, $membemail) = $u->getEmailForYahooGroup(21531);
             error_log("{$user['useremail']} removed with $membemail");

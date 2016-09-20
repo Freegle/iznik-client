@@ -13,7 +13,7 @@ $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 
 $mods = $dbhold->query("SELECT groups.groupname, moderators.email, moderators.name, moderators.yahooid,
  groupsmoderated.showinallmessages, groupsmoderated.showinallmembers
@@ -23,11 +23,11 @@ INNER JOIN moderators ON moderators.uniqueid = groupsmoderated.moderatorid;");
 
 foreach ($mods as $mod) {
     try {
-        $g = new Group($dbhr, $dbhm);
+        $g = Group::get($dbhr, $dbhm);
         $gid = $g->findByShortName($mod['groupname']);
 
         if ($gid) {
-            $u = new User($dbhr, $dbhm);
+            $u = User::get($dbhr, $dbhm);
             $uid1 = $u->findByEmail($mod['email']);
             $uid2 = $u->findByYahooId($mod['yahooid']);
 
@@ -43,7 +43,7 @@ foreach ($mods as $mod) {
 
             if ($uid) {
                 error_log("Found group $gid mod $uid {$mod['yahooid']}");
-                $u = new User($dbhr, $dbhm, $uid);
+                $u = User::get($dbhr, $dbhm, $uid);
                 $u->addLogin('Yahoo', $mod['yahooid']);
                 $emailid = $u->addEmail($mod['email'], 1);
 

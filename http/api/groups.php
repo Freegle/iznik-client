@@ -5,7 +5,7 @@ function groups() {
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
     $me = whoAmI($dbhr, $dbhm);
-    $g = new Group($dbhr, $dbhm);
+    $g = Group::get($dbhr, $dbhm);
 
     switch ($_REQUEST['type']) {
         case 'GET': {

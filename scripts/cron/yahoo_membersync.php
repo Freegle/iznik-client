@@ -11,7 +11,7 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 
 $lockh = lockScript(basename(__FILE__));
 
-$g = new Group($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
 $g->processSetMembers();
 
 unlockScript($lockh);

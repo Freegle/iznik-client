@@ -13,8 +13,8 @@ $dbhfd = new PDO($dsnfd, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
-$g = new Group($dbhr, $dbhm);
-$u = new User($dbhr, $dbhm);
+$g = Group::get($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 $count = 0;
 
 $fdusers = $dbhfd->query("SELECT * FROM facebook;");

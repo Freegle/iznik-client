@@ -119,7 +119,7 @@ function messages() {
 
                     $groupids = $groupid ? [ $groupid ] : NULL;
 
-                    $g = new Group($dbhr, $dbhm);
+                    $g = Group::get($dbhr, $dbhm);
                     $membctx = NULL;
                     $members = $g->getMembers(1000, $search, $membctx, NULL, $collection, $groupids, NULL, NULL);
                     $userids = [];
@@ -156,7 +156,7 @@ function messages() {
                     break;
             }
 
-            $g = new Group($dbhr, $dbhm, $groupid);
+            $g = Group::get($dbhr, $dbhm, $groupid);
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
             if ($source && $g && $me && $me->isModOrOwner($groupid)) {
@@ -192,7 +192,7 @@ function messages() {
 
             if ($me) {
                 # Check if we're logged in and have rights.
-                $g = new Group($dbhr, $dbhm, $groupid);
+                $g = Group::get($dbhr, $dbhm, $groupid);
                 $ret = [ 'ret' => 3, 'status' => 'Permission denied' ];
 
                 if ($me->isModOrOwner($groupid)) {

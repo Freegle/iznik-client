@@ -522,13 +522,17 @@ class Message
             #error_log("{$this->id} approved by {$group['approvedby']}");
 
             if (pres('approvedby', $group)) {
-                $u = new User($this->dbhr, $this->dbhm, $group['approvedby']);
+                $u = User::get($this->dbhr, $this->dbhm, $group['approvedby']);
                 $ctx = NULL;
                 $group['approvedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
             }
         }
 
-        if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $this->fromuser == $myid)) {
+        # Can see replies if:
+        # - we want everything
+        # - we're on ModTools and we're a mod for this message
+        # - it's our message
+        if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
             # Add replies.
             $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
             $replies = $this->dbhr->preQuery($sql, [ $this->id ]);
@@ -536,7 +540,7 @@ class Message
             foreach ($replies as $reply) {
                 $ctx = NULL;
                 if ($reply['userid']) {
-                    $u = new User($this->dbhr, $this->dbhm, $reply['userid']);
+                    $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
                     $thisone = [
                         'id' => $reply['id'],
                         'user' => $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE),
@@ -604,7 +608,7 @@ class Message
             # We know who sent this.  We may be able to return this (depending on the role we have for the message
             # and hence the attributes we have already filled in).  We also want to know if we have consent
             # to republish it.
-            $u = new User($this->dbhr, $this->dbhm, $this->fromuser);
+            $u = User::get($this->dbhr, $this->dbhm, $this->fromuser);
 
             if (pres('fromuser', $ret)) {
                 # Get the user details, relative to the groups this message appears on.
@@ -639,7 +643,7 @@ class Message
         }
 
         if (pres('heldby', $ret)) {
-            $u = new User($this->dbhr, $this->dbhm, $ret['heldby']);
+            $u = User::get($this->dbhr, $this->dbhm, $ret['heldby']);
             $ret['heldby'] = $u->getPublic();
             filterResult($ret['heldby']);
         }
@@ -1011,7 +1015,7 @@ class Message
         if ($groupname) {
             if (!$this->groupid) {
                 # Check if it's a group we host.
-                $g = new Group($this->dbhr, $this->dbhm);
+                $g = Group::get($this->dbhr, $this->dbhm);
                 $this->groupid = $g->findByShortName($groupname);
             }
         }
@@ -1251,7 +1255,7 @@ class Message
         }
 
         # If this is a reuse group, we need to determine the type.
-        $g = new Group($this->dbhr, $this->dbhm, $this->groupid);
+        $g = Group::get($this->dbhr, $this->dbhm, $this->groupid);
         if ($g->getPrivate('type') == Group::GROUP_FREEGLE ||
             $g->getPrivate('type') == Group::GROUP_REUSE
         ) {
@@ -1262,7 +1266,7 @@ class Message
 
         if ($source == Message::YAHOO_PENDING || $source == Message::YAHOO_APPROVED  || $source == Message::EMAIL) {
             # Make sure we have a user for the sender.
-            $u = new User($this->dbhr, $this->dbhm);
+            $u = User::get($this->dbhr, $this->dbhm);
 
             # If there is a Yahoo uid in here - which there isn't always - we might be able to find them that way.
             #
@@ -1314,7 +1318,7 @@ class Message
 
             if ($userid) {
                 # We have a user.
-                $u = new User($this->dbhm, $this->dbhm, $userid);
+                $u = User::get($this->dbhm, $this->dbhm, $userid);
 
                 # We might not have this yahoo user id associated with this user.
                 if ($yahoouid) {
@@ -1660,7 +1664,7 @@ class Message
             $to = $this->getEnvelopefrom();
             $to = $to ? $to : $this->getFromaddr();
 
-            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $atts = $g->getPublic();
 
             # Find who to send it from.  If we have a config to use for this group then it will tell us.
@@ -1701,7 +1705,7 @@ class Message
                         FALSE,
                         NULL);
 
-                    $this->mailer($me, TRUE, $this->getFromname(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to a Freegle Direct user via chat.)\n\n" . $body);
+                    $this->mailer($me, TRUE, $this->getFromname(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to a Freegle Direct user.)\n\n" . $body);
 
                     # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
                     # appearing as unread to us and other mods.
@@ -2415,7 +2419,7 @@ class Message
 
     public function suggestSubject($groupid, $subject) {
         $newsubj = $subject;
-        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
         # This method is used to improve subjects, and also to map - because we need to make sure we understand the
         # subject format before can map.
@@ -2519,6 +2523,7 @@ class Message
                                 $this->locationid,
                                 $this->fromuser
                             ]);
+                            User::clearCache($this->fromuser);
                         }
                     }
                 }
@@ -2579,7 +2584,7 @@ class Message
 
     public function constructSubject($groupid) {
         # Construct the subject - do this now as it may get displayed to the user before we get the membership.
-        $g = new Group($this->dbhr, $this->dbhm, $groupid);
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
 
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
@@ -2660,7 +2665,7 @@ class Message
             $this->setPrivate('lat', $atts['location']['lat']);
             $this->setPrivate('lng', $atts['location']['lng']);
 
-            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $this->setPrivate('envelopeto', $g->getGroupEmail());
 
             # The from IP and country.
@@ -2708,12 +2713,18 @@ class Message
             $this->setPrivate('textbody', $txtbody);
             $this->setPrivate('htmlbody', $htmlbody);
 
+            # Strip possible group name.
+            $subject = $this->subject;
+            if (preg_match('/\[.*?\](.*)/', $subject, $matches)) {
+                $subject = trim($matches[1]);
+            }
+
             # Now construct the actual message to send.
             try {
                 list ($transport, $mailer) = getMailer();
                 
                 $message = Swift_Message::newInstance()
-                    ->setSubject($this->subject)
+                    ->setSubject($subject)
                     ->setFrom([$fromemail => $fromuser->getName()])
                     ->setTo([$g->getGroupEmail()])
                     ->setDate(time())
@@ -2798,7 +2809,7 @@ class Message
         $key = strtoupper($type == Message::TYPE_OFFER ? Message::TYPE_TAKEN : Message::TYPE_RECEIVED);
         
         foreach ($groups as $groupid) {
-            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $defs = $g->getDefaults()['keywords'];
             $keywords = $g->getSetting('keywords', $defs);
 
@@ -2826,12 +2837,12 @@ class Message
 
         # This message may be on one or more Yahoo groups; if so we need to send a TAKEN.
         $subj = $this->reverseSubject();
-        $u = new User($this->dbhr, $this->dbhm, $this->fromuser);
+        $u = User::get($this->dbhr, $this->dbhm, $this->fromuser);
 
         $groups = $this->getGroups();
 
         foreach ($groups as $groupid) {
-            $g = new Group($this->dbhr, $this->dbhm, $groupid);
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
             if ($g->getPrivate('onyahoo')) {
                 list ($eid, $email) = $u->getEmailForYahooGroup($groupid, TRUE);
@@ -2898,7 +2909,7 @@ class Message
         $groupq = $groupid ? " AND id = $groupid " : "";
         $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq;", [ $type ]);
         foreach ($groups as $group) {
-            $g = new Group($this->dbhr, $this->dbhm, $group['id']);
+            $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
             $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10]);
 
             # We want approved messages which haven't got a related message, i.e. aren't TAKEN/RECEIVED, which don't have
@@ -2924,7 +2935,7 @@ class Message
 
                     if ($g->getPrivate('onyahoo')) {
                         # Resend it to Yahoo.
-                        $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+                        $u = User::get($this->dbhr, $this->dbhm, $m->getFromuser());
                         $m->setPrivate('textbody', $m->stripGumf());
                         $m->submit($u, $m->getFromaddr(), $message['groupid']);
                     }

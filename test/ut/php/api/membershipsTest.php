@@ -30,17 +30,17 @@ class membershipsAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users WHERE yahooUserId LIKE '-testid%';");
         $dbhm->preExec("DELETE FROM users_emails WHERE backwards LIKE 'moctset%';");
 
-        $this->group = new Group($this->dbhr, $this->dbhm);
+        $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
         $this->group->setPrivate('onyahoo', TRUE);
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         assertNotNull($this->uid);
-        $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
         $this->uid2 = $u->create(NULL, NULL, 'Test User');
         assertNotNull($this->uid);
-        $this->user2 = new User($this->dbhr, $this->dbhm, $this->uid2);
+        $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
         $this->user2->addEmail('tes2t@test.com');
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($this->user->login('testpw'));
@@ -362,6 +362,7 @@ class membershipsAPITest extends IznikAPITestCase {
         assertFalse(pres('members', $ret));
 
         # Member - shouldn't see members list
+        error_log("Login as " . $this->user->getId());
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('memberships', 'PATCH', [
             'groupid' => $this->groupid,
@@ -409,11 +410,16 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         
         # Fake background job.
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        User::clearCache();
+        Group::clearCache();
         $g->processSetMembers();
+        User::clearCache();
+        Group::clearCache();
+        $this->dbhr->clearCache();
 
         # Test user search - here as we want to check the Yahoo details too.
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $ctx = NULL;
         $users = $u->search('test@test.com', $ctx);
         error_log("Search returned " . var_export($users, TRUE));
@@ -447,7 +453,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
         # Test merge by yahooid and yahooUserId
         error_log("Test merge");
-        $this->group = new Group($this->dbhr, $this->dbhm, $this->groupid);
+        $this->group = Group::get($this->dbhr, $this->dbhm, $this->groupid);
         $this->group->setPrivate('lastyahoomembersync', NULL);
 
         $members = [
@@ -539,7 +545,7 @@ class membershipsAPITest extends IznikAPITestCase {
     public function testReject() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         assertNotNull($uid);
         assertTrue($u->addMembership($this->groupid, User::ROLE_MEMBER, NULL, MembershipCollection::PENDING));
@@ -548,6 +554,8 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(1, count($members));
         $this->dbhm->preExec("UPDATE memberships_yahoo SET yahooapprove = 'test@test.com', yahooreject = 'test@test.com' WHERE membershipid = (SELECT id FROM memberships WHERE userid = $uid);");
         $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = $uid;");
+        User::clearCache($uid);
+
         $u->addEmail('test2@test.com');
         assertEquals(1, $this->user->addMembership($this->groupid));
 
@@ -649,7 +657,7 @@ class membershipsAPITest extends IznikAPITestCase {
     public function testDelete() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         assertNotNull($uid);
         assertTrue($u->addMembership($this->groupid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED));
@@ -730,7 +738,7 @@ class membershipsAPITest extends IznikAPITestCase {
     public function testApprove() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $eid = $u->addEmail('test2@test.com');
         assertNotNull($uid);
@@ -741,6 +749,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->dbhm->preExec("UPDATE memberships_yahoo SET yahooapprove = 'test@test.com', yahooreject = 'test@test.com' WHERE  membershipid = (SELECT id FROM memberships WHERE userid = $uid);");
 
         $this->dbhm->preExec("UPDATE users SET yahooUserId = 1 WHERE id = $uid;");
+        User::clearCache($uid);
         $u->addEmail('test2@test.com');
         assertEquals(1, $this->user->addMembership($this->groupid));
 
@@ -823,7 +832,7 @@ class membershipsAPITest extends IznikAPITestCase {
     public function testHold() {
         error_log(__METHOD__);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         assertNotNull($uid);
         assertTrue($u->addMembership($this->groupid, User::ROLE_MEMBER, NULL, MembershipCollection::PENDING));
@@ -846,7 +855,8 @@ class membershipsAPITest extends IznikAPITestCase {
         $ret = $this->call('memberships', 'POST', [
             'userid' => $uid,
             'groupid' => $this->groupid,
-            'action' => 'Hold'
+            'action' => 'Hold',
+            'dup' => 1
         ]);
         assertEquals(2, $ret['ret']);
 
@@ -935,9 +945,10 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         error_log("Done PATCH");
 
-        $g = new Group($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
         $g->processSetMembers($this->groupid);
-
+        User::clearCache();
+        
         $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ?;";
         $counts = $this->dbhr->preQuery($sql, [ $this->groupid ]);
         assertEquals($size + 1, $counts[0]['count']);
@@ -1010,7 +1021,7 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        $u = new User($this->dbhm, $this->dbhm);
+        $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->addMembership($this->groupid);
 

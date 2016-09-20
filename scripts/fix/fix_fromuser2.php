@@ -5,7 +5,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 
-$u = new User($dbhr, $dbhm);
+$u = User::get($dbhr, $dbhm);
 
 $messages = $dbhr->preQuery("SELECT messages.id, fromuser, fromaddr FROM messages WHERE fromuser IS NOT NULL;");
 
@@ -15,7 +15,7 @@ foreach ($messages as $message) {
     $id = $u->findByEmail($message['fromaddr']);
 
     if (!$id) {
-        $u = new User($dbhr, $dbhm, $message['fromuser']);
+        $u = User::get($dbhr, $dbhm, $message['fromuser']);
         $u->addEmail($message['fromaddr'], 0);
     }
 
