@@ -215,6 +215,7 @@ define([
                 self.waitDOM(self, function() {
                     // TODO This doesn't work for Firefox - not sure why.
                     if (!self.options.search) {
+                        self.$('.js-postwantedpresearch').show().addClass('fadein');
                         self.typeahead.focus();
                     }
                 });
