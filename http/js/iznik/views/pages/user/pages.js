@@ -14,10 +14,10 @@ define([
         events: {
             'focus .tt-input': 'scrollTo',
             'click .js-getloc': 'getLocation',
-            'change .js-homegroup': 'changeHomeGroup',
+            'click .js-changehomegroup': 'changeHomeGroup',
             'typeahead:change .js-postcode': 'locChange',
             'keyup .js-postcode': 'keyUp',
-            'click .tt-suggestion': 'locChange'
+            'click .tt-suggestion': 'locChange',
         },
 
         keyUp: function(e) {
@@ -34,7 +34,7 @@ define([
                             typeahead: self.firstMatch
                         }, success: function(ret) {
                             if (ret.ret == 0) {
-                                self.recordLocation(ret.locations[0], true);
+                                self.recordLocation(ret.locations[0]);
                                 self.$('.js-next').click();
                             }
                         }
@@ -60,13 +60,31 @@ define([
             navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this));
         },
 
-        changeHomeGroup: function(val) {
-            // If we weren't passed one, then this is the event and we pick up the current value.
-            if (val.hasOwnProperty('target')) {
-                val = this.$('.js-homegroup select').val();
+        changeHomeGroup: function() {
+            var self = this;
+
+            // This is invoked when we choose to continue on the site.  We save the group we are using in
+            // local storage for later pages to use.
+            var val;
+
+            if (self.$('.js-homegroup').length > 0) {
+                // We have a group dropdown.  Choose the group which it is showing.
+                val = self.$('.js-homegroup select').val();
+                console.log("Get from dropdown");
+            } else {
+                // We don't have a dropdown but are proceeding onsite.  Choose the closest group which is on the
+                // site.
+                console.log("No select, nearby groupds", self.groupsnear);
+                _.each(self.groupsnear, function(groupnear) {
+                    if (!val && groupnear.onhere) {
+                        console.log("Got on here", groupnear);
+                        val = groupnear.id;
+                    }
+                });
             }
 
             try {
+                console.log("Save home group", val);
                 localStorage.setItem('myhomegroup', val);
             } catch (e) {}
         },
@@ -83,7 +101,7 @@ define([
                     typeahead: loc
                 }, success: function(ret) {
                     if (ret.ret == 0) {
-                        self.recordLocation(ret.locations[0], true);
+                        self.recordLocation(ret.locations[0]);
 
                         // Update our map if we have one.
                         var map = self.$('.js-locmap');
@@ -153,25 +171,20 @@ define([
             }
         },
 
-        recordLocation: function(location, changegroup) {
+        recordLocation: function(location) {
             var self = this;
-            // console.log("Record location ", this.$('.js-postcode').typeahead('val'), location.name, changegroup);
+            console.log("Record location ", this.$('.js-postcode').typeahead('val'), location.name); console.trace();
 
             if (!_.isUndefined(location)) {
-                if (this.$('.js-postcode').typeahead('val') != location.name && changegroup) {
-                    // We've changed location.  We might need to change group too.
-                    try {
-                        localStorage.removeItem('myhomegroup');
-                    } catch (e) {}
-                }
-
                 this.$('.js-postcode').typeahead('val', location.name);
                 self.$('.js-next').fadeIn('slow');
                 self.$('.js-ok').fadeIn('slow');
 
                 // console.log("Record location", location);
-                self.groupsnear = location.groupsnear;
-                // console.log("Groupsnear length", self.groupsnear.length);
+                if (!_.isUndefined(location.groupsnear)) {
+                    self.groupsnear = location.groupsnear;
+                    console.log("Groupsnear length", self.groupsnear.length);
+                }
 
                 try {
                     var l = location;
@@ -232,11 +245,6 @@ define([
 
                         if (homegroupfound) {
                             groups.val(homegroup);
-                        } else if (firstonhere) {
-                            // Record our home group as the closest group we found which is on the platform
-                            self.changeHomeGroup(firstonhere);
-                        } else {
-                            self.changeHomeGroup(self.$('.js-homegroup select').val());
                         }
 
                         self.changeGroup();
@@ -249,19 +257,6 @@ define([
                     self.$('.js-homegroup').hide();
                     if (self.groupsnear) {
                         self.changeGroup();
-                    }
-
-                    // And record our home group as the closest group we found on the platform.
-                    var firstonhere = null;
-                    _.each(self.groupsnear, function(groupnear) {
-                        if (!firstonhere && groupnear.onhere) {
-                            console.log("Got on here", groupnear);
-                            firstonhere = groupnear.id;
-                        }
-                    });
-
-                    if (firstonhere) {
-                        self.changeHomeGroup(firstonhere);
                     }
                 }
             }
