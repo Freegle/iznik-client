@@ -310,20 +310,26 @@ define([
         render: function () {
             var self = this;
             this.model.set('outcome', this.options.outcome);
-            this.open(this.template);
-            this.changeOutcome();
+            var p = this.open(this.template);
 
-            // We want to show the people to whom it's promised first, as they're likely to be correct and most
-            // likely to make the user change it if they're not correct.
-            var replies = this.model.get('replies');
-            replies = _.sortBy(replies, function (reply) {
-                return (-reply.promised);
+            p.then(function() {
+                self.changeOutcome();
+
+                // We want to show the people to whom it's promised first, as they're likely to be correct and most
+                // likely to make the user change it if they're not correct.
+                var replies = self.model.get('replies');
+                replies = _.sortBy(replies, function (reply) {
+                    return (-reply.promised);
+                });
+                _.each(replies, function (reply) {
+                    console.log("Add reply", reply);
+                    self.$('.js-user').append('<option value="' + reply.user.id + '" />');
+                    self.$('.js-user option:last').html(reply.user.displayname);
+                })
+                self.$('.js-user').append('<option value="0">Someone else</option>');
             });
-            _.each(replies, function (reply) {
-                self.$('.js-user').append('<option value="' + reply.user.id + '" />');
-                self.$('.js-user option:last').html(reply.user.displayname);
-            })
-            self.$('.js-user').append('<option value="0">Someone else</option>');
+
+            return(p);
         }
     });
 
