@@ -1058,9 +1058,10 @@ define([
         userAbout: function() {
             var self = this;
 
-            require(["iznik/views/pages/user/landing"], function() {
-                var page = new Iznik.Views.User.Pages.Landing.About();
-                self.loadRoute({page: page});
+            require(["iznik/views/pages/user/landing"], function () {
+            	var mobile_version = $('meta[name=iznik_mobile_version]').attr("content");	// CC
+            	var page = new Iznik.Views.User.Pages.Landing.About({ model: new Iznik.Model({ mobile_version: mobile_version }) });	// CC
+            	self.loadRoute({ page: page });
             });
         },
         
@@ -1128,6 +1129,7 @@ define([
     try {
     	  var root = location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1);	// CC
     	  root = decodeURI(root.replace(/%25/g, '%2525'));	// CC
+    	  console.log("Backbone root", root);	// CC
     	  Backbone.history.start({
     	      root: root,	// CC
             pushState: true

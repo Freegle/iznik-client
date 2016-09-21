@@ -1,4 +1,4 @@
-var API = 'https://iznik.ilovefreegle.org/api/'; // CC
+var API = 'https://ilovefreegle.org/api/'; // CC
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
@@ -44,14 +44,14 @@ requirejs.onError = function (err) {
 // Global error catcher so that we log to the server.
 window.onerror = function(message, file, line) {
 	console.error(message, file, line);
-	$.ajax({
+	/*$.ajax({
 		url: API + 'error',
 		type: 'PUT',
 		data: {
 			'errortype': 'Exception',
 			'errortext': message + ' in ' + file + ' line ' + line
 		}
-	});
+	});*/
 };
 
 function mainOnAppStart() { // CC
@@ -63,6 +63,7 @@ require([
     'backbone',
     'iznik/router'
 ], function($, _, Backbone) {
+	console.log("starting...");	// CC
 	if (!Backbone) {
         // Something has gone unpleasantly wrong.
         console.error("Backbone failed to fetch");

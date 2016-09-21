@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE HTML>
 <html>
 <head>
-	  <meta name="iznikmobileversion" content="1.0.0, 31 August 2016">
+	  <meta name="iznik_mobile_version" content="1.0.0, 21 September 2016">
     <!-- Hi there.  We always need geek volunteers.  Why not mail geeks@ilovefreegle.org to get in touch, or -->
     <!-- help make the code better at https://github.com/Freegle/iznik ?  -->
     <meta name="msapplication-tap-highlight" content="no"/>
@@ -39,7 +39,7 @@
             }
         }, 120000);
 
-        if ('serviceWorker' in navigator) {
+        /*if ('serviceWorker' in navigator) {
             // Before we do anything else, get our service worker up and running.  This will allow us to do better
             // caching where the browser supports them.
             //
@@ -92,7 +92,7 @@
                     }
                 });
             }
-        }
+        }*/
         console.log("ROOT START B");
     </script>    
 
@@ -122,11 +122,11 @@
     <link rel="stylesheet" href="css/bootstrap-select.min.css">
     <link rel="stylesheet" href="css/bootstrap-switch.min.css">
     <link rel="stylesheet" href="css/datepicker3.css">
-    <link rel="stylesheet" href="css/bootstrap-tagsinput.css">
     <link rel="stylesheet" href="js/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css">
     <link rel="stylesheet" href="css/dd.css">
+		<link rel="stylesheet" href="css/fileinput.css" />
 
-    <link rel="stylesheet" type="text/css" href="css/style.css?a=49">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
     <!--[if lt IE 9]>
     <link rel="stylesheet" type="text/css" href="css/ie-only.css">
     <![endif]-->
@@ -135,11 +135,11 @@
     <meta name="iznikchat" content="iznik.modtools.org">
     <meta name="iznikevent" content="dev.ilovefreegle.org/api/"> <!-- CC -->
     <!--meta name="iznikusergroupoverride" content="FreeglePlayground"-->  <!-- CC -->
-    <meta name="iznikusersite" content="iznik.ilovefreegle.org">
+		<meta name="iznikusersite" content="ilovefreegle.org">
     <meta name="iznikmodsite" content="modtools.org">
     
     <!-- And then some custom styles for our different apps -->
-    <link rel="stylesheet" type="text/css" href="css/user.css?a=33">
+    <link rel="stylesheet" type="text/css" href="css/user.css">
 
 
 	<script src="js/lib/require.js"></script>         <!-- CC -->

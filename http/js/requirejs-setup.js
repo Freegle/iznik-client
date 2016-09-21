@@ -1,12 +1,12 @@
 // We load everything using require.  We need some shims for scripts which aren't AMD-compatible.
 var metas = document.getElementsByTagName('meta');
-var bust = (new Date()).getTime();
+/* // CC var bust = (new Date()).getTime();
 
 for (var i=0; i<metas.length; i++) {
     if (metas[i].getAttribute("name") == "iznikcache") {
         bust = metas[i].getAttribute("content");
     }
-}
+}*/
 
 var iznikroot = location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1);	// CC
 iznikroot = decodeURI(iznikroot.replace(/%25/g, '%2525'));	// CC
@@ -16,7 +16,7 @@ requirejs.config({
     baseUrl: iznikroot + "js/lib",	// CC
 
     // The server has returned info telling us when code was changed, which we can use to bust our cache.
-    urlArgs: "bust=" + bust,
+    // CC urlArgs: "bust=" + bust,
 
     shim : {
         "bootstrap" : [ 'jquery' ],
