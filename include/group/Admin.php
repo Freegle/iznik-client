@@ -40,10 +40,9 @@ class Admin extends Entity
         $post = "https://direct.ilovefreegle.org/login.php?action=post";
         $unsubscribe = 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($to);
 
-        # TODO Change to per group link.
-        $visit = "https://direct.ilovefreegle.org";
+        $visit = "https://" .  USER_SITE . "/mygroups";
 
-        $html = admin_tpl($groupname, $toname, $to, USER_DOMAIN, USERLOGO, $subject, $text, $post, $unsubscribe, $visit);
+        $html = admin_tpl($groupname, $toname, $to, 'https://' . USER_SITE, USERLOGO, $subject, $text, $post, $unsubscribe, $visit);
         $message = Swift_Message::newInstance()
             ->setSubject("ADMIN: $subject")
             ->setFrom([$from => "$groupname Volunteers" ])
