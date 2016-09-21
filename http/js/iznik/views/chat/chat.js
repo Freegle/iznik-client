@@ -685,7 +685,7 @@ define([
 
         keyUp: function(e) {
             var self = this;
-            if (e.which === 13 && e.altKey) {
+            if (e.which === 13 && (e.altKey || e.shiftKey)) {
                 this.$('.js-message').val(this.$('.js-message').val() + "\n");
             } else if (e.which === 13) {
                 this.send();
