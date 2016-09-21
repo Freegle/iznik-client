@@ -100,9 +100,6 @@ define([
             // Set the base page layout.
             var p = new Promise(function(resolve, reject) {
                 templateFetch(self.modtools ? 'modtools_layout_layout' : 'user_layout_layout').then(function(tpl) {
-                    // Save and restore the minimised chats which would otherwise get zapped.
-                    var chats = $('#notifchatdropdownlist').children().detach();
-
                     if (self.title) {
                         window.document.title = self.title;
                     }
@@ -110,35 +107,7 @@ define([
                     $('#bodyContent').html(window.template(tpl));
                     $('.js-pageContent').html(self.$el);
 
-                    $('#notifchatdropdownlist').html(chats);
-
-                    if (chats.length) {
-                        $('#js-notifchat').show();
-                    } else {
-                        $('#js-notifchat').hide();
-                    }
-
-                    $('#js-notifchat').click(function(e) {
-                        var display = $('#notifchatdropdown').css('display');
-
-                        if (display === 'none') {
-                            $('#notifchatdropdown').show();
-                        } else {
-                            $('#notifchatdropdown').hide();
-                        }
-                        e.preventDefault();
-                        e.stopPropagation();
-                    });
-
-                    $(document).click(function(e) {
-                        // If we click outside the chat dropdown, hide it.
-                        if (!$(e.target).closest('#notifchatdropdown').length) {
-                            $('#notifchatdropdown').hide();
-                        }
-
-                        // If we click outside the dropdown menu, hide that.
-                        $('.navbar-collapse').collapse('hide');
-                    });
+                    ChatHolder().createMinimised();
 
                     $('#botleft').empty();
 
