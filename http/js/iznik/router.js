@@ -144,6 +144,7 @@ define([
             "donate": "userDonate",
             "contact": "userContact",
             "help": "userContact",
+            "handbook": "userContact",
             "plugins/events/:id": "communityEventsPlugin",
             "plugins/group?groupid=:id(&*t)": "groupPlugin",
             "plugins/group/:id": "groupPlugin",
