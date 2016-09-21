@@ -18,7 +18,17 @@ define([
         
         events: {
             'click .js-getloc': 'getLocation',
-            'click .js-locbtn': 'locButton'
+            'click .js-locbtn': 'locButton',
+            'keyup .js-location': 'keyUp'
+        },
+
+        keyUp: function(e) {
+            if (e.which === 13) {
+                // Just suppress - we want them to choose from the autocomplete.
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+            }
         },
 
         locButton: function() {
