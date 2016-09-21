@@ -293,11 +293,36 @@ define([
         template: 'user_explore_single',
 
         events: {
-            'click .js-join': 'join'
+            'click .js-join': 'join',
+            'click .js-leave': 'leave'
         },
 
         join: function() {
             Router.navigate('/explore/' + this.model.get('id') + '/join', true);
+        },
+
+        leave: function() {
+            var self = this;
+
+            $.ajax({
+                url: API + '/memberships',
+                type: 'DELETE',
+                data: {
+                    groupid: self.model.get('id'),
+                    userid: Iznik.Session.get('me').id
+                },
+                success: function(ret) {
+                    if (ret.ret === 0) {
+                        // Now force a refresh of the session.
+                        self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                            self.model.set('role', 'Non-member');
+                            self.render();
+                        });
+
+                        Iznik.Session.testLoggedIn(true);
+                    }
+                }
+            })    ;
         },
 
         filter: function(model) {

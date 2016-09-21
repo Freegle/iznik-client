@@ -3,6 +3,7 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'moment',
     'iznik/selectpersist',
     'iznik/views/pages/pages',
     'iznik/views/pages/user/pages',
@@ -10,7 +11,7 @@ define([
     'iznik/views/pages/user/group',
     'iznik/views/group/select',
     'iznik/views/user/message'
-], function($, _, Backbone, Iznik) {
+], function($, _, Backbone, Iznik, moment) {
     Iznik.Views.User.Pages.MyGroups = Iznik.Views.User.Pages.Group.extend({
         template: "user_mygroups_main",
 
@@ -53,6 +54,23 @@ define([
                     self.listenTo(v, 'selected', function(selected) {
                         self.selected = selected;
                         self.refetch();
+
+                        if (selected == -1) {
+                            // No specific group info.
+                            self.$('.js-groupinfo').empty();
+                        } else {
+                            // Show info, including leave button, for this group.
+                            var group = Iznik.Session.getGroup(selected);
+
+                            if (group) {
+                                var v = new Iznik.Views.User.Pages.MyGroups.GroupInfo({
+                                    model: group
+                                });
+                                v.render().then(function() {
+                                    self.$('.js-groupinfo').html(v.$el);
+                                });
+                            }
+                        }
                     });
 
                     // Render after the listen to as that are called during render.
@@ -70,6 +88,56 @@ define([
             });
 
             return (p);
+        }
+    });
+
+    Iznik.Views.User.Pages.MyGroups.GroupInfo = Iznik.View.extend({
+        template: 'user_mygroups_groupinfo',
+
+        events: {
+            'click .js-leave': 'leave'
+        },
+
+        leave: function() {
+            var self = this;
+
+            $.ajax({
+                url: API + '/memberships',
+                type: 'DELETE',
+                data: {
+                    groupid: self.model.get('id'),
+                    userid: Iznik.Session.get('me').id
+                },
+                success: function(ret) {
+                    if (ret.ret === 0) {
+                        // Now force a refresh of the session.
+                        self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                            Router.navigate('/mygroups', true);
+                        });
+
+                        Iznik.Session.testLoggedIn(true);
+                    }
+                }
+            })
+        },
+        
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(this);
+            
+            p.then(function() {
+                self.$('.js-membercount').html(self.model.get('membercount').toLocaleString());
+
+                var founded = self.model.get('founded');
+                if (founded) {
+                    var m = new moment(founded);
+                    self.$('.js-foundeddate').html(m.format('Do MMMM, YYYY'));
+                    self.$('.js-founded').show();
+                }
+            });
+            
+            return(p);
         }
     });
 });

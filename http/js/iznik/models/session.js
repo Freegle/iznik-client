@@ -139,34 +139,36 @@ define([
             }
         },
 
-        testLoggedIn: function () {
+        testLoggedIn: function (forceserver) {
             var self = this;
 
             // The mainline case is that we have our session cached in local storage, which allows us to get on
             // with things rapidly - in conjunction with use of the appcache it means that we don't need any server
             // interactions before we can start rendering the page.
             self.testing = true;
-            try {
-                var sess = localStorage.getItem('session');
+            if (!forceserver) {
+                try {
+                    var sess = localStorage.getItem('session');
 
-                if (sess) {
-                    self.testing = false;
-                    var parsed = JSON.parse(sess);
-                    self.set(parsed);
+                    if (sess) {
+                        self.testing = false;
+                        var parsed = JSON.parse(sess);
+                        self.set(parsed);
 
-                    // We get an array of groups back - we want it to be a collection.
-                    self.set('groups', new Iznik.Collection(parsed.groups));
+                        // We get an array of groups back - we want it to be a collection.
+                        self.set('groups', new Iznik.Collection(parsed.groups));
 
-                    // We may also get an array of modconfigs.
-                    if (parsed.configs) {
-                        self.set('configs', new Iznik.Collection(parsed.configs));
+                        // We may also get an array of modconfigs.
+                        if (parsed.configs) {
+                            self.set('configs', new Iznik.Collection(parsed.configs));
+                        }
+
+                        self.loggedIn = true;
+                        self.trigger('isLoggedIn', true);
                     }
-
-                    self.loggedIn = true;
-                    self.trigger('isLoggedIn', true);
+                } catch (e) {
+                    console.error("testLoggedIn exception", e.message);
                 }
-            } catch (e) {
-                console.error("testLoggedIn exception", e.message);
             }
 
             // Now we may or may not have already triggered, but we still want to refresh our data from the server
