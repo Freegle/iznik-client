@@ -225,6 +225,10 @@
     display: block;
 }
 
+.transback {
+    background: none !important;
+}
+
 .margin {
     margin: 10px;
 }
