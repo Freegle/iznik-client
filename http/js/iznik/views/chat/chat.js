@@ -159,15 +159,7 @@ define([
                     // First make sure that the minimised chat list and counts are up to date.
                     self.updateCounts();
 
-                    // For some reason we don't quite understand yet, the element can get detached so make sure it's
-                    // there.
-                    var el = Iznik.minimisedChats.$el;
-                    if (el.closest('body').length == 0) {
-                        console.log("Chats detached");
-                        self.createMinimised();
-                    }
-
-                    Iznik.minimisedChats.render();
+                    self.createMinimised();
 
                     // Now work out which chats if any we need to refetch.
                     self.fallbackFetch = [];
@@ -487,7 +479,7 @@ define([
         showMin: function() {
             // No point showing the chat icon if we've nothing to show - will just encourage people to click
             // on something which won't do anything.
-            if (Iznik.Session.chats.length > 0) {
+            if (Iznik.Session.chats && Iznik.Session.chats.length > 0) {
                 $('#js-notifchat').show();
             } else {
                 $('#js-notifchat').hide();
@@ -514,6 +506,38 @@ define([
             });
 
             Iznik.minimisedChats.render();
+
+            $('#js-notifchat').click(function(e) {
+                var display = $('#notifchatdropdown').css('display');
+                console.log("Click on chat button, current", display, $('#notifchatdropdown').length);
+
+                if (display === 'none') {
+                    console.log("Show");
+                    $('#notifchatdropdown').show();
+                } else {
+                    console.log("Hide");
+                    $('#notifchatdropdown').hide();
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+            });
+
+            $(document).click(function(e) {
+                // If we click outside the chat dropdown, hide it.
+                if (!$(e.target).closest('#notifchatdropdown').length) {
+                    $('#notifchatdropdown').hide();
+                }
+
+                // If we click outside the dropdown menu, hide that.
+                $('.navbar-collapse').collapse('hide');
+            });
+
+            // Not within this DOM.
+            $('.js-minimiseall').on('click', self.minimiseall);
+            $('.js-allseen').on('click', self.allseen);
+
+            self.showMin();
         },
 
         render: function() {
@@ -559,10 +583,6 @@ define([
                             self.showMin();
                         });
                     });
-
-                    // Not within this DOM.
-                    $('.js-minimiseall').on('click', self.minimiseall);
-                    $('.js-allseen').on('click', self.allseen);
 
                     if (!self.bulkUpdateRunning) {
                         // We update the roster for all chats periodically.
@@ -685,7 +705,7 @@ define([
 
         keyUp: function(e) {
             var self = this;
-            if (e.which === 13 && e.altKey) {
+            if (e.which === 13 && (e.altKey || e.shiftKey)) {
                 this.$('.js-message').val(this.$('.js-message').val() + "\n");
             } else if (e.which === 13) {
                 this.send();
@@ -1001,6 +1021,10 @@ define([
                 self.scrollBottom();
                 self.trigger('restored');
             });
+
+            window.setTimeout(function() {
+                self.$('.js-modwarning').slideUp('slow');
+            }, 30000);
         },
 
         scrollTimer: null,

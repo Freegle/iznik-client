@@ -23,7 +23,7 @@ list ($transport, $mailer) = getMailer();
 $message = Swift_Message::newInstance()
     ->setSubject('Summary of groups not active on ModTools')
     ->setFrom(GEEKS_ADDR)
-    ->setTo(MENTORS_ADDR)
+    ->setTo([ MENTORS_ADDR, SUPPORT_ADDR ])
     ->setCc(GEEKS_ADDR)
     ->setDate(time())
     ->setBody(

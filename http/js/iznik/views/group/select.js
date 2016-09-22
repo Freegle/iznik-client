@@ -123,7 +123,12 @@ define([
                 });
             }
 
+            var gotselected = false;
             Iznik.Session.get('groups').each(function(group) {
+                if (group.get('id') == self.options.selected) {
+                    gotselected = true;
+                }
+
                 var role = group.get('role');
                 // console.log("Consider group", group, role);
 
@@ -138,7 +143,7 @@ define([
                 }
             });
 
-            if (self.options.hasOwnProperty('selected') && self.options.selected) {
+            if (gotselected && self.options.hasOwnProperty('selected') && self.options.selected) {
                 self.dropdown.setIndexByValue(self.options.selected);
             } else {
                 self.dropdown.set('selectedIndex', 0);

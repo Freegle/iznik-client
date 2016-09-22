@@ -37,6 +37,10 @@ define([
 
             var term = this.$('.js-search').val();
 
+            try {
+                localStorage.setItem('searchtype', self.$('.js-searchoffers').prop('checked') ? 'Offer' : 'Wanted');
+            } catch (e) {}
+
             if (term != '') {
                 Router.navigate('/find/search/' + encodeURIComponent(term), true);
             } else {
@@ -77,6 +81,22 @@ define([
                 
                 var data;
 
+                self.searchtype = 'Offer';
+
+                try {
+                    var stored = localStorage.getItem('searchtype');
+
+                    if (stored) {
+                        self.searchtype = stored;
+                    }
+                } catch (e) {}
+
+                self.$(".js-searchoffers").bootstrapSwitch({
+                    onText: 'Search OFFERs',
+                    offText: 'Search WANTEDs',
+                    state: self.searchtype == 'Offer'
+                });
+
                 if (self.options.search) {
                     // We've searched for something - we're showing the results.
                     self.$('h1').hide();
@@ -99,7 +119,7 @@ define([
                     });
 
                     data = {
-                        messagetype: 'Offer',
+                        messagetype: self.searchtype,
                         nearlocation: mylocation ? mylocation.id : null,
                         search: self.options.search,
                         subaction: 'searchmess'
@@ -116,9 +136,13 @@ define([
                             collection: 'Approved'
                         });
                     }
-                    
-                    data = {};
+
+                    data = {
+                        messagetype: self.searchtype
+                    };
                 }
+
+                console.log("Fetch data", data);
 
                 self.collectionView = new Backbone.CollectionView({
                     el: self.$('.js-list'),
@@ -215,6 +239,7 @@ define([
                 self.waitDOM(self, function() {
                     // TODO This doesn't work for Firefox - not sure why.
                     if (!self.options.search) {
+                        self.$('.js-postwantedpresearch').show().addClass('fadein');
                         self.typeahead.focus();
                     }
                 });
