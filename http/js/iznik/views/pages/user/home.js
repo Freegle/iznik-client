@@ -88,27 +88,6 @@ define([
                 // We listen for events on the messages collection and ripple them through to the relevant offers/wanteds
                 // collection.  CollectionView will then handle rendering/removing the messages view.
                 self.listenTo(self.messages, 'add', function (msg) {
-                    // If we got this from cache, then the groups attribute will not contain models, as we expect,
-                    // but raw data.  Perhaps we ought not to be putting models in there at all - see:
-                    //
-                    // http://backbonejs.org/#FAQ-nested
-                    // https://github.com/jashkenas/backbone/issues/483
-                    //
-                    // But for now just make sure it's a model.
-                    var groups = msg.get('groups');
-                    console.log("Groups", groups);
-                    // var newgroups = [];
-                    // _.each(groups, function(group) {
-                    //     if (_.isArray(group)) {
-                    //         newgroups.push(new Iznik.Models.Group(group));
-                    //     };
-                    // });
-                    //
-                    // console.log("newgroups", groups);
-                    // if (newgroups.length > 0) {
-                    //     msg.set('groups', newgroups);
-                    // }
-
                     var related = msg.get('related');
 
                     if (msg.get('type') == 'Offer') {
