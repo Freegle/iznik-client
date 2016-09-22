@@ -544,6 +544,18 @@ define([
             var self = this;
             var p;
 
+            try {
+                // Remove old minimised data.
+                // TODO Remove this code after 2016-10-22.
+                for (var i = 0; i < localStorage.length; i++){
+                    var key = localStorage.key(i);
+
+                    if (key.indexOf('-minimised') !== -1) {
+                        localStorage.removeItem(key);
+                    }
+                }
+            } catch (e) {};
+
             // We might already be rendered, as we're outside the body content that gets zapped when we move from
             // page to page.
             if ($('#chatHolder').length == 0) {
@@ -884,7 +896,10 @@ define([
             self.updateRoster('Away', self.noop);
 
             try {
-                localStorage.setItem(this.lsID() + '-minimised', 1);
+                // Remove the local storage, otherwise it will clog up with info for chats we don't look at.
+                localStorage.removeItem(this.lsID() + '-open');
+                localStorage.removeItem(this.lsID() + '-height');
+                localStorage.removeItem(this.lsID() + '-width');
             } catch (e) { console.error(e.message)};
 
             this.trigger('minimised');
@@ -1005,7 +1020,7 @@ define([
             self.updateRoster(self.statusWithOverride('Online'), self.noop);
 
             try {
-                localStorage.setItem(self.lsID() + '-minimised', 0);
+                localStorage.setItem(self.lsID() + '-open', 1);
             } catch (e) {
             }
 
@@ -1280,11 +1295,11 @@ define([
                 try {
                     // On mobile we start them all minimised as there's not much room.
                     //
-                    // Default to minimised, which is what we get if the key is missing and returns null.
-                    var lsval = localStorage.getItem(self.lsID() + '-minimised');
-                    lsval = lsval === null ? lsval : parseInt(lsval);
+                    // Otherwise default to minimised, which is what we get if the key is missing and returns null.
+                    var open = localStorage.getItem(self.lsID() + '-open');
+                    open = (open === null) ? open : parseInt(open);
 
-                    if (lsval === null || lsval || narrow) {
+                    if (!open || narrow) {
                         minimise = true;
                     } else {
                         minimise = false;
