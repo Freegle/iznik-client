@@ -317,7 +317,7 @@ define([
                 var groups = [];
                 _.each(message.groups, function(group) {
                     var groupdata = ret.groups[group.groupid];
-                    groups.push(_.extend([], groupdata, group));
+                    groups.push(_.extend({}, groupdata, group));
                 });
 
                 message.groups = groups;
@@ -443,7 +443,7 @@ define([
                             }
                         }
 
-                        groups.push(_.extend([], groupdata, group));
+                        groups.push(_.extend({}, groupdata, group));
                     });
 
                     message.arrival = (new Date(arrival)).toISOString();

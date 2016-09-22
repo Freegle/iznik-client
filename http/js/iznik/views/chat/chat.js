@@ -77,9 +77,7 @@ define([
                                 if (data) {
                                     if (data.hasOwnProperty('newroom')) {
                                         // We have been notified that we are now in a new chat.  Pick it up.
-                                        Iznik.Session.chats.fetch({
-                                            modtools: self.options.modtools
-                                        }).then(function() {
+                                        Iznik.Session.chats.fetch().then(function() {
                                             // Now that we have the chat, update our status in it.
                                             var chat = Iznik.Session.chats.get(data.newroom);
 
@@ -99,9 +97,7 @@ define([
                                         // within it so that they are displayed.  If it's not, then we don't want
                                         // to keep fetching messages - the notification count will get updated by
                                         // the roster poll.
-                                        Iznik.Session.chats.fetch({
-                                            modtools: self.options.modtools
-                                        }).then(function() {
+                                        Iznik.Session.chats.fetch().then(function() {
                                             var chat = Iznik.Session.chats.get(data.roomid);
 
                                             // It's possible that we haven't yet fetched the model for this chat.
@@ -153,9 +149,7 @@ define([
                     lastseens[chat.get('id')] = chat.get('lastmsgseen');
                 });
 
-                Iznik.Session.chats.fetch({
-                    modtools: self.options.modtools
-                }).then(function() {
+                Iznik.Session.chats.fetch().then(function() {
                     // First make sure that the minimised chat list and counts are up to date.
                     self.updateCounts();
 
@@ -389,10 +383,7 @@ define([
                     groupid: groupid
                 }, success: function(ret) {
                     if (ret.ret == 0) {
-                        Iznik.Session.chats.fetch({
-                            modtools: self.options.modtools,
-                            remove: false
-                        }).then(function() {
+                        Iznik.Session.chats.fetch().then(function() {
                             // Now create a report message.
                             var msg = new Iznik.Models.Chat.Message({
                                 roomid: ret.id,
@@ -423,10 +414,7 @@ define([
                     groupid: groupid
                 }, success: function(ret) {
                     if (ret.ret == 0) {
-                        Iznik.Session.chats.fetch({
-                            modtools: self.options.modtools,
-                            remove: false
-                        }).then(function() {
+                        Iznik.Session.chats.fetch().then(function() {
                             // Defer to give the CollectionView time to respond.
                             _.defer(function() {
                                 var chatmodel = Iznik.Session.chats.get(ret.id);
@@ -456,10 +444,7 @@ define([
                         userid: userid
                     }, success: function(ret) {
                         if (ret.ret == 0) {
-                            Iznik.Session.chats.fetch({
-                                modtools: self.options.modtools,
-                                remove: false
-                            }).then(function() {
+                            Iznik.Session.chats.fetch().then(function() {
                                 // Defer to give the CollectionView time to respond.
                                 _.defer(function() {
                                     var chatmodel = Iznik.Session.chats.get(ret.id);
@@ -488,6 +473,7 @@ define([
 
         createMinimised: function() {
             var self = this;
+            console.log("Create minimised");
 
             Iznik.minimisedChats = new Backbone.CollectionView({
                 el: $('#notifchatdropdownlist'),
@@ -540,6 +526,34 @@ define([
             self.showMin();
         },
 
+        fetchedChats: function() {
+            var self = this;
+
+            // This can be called multiple times.
+            if (!self.chatsFetched) {
+                self.chatsFetched = true;
+                Iznik.activeChats = new Backbone.CollectionView({
+                    el: self.$('.js-chats'),
+                    modelView: Iznik.Views.Chat.Active,
+                    collection: Iznik.Session.chats,
+                    modelViewOptions: {
+                        organise: _.bind(self.organise, self),
+                        updateCounts: _.bind(self.updateCounts, self),
+                        modtools: self.options.modtools
+                    }
+                });
+
+                Iznik.activeChats.render();
+
+                self.waitDOM(self, function() {
+                    self.createMinimised();
+                    Iznik.Session.trigger('chatsfetched');
+                    self.organise();
+                    self.showMin();
+                });
+            }
+        },
+
         render: function() {
             var self = this;
             var p;
@@ -567,34 +581,17 @@ define([
 
                 p = Iznik.View.prototype.render.call(self).then(function(self) {
                     $("#bodyEnvelope").append(self.$el);
-                    Iznik.Session.chats.fetch({
-                        modtools: Iznik.Session.get('modtools')
-                    }).then(function () {
-                        Iznik.Session.chats.each(function (chat) {
-                            // If the unread message count changes, we want to update it.
-                            self.listenTo(chat, 'change:unseen', self.updateCounts);
-                        });
 
-                        Iznik.activeChats = new Backbone.CollectionView({
-                            el: self.$('.js-chats'),
-                            modelView: Iznik.Views.Chat.Active,
-                            collection: Iznik.Session.chats,
-                            modelViewOptions: {
-                                organise: _.bind(self.organise, self),
-                                updateCounts: _.bind(self.updateCounts, self),
-                                modtools: self.options.modtools
-                            }
-                        });
-
-                        Iznik.activeChats.render();
-
-                        self.waitDOM(self, function() {
-                            self.createMinimised();
-                            Iznik.Session.trigger('chatsfetched');
-                            self.organise();
-                            self.showMin();
-                        });
+                    Iznik.Session.chats.on('add', function (chat) {
+                        // We have a new chat.  If the unread message count changes, we want to update it.
+                        self.listenTo(chat, 'change:unseen', self.updateCounts);
                     });
+
+                    var cb = _.bind(self.fetchedChats, self);
+
+                    Iznik.Session.chats.fetch({
+                        cached: cb
+                    }).then(cb);
 
                     if (!self.bulkUpdateRunning) {
                         // We update the roster for all chats periodically.
@@ -1178,9 +1175,7 @@ define([
         },
 
         openChat: function(chatid) {
-            Iznik.Session.chats.fetch({
-                modtools: Iznik.Session.get('modtools')
-            }).then(function() {
+            Iznik.Session.chats.fetch().then(function() {
                 var chatmodel = Iznik.Session.chats.get(chatid);
                 var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
                 chatView.restore();

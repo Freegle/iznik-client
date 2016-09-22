@@ -364,3 +364,5 @@ function strip_tags (input, allowed) { // eslint-disable-line camelcase
         return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : ''
     })
 }
+
+function nullFn() {}

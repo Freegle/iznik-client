@@ -5,6 +5,7 @@
 define([
     'jquery',
     'backbone',
+    'iznik/underscore',
     'backbone.collectionView',
     'waypoints',
     'moment',
@@ -17,7 +18,6 @@ define([
     'text',
     'iznik/diff',
     'iznik/events',
-    'iznik/underscore',
     'iznik/utility',
     'iznik/majax'
 ], function ($, Backbone, _) {
@@ -112,7 +112,8 @@ define([
     // cacheFetchAfter is a delay in seconds before issuing any fetch after successfully finding it in the cache.
     //   This can be useful for page load - if we manage to populate the page with cached data then we can refresh
     //   it later when things have quietened down, which makes the page feel more responsive to users while keeping
-    //   the data roughly up to date.  Default to 30-40 seconds with some randomness.
+    //   the data roughly up to date.  Default to 3-10 seconds with some randomness, which means it will usually
+    //   happen after the page has rendered.
     Iznik.Collection = Backbone.Collection.extend({
         model: Iznik.Model,
 
@@ -126,12 +127,11 @@ define([
             var issueFetch = true;
             var fetchDelay = 0;
             var url = typeof self.url == 'string' ? self.url : self.url();
-            console.log("Collection fetch", url); console.trace();
 
             if (options && options.cached) {
                 // We would like a cached fetch.
                 var key = cacheKey(url, options.data);
-                console.log("Fetch key", key);
+                //console.log("Fetch key", key);
 
                 try {
                     var cached = localStorage.getItem(key);
@@ -143,7 +143,8 @@ define([
                         // We have some cached data.  Put it into the collection.
                         console.log("Got cached data");
                         var data = JSON.parse(cached);
-                        self.reset(data);
+                        self.set(data);
+                        console.log("Collection after set", self);
 
                         // Now invoke our callback to show we've completed.
                         options.cached();
@@ -151,7 +152,7 @@ define([
                         var now = (new Date()).getTime();
                         var age = now - expires;
                         var expiry = options.hasOwnProperty('cacheExpiry') ? options.cacheExpiry : 60 * 60 * 48;
-                        console.log("Compare expire", age, expiry);
+                        //console.log("Compare expire", age, expiry);
 
                         // We want to fetch if our cache has expired, or if it is valid but we don't just want the
                         // cached value.
@@ -159,9 +160,11 @@ define([
 
                         // We might want to delay it.
                         fetchDelay = options.hasOwnProperty('cacheFetchAfter') ? (options.cacheFetchAfter * 1000) :
-                            (30000 + Math.floor(Math.random() * 10000));
+                            (3000 + Math.floor(Math.random() * 7000));
                     }
                 } catch (e) {console.error(e.message);}
+
+                console.log("Cached collection fetch", url, issueFetch, fetchDelay); console.trace();
             }
 
             if (issueFetch) {
@@ -178,30 +181,30 @@ define([
                                 try {
                                     var key = cacheKey(url, options.data);
                                     var data = JSON.stringify(self.toJSON());
-                                    console.log("Data length", data.length);
 
-                                    if (data.length < 150000) {
+                                    if (data.length < 500000) {
                                         // Don't cache stuff that's too big, otherwise we'll hit our local storage limit.
                                         localStorage.setItem(key, data);
                                         localStorage.setItem(key + '.time', (new Date()).getTime());
+                                        console.log("Stored length", key, localStorage.getItem(key).length);
                                     } else {
-                                        console.log("Don't cache, too long", data.length);
+                                        console.log("Don't cache too long", data.length);
                                     }
-                                } catch (e) {console.error(e.message);}
+                                } catch (e) {console.log("Exception", e); console.error(e.message);}
                             }
 
                             // Now tell the caller the fetch has completed.
-                            console.log("Resolve fetch");
+                            //console.log("Resolve fetch");
                             resolve();
                         });
                     }
 
                     // Now fetch - immediately or after a delay.
                     if (fetchDelay > 0) {
-                        console.log("Delay fetch for", fetchDelay);
+                        //console.log("Delay fetch for", fetchDelay);
                         window.setTimeout(issueFetch, fetchDelay);
                     } else {
-                        console.log("Immediate fetch");
+                        //console.log("Immediate fetch");
                         issueFetch();
                     }
                 });
