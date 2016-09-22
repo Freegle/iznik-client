@@ -433,7 +433,6 @@
 
             // return false from the view's render function to hide this item
             if( renderResult === false ) {
-                console.log("Hide");
                 thisModelViewWrapped.hide();
                 thisModelViewWrapped.addClass( "not-visible" );
             }
