@@ -1164,10 +1164,10 @@ define([
     			alert("LINK 5: " + href);
     			Backbone.history.loadUrl(href);
     		}
-    		console.log("LINK 6");
+    		//console.log("LINK 6");
     	}
 			// Could be #, #something or absolute URL: all OK
-    	console.log("LINK 7: "+href);
+    	//console.log("LINK 7: "+href);
     }
 
     // We can flag anchors as not to be handled via Backbone using data-realurl
@@ -1188,7 +1188,7 @@ define([
     });*/
     $(document).on('click', 'a', function (evt) {
     	var href = $(this).attr('href');
-    	console.log("LINK 4: " + href);
+    	//console.log("LINK 4: " + href);
     	internal(evt, href);
     });
 
