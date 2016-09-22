@@ -7,6 +7,8 @@ define([
     Iznik.Models.Session = Iznik.Model.extend({
         url: API + 'session',
 
+        maintenanceMode: false, // CC
+
         playBeep: false,
 
         loggedIn: false,
@@ -178,7 +180,6 @@ define([
             // We may have a persistent session from local storage which we can use to revive this session if the
             // PHP session has timed out.
             var now = (new Date()).getTime();
-
             if (!self.lastServerHit || now - self.lastServerHit > 1000) {
                 self.lastServerHit = now;
 
@@ -189,9 +190,14 @@ define([
                         persistent: self.get('persistent')
                     },
                     success: function (ret) {
+                        self.maintenanceMode = false; // CC
                         if (ret.ret == 111) {
                             // Down for maintenance
-                            window.location = '/maintenance_on.html';
+                            self.testing = false; // CC
+                            console.log("set maintenanceMode");
+                            self.maintenanceMode = true;
+                            Router.navigate("/maintenance", true);
+                            self.trigger('isLoggedIn', false);
                         } else if ((ret.ret == 0)) {
                             // Save off the returned session information into local storage.
                             var now = (new Date()).getTime();
@@ -373,7 +379,7 @@ define([
                                         localStorage.removeItem('session');
                                     } catch (e) {
                                     }
-                                    window.location.reload();
+                                    Backbone.history.loadUrl(); // CC
                                 } else {
                                     // We're not logged in.
                                     self.loggedIn = false;

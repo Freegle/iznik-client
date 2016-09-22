@@ -732,7 +732,7 @@ define([
                 this.model.set('mylocation', mylocation);
 
                 // Static map custom markers don't support SSL.
-                this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapareamarker.png');
+                this.model.set('mapicon', 'images/mapareamarker.png'); // CC
 
                 // Get a zoom level for the map.
                 var zoom = 12;

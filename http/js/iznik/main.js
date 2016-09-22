@@ -1,4 +1,4 @@
-var API = 'https://ilovefreegle.org/api/'; // CC
+var API = 'https://www.ilovefreegle.org/api/'; // CC
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
@@ -63,8 +63,8 @@ require([
     'backbone',
     'iznik/router'
 ], function($, _, Backbone) {
-	console.log("starting...");	// CC
-	if (!Backbone) {
+    console.log("starting Backbone");	// CC
+	  if (!Backbone) {
         // Something has gone unpleasantly wrong.
         console.error("Backbone failed to fetch");
         panicReload();

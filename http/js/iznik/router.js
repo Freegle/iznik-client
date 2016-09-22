@@ -198,15 +198,17 @@ define([
                 Router.navigate('/modtools', true);
             } else {
                 self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
-                    if (loggedIn) {
-                        require(["iznik/views/pages/user/home"], function() {
+                    if (Iznik.Session.maintenanceMode) {  // CC
+                      console.log("Don't load home or landing as in maintenanceMode");
+                    } else if (loggedIn) {
+                      require(["iznik/views/pages/user/home"], function () {
                             var page = new Iznik.Views.User.Pages.Home({
                                 chatid: chatid
                             });
                             self.loadRoute({page: page});
                         });
                     } else {
-                        require(["iznik/views/pages/user/landing"], function() {
+                        require(["iznik/views/pages/user/landing"], function () {
                             console.log("Load landing");
                             var page = new Iznik.Views.User.Pages.Landing();
                             self.loadRoute({page: page});
@@ -362,8 +364,8 @@ define([
                         }
                         self.listenToOnce(v, 'modalCancelled modalClosed', function () {
                             // Reload to force session refresh.
-                            // TODO lame.
-                            window.location = '/';
+                            Router.navigate("/", true);	// CC
+                            Backbone.history.loadUrl(); // CC
                         });
 
                         v.render();
@@ -1111,7 +1113,16 @@ define([
             });
         },
 
-        communityEventsPlugin: function(groupid) {
+        userMaintenance: function () {  // CC
+          var self = this;
+
+          require(["iznik/views/pages/user/landing"], function () {
+            var page = new Iznik.Views.User.Pages.Landing.Maintenance();
+            self.loadRoute({ page: page });
+          });
+        },
+
+        communityEventsPlugin: function (groupid) {
             this.userCommunityEvents(groupid, true);
         },
 

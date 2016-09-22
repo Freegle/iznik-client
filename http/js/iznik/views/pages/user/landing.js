@@ -105,4 +105,11 @@ define([
             return (p);
         }
     });
+
+    Iznik.Views.User.Pages.Landing.Maintenance = Iznik.Views.Page.extend({  // CC
+      template: "user_landing_maintenance",
+      footer: true,
+      noback: true
+    });
+
 });

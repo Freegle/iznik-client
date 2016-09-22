@@ -66,7 +66,7 @@ define([
                     var chathost = $('meta[name=iznikchat]').attr("content");
 
                     $.ajax({
-                        url: window.location.protocol + '//' + chathost + '/subscribe/' + myid,
+                        url: 'https://' + chathost + '/subscribe/' + myid, // CC
                         global: false, // don't trigger ajaxStart
                         success: function (ret) {
                             var waiting = false;
