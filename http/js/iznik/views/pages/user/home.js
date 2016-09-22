@@ -25,7 +25,7 @@ define([
         render: function () {
             var self = this;
 
-            // Iznik.Session.askSubscription();
+            Iznik.Session.askSubscription();
 
             var p = Iznik.Views.Page.prototype.render.call(this, {
                 noSupporters: true
@@ -131,6 +131,7 @@ define([
                             limit: 100
                         }
                     }).then(function () {
+                        console.log("FEtched messages", self.messages);
                         if (self.offers.length == 0) {
                             self.$('.js-nooffers').fadeIn('slow');
                         } else {

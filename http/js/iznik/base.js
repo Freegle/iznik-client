@@ -78,6 +78,12 @@ define([
         }
     };
 
+    function cacheKey(url, data) {
+        // Get a unique key for this URL and data.  The data is important because it is passed to the AJAX call and
+        // can therefore return different data.
+        return("cache." + encodeURIComponent(url) + "." + encodeURIComponent(JSON.stringify(data)));
+    }
+
     Iznik.Model = Backbone.Model.extend({
         toJSON2: function () {
             var json;
@@ -93,12 +99,117 @@ define([
         }
     });
 
+    // We have the ability to cache in localStorage.  This is controlled by several optional parameters.
+    //
+    // For now we only cache collection fetches because model fetches are unlikely to be on page load, which is
+    // what we're interested in optimising.
+    //
+    // cached is a callback which will be invoked if we can satisfy a request from cache.  Default to no caching.
+    // cacheExpiry is the lifetime in seconds of the cache entry corresponding to this fetch.  Default 48 hours.  We
+    //   always call cached with expired data because it looks better for the user to see the screen populate and then
+    //   update than it does to see a blank screen.
+    // cacheOnly indicates whether to bother doing a fetch at all if we managed to use a cached version.  Default false.
+    // cacheFetchAfter is a delay in seconds before issuing any fetch after successfully finding it in the cache.
+    //   This can be useful for page load - if we manage to populate the page with cached data then we can refresh
+    //   it later when things have quietened down, which makes the page feel more responsive to users while keeping
+    //   the data roughly up to date.  Default to 30-40 seconds with some randomness.
     Iznik.Collection = Backbone.Collection.extend({
         model: Iznik.Model,
+
+        promise: null,
 
         constructor: function (options) {
             this.options = options || {};
             Backbone.Collection.apply(this, arguments);
+        }, fetch: function(options) {
+            var self = this;
+            var issueFetch = true;
+            var fetchDelay = 0;
+            var url = typeof self.url == 'string' ? self.url : self.url();
+            console.log("Collection fetch", url); console.trace();
+
+            if (options && options.cached) {
+                // We would like a cached fetch.
+                var key = cacheKey(url, options.data);
+                console.log("Fetch key", key);
+
+                try {
+                    var cached = localStorage.getItem(key);
+                    console.log("Cache get returned", cached ? cached.length : null);
+                    var expires = localStorage.getItem(key + '.time');
+                    console.log("Expires", expires);
+
+                    if (cached && expires) {
+                        // We have some cached data.  Put it into the collection.
+                        console.log("Got cached data");
+                        var data = JSON.parse(cached);
+                        self.reset(data);
+
+                        // Now invoke our callback to show we've completed.
+                        options.cached();
+
+                        var now = (new Date()).getTime();
+                        var age = now - expires;
+                        var expiry = options.hasOwnProperty('cacheExpiry') ? options.cacheExpiry : 60 * 60 * 48;
+                        console.log("Compare expire", age, expiry);
+
+                        // We want to fetch if our cache has expired, or if it is valid but we don't just want the
+                        // cached value.
+                        issueFetch = age >= expiry || !options.cacheOnly;
+
+                        // We might want to delay it.
+                        fetchDelay = options.hasOwnProperty('cacheFetchAfter') ? (options.cacheFetchAfter * 1000) :
+                            (30000 + Math.floor(Math.random() * 10000));
+                    }
+                } catch (e) {console.error(e.message);}
+            }
+
+            if (issueFetch) {
+                // Use our own promise so that we can get the data if we need to.
+                self.promise = new Promise(function(resolve, reject) {
+                    // We don't have a cached value.  Fetch it.
+                    function issueFetch() {
+                        console.log("Issue fetch", options);
+                        Backbone.Collection.prototype.fetch.call(self, options).then(function() {
+                            // TODO Error handling?
+                            if (options && options.cached) {
+                                // We have fetched it - save it in our cache (before the caller can mess with it).
+                                console.log("Fetched, save it", url);
+                                try {
+                                    var key = cacheKey(url, options.data);
+                                    var data = JSON.stringify(self.toJSON());
+                                    console.log("Data length", data.length);
+
+                                    if (data.length < 150000) {
+                                        // Don't cache stuff that's too big, otherwise we'll hit our local storage limit.
+                                        localStorage.setItem(key, data);
+                                        localStorage.setItem(key + '.time', (new Date()).getTime());
+                                    } else {
+                                        console.log("Don't cache, too long", data.length);
+                                    }
+                                } catch (e) {console.error(e.message);}
+                            }
+
+                            // Now tell the caller the fetch has completed.
+                            console.log("Resolve fetch");
+                            resolve();
+                        });
+                    }
+
+                    // Now fetch - immediately or after a delay.
+                    if (fetchDelay > 0) {
+                        console.log("Delay fetch for", fetchDelay);
+                        window.setTimeout(issueFetch, fetchDelay);
+                    } else {
+                        console.log("Immediate fetch");
+                        issueFetch();
+                    }
+                });
+            } else {
+                self.promise = resolvedPromise();
+            }
+
+            return(self.promise);
         }
     });
 
