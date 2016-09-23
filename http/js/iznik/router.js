@@ -1144,7 +1144,7 @@ define([
     	  console.log("Backbone root", root);	// CC
     	  Backbone.history.start({
     	      root: root,	// CC
-            pushState: true
+              pushState: true
         });
 
         // console.log("Router start", Backbone.history.getFragment());

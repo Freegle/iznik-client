@@ -105,7 +105,7 @@ define([
                     if (parseInt(ret.ret) == 0) {
                         // We're logged in.  Reload this page, and now that we are logged in the route
                         // should behave differently.
-                        window.location.reload();
+                        Backbone.history.loadUrl(); // CC
                     } else {
                         self.$('.js-signuperror .js-errmsg').html(ret.status);
                         self.$('.js-signuperror').fadeIn('slow');
