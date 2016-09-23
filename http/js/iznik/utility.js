@@ -368,3 +368,21 @@ function strip_tags (input, allowed) { // eslint-disable-line camelcase
         return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : ''
     })
 }
+
+var mobileGlobalRoot = false;   // CC
+
+function mobile_pathname(){ // CC
+    var pathname = window.location.pathname;
+    var initialHome = "index.html"; // to remove
+    if( pathname.substr(-initialHome.length)==initialHome){
+        pathname = pathname.substr(0,pathname.length-initialHome.length);
+    }
+    if( !mobileGlobalRoot){
+        mobileGlobalRoot = pathname.substr(0,pathname.length-1);
+    }
+    pathname = pathname.substr(mobileGlobalRoot.length);
+    if( pathname==""){
+        pathname += "/";
+    }
+    return pathname;
+}

@@ -155,11 +155,12 @@ define([
                         $('#botleft').append(v.$el);
 
                         // Highlight current page if any.
+                        var mobilePath =  mobile_pathname(); // CC
                         $('#navbar-collapse a').each(function () {
                             var href = $(this).attr('href');
                             $(this).closest('li').removeClass('active');
 
-                            if (href == window.location.pathname) {
+                            if (href == mobilePath) {   // CC
                                 $(this).closest('li').addClass('active');
 
                                 // Force reload on click, which doesn't happen by default.
@@ -301,11 +302,12 @@ define([
                 );
 
                 // Highlight current page if any.
+                var mobilePath =  mobile_pathname(); // CC
                 self.$('a').each(function () {
                     var href = $(this).attr('href');
                     $(this).closest('li').removeClass('active');
 
-                    if (href == window.location.pathname) {
+                    if (href == mobilePath) {   // CC
                         $(this).closest('li').addClass('active');
 
                         // Force reload on click, which doesn't happen by default.
