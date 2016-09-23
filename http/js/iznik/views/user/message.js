@@ -107,7 +107,7 @@ define([
                         if (refmsgid == self.model.get('id')) {
                             // This message is referenced in a chat.
                             var thisun = chat.get('unseen');
-                            console.log("Found message", refmsgid, chat.get('id'), chat.get('unseen'));
+                            // console.log("Found message", refmsgid, chat.get('id'), chat.get('unseen'));
                             unread += thisun;
 
                             if (thisun > 0) {
@@ -138,7 +138,7 @@ define([
 
         watchChatRooms: function() {
             var self = this;
-            console.log("watchChatRooms for msg", self.model.get('id'));
+            // console.log("watchChatRooms for msg", self.model.get('id'));
 
             if (this.inDOM() && Iznik.Session.hasOwnProperty('chats')) {
                 // If the number of unread messages relating to this message changes, we want to flag it in the count.  So
@@ -484,6 +484,7 @@ define([
             var chat = Iznik.Session.chats.get({
                 id: self.model.get('chatid')
             });
+            // console.log("Try to find chat", self.model.get('chatid'), chat);
 
             // We might not find this chat if the user has closed it.
             if (!_.isUndefined(chat)) {

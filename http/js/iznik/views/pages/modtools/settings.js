@@ -1765,14 +1765,16 @@ define([
             }
 
             if (obj && !self.Wkt.isArray(obj) && wkt.type !== 'point' && typeof obj.getPath == 'function') {
-                // New vertex is inserted
-                google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj, true));
-    
-                // Existing vertex is removed (insertion is undone)
-                google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj, true));
-    
-                // Existing vertex is moved (set elsewhere)
-                google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj, true));
+                if (self.options.groupid) {
+                    // New vertex is inserted
+                    google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj, true));
+
+                    // Existing vertex is removed (insertion is undone)
+                    google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj, true));
+
+                    // Existing vertex is moved (set elsewhere)
+                    google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj, true));
+                }
 
                 // Click to show info
                 google.maps.event.addListener(obj, 'click', self.changeHandler(self, area, obj, false));
@@ -1832,17 +1834,24 @@ define([
                     self.$('.js-help').html(v.el);
                 });
 
+                if (!self.options.groupid) {
+                    self.$('.js-pergroup').hide();
+                }
+
                 require(['wicket'], function(Wkt) {
                     self.Wkt = Wkt;
 
                     _.defer(function() {
-                        var group = Iznik.Session.getGroup(self.options.groupid);
-                        var centre = new google.maps.LatLng(group.get('lat'), group.get('lng'));
-                        var mapsettings = group.get('settings').map;
+                        var centre = new google.maps.LatLng(53.9450, -2.5209)
+
+                        if (self.options.groupid) {
+                            var group = Iznik.Session.getGroup(self.options.groupid);
+                            centre = new google.maps.LatLng(group.get('lat'), group.get('lng'));
+                        }
 
                         var options = {
                             center: centre,
-                            zoom: 14,
+                            zoom: self.options.groupid ? 14 : 5,
                             defaults: {
                                 icon: '/images/red_dot.png',
                                 shadow: '/images/dot_shadow.png',
@@ -1860,7 +1869,7 @@ define([
                             panControl: false,
                             streetViewControl: false,
                             zoomControl: true,
-                            minZoom: 11,
+                            minZoom: self.options.groupid ? 11 : 0,
                             zoomControlOptions: {
                                 position: google.maps.ControlPosition.LEFT_TOP,
                                 style: google.maps.ZoomControlStyle.SMALL
@@ -1869,47 +1878,49 @@ define([
 
                         self.map = new google.maps.Map(document.getElementById("map"), options);
 
-                        self.map.drawingManager = new google.maps.drawing.DrawingManager({
-                            drawingControlOptions: {
-                                position: google.maps.ControlPosition.TOP_RIGHT,
-                                drawingModes: [
-                                    google.maps.drawing.OverlayType.POLYGON
-                                ]
-                            },
-                            markerOptions: self.map.defaults,
-                            polygonOptions: self.map.defaults,
-                            polylineOptions: self.map.defaults,
-                            rectangleOptions: self.map.defaults
-                        });
-                        self.map.drawingManager.setMap(self.map);
+                        if (self.options.groupid) {
+                            self.map.drawingManager = new google.maps.drawing.DrawingManager({
+                                drawingControlOptions: {
+                                    position: google.maps.ControlPosition.TOP_RIGHT,
+                                    drawingModes: [
+                                        google.maps.drawing.OverlayType.POLYGON
+                                    ]
+                                },
+                                markerOptions: self.map.defaults,
+                                polygonOptions: self.map.defaults,
+                                polylineOptions: self.map.defaults,
+                                rectangleOptions: self.map.defaults
+                            });
+                            self.map.drawingManager.setMap(self.map);
 
-                        google.maps.event.addListener(self.map.drawingManager, 'overlaycomplete', function (event) {
-                            var wkt;
+                            google.maps.event.addListener(self.map.drawingManager, 'overlaycomplete', function (event) {
+                                var wkt;
 
-                            // Set the drawing mode to "pan" (the hand) so users can immediately edit
-                            this.setDrawingMode(null);
+                                // Set the drawing mode to "pan" (the hand) so users can immediately edit
+                                this.setDrawingMode(null);
 
-                            // Polygon drawn
-                            var obj = event.overlay;
-                            var area = self.selected;
+                                // Polygon drawn
+                                var obj = event.overlay;
+                                var area = self.selected;
 
-                            if (event.type === google.maps.drawing.OverlayType.POLYGON || event.type === google.maps.drawing.OverlayType.POLYLINE) {
-                                // New vertex is inserted
-                                google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj, true));
+                                if (event.type === google.maps.drawing.OverlayType.POLYGON || event.type === google.maps.drawing.OverlayType.POLYLINE) {
+                                    // New vertex is inserted
+                                    google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj, true));
 
-                                // Existing vertex is removed (insertion is undone)
-                                google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj, true));
+                                    // Existing vertex is removed (insertion is undone)
+                                    google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj, true));
 
-                                // Existing vertex is moved (set elsewhere)
-                                google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj, true));
+                                    // Existing vertex is moved (set elsewhere)
+                                    google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj, true));
 
-                                // Click to show info
-                                google.maps.event.addListener(obj, 'click', self.changeHandler(self, area, obj, false));
-                            }
+                                    // Click to show info
+                                    google.maps.event.addListener(obj, 'click', self.changeHandler(self, area, obj, false));
+                                }
 
-                            self.features.push(event.overlay);
-                            self.changeHandler(self, area, obj, false)();
-                        });
+                                self.features.push(event.overlay);
+                                self.changeHandler(self, area, obj, false)();
+                            });
+                        }
 
                         // Searchbox
                         var input = document.getElementById('pac-input');
@@ -1941,38 +1952,63 @@ define([
                             self.map.fitBounds(bounds);
                         });
 
-                        self.areas = new Iznik.Collections.Locations();
-                        self.listenTo(self.areas, 'add', function(area) {
-                            var poly = area.get('polygon');
-                            console.log("Poly", poly);
-                            var lat = area.get('lat');
-                            var lng = area.get('lng');
+                        if (self.options.groupid) {
+                            // We show areas for the current map.
+                            self.areas = new Iznik.Collections.Locations();
+                            self.listenTo(self.areas, 'add', function(area) {
+                                var poly = area.get('polygon');
+                                console.log("Poly", poly);
+                                var lat = area.get('lat');
+                                var lng = area.get('lng');
 
-                            if (poly || lat || lng) {
-                                if (poly) {
-                                    self.mapWKT(poly, area);
-                                } else {
-                                    var wkt = 'POINT(' + lng + ' ' + lat + ')';
-                                    self.mapWKT(poly, area);
+                                if (poly || lat || lng) {
+                                    if (poly) {
+                                        self.mapWKT(poly, area);
+                                    } else {
+                                        var wkt = 'POINT(' + lng + ' ' + lat + ')';
+                                        self.mapWKT(poly, area);
+                                    }
                                 }
-                            }
-                        });
+                            });
 
-                        self.listenTo(self.areas, 'remove', function(area) {
-                            var obj = area.get('obj');
-                            if (!_.isUndefined(obj)) {
-                                var oldlen = self.features.length;
-                                self.features = _.without(self.features, obj);
-                                console.log("Removed", obj, oldlen, self.features.length);
-                                obj.setMap(null);
-                            }
-                        });
+                            self.listenTo(self.areas, 'remove', function(area) {
+                                var obj = area.get('obj');
+                                if (!_.isUndefined(obj)) {
+                                    var oldlen = self.features.length;
+                                    self.features = _.without(self.features, obj);
+                                    console.log("Removed", obj, oldlen, self.features.length);
+                                    obj.setMap(null);
+                                }
+                            });
 
-                        google.maps.event.addListener(self.map, 'idle', _.bind(function() {
-                            if (!self.editing) {
-                                self.getAreas();
-                            }
-                        }, self));
+                            google.maps.event.addListener(self.map, 'idle', _.bind(function() {
+                                if (!self.editing) {
+                                    self.getAreas();
+                                }
+                            }, self));
+                        } else {
+                            // We just want all the groups.
+                            google.maps.event.addDomListener(self.map, 'idle', function() {
+                                if (!self.fetched) {
+                                    // Get all the groups.
+                                    self.allGroups = new Iznik.Collections.Group();
+                                    self.allGroups.fetch({
+                                        data: {
+                                            grouptype: 'Freegle'
+                                        }
+                                    }).then(function() {
+                                        self.fetched = true;
+
+                                        // Add a polygon for each
+                                        self.allGroups.each(function(group) {
+                                            group.set('name', group.get('nameshort'))
+                                            self.mapWKT(group.get('poly'), group);
+                                        })
+                                    });
+                                }
+                            });
+
+                        }
                     });
                 });
             });

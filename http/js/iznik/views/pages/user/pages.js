@@ -134,7 +134,20 @@ define([
                 if (group.id == current) {
                     first = group;
                 }
-            })
+            });
+
+            if (!first) {
+                // Might not be nearby, but in our own list.
+                var mygroups = Iznik.Session.get('groups');
+
+                if (mygroups) {
+                    mygroups.each(function(group) {
+                        if (group.get('id') == current) {
+                            first = group.attributes;
+                        }
+                    });
+                }
+            }
 
             // Start off with no variant showing.
             self.$('.js-onyahoo').hide();
@@ -143,7 +156,7 @@ define([
             self.$('.js-next').hide();
             self.$('.js-external').hide();
 
-            //console.log("changeGroup", first);
+            console.log("changeGroup", first);
             if (first) {
                 self.$('.js-closestgroupname').html(first.namedisplay);
 
@@ -152,15 +165,17 @@ define([
                         // Hosted externally on a different site.
                         self.$('.js-toexternal').attr('href', first.external);
                         self.$('.js-external').fadeIn('slow');
+                        self.$('.js-homegroup').hide();
                     } else if (first.onyahoo && first.showonyahoo) {
                         // But Yahoo does and we want to show it.
                         self.$('.js-toyahoo').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);
                         self.$('.js-onyahoo').fadeIn('slow');
                         self.$('.js-toyahoo').show();
+                        self.$('.js-homegroup').hide();
                     }
                 } else {
                     // We host this group.
-                    self.$('.js-next').show();
+                    self.$('.js-homegroup, .js-next').fadeIn('slow');
 
                     if (first.onyahoo && first.showonyahoo && self.$('.js-groups').length > 0) {
                         // But it's also on Yahoo, and some people might want to go there.
@@ -249,7 +264,6 @@ define([
 
                         self.changeGroup();
                         groups.on('change', _.bind(self.changeGroup, self));
-                        self.$('.js-homegroup').fadeIn('slow');
                     }
                 } else {
                     // We don't have a groups drop down.  Hide that section, but still check for whether we need to

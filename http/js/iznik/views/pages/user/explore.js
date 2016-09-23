@@ -251,7 +251,6 @@ define([
 
             // Render the map
             google.maps.event.addDomListener(self.map, 'idle', function() {
-                console.log("Map idle");
                 if (!self.fetched) {
                     // Get all the groups.  There aren't too many, and this means we are responsive when panning or zooming.
                     self.collection = new Iznik.Collections.Group();
