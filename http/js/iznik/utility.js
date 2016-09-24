@@ -13,6 +13,12 @@ define([
         };
     }
 
+    if (!console.trace) {
+        console.trace = function() {
+
+        }
+    }
+
     if (!console.error) {
         console.error = function (str) {
             window.alert(str);
