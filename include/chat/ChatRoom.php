@@ -288,7 +288,7 @@ class ChatRoom extends Entity
             $ret['refmsgids'][] = $refmsg['refmsgid'];
         }
 
-        $lasts = $this->dbhr->preQuery("SELECT id, date, message FROM chat_messages WHERE chatid = ? ORDER BY id DESC LIMIT 1;", [ $this->id] );
+        $lasts = $this->dbhr->preQuery("SELECT id, date, message FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 ORDER BY id DESC LIMIT 1;", [ $this->id] );
         foreach ($lasts as $last) {
             $ret['lastmsg'] = $last['id'];
             $ret['lastdate'] = ISODate($last['date']);
@@ -775,6 +775,7 @@ class ChatRoom extends Entity
                     ]);
                 foreach ($rosters as $roster) {
                     #error_log("Chat {$this->id} " . var_export($roster, TRUE));
+                    #error_log("{$roster['userid']} mailed {$roster['lastmsgemailed']} vs $lastmessage");
                     if ($roster['lastmsgemailed'] >= $lastmessage || $roster['lastmsgseen'] >= $lastmessage) {
                         $modseen = TRUE;
                     }

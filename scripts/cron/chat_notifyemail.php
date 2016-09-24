@@ -11,7 +11,7 @@ $lockh = lockScript(basename(__FILE__));
 
 $c = new ChatRoom($dbhr, $dbhm);
 
-$count = $c->notifyByEmail(NULL, ChatRoom::TYPE_USER2MOD, TRUE);
+$count = $c->notifyByEmail(312170, ChatRoom::TYPE_USER2MOD, TRUE);
 error_log("Sent $count for User2Mod");
 
 $count = $c->notifyByEmail(NULL, ChatRoom::TYPE_USER2USER, TRUE);
