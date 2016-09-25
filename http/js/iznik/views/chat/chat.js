@@ -5,6 +5,7 @@ define([
     'iznik/base',
     'autosize',
     'iznik/models/chat/chat',
+    'iznik/models/message',
     'jquery-resizable',
     'jquery-visibility'
 ], function($, _, Backbone, Iznik, autosize) {
@@ -1389,7 +1390,9 @@ define([
 
                     // Insert some wbrs to allow us to word break long words (e.g. URLs).
                     // It might have line breaks in if it comes originally from an email.
-                    message = this.model.set('message', wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, '<br />'));
+                    message = wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, '<br />');
+
+                    this.model.set('message', message);
                 }
 
                 var group = this.options.chatModel.get('group');

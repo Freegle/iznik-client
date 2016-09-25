@@ -289,6 +289,10 @@ class ChatRoom extends Entity
         }
 
         $lasts = $this->dbhr->preQuery("SELECT id, date, message FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 ORDER BY id DESC LIMIT 1;", [ $this->id] );
+        $ret['lastmsg'] = 0;
+        $ret['lastdate'] = NULL;
+        $ret['snipped'] = '';
+
         foreach ($lasts as $last) {
             $ret['lastmsg'] = $last['id'];
             $ret['lastdate'] = ISODate($last['date']);
