@@ -548,9 +548,8 @@ define([
 
                 self.waitDOM(self, function() {
                     self.createMinimised();
-                    Iznik.Session.trigger('chatsfetched');
                     self.organise();
-                    self.showMin();
+                    Iznik.Session.trigger('chatsfetched');
                 });
             }
         },
@@ -1006,8 +1005,8 @@ define([
 
             // Restore the window first, so it feels zippier.
             self.setSize();
-            this.waitDOM(self, self.options.organise);
-            this.options.updateCounts();
+            self.waitDOM(self, self.options.organise);
+            self.options.updateCounts();
 
             _.defer(function() {
                 self.$el.css('visibility', 'visible');
@@ -1289,16 +1288,19 @@ define([
                 var minimise = true;
 
                 try {
-                    // On mobile we start them all minimised as there's not much room.
+                    // On mobile we start them all minimised as there's not much room, unless one has been forced open.
                     //
                     // Otherwise default to minimised, which is what we get if the key is missing and returns null.
                     var open = localStorage.getItem(self.lsID() + '-open');
                     open = (open === null) ? open : parseInt(open);
 
-                    if (!open || narrow) {
+                    if (!open || (open != 2 && narrow)) {
                         minimise = true;
                     } else {
                         minimise = false;
+
+                        // Make sure we don't force open.
+                        localStorage.setItem(self.lsID() + '-open', 1);
                     }
                 } catch (e) {
                 }

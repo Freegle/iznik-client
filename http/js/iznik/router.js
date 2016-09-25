@@ -221,13 +221,15 @@ define([
 
         userChat: function(chatid) {
             var self = this;
-            self.listenToOnce(Iznik.Session, 'chatsfetched', function() {
-                var chatmodel = Iznik.Session.chats.get(chatid);
-                var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
-                chatView.restore(true);
-                chatView.focus();
-            });
-            
+
+            try {
+                // Force the chat code to open this chat, even if we're on mobile.
+                // TODO This is a horrid way of signalling.
+                localStorage.setItem('chat-' + chatid + '-open', 2);
+            } catch (e) {
+                console.error(e.message);
+            }
+
             self.userHome(chatid);
         },
 
