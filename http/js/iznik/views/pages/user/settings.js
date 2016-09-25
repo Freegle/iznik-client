@@ -46,7 +46,7 @@ define([
         onholiday: function() {
             var me = Iznik.Session.get('me');
             var till = me.onholidaytill ? new Date(me.onholidaytill) : new Date();
-            console.log("On holiday till", till, me);
+            // console.log("On holiday till", till, me);
             if (this.$('.js-switch').bootstrapSwitch('state')) {
                 this.$('.js-onholidaytill').show();
                 this.$('.js-until').show();
@@ -55,7 +55,7 @@ define([
                 this.$('.js-onholidaytill').val('1970-01-01T00:00:00Z');
                 this.$('.js-onholidaytill').hide();
                 this.$('.js-until').hide();
-                console.log("Not on holiday - clear");
+                // console.log("Not on holiday - clear");
 
                 Iznik.Session.save({
                     id: me.id,
