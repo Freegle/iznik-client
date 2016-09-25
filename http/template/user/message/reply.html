@@ -4,7 +4,7 @@
             <% if (chat.chattype == 'User2Mod') { %>
                 {{chat.name}}<br />
                 <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" ></abbr><br />
-                <span class="js-chat black">Read more&nbsp;>></span>
+                <span class="js-chat black">Open this chat&nbsp;>></span>
             <% } else { %>
                 <% if (chat.user1.id != me.id || chat.user2.id != me.id) { %>
                 <% if (chat.user1.id != me.id) { %>{{chat.user1.displayname}}<% } else { %>{{chat.user2.displayname}}<% } %>
