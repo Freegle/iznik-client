@@ -391,8 +391,8 @@ class ChatRoom extends Entity
                             $validcount = 0;
                             $invalidcount = 0;
                             foreach ($unheld as $un) {
-                                $validcount == $un['valid'] = 1 ? ++$validcount : $validcount;
-                                $invalidcount == $un['invalid'] = 1 ? ++$invalidcount : $invalidcount;
+                                $validcount = ($un['valid'] == 1) ? ++$validcount : $validcount;
+                                $invalidcount = ($un['valid'] == 0) ? ++$invalidcount : $invalidcount;
                             }
 
                             $cansee = count($unheld) == 0 || $validcount > 0;
