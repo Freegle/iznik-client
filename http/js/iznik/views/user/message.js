@@ -484,7 +484,7 @@ define([
             var chat = Iznik.Session.chats.get({
                 id: self.model.get('chatid')
             });
-            // console.log("Try to find chat", self.model.get('chatid'), chat);
+            // console.log("Try to find chat", self.model.get('chatid'), chat, Iznik.Session.chats);
 
             // We might not find this chat if the user has closed it.
             if (!_.isUndefined(chat)) {
