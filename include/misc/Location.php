@@ -201,7 +201,7 @@ class Location extends Entity
                         $iid = $intersects[0]['id'] != $id ? $intersects[0]['id'] : $intersects[1]['id'];
                         $name = $intersects[0]['id'] != $id ? $intersects[0]['name'] : $intersects[1]['name'];
                         $areaid = $iid;
-                        #error_log("Choose areaid #$areaid $name");
+                        error_log("Choose areaid #$areaid $name");
                     }
                 }
             }
@@ -452,7 +452,7 @@ class Location extends Entity
     public function groupsNear($radius = Location::NEARBY, $expand = FALSE) {
         # We use the Haversine distance as a quick filter for the radius, but we order by the distance to the group
         # polygon, rather than to the centre, because that reflects which group you are genuinely closest to.
-        $sql = "SELECT id, nameshort, ST_distance(POINT(?, ?), GeomFromText(poly)) AS dist, haversine(lat, lng, ?, ?) AS hav FROM groups WHERE poly IS NOT NULL AND publish = 1 HAVING hav < ? ORDER BY dist ASC LIMIT 10;";
+        $sql = "SELECT id, nameshort, ST_distance(POINT(?, ?), GeomFromText(poly)) AS dist, haversine(lat, lng, ?, ?) AS hav FROM groups WHERE poly IS NOT NULL AND publish = 1 HAVING hav < ? AND dist IS NOT NULL ORDER BY dist ASC LIMIT 10;";
         $groups = $this->dbhr->preQuery($sql, [ $this->loc['lng'], $this->loc['lat'], $this->loc['lat'], $this->loc['lng'], $radius ]);
         #error_log("Find near $sql " . var_export([ $this->loc['lng'], $this->loc['lat'], $this->loc['lat'], $this->loc['lng'], $radius ], TRUE));
         $ret = [];
