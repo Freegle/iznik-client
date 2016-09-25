@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/misc/Location.php');
 
 $l = new Location($dbhr, $dbhm);
 
-$locs = $dbhm->query("SELECT id, name, gridid FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0 and name = 'MK8 9EQ';");
+$locs = $dbhm->query("SELECT id, name, gridid FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0 and name LIKE 'NE3%';");
 
 $count = 0;
 
