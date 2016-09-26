@@ -139,8 +139,10 @@ define([
                     tryhard: self.$('.js-tryhard').val()
                 }, success: function (ret) {
                     if (ret.ret == 0) {
+                        self.$('.js-mailerror').hide();
                         self.$('.js-mailsuccess').fadeIn('slow');
                     } else {
+                        self.$('.js-mailsuccess').hide();
                         self.$('.js-mailerror').fadeIn('slow');
                     }
                 }, error: function () {
