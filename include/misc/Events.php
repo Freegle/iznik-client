@@ -59,8 +59,8 @@ class Events {
     }
     
     public function listSessions($userid = NULL) {
-        $userq = $userid ? " WHERE userid = $userid " : '';
-        $sql = "SELECT DISTINCT(sessionid) FROM logs_events $userq ORDER BY id DESC LIMIT 100;";
+        $userq = $userid ? " WHERE sessions.userid = $userid " : '';
+        $sql = "SELECT DISTINCT(sessionid) FROM sessions INNER JOIN logs_events ON sessions.userid = logs_events.userid $userq ORDER BY logs_events.id DESC LIMIT 100;";
         $sessions = $this->dbhr->preQuery($sql);
         $ret = [];
 
