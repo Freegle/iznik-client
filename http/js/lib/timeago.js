@@ -145,7 +145,7 @@ var timeAgoId = 1;
 		init         : function(){
 			this.id = timeAgoId++;
 			var refresh_el = $.proxy(refresh, this);
-			refresh_el();
+			refresh_el(true);
 		},
 		update       : function(time){
 			var parsedTime = $t.parse(time);
@@ -177,8 +177,8 @@ var timeAgoId = 1;
 		return this;
 	};
 
-	function refresh(){
-		if ($(this).closest('body').length) {
+	function refresh(first){
+		if (first || $(this).closest('body').length) {
 			var data = prepareData(this);
 			var $s = $t.settings;
 
@@ -194,7 +194,7 @@ var timeAgoId = 1;
 				this._timeagoInterval = setTimeout(refresh_el, $s.refreshMillis);
 			}
 		} else {
-			console.log("No longer in DOM", this.id);
+			// console.log("No longer in DOM", this.id);
 		}
 		
 		return this;

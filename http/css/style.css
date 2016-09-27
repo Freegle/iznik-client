@@ -37,6 +37,12 @@
     width: 100% !important;
 }
 
+.navbar .navbar-collapse.in {
+    max-height:300px!important;
+    overflow-y:scroll!important;
+    overflow-x:hidden!important;
+}
+
 .pageContent, .rightSidebar {
     top: 66px;
 }
