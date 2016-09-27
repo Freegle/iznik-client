@@ -474,7 +474,7 @@ define([
 
         createMinimised: function() {
             var self = this;
-            console.log("Create minimised");
+            console.log("Create minimised"); console.trace();
 
             Iznik.minimisedChats = new Backbone.CollectionView({
                 el: $('#notifchatdropdownlist'),
@@ -485,11 +485,6 @@ define([
                     updateCounts: _.bind(self.updateCounts, self),
                     modtools: self.options.modtools
                 }
-            });
-
-            Iznik.minimisedChats.on('add', function(view) {
-                // The collection view seems to get messed up, so re-render it to sort it out.
-                Iznik.minimisedChats.render();
             });
 
             Iznik.minimisedChats.render();

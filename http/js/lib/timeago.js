@@ -12,7 +12,11 @@
  * http://timeago.yarp.com/
  *
  * Copyright (c) 2008-2013, Ryan McGeary (ryan -[at]- mcgeary [*dot*] org)
+ * 
+ * Modified by EH
  */
+
+var timeAgoId = 1;
 
 (function(factory){
 	if(typeof define === 'function' && define.amd){
@@ -139,12 +143,9 @@
 	// functions are called with context of a single element
 	var functions = {
 		init         : function(){
+			this.id = timeAgoId++;
 			var refresh_el = $.proxy(refresh, this);
 			refresh_el();
-			var $s = $t.settings;
-			if($s.refreshMillis > 0){
-				this._timeagoInterval = setInterval(refresh_el, $s.refreshMillis);
-			}
 		},
 		update       : function(time){
 			var parsedTime = $t.parse(time);
@@ -177,14 +178,25 @@
 	};
 
 	function refresh(){
-		var data = prepareData(this);
-		var $s = $t.settings;
+		if ($(this).closest('body').length) {
+			var data = prepareData(this);
+			var $s = $t.settings;
 
-		if(!isNaN(data.datetime)){
-			if($s.cutoff == 0 || distance(data.datetime) < $s.cutoff){
-				$(this).text(inWords(data.datetime));
+			if(!isNaN(data.datetime)){
+				if($s.cutoff == 0 || distance(data.datetime) < $s.cutoff){
+					$(this).text(inWords(data.datetime));
+				}
 			}
+
+			var refresh_el = $.proxy(refresh, this);
+			var $s = $t.settings;
+			if($s.refreshMillis > 0){
+				this._timeagoInterval = setTimeout(refresh_el, $s.refreshMillis);
+			}
+		} else {
+			console.log("No longer in DOM", this.id);
 		}
+		
 		return this;
 	}
 
