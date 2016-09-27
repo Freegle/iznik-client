@@ -10,6 +10,8 @@ define([
 
         disabled: false,
 
+        tryingGoogleLogin: false,   // CC
+
         onSignInCallback: function (authResult) {
             var self = this;
             console.log("onSignInCallback", authResult);
@@ -46,10 +48,10 @@ define([
                 self.buttonId = id;
                 self.scopes = "profile email";
 
-                if (_.isUndefined(window.gapi)) {
+                /* // CC if (_.isUndefined(window.gapi)) {
                     // This happens with Firefox privacy blocking.
                     self.disabled = true;
-                }
+                } */
 
                 console.log("Set up sign in button", id, self.disabled);
 
@@ -62,10 +64,18 @@ define([
                     $('#' + id + ' img').removeClass('signindisabled');
                     $('#' + id).click(function () {
                         // Get client id
-                        self.clientId = $('meta[name=google-signin-client_id]').attr("content");
-
                         console.log("Log in");
-                        // Custom signin button
+
+                        // CC..
+                        if (navigator.connection.type === Connection.NONE) {
+                            console.log("No connection - please try again later.");
+                            //$('#' + id + ' img').addClass('signindisabled');
+                            $('.js-signin-msg').text("No internet connection - please try again later");
+                            $('.js-signin-msg').show();
+                            return;
+                        }
+                        self.googleAuth();
+                        /*// CC // Custom signin button
                         var params = {
                             'clientid': self.clientId,
                             'cookiepolicy': 'single_host_origin',
@@ -74,12 +84,93 @@ define([
                             'scope': self.scopes
                         };
 
-                        gapi.auth.signIn(params);
+                        gapi.auth.signIn(params);*/
                     });
                 }
             } catch (e) {
                 console.log("Google API load failed", e);
             }
+        },
+
+        googleAuth: function(){ // CC
+            if( self.tryingGoogleLogin){ return; }
+            self.tryingGoogleLogin = true;
+            var googleScope = 'https://www.googleapis.com/auth/plus.me https://www.googleapis.com/auth/userinfo.email';
+            self.clientId = $('meta[name=google-signin-client_id]').attr("content");
+            console.log("Google clientId: "+self.clientId);
+            // Build the OAuth2 consent page URL
+            var authUrl = 'https://accounts.google.com/o/oauth2/auth?' + $.param({
+                    client_id: self.clientId,
+                    redirect_uri: 'http://localhost', // Must match that in Google console API credentials
+                    response_type: 'code',
+                    //response_type: 'token',
+                    scope: googleScope
+                });
+
+            var authGiven = false;
+
+            // Open the OAuth2 consent page in the InAppBrowser
+            var authWindow = window.open(authUrl, '_blank', 'location=yes,menubar=yes'); // Show location so user knows it's OK
+
+            $(authWindow).on('loadstart', function (e) {
+                // This is called more than once, eg on first load, when button pressed and when redirected to localhost with code or error
+                var url = e.originalEvent.url;
+                //freegle.logMsg("gloadstart: " + url);
+                var code = /\?code=(.+)$/.exec(url); 	// code[0] is entire match, code[1] is submatch ie the code
+                var error = /\?error=(.+)$/.exec(url); // error[0] is entire match, error[1] is submatch ie the error
+
+                if (code || error) {
+                    //Always close the browser when match is found
+                    //console.log("Close: " + code + " - " + error);
+                    authWindow.close();
+                }
+
+                if (code) {
+                    authGiven = true;
+
+                    code = code[1].split('&')[0]; // Remove any other returned parameters
+                    //console.log("code: " + code);
+
+                    // Try logging in again at FD with given authcode
+                    $('.js-signin-msg').text("googleauthcode: "+code);
+                    $('.js-signin-msg').show();
+                    /*var params = { googlelogin: true, googleauthcode: code, rememberme: true };
+                    params.mobile = true;
+                    console.log(params);
+
+                    freegle.logMsg("API.post session_login googlelogin");
+                    $.post(freegle.api.session_login, params)
+                        .done(function (data) {
+                            if (data.ret === 0) {
+                                window.localStorage.setItem("logintype", freegle.logintype.google);
+                                freegle.completeLogin(data);
+                            }
+                            else {
+                                console.log("Google login error: " + data.ret, { typ: 1 });
+                                //freegle.logMsg(data);
+                            }
+                        })
+                        .fail(function (a, b, c) {
+                            console.log("Google login fail " + c, { typ: 1 });
+                        });
+*/
+                } else if (error) {
+                    // The user denied access to the app
+                    $('.js-signin-msg').text("Google error:" + error[1]);
+                    $('.js-signin-msg').show();
+                    console.log("Google error:" + error[1], { typ: 1 });
+                }
+            });
+
+            $(authWindow).on('exit', function (e) {
+                if (!authGiven) {
+                    $('.js-signin-msg').text("Google permission not given or failed");
+                    $('.js-signin-msg').show();
+                    console.log("Google permission not given or failed");
+                }
+                self.tryingGoogleLogin = false;
+            });
+
         },
 
         noop: function(authResult) {
