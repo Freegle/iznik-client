@@ -2182,7 +2182,7 @@ class Message
             #error_log("Converted HTML text $textbody");
         }
 
-        $textbody = trim(preg_replace('#(^\w.+:\n)?(^>.*(\n|$))+#mi', "", $textbody));
+        $textbody = trim(preg_replace('#(^\w.+:\n)?(^(>|\|).*(\n|$))+#mi', "", $textbody));
 
         # We might have a section like this, for example from eM Client, which could be top or bottom-quoted.
         #
@@ -2255,6 +2255,7 @@ class Message
         $textbody = preg_replace('/^Sent from the trash nothing! Mobile App.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent on the go from.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from Yahoo Mail.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from Mail.*/ms', '', $textbody);
 
         // Duff text added by Yahoo Mail app.
         $textbody = str_replace('blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; }', '', $textbody);

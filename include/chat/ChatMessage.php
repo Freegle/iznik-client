@@ -178,6 +178,12 @@ class ChatMessage extends Entity
             unset($ret['refmsg']['message']);
         }
 
+        # Strip any remaining quoted text in replies.
+        # TODO But shouldn't this have happened?
+        $ret['message'] = trim(preg_replace('/\|.*$/m', "", $ret['message']));
+        $ret['message'] = trim(preg_replace('/\>.*$/m', "", $ret['message']));
+        $ret['message'] = trim(preg_replace('/\#yiv.*$/m', "", $ret['message']));
+
         return($ret);
     }
 

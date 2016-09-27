@@ -288,7 +288,11 @@ class ChatRoom extends Entity
             $ret['refmsgids'][] = $refmsg['refmsgid'];
         }
 
-        $lasts = $this->dbhr->preQuery("SELECT id, date, message FROM chat_messages WHERE chatid = ? ORDER BY id DESC LIMIT 1;", [ $this->id] );
+        $lasts = $this->dbhr->preQuery("SELECT id, date, message FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 ORDER BY id DESC LIMIT 1;", [ $this->id] );
+        $ret['lastmsg'] = 0;
+        $ret['lastdate'] = NULL;
+        $ret['snipped'] = '';
+
         foreach ($lasts as $last) {
             $ret['lastmsg'] = $last['id'];
             $ret['lastdate'] = ISODate($last['date']);
@@ -387,8 +391,8 @@ class ChatRoom extends Entity
                             $validcount = 0;
                             $invalidcount = 0;
                             foreach ($unheld as $un) {
-                                $validcount == $un['valid'] = 1 ? ++$validcount : $validcount;
-                                $invalidcount == $un['invalid'] = 1 ? ++$invalidcount : $invalidcount;
+                                $validcount = ($un['valid'] == 1) ? ++$validcount : $validcount;
+                                $invalidcount = ($un['valid'] == 0) ? ++$invalidcount : $invalidcount;
                             }
 
                             $cansee = count($unheld) == 0 || $validcount > 0;
@@ -775,6 +779,7 @@ class ChatRoom extends Entity
                     ]);
                 foreach ($rosters as $roster) {
                     #error_log("Chat {$this->id} " . var_export($roster, TRUE));
+                    #error_log("{$roster['userid']} mailed {$roster['lastmsgemailed']} vs $lastmessage");
                     if ($roster['lastmsgemailed'] >= $lastmessage || $roster['lastmsgseen'] >= $lastmessage) {
                         $modseen = TRUE;
                     }

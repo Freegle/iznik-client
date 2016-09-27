@@ -104,6 +104,7 @@ define([
             "modtools/spammerlist/confirmed(/:search)": "spammerListConfirmed",
             "modtools/spammerlist/pendingremove(/:search)": "spammerListPendingRemove",
             "modtools/spammerlist/whitelisted(/:search)": "spammerListWhitelisted",
+            "modtools/settings/all/map": "mapAll",
             "modtools/settings/:id/map": "mapSettings",
             "modtools/settings/confirmmail/(:key)": "confirmMail",
             "modtools/settings": "settings",
@@ -222,13 +223,15 @@ define([
 
         userChat: function(chatid) {
             var self = this;
-            self.listenToOnce(Iznik.Session, 'chatsfetched', function() {
-                var chatmodel = Iznik.Session.chats.get(chatid);
-                var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
-                chatView.restore(true);
-                chatView.focus();
-            });
-            
+
+            try {
+                // Force the chat code to open this chat, even if we're on mobile.
+                // TODO This is a horrid way of signalling.
+                localStorage.setItem('chat-' + chatid + '-open', 2);
+            } catch (e) {
+                console.error(e.message);
+            }
+
             self.userHome(chatid);
         },
 
@@ -1010,6 +1013,21 @@ define([
                     var page = new Iznik.Views.ModTools.Pages.MapSettings({
                         groupid: groupid
                     });
+                    self.loadRoute({page: page, modtools: true});
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+
+        mapAll: function () {
+            var self = this;
+
+            require(["iznik/views/pages/modtools/settings"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.MapSettings();
                     self.loadRoute({page: page, modtools: true});
                 });
 

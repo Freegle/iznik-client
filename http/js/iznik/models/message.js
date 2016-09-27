@@ -317,7 +317,7 @@ define([
                 var groups = [];
                 _.each(message.groups, function(group) {
                     var groupdata = ret.groups[group.groupid];
-                    groups.push(_.extend([], groupdata, group));
+                    groups.push(_.extend({}, groupdata, group));
                 });
 
                 message.groups = groups;
@@ -359,6 +359,10 @@ define([
 
                 // Duff text added by Yahoo Mail app
                 text = text.replace('blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; }', '');
+                text = text.replace('\#yiv.*\}\}', '');
+
+                // Leftover quoted
+                text = text.replace(/^\|.*$/, '');
 
                 text = text.trim();
                 // console.log("Stripped photo", text);
@@ -443,7 +447,7 @@ define([
                             }
                         }
 
-                        groups.push(_.extend([], groupdata, group));
+                        groups.push(_.extend({}, groupdata, group));
                     });
 
                     message.arrival = (new Date(arrival)).toISOString();

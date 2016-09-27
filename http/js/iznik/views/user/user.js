@@ -875,7 +875,7 @@ define([
                     self.$('select').selectpicker();
                 });
 
-                console.log("On holiday", onholiday);
+                // console.log("On holiday", onholiday);
                 if (onholiday && onholiday != undefined && onholiday != "1970-01-01T00:00:00Z") {
                     self.$('.js-onholidaytill').show();
                     self.$('.js-emailfrequency').hide();

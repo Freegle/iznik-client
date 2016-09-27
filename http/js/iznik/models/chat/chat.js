@@ -79,14 +79,24 @@ define([
             }
         },
 
-        fetch: function() {
+        fetch: function(options) {
+            // We always want to cache the return value, even if no cached callback is passed, so that we cache it
+            // for later.
+            options = !options ? {} : options;
+            if (!options.hasOwnProperty('data')) {
+                options.data = {};
+            }
+
             // Which chat types we fetch depends on whether we're in ModTools or the User i/f.
-            // console.log("Fetch chats"); console.trace();
-            return Iznik.Collection.prototype.fetch.call(this, {
-                data: {
-                    chattypes: this.options.modtools ? [ 'Mod2Mod', 'User2Mod' ] : [ 'User2User', 'User2Mod' ]
-                }
-            });
+            options.data.chattypes = (Iznik.Session && Iznik.Session.get('modtools')) ? [ 'Mod2Mod', 'User2Mod' ] : [ 'User2User', 'User2Mod' ];
+            options.processData = true;
+
+            if (!options.hasOwnProperty('cached')) {
+                options.cached = nullFn;
+            }
+
+            console.log("Fetch chats with", options);
+            return Iznik.Collection.prototype.fetch.call(this, options);
         },
 
         parse: function(ret) {

@@ -227,121 +227,127 @@ class chatMessagesAPITest extends IznikAPITestCase
         error_log(__METHOD__ . " end");
     }
 
-//    public function testReview() {
-//        error_log(__METHOD__);
-//
-//        assertTrue($this->user->login('testpw'));
-//
-//        # Create a chat to the second user
-//        $ret = $this->call('chatrooms', 'PUT', [
-//            'userid' => $this->uid2
-//        ]);
-//
-//        assertEquals(0, $ret['ret']);
-//        $this->cid = $ret['id'];
-//        assertNotNull($this->cid);
-//
-//        $ret = $this->call('chatmessages', 'POST', [
-//            'roomid' => $this->cid,
-//            'message' => 'Test with link http://spam.wherever '
-//        ]);
-//        error_log("Create message " . var_export($ret, TRUE));
-//        assertEquals(0, $ret['ret']);
-//        assertNotNull($ret['id']);
-//        $mid1 = $ret['id'];
-//
-//        $ret = $this->call('chatmessages', 'POST', [
-//            'roomid' => $this->cid,
-//            'message' => 'Test with link http://ham.wherever '
-//        ]);
-//        error_log("Create message " . var_export($ret, TRUE));
-//        assertEquals(0, $ret['ret']);
-//        assertNotNull($ret['id']);
-//        $mid2 = $ret['id'];
-//
-//        # Now log in as the other user.
-//        assertTrue($this->user2->login('testpw'));
-//
-//        # Shouldn't see messages as held for review.
-//        $ret = $this->call('chatmessages', 'GET', [
-//            'roomid' => $this->cid
-//        ]);
-//        error_log("Get message" . var_export($ret, TRUE));
-//        assertEquals(0, $ret['ret']);
-//        assertEquals(0, count($ret['chatmessages']));
-//
-//        # Now log in as a third user.
-//        assertTrue($this->user3->login('testpw'));
-//        $this->user3->addMembership($this->groupid, User::ROLE_MODERATOR);
-//
-//        # We're a mod, but not on any of the groups that these users are on (because they're not on any).  So we
-//        # shouldn't see this chat message to review.
-//        $ret = $this->call('session', 'GET', []);
-//        assertEquals(0, $ret['ret']);
-//        assertEquals(0, $ret['work']['chatreview']);
-//
-//        $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
-//
-//        # Shouldn't see this as the recipient is still not on a group we mod.
-//        $ret = $this->call('session', 'GET', []);
-//        assertEquals(0, $ret['ret']);
-//        assertEquals(0, $ret['work']['chatreview']);
-//
-//        $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
-//
-//        # Should see this now.
-//        error_log("Check can see for mod on {$this->groupid}");
-//        $ret = $this->call('session', 'GET', []);
-//        assertEquals(0, $ret['ret']);
-//        assertEquals(2, $ret['work']['chatreview']);
-//
-//        # Test the 'other' variant.
-//        $this->user2->setGroupSettings($this->groupid, [ 'showmessages' => 0 ]);
-//        $ret = $this->call('session', 'GET', []);
-//        assertEquals(0, $ret['ret']);
-//        assertEquals(0, $ret['work']['chatreviewother']);
-//
-//        # Get the messages for review.
-//        $ret = $this->call('chatmessages', 'GET', []);
-//        assertEquals(0, $ret['ret']);
-//        error_log("Messages for review " . var_export($ret, TRUE));
-//        assertEquals(2, count($ret['chatmessages']));
-//        assertEquals($mid1, $ret['chatmessages'][0]['id']);
-//        assertEquals($mid2, $ret['chatmessages'][1]['id']);
-//
-//        # Approve the first
-//        $ret = $this->call('chatmessages', 'POST', [
-//            'action' => 'Approve',
-//            'id' => $mid1
-//        ]);
-//        assertEquals(0, $ret['ret']);
-//
-//        $ret = $this->call('chatmessages', 'GET', []);
-//        assertEquals(0, $ret['ret']);
-//        assertEquals(1, count($ret['chatmessages']));
-//        assertEquals($mid2, $ret['chatmessages'][0]['id']);
-//
-//        # Reject the second
-//        $ret = $this->call('chatmessages', 'POST', [
-//            'action' => 'Reject',
-//            'id' => $mid2
-//        ]);
-//        assertEquals(0, $ret['ret']);
-//
-//        $ret = $this->call('chatmessages', 'GET', []);
-//        assertEquals(0, $ret['ret']);
-//        assertEquals(0, count($ret['chatmessages']));
-//
-//        # Now log in as the recipient.  Should see the approved one.
-//        assertTrue($this->user2->login('testpw'));
-//
-//        $ret = $this->call('chatmessages', 'GET', [
-//            'roomid' => $this->cid
-//        ]);
-//        assertEquals(0, $ret['ret']);
-//        assertEquals(1, count($ret['chatmessages']));
-//        assertEquals($mid1, $ret['chatmessages'][0]['id']);
-//
-//        error_log(__METHOD__ . " end");
-//    }
+    public function testReview() {
+        error_log(__METHOD__);
+
+        assertTrue($this->user->login('testpw'));
+
+        # Create a chat to the second user
+        $ret = $this->call('chatrooms', 'PUT', [
+            'userid' => $this->uid2
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $this->cid = $ret['id'];
+        assertNotNull($this->cid);
+
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $this->cid,
+            'message' => 'Test with link http://spam.wherever '
+        ]);
+        error_log("Create message " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $mid1 = $ret['id'];
+
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $this->cid,
+            'message' => 'Test with link http://ham.wherever '
+        ]);
+        error_log("Create message " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $mid2 = $ret['id'];
+
+        # Now log in as the other user.
+        assertTrue($this->user2->login('testpw'));
+
+        # Shouldn't see chat as no messages not held for review.
+        $ret = $this->call('chatrooms', 'GET', []);
+        error_log("Shouldn't see rooms " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(0, count($ret['chatrooms']));
+
+        # Shouldn't see messages as held for review.
+        $ret = $this->call('chatmessages', 'GET', [
+            'roomid' => $this->cid
+        ]);
+        error_log("Get message" . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['chatmessages']));
+
+        # Now log in as a third user.
+        assertTrue($this->user3->login('testpw'));
+        $this->user3->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        # We're a mod, but not on any of the groups that these users are on (because they're not on any).  So we
+        # shouldn't see this chat message to review.
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, $ret['work']['chatreview']);
+
+        $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        # Shouldn't see this as the recipient is still not on a group we mod.
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, $ret['work']['chatreview']);
+
+        $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        # Should see this now.
+        error_log("Check can see for mod on {$this->groupid}");
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(2, $ret['work']['chatreview']);
+
+        # Test the 'other' variant.
+        $this->user2->setGroupSettings($this->groupid, [ 'showmessages' => 0 ]);
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, $ret['work']['chatreviewother']);
+
+        # Get the messages for review.
+        $ret = $this->call('chatmessages', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        error_log("Messages for review " . var_export($ret, TRUE));
+        assertEquals(2, count($ret['chatmessages']));
+        assertEquals($mid1, $ret['chatmessages'][0]['id']);
+        assertEquals($mid2, $ret['chatmessages'][1]['id']);
+
+        # Approve the first
+        $ret = $this->call('chatmessages', 'POST', [
+            'action' => 'Approve',
+            'id' => $mid1
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('chatmessages', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['chatmessages']));
+        assertEquals($mid2, $ret['chatmessages'][0]['id']);
+
+        # Reject the second
+        $ret = $this->call('chatmessages', 'POST', [
+            'action' => 'Reject',
+            'id' => $mid2
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('chatmessages', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['chatmessages']));
+
+        # Now log in as the recipient.  Should see the approved one.
+        assertTrue($this->user2->login('testpw'));
+
+        $ret = $this->call('chatmessages', 'GET', [
+            'roomid' => $this->cid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['chatmessages']));
+        assertEquals($mid1, $ret['chatmessages'][0]['id']);
+
+        error_log(__METHOD__ . " end");
+    }
 }

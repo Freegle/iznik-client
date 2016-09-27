@@ -22,145 +22,171 @@ define([
             return (paired.length == 0);
         },
 
+        fetchedChats: function() {
+            var self = this;
+
+            // This can be called twice - once with cached data, once with the update.
+            if (!self.chatsFetched) {
+                self.chatsFetched = true;
+
+                var v = new Iznik.Views.Help.Box();
+                v.template = 'user_home_homehelp';
+                v.render().then(function (v) {
+                    self.$('.js-homehelp').html(v.el);
+                });
+
+                var v = new Iznik.Views.Help.Box();
+                v.template = 'user_home_offerhelp';
+                v.render().then(function (v) {
+                    self.$('.js-offerhelp').html(v.el);
+                });
+
+                // It's quicker to get all our messages in a single call.  So we have two CollectionViews, one for offers,
+                // one for wanteds.
+                self.offers = new Iznik.Collection();
+                self.wanteds = new Iznik.Collection();
+
+                self.offersView = new Backbone.CollectionView({
+                    el: self.$('.js-offers'),
+                    modelViewOptions: {
+                        offers: self.offers,
+                        page: self,
+                        chatid: self.options.chatid
+                    },
+                    modelView: Iznik.Views.User.Home.Offer,
+                    collection: self.offers,
+                    visibleModelsFilter: self.filter
+                });
+
+                self.offersView.render();
+
+                self.wantedsView = new Backbone.CollectionView({
+                    el: self.$('.js-wanteds'),
+                    modelView: Iznik.Views.User.Home.Wanted,
+                    modelViewOptions: {
+                        wanteds: self.wanteds,
+                        page: self,
+                        chatid: self.options.chatid
+                    },
+                    collection: self.wanteds,
+                    visibleModelsFilter: self.filter
+                });
+
+                self.wantedsView.render();
+
+                // We want to get all messages we've sent.  From the user pov we don't distinguish in
+                // how they look.  This is because most messages are approved and there's no point worrying them, and
+                // provoking "why hasn't it been approved yet" complaints.
+                self.messages = new Iznik.Collections.Message(null, {
+                    modtools: false,
+                    collection: 'AllUser',
+                    type: 'Freegle'
+                });
+
+                var count = 0;
+
+                // We listen for events on the messages collection and ripple them through to the relevant offers/wanteds
+                // collection.  CollectionView will then handle rendering/removing the messages view.
+                self.listenTo(self.messages, 'add', function (msg) {
+                    var related = msg.get('related');
+
+                    if (msg.get('type') == 'Offer') {
+                        var taken = _.where(related, {
+                            type: 'Taken'
+                        });
+
+                        if (taken.length == 0) {
+                            self.offers.add(msg);
+                        }
+                    } else if (msg.get('type') == 'Wanted') {
+                        var received = _.where(related, {
+                            type: 'Received'
+                        });
+
+                        if (received.length == 0) {
+                            self.wanteds.add(msg);
+                        }
+                    } else {
+                        console.log("Got something else", msg);
+                    }
+                });
+
+                self.listenTo(self.messages, 'remove', function (msg) {
+                    if (self.model.get('type') == 'Offer') {
+                        self.offers.remove(msg);
+                    } else if (self.model.get('type') == 'Wanted') {
+                        self.wanteds.remove(msg);
+                    }
+                });
+
+                // Now get the messages.
+                var cb = _.bind(self.fetchedMessages, self);
+                self.messages.fetch({
+                    cached: cb,
+                    data: {
+                        fromuser: Iznik.Session.get('me').id,
+                        types: ['Offer', 'Wanted'],
+                        limit: 100
+                    }
+                }).then(cb);
+            }
+        },
+
+        fetchedMessages: function () {
+            var self = this;
+
+            if (self.offers.length == 0) {
+                self.$('.js-nooffers').fadeIn('slow');
+            } else {
+                self.$('.js-nooffers').hide();
+            }
+        },
+
         render: function () {
             var self = this;
 
-            // Iznik.Session.askSubscription();
+            Iznik.Session.askSubscription();
 
             var p = Iznik.Views.Page.prototype.render.call(this, {
                 noSupporters: true
             });
+
             p.then(function(self) {
-                // We need the chats, as they are used when displaying messages.
-                Iznik.Session.chats.fetch().then(function() {
-                    var v = new Iznik.Views.Help.Box();
-                    v.template = 'user_home_homehelp';
-                    v.render().then(function (v) {
-                        self.$('.js-homehelp').html(v.el);
-                    });
-
-                    var v = new Iznik.Views.Help.Box();
-                    v.template = 'user_home_offerhelp';
-                    v.render().then(function (v) {
-                        self.$('.js-offerhelp').html(v.el);
-                    });
-
-                    // It's quicker to get all our messages in a single call.  So we have two CollectionViews, one for offers,
-                    // one for wanteds.
-                    self.offers = new Iznik.Collection();
-                    self.wanteds = new Iznik.Collection();
-
-                    self.offersView = new Backbone.CollectionView({
-                        el: self.$('.js-offers'),
-                        modelViewOptions: {
-                            offers: self.offers,
-                            page: self,
-                            chatid: self.options.chatid
-                        },
-                        modelView: Iznik.Views.User.Home.Offer,
-                        collection: self.offers,
-                        visibleModelsFilter: self.filter
-                    });
-
-                    self.offersView.render();
-
-                    self.wantedsView = new Backbone.CollectionView({
-                        el: self.$('.js-wanteds'),
-                        modelView: Iznik.Views.User.Home.Wanted,
-                        modelViewOptions: {
-                            wanteds: self.wanteds,
-                            page: self,
-                            chatid: self.options.chatid
-                        },
-                        collection: self.wanteds,
-                        visibleModelsFilter: self.filter
-                    });
-
-                    self.wantedsView.render();
-
-                    // We want to get all messages we've sent.  From the user pov we don't distinguish in
-                    // how they look.  This is because most messages are approved and there's no point worrying them, and
-                    // provoking "why hasn't it been approved yet" complaints.
-                    self.messages = new Iznik.Collections.Message(null, {
-                        modtools: false,
-                        collection: 'AllUser',
-                        type: 'Freegle'
-                    });
-
-                    var count = 0;
-
-                    // We listen for events on the messages collection and ripple them through to the relevant offers/wanteds
-                    // collection.  CollectionView will then handle rendering/removing the messages view.
-                    self.listenTo(self.messages, 'add', function (msg) {
-                        var related = msg.get('related');
-
-                        if (msg.get('type') == 'Offer') {
-                            var taken = _.where(related, {
-                                type: 'Taken'
-                            });
-
-                            if (taken.length == 0) {
-                                self.offers.add(msg);
-                            }
-                        } else if (msg.get('type') == 'Wanted') {
-                            var received = _.where(related, {
-                                type: 'Received'
-                            });
-
-                            if (received.length == 0) {
-                                self.wanteds.add(msg);
-                            }
-                        } else {
-                            console.log("Got something else", msg);
-                        }
-                    });
-
-                    self.listenTo(self.messages, 'remove', function (msg) {
-                        if (self.model.get('type') == 'Offer') {
-                            self.offers.remove(msg);
-                        } else if (self.model.get('type') == 'Wanted') {
-                            self.wanteds.remove(msg);
-                        }
-                    });
-
-                    // Now get the messages.
-                    self.messages.fetch({
-                        data: {
-                            fromuser: Iznik.Session.get('me').id,
-                            types: ['Offer', 'Wanted'],
-                            limit: 100
-                        }
-                    }).then(function () {
-                        if (self.offers.length == 0) {
-                            self.$('.js-nooffers').fadeIn('slow');
-                        } else {
-                            self.$('.js-nooffers').hide();
-                        }
-                    });
-
-                    // Searches
-                    self.searches = new Iznik.Collections.User.Search();
-
-                    self.searchView = new Backbone.CollectionView({
-                        el: self.$('.js-searchlist'),
-                        modelView: Iznik.Views.User.Home.Search,
-                        collection: self.searches
-                    });
-
-                    self.searchView.render();
-
-                    self.searches.fetch().then(function () {
-                        if (self.searches.length > 0) {
-                            self.$('.js-searchrow').fadeIn('slow');
-                        }
-                    });
-
-                    // Left menu is community events
-                    var v = new Iznik.Views.User.CommunityEventsSidebar();
-                    v.render().then(function () {
-                        $('#js-eventcontainer').append(v.$el);
-                    })
+                // Left menu is community events
+                var v = new Iznik.Views.User.CommunityEventsSidebar();
+                v.render().then(function () {
+                    $('#js-eventcontainer').append(v.$el);
                 });
+
+                // Searches
+                self.searches = new Iznik.Collections.User.Search();
+
+                self.searchView = new Backbone.CollectionView({
+                    el: self.$('.js-searchlist'),
+                    modelView: Iznik.Views.User.Home.Search,
+                    collection: self.searches
+                });
+
+                self.searchView.render();
+
+                var cb = _.bind(function() {
+                    if (!this.fetchedSearches) {
+                        this.fetchedSearches = true;
+                        if (this.searches.length > 0) {
+                            this.$('.js-searchrow').fadeIn('slow');
+                        }
+                    }
+                }, self);
+
+                self.searches.fetch({
+                    cached: cb
+                }).then(cb);
+
+                // We need the chats, as they are used when displaying messages.
+                var cb = _.bind(self.fetchedChats, self);
+                Iznik.Session.chats.fetch({
+                    cached: cb
+                }).then(cb);
             });
 
             return(p);
@@ -322,7 +348,6 @@ define([
                     return (-reply.promised);
                 });
                 _.each(replies, function (reply) {
-                    console.log("Add reply", reply);
                     self.$('.js-user').append('<option value="' + reply.user.id + '" />');
                     self.$('.js-user option:last').html(reply.user.displayname);
                 })

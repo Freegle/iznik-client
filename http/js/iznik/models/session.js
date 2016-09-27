@@ -203,6 +203,21 @@ define([
                             var now = (new Date()).getTime();
                             try {
                                 localStorage.setItem('session', JSON.stringify(ret));
+                                lastloggedinas = localStorage.getItem('lastloggedinas');
+                                localStorage.setItem('lastloggedinas', ret.me.id);
+
+                                console.log("lastloggedinas", lastloggedinas, ret.me.id);
+                                if (ret.me.id != lastloggedinas) {
+                                    // We have logged in as someone else.  Zap our fetch cache.
+                                    console.log("Login change - zap cache");
+                                    for (var i = 0; i < localStorage.length; i++){
+                                        var key = localStorage.key(i);
+
+                                        if (key.indexOf('cache.') === 0) {
+                                            localStorage.removeItem(key);
+                                        }
+                                    }
+                                }
 
                                 // We use this to decide whether to show sign up or sign in.
                                 localStorage.setItem('signedinever', true);

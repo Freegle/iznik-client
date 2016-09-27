@@ -35,6 +35,26 @@ define([
             $('#js-eventcontainer').css('height', window.innerHeight - $('#botleft').height() - $('nav').height() - 50)
         },
 
+        fetched: false,
+
+        eventsFetched: function() {
+            // This might get called twice, once with cached info and once without, so we want to be resilient to that.
+            var self = this;
+
+            if (!self.fetched) {
+                self.fetched = true;
+                self.$('.js-list').fadeIn('slow');
+
+                self.containerHeight();
+                $(window).resize(self.containerHeight);
+                $('#js-eventcontainer').fadeIn('slow');
+            }
+
+            if (self.events.length == 0) {
+                self.$('.js-none').fadeIn('slow');
+            }
+        },
+
         render: function () {
             var self = this;
 
@@ -50,16 +70,10 @@ define([
 
                 self.eventsView.render();
 
-                self.events.fetch().then(function() {
-                    self.$('.js-list').fadeIn('slow');
-                    if (self.events.length == 0) {
-                        self.$('.js-none').fadeIn('slow');
-                    }
-
-                    self.containerHeight();
-                    $(window).resize(self.containerHeight);
-                    $('#js-eventcontainer').fadeIn('slow');
-                });
+                var cb = _.bind(self.eventsFetched, self);
+                self.events.fetch({
+                    cached: cb
+                }).then(cb);
             });
 
             return(p);

@@ -13,7 +13,7 @@ $lockh = lockScript(basename(__FILE__));
 $l = new Location($dbhr, $dbhm);
 
 $mysqltime = date("Y-m-d", strtotime("Midnight 3 days ago"));
-$sql = "SELECT locations.*, ASText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS geom FROM  `locations` WHERE  `type` =  'Polygon' AND  `timestamp` >=  ? AND locations.id IN (SELECT areaid FROM locations WHERE name like 'MK%') ORDER BY name ASC;";
+$sql = "SELECT locations.*, ASText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS geom FROM  `locations` WHERE  `type` =  'Polygon' AND  `timestamp` >= ? ORDER BY name ASC;";
 $locs = $dbhr->preQuery($sql, [ $mysqltime ]);
 
 $count = 0;
