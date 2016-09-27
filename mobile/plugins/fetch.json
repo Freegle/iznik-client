@@ -38,5 +38,13 @@
         },
         "is_top_level": true,
         "variables": {}
+    },
+    "cordova-plugin-inappbrowser": {
+        "source": {
+            "type": "local",
+            "path": "C:\\Users\\Chris\\AppData\\Local\\Intel\\XDK\\xdk\\components\\server\\cordova\\cordova-plugins\\cordova-plugin-inappbrowser"
+        },
+        "is_top_level": true,
+        "variables": {}
     }
 }

@@ -115,7 +115,7 @@ define([
             $(authWindow).on('loadstart', function (e) {
                 // This is called more than once, eg on first load, when button pressed and when redirected to localhost with code or error
                 var url = e.originalEvent.url;
-                //freegle.logMsg("gloadstart: " + url);
+                console.log("gloadstart: " + url);
                 var code = /\?code=(.+)$/.exec(url); 	// code[0] is entire match, code[1] is submatch ie the code
                 var error = /\?error=(.+)$/.exec(url); // error[0] is entire match, error[1] is submatch ie the error
 
