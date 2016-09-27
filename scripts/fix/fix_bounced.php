@@ -7,7 +7,7 @@ require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 
-$msgs = $dbhr->preQuery("SELECT DISTINCT messages.id, messages.fromuser, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE sourceheader = 'Platform' AND messages_outcomes.msgid IS NULL ORDER BY groupid;");
+$msgs = $dbhr->preQuery("SELECT DISTINCT messages.id, messages.fromuser, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE sourceheader = 'Platform' AND messages_outcomes.msgid IS NULL AND messages.id NOT IN (7559261, 7830782, 7630250, 8148662) ORDER BY groupid;");
 
 foreach ($msgs as $msg) {
     $m = new Message($dbhr, $dbhm, $msg['id']);
@@ -44,6 +44,9 @@ foreach ($msgs as $msg) {
             if ($premature) {
                 $g = new Group($dbhr, $dbhm, $msg['groupid']);
                 error_log($g->getPrivate('nameshort') . " #{$msg['id']} " . $m->getPrivate('date') . " " . $m->getFromaddr() . " " . $m->getSubject());
+                $u = new User($dbhr, $dbhm, $m->getFromuser());
+                list ($eid, $email) = $u->getEmailForYahooGroup($msg['groupid'], TRUE, TRUE);
+                $m->submit($u, $email, $msg['groupid']);
             }
         }
     }
