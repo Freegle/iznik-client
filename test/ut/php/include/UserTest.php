@@ -131,11 +131,11 @@ class userTest extends IznikTestCase {
         $emailid3 = $u->getIdForEmail('test3@test.com')['id'];
         error_log("emailid1 $emailid1 emailid3 $emailid3");
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid1);
-        assertEquals($emailid1, $u->getEmailForYahooGroup($group1)[0]);
+        assertEquals($emailid1, $u->getEmailForYahooGroup($group1, FALSE, TRUE)[0]);
         $u->removeMembership($group1);
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid3);
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid3);
-        assertEquals($emailid3, $u->getEmailForYahooGroup($group1)[0]);
+        assertEquals($emailid3, $u->getEmailForYahooGroup($group1, FALSE, TRUE)[0]);
         assertNull($u->getIdForEmail('wibble@test.com'))['id'];
         assertNull($u->getEmailForYahooGroup(-1)[0]);
 
@@ -809,19 +809,18 @@ class userTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
-
-    public function testSpecial() {
-        error_log(__METHOD__);
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->findByEmail('chris@phdcc.com');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-
-
-        list ($eidforgroup, $emailforgroup) = $u->getEmailForYahooGroup(21560, TRUE);
-        error_log("Eid is $eidforgroup");
-
-        error_log(__METHOD__ . " end");
-    }
+//
+//    public function testSpecial() {
+//        error_log(__METHOD__);
+//
+//        $u = User::get($this->dbhr, $this->dbhm);
+//        $uid = $u->findByEmail('chris@phdcc.com');
+//        $u = User::get($this->dbhr, $this->dbhm, $uid);
+//
+//        list ($eidforgroup, $emailforgroup) = $u->getEmailForYahooGroup(21560, TRUE, TRUE);
+//        error_log("Eid is $eidforgroup");
+//
+//        error_log(__METHOD__ . " end");
+//    }
 }
 

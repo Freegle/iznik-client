@@ -314,7 +314,7 @@ function message() {
                                 if ($u->getId() && $eid) {
                                     # Now we have a user and an email.  We need to make sure they're a member of the
                                     # group in question, with an email address we host (so that replies come back here).
-                                    list ($eidforgroup, $emailforgroup) = $u->getEmailForYahooGroup($groupid, TRUE);
+                                    list ($eidforgroup, $emailforgroup) = $u->getEmailForYahooGroup($groupid, TRUE, TRUE);
 
                                     $ret = ['ret' => 6, 'status' => 'Failed to join group'];
                                     $rc = true;

@@ -1,28 +1,25 @@
 <?php
 
+use Pheanstalk\Pheanstalk;
 require_once(IZNIK_BASE . '/include/utils.php');
 
 class Events {
     private $dbhr;
     private $dbhm;
 
-    private $queue = '';
+    private $queue = [];
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm) {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
     }
 
     public function record($id, $sessid, $route, $target, $action, $timestamp, $posx, $posy, $viewx, $viewy, $data) {
         # TODO POST protection will stop blatant hacks but URLs with timestamps would get through.
-        $timestamp = $timestamp ? ($timestamp * 0.001) : 'NULL';
-        $posx = $posx ? $posx : 'NULL';
-        $posy = $posy ? $posy : 'NULL';
+        $timestamp = $timestamp ? ($timestamp * 0.001) : NULL;
         $hashvalue = $data ? md5($data) : NULL;
-        $datahash = $data ? ("'" . $hashvalue . "'") : 'NULL';
-        $dataq = $data ? $this->dbhr->quote($data) : 'NULL';
-        $datasameas = 'NULL';
-        $id = $id ? $id : 'NULL';
+        $datasameas = NULL;
 
         if ($data) {
             # To save space in the table, we look for another record which has the same hash, and then data.  If we find
@@ -35,7 +32,7 @@ class Events {
             foreach ($logs as $log) {
                 $cmp = strcmp($log['data'], $data);
                 if ($cmp == 0) {
-                    $dataq = 'NULL';
+                    $data = NULL;
                     $datasameas = $log['id'];
                     break;
                 }
@@ -44,28 +41,50 @@ class Events {
 
         $lastip = presdef('REMOTE_ADDR', $_SERVER, 'NULL');
 
-        $sql = "INSERT IGNORE INTO logs_events (`userid`, `sessionid`, `timestamp`, `clienttimestamp`, `route`, `target`, `event`, `posx`, `posy`, `viewx`, `viewy`, `data`, `datahash`, `datasameas`, `ip`) VALUES ($id, " . $this->dbhr->quote($sessid) . ", CURTIME(3), FROM_UNIXTIME($timestamp), " . $this->dbhr->quote($route) . ", " . $this->dbhr->quote($target) . ", " . $this->dbhr->quote($action) . ", $posx, $posy, $viewx, $viewy, $dataq, $datahash, $datasameas, " . $this->dbhr->quote($lastip) . ");";
-
-        $this->queue .= $sql;
+        # Pass via beanstalk to the background job which will insert this efficiently into the DB.
+        $this->queue[] = [
+            'userid' => $id, 
+            'sessionid' => $sessid,
+            'clienttimestamp' => $timestamp,
+            'route' => $route,
+            'target' => $target,
+            'event' => $action,
+            'posx' => $posx,
+            'posy' => $posy,
+            'viewx' => $viewx,
+            'viewy' => $viewy,
+            'data' => $data,
+            'datahash' => $hashvalue,
+            'datasameas' => $datasameas,
+            'ip' => $lastip
+        ];
     }
 
     public function flush() {
         try {
             # If anything goes wrong, we're not that interested - we can lose events, and if we return errors the
-            # client will retry.
-            $this->dbhm->background($this->queue);
-            $this->queue = '';
+            # client would retry.
+            $id = $this->pheanstalk->put(json_encode([
+                'type' => 'events',
+                'queued' => time(),
+                'ttr' => 300,
+                'events' => $this->queue
+            ]));
+
+            $this->queue = [];
         } catch (Exception $e) {}
     }
     
     public function listSessions($userid = NULL) {
         $userq = $userid ? " WHERE userid = $userid " : '';
-        $sql = "SELECT DISTINCT(sessionid) FROM logs_events $userq ORDER BY id DESC LIMIT 100;";
-        $sessions = $this->dbhr->preQuery($sql);
+        $sql = "SELECT DISTINCT(sessionid) FROM logs_events $userq;";
+        $sesslist = $this->dbhr->preQuery($sql);
+        #error_log("Queryed, got " . count($sesslist));
         $ret = [];
 
-        foreach ($sessions as $session) {
-            $sessid = $session['sessionid'];
+        foreach ($sesslist as $asess) {
+            $sessid = $asess['sessionid'];
+            #error_log($sessid);
             $thisone = [
                 'id' => $sessid
             ];
@@ -101,7 +120,7 @@ class Events {
 
         # Get the first client timestamp.
         $sql = "SELECT clienttimestamp FROM logs_events WHERE sessionid = ? ORDER BY id ASC LIMIT 1;";
-        error_log("$sql, $sessionid");
+        #error_log("$sql, $sessionid");
         $firsts = $this->dbhr->preQuery($sql, [
             $sessionid
         ]);

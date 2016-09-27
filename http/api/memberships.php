@@ -179,7 +179,7 @@ function memberships() {
                         #
                         # TODO Need to handle the case where this application is rejected.  In FDv1-2 this could
                         # not occur as FBUser members were pre-approved, but it can now.
-                        list ($eid, $alreadymail) = $u->getEmailForYahooGroup($groupid, TRUE);
+                        list ($eid, $alreadymail) = $u->getEmailForYahooGroup($groupid, TRUE, TRUE);
 
                         if (!$eid) {
                             $u->triggerYahooApplication($groupid);

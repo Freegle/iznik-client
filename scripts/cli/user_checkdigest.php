@@ -36,7 +36,7 @@ if (count($opts) < 2) {
 
                 }
 
-                $membershipmail = $u->getEmailForYahooGroup($gid, TRUE)[1];
+                $membershipmail = $u->getEmailForYahooGroup($gid, TRUE, TRUE)[1];
 
                 if ($membershipmail) {
                     # They have a membership on Yahoo with one of our addresses.

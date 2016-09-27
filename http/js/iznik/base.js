@@ -360,6 +360,8 @@ define([
     })(Backbone.View);
 
     Iznik.View.Timeago = Iznik.View.extend({
+        timeagoRunning: false,
+
         render: function() {
             // Expand the template via the parent then set the times.
             var p = Iznik.View.prototype.render.call(this);

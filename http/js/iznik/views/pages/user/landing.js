@@ -25,6 +25,12 @@ define([
         noback: true
     });
 
+    Iznik.Views.User.Pages.Landing.Handbook = Iznik.Views.Page.extend({
+        template: "user_landing_handbook",
+        footer: true,
+        noback: true
+    });
+
     Iznik.Views.User.Pages.Landing.Terms = Iznik.Views.Page.extend({
         template: "user_landing_terms",
         footer: true,

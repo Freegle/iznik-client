@@ -140,12 +140,12 @@ define([
             "mobile/": "userMobile",
             "about": "userAbout",
             "terms": "userTerms",
+            "handbook": "userHandbook",
             "privacy": "userPrivacy",
             "disclaimer": "userDisclaimer",
             "donate": "userDonate",
             "contact": "userContact",
             "help": "userContact",
-            "handbook": "userContact",
             "plugins/events/:id": "communityEventsPlugin",
             "plugins/group?groupid=:id(&*t)": "groupPlugin",
             "plugins/group/:id": "groupPlugin",
@@ -1085,7 +1085,16 @@ define([
             	self.loadRoute({ page: page });
             });
         },
-        
+
+        userHandbook: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/landing"], function() {
+                var page = new Iznik.Views.User.Pages.Landing.Handbook();
+                self.loadRoute({page: page});
+            });
+        },
+
         userTerms: function() {
             var self = this;
 
