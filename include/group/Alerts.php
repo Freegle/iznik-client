@@ -142,6 +142,7 @@ class Alert extends Entity
             case 'board': $from = BOARD_ADDR; break;
             case 'mentors': $from = MENTORS_ADDR; break;
             case 'newgroups': $from = NEWGROUPS_ADDR; break;
+            case 'ro': $from = RO_ADDR; break;
         }
         # TODO This dom
         return($from);
