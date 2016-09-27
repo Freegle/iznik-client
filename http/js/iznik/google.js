@@ -20,7 +20,7 @@ define([
                 self.authResult = authResult;
                 $.ajax({
                     type: 'POST',
-                    url: '/api/session',
+                    url: API+'session',
                     data: {
                         'googleauthcode': self.authResult.code,
                         'googlelogin': true
@@ -75,16 +75,6 @@ define([
                             return;
                         }
                         self.googleAuth();
-                        /*// CC // Custom signin button
-                        var params = {
-                            'clientid': self.clientId,
-                            'cookiepolicy': 'single_host_origin',
-                            'callback': self.onSignInCallback,
-                            'immediate': false,
-                            'scope': self.scopes
-                        };
-
-                        gapi.auth.signIn(params);*/
                     });
                 }
             } catch (e) {
@@ -93,6 +83,7 @@ define([
         },
 
         googleAuth: function(){ // CC
+            var self = this;
             if( self.tryingGoogleLogin){ return; }
             self.tryingGoogleLogin = true;
             var googleScope = 'https://www.googleapis.com/auth/plus.me https://www.googleapis.com/auth/userinfo.email';
@@ -126,6 +117,7 @@ define([
                 }
 
                 if (code) {
+                    if( authGiven) return;
                     authGiven = true;
 
                     code = code[1].split('&')[0]; // Remove any other returned parameters
@@ -134,26 +126,9 @@ define([
                     // Try logging in again at FD with given authcode
                     $('.js-signin-msg').text("googleauthcode: "+code);
                     $('.js-signin-msg').show();
-                    /*var params = { googlelogin: true, googleauthcode: code, rememberme: true };
-                    params.mobile = true;
-                    console.log(params);
-
-                    freegle.logMsg("API.post session_login googlelogin");
-                    $.post(freegle.api.session_login, params)
-                        .done(function (data) {
-                            if (data.ret === 0) {
-                                window.localStorage.setItem("logintype", freegle.logintype.google);
-                                freegle.completeLogin(data);
-                            }
-                            else {
-                                console.log("Google login error: " + data.ret, { typ: 1 });
-                                //freegle.logMsg(data);
-                            }
-                        })
-                        .fail(function (a, b, c) {
-                            console.log("Google login fail " + c, { typ: 1 });
-                        });
-*/
+                    var authResult = { code:code };
+                    authResult['access_token'] = true;
+                    self.onSignInCallback(authResult);
                 } else if (error) {
                     // The user denied access to the app
                     $('.js-signin-msg').text("Google error:" + error[1]);
