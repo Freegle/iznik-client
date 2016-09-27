@@ -67,6 +67,7 @@ EOT
                 ]
             ];
 
+            error_log("POST");
             $ret = $this->call('event', 'POST', [
                 'events' => $events
             ]);
@@ -75,6 +76,7 @@ EOT
             # Post again, which should trigger dedeplication of data.
             $this->waitBackground();
 
+            error_log("POST 2");
             $ret = $this->call('event', 'POST', [
                 'events' => $events,
                 'dedup' => true
@@ -87,11 +89,13 @@ EOT
             $this->waitBackground();
 
             # Can't get it back without being a sysadmin.
+            error_log("Get back - fail");
             $ret = $this->call('event', 'GET', [
                 'sessionid' => $sessid
             ]);
             assertEquals(2, $ret['ret']);
 
+            error_log("Get back - fail again");
             $ret = $this->call('event', 'GET', [
             ]);
             assertEquals(2, $ret['ret']);
@@ -105,6 +109,7 @@ EOT
             $u->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
             assertTrue($this->user->login($pw));
 
+            error_log("Get back - should work");
             $ret = $this->call('event', 'GET', [
                 'sessionid' => $sessid
             ]);
@@ -112,8 +117,10 @@ EOT
             assertEquals(2, count($ret['events']));
             assertEquals($ret['events'][0]['data'], $ret['events'][1]['data']);
 
+            error_log("Get back - should work again");
             $ret = $this->call('event', 'GET', [
             ]);
+            error_log("Get returned " . count($ret['sessions']));
 
             #error_log(var_export($ret, TRUE));
             assertEquals(0, $ret['ret']);

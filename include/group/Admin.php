@@ -86,7 +86,7 @@ class Admin extends Entity
             $preferred = $u->getEmailPreferred();
 
             # We send to members who have joined via our platform, or to all users if we host the group.
-            list ($eid, $ouremail) = $u->getEmailForYahooGroup($groupid, TRUE);
+            list ($eid, $ouremail) = $u->getEmailForYahooGroup($groupid, TRUE, true);
 
             if ($preferred && ($ouremail || !$onyahoo)) {
                 try {

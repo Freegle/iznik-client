@@ -302,16 +302,17 @@ class User extends Entity
         return(count($membs) > 0);
     }
 
-    public function getEmailForYahooGroup($groupid, $oursonly = FALSE) {
+    public function getEmailForYahooGroup($groupid, $oursonly = FALSE, $approvedonly = TRUE) {
         # Any of the emails will do.
-        $emails = $this->getEmailsForYahooGroup($groupid, $oursonly);
+        $emails = $this->getEmailsForYahooGroup($groupid, $oursonly, $approvedonly);
         $eid = count($emails) > 0 ? $emails[0][0] : NULL;
         $email = count($emails) > 0 ? $emails[0][1] : NULL;
         return([$eid, $email]);
     }
 
-    public function getEmailsForYahooGroup($groupid, $oursonly = FALSE) {
+    public function getEmailsForYahooGroup($groupid, $oursonly = FALSE, $approvedonly) {
         $emailq = "";
+        $collq = $approvedonly ? " AND memberships.collection = 'Approved' " : '';
 
         if ($oursonly) {
             # We are looking for a group email which we host.
@@ -322,7 +323,7 @@ class User extends Entity
             $emailq = " AND ($emailq)";
         }
 
-        $sql = "SELECT memberships_yahoo.emailid, users_emails.email FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid INNER JOIN users_emails ON memberships_yahoo.emailid = users_emails.id WHERE memberships.userid = ? AND groupid = ? $emailq;";
+        $sql = "SELECT memberships_yahoo.emailid, users_emails.email FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid INNER JOIN users_emails ON memberships_yahoo.emailid = users_emails.id WHERE memberships.userid = ? AND groupid = ? $emailq $collq;";
         #error_log($sql . ", {$this->id}, $groupid");
         $emails = $this->dbhr->preQuery($sql, [
             $this->id,
@@ -516,16 +517,17 @@ class User extends Entity
         # memberships_yahoo), and if the membership already exists, then this would cause us to delete and re-add it,
         # which would result in the row in the child table being deleted.
         #
-        #error_log("Add membership role $role for {$this->id} to $groupid with $emailid");
-        $rc = $this->dbhm->preExec("INSERT INTO memberships (userid, groupid, role, collection) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), role = ?;", [
+        #error_log("Add membership role $role for {$this->id} to $groupid with $emailid collection $collection");
+        $rc = $this->dbhm->preExec("INSERT INTO memberships (userid, groupid, role, collection) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), role = ?, collection = ?;", [
             $this->id,
             $groupid,
             $role,
             $collection,
-            $role
+            $role,
+            $collection
         ]);
         $membershipid = $this->dbhm->lastInsertId();
-        error_log("Insert returned $rc membership $membershipid");
+        #error_log("Insert returned $rc membership $membershipid");
 
         if ($rc && $emailid) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
@@ -1704,7 +1706,7 @@ class User extends Entity
     private function maybeMail($groupid, $subject, $body, $action) {
         if ($body) {
             # We have a mail to send.
-            list ($eid, $to) = $this->getEmailForYahooGroup($groupid);
+            list ($eid, $to) = $this->getEmailForYahooGroup($groupid, FALSE, FALSE);
 
             # If this is one of our domains, then we should send directly to the preferred email, to avoid
             # the mail coming back to us and getting added into a chat.
@@ -2377,7 +2379,7 @@ class User extends Entity
             # So if we don't find anything in there, then we check whether this user has any
             # emails which we host.  That tells us whether they've joined any groups via our
             # platform, which tells us whether it's reasonable to send them emails.
-            $membershipmail = $this->getEmailForYahooGroup($groupid, TRUE)[1];
+            $membershipmail = $this->getEmailForYahooGroup($groupid, TRUE, TRUE)[1];
             #error_log("Membership mail $membershipmail");
 
             if ($membershipmail) {

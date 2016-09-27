@@ -2846,7 +2846,7 @@ class Message
             $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
             if ($g->getPrivate('onyahoo')) {
-                list ($eid, $email) = $u->getEmailForYahooGroup($groupid, TRUE);
+                list ($eid, $email) = $u->getEmailForYahooGroup($groupid, TRUE, TRUE);
                 $this->mailer(
                     $u,
                     FALSE,

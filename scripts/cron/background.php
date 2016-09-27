@@ -24,7 +24,8 @@ try {
         #
         # We want to pull a lot of jobs off the queue.  This is because for ones which are SQL, it is
         # more efficient to perform them in a single request.
-        $sqls = array();
+        $sqls = [];
+        $events = [];
         $count = 0;
 
         do {
@@ -42,6 +43,11 @@ try {
                         case 'sqlfile': {
                             $sqls[] = file_get_contents($data['file']);
                             unlink($data['file']);
+                            break;
+                        }
+
+                        case 'events': {
+                            $events = array_merge($events, $data['events']);
                             break;
                         }
 
@@ -87,6 +93,34 @@ try {
                 error_log("Not many - sleep");
                 sleep(1);
             }
+        }
+
+        if (count($events) > 0) {
+            # There are a lot of events, so we want to make sure we insert them efficiently.  We can't use
+            # LOAD DATA INFILE as we might not be on the same machine as the MySQL server.
+            $atts = ['userid', 'sessionid', 'route', 'target', 'event', 'posx', 'posy', 'viewx', 'viewy', 'data', 'datasameas', 'ip'];
+
+            $sql = "INSERT INTO logs_events (" . implode(',', $atts) . ", timestamp, clienttimestamp) VALUES ";
+            $first = TRUE;
+            foreach ($events as $event) {
+                if (!$first) {
+                    $sql .= ', ';
+                }
+
+                $first = FALSE;
+                $sql .= ' (';
+                foreach ($atts as $att) {
+                    $sql .= (pres($att, $event) ? $dbhm->quote($event[$att]) : 'NULL') . ", ";
+                }
+
+                $sql .= "CURTIME(3), " . (pres('clienttimestamp', $event) ? "FROM_UNIXTIME({$event['clienttimestamp']})" : "CURTIME(3)") . ")";
+            }
+
+            $sql .= ";";
+
+            #error_log(count($events) . " events");
+
+            $dbhm->exec($sql, FALSE);
         }
     }
 } catch (Exception $e) {

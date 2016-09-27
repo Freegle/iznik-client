@@ -22,7 +22,7 @@ foreach ($messages as $message) {
 
     if ($uid) {
         $u = User::get($dbhr, $dbhm, $uid);
-        list ($eid, $email) = $u->getEmailForYahooGroup($message['groupid'], TRUE);
+        list ($eid, $email) = $u->getEmailForYahooGroup($message['groupid'], TRUE, TRUE);
 
         if ($eid) {
             $m->submit($u, $email, $message['groupid']);
