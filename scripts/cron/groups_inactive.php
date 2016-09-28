@@ -7,13 +7,13 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/misc/Stats.php');
 
 $noton = '';
-$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND onhere = 0 AND onyahoo = 1 AND nameshort NOT LIKE '%playground%' ORDER BY LOWER(nameshort);");
+$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND onhere = 0 AND onyahoo = 1 AND publish = 1 AND nameshort NOT LIKE '%playground%' ORDER BY LOWER(nameshort);");
 foreach ($groups as $group) {
     $noton .= $group['nameshort'] . "\r\n";
 }
 
 $notactive = '';
-$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND onhere = 1 AND DATEDIFF(NOW(), lastyahoomembersync) > 7 AND nameshort NOT LIKE '%playground%' ORDER BY LOWER(nameshort);");
+$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND onhere = 1 AND publish = 1 AND DATEDIFF(NOW(), lastyahoomembersync) > 7 AND nameshort NOT LIKE '%playground%' ORDER BY LOWER(nameshort);");
 foreach ($groups as $group) {
     $last = $group['lastyahoomembersync'] ? date("Y-m-d", strtotime($group['lastyahoomembersync'])) : 'never';
     $notactive .= $group['nameshort'] . " last syncd $last\r\n";
