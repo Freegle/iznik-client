@@ -474,7 +474,6 @@ define([
 
         createMinimised: function() {
             var self = this;
-            console.log("Create minimised"); console.trace();
 
             Iznik.minimisedChats = new Backbone.CollectionView({
                 el: $('#notifchatdropdownlist'),
@@ -491,13 +490,10 @@ define([
 
             $('#js-notifchat').click(function(e) {
                 var display = $('#notifchatdropdown').css('display');
-                console.log("Click on chat button, current", display, $('#notifchatdropdown').length);
 
                 if (display === 'none') {
-                    console.log("Show");
                     $('#notifchatdropdown').show();
                 } else {
-                    console.log("Hide");
                     $('#notifchatdropdown').hide();
                 }
                 e.preventDefault();
@@ -1235,7 +1231,6 @@ define([
 
         render: function () {
             var self = this;
-            // console.log("Render chat", self.model.get('id')); console.trace();
 
             self.$el.attr('id', 'chat-' + self.model.get('id'));
             self.$el.addClass('chat-' + self.model.get('name'));

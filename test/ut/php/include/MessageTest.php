@@ -419,6 +419,7 @@ And something after it.', $stripped);
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $g->setPrivate('onyahoo', 1);
 
         $m = new Message($this->dbhr, $this->dbhm);
 
@@ -447,11 +448,37 @@ And something after it.', $stripped);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
-        $this->dbhm->preExec("UPDATE messages_groups SET arrival = '2016-02-01' WHERE msgid = ?;", [ $id2 ]);
-
         $m = new Message($this->dbhr, $this->dbhm);
-        assertEquals(0, $m->autoRepost(Group::GROUP_FREEGLE, '2016-03-01', $gid));
-        assertEquals(1, $m->autoRepost(Group::GROUP_FREEGLE, '2016-01-01', $gid));
+
+        # Should get nothing - first message is not due and too old to generate a warning.
+        error_log("Expect nothing");
+        list ($count, $warncount) = $m->autoRepost(Group::GROUP_FREEGLE, '2016-03-01', $gid);
+        assertEquals(0, $count);
+        assertEquals(0, $warncount);
+
+        # Call when repost not due.  First one should cause a warning only.
+        error_log("Expect warning for $id2");
+        $mysqltime = date("Y-m-d H:i:s", strtotime('35 hours ago'));
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id2 ]);
+
+        list ($count, $warncount) = $m->autoRepost(Group::GROUP_FREEGLE, '2016-01-01', $gid);
+        assertEquals(0, $count);
+        assertEquals(1, $warncount);
+
+        # Again - no action.
+        error_log("Expect nothing");
+        list ($count, $warncount) = $m->autoRepost(Group::GROUP_FREEGLE, '2016-01-01', $gid);
+        assertEquals(0, $count);
+        assertEquals(0, $warncount);
+
+        # Make the message and warning look longer ago.  Then call - should cause a repost.
+        error_log("Expect repost");
+        $mysqltime = date("Y-m-d H:i:s", strtotime('49 hours ago'));
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id2 ]);
+        $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = '2016-01-01' WHERE msgid = ?;", [ $id2 ]);
+        list ($count, $warncount) = $m->autoRepost(Group::GROUP_FREEGLE, '2016-01-01', $gid);
+        assertEquals(1, $count);
+        assertEquals(0, $warncount);
 
         error_log(__METHOD__ . " end");
     }

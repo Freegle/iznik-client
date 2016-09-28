@@ -193,6 +193,69 @@ define([
         }
     });
 
+    Iznik.Views.User.Pages.MyPost = Iznik.Views.Page.extend({
+        template: "user_home_mypost",
+
+        fetchedChats: function() {
+            var self = this;
+            console.log("Fetched chats", Iznik.Session.chats.length);
+
+            // This can be called twice - once with cached data, once with the update.
+            if (!self.chatsFetched) {
+                self.chatsFetched = true;
+
+                self.model = new Iznik.Models.Message({
+                    id: self.options.id
+                });
+
+                self.model.fetch().then(function() {
+                    var v;
+
+                    if (self.model.get('type') == 'Offer') {
+                        v = new Iznik.Views.User.Home.Offer({
+                            model: self.model
+                        });
+                    } else if (self.model.get('type') == 'Offer') {
+                        v = new Iznik.Views.User.Home.Wanted({
+                            model: self.model
+                        });
+                    }
+
+                    v.expanded = true;
+
+                    v.render().then(function() {
+                        self.$('.js-post').html(v.$el);
+                        self.$('.js-continue').fadeIn('slow');
+                    })
+                });
+            }
+        },
+
+        render: function () {
+            var self = this;
+
+            Iznik.Session.askSubscription();
+
+            var p = Iznik.Views.Page.prototype.render.call(this, {
+                noSupporters: true
+            });
+
+            p.then(function(self) {
+                // Left menu is community events
+                var v = new Iznik.Views.User.CommunityEventsSidebar();
+                v.render().then(function () {
+                    $('#js-eventcontainer').append(v.$el);
+                });
+
+                // We need the chats, as they are used when displaying messages.
+                var cb = _.bind(self.fetchedChats, self);
+                Iznik.Session.chats.fetch().then(cb);
+            });
+
+            return(p);
+        }
+    });
+
     Iznik.Views.User.Home.Offer = Iznik.Views.User.Message.extend({
         template: "user_home_offer",
 

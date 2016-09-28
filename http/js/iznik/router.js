@@ -76,11 +76,12 @@ define([
             "legacy?action=join&groupid=:id&then=displaygroup": "userExploreGroup",
             "legacy?action=look&groupid=:id": "userExploreGroup",
             "legacy?action=mygroups*t": "userMyGroups",
-            "legacy?action=myposts": "userMyPosts",
+            "legacy?action=myposts": "userHome",
             "legacy?action=mysettings": "userSettings",
             "legacy?action=post*t": "userHome",
             "legacy?action=showevents*t": "userCommunityEvents",
             "legacy?a=se&g=:id": "legacyUserCommunityEvents",
+            "post": "userHome",
             // End legacy
 
             "localstorage": "localstorage",
@@ -133,7 +134,6 @@ define([
             "communityevents(/:id)": "userCommunityEvents",
             "newuser": "newUser",
             "unsubscribe(/:id)": "unsubscribe",
-            "post": "userHome", // legacy route
             "chat/:id": "userChat",
             "alert/viewed/:id": "alertViewed",
             "mobile": "userMobile",
@@ -149,6 +149,7 @@ define([
             "plugins/events/:id": "communityEventsPlugin",
             "plugins/group?groupid=:id(&*t)": "groupPlugin",
             "plugins/group/:id": "groupPlugin",
+            "mypost/:id": "userMyPost",
             "*path": "userHome"
         },
 
@@ -219,6 +220,21 @@ define([
 
                 Iznik.Session.testLoggedIn();
             }
+        },
+
+        userMyPost: function(msgid) {
+            var self = this;
+            
+            self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                require(["iznik/views/pages/user/home"], function() {
+                    var page = new Iznik.Views.User.Pages.MyPost({
+                        id: msgid
+                    });
+                    self.loadRoute({page: page});
+                });
+            });
+
+            Iznik.Session.forceLogin();
         },
 
         userChat: function(chatid) {

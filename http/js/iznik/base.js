@@ -188,7 +188,12 @@ define([
                                         localStorage.setItem(key + '.time', (new Date()).getTime());
                                         console.log("Stored length", key, localStorage.getItem(key).length);
                                     } else {
+                                        // We can't cache this, as it's too big.  Remove any previously cached data
+                                        // which might be below this limit, as otherwise it will persist forever and
+                                        // become increasingly misleading.
                                         console.log("Don't cache too long", data.length);
+                                        localStorage.removeItem(key);
+                                        localStorage.removeItem(key + '.time');
                                     }
                                 } catch (e) {console.log("Exception", e); console.error(e.message);}
                             }
@@ -363,6 +368,8 @@ define([
         timeagoRunning: false,
 
         render: function() {
+            var self = this;
+
             // Expand the template via the parent then set the times.
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {

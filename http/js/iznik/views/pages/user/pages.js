@@ -17,7 +17,13 @@ define([
             'click .js-changehomegroup': 'changeHomeGroup',
             'typeahead:change .js-postcode': 'locChange',
             'keyup .js-postcode': 'keyUp',
-            'click .tt-suggestion': 'locChange',
+            'focus .js-postcode': 'ttHide',
+            'click.js-postcode': 'ttHide',
+            'click .tt-suggestion': 'locChange'
+        },
+
+        ttHide: function() {
+            this.$('.js-postcode').tooltip('destroy');
         },
 
         keyUp: function(e) {
@@ -288,6 +294,16 @@ define([
                 }, success: function(ret) {
                     if (ret.ret == 0 && ret.location) {
                         self.recordLocation(ret.location, true);
+
+                        // Add some eye candy to make them spot the location.
+                        self.$('.js-postcode').tooltip('destroy');
+                        self.$('.js-postcode').tooltip({
+                            'placement': 'bottom',
+                            'title': "Your device thinks you're here.  If it's wrong, please change it."});
+                        self.$('.js-postcode').tooltip('show');
+                        _.delay(function() {
+                            self.$('.js-postcode').tooltip('destroy');
+                        }, 20000);
                     }
                 }
             });
@@ -309,12 +325,13 @@ define([
 
                     asyncResults(matches);
 
+                    self.$('.js-postcode').tooltip('destroy');
+
                     if (matches.length == 0) {
                         self.$('.js-postcode').tooltip({'trigger':'focus', 'title': 'Please use a valid UK postcode'});
                         self.$('.js-postcode').tooltip('show');
                     } else {
                         self.firstMatch = matches[0];
-                        self.$('.js-postcode').tooltip('hide');
                     }
                 }
             })

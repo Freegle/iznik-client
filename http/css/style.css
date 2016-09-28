@@ -37,6 +37,13 @@
     width: 100% !important;
 }
 
+.navbar .navbar-collapse.in {
+    max-height: none !important;
+}
+
+.navbar-collapse li {
+    display: inline-block !important;
+}
 .pageContent, .rightSidebar {
     top: 66px;
 }
