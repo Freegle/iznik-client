@@ -76,7 +76,6 @@ define([
                         // CC..
                         if (navigator.connection.type === Connection.NONE) {
                             console.log("No connection - please try again later.");
-                            //$('#' + id + ' img').addClass('signindisabled');
                             $('.js-signin-msg').text("No internet connection - please try again later");
                             $('.js-signin-msg').show();
                             return;
@@ -128,11 +127,9 @@ define([
                     authGiven = true;
 
                     code = code[1].split('&')[0]; // Remove any other returned parameters
-                    //console.log("code: " + code);
+                    console.log("code: " + code);
 
                     // Try logging in again at FD with given authcode
-                    $('.js-signin-msg').text("googleauthcode: "+code);
-                    $('.js-signin-msg').show();
                     var authResult = { code:code };
                     authResult['access_token'] = true;
                     self.onSignInCallback(authResult);
