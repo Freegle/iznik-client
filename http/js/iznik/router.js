@@ -367,8 +367,7 @@ define([
                         }
                         self.listenToOnce(v, 'modalCancelled modalClosed', function () {
                             // Reload to force session refresh.
-                            Router.navigate("/", true);	// CC
-                            Backbone.history.loadUrl(); // CC
+                            Router.userHome(); // CC
                         });
 
                         v.render();

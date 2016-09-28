@@ -23,10 +23,17 @@ define([
                     url: API+'session',
                     data: {
                         'googleauthcode': self.authResult.code,
-                        'googlelogin': true
+                        'googlelogin': true,
+                        'mobile': true,
                     },
                     success: function (result) {
-                        window.location.reload();
+                      console.log(result);
+                      if (result.ret != 0) {
+                        $('.js-signin-msg').text(JSON.stringify(result));
+                        $('.js-signin-msg').show();
+                      } else {
+                        Router.userHome();
+                      }
                     }
                 });
             }
