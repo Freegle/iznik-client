@@ -537,9 +537,6 @@ define([
                 urlParams.yahoologin = true;
                 console.log(urlParams);
 
-                $('.js-signin-msg').text("SUCCESS");
-                $('.js-signin-msg').show();
-
                 // Try logging in again at FD
                 console.log("Got URL params", urlParams);
                 $.ajax({
