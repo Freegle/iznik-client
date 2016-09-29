@@ -10,8 +10,8 @@ mkdir /archive/mysql
 cd /archive/backups
 back=`ls -1tr *gz | tail -1`
 cd /archive/mysql
-tar -xvzf /archive/backups/$back
-innobackupex --apply-log /archive/mysql
+nice tar -xvzf /archive/backups/$back
+nice innobackupex --apply-log /archive/mysql
 chown -R mysql:mysql /archive/mysql
 /etc/init.d/mysql start
 sleep 300
