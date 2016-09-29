@@ -119,12 +119,15 @@ class Location extends Entity
     }
 
     public function setParents($id, $gridid, $osmonly = 1, $areaid = NULL) {
+        # We use the write DB handle because we don't want to waste time querying or cluttering our cache with this
+        # info, which is unlikely to be cached effectively.
+        #
         # For each location, we also want to store the area and first-part-postcode which this location is within.
         #
         # This allows us to standardise subjects on groups.
         $sql = "SELECT name, postcodeid, areaid, lat, lng, type, gridid, CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END AS geometry FROM locations WHERE id = ?;";
-        $locs = $this->dbhr->preQuery($sql, [ $id ]);
-        #error_log($sql . ", $id");
+        $locs = $this->dbhm->preQuery($sql, [ $id ]);
+        #$this->dbhm->setErrorLog(TRUE);
 
         if (count($locs) > 0) {
             $loc = $locs[0];
@@ -134,10 +137,10 @@ class Location extends Entity
             if ($loc['type'] == 'Postcode' && $p !== FALSE) {
                 # This is a full postcode - find the parent.
                 $sql = "SELECT id FROM locations WHERE name LIKE ? AND type = 'Postcode';";
-                $pcs = $this->dbhr->preQuery($sql, [ substr($loc['name'], 0, $p) ]);
+                $pcs = $this->dbhm->preQuery($sql, [ substr($loc['name'], 0, $p) ]);
                 foreach ($pcs as $pc) {
                     if ($loc['postcodeid'] != $pc['id']) {
-                        $this->dbhr->preExec("UPDATE locations SET postcodeid = ? WHERE id = ?;",
+                        $this->dbhm->preExec("UPDATE locations SET postcodeid = ? WHERE id = ?;",
                             [
                                 $pc['id'],
                                 $id
@@ -154,54 +157,86 @@ class Location extends Entity
                 # where a group is near the boundary of a grid square, and it's the adjacent square that contains
                 # the location we want.
                 $gridids = [ $gridid ];
-                $thisgrid = $this->dbhr->preQuery("SELECT * FROM locations_grids WHERE id = ?;", [ $gridid ])[0];
+                $thisgrid = $this->dbhm->preQuery("SELECT * FROM locations_grids WHERE id = ?;", [ $gridid ])[0];
                 $lat = $loc['lat'] < ($thisgrid['swlat'] + 0.05) ? $thisgrid['swlat'] - 0.1 : $thisgrid['swlat'] + 0.1;
                 $lng = $loc['lng'] < ($thisgrid['swlng'] + 0.05) ? $thisgrid['swlng'] - 0.1 : $thisgrid['swlng'] + 0.1;
-                $nearest = $this->dbhr->preQuery("SELECT * FROM locations_grids WHERE swlat = ? AND swlng = ?;", [ $lat, $lng ]);
+                $nearest = $this->dbhm->preQuery("SELECT * FROM locations_grids WHERE swlat = ? AND swlng = ?;", [ $lat, $lng ]);
 
                 if (count($nearest) > 0) {
                     $nearest = $nearest[0];
+                    $intersects = [];
 
                     #error_log("{$loc['lat']}, {$loc['lng']} in [{$thisgrid['swlat']}, {$thisgrid['swlng']}, {$thisgrid['nelat']}, {$thisgrid['nelng']}] closest adjacent {$nearest['id']} from $lat, $lng");
                     $lastcount = 0;
 
                     do {
-                        if ($lastcount == 1) {
+                        if ($lastcount == 0) {
+                            $thisgridid = $gridid;
+                        } else if ($lastcount == 1) {
                             # Last time we just checked the grid it's in. Now add the next nearest.
-                            $gridid[] = $nearest['id'];
+                            $gridids[] = $nearest['id'];
+                            $thisgridid = $nearest['id'];
                         } else if ($lastcount != 0) {
-                            # Now find grids which touch the ones we already have, i.e. work outwards
-                            $sql = "SELECT touches FROM locations_grids_touches WHERE gridid IN (" . implode(',', $gridids) . ");";
-                            error_log("for {$loc['id']} $sql");
-                            $neighbours = $this->dbhr->preQuery($sql, [ $gridid ]);
+                            # Now find the next grid which touch the ones we already have, i.e. work outwards
+                            $sql = "SELECT touches FROM locations_grids_touches WHERE gridid IN (" . implode(',', $gridids) . ") AND touches NOT IN (" . implode(',', $gridids) . ") LIMIT 1;";
+                            #error_log("$sql");
+                            $neighbours = $this->dbhm->preQuery($sql, [ $gridid ]);
                             foreach ($neighbours as $neighbour) {
                                 $gridids[] = $neighbour['touches'];
+                                $thisgridid = $neighbour['touches'];
                             }
                         }
 
-                        $lastcount = count($gridids);
                         $gridids = array_unique($gridids);
 
                         # See if there will be a location to choose - without actually choosing it yet.
                         # We choose the closest location.
-                        $intersects = [];
-
                         if (count($gridids) > 0) {
-                            $sql = "SELECT id, name, ST_Distance(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS dist FROM locations LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = $osmonly AND locations_excluded.locationid IS NULL ORDER BY dist ASC LIMIT 2;";
-                            $intersects = $this->dbhr->preQuery($sql, [
-                                $loc['geometry']
+                            $sql = "SELECT ASText(?) AS pcgeom, ASText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS areageom, id, name, ST_Contains(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS within, ST_Distance(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS dist FROM locations LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE gridid = ? AND osm_place = $osmonly AND locations_excluded.locationid IS NULL HAVING id != ? ORDER BY within DESC, dist ASC LIMIT 1;";
+                            $nextlot = $this->dbhm->preQuery($sql, [
+                                $loc['geometry'],
+                                $loc['geometry'],
+                                $loc['geometry'],
+                                $thisgridid,
+                                $id
                             ]);
+
+                            $intersects = array_merge($intersects, $nextlot);
+
+                            # Now sort this to have the best first.  It's possible that the one we've just got is
+                            # better than previous ones.  We do this here rather than in the query because querying on
+                            # multiple gridids is inefficient.
+                            usort($intersects, function($a, $b) {
+                                if ($a['within'] && !$b['within']) {
+                                    return(-1);
+                                } else if ($b['within'] && !$a['within']) {
+                                    return(1);
+                                } else {
+                                    return($a['dist'] - $b['dist']);
+                                }
+                            });
                         }
 
                         #error_log("For $id $sql, {$loc['lat']}, {$loc['lng']}");
-                    } while (count($gridids) != $lastcount && count($intersects) < 2 && count($gridids) < 10000);
+                        # We continue while:
+                        # - we've found a polygon which we're inside, or we've got enough grids that this looks unlikely
+                        #   to happen
+                        # - we've got some new grids this time, i.e. we're not stuck.
+                        # - we've not got stupidly many grids, i.e. the query will take forever
+                        $within = count($intersects) > 0 && $intersects[0]['within'];
+                        $cont = ((count($intersects) < 1 || (!$within && count($gridids) <= 14)) &&
+                            count($gridids) != $lastcount &&
+                            count($gridids) < 10000);
+                        #error_log("Within? $within count " . count($intersects) . " grids " . count($gridids) . " vs last $lastcount");
+                        $lastcount = count($gridids);
+                    } while ($cont);
 
-                    if (count($intersects) > 1 || (count($intersects) == 1 && $intersects[0]['id'] != $id)) {
+                    if (count($intersects) == 1) {
                         # Quicker query if we omit AND id != $id and handle it here.
-                        $iid = $intersects[0]['id'] != $id ? $intersects[0]['id'] : $intersects[1]['id'];
-                        $name = $intersects[0]['id'] != $id ? $intersects[0]['name'] : $intersects[1]['name'];
+                        $iid = $intersects[0]['id'];
+                        $name = $intersects[0]['name'];
                         $areaid = $iid;
-                        error_log("Choose areaid #$areaid $name");
+                        error_log("{$loc['name']} choose areaid #$areaid $name from " . count($gridids));
                     }
                 }
             }

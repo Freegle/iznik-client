@@ -287,7 +287,7 @@ define([
 
                 // Set the values.  We do it here rather than in the template because they might contain user data
                 // which would mess up the template expansion.
-                _.each(['title', 'description', 'location', 'contactname', 'contactemail', 'contactphone'], function(att)
+                _.each(['title', 'description', 'location', 'contactname', 'contactemail', 'contacturl', 'contactphone'], function(att)
                 {
                     self.$('.js-' + att).val(self.model.get(att));
                 })

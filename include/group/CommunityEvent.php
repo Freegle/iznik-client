@@ -8,8 +8,8 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 class CommunityEvent extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    public $publicatts = [ 'id', 'userid', 'pending', 'title', 'location', 'contactname', 'contactphone', 'contactemail', 'description', 'added'];
-    public $settableatts = [ 'pending', 'title', 'location', 'contactname', 'contactphone', 'contactemail', 'description' ];
+    public $publicatts = [ 'id', 'userid', 'pending', 'title', 'location', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'added'];
+    public $settableatts = [ 'pending', 'title', 'location', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description' ];
     var $event;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
@@ -17,11 +17,11 @@ class CommunityEvent extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'communityevents', 'event', $this->publicatts);
     }
 
-    public function create($userid, $title, $location, $contactname, $contactphone, $contactemail, $description) {
+    public function create($userid, $title, $location, $contactname, $contactphone, $contactemail, $contacturl, $description) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO communityevents (`userid`, `pending`, `title`, `location`, `contactname`, `contactphone`, `contactemail`, `description`) VALUES (?,1,?,?,?,?,?,?);", [
-            $userid, $title, $location, $contactname, $contactphone, $contactemail, $description
+        $rc = $this->dbhm->preExec("INSERT INTO communityevents (`userid`, `pending`, `title`, `location`, `contactname`, `contactphone`, `contactemail`, `contacturl`, `description`) VALUES (?,1,?,?,?,?,?,?,?);", [
+            $userid, $title, $location, $contactname, $contactphone, $contactemail, $contacturl, $description
         ]);
 
         if ($rc) {

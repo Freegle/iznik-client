@@ -101,7 +101,7 @@ class Alert extends Entity
             # This alert might be for a specific group, or all Freegle groups.  We only process a single group in this
             # pass.  If it's for multiple, we'll update the progress and do the next one next time.
             $groupid = $a->getPrivate('groupid');
-            $groupq =  $groupid ? " WHERE id = $groupid " : (" WHERE `type` = '$type' AND id > {$alert['groupprogress']} LIMIT 1");
+            $groupq =  $groupid ? " WHERE id = $groupid " : (" WHERE `type` = '$type' AND id > {$alert['groupprogress']} AND publish = 1 LIMIT 1");
 
             $groups = $this->dbhr->preQuery("SELECT id, nameshort FROM groups $groupq;");
             $complete = count($groups) == 0;
