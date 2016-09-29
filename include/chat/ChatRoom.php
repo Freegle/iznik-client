@@ -918,12 +918,12 @@ class ChatRoom extends Entity
 
                         switch ($chattype) {
                             case ChatRoom::TYPE_USER2USER:
-                                $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD  ? MODLOGO : USERLOGO, $fromname, $url,
+                                $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD  ? MODLOGO : USERLOGO, $fromname, $thisu->getId(), $url,
                                     $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
                                 break;
                             case ChatRoom::TYPE_USER2MOD:
                                 if ($member['role'] == User::ROLE_MEMBER) {
-                                    $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD  ? MODLOGO : USERLOGO, $fromname, $url,
+                                    $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD  ? MODLOGO : USERLOGO, $fromname, $thisu->getId(), $url,
                                         $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
                                 } else {
                                     $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary);

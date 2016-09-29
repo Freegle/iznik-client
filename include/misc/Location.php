@@ -231,7 +231,8 @@ class Location extends Entity
                         $lastcount = count($gridids);
                     } while ($cont);
 
-                    if (count($intersects) == 1) {
+                    error_log("Got " . count($intersects));
+                    if (count($intersects) >= 1) {
                         # Quicker query if we omit AND id != $id and handle it here.
                         $iid = $intersects[0]['id'];
                         $name = $intersects[0]['name'];
