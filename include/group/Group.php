@@ -375,6 +375,7 @@ class Group extends Entity
             $sql = "$sqlpref 
               WHERE users.id IN (SELECT * FROM (
                 (SELECT userid FROM users_emails WHERE email LIKE $q) UNION
+                (SELECT id FROM users WHERE id = " . $this->dbhr->quote($search) . ") UNION
                 (SELECT id FROM users WHERE fullname LIKE $q) UNION
                 (SELECT id FROM users WHERE yahooid LIKE $q) UNION
                 (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)
@@ -388,6 +389,7 @@ class Group extends Entity
         $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
 
         $members = $this->dbhr->preQuery($sql);
+        error_log($sql);
 
         $ctx = [ 'Added' => NULL ];
 
