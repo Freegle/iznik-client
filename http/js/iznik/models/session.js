@@ -446,13 +446,14 @@ define([
             self.testLoggedIn();
         },
 
-        facebookLogin: function () {
+        facebookLogin: function (token) { // CC
             var self = this;
             //console.log("Do facebook login");
             $.ajax({
                 url: API + 'session',
                 type: 'POST',
                 data: {
+                    fbauthtoken: token, // CC
                     fblogin: true
                 },
                 success: function (response) {

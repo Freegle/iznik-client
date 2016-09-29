@@ -122,20 +122,8 @@ define([
         fblogin: function () {
             var self = this;
 
-            // Now, load the FB API.
-            FB.login(function(response) {
-                console.log("FBLogin returned", response);
-                if (response.authResponse) {
-                    // We're logged in on the client -
-                    Iznik.Session.facebookLogin();
-
-                    Iznik.Session.listenToOnce(Iznik.Session, 'facebookLoggedIn', function () {
-                        window.location.reload();
-                    });
-                }
-            }, {
-                scope: 'email'
-            });
+            var FBLoad = new Iznik.Views.FBLoad();
+            FBLoad.signin();
         },
         
         yahoologin: function () {
@@ -198,16 +186,7 @@ define([
                 $('.js-privacy').hide();
                 $('.js-signin-msg').hide(); // CC
                 
-                // We have to load the FB API now because otherwise when we click on the login button, we can't load
-                // it synchronously, and therefore the login popup would get blocked by the browser.
-                self.listenToOnce(FBLoad(), 'fbloaded', function () {
-                    if (FBLoad().isDisabled()) {
-                        self.$('.js-loginFB').addClass('signindisabled');
-                    } else {
-                        self.$('.js-loginFB').removeClass('signindisabled');
-                    }
-                });
-                FBLoad().render();
+                self.$('.js-loginFB').removeClass('signindisabled');  // CC
 
                 // Load the Google API
                 var GoogleLoad = new Iznik.Views.GoogleLoad();
