@@ -43,7 +43,7 @@ define([
                     if (d.getElementById(id)) return;
                     js = d.createElement(s);
                     js.id = id;
-                    js.src = "//connect.facebook.net/en_US/sdk.js";
+                    js.src = "https://connect.facebook.net/en_US/sdk.js"; // CC
                     fjs.parentNode.insertBefore(js, fjs);
                 }(document, 'script', 'facebook-jssdk'));
 
