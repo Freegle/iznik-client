@@ -127,15 +127,12 @@ define([
         },
         
         yahoologin: function () {
-            this.listenToOnce(Iznik.Session, 'yahoologincomplete', function (ret) {
-                if (ret.hasOwnProperty('redirect')) {
-                    window.location = ret.redirect;
-                } else if (ret.ret == 0) {
-                    window.location.reload();
-                } else {
-                    window.location.reload();
-                }
-            });
+            if (navigator.connection.type === Connection.NONE) {  // CC
+              console.log("No connection - please try again later.");
+              $('.js-signin-msg').text("No internet connection - please try again later");
+              $('.js-signin-msg').show();
+              return;
+            }
 
             Iznik.Session.yahooLogin();
         },

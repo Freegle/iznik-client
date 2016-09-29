@@ -4,6 +4,9 @@ define([
     'iznik/base',
     'jquery-visibility'
 ], function($, Backbone, Iznik) {
+
+    var tryingYahooLogin = false; // CC
+
     Iznik.Models.Session = Iznik.Model.extend({
         url: API + 'session',
 
@@ -477,22 +480,13 @@ define([
             console.log("Login with Yahoo");
             var self = this;
 
-            var match,
-                pl = /\+/g,  // Regex for replacing addition symbol with a space
-                search = /([^&=]+)=?([^&]*)/g,
-                decode = function (s) {
-                    return decodeURIComponent(s.replace(pl, " "));
-                },
-                query = window.location.search.substring(1);
+            if (tryingYahooLogin) { return; }
+            tryingYahooLogin = true;
 
-            // We want to post to the server to do the login there.  We pass all the URL
-            // parameters we have, which include the OpenID response.
+            // Try Yahoo login // CC
             var urlParams = {};
-            while (match = search.exec(query))
-                urlParams[decode(match[1])] = decode(match[2]);
             urlParams['yahoologin'] = true;
-            urlParams['returnto'] = document.URL;
-            console.log("Got URL params", urlParams);
+            console.log("URL params", urlParams);
 
             $.ajax({
                 url: API + 'session',
@@ -501,16 +495,99 @@ define([
                 success: function (response) {
                     console.log("Session login returned", response);
                     if (response.ret === 0) {
-                        //We fire 2 separate calls, one to tell the CurrentUser that the user has just logged in.
-                        //another to tell anyone listening that the user is logged in (In case we were testing).
-                        self.trigger('yahoologincomplete', response);
                         self.trigger('loggedIn', response);
+                        Router.userHome();  // CC
+                        tryingYahooLogin = false;
+                    } else if (response.ret === 1) {  // CC
+                      self.yahooAuth(response.redirect);
                     } else {
-                        self.trigger('yahoologincomplete', response);
+                        $('.js-signin-msg').text("Yahoo log in failed " + response.ret);
+                        $('.js-signin-msg').show();
                         self.trigger('loginFailed', response);
+                        tryingYahooLogin = false;
                     }
                 }
             });
+        },
+
+        ///////////////////////////////////////
+        // Request user authenticates by opening passed URL
+        // If user gives Ok, then pop-up window tries to open a page at ilovefreegle.
+        // We catch and stop this open, get passed parameters and pass them as part of repeat FD login request
+
+        yahooAuth: function (yauthurl) {   // CC
+          var self = this;
+          console.log("Yahoo authenticate window open");
+          console.log("yahooAuth: " + yauthurl);
+
+          var authGiven = false;
+
+          var authWindow = window.open(yauthurl, '_blank', 'location=yes,menubar=yes');
+
+          $(authWindow).on('loadstart', function (e) {
+            var url = e.originalEvent.url;
+            console.log("yloadstart: " + url);
+
+            // Catch redirect after auth back to ilovefreegle
+            if (url.indexOf("https://www.ilovefreegle.org/") === 0) {
+              authWindow.close();
+              var urlParams = self.extractQueryStringParams(url);
+              if (urlParams) {
+                authGiven = true;
+                urlParams.yahoologin = true;
+                console.log(urlParams);
+
+                $('.js-signin-msg').text("SUCCESS");
+                $('.js-signin-msg').show();
+
+                // Try logging in again at FD
+                console.log("Got URL params", urlParams);
+                $.ajax({
+                  url: API + 'session',
+                  type: 'POST',
+                  data: urlParams,
+                  success: function (response) {
+                    console.log("Session login returned", response);
+                    if (response.ret === 0) {
+                      self.trigger('loggedIn', response);
+                      Router.userHome();  // CC
+                    } else {
+                      $('.js-signin-msg').text("Yahoo log in failed " + response.ret);
+                      $('.js-signin-msg').show();
+                      self.trigger('loginFailed', response);
+                    }
+                  }
+                });
+              }
+            }
+          });
+
+          $(authWindow).on('exit', function (e) {
+            if (!authGiven) {
+              console.log("Yahoo permission not given or failed");
+              $('.js-signin-msg').text("Yahoo permission not given or failed");
+              $('.js-signin-msg').show();
+            }
+            tryingYahooLogin = false;
+          });
+        },
+
+        extractQueryStringParams: function (url) {  // CC
+          var urlParams = false;
+          var qm = url.indexOf('?');
+          if (qm >= 0) {
+            var qs = url.substring(qm + 1);
+            // http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+            var match;
+            var pl = /\+/g;  // Regex for replacing addition symbol with a space
+            var search = /([^&=]+)=?([^&]*)/g;
+            var decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); };
+            urlParams = {};
+            while (match = search.exec(qs)) {
+              urlParams[decode(match[1])] = decode(match[2]);
+            }
+          }
+          return urlParams;
         },
 
         catsForGroup: function (groupid) {
