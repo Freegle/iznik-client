@@ -153,32 +153,66 @@ define([
             }
         },
 
-        img: false, // CC
-
-        cameraSuccess: function (imageURI) {  // CC
-          var self = this;
+        cameraSuccess: function (imageURI, self) {  // CC
           console.log("cameraSuccess " + imageURI);
           setTimeout(function () {
             // do your thing here!
-            img = imageURI;
-
             console.log(imageURI);
-            self.$('js-photo-msg').text(imageURI);
-            self.$('js-photo-msg').show();
-            /*$('#post_photo').attr('src', imageURI);
-            $('#post_photo').css('width', 'auto');
-            $('#post_photo').css('height', 'auto');
-            $('#post_photo').css('max-width', '100%');
-            $('#post_photo').show();
-            //var image = document.getElementById('post_photo');
-            //image.src = imageURI;
-            $('#post_add_photo').text("Remove photo");
-            $('#post_choose_photo').hide();*/
+            self.$('.js-photo-msg').text(imageURI);
+            self.$('.js-photo-msg').show();
+
+            var post_params = {
+              file_id: 0,
+              type: 'Message',
+              identify: true
+            };
+
+            var options = new FileUploadOptions();
+            options.fileKey = "photo";
+            //options.fileName = msg.img.substr(msg.img.lastIndexOf('/') + 1);
+            options.fileName = new Date().getTime() + ".jpg"; // Best use a safe filename
+            options.chunkedMode = false;	// 0.72
+            options.mimeType = "image/jpeg";
+
+            options.params = post_params;
+
+            //freegle.logMsg("API.FileTransfer post - " + post_params.groupid + " " + post_params.item + " " + msg.img);
+            var ft = new FileTransfer();
+            ft.upload(imageURI, API + 'image',
+								function (r) {
+								  var data = JSON.parse(r.response);
+								  console.log(data);
+								  self.$('.js-photo-msg').text("Photo upload OK " + JSON.stringify(data));
+								  self.$('.js-photo-msg').show();
+
+								  // Add the photo to our list
+								  var mod = new Iznik.Models.Message.Attachment({
+								    id: data.id,
+								    src: data.paththumb
+								  });
+
+								  self.photos.add(mod);
+
+								  // Add any hints about the item
+								  self.$('.js-suggestions').empty();
+								  self.suggestions = [];
+
+								  _.each(data.items, function (item) {
+								    self.suggestions.push(item);
+								  });
+
+							    self.allUploaded();
+								},
+								function (e) {
+								  self.$('.js-photo-msg').text("Photo upload fail " + JSON.stringify(e));
+								  self.$('.js-photo-msg').show();
+								},
+								options);
           }, 0);
 
         },
 
-        cameraError: function (msg) {  // CC
+        cameraError: function (msg, self) {  // CC
           setTimeout(function () {
             if (msg === "no image selected") { msg = "No photo taken or chosen"; }
             if (msg === "Camera cancelled") { msg = "No photo taken or chosen"; }
@@ -200,7 +234,11 @@ define([
 			      return;
       		}
 
-          navigator.camera.getPicture(self.cameraSuccess, self.cameraError,
+      		navigator.camera.getPicture(function (imageURI) {
+      		          self.cameraSuccess(imageURI, self);
+      		        }, function (msg) {
+      		          self.cameraError(msg, self);
+      		        },
                   { quality: 50,
                     destinationType: Camera.DestinationType.FILE_URI,
                     sourceType: Camera.PictureSourceType.CAMERA,
