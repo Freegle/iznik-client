@@ -177,7 +177,7 @@ define([
                         self.$('.js-toyahoo').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);
                         self.$('.js-onyahoo').fadeIn('slow');
                         self.$('.js-toyahoo').show();
-                        self.$('.js-homegroup').hide();
+                        self.$('.js-homegroup').fadeIn('slow');
                     }
                 } else {
                     // We host this group.
