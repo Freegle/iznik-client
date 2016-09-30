@@ -28,19 +28,24 @@ define([
 
         checkNext: function () {
             var self = this;
-            var item = this.getItem();
-            self.$('.js-description').removeClass('error-border');
 
-            // We accept either a photo or a description.
-            if (self.uploading || item.length == 0) {
-                self.$('.js-item').addClass('error-border');
-                self.$('.js-next').fadeOut('slow');
-                self.$('.js-ok').fadeOut('slow');
-            } else if (self.$('.js-description').val().length > 0 || self.photos.length > 0) {
-                self.$('.js-next').fadeIn('slow');
-                self.$('.js-ok').fadeIn('slow');
-            } else if (self.$('.js-description').val().length == 0) {
-                self.$('.js-description').addClass('error-border');
+            if (this.$el.closest('body').length > 0) {
+                var item = this.getItem();
+                self.$('.js-description').removeClass('error-border');
+
+                // We accept either a photo or a description.
+                if (self.uploading || item.length == 0) {
+                    self.$('.js-item').addClass('error-border');
+                    self.$('.js-next').fadeOut('slow');
+                    self.$('.js-ok').fadeOut('slow');
+                } else if (self.$('.js-description').val().length > 0 || self.photos.length > 0) {
+                    self.$('.js-next').fadeIn('slow');
+                    self.$('.js-ok').fadeIn('slow');
+                } else if (self.$('.js-description').val().length == 0) {
+                    self.$('.js-description').addClass('error-border');
+                }
+
+                _.delay(_.bind(self.checkNext, self), 300);
             }
         },
 
@@ -132,7 +137,6 @@ define([
 
         allUploaded: function() {
             var self = this;
-            self.checkNext();
 
             if (self.suggestions.length > 0) {
                 var v = new Iznik.Views.Help.Box();
@@ -156,6 +160,8 @@ define([
             self.photos = new Iznik.Collection();
 
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
+                _.delay(_.bind(self.checkNext, self), 300);
+
                 self.typeahead = self.$('.js-item').typeahead({
                     minLength: 2,
                     hint: false,
@@ -265,8 +271,6 @@ define([
 
                                     self.photos.add(mod);
                                 });
-
-                                self.checkNext();
                             }
                         });
                     }
