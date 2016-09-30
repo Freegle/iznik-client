@@ -151,6 +151,82 @@ define([
             }
         },
 
+        img: false, // CC
+
+        cameraSuccess: function (imageURI) {  // CC
+          var self = this;
+          console.log("cameraSuccess " + imageURI);
+          setTimeout(function () {
+            // do your thing here!
+            img = imageURI;
+
+            console.log(imageURI);
+            alert("cameraSuccess" + imageURI);
+            /*$('#post_photo').attr('src', imageURI);
+            $('#post_photo').css('width', 'auto');
+            $('#post_photo').css('height', 'auto');
+            $('#post_photo').css('max-width', '100%');
+            $('#post_photo').show();
+            //var image = document.getElementById('post_photo');
+            //image.src = imageURI;
+            $('#post_add_photo').text("Remove photo");
+            $('#post_choose_photo').hide();*/
+          }, 0);
+
+        },
+
+        cameraError: function (msg) {  // CC
+          setTimeout(function () {
+            if (msg === "no image selected") { msg = "No photo taken or chosen"; }
+            if (msg === "Camera cancelled") { msg = "No photo taken or chosen"; }
+            console.log(msg);
+            alert("cameraError" + msg);
+          }, 0);
+        },
+
+        addPhoto: function () {  // CC
+          var self = this;
+
+      		if (self.img) {
+			      //$('#post_photo').hide();
+			      //$('#post_add_photo').text("Take photo");
+			      //$('#post_choose_photo').show();
+      		  self.img = false;
+			      return;
+		      }
+
+      		navigator.camera.getPicture(self.cameraSuccess, self.cameraError,
+						      { quality: 50,
+							      destinationType: Camera.DestinationType.FILE_URI,
+							      sourceType: Camera.PictureSourceType.CAMERA,
+							      //allowEdit: true,	// Don't: adds unhelpful crop photo step
+							      encodingType: Camera.EncodingType.JPEG,
+							      targetWidth: 800,
+							      targetHeight: 800,
+							      //popoverOptions: CameraPopoverOptions,
+							      saveToPhotoAlbum: true,
+							      correctOrientation: true
+						      }
+			      );
+        },
+
+        choosePhoto: function () {
+          var self = this;
+          navigator.camera.getPicture(self.cameraSuccess, self.cameraError,
+                  { quality: 50,
+                    destinationType: Camera.DestinationType.FILE_URI,
+                    sourceType: Camera.PictureSourceType.PHOTOLIBRARY,
+                    //allowEdit: true,
+                    encodingType: Camera.EncodingType.JPEG,
+                    targetWidth: 800,
+                    targetHeight: 800,
+                    //popoverOptions: CameraPopoverOptions,
+                    //saveToPhotoAlbum: true
+                    correctOrientation: true
+                  }
+            );
+        },
+
         render: function () {
             var self = this;
             self.photos = new Iznik.Collection();
@@ -170,6 +246,14 @@ define([
                 }
 
                 // File upload
+                if (!isiOS) { // CC
+                  self.$('#fileupload').hide();
+                  self.$('#post_add_photo').show();
+                  self.$('#post_choose_photo').show();
+                  
+                  self.$('#post_add_photo').click(self.addPhoto);
+                  self.$('#post_choose_photo').click(self.choosePhoto);
+                } else {
                 self.$('#fileupload').fileinput({
                     uploadExtraData: {
                         type: 'Message',
@@ -233,6 +317,7 @@ define([
                         self.allUploaded();
                     }
                 });
+                }
 
                 try {
                     var id = localStorage.getItem('draft');

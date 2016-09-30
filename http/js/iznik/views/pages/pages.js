@@ -73,7 +73,7 @@ define([
 
             // Start event tracking.
             if (monitorDOM) {
-                // monitorDOM.start();
+                // CC monitorDOM.start();
             }
 
             if (currentPage) {

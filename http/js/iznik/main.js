@@ -2,6 +2,7 @@ var API = 'https://www.ilovefreegle.org/api/'; // CC
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
+var isiOS = false; // CC
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -56,6 +57,7 @@ window.onerror = function(message, file, line) {
 
 function mainOnAppStart() { // CC
 console.log("main boot");	// CC
+isiOS = (window.device.platform === 'iOS'); // CC
 
 require([
     'jquery',
