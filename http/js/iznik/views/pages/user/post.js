@@ -15,6 +15,8 @@ define([
         uploading: 0,
 
         events: {
+            'click .js-take-photo': 'addPhoto', // CC
+            'click .js-choose-photo': 'choosePhoto',  // CC
             'click .js-next': 'next',
             'change .js-item': 'checkNext',
             'change .tt-hint': 'checkNext',
@@ -161,7 +163,8 @@ define([
             img = imageURI;
 
             console.log(imageURI);
-            alert("cameraSuccess" + imageURI);
+            self.$('js-photo-msg').text(imageURI);
+            self.$('js-photo-msg').show();
             /*$('#post_photo').attr('src', imageURI);
             $('#post_photo').css('width', 'auto');
             $('#post_photo').css('height', 'auto');
@@ -180,12 +183,14 @@ define([
             if (msg === "no image selected") { msg = "No photo taken or chosen"; }
             if (msg === "Camera cancelled") { msg = "No photo taken or chosen"; }
             console.log(msg);
-            alert("cameraError" + msg);
+            self.$('js-photo-msg').text(msg);
+            self.$('js-photo-msg').show();
           }, 0);
         },
 
         addPhoto: function () {  // CC
           var self = this;
+          self.$('js-photo-msg').hide();
 
       		if (self.img) {
 			      //$('#post_photo').hide();
@@ -193,25 +198,26 @@ define([
 			      //$('#post_choose_photo').show();
       		  self.img = false;
 			      return;
-		      }
+      		}
 
-      		navigator.camera.getPicture(self.cameraSuccess, self.cameraError,
-						      { quality: 50,
-							      destinationType: Camera.DestinationType.FILE_URI,
-							      sourceType: Camera.PictureSourceType.CAMERA,
-							      //allowEdit: true,	// Don't: adds unhelpful crop photo step
-							      encodingType: Camera.EncodingType.JPEG,
-							      targetWidth: 800,
-							      targetHeight: 800,
-							      //popoverOptions: CameraPopoverOptions,
-							      saveToPhotoAlbum: true,
-							      correctOrientation: true
-						      }
-			      );
+          navigator.camera.getPicture(self.cameraSuccess, self.cameraError,
+                  { quality: 50,
+                    destinationType: Camera.DestinationType.FILE_URI,
+                    sourceType: Camera.PictureSourceType.CAMERA,
+                    //allowEdit: true,	// Don't: adds unhelpful crop photo step
+                    encodingType: Camera.EncodingType.JPEG,
+                    targetWidth: 800,
+                    targetHeight: 800,
+                    //popoverOptions: CameraPopoverOptions,
+                    saveToPhotoAlbum: true,
+                    correctOrientation: true
+                  }
+            );
         },
 
         choosePhoto: function () {
           var self = this;
+          self.$('js-photo-msg').hide();
           navigator.camera.getPicture(self.cameraSuccess, self.cameraError,
                   { quality: 50,
                     destinationType: Camera.DestinationType.FILE_URI,
@@ -247,12 +253,10 @@ define([
 
                 // File upload
                 if (!isiOS) { // CC
+                  self.$('js-photo-msg').hide();
                   self.$('#fileupload').hide();
                   self.$('#post_add_photo').show();
                   self.$('#post_choose_photo').show();
-                  
-                  self.$('#post_add_photo').click(self.addPhoto);
-                  self.$('#post_choose_photo').click(self.choosePhoto);
                 } else {
                 self.$('#fileupload').fileinput({
                     uploadExtraData: {
