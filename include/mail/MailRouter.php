@@ -421,7 +421,9 @@ class MailRouter
                             if ($log) { error_log("Found them $uid"); }
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
 
-                            $u->markYahooApproved($gid);
+                            $eid = $u->getIdForEmail($email);
+                            $eid = $eid ? $eid['id'] : NULL;
+                            $u->markYahooApproved($gid, $eid);
 
                             # Dispatch any messages which are queued awaiting this group membership.
                             $u->submitYahooQueued($gid);
@@ -456,7 +458,9 @@ class MailRouter
                                 error_log("Found them $uid");
                             }
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
-                            $u->markYahooApproved($gid);
+                            $eid = $u->getIdForEmail($to);
+                            $eid = $eid ? $eid['id'] : NULL;
+                            $u->markYahooApproved($gid, $eid);
 
                             # Dispatch any messages which are queued awaiting this group membership.
                             $u->submitYahooQueued($gid);
@@ -519,16 +523,16 @@ class MailRouter
                 # First check if this message is spam based on our own checks.
                 $rc = $this->spam->check($this->msg);
                 if ($rc) {
-                    $groups = $this->msg->getGroups();
+                    $groups = $this->msg->getGroups(FALSE, FALSE);
 
                     if (count($groups) > 0) {
-                        foreach ($groups as $groupid) {
+                        foreach ($groups as $group) {
                             $this->log->log([
                                 'type' => Log::TYPE_MESSAGE,
                                 'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
                                 'msgid' => $this->msg->getID(),
                                 'text' => "{$rc[2]}",
-                                'groupid' => $this->msg->getGroups()[0]
+                                'groupid' => $group['groupid']
                             ]);
                         }
                     } else {
@@ -557,16 +561,16 @@ class MailRouter
                             # This might be spam.  We'll mark it as such, then it will get reviewed.
                             #
                             # Hacky if test to stop our UT messages getting flagged as spam unless we want them to be.
-                            $groups = $this->msg->getGroups();
+                            $groups = $this->msg->getGroups(FALSE, FALSE);
 
                             if (count($groups) > 0) {
-                                foreach ($groups as $groupid) {
+                                foreach ($groups as $group) {
                                     $this->log->log([
                                         'type' => Log::TYPE_MESSAGE,
                                         'subtype' => Log::SUBTYPE_CLASSIFIED_SPAM,
                                         'msgid' => $this->msg->getID(),
                                         'text' => "SpamAssassin score $spamscore",
-                                        'groupid' => $groupid
+                                        'groupid' => $group['groupid']
                                     ]);
                                 }
                             } else {
@@ -596,7 +600,7 @@ class MailRouter
 
             if (!$ret) {
                 # Not obviously spam.
-                $groups = $this->msg->getGroups();
+                $groups = $this->msg->getGroups(FALSE, FALSE);
                 #error_log("Groups " . var_export($groups, TRUE));
                 if ($log) { error_log("Not obviously spam, groups " . var_export($groups, TRUE)); }
 
@@ -607,12 +611,42 @@ class MailRouter
                     $ret = MailRouter::FAILURE;
                     $source = $this->msg->getSource();
 
-                    if ($source == Message::YAHOO_PENDING || $source == Message::PLATFORM) {
-                        # Yahoo pending messages go back into pending if they're not spam.  Platform messages too -
-                        # because we might want to edit or reject them.
-                        if ($log) { error_log("Mark as pending"); }
-                        if ($this->markPending($notspam)) {
-                            $ret = MailRouter::PENDING;
+                    if ($source == Message::YAHOO_PENDING) {
+                        if ($log) { error_log("Source header " . $this->msg->getSourceheader());}
+
+                        if ($this->msg->getSourceheader() == Message::PLATFORM) {
+                            # Platform messages might already have been approved on here before we received them back.  In
+                            # that case we need to approve them on Yahoo too.
+                            $handled = FALSE;
+                            foreach ($groups as $group) {
+                                if ($this->log) { error_log("{$group['groupid']} collection {$group['collection']}");}
+
+                                if ($group['collection'] == MessageCollection::APPROVED) {
+                                    # We've approved it on here.  Let Yahoo know to approve it too.
+                                    if ($log) { error_log("Already approved - do so on Yahoo"); }
+                                    $this->msg->approve($group['groupid'], NULL, NULL, NULL, TRUE);
+                                    $handled = TRUE;
+                                    $ret = MailRouter::APPROVED;
+                                }
+                            }
+
+                            if (!$handled) {
+                                # It's not already been approved to it should go into pending on here to match where
+                                # it is on Yahoo.
+                                if ($log) {
+                                    error_log("Mark as pending");
+                                }
+                                if ($this->markPending($notspam)) {
+                                    $ret = MailRouter::PENDING;
+                                }
+                            }
+                        } else {
+                            # Messages which have reached Yahoo pending from some other source go into pending
+                            # if they're not spam.
+                            if ($log) { error_log("Mark as pending"); }
+                            if ($this->markPending($notspam)) {
+                                $ret = MailRouter::PENDING;
+                            }
                         }
                     } else if ($this->msg->getSource() == Message::YAHOO_APPROVED) {
                         if ($log) { error_log("Mark as approved"); }
@@ -624,8 +658,8 @@ class MailRouter
                     # Check for getting group mails to our individual users, which we want to turn off because
                     # otherwise we'd get swamped.  We get group mails via the modtools@ and republisher@ users.
                     if (strpos($envto, '@' . USER_DOMAIN) !== FALSE || (ourDomain($envto) && stripos($envto, 'fbuser') === 0)) {
-                        foreach ($groups as $groupid) {
-                            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+                        foreach ($groups as $group) {
+                            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
                             if ($log) { error_log("Turn off mails for $envto via " . $g->getGroupNoEmail()); }
                             $this->mail($g->getGroupNoEmail(), $envto, "Turning off mails", "I don't want these");
                         }

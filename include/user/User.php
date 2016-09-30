@@ -1869,7 +1869,7 @@ class User extends Entity
         $this->maybeMail($groupid, $subject, $body, 'Approve Member');
     }
 
-    public function markYahooApproved($groupid) {
+    public function markYahooApproved($groupid, $emailid) {
         # Move a member from pending to approved in response to a Yahoo notification mail.
         #
         # Note that we will not always have a pending member application.  For example, suppose we have an
@@ -1911,9 +1911,10 @@ class User extends Entity
             'groupid' => $groupid
         ]);
 
-        $sql = "UPDATE memberships_yahoo SET collection = ? WHERE membershipid = (SELECT id FROM memberships WHERE userid = ? AND groupid = ?);";
+        $sql = "UPDATE memberships_yahoo SET collection = ?, emailid = ? WHERE membershipid = (SELECT id FROM memberships WHERE userid = ? AND groupid = ?);";
         $rc = $this->dbhm->preExec($sql, [
             MembershipCollection::APPROVED,
+            $emailid,
             $this->id,
             $groupid
         ]);
@@ -2290,10 +2291,13 @@ class User extends Entity
         #error_log("Got email $email for {$this->id} on $groupid, eid $eid");
 
         if ($email) {
-            $sql = "SELECT msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id WHERE groupid = ? AND collection = ? AND messages_groups.deleted = 0 AND messages.fromuser = ?;";
+            # We want to send to Yahoo any messages we have not previously sent, as long as they have not had
+            # an outcome in the mean time.
+            #
+            # If we are doing an autorepost we will already have a membership and therefore won't come through here.
+            $sql = "SELECT messages_groups.msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE groupid = ? AND senttoyahoo = 0 AND messages_groups.deleted = 0 AND messages.fromuser = ? AND messages_outcomes.msgid IS NULL;";
             $msgs = $this->dbhr->preQuery($sql, [
                 $groupid,
-                MessageCollection::QUEUED_YAHOO_USER,
                 $this->id
             ]);
 
