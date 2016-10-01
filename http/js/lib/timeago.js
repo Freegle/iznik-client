@@ -181,20 +181,38 @@ var timeAgoId = 1;
 		if (first || $(this).closest('body').length) {
 			var data = prepareData(this);
 			var $s = $t.settings;
+			var nextTime = $s.refreshMillis;
 
 			if(!isNaN(data.datetime)){
-				if($s.cutoff == 0 || distance(data.datetime) < $s.cutoff){
+				var dist = distance(data.datetime);
+				
+				if($s.cutoff == 0 || dist < $s.cutoff){
 					$(this).text(inWords(data.datetime));
 				}
+
+				var seconds = Math.abs(dist) / 1000;
+				var minutes = seconds / 60;
+				var hours = minutes / 60;
+				var days = hours / 24;
+				var years = days / 365;
+
+				// If the next change is a long time away, set the timer appropriately.
+				if (years > 1) {
+					nextTime = 365 * 24 * 60 * 60 * 1000 / 2;
+				} else if (days > 1) {
+					nextTime = 24 * 60 * 60 * 1000 / 2;
+				} else if (hours > 1) {
+					nextTime = 60 * 60 * 1000 / 2;
+				} else if (minutes > 1) {
+					nextTime = 60 * 1000 / 2;
+				} 
 			}
 
 			var refresh_el = $.proxy(refresh, this);
 			var $s = $t.settings;
 			if($s.refreshMillis > 0){
-				this._timeagoInterval = setTimeout(refresh_el, $s.refreshMillis);
+				this._timeagoInterval = setTimeout(refresh_el, nextTime);
 			}
-		} else {
-			// console.log("No longer in DOM", this.id);
 		}
 		
 		return this;
