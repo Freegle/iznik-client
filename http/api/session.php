@@ -101,6 +101,7 @@ function session() {
         case 'POST': {
             # Login
             $fblogin = array_key_exists('fblogin', $_REQUEST) ? filter_var($_REQUEST['fblogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+            $fbaccesstoken = presdef('fbaccesstoken', $_REQUEST, NULL);
             $googlelogin = array_key_exists('googlelogin', $_REQUEST) ? filter_var($_REQUEST['googlelogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $yahoologin = array_key_exists('yahoologin', $_REQUEST) ? filter_var($_REQUEST['yahoologin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $googleauthcode = array_key_exists('googleauthcode', $_REQUEST) ? $_REQUEST['googleauthcode'] : NULL;
@@ -118,7 +119,7 @@ function session() {
             if ($fblogin) {
                 # We've been asked to log in via Facebook.
                 $f = new Facebook($dbhr, $dbhm);
-                list ($session, $ret) = $f->login();
+                list ($session, $ret) = $f->login($fbauthtoken);
                 /** @var Session $session */
                 $id = $session ? $session->getUserId() : NULL;
             } else if ($yahoologin) {
