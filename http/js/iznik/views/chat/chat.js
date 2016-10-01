@@ -653,10 +653,8 @@ define([
                     roomid: self.model.get('id')
                 });
                 self.messages.fetch().then(function() {
-                    console.log("Fetched", self.messages);
                     if (self.messages.length > 0) {
                         var lastmsgseen = self.messages.at(self.messages.length - 1).get('id');
-                        console.log("Last seen", lastmsgseen);
                         $.ajax({
                             url: API + 'chat/rooms/' + self.model.get('id'),
                             type: 'POST',
@@ -1007,6 +1005,7 @@ define([
             this.$('.js-small').show();
             
             this.adjust();
+            this.scrollBottom();
         },
 
         small: function() {
@@ -1017,6 +1016,7 @@ define([
             this.$('.js-small').hide();
             
             this.adjust();
+            this.scrollBottom();
         },
 
         restore: function(large) {

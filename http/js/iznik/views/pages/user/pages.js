@@ -41,7 +41,6 @@ define([
                         }, success: function(ret) {
                             if (ret.ret == 0) {
                                 self.recordLocation(ret.locations[0]);
-                                self.$('.js-next').click();
                             }
                         }
                     });
