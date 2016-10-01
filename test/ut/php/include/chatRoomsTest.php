@@ -201,7 +201,7 @@ class chatRoomsTest extends IznikTestCase {
         $u->addEmail('test2@' . USER_DOMAIN);
         $u->addMembership($this->groupid, User::ROLE_MODERATOR);
 
-        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $r = new ChatRoom($this->dbhm, $this->dbhm);
         $id = $r->createUser2Mod($u1, $this->groupid);
         error_log("Chat room $id for $u1 <-> $u2");
         assertNotNull($id);
