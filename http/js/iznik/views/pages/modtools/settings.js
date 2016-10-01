@@ -86,7 +86,7 @@ define([
             self.listenToOnce(v, 'confirmed', function() {
                 var configid = self.$('.js-configselect').val();
                 self.modConfigModel.destroy().then(function() {
-                    self.render();
+                    self.refreshAndRender();
                 });
             });
     
@@ -108,13 +108,24 @@ define([
                     success: function(ret) {
                         if (ret.ret == 0) {
                             $('.js-configselect').selectPersist('set', ret.id);
-                            self.render();
+                            self.refreshAndRender();
                         }
                     }
                 });
             }
         },
-    
+
+        refreshAndRender: function() {
+            var self = this;
+            self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                if (loggedIn) {
+                    self.render();
+                }
+            });
+
+            Iznik.Session.testLoggedIn(true);
+        },
+
         copyConfig: function() {
             var self = this;
             var name = this.$('.js-copyconfigname').val();
@@ -132,7 +143,7 @@ define([
                     success: function(ret) {
                         if (ret.ret == 0) {
                             $('.js-configselect').selectPersist('set', ret.id);
-                            self.render();
+                            self.refreshAndRender();
                         }
                     }
                 });
