@@ -126,7 +126,9 @@ define([
                     }, success: function (ret) {
                         var matches = [];
                         _.each(ret.items, function (item) {
-                            matches.push(item.item.name);
+                            if (item.hasOwnProperty('item')) {
+                                matches.push(item.item.name);
+                            }
                         })
 
                         asyncResults(matches);
