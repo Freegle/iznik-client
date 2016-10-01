@@ -437,28 +437,46 @@ define([
             v.render();
 
             if (userid != Iznik.Session.get('me').id) {
-                // We want to open a direct message conversation with this user.
-                $.ajax({
-                    type: 'PUT',
-                    url: API + 'chat/rooms',
-                    data: {
-                        userid: userid
-                    }, success: function(ret) {
-                        if (ret.ret == 0) {
-                            Iznik.Session.chats.fetch().then(function() {
-                                // Defer to give the CollectionView time to respond.
-                                _.defer(function() {
-                                    var chatmodel = Iznik.Session.chats.get(ret.id);
-                                    var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
-                                    v.close();
-                                    chatView.restore();
-                                })
-                            });
-                        } else {
-                            v.close();
-                        }
+                // We want to open a direct message conversation with this user.  See if we already know which
+                // chat this is because we've spoken to them before.
+                var found = false;
+
+                Iznik.Session.chats.each(function(chat) {
+                    var user1 = chat.get('user1');
+                    var user2 = chat.get('user2');
+
+                    if (user1 && user1.id === userid || user2 && user2.id === userid) {
+                        // We do.  Open it.
+                        var chatView = Iznik.activeChats.viewManager.findByModel(chat);
+                        v.close();
+                        chatView.restore();
+                        found = true;
                     }
-                })
+                });
+
+                if (!found) {
+                    $.ajax({
+                        type: 'PUT',
+                        url: API + 'chat/rooms',
+                        data: {
+                            userid: userid
+                        }, success: function(ret) {
+                            if (ret.ret == 0) {
+                                Iznik.Session.chats.fetch().then(function() {
+                                    // Defer to give the CollectionView time to respond.
+                                    _.defer(function() {
+                                        var chatmodel = Iznik.Session.chats.get(ret.id);
+                                        var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
+                                        v.close();
+                                        chatView.restore();
+                                    })
+                                });
+                            } else {
+                                v.close();
+                            }
+                        }
+                    });
+                }
             }
         },
 
@@ -695,6 +713,8 @@ define([
             'focus .js-message': 'messageFocus',
             'click .js-promise': 'promise',
             'click .js-send': 'send',
+            'click .js-large': 'large',
+            'click .js-small': 'small',
             'keyup .js-message': 'keyUp',
             'change .js-status': 'status'
         },
@@ -977,6 +997,26 @@ define([
                     self.$('.js-leftpanel').width(lpwidth);
                 }
             } catch (e) {}
+        },
+
+        large: function() {
+            this.$el.width($(window).innerWidth());
+            this.$el.height($(window).innerHeight());
+
+            this.$('.js-large').hide();
+            this.$('.js-small').show();
+            
+            this.adjust();
+        },
+
+        small: function() {
+            this.$el.width(Math.floor(0.3 * $(window).innerWidth()));
+            this.$el.height(Math.floor(0.3 * $(window).innerHeight()));
+
+            this.$('.js-large').show();
+            this.$('.js-small').hide();
+            
+            this.adjust();
         },
 
         restore: function(large) {
