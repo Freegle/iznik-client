@@ -476,33 +476,50 @@ define([
             self.render();
         },
 
-        render: function() {
+        gotChat: function() {
             var self = this;
+            self.model.set('chat', self.chat.toJSON2());
+            self.model.set('unseen', self.chat.get('unseen'));
 
-            self.model.set('me', Iznik.Session.get('me'));
-
-            var chat = Iznik.Session.chats.get({
-                id: self.model.get('chatid')
-            });
-
-            // We might not find this chat if the user has closed it.
-            if (!_.isUndefined(chat)) {
-                self.model.set('chat', chat.toJSON2());
-                self.model.set('unseen', chat.get('unseen'));
-                self.model.set('message', self.options.message.toJSON2());
-            }
-
-            var p = Iznik.View.prototype.render.call(self).then(function(self) {
+            Iznik.View.prototype.render.call(self).then(function(self) {
                 // If the number of unseen messages in this chat changes, update this view so that the count is
                 // displayed here.
-                self.listenToOnce(chat, 'change:unseen', self.render);
+                self.listenToOnce(self.chat, 'change:unseen', self.render);
                 p = Iznik.View.prototype.render.call(self).then(function() {
                     self.$('.timeago').timeago();
                 });
 
                 // We might promise to this person from a chat.
-                self.listenTo(chat, 'promised', _.bind(self.chatPromised, self));
+                self.listenTo(self.chat, 'promised', _.bind(self.chatPromised, self));
             });
+        },
+
+        render: function() {
+            var self = this;
+
+            self.model.set('me', Iznik.Session.get('me'));
+            self.model.set('message', self.options.message.toJSON2());
+
+            var chat = Iznik.Session.chats.get({
+                id: self.model.get('chatid')
+            });
+
+            var p;
+
+            // We might not find this chat, most commonly if we've not yet fetched it from the server and it's in
+            // our cache.  If not, fetch it.
+            if (!_.isUndefined(chat)) {
+                self.chat = chat;
+                p = resolvedPromise(self);
+            } else {
+                self.chat = new Iznik.Models.Chat.Room({
+                    id: self.model.get('chatid')
+                });
+
+                p = self.chat.fetch();
+            }
+
+            p.then(_.bind(self.gotChat, self));
 
             return(p);
         }
