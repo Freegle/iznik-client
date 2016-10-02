@@ -41,7 +41,6 @@ define([
                         }, success: function(ret) {
                             if (ret.ret == 0) {
                                 self.recordLocation(ret.locations[0]);
-                                self.$('.js-next').click();
                             }
                         }
                     });
@@ -76,11 +75,31 @@ define([
             if (self.$('.js-homegroup').length > 0) {
                 // We have a group dropdown.  Choose the group which it is showing.
                 val = self.$('.js-homegroup select').val();
-                console.log("Get from dropdown");
+                console.log("Get from dropdown", self.groupsnear.length);
+
+                var first = null;
+                var onhere = false;
+                _.each(self.groupsnear, function(groupnear) {
+                    console.log("Consider", groupnear);
+                    if (!first && groupnear.onhere) {
+                        console.log("First is", groupnear);
+                        first = groupnear;
+                    }
+
+                    if (groupnear.id == val) {
+                        onhere = groupnear.onhere;
+                        console.log("Found ", val, onhere);
+                    }
+                });
+
+                if (!onhere) {
+                    val = first.id;
+                    console.log("Selected not on here, use first", val);
+                }
             } else {
                 // We don't have a dropdown but are proceeding onsite.  Choose the closest group which is on the
                 // site.
-                console.log("No select, nearby groupds", self.groupsnear);
+                console.log("No select, nearby groups", self.groupsnear);
                 _.each(self.groupsnear, function(groupnear) {
                     if (!val && groupnear.onhere) {
                         console.log("Got on here", groupnear);
@@ -177,7 +196,7 @@ define([
                         self.$('.js-toyahoo').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);
                         self.$('.js-onyahoo').fadeIn('slow');
                         self.$('.js-toyahoo').show();
-                        self.$('.js-homegroup').hide();
+                        self.$('.js-homegroup').fadeIn('slow');
                     }
                 } else {
                     // We host this group.

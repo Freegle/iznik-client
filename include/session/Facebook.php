@@ -34,7 +34,7 @@ class Facebook
         return($fb);
     }
 
-    function login()
+    function login($accessToken = NULL)
     {
         $uid = NULL;
         $ret = [
@@ -46,10 +46,13 @@ class Facebook
 
         $fb = $this->getFB();
 
-        $helper = $fb->getJavaScriptHelper();
 
         try {
-            $accessToken = $helper->getAccessToken();
+            if (!$accessToken) {
+                # If we weren't passed an access token, get one.
+                $helper = $fb->getJavaScriptHelper();
+                $accessToken = $helper->getAccessToken();
+            }
 
             if ($accessToken) {
                 list($s, $ret) = $this->processAccessToken($fb, $accessToken);

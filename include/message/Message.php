@@ -213,7 +213,7 @@ class Message
         $replyto, $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
         $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL,
-        $s, $editedby, $editedat, $modmail;
+        $s, $editedby, $editedat, $modmail, $senttoyahoo;
 
     /**
      * @return mixed
@@ -251,7 +251,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody'
+        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo'
     ];
 
     public $memberAtts = [
@@ -1622,13 +1622,13 @@ class Message
         return($rt);
     }
 
-    public function getGroups($includedeleted = FALSE) {
+    public function getGroups($includedeleted = FALSE, $justids = TRUE) {
         $ret = [];
         $delq = $includedeleted ? "" : " AND deleted = 0";
-        $sql = "SELECT groupid FROM messages_groups WHERE msgid = ? $delq;";
+        $sql = "SELECT " . ($justids ? 'groupid' : '*') . " FROM messages_groups WHERE msgid = ? $delq;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
         foreach ($groups as $group) {
-            $ret[] = $group['groupid'];
+            $ret[] = $justids ? $group['groupid'] : $group;
         }
 
         return($ret);
@@ -1706,7 +1706,7 @@ class Message
                         FALSE,
                         NULL);
 
-                    $this->mailer($me, TRUE, $this->getFromname(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to a Freegle Direct user.)\n\n" . $body);
+                    $this->mailer($me, TRUE, $this->getFromname(), $bcc, NULL, $name, $g->getModsEmail(), $subject, "(This is a BCC of a message sent to Freegle Direct user #" . $this->getFromuser() . " $to)\n\n" . $body);
 
                     # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
                     # appearing as unread to us and other mods.
@@ -1772,22 +1772,24 @@ class Message
         $this->maybeMail($groupid, $subject, $body, 'Reject');
     }
 
-    public function approve($groupid, $subject, $body, $stdmsgid) {
+    public function approve($groupid, $subject, $body, $stdmsgid, $yahooonly = FALSE) {
         # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
         # behaviour.
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
-        $this->log->log([
-            'type' => Log::TYPE_MESSAGE,
-            'subtype' => Log::SUBTYPE_APPROVED,
-            'msgid' => $this->id,
-            'user' => $this->fromuser,
-            'byuser' => $myid,
-            'groupid' => $groupid,
-            'stdmsgid' => $stdmsgid,
-            'text' => $subject
-        ]);
+        if (!$yahooonly) {
+            $this->log->log([
+                'type' => Log::TYPE_MESSAGE,
+                'subtype' => Log::SUBTYPE_APPROVED,
+                'msgid' => $this->id,
+                'user' => $this->fromuser,
+                'byuser' => $myid,
+                'groupid' => $groupid,
+                'stdmsgid' => $stdmsgid,
+                'text' => $subject
+            ]);
+        }
 
         $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND groupid = ? AND deleted = 0;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
@@ -1807,19 +1809,21 @@ class Message
             }
         }
 
-        $sql = "UPDATE messages_groups SET collection = ?, approvedby = ? WHERE msgid = ? AND groupid = ?;";
-        $rc = $this->dbhm->preExec($sql, [
-            MessageCollection::APPROVED,
-            $myid,
-            $this->id,
-            $groupid
-        ]);
+        if (!$yahooonly) {
+            $sql = "UPDATE messages_groups SET collection = ?, approvedby = ? WHERE msgid = ? AND groupid = ?;";
+            $rc = $this->dbhm->preExec($sql, [
+                MessageCollection::APPROVED,
+                $myid,
+                $this->id,
+                $groupid
+            ]);
 
-        #error_log("Approve $rc from $sql, $myid, {$this->id}, $groupid");
+            #error_log("Approve $rc from $sql, $myid, {$this->id}, $groupid");
 
-        $this->notif->notifyGroupMods($groupid);
+            $this->notif->notifyGroupMods($groupid);
 
-        $this->maybeMail($groupid, $subject, $body, 'Approve');
+            $this->maybeMail($groupid, $subject, $body, 'Approve');
+        }
     }
 
     public function reply($groupid, $subject, $body, $stdmsgid) {
@@ -2748,9 +2752,12 @@ class Message
 
                 $mailer->send($message);
 
-                # This message is now pending (not a draft or approved).
+                # This message is now not a draft.
                 $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $this->id ]);
-                $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
+
+                # This message is now pending.  That means it will show up in ModTools; if it is approved before
+                # it reaches Yahoo and we get notified then we will handle that in submitYahooQueued.
+                $this->dbhm->preExec("UPDATE messages_groups SET senttoyahoo = 1, collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
 
                 $rc = TRUE;
             } catch (Exception $e) {

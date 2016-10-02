@@ -1,6 +1,6 @@
 <div class="row-fluid js-chatheader">
     <div class="chat-name">
-        <img src="/images/wingrip.png" class="clickme pull-left js-grip">&nbsp;
+        <img src="/images/wingrip.png" class="hidden-xs hidden-sm clickme pull-left js-grip">&nbsp;
         <div class="dropdown pull-right">
             <% if (!obj.group) { %>
             <span class="glyphicon glyphicon-menu-down dropdown-toggle clickme" type="button" id="chat-dropdown-{{id}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" />
@@ -9,6 +9,12 @@
                 <li title="Report this person to our volunteers."><a class="js-report" href="#">Report this person</a></li>
             </ul>
             <% } %>
+            <div class="js-large clickme inline padleftlg padright hidden-xs hidden-sm" title="Make this window larger">
+                <div class="glyphicon glyphicon-resize-full"/>
+            </div>
+            <div class="js-small clickme inline padleftlg padright" title="Make this window smaller" style="display: none">
+                <div class="glyphicon glyphicon-resize-small"/>
+            </div>
             <div class="js-minimise clickme inline padleftlg padright" title="Close this chat window. It'll still show in your list on the Chat button" >
                 <div class="glyphicon glyphicon-remove"/>
             </div>

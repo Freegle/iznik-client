@@ -95,7 +95,7 @@ class locationTest extends IznikTestCase {
         error_log("Postcode id $pcid");
         assertNotNull($pcid);
 
-        $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.21 8.54, 179.21 8.53))', 0);
+        $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
         error_log("Area id $areaid");
         assertNotNull($areaid);
 
@@ -109,7 +109,7 @@ class locationTest extends IznikTestCase {
         error_log("Full postcode id $id");
         $l = new Location($this->dbhr, $this->dbhm, $id2);
         $atts = $l->getPublic();
-        assertEquals($id, $atts['areaid']);
+        assertEquals($areaid, $atts['areaid']);
         assertEquals($pcid, $atts['postcodeid']);
 
         error_log(__METHOD__ . " end");

@@ -130,7 +130,7 @@ class twitterTest extends IznikTestCase {
         $gid = $g->findByShortName('FreeglePlayground');
 
         $e = new CommunityEvent($this->dbhr, $this->dbhm);
-        $eid = $e->create(NULL, 'Test Event', 'Test location', NULL, NULL, NULL, 'Test Event');
+        $eid = $e->create(NULL, 'Test Event', 'Test location', NULL, NULL, NULL, NULL, 'Test Event');
         $e->addGroup($gid);
         $start = date("Y-m-d H:i:s", strtotime('+3 hours'));
         $end = date("Y-m-d H:i:s", strtotime('+4 hours'));

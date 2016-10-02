@@ -2,7 +2,7 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function chat_notify($domain, $logo, $fromname, $reply, $htmlsummary, $unsub) {
+function chat_notify($domain, $logo, $fromname, $fromid, $reply, $htmlsummary, $unsub) {
     $siteurl = "https://$domain";
 
     $html = <<<EOT
@@ -70,6 +70,15 @@ EOT;
                                                                     <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
                                                                 </tr>
                                                                 <tr>
+                                                                    <td height="20" style="color: blue; font-size:12px; line-height:18px;">
+                                                                        You can respond by just replying to this email - but it works 
+                                                                        better if you reply on the site using this button:
+                                                                    </td>
+                                                                </tr>    
+                                                                <tr>
+                                                                    <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
+                                                                </tr>
+                                                                <tr>
                                                                     <td width="100%" class="mobile" style="font-size:14px; line-height:20px;">
                                                                         <table class="button" width="50%" cellpadding="0" cellspacing="0" align="left" border="0">
                                                                             <tr>
@@ -83,9 +92,11 @@ EOT;
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
+                                                                    <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
+                                                                </tr>
+                                                                <tr>
                                                                     <td height="20" style="color: grey; font-size:11px; line-height:18px;">
-                                                                        You can reply to this message by email - but it works better if you
-                                                                        use the button.
+                                                                        In case we need to know, this message was sent by user #$fromid. 
                                                                     </td>
                                                                 </tr>    
                                                                 <tr>

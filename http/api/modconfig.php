@@ -23,6 +23,7 @@ function modconfig() {
             }
 
             case 'POST': {
+                $_SESSION['configs'] = NULL;
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
                 } else {
@@ -57,6 +58,7 @@ function modconfig() {
             }
 
             case 'PATCH': {
+                $_SESSION['configs'] = NULL;
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
                 } else if (!$c->canModify()) {
@@ -79,6 +81,7 @@ function modconfig() {
             }
 
             case 'DELETE': {
+                $_SESSION['configs'] = NULL;
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
                 } else if (!$c->canModify()) {

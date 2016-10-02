@@ -347,13 +347,33 @@ class ChatRoom extends Entity
         # break it down into smaller queries that have the dual advantage of working quickly and being comprehensible.
         $chatids = [];
 
-        if (in_array(ChatRoom::TYPE_USER2MOD, $chattypes) || in_array(ChatRoom::TYPE_MOD2MOD, $chattypes)) {
-            # We want chats marked by groupid.
-            $sql = "SELECT chat_rooms.id FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid;";
+        if (in_array(ChatRoom::TYPE_MOD2MOD, $chattypes)) {
+            # We want chats marked by groupid for which we are a mod.
+            $sql = "SELECT chat_rooms.* FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE memberships.role IN ('Moderator', 'Owner');";
             #error_log("Group chats $sql, $userid");
-            $groups = $this->dbhr->preQuery($sql, [$userid]);
-            foreach ($groups as $group) {
-                $chatids[] = $group['id'];
+            $rooms = $this->dbhr->preQuery($sql, [$userid]);
+            foreach ($rooms as $room) {
+                $chatids[] = $room['id'];
+            }
+        }
+
+        if (in_array(ChatRoom::TYPE_USER2MOD, $chattypes)) {
+            # If we're on ModTools then we want User2Mod chats for our group.
+            #
+            # If we're on the user site then we only want User2Mod chats where we are a user.
+            $sql = SITE_HOST == USER_SITE ? "SELECT chat_rooms.* FROM chat_rooms WHERE user1 = ? AND chattype = 'User2Mod';" : "SELECT chat_rooms.* FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE chattype = 'User2Mod';";
+            $rooms = $this->dbhr->preQuery($sql, [$userid]);
+            foreach ($rooms as $room) {
+                $chatids[] = $room['id'];
+            }
+        }
+
+        if (in_array(ChatRoom::TYPE_USER2USER, $chattypes)) {
+            # We want chats where we are one of the users.
+            $sql = "SELECT chat_rooms.* FROM chat_rooms WHERE (user1 = ? OR user2 = ?) AND chattype = 'User2User';";
+            $rooms = $this->dbhr->preQuery($sql, [ $userid, $userid ]);
+            foreach ($rooms as $room) {
+                $chatids[] = $room['id'];
             }
         }
 
@@ -918,12 +938,12 @@ class ChatRoom extends Entity
 
                         switch ($chattype) {
                             case ChatRoom::TYPE_USER2USER:
-                                $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD  ? MODLOGO : USERLOGO, $fromname, $url,
+                                $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD  ? MODLOGO : USERLOGO, $fromname, $thisu->getId(), $url,
                                     $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
                                 break;
                             case ChatRoom::TYPE_USER2MOD:
                                 if ($member['role'] == User::ROLE_MEMBER) {
-                                    $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD  ? MODLOGO : USERLOGO, $fromname, $url,
+                                    $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD  ? MODLOGO : USERLOGO, $fromname, $thisu->getId(), $url,
                                         $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
                                 } else {
                                     $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary);

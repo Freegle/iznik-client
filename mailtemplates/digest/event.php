@@ -23,6 +23,7 @@ function digest_event($event, $start, $end) {
     if (pres('contactname', $event)) { $html .= '&nbsp;&nbsp;' . htmlspecialchars($event['contactname']) . "<br>"; }
     if (pres('contactphone', $event)) { $html .= '&nbsp;&nbsp;' . htmlspecialchars($event['contactphone']) . "<br>"; }
     if (pres('contactemail', $event)) { $html .= '&nbsp;&nbsp;' . '<a href="mailto:' . $event['contactemail'] . '">' . htmlspecialchars($event['contactemail']) . "</a><br>"; }
+    if (pres('contacturl', $event)) { $html .= '&nbsp;&nbsp;' . '<a href="' . $event['contacturl'] . '">' . htmlspecialchars($event['contacturl']) . "</a><br>"; }
 
     $text = htmlentities($event['description']);
     $text = nl2br($text);

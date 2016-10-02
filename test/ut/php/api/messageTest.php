@@ -1483,6 +1483,98 @@ class messageAPITest extends IznikAPITestCase
         error_log(__METHOD__ . " end");
     }
 
+    public function testDoubleModeration() {
+        error_log(__METHOD__);
+
+        # We set up a pending message, then approve it, then get a notification from Yahoo that it's pending.
+        #
+        # This should result in the message remaining approved, and us trying to approve it on Yahoo.
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        # This is similar to the actions on the client
+        # - find a location close to a lat/lng
+        # - upload a picture
+        # - create a draft with a location
+        # - find the closest group to that location
+        # - submit it
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+
+        $locationid = $this->dbhr->preQuery("SELECT id FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0 LIMIT 1;")[0]['id'];
+        error_log("Use location $locationid");
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locationid,
+            'messagetype' => 'Offer',
+            'item' => 'a double moderation test',
+            'groupid' => $gid,
+            'textbody' => 'Text body'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        error_log("Created draft $id");
+
+        # This will get sent; will get queued, as we don't have a membership for the group
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'JoinAndPost',
+            'email' => $email,
+            'ignoregroupoverride' => true
+        ]);
+
+        error_log("Message #$id should be queued " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals('Queued for group membership', $ret['status']);
+
+        # Now we will apply for a membership, get it, and then call submitYahooQueued.  At that point the message
+        # will become pending.
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        error_log("Wait for submit");
+        $count = 0;
+        do {
+            $stop = FALSE;
+            $groups = $m->getGroups(FALSE, FALSE);
+            error_log(var_export($groups, TRUE));
+            error_log("Check $count pending...");
+            if (MessageCollection::PENDING == $groups[0]['collection']) {
+                $stop = TRUE;
+            } else {
+                sleep(1);
+            }
+            $count++;
+        } while (!$stop && $count < 1200);
+
+        assertLessThan(1200, $count);
+
+        # Now it's pending - approve it on the platform, before Yahoo has seen it.
+        error_log("Approve");
+        $m->approve($gid, NULL, NULL, NULL);
+        
+        # We will then get notified of the message being pending on Yahoo, which will trigger an approval, and then
+        # we will get the approved message back. At that point the message will acquire a yahooapprovedid - so that's
+        # what we wait for to show this whole process works.
+        error_log("Wait for Yahoo approved");
+        $count = 0;
+        do {
+            $stop = FALSE;
+            $groups = $m->getGroups(FALSE, FALSE);
+            error_log(var_export($groups, TRUE));
+            error_log("Check $count approved id {$groups[0]['yahooapprovedid']}...");
+            assertEquals(MessageCollection::APPROVED, $groups[0]['collection']);
+            if ($groups[0]['yahooapprovedid']) {
+                $stop = TRUE;
+            } else {
+                sleep(1);
+            }
+            $count++;
+        } while (!$stop && $count < 1200);
+
+        assertLessThan(1200, $count);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testCrosspost() {
         error_log(__METHOD__);
 
