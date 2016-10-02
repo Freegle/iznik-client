@@ -2760,7 +2760,7 @@ class Message
                 $this->dbhm->preExec("UPDATE messages_groups SET senttoyahoo = 1, collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
 
                 # Record the posting, which is also used in producing the messagehistory.
-                $this->dbhm->preExec("INSERT INTO messages_postings (msgid, groupid) VALUES (?,?);", [ $message['msgid'], $message['groupid'] ]);
+                $this->dbhm->preExec("INSERT INTO messages_postings (msgid, groupid) VALUES (?,?);", [ $this->id, $groupid ]);
 
                 $rc = TRUE;
             } catch (Exception $e) {
