@@ -46,12 +46,13 @@ class Facebook
 
         $fb = $this->getFB();
 
-
         try {
             if (!$accessToken) {
                 # If we weren't passed an access token, get one.
                 $helper = $fb->getJavaScriptHelper();
                 $accessToken = $helper->getAccessToken();
+            } else {
+                $accessToken = new \Facebook\Authentication\AccessToken($accessToken);
             }
 
             if ($accessToken) {
