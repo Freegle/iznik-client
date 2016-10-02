@@ -200,7 +200,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <!-- And then some custom styles for our different apps -->
     <?php
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
-        ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=9"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=10"><?php
     } else {
         ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=122"><?php
     }
