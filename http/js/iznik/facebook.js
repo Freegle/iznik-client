@@ -98,22 +98,15 @@ define([
     fb_done: function (response) {
       tryingFacebookLogin = false;
 
-      $('.js-signin-msg').text("response.status: " + response.status);
-      $('.js-signin-msg').show();
-
       if (response.status === 'connected') {
 
         console.log("API.post session_login fbauthtoken: " + response.authResponse.token);
-
-        // don't seem to need response.authResponse.token
-        $('.js-signin-msg').text(response.authResponse.token);
-        $('.js-signin-msg').show();
 
         // We're logged in on the client -
         Iznik.Session.facebookLogin(response.authResponse.token);
 
         Iznik.Session.listenToOnce(Iznik.Session, 'facebookLoggedIn', function () {
-          Router.userHome();
+          setTimeout(Router.userHome(), 0);
         });
 
       } else {

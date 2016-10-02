@@ -456,7 +456,7 @@ define([
                 url: API + 'session',
                 type: 'POST',
                 data: {
-                    fbauthtoken: token, // CC
+                    fbaccesstoken: token, // CC
                     fblogin: true
                 },
                 success: function (response) {
