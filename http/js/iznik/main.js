@@ -1,4 +1,4 @@
-var API = 'https://www.ilovefreegle.org/api/'; // CC
+var API = 'https://dev.ilovefreegle.org/api/'; // CC
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
