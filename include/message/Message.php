@@ -2759,6 +2759,9 @@ class Message
                 # it reaches Yahoo and we get notified then we will handle that in submitYahooQueued.
                 $this->dbhm->preExec("UPDATE messages_groups SET senttoyahoo = 1, collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
 
+                # Record the posting, which is also used in producing the messagehistory.
+                $this->dbhm->preExec("INSERT INTO messages_postings (msgid, groupid) VALUES (?,?);", [ $message['msgid'], $message['groupid'] ]);
+
                 $rc = TRUE;
             } catch (Exception $e) {
                 error_log("Send failed with " . $e->getMessage());
