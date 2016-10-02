@@ -64,6 +64,22 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             <meta property="og:image" content="<?php echo $icon; ?>"/>
             <?php
         }
+    } else if (preg_match('/\/communityevent\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
+        # Community event - preview with title and description
+        require_once(BASE_DIR . '/include/config.php');
+        require_once(IZNIK_BASE . '/include/db.php');
+        require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
+        global $dbhr, $dbhm;
+        $e = new CommunityEvent($dbhr, $dbhm, intval($matches[1]));
+        if ($e->getID()) {
+            $atts = $e->getPublic();
+
+            ?>
+            <title><?php echo $atts['title']; ?></title>
+            <meta property="og:title" content="<?php echo $atts['title']; ?>"/>
+            <meta property="og:description" content=""/>
+            <?php
+        }
     } else {
         ?>
         <title><?php echo SITE_NAME; ?></title>
