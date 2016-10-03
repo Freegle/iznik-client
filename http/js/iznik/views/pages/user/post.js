@@ -164,32 +164,64 @@ define([
           setTimeout(function () {
             // do your thing here!
             console.log(imageURI);
-            self.$('.js-photo-msg').text(imageURI);
-            self.$('.js-photo-msg').show();
+            self.$('.js-addprompt').addClass('hidden');
 
             var post_params = {
-              file_id: 0,
               type: 'Message',
               identify: true
             };
 
             var options = new FileUploadOptions();
             options.fileKey = "photo";
-            //options.fileName = msg.img.substr(msg.img.lastIndexOf('/') + 1);
             options.fileName = new Date().getTime() + ".jpg"; // Best use a safe filename
-            options.chunkedMode = false;	// 0.72
+            options.chunkedMode = false;
             options.mimeType = "image/jpeg";
 
             options.params = post_params;
 
-            //freegle.logMsg("API.FileTransfer post - " + post_params.groupid + " " + post_params.item + " " + msg.img);
+            $('.js-upload-progress').show();
             var ft = new FileTransfer();
+            var progressPercent = 1;
+            var showProgress = function(pc){
+              if( typeof pc==="undefined"){
+                progressPercent += 5;
+              } else {
+                progressPercent = pc * 100;
+              }
+              progressPercent = Math.min(parseInt(progressPercent),100);
+              $('.progress-bar').text(progressPercent+"%");
+              $('.progress-bar').css('width', progressPercent + '%');
+              $('.progress-bar').attr('aria-valuenow',progressPercent);
+            };
+            showProgress();
+            ft.onprogress = function (progressEvent) {
+              if (progressEvent.lengthComputable) {
+                showProgress(progressEvent.loaded / progressEvent.total);
+              } else {
+                showProgress();
+              }
+            };
             ft.upload(imageURI, API + 'image',
 								function (r) {
+								  showProgress(1);
 								  var data = JSON.parse(r.response);
 								  console.log(data);
-								  self.$('.js-photo-msg').text("Photo upload OK " + JSON.stringify(data));
-								  self.$('.js-photo-msg').show();
+
+								  if (data.initialPreview.length > 0) {
+								    $('.file-preview').show();
+								    var thumbs = $('.file-initial-thumbs');
+								    _.each(data.initialPreview, function (thumbimg) {
+								      var thumb = $('<div>', {
+								        'class': "file-preview-frame file-preview-initial",
+								        'style': "padding:0;",
+								        'data-template': "image"
+								      });
+								      var thumbcontent = $('<div>', { 'class': "kv-file-content" });
+								      thumbcontent.html(thumbimg);
+								      thumb.html(thumbcontent);
+								      thumbs.append(thumb);
+								    });
+								  }
 
 								  // Add the photo to our list
 								  var mod = new Iznik.Models.Message.Attachment({
@@ -208,8 +240,10 @@ define([
 								  });
 
 							    self.allUploaded();
+							    $('.js-upload-progress').hide();
 								},
 								function (e) {
+								  $('.js-upload-progress').hide();
 								  self.$('.js-photo-msg').text("Photo upload fail " + JSON.stringify(e));
 								  self.$('.js-photo-msg').show();
 								},
@@ -232,12 +266,11 @@ define([
           var self = this;
           self.$('js-photo-msg').hide();
 
-      		if (self.img) {
-			      //$('#post_photo').hide();
-			      //$('#post_add_photo').text("Take photo");
-			      //$('#post_choose_photo').show();
-      		  self.img = false;
-			      return;
+      		var maxDimension = 800; // Connection.UNKNOWN Connection.ETHERNET Connection.WIFI Connection.CELL_4G and Connection.NONE
+      		if ((navigator.connection.type === Connection.CELL_2G) ||
+            (navigator.connection.type === Connection.CELL_2G) ||
+            (navigator.connection.type === Connection.CELL)) {
+      		  maxDimension = 400;
       		}
 
       		navigator.camera.getPicture(function (imageURI) {
@@ -250,8 +283,8 @@ define([
                     sourceType: Camera.PictureSourceType.CAMERA,
                     //allowEdit: true,	// Don't: adds unhelpful crop photo step
                     encodingType: Camera.EncodingType.JPEG,
-                    targetWidth: 800,
-                    targetHeight: 800,
+                    targetWidth: maxDimension,
+                    targetHeight: maxDimension,
                     //popoverOptions: CameraPopoverOptions,
                     saveToPhotoAlbum: true,
                     correctOrientation: true
@@ -262,14 +295,26 @@ define([
         choosePhoto: function () {
           var self = this;
           self.$('js-photo-msg').hide();
-          navigator.camera.getPicture(self.cameraSuccess, self.cameraError,
+
+          var maxDimension = 800; // Connection.UNKNOWN Connection.ETHERNET Connection.WIFI Connection.CELL_4G and Connection.NONE
+          if ((navigator.connection.type === Connection.CELL_2G) ||
+            (navigator.connection.type === Connection.CELL_2G) ||
+            (navigator.connection.type === Connection.CELL)) {
+            maxDimension = 400;
+          }
+
+          navigator.camera.getPicture(function (imageURI) {
+                    self.cameraSuccess(imageURI, self);
+                  }, function (msg) {
+                    self.cameraError(msg, self);
+                  },
                   { quality: 50,
                     destinationType: Camera.DestinationType.FILE_URI,
                     sourceType: Camera.PictureSourceType.PHOTOLIBRARY,
                     //allowEdit: true,
                     encodingType: Camera.EncodingType.JPEG,
-                    targetWidth: 800,
-                    targetHeight: 800,
+                    targetWidth: maxDimension,
+                    targetHeight: maxDimension,
                     //popoverOptions: CameraPopoverOptions,
                     //saveToPhotoAlbum: true
                     correctOrientation: true
@@ -298,6 +343,7 @@ define([
                 }
 
                 // File upload
+                isiOS = false;
                 if (!isiOS) { // CC
                   self.$('js-photo-msg').hide();
                   self.$('#fileupload').hide();
