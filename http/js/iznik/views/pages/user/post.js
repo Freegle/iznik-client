@@ -213,7 +213,7 @@ define([
                 });
 
                 // Upload as soon as photos have been resized.
-                self.$('#fileupload').on('fileimagesresized', function (event) {
+                self.$('#fileupload').on('fileimageresized', function (event) {
                     self.$('#fileupload').fileinput('upload');
                 });
 
