@@ -100,6 +100,7 @@ define([
             "modtools/publicity": "socialActions",
             "modtools/admins": "admins",
             "modtools/conversations/spam": "chatReview",
+            "modtools/conversations/reported": "chatReport",
             "modtools/spammerlist/pendingadd(/:search)": "spammerListPendingAdd",
             "modtools/spammerlist/confirmed(/:search)": "spammerListConfirmed",
             "modtools/spammerlist/pendingremove(/:search)": "spammerListPendingRemove",
@@ -131,6 +132,7 @@ define([
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
             "communityevents(/:id)": "userCommunityEvents",
+            "communityevent(/:id)": "userCommunityEvent",
             "newuser": "newUser",
             "unsubscribe(/:id)": "unsubscribe",
             "chat/:id": "userChat",
@@ -519,6 +521,16 @@ define([
             });
         },
 
+        userCommunityEvent: function(id) {
+            var self = this;
+            require(["iznik/views/pages/user/communityevents"], function() {
+                var page = new Iznik.Views.User.Pages.CommunityEvent({
+                    id: id
+                });
+                self.loadRoute({page: page});
+            });
+        },
+
         legacyUserMessage: function(groupid, messageid) {
             var self = this;
 
@@ -810,6 +822,24 @@ define([
             require(["iznik/views/pages/modtools/chat_review"], function() {
                 self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                     var page = new Iznik.Views.ModTools.Pages.ChatReview();
+                    self.loadRoute({
+                        page: page,
+                        modtools: true
+                    });
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+
+        chatReport: function () {
+            var self = this;
+
+            require(["iznik/views/pages/modtools/chat_report"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.ChatReport();
                     self.loadRoute({
                         page: page,
                         modtools: true

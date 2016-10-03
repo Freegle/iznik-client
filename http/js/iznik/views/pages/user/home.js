@@ -112,9 +112,9 @@ define([
                 });
 
                 self.listenTo(self.messages, 'remove', function (msg) {
-                    if (self.model.get('type') == 'Offer') {
+                    if (msg.get('type') == 'Offer') {
                         self.offers.remove(msg);
-                    } else if (self.model.get('type') == 'Wanted') {
+                    } else if (msg.get('type') == 'Wanted') {
                         self.wanteds.remove(msg);
                     }
                 });

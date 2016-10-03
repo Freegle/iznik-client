@@ -156,7 +156,7 @@ class Twitter {
                 $status = substr($status, 0, 80);
                 $status .= " on $datestr";
 
-                $link = "https://directv2.ilovefreegle.org/events/{$this->groupid}?t=". time();
+                $link = 'https://' . USER_SITE . "/communityevent/{$event['eventid']}?t=". time();
 
                 $status .= " $link";
                 $rc = $this->tweet($status, NULL);

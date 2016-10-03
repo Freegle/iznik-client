@@ -97,7 +97,7 @@ define([
 
         render: function() {
             var self = this;
-            Iznik.View.prototype.render.call(this).then(function() {
+            var p = Iznik.View.prototype.render.call(this).then(function() {
                 var mom = new moment(self.model.get('dates')[0]['start']);
                 self.$('.js-start').html(mom.format('ddd, Do MMM HH:mm'));
                 var mom = new moment(self.model.get('dates')[0]['end']);
@@ -105,7 +105,9 @@ define([
                 self.$el.closest('li').addClass('completefull');
 
                 self.model.on('change', self.render, self);
-            })
+            });
+
+            return(p);
         }
     });
 
@@ -138,6 +140,12 @@ define([
         render: function() {
             var self = this;
             Iznik.Views.Modal.prototype.render.call(this).then(function() {
+                // Add the link to this specific event.
+                var usersite = $('meta[name=iznikusersite]').attr("content");
+                var url = 'https://' + usersite + '/communityevent/' + self.model.get('id');
+                self.$('.js-url').html(url);
+                self.$('.js-url').attr('href', url);
+
                 self.$('.js-dates').empty();
                 _.each(self.model.get('dates'), function(date) {
                     var start = (new moment(date.start)).format('ddd, Do MMM YYYY HH:mm');

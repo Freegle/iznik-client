@@ -120,7 +120,7 @@ class Attachment
     }
 
     public function getById($id) {
-        $sql = "SELECT id FROM {$this->table} WHERE {$this->idatt} = ? AND data IS NOT NULL ORDER BY id;";
+        $sql = "SELECT id FROM {$this->table} WHERE {$this->idatt} = ? AND (data IS NOT NULL OR archived = 1) ORDER BY id;";
         $atts = $this->dbhr->preQuery($sql, [$id]);
         $ret = [];
         foreach ($atts as $att) {

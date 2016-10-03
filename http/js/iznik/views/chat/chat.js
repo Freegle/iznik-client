@@ -114,8 +114,7 @@ define([
 
                                                         // Also fetch the chat, because the number of unread messages in it will
                                                         // update counts in various places.
-                                                        chat.fetch().then(function () {
-                                                        });
+                                                        chat.fetch();
                                                     });
                                                 }
                                             }
@@ -803,6 +802,15 @@ define([
                 // will be preserved.
                 self.removed = true;
                 self.$el.hide();
+                try {
+                    // Remove the local storage, otherwise it will clog up with info for chats we don't look at.
+                    localStorage.removeItem(this.lsID() + '-open');
+                    localStorage.removeItem(this.lsID() + '-height');
+                    localStorage.removeItem(this.lsID() + '-width');
+
+                    // Also refetch the chats, so that our cached copy gets updated.
+                    Iznik.Session.chats.fetch();
+                } catch (e) { console.error(e.message)};
                 self.updateRoster('Closed', _.bind(self.zapViews, self), true);
             });
 
@@ -1163,6 +1171,10 @@ define([
             var self = this;
             // console.log("Update roster", self.model.get('id'), status, force);
 
+            // Save the current status in the chat for the next bulk roster update to the server.
+            // console.log("Set roster status", status, self.model.get('id'));
+            self.model.set('rosterstatus', status);
+
             if (force) {
                 // We want to make sure the server knows right now.
                 $.ajax({
@@ -1180,10 +1192,6 @@ define([
                     }
                 });
             } else {
-                // Save the current status in the chat for the next bulk roster update to the server.
-                // console.log("Set roster status", status, self.model.get('id'));
-                self.model.set('rosterstatus', status);
-
                // console.log("Suppress update", self.lastRoster);
                 callback({
                     ret: 0,

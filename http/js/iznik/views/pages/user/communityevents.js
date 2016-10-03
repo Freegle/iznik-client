@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'moment',
+    'iznik/models/communityevent',
     'iznik/views/pages/user/pages',
     'iznik/views/group/communityevents'
 ], function ($, _, Backbone, Iznik, moment) {
@@ -24,6 +25,53 @@ define([
             });
 
             return (p);
+        }
+    });
+
+    Iznik.Views.User.Pages.CommunityEvent = Iznik.Views.Page.extend({
+        template: 'user_communityevents_singlemain',
+
+        render: function () {
+            var self = this;
+
+            var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
+                var mod = new Iznik.Models.CommunityEvent({
+                    id: self.options.id
+                });
+
+                mod.fetch().then(function() {
+                    console.log("Got event", mod)
+                    var v = new Iznik.Views.User.CommunityEvent.Single({
+                        model: mod
+                    });
+
+                    v.render().then(function() {
+                        self.$('.js-event').html(v.$el);
+                    });
+                });
+            });
+
+            return (p);
+        }
+    });
+
+    Iznik.Views.User.CommunityEvent.Single = Iznik.View.extend({
+        template: 'user_communityevents_single',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function() {
+                self.$('.js-dates').empty();
+                _.each(self.model.get('dates'), function(date) {
+                    var start = (new moment(date.start)).format('ddd, Do MMM YYYY HH:mm');
+                    var end = (new moment(date.end)).format('ddd, Do MMM YYYY HH:mm');
+                    self.$('.js-dates').append(start + ' - ' + end + '<br />');
+                });
+            });
+            
+            return(p);
         }
     });
 

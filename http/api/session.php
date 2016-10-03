@@ -119,7 +119,7 @@ function session() {
             if ($fblogin) {
                 # We've been asked to log in via Facebook.
                 $f = new Facebook($dbhr, $dbhm);
-                list ($session, $ret) = $f->login($fbauthtoken);
+                list ($session, $ret) = $f->login($fbaccesstoken);
                 /** @var Session $session */
                 $id = $session ? $session->getUserId() : NULL;
             } else if ($yahoologin) {

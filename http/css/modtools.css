@@ -169,6 +169,7 @@
 
 #notifchatdropdown {
     top: 65px !important;
+    position: fixed;
 }
 
 #js-notifchat .badge {

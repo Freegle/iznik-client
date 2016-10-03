@@ -344,7 +344,9 @@ define([
 
                     asyncResults(matches);
 
-                    self.$('.js-postcode').tooltip('destroy');
+                    _.default(function() {
+                        self.$('.js-postcode').tooltip('destroy');
+                    }, 10000);
 
                     if (matches.length == 0) {
                         self.$('.js-postcode').tooltip({'trigger':'focus', 'title': 'Please use a valid UK postcode'});
