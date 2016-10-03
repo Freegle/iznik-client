@@ -1251,13 +1251,12 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-//
 //    public function testSpecial() {
 //        error_log(__METHOD__);
 //
 //        $msg = $this->unique(file_get_contents('msgs/special'));
 //        $r = new MailRouter($this->dbhr, $this->dbhm);
-//        $id = $r->received(Message::YAHOO_PENDING, 'fbuser.1465629678.647264@direct.ilovefreegle.org', "PenrithEdenFreegle@yahoogroups.com", $msg);
+//        $id = $r->received(Message::YAHOO_SYSTEM, 'notify-return-mollydevas-3396869=users.ilovefreegle.org@returns.groups.yahoo.com', "mollydevas-3396869@users.ilovefreegle.org", $msg);
 //        assertNotNull($id);
 //        $rc = $r->route();
 //        assertEquals(MailRouter::TO_USER, $rc);

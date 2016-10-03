@@ -1905,7 +1905,6 @@ class User extends Entity
             ]);
         }
 
-        # The Yahoo membership should always exist as we'll have created it when we triggered the application.
         $this->log->log([
             'type' => Log::TYPE_USER,
             'subtype' => Log::SUBTYPE_YAHOO_JOINED,
@@ -1913,7 +1912,9 @@ class User extends Entity
             'groupid' => $groupid
         ]);
 
-        $sql = "UPDATE memberships_yahoo SET collection = ?, emailid = ? WHERE membershipid = (SELECT id FROM memberships WHERE userid = ? AND groupid = ?);";
+        # The Yahoo membership should always exist as we'll have created it when we triggered the application, but
+        # using REPLACE will fix it if we've deleted it (which we did when fixing a bug, if not otherwise).
+        $sql = "REPLACE INTO memberships_yahoo (collection, emailid, membershipid) VALUES (?, ?, (SELECT id FROM memberships WHERE userid = ? AND groupid = ?));";
         $rc = $this->dbhm->preExec($sql, [
             MembershipCollection::APPROVED,
             $emailid,
