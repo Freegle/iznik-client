@@ -195,7 +195,7 @@ class User extends Entity
         $name = strpos($name, '@') !== FALSE ? substr($name, 0, strpos($name, '@')) : $name;
 
         if (strlen(trim($name)) === 0) {
-            $name = '(No name)';
+            $name = 'A freegler';
         }
 
         return($name);

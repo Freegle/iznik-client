@@ -272,7 +272,7 @@ class ChatRoom extends Entity
             case ChatRoom::TYPE_USER2MOD:
                 # If we started it, we're chatting to the group volunteers; otherwise to the user.
                 $username = $ret['user1']['displayname'];
-                $username = strlen(trim($username)) > 0 ? $username : '(No name)';
+                $username = strlen(trim($username)) > 0 ? $username : 'A freegler';
                 $email = presdef('email', $ret['user1'], 'No email');
                 $ret['name'] = $ret['user1']['id'] == $myid ? "{$ret['group']['namedisplay']} Volunteers" : "$username ($email) on {$ret['group']['nameshort']}";
                 break;
