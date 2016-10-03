@@ -32,5 +32,9 @@
             "PACKAGE_NAME": "HelloCordova"
         }
     },
-    "dependent_plugins": {}
+    "dependent_plugins": {
+        "cordova-plugin-file": {
+            "PACKAGE_NAME": "HelloCordova"
+        }
+    }
 }
