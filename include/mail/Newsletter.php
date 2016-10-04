@@ -119,7 +119,7 @@ class Newsletter extends Entity
             'subject' => $this->newsletter['subject'],
             'from' => $g ? $g->getModsEmail() : NOREPLY_ADDR,
             'fromname' => $g ? $gatts['namedisplay'] : SITE_NAME,
-            'html' => newsletter(SITE_NAME, $html),
+            'html' => newsletter(USER_SITE, SITE_NAME, $html),
             'text' => $this->newsletter['textbody']
         ];
 

@@ -2,7 +2,8 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function newsletter($sitename, $htmlbody) {
+function newsletter($domain, $sitename, $htmlbody) {
+    $siteurl = "https://$domain";
     $html = <<<EOT
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -45,7 +46,7 @@ EOT;
                                                                     <tr>
                                                                         <td>
                                                                             <p>This mail was sent to {{email}}.  You are set to receive $sitename newsletters.</p>
-                                                                            <p>You can change your settings by clicking <a href="https://direct.ilovefreegle.org/login.php?action=mysettings">here</a>, or turn these newsletter emails off by emailing <a href="mailto:{{noemail}}">{{noemail}}</a>.</p>
+                                                                            <p>You can change your settings by clicking <a href="$siteurl/settings">here</a>, or turn these newsletter emails off by emailing <a href="mailto:{{noemail}}">{{noemail}}</a>.</p>
                                                                             <p>Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.</p> 
                                                                         </td>
                                                                     </tr>

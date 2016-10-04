@@ -1119,10 +1119,10 @@ class Message
                 # Wait for 120 seconds to fetch.  We don't want to wait forever, but we see occasional timeouts from Yahoo
                 # at 60 seconds.
                 #
-                # We don't want Yahoo's megaphone images - they're just generic footer images.
+                # We don't want Yahoo's megaphone images - they're just generic footer images.  Likewise Avast.
                 if ((stripos($src, 'http://') === 0 || stripos($src, 'https://') === 0) &&
-                    (stripos($src, 'https://s.yimg.com/ru/static/images/yg/img/megaphone') === FALSE)
-                ) {
+                    (stripos($src, 'https://s.yimg.com/ru/static/images/yg/img/megaphone') === FALSE) &&
+                    (stripos($src, 'https://ipmcdn.avast.com') === FALSE)) {
                     #error_log("Get inline image $src");
                     $ctx = stream_context_create(array('http' =>
                         array(

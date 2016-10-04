@@ -114,7 +114,7 @@ EOT;
     if ($unavailable != '') {
         $html .= '<tr><td colspan="2" class="mobile" valign="top">';
         $html .= '<h2><span style=\"color:green\">Missed Posts</span></h2></td></tr>';
-        $html .= '<tr><td colspan="2"><p>These posts came and went since your last mail.  If this happens a lot, click <a href=\"https://direct.ilovefreegle.org/login.php?action=mysettings\">here</a> and choose more frequent mails.</p></td></tr>';
+        $html .= '<tr><td colspan="2"><p>These posts came and went since your last mail.  If this happens a lot, click <a href=\"$siteurl/settings\">here</a> and choose more frequent mails.</p></td></tr>';
         $html .= '<tr><td colspan="2">' . $unavailable . '</td></tr>';
     }
     
@@ -122,7 +122,7 @@ EOT;
                                                         <tr>
                                                             <td colspan="2" style="color: grey; font-size:10px;">
                                                                 <p>This mail was sent to {{email}}.  You are set to receive updates for $groupname {{frequency}}.</p>
-                                                                <p>You can change your settings by clicking <a href="https://direct.ilovefreegle.org/login.php?action=mysettings">here</a>, or turn these mails off by emailing <a href="mailto:{{noemail}}">{{noemail}}</a>.</p>
+                                                                <p>You can change your settings by clicking <a href="$siteurl/settings">here</a>, or turn these mails off by emailing <a href="mailto:{{noemail}}">{{noemail}}</a>.</p>
                                                                 <p>Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.</p> 
                                                             </td>
                                                         </tr>        

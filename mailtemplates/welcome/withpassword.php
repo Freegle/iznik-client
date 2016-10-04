@@ -81,7 +81,7 @@ EOT;
                                                         </tr>        
                                                         <tr>
                                                             <td colspan="2" style="color: grey; font-size:10px;">
-                                                                <p>This mail was sent to $email.  You can change your settings by clicking <a href="https://direct.ilovefreegle.org/login.php?action=mysettings">here</a>.</p>
+                                                                <p>This mail was sent to $email.  You can change your settings by clicking <a href="$siteurl/settings">here</a>.</p>
                                                                 <p>Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.</p> 
                                                             </td>
                                                         </tr>        
