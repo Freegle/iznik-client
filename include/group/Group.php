@@ -992,7 +992,7 @@ class Group extends Entity
         foreach ($vs as $v) {
             $this->dbhm->beginTransaction();
 
-            $sql = "UPDATE groups SET licensed = CURDATE(), licenseduntil = CASE WHEN licenseduntil > CURDATE() THEN licenseduntil + INTERVAL 1 YEAR ELSE CURDATE() + INTERVAL 1 YEAR END WHERE id = ?;";
+            $sql = "UPDATE groups SET publish = 1, licensed = CURDATE(), licenseduntil = CASE WHEN licenseduntil > CURDATE() THEN licenseduntil + INTERVAL 1 YEAR ELSE CURDATE() + INTERVAL 1 YEAR END WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $this->id ]);
             Group::clearCache($this->id);
 
