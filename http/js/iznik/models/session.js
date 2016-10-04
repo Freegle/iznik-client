@@ -80,7 +80,7 @@ define([
                             });
                             pushManagerPromise = p;
                             p.then(self.gotSubscription, function (error) {
-                                if (!_.isUndefined(error) && error.indexOf("permission denied") == -1) {
+                                if (!_.isUndefined(error) && error.indexOf && error.indexOf("permission denied") == -1) {
                                     // Permission denied is normal.
                                     console.log("Subscribe error", error);
                                 }

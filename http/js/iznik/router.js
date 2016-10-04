@@ -51,8 +51,12 @@ define([
 
             // Make sure we have google analytics for Backbone routes.
             require(["ga"], function(ga) {
-                ga('create', 'UA-10627716-9');
-                ga('send', 'event', 'pageView', url);
+                try {
+                    ga('create', 'UA-10627716-9');
+                    ga('send', 'event', 'pageView', url);
+                } catch (e) {
+                    console.log("Google exception - privacy blocker?", e);
+                }
             });
         },
 

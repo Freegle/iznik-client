@@ -195,7 +195,7 @@ class User extends Entity
         $name = strpos($name, '@') !== FALSE ? substr($name, 0, strpos($name, '@')) : $name;
 
         if (strlen(trim($name)) === 0) {
-            $name = '(No name)';
+            $name = 'A freegler';
         }
 
         return($name);
@@ -1905,7 +1905,6 @@ class User extends Entity
             ]);
         }
 
-        # The Yahoo membership should always exist as we'll have created it when we triggered the application.
         $this->log->log([
             'type' => Log::TYPE_USER,
             'subtype' => Log::SUBTYPE_YAHOO_JOINED,
@@ -1913,7 +1912,9 @@ class User extends Entity
             'groupid' => $groupid
         ]);
 
-        $sql = "UPDATE memberships_yahoo SET collection = ?, emailid = ? WHERE membershipid = (SELECT id FROM memberships WHERE userid = ? AND groupid = ?);";
+        # The Yahoo membership should always exist as we'll have created it when we triggered the application, but
+        # using REPLACE will fix it if we've deleted it (which we did when fixing a bug, if not otherwise).
+        $sql = "REPLACE INTO memberships_yahoo (collection, emailid, membershipid) VALUES (?, ?, (SELECT id FROM memberships WHERE userid = ? AND groupid = ?));";
         $rc = $this->dbhm->preExec($sql, [
             MembershipCollection::APPROVED,
             $emailid,
@@ -2297,7 +2298,7 @@ class User extends Entity
             # an outcome in the mean time.
             #
             # If we are doing an autorepost we will already have a membership and therefore won't come through here.
-            $sql = "SELECT messages_groups.msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE groupid = ? AND senttoyahoo = 0 AND messages_groups.deleted = 0 AND messages.fromuser = ? AND messages_outcomes.msgid IS NULL;";
+            $sql = "SELECT messages_groups.msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE groupid = ? AND senttoyahoo = 0 AND messages_groups.deleted = 0 AND messages_groups.deleted = 0 AND messages_groups.collection != 'Rejected' AND messages.fromuser = ? AND messages_outcomes.msgid IS NULL;";
             $msgs = $this->dbhr->preQuery($sql, [
                 $groupid,
                 $this->id

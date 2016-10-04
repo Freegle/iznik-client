@@ -365,13 +365,19 @@ And something after it.', $stripped);
         $stripped = $m->stripQuoted();
         assertEquals('Replying.', $stripped);
 
-        error_log(__METHOD__ . " end");
         $msg = $this->unique(file_get_contents('msgs/notif_reply_text5'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
         assertEquals("Ok, here's a reply.", $stripped);
 
+        $msg = $this->unique(file_get_contents('msgs/notif_reply_text6'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $stripped = $m->stripQuoted();
+        assertEquals("Ok, here's a reply.", $stripped);
+
+        error_log(__METHOD__ . " end");
     }
     
     public function testCensor() {

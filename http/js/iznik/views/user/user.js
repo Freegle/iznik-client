@@ -275,7 +275,10 @@ define([
                 var comments = self.model.get('comments');
                 _.each(comments, function (comment) {
                     if (comment.groupid) {
-                        comment.group = Iznik.Session.getGroup(comment.groupid).toJSON2();
+                        var group = Iznik.Session.getGroup(comment.groupid);
+                        if (group) {
+                            comment.group = group.toJSON2();
+                        }
                     }
 
                     new Iznik.Views.ModTools.User.Comment({
