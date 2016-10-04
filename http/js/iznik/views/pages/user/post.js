@@ -343,77 +343,9 @@ define([
                 }
 
                 // File upload
-                isiOS = false;
-                if (!isiOS) { // CC
-                  self.$('js-photo-msg').hide();
-                  self.$('#fileupload').hide();
-                  self.$('#post_add_photo').show();
-                  self.$('#post_choose_photo').show();
-                } else {
-                self.$('#fileupload').fileinput({
-                    uploadExtraData: {
-                        type: 'Message',
-                        identify: true
-                    },
-                    showUpload: false,
-                    allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
-                    uploadUrl: API + 'image',
-                    resizeImage: true,
-                    maxImageWidth: 800,
-                    browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
-                    browseLabel: 'Add photos',
-                    browseClass: 'btn btn-primary nowrap',
-                    showCaption: false,
-                    dropZoneEnabled: false,
-                    buttonLabelClass: '',
-                    fileActionSettings: {
-                        showZoom: false,
-                        showRemove: false,
-                        showUpload: false
-                    },
-                    layoutTemplates: {
-                        footer: '<div class="file-thumbnail-footer">\n' +
-                        '    {actions}\n' +
-                        '</div>'
-                    },
-                    showRemove: false
-                });
-
-                // Count how many we will upload.
-                self.$('#fileupload').on('fileloaded', function (event) {
-                    self.uploading++;
-                });
-
-                // Upload as soon as photos have been resized.
-                self.$('#fileupload').on('fileimageresized', function (event) {
-                    self.$('#fileupload').fileinput('upload');
-                });
-
-                // Watch for all uploaded
-                self.$('#fileupload').on('fileuploaded', function (event, data) {
-                    // Add the photo to our list
-                    var mod = new Iznik.Models.Message.Attachment({
-                        id: data.response.id,
-                        src: data.response.paththumb
-                    });
-
-                    self.photos.add(mod);
-
-                    // Add any hints about the item
-                    self.$('.js-suggestions').empty();
-                    self.suggestions = [];
-
-                    _.each(data.response.items, function (item) {
-                        self.suggestions.push(item);;
-                    });
-
-                    self.uploading--;
-
-                    if (self.uploading == 0) {
-                        self.allUploaded();
-                    }
-                });
-                }
+                self.$('js-photo-msg').hide();
+                self.$('#post_add_photo').show();
+                self.$('#post_choose_photo').show();
 
                 try {
                     var id = localStorage.getItem('draft');
