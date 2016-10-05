@@ -144,8 +144,9 @@ class Attachment
     public function getData() {
         $ret = NULL;
 
+        # Use dbhm to bypass query cache as this data is too large to cache.
         $sql = "SELECT * FROM {$this->table} WHERE id = ?;";
-        $datas = $this->dbhr->preQuery($sql, [$this->id]);
+        $datas = $this->dbhm->preQuery($sql, [$this->id]);
         foreach ($datas as $data) {
             if ($data['archived']) {
                 # This attachment has been archived out of our database, to our archive host.  This happens to

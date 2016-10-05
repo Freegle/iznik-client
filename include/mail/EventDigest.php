@@ -121,7 +121,7 @@ class EventDigest
                 }
 
                 $html = digest_events($htmlsumm,
-                    USER_DOMAIN,
+                    USER_SITE,
                     USERLOGO,
                     $gatts['namedisplay']
                 );

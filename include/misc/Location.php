@@ -178,12 +178,11 @@ class Location extends Entity
                             $thisgridid = $nearest['id'];
                         } else if ($lastcount != 0) {
                             # Now find the next grid which touch the ones we already have, i.e. work outwards
-                            $sql = "SELECT touches FROM locations_grids_touches WHERE gridid IN (" . implode(',', $gridids) . ") AND touches NOT IN (" . implode(',', $gridids) . ") LIMIT 1;";
+                            $sql = "SELECT touches FROM locations_grids_touches WHERE gridid IN (" . implode(',', $gridids) . ") AND touches NOT IN (" . implode(',', $gridids) . ");";
                             #error_log("$sql");
                             $neighbours = $this->dbhm->preQuery($sql, [ $gridid ]);
                             foreach ($neighbours as $neighbour) {
                                 $gridids[] = $neighbour['touches'];
-                                $thisgridid = $neighbour['touches'];
                             }
                         }
 
@@ -192,12 +191,12 @@ class Location extends Entity
                         # See if there will be a location to choose - without actually choosing it yet.
                         # We choose the closest location.
                         if (count($gridids) > 0) {
-                            $sql = "SELECT ASText(?) AS pcgeom, ASText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS areageom, id, name, ST_Contains(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS within, ST_Distance(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS dist FROM locations LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE gridid = ? AND osm_place = $osmonly AND locations_excluded.locationid IS NULL HAVING id != ? ORDER BY within DESC, dist ASC LIMIT 1;";
+                            $sql = "SELECT ASText(?) AS pcgeom, ASText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS areageom, id, name, ST_Contains(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS within, ST_Distance(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS dist FROM locations LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = $osmonly AND locations_excluded.locationid IS NULL HAVING id != ? ORDER BY within DESC, dist ASC LIMIT 1;";
+                            #error_log($sql);
                             $nextlot = $this->dbhm->preQuery($sql, [
                                 $loc['geometry'],
                                 $loc['geometry'],
                                 $loc['geometry'],
-                                $thisgridid,
                                 $id
                             ]);
 
@@ -224,14 +223,13 @@ class Location extends Entity
                         # - we've got some new grids this time, i.e. we're not stuck.
                         # - we've not got stupidly many grids, i.e. the query will take forever
                         $within = count($intersects) > 0 && $intersects[0]['within'];
-                        $cont = ((count($intersects) < 1 || (!$within && count($gridids) <= 14)) &&
+                        $cont = ((count($intersects) < 1 || (!$within && count($gridids) <= 100)) &&
                             count($gridids) != $lastcount &&
                             count($gridids) < 10000);
-                        #error_log("Within? $within count " . count($intersects) . " grids " . count($gridids) . " vs last $lastcount");
+                        #error_log("Within? $within count " . count($intersects) . " grids " . implode(',', $gridids) . " vs last $lastcount");
                         $lastcount = count($gridids);
                     } while ($cont);
 
-                    error_log("Got " . count($intersects));
                     if (count($intersects) >= 1) {
                         # Quicker query if we omit AND id != $id and handle it here.
                         $iid = $intersects[0]['id'];

@@ -423,7 +423,10 @@ class MailRouter
 
                             $eid = $u->getIdForEmail($email);
                             $eid = $eid ? $eid['id'] : NULL;
-                            $u->markYahooApproved($gid, $eid);
+
+                            if (ourDomain($email)) {
+                                $u->markYahooApproved($gid, $eid);
+                            }
 
                             # Dispatch any messages which are queued awaiting this group membership.
                             $u->submitYahooQueued($gid);
