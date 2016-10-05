@@ -2261,6 +2261,7 @@ class Message
         $textbody = preg_replace('/^Sent on the go from.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from Yahoo Mail.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from Mail.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my BlackBerry.*/ms', '', $textbody);
 
         // Duff text added by Yahoo Mail app.
         $textbody = str_replace('blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; }', '', $textbody);
