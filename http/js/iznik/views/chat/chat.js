@@ -1073,9 +1073,11 @@ define([
                 self.trigger('restored');
             });
 
-            window.setTimeout(function() {
-                self.$('.js-modwarning').slideUp('slow');
-            }, 30000);
+            self.$('.js-modwarning').show();
+
+            window.setTimeout(_.bind(function() {
+                this.$('.js-modwarning').slideUp('slow');
+            }, self), 30000);
         },
 
         scrollTimer: null,
