@@ -11,7 +11,7 @@ $lockh = lockScript(basename(__FILE__));
 
 # TODO Make this host generic.
 
-$time = date('Y-m-d', strtotime("midnight 7 days ago"));
+$time = date('Y-m-d', strtotime("midnight 31 days ago"));
 $sql = "SELECT messages_attachments.id FROM messages INNER JOIN messages_attachments ON messages.id = messages_attachments.msgid WHERE arrival < '$time' AND data IS NOT NULL;";
 $atts = $dbhr->query($sql);
 $count = 0;
