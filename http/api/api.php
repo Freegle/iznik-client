@@ -16,7 +16,7 @@ require_once('../../include/misc/apiheaders.php');
 require_once('../../include/config.php');
 
 # We might profile - only the occasional call as it generates a lot of data.
-$xhprof = XHPROF && (mt_rand(0, 1000000) < 100);
+$xhprof = XHPROF && (mt_rand(0, 1000000) < 1000);
 
 if ($xhprof) {
     # We are profiling.

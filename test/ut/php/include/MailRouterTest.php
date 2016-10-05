@@ -958,19 +958,23 @@ class MailRouterTest extends IznikTestCase {
         # Set up a pending member.
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test@test.com');
+        $u->addEmail('test@direct.ilovefreegle.org');
         error_log("Add membership to $gid");
         $u->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::PENDING);
         $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $gid ]);
         assertEquals(1, count($membs));
 
         $msg = file_get_contents('msgs/memberjoined');
-        $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
+        $msg = str_replace('test@test.com', 'test@direct.ilovefreegle.org', $msg);
+        $r->log = TRUE;
+        $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'test@direct.ilovefreegle.org', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_SYSTEM, $rc);
         $ctx = NULL;
         $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::PENDING, [ $gid ]);
         assertEquals(0, count($membs));
+
+        $u->delete();
 
         error_log(__METHOD__ . " end");
     }

@@ -12,16 +12,19 @@ function image() {
 
     if ($newsletter) {
         $type = Attachment::TYPE_NEWSLETTER;
+        $shorttype = '_n';
     } else if ($group) {
         $type = Attachment::TYPE_GROUP;
+        $shorttype = '_g';
     } else {
         $type = Attachment::TYPE_MESSAGE;
+        $shorttype = '';
     }
 
     switch ($_REQUEST['type']) {
         case 'GET': {
             # We cache the data to files to avoid the DB queries where we can.
-            $fn = IZNIK_BASE . "/http/imgcache/img_{$id}_" . presdef('w', $_REQUEST, '') . "x" . presdef('h', $_REQUEST, '') . ".jpg";
+            $fn = IZNIK_BASE . "/http/imgcache/img_{$shorttype}_{$id}_" . presdef('w', $_REQUEST, '') . "x" . presdef('h', $_REQUEST, '') . ".jpg";
 
             $data = @file_get_contents($fn);
 

@@ -85,6 +85,7 @@ class imageAPITest extends IznikAPITestCase
             'group' => 1
         ], TRUE);
 
+        error_log("Expect 1 " . var_export($ret, TRUE));
         assertEquals(1, $ret['ret']);
 
         $ret = $this->call('image', 'GET', [
