@@ -5,6 +5,7 @@ if (!defined('UT_DIR')) {
 }
 require_once UT_DIR . '/IznikTestCase.php';
 require_once IZNIK_BASE . '/include/message/Attachment.php';
+require_once IZNIK_BASE . '/include/user/User.php';
 
 
 /**
