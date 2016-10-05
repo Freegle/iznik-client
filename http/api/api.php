@@ -120,9 +120,11 @@ if ($_REQUEST['type'] == 'OPTIONS') {
 
             # Some actions are ok, so we exclude those.
             if ($_SESSION) {
+                #error_log("POST req $req vs " . presdef('POSTLASTTIME', $_SESSION, NULL) . "," . presdef('POSTLASTDATA', $_SESSION, NULL));
                 if ( !in_array($call, [ 'session', 'correlate', 'chatrooms', 'events', 'upload'] ) &&
                     array_key_exists('POSTLASTTIME', $_SESSION)) {
                     $ago = time() - $_SESSION['POSTLASTTIME'];
+                    #error_log("Time ago $ago from {$_SESSION['POSTLASTTIME']}");
 
                     if (($ago < DUPLICATE_POST_PROTECTION) && ($req == $_SESSION['POSTLASTDATA'])) {
                         $ret = array('ret' => 999, 'text' => 'Duplicate request - rejected.', 'data' => $_REQUEST);
@@ -134,11 +136,12 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 $_SESSION['POSTLASTTIME'] = time();
                 $_SESSION['POSTLASTDATA'] = $req;
             }
-        } else {
-            # Not a POST call we're interested in - so reset our protection.
-            unset($_SESSION['POSTLASTTIME']);
-            unset($_SESSION['POSTLASTDATA']);
         }
+//        else {
+//            # Not a POST call we're interested in - so reset our protection.
+//            unset($_SESSION['POSTLASTTIME']);
+//            unset($_SESSION['POSTLASTDATA']);
+//        }
 
         try {
             # Each call is inside a file with a suitable name.
