@@ -64,7 +64,10 @@ define([
     });
 
     Iznik.Collections.Chat.Rooms = Iznik.Collection.extend({
-        url: API + 'chat/rooms',
+        url: function() {
+            // We might be searching.
+            return(API + 'chat/rooms' + (this.options.search ? ("?search=" + encodeURIComponent(this.options.search)) : ''));
+        },
 
         model: Iznik.Models.Chat.Room,
 

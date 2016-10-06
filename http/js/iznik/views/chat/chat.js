@@ -489,19 +489,48 @@ define([
         },
 
         filter: '',
+        searchChats: null,
+        searchTimer: null,
 
         searchKey: function () {
-            this.filter = $('#notifchatdropdown .js-search').val();
+            var self = this;
+
+            self.filter = $('#notifchatdropdown .js-search').val();
+
+            // Apply the filter immediately - if we get matches on the name or snippet that will look zippy.
             Iznik.minimisedChats.reapplyFilter('visibleModels');
+
+            if (self.filter.length > 2) {
+                // Now search on the sever.  But delay this to allow for extra keystrokes - avoids hitting
+                // the server many times.
+                if (self.searchTimer) {
+                    clearTimeout(self.searchTimer);
+                }
+
+                self.searchChats = new Iznik.Collections.Chat.Rooms({
+                    search: self.filter
+                });
+
+                self.searchTimer = setTimeout(function() {
+                    self.searchChats.fetch().then(function() {
+                        Iznik.minimisedChats.reapplyFilter('visibleModels');
+                    });
+                }, 500);
+            }
         },
 
         searchFilter: function (model) {
             var self = this;
             var filt = self.filter.toLowerCase();
+            var snippet = model.get('snippet') ? model.get('snippet') : '';
 
             var ret = (self.filter.length === 0 ||
-            model.get('snippet').toLowerCase().indexOf(filt) !== -1 ||
+            snippet.toLowerCase().indexOf(filt) !== -1 ||
             model.get('name').toLowerCase().indexOf(filt) !== -1);
+
+            if (!ret && self.searchChats) {
+                ret = self.searchChats.get(model.get('id'));
+            }
 
             return (ret);
         },
@@ -1385,6 +1414,7 @@ define([
                     modelView: Iznik.Views.Chat.Message,
                     collection: self.messages,
                     chatView: self,
+                    comparator: 'id',
                     modelViewOptions: {
                         chatView: self,
                         chatModel: self.model

@@ -146,7 +146,6 @@ define([
                         _.each(self.options.data, function(row) {
                             colours.push({color: row.colour});
                         });
-                        console.log("COlours", colours);
 
                         var bydate = {};
                         _.each(self.options.data, function (row) {

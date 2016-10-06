@@ -1358,7 +1358,7 @@ body {
     #notifchatdropdownactions {
         background-color: white !important;
         border-bottom: none !important;
-        position: fixed;
+        /*position: fixed;*/
     }
 
     .notifaction {
@@ -1371,9 +1371,9 @@ body {
     #notifchatdropdownlist {
         background-color: white !important;
         overflow-y: scroll;
-        top: 100px;
+        /*top: 150px;*/
         max-height: 80vh;
-        position: fixed;
+        /*position: fixed;*/
         -webkit-backface-visibility: hidden;
     }
 }
