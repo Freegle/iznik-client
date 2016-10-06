@@ -21,7 +21,6 @@ $pcids = [];
 
 foreach ($locs as $loc) {
     $count++;
-    # $l->remapPostcodes($loc['geom'], $loc['gridid']);
     $pcs = $dbhr->preQuery("SELECT id, gridid FROM locations WHERE areaid = ? AND type = 'Postcode' AND LOCATE(' ', name) > 0;", [ $loc['id'] ]);
     foreach ($pcs as $pc) {
         $pcids[$pc['id']] = $pc['gridid'];

@@ -11,6 +11,7 @@ function chatrooms() {
     $chattypes = presdef('chattypes', $_REQUEST, [ ChatRoom::TYPE_USER2USER ]);
     $chattype = presdef('chattype', $_REQUEST, ChatRoom::TYPE_USER2USER);
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
+    $search = presdef('search', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -26,7 +27,7 @@ function chatrooms() {
                 if ($me) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
                     
-                    $rooms = $r->listForUser($myid, $chattypes);
+                    $rooms = $r->listForUser($myid, $chattypes, $search);
                     $ret['chatrooms'] = [];
 
                     if ($rooms) {

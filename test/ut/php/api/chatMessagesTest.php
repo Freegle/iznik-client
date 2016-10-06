@@ -135,6 +135,22 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals($mid, $ret['chatmessage']['id']);
 
+        # Test search
+        $ret = $this->call('chatrooms', 'GET', [
+            'search' => 'zzzz',
+            'chattypes' => [ ChatRoom::TYPE_MOD2MOD ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['chatrooms']));
+
+        $ret = $this->call('chatrooms', 'GET', [
+            'search' => 'ES',
+            'chattypes' => [ ChatRoom::TYPE_MOD2MOD ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['chatrooms']));
+        assertEquals($this->cid, $ret['chatrooms'][0]['id']);
+
         error_log(__METHOD__ . " end");
     }
 

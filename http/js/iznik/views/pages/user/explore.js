@@ -207,7 +207,7 @@ define([
 
         resize: function(e) {
             var mapWidth = $(e.target).outerWidth();
-            target.css('height', mapWidth + 'px');
+            $(e.target).css('height', mapWidth + 'px');
             google.maps.event.trigger(this.map, "resize");
         },
 
@@ -353,15 +353,23 @@ define([
         showHideJoin: function() {
             var self = this;
 
-            var role = self.model.get('myrole');
+            var id = self.model.get('id');
+            self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                if (loggedIn) {
+                    var group = Iznik.Session.getGroup(id);
 
-            if (role == 'Non-member') {
-                self.$('.js-join').show();
-                self.$('.js-leave').hide();
-            } else {
-                self.$('.js-join').hide();
-                self.$('.js-leave').show();
-            }
+                    if (!_.isUndefined(group)) {
+                        self.$('.js-join').hide();
+                        self.$('.js-leave').show();
+                    } else {
+                        self.$('.js-join').show();
+                        self.$('.js-leave').hide();
+                    }
+                } else {
+                    self.$('.js-join').show();
+                    self.$('.js-leave').hide();
+                }
+            });
 
             Iznik.Session.testLoggedIn();
         },

@@ -237,7 +237,7 @@ class LoggedPDO {
     }
 
     private function cacheKey($sql, $params) {
-        return("sql" . md5($sql . var_export($params, TRUE)));
+        return("sql-3-" . md5($sql . var_export($params, TRUE)));
     }
 
     private function sessionKey() {
@@ -277,7 +277,7 @@ class LoggedPDO {
                 #error_log("Got keys " . var_export($mget, TRUE));
 
                 if ($mget[0]) {
-                    $cached = unserialize(gzuncompress($mget[0]));
+                    $cached = unserialize($mget[0]);
                     #error_log("Got from cache");
                     $cachedsql = $cached->getSQL();
                     #error_log("Got cached SQL $cachedsql");
@@ -311,7 +311,7 @@ class LoggedPDO {
                                     # refresh it.
                                     #error_log("Refresh expired cache $cachekey");
                                     $cached->setQuerying(true);
-                                    $tocache = gzcompress(serialize($cached));
+                                    $tocache = serialize($cached);
                                     $cachestart = microtime(true);
                                     $rc = $this->getRedis()->setex($cachekey, LoggedPDO::CACHE_EXPIRY, $tocache);
                                     $this->cachetime += microtime(true) - $cachestart;
@@ -355,7 +355,7 @@ class LoggedPDO {
                             } catch (Exception $e) { error_log("Failed " . $e->getMessage());}
 
                             # Store this result in the cache
-                            $tocache = gzcompress(serialize($tocache));
+                            $tocache = serialize($tocache);
                             #error_log("Consider store $cachekey " . strlen($tocache));
                             if (strlen($tocache) < LoggedPDO::CACHE_MAX_SIZE) {
                                 $cachestart = microtime(true);

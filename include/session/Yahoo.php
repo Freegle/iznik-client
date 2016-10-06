@@ -56,16 +56,21 @@ class Yahoo
                 ($this->openid->identity != 'https://open.login.yahooapis.com/openid20/user_profile/xrds'))
             {
                 $attrs = $this->openid->getAttributes();
+                error_log("Yahoo login " . var_export($attrs, TRUE));
 
-                # The Yahoo ID is derived from the email; Yahoo always returns the Yahoo email even if a different
+                # The Yahoo ID is derived from the email; Yahoo should always returns the Yahoo email even if a different
                 # email is configured on the profile.  Way to go.
-                $yahooid = $attrs['contact/email'];
+                #
+                # But sometimes it doesn't return the email at all.  Way to go.  So in that case we use the namePerson
+                # as though it was a Yahoo ID, since we have no other way to get it, and proceed without adding an
+                # email.
+                $yahooid = pres('contact/email', $attrs) ? $attrs['contact/email'] : $attrs['namePerson'];
                 $p = strpos($yahooid, "@");
-                $yahooid = substr($yahooid, 0, $p);
+                $yahooid = $p != FALSE ? substr($yahooid, 0, $p) : $yahooid;
 
                 # See if we know this user already.  We might have an entry for them by email, or by Yahoo ID.
                 $u = User::get($this->dbhr, $this->dbhm);
-                $eid = $u->findByEmail($attrs['contact/email']);
+                $eid = pres('contact/email', $attrs) ? $u->findByEmail($attrs['contact/email']) : NULL;
                 $yid = $u->findByYahooId($yahooid);
                 #error_log("Email $eid  from {$attrs['contact/email']} Yahoo $yid");
 
@@ -77,7 +82,7 @@ class Yahoo
                 }
 
                 $id = $eid ? $eid : $yid;
-                #error_log("Login id $id from $eid and $yid");
+                error_log("Login id $id from $eid and $yid");
 
                 if (!$id) {
                     # We don't know them.  Create a user.
@@ -91,7 +96,10 @@ class Yahoo
                     if ($id) {
                         # Make sure that we have the Yahoo email recorded as one of the emails for this user.
                         $u = User::get($this->dbhr, $this->dbhm, $id);
-                        $u->addEmail($attrs['contact/email'], 0, FALSE);
+
+                        if (pres('contact/email', $attrs)) {
+                            $u->addEmail($attrs['contact/email'], 0, FALSE);
+                        }
 
                         # Now Set up a login entry.
                         $rc = $this->dbhm->preExec(

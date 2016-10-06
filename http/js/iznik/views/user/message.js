@@ -156,6 +156,9 @@ define([
         render: function() {
             var self = this;
 
+            var replies = self.model.get('replies');
+            self.replies = new Iznik.Collection(replies);
+
             var outcomes = self.model.get('outcomes');
             if (outcomes && outcomes.length > 0) {
                 // Hide completed posts by default.
@@ -230,9 +233,6 @@ define([
                 });
 
                 if (self.$('.js-replies').length > 0) {
-                    var replies = self.model.get('replies');
-                    self.replies = new Iznik.Collection(replies);
-
                     if (replies && replies.length > 0) {
                         // Show and update the reply details.
                         if (replies.length > 0) {

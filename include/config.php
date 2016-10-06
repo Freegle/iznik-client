@@ -13,6 +13,10 @@ if (!defined('IZNIK_BASE')) {
     define('SQLLOG', FALSE);
     define('EVENTLOG', TRUE);
 
+    if (!defined('XHPROF')) {
+        define('XHPROF', FALSE);
+    }
+
     define('COOKIE_NAME', 'session');
 
     # Our servers run on UTC

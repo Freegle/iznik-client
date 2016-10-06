@@ -20,7 +20,7 @@ error_log("Purge empty");
 
 $total = 0;
 do {
-    $sql = "SELECT chat_rooms.id FROM `chat_rooms` LEFT OUTER JOIN chat_messages ON chat_rooms.id = chat_messages.chatid WHERE chat_messages.chatid IS NULL LIMIT 1000;";
+    $sql = "SELECT chat_rooms.id FROM `chat_rooms` LEFT OUTER JOIN chat_messages ON chat_rooms.id = chat_messages.chatid WHERE chat_messages.chatid IS NULL AND chat_Rooms.chattype = 'User2User' LIMIT 1000;";
     $chats = $dbhm->query($sql)->fetchAll();
     foreach ($chats as $chat) {
         $dbhm->exec("DELETE FROM chat_rooms WHERE id = {$chat['id']};");

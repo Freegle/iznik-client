@@ -168,7 +168,7 @@ define([
         save: function() {
             var self = this;
 
-            if (this.$('form').valid()) {
+            if (self.$('form').valid()) {
                 self.$('input,textarea').each(function () {
                     var name = $(this).prop('name');
                     if (name.length > 0) {

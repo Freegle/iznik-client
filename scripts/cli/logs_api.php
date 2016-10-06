@@ -4,8 +4,19 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 
+$opts = getopt('a:');
+
+if (count($opts)) {
+    $age = intval($opts['a']);
+} else {
+    $age = 31 * 24;
+}
+
+$ago = "$age hours ago";
+$mysqltime = date("Y-m-d H:i:s", strtotime($ago));
+
 # Get average CPU cost per call.
-$logs = $dbhr->preQuery("SELECT response FROM logs_api;");
+$logs = $dbhr->preQuery("SELECT response FROM logs_api WHERE `date` > '$mysqltime';");
 
 $cpu = [];
 $count = [];

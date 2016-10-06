@@ -344,7 +344,7 @@ define([
 
                     asyncResults(matches);
 
-                    _.default(function() {
+                    _.delay(function() {
                         self.$('.js-postcode').tooltip('destroy');
                     }, 10000);
 

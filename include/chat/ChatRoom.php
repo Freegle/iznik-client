@@ -291,7 +291,7 @@ class ChatRoom extends Entity
         $lasts = $this->dbhr->preQuery("SELECT id, date, message FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 ORDER BY id DESC LIMIT 1;", [ $this->id] );
         $ret['lastmsg'] = 0;
         $ret['lastdate'] = NULL;
-        $ret['snipped'] = '';
+        $ret['snippet'] = '';
 
         foreach ($lasts as $last) {
             $ret['lastmsg'] = $last['id'];
@@ -334,7 +334,7 @@ class ChatRoom extends Entity
         return($counts[0]['count']);
     }
 
-    public function listForUser($userid, $chattypes) {
+    public function listForUser($userid, $chattypes, $search = NULL) {
         $ret = [];
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $typeq = " AND chattype IN ('" . implode("','", $chattypes) . "') ";
@@ -349,7 +349,7 @@ class ChatRoom extends Entity
 
         if (in_array(ChatRoom::TYPE_MOD2MOD, $chattypes)) {
             # We want chats marked by groupid for which we are a mod.
-            $sql = "SELECT chat_rooms.* FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE memberships.role IN ('Moderator', 'Owner');";
+            $sql = "SELECT chat_rooms.* FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE memberships.role IN ('Moderator', 'Owner') AND chattype = 'Mod2Mod';";
             #error_log("Group chats $sql, $userid");
             $rooms = $this->dbhr->preQuery($sql, [$userid]);
             foreach ($rooms as $room) {
@@ -404,7 +404,7 @@ class ChatRoom extends Entity
                         if ($cansee) {
                             # We also don't want to see non-empty chats where all the messages are held for review, because they are likely to
                             # be spam.
-                            $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0) ORDER BY valid ASC;", [
+                            $unheld = $this->dbhr->preQuery("SELECT DATEDIFF(NOW(), CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0) ORDER BY valid ASC;", [
                                 $room['id']
                             ]);
 
@@ -433,10 +433,32 @@ class ChatRoom extends Entity
                 if ($cansee) {
                     $show = TRUE;
 
+                    if ($search) {
+                        # We want to apply a search filter.
+                        if (stripos($room['name'], $search) === FALSE) {
+                            # We didn't get a match easily.  Now we have to search in the messages.
+                            $searchq = $this->dbhr->quote("%$search%");
+                            $sql = "SELECT chat_messages.id FROM chat_messages LEFT OUTER JOIN messages ON messages.id = chat_messages.refmsgid WHERE chatid = {$room['id']} AND (chat_messages.message LIKE $searchq OR messages.subject LIKE $searchq) LIMIT 1;";
+                            error_log($sql);
+                            $msgs = $this->dbhr->preQuery($sql);
+
+                            $show = count($msgs) > 0;
+                        }
+                    }
+
                     if ($room['chattype'] == ChatRoom::TYPE_MOD2MOD && $room['groupid']) {
                         # See if the group allows chat.
                         $g = Group::get($this->dbhr, $this->dbhm, $room['groupid']);
                         $show = $g->getSetting('showchat', TRUE);
+                    }
+
+                    if ($show) {
+                        # Last check - do we have a recent enough message?
+                        $msgs = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE chatid = {$room['id']} AND date >= ? LIMIT 1;", [
+                            date ("Y-m-d", strtotime("Midnight 31 days ago"))
+                        ]);
+
+                        $show = count($msgs) > 0;
                     }
 
                     if ($show) {

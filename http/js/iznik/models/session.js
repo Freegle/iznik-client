@@ -390,10 +390,14 @@ define([
                                 var sess = localStorage.getItem('session');
 
                                 if (sess && ret.ret == 1) {
-                                    // We thought we were logged in but we're not.  Clear our local storage and reload.
+                                    // We thought we were logged in but we're not.  If the persistent session
+                                    // (which should help us deal with PHP session expiry) wasn't valid, then we
+                                    // must be supposed to be logged out.  Clear our local storage and reload.
+                                    //
                                     // This will look slightly odd but means that the mainline case of still being logged
                                     // in is handled more quickly.
                                     try {
+                                        console.error("Not logged in after all");
                                         localStorage.removeItem('session');
                                     } catch (e) {
                                     }

@@ -8,7 +8,7 @@ define([
     'iznik/models/message',
     'jquery-resizable',
     'jquery-visibility'
-], function($, _, Backbone, Iznik, autosize) {
+], function ($, _, Backbone, Iznik, autosize) {
     // This is a singleton view.
     var instance;
 
@@ -21,15 +21,14 @@ define([
 
         tabActive: true,
 
-        minimiseall: function() {
-            Iznik.activeChats.viewManager.each(function(chat) {
+        minimiseall: function () {
+            Iznik.activeChats.viewManager.each(function (chat) {
                 chat.minimise();
             });
         },
 
-        allseen: function() {
-            console.log("allseen");
-            Iznik.minimisedChats.viewManager.each(function(chat) {
+        allseen: function () {
+            Iznik.minimisedChats.viewManager.each(function (chat) {
                 chat.allseen();
             });
         },
@@ -47,7 +46,7 @@ define([
             }
         },
 
-        wait: function() {
+        wait: function () {
             // We have a long poll open to the server, which when it completes may prompt us to do some work on a
             // chat.  That way we get zippy messaging.
             //
@@ -78,7 +77,7 @@ define([
                                 if (data) {
                                     if (data.hasOwnProperty('newroom')) {
                                         // We have been notified that we are now in a new chat.  Pick it up.
-                                        Iznik.Session.chats.fetch().then(function() {
+                                        Iznik.Session.chats.fetch().then(function () {
                                             // Now that we have the chat, update our status in it.
                                             var chat = Iznik.Session.chats.get(data.newroom);
 
@@ -98,7 +97,7 @@ define([
                                         // within it so that they are displayed.  If it's not, then we don't want
                                         // to keep fetching messages - the notification count will get updated by
                                         // the roster poll.
-                                        Iznik.Session.chats.fetch().then(function() {
+                                        Iznik.Session.chats.fetch().then(function () {
                                             var chat = Iznik.Session.chats.get(data.roomid);
 
                                             // It's possible that we haven't yet fetched the model for this chat.
@@ -133,10 +132,10 @@ define([
                 self.destroyIt();
             }
         },
-        
+
         fallbackInterval: 300000,
 
-        fallback: function() {
+        fallback: function () {
             var self = this;
 
             if (self.inDOM()) {
@@ -145,11 +144,11 @@ define([
                 // in each chat - so we scan first to remember the old ones.  That way we can decide whether we need
                 // to refetch the chat.
                 var lastseens = [];
-                Iznik.Session.chats.each(function(chat) {
+                Iznik.Session.chats.each(function (chat) {
                     lastseens[chat.get('id')] = chat.get('lastmsgseen');
                 });
 
-                Iznik.Session.chats.fetch().then(function() {
+                Iznik.Session.chats.fetch().then(function () {
                     // First make sure that the minimised chat list and counts are up to date.
                     self.updateCounts();
 
@@ -157,7 +156,7 @@ define([
 
                     // Now work out which chats if any we need to refetch.
                     self.fallbackFetch = [];
-                    Iznik.Session.chats.each(function(chat) {
+                    Iznik.Session.chats.each(function (chat) {
                         if (lastseens[chat.get('id')] != chat.get('lastmsgseen')) {
                             console.log("Need to refresh", chat);
                             self.fallbackFetch.push(chat);
@@ -190,7 +189,7 @@ define([
             }
         },
 
-        bulkUpdateRoster: function() {
+        bulkUpdateRoster: function () {
             var self = this;
 
             if (self.tabActive) {
@@ -234,7 +233,7 @@ define([
             }
         },
 
-        organise: function() {
+        organise: function () {
             // This organises our chat windows so that:
             // - they're at the bottom, padded at the top to ensure that
             // - they're not wider or taller than the space we have.
@@ -259,7 +258,7 @@ define([
             var navbarOuterHeight = $('.navbar').outerHeight();
 
             if (Iznik.activeChats) {
-                Iznik.activeChats.viewManager.each(function(chat) {
+                Iznik.activeChats.viewManager.each(function (chat) {
                     if (chat.minimised) {
                         // Not much to do - either just count, or create if we're asked to.
                         minimised++;
@@ -270,7 +269,7 @@ define([
                         var css = [];
 
                         // Remove the px and make sure they're ints.
-                        _.each(cssorig, function(val, prop) {
+                        _.each(cssorig, function (val, prop) {
                             css[prop] = parseInt(val.replace('px', ''));
                         });
 
@@ -309,7 +308,7 @@ define([
                     var width = (Math.floor(totalWidth / totalMax + 0.5) - reduceby);
                     // console.log("New width", width);
 
-                    Iznik.activeChats.viewManager.each(function(chat) {
+                    Iznik.activeChats.viewManager.each(function (chat) {
                         if (!chat.minimised) {
                             if (chat.$el.css('width') != width) {
                                 // console.log("Set new width ", chat.$el.css('width'), width);
@@ -324,7 +323,7 @@ define([
 
                 // Now consider changing the margins on the top to ensure the chat window is at the bottom of the
                 // screen.
-                Iznik.activeChats.viewManager.each(function(chat) {
+                Iznik.activeChats.viewManager.each(function (chat) {
                     if (!chat.minimised) {
                         var height = parseInt(chat.$el.css('height').replace('px', ''));
                         var newmargin = (maxHeight - height).toString() + 'px';
@@ -339,18 +338,18 @@ define([
             } else {
                 console.log("No chats to organise");
             }
-            
+
             // The drop-down menu needs to be scrollable, and so we put a max-height on it.
             $('#notifchatdropdown').css('max-height', windowInnerHeight - navbarOuterHeight);
 
             // console.log("Organised", (new Date()).getMilliseconds() - start);
         },
 
-        updateCounts: function() {
+        updateCounts: function () {
             var self = this;
             var unseen = 0;
             if (Iznik.activeChats) {
-                Iznik.Session.chats.each(function(chat) {
+                Iznik.Session.chats.each(function (chat) {
                     var chatView = Iznik.activeChats.viewManager.findByModel(chat);
                     unseen += chat.get('unseen');
                 });
@@ -374,16 +373,16 @@ define([
             this.showMin();
         },
 
-        reportPerson: function(groupid, chatid, reason, message) {
+        reportPerson: function (groupid, chatid, reason, message) {
             $.ajax({
                 type: 'PUT',
                 url: API + 'chat/rooms',
                 data: {
                     chattype: 'User2Mod',
                     groupid: groupid
-                }, success: function(ret) {
+                }, success: function (ret) {
                     if (ret.ret == 0) {
-                        Iznik.Session.chats.fetch().then(function() {
+                        Iznik.Session.chats.fetch().then(function () {
                             // Now create a report message.
                             var msg = new Iznik.Models.Chat.Message({
                                 roomid: ret.id,
@@ -391,7 +390,7 @@ define([
                                 reportreason: reason,
                                 refchatid: chatid
                             });
-                            msg.save().then(function() {
+                            msg.save().then(function () {
                                 // Now open the chat so that the user sees what's happening.
                                 var chatmodel = Iznik.Session.chats.get(ret.id);
                                 var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
@@ -403,7 +402,7 @@ define([
             });
         },
 
-        openChatToMods: function(groupid) {
+        openChatToMods: function (groupid) {
             var self = this;
 
             $.ajax({
@@ -412,11 +411,11 @@ define([
                 data: {
                     chattype: 'User2Mod',
                     groupid: groupid
-                }, success: function(ret) {
+                }, success: function (ret) {
                     if (ret.ret == 0) {
-                        Iznik.Session.chats.fetch().then(function() {
+                        Iznik.Session.chats.fetch().then(function () {
                             // Defer to give the CollectionView time to respond.
-                            _.defer(function() {
+                            _.defer(function () {
                                 var chatmodel = Iznik.Session.chats.get(ret.id);
                                 var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
                                 chatView.restore();
@@ -427,7 +426,7 @@ define([
             });
         },
 
-        openChat: function(userid) {
+        openChat: function (userid) {
             var self = this;
 
             var v = new Iznik.Views.PleaseWait({
@@ -440,7 +439,7 @@ define([
                 // chat this is because we've spoken to them before.
                 var found = false;
 
-                Iznik.Session.chats.each(function(chat) {
+                Iznik.Session.chats.each(function (chat) {
                     var user1 = chat.get('user1');
                     var user2 = chat.get('user2');
 
@@ -459,11 +458,11 @@ define([
                         url: API + 'chat/rooms',
                         data: {
                             userid: userid
-                        }, success: function(ret) {
+                        }, success: function (ret) {
                             if (ret.ret == 0) {
-                                Iznik.Session.chats.fetch().then(function() {
+                                Iznik.Session.chats.fetch().then(function () {
                                     // Defer to give the CollectionView time to respond.
-                                    _.defer(function() {
+                                    _.defer(function () {
                                         var chatmodel = Iznik.Session.chats.get(ret.id);
                                         var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
                                         v.close();
@@ -479,7 +478,7 @@ define([
             }
         },
 
-        showMin: function() {
+        showMin: function () {
             // No point showing the chat icon if we've nothing to show - will just encourage people to click
             // on something which won't do anything.
             if (Iznik.Session.chats && Iznik.Session.chats.length > 0) {
@@ -489,13 +488,61 @@ define([
             }
         },
 
-        createMinimised: function() {
+        filter: '',
+        searchChats: null,
+        searchTimer: null,
+
+        searchKey: function () {
+            var self = this;
+
+            self.filter = $('#notifchatdropdown .js-search').val();
+
+            // Apply the filter immediately - if we get matches on the name or snippet that will look zippy.
+            Iznik.minimisedChats.reapplyFilter('visibleModels');
+
+            if (self.filter.length > 2) {
+                // Now search on the sever.  But delay this to allow for extra keystrokes - avoids hitting
+                // the server many times.
+                if (self.searchTimer) {
+                    clearTimeout(self.searchTimer);
+                }
+
+                self.searchChats = new Iznik.Collections.Chat.Rooms({
+                    search: self.filter
+                });
+
+                self.searchTimer = setTimeout(function() {
+                    self.searchChats.fetch().then(function() {
+                        Iznik.minimisedChats.reapplyFilter('visibleModels');
+                    });
+                }, 500);
+            }
+        },
+
+        searchFilter: function (model) {
+            var self = this;
+            var filt = self.filter.toLowerCase();
+            var snippet = model.get('snippet') ? model.get('snippet') : '';
+
+            var ret = (self.filter.length === 0 ||
+            snippet.toLowerCase().indexOf(filt) !== -1 ||
+            model.get('name').toLowerCase().indexOf(filt) !== -1);
+
+            if (!ret && self.searchChats) {
+                ret = self.searchChats.get(model.get('id'));
+            }
+
+            return (ret);
+        },
+
+        createMinimised: function () {
             var self = this;
 
             Iznik.minimisedChats = new Backbone.CollectionView({
                 el: $('#notifchatdropdownlist'),
                 modelView: Iznik.Views.Chat.Minimised,
                 collection: Iznik.Session.chats,
+                visibleModelsFilter: _.bind(self.searchFilter, self),
                 modelViewOptions: {
                     organise: _.bind(self.organise, self),
                     updateCounts: _.bind(self.updateCounts, self),
@@ -505,7 +552,7 @@ define([
 
             Iznik.minimisedChats.render();
 
-            $('#js-notifchat').click(function(e) {
+            $('#js-notifchat').click(function (e) {
                 var display = $('#notifchatdropdown').css('display');
 
                 if (display === 'none') {
@@ -518,7 +565,7 @@ define([
                 e.stopImmediatePropagation();
             });
 
-            $(document).click(function(e) {
+            $(document).click(function (e) {
                 // If we click outside the chat dropdown, hide it.
                 if (!$(e.target).closest('#notifchatdropdown').length) {
                     $('#notifchatdropdown').hide();
@@ -531,11 +578,12 @@ define([
             // Not within this DOM.
             $('.js-minimiseall').on('click', self.minimiseall);
             $('.js-allseen').on('click', self.allseen);
+            $('.js-search').on('keyup', _.bind(self.searchKey, self));
 
             self.showMin();
         },
 
-        fetchedChats: function() {
+        fetchedChats: function () {
             var self = this;
 
             // This can be called multiple times.
@@ -554,7 +602,7 @@ define([
 
                 Iznik.activeChats.render();
 
-                self.waitDOM(self, function() {
+                self.waitDOM(self, function () {
                     self.createMinimised();
                     self.organise();
                     Iznik.Session.trigger('chatsfetched');
@@ -562,21 +610,23 @@ define([
             }
         },
 
-        render: function() {
+        render: function () {
             var self = this;
             var p;
 
             try {
                 // Remove old minimised data.
                 // TODO Remove this code after 2016-10-22.
-                for (var i = 0; i < localStorage.length; i++){
+                for (var i = 0; i < localStorage.length; i++) {
                     var key = localStorage.key(i);
 
                     if (key.indexOf('-minimised') !== -1) {
                         localStorage.removeItem(key);
                     }
                 }
-            } catch (e) {};
+            } catch (e) {
+            }
+            ;
 
             // We might already be rendered, as we're outside the body content that gets zapped when we move from
             // page to page.
@@ -587,7 +637,7 @@ define([
                     modtools: Iznik.Session.get('modtools')
                 });
 
-                p = Iznik.View.prototype.render.call(self).then(function(self) {
+                p = Iznik.View.prototype.render.call(self).then(function (self) {
                     $("#bodyEnvelope").append(self.$el);
 
                     Iznik.Session.chats.on('add', function (chat) {
@@ -623,7 +673,7 @@ define([
                 p = resolvedPromise(self);
             }
 
-            return(p);
+            return (p);
         }
     });
 
@@ -638,20 +688,20 @@ define([
             'click': 'click'
         },
 
-        click: function() {
+        click: function () {
             // The maximised chat view is listening on this.
             this.model.trigger('restore', this.model.get('id'));
         },
 
-        allseen: function() {
+        allseen: function () {
             var self = this;
-            
+
             if (self.model.get('unseen') > 0) {
                 // We have to get the messages to find out which the last one is.
                 self.messages = new Iznik.Collections.Chat.Messages({
                     roomid: self.model.get('id')
                 });
-                self.messages.fetch().then(function() {
+                self.messages.fetch().then(function () {
                     if (self.messages.length > 0) {
                         var lastmsgseen = self.messages.at(self.messages.length - 1).get('id');
                         $.ajax({
@@ -662,15 +712,15 @@ define([
                                 status: 'Away'
                             }
                         });
-                    
+
                         self.model.set('unseen', 0);
                         self.model.set('lastmsgseen', lastmsgseen);
                     }
-                });                
+                });
             }
         },
 
-        updateCount: function() {
+        updateCount: function () {
             var self = this;
             var unseen = self.model.get('unseen');
 
@@ -683,16 +733,16 @@ define([
             self.trigger('countupdated', unseen);
         },
 
-        render: function() {
+        render: function () {
             var p = Iznik.View.Timeago.prototype.render.call(this);
-            p.then(function(self) {
+            p.then(function (self) {
                 self.updateCount();
 
                 // If the unread message count changes, we want to update it.
                 self.listenTo(self.model, 'change:unseen', self.updateCount);
             });
 
-            return(p);
+            return (p);
         }
     });
 
@@ -720,7 +770,7 @@ define([
 
         minimised: true,
 
-        keyUp: function(e) {
+        keyUp: function (e) {
             var self = this;
             if (e.which === 13 && (e.altKey || e.shiftKey)) {
                 this.$('.js-message').val(this.$('.js-message').val() + "\n");
@@ -732,18 +782,18 @@ define([
             }
         },
 
-        send: function() {
+        send: function () {
             var self = this;
             var message = this.$('.js-message').val();
             if (message.length > 0) {
                 // We get called back when the message has actually been sent to the server.
-                self.listenToOnce(this.model, 'sent', function() {
+                self.listenToOnce(this.model, 'sent', function () {
                     // Get the full set of messages back.  This will replace any temporary
                     // messages added, and also ensure we don't miss any that arrived while we
                     // were sending ours.
                     self.messages.fetch({
                         remove: true
-                    }).then(function() {
+                    }).then(function () {
                         self.options.updateCounts();
                         self.scrollBottom();
                     });
@@ -753,8 +803,10 @@ define([
 
                 // Create another model with a fake id and add it to the collection.  This will populate our view
                 // views while we do the real save in the background.  Makes us look fast.
+                var prelast = self.messages.last();
+                var nextid = prelast ? (prelast.get('id') + 1) : 1;
                 var tempmod = new Iznik.Models.Chat.Message({
-                    id: self.messages.last().get('id') + 1,
+                    id: nextid,
                     chatid: self.model.get('id'),
                     message: message,
                     date: (new Date()).toISOString(),
@@ -777,17 +829,17 @@ define([
             }
         },
 
-        lsID: function() {
-            return('chat-' + this.model.get('id'));
+        lsID: function () {
+            return ('chat-' + this.model.get('id'));
         },
 
-        zapViews: function() {
+        zapViews: function () {
             Iznik.Session.chats.remove({
                 id: this.model.get('id')
             });
         },
 
-        removeIt: function(e) {
+        removeIt: function (e) {
             var self = this;
             e.preventDefault();
             e.stopPropagation();
@@ -810,7 +862,10 @@ define([
 
                     // Also refetch the chats, so that our cached copy gets updated.
                     Iznik.Session.chats.fetch();
-                } catch (e) { console.error(e.message)};
+                } catch (e) {
+                    console.error(e.message)
+                }
+                ;
                 self.updateRoster('Closed', _.bind(self.zapViews, self), true);
             });
 
@@ -818,15 +873,15 @@ define([
 
         },
 
-        focus: function() {
+        focus: function () {
             this.$('.js-message').click();
         },
 
-        noop: function() {
+        noop: function () {
 
         },
 
-        promise: function() {
+        promise: function () {
             // Promise a message to someone.
             var self = this;
 
@@ -842,13 +897,13 @@ define([
                     types: ['Offer'],
                     limit: 100
                 }
-            }).then(function() {
+            }).then(function () {
                 if (self.offers.length > 0) {
                     // The message we want to suggest as the one to promise is any last message mentioned in this chat.
                     var msgid = _.last(self.model.get('refmsgids'));
 
                     var msg = null;
-                    self.offers.each(function(offer) {
+                    self.offers.each(function (offer) {
                         if (offer.get('id') == msgid) {
                             msg = offer;
                         }
@@ -858,12 +913,12 @@ define([
                         model: new Iznik.Model({
                             message: msg ? msg.toJSON2() : null,
                             user: self.model.get('user1').id != Iznik.Session.get('me').id ?
-                                self.model.get('user1'): self.model.get('user2')
+                                self.model.get('user1') : self.model.get('user2')
                         }),
                         offers: self.offers
                     });
 
-                    self.listenToOnce(v, 'promised', function() {
+                    self.listenToOnce(v, 'promised', function () {
                         msg.fetch();
                         self.model.trigger('promised');
                     });
@@ -873,7 +928,7 @@ define([
             });
         },
 
-        allseen: function() {
+        allseen: function () {
             if (this.messages.length > 0) {
                 this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
                 // console.log("Now seen chat message", this.messages.at(this.messages.length - 1).get('id'));
@@ -881,7 +936,7 @@ define([
             this.model.set('unseen', 0);
         },
 
-        messageFocus: function() {
+        messageFocus: function () {
             var self = this;
 
             // We've seen all the messages.
@@ -892,15 +947,15 @@ define([
 
             // New messages are in bold - keep them so for a few seconds, to make it easy to see new stuff,
             // then revert.
-            _.delay(function() {
+            _.delay(function () {
                 self.$('.chat-message-unseen').removeClass('chat-message-unseen');
             }, 5000)
             this.updateCount();
         },
 
-        minimise: function() {
+        minimise: function () {
             var self = this;
-            _.defer(function() {
+            _.defer(function () {
                 self.$el.hide();
             });
             this.minimised = true;
@@ -914,12 +969,15 @@ define([
                 localStorage.removeItem(this.lsID() + '-open');
                 localStorage.removeItem(this.lsID() + '-height');
                 localStorage.removeItem(this.lsID() + '-width');
-            } catch (e) { console.error(e.message)};
+            } catch (e) {
+                console.error(e.message)
+            }
+            ;
 
             this.trigger('minimised');
         },
 
-        report: function() {
+        report: function () {
             var groups = Iznik.Session.get('groups');
 
             if (groups.length > 0) {
@@ -931,7 +989,7 @@ define([
             }
         },
 
-        adjust: function() {
+        adjust: function () {
             var self = this;
             // The text area shouldn't grow too high, but should go above a single line if there's room.
             var maxinpheight = self.$el.innerHeight() - this.$('.js-chatheader').outerHeight();
@@ -939,13 +997,13 @@ define([
             self.$('textarea').css('max-height', maxinpheight);
             self.$('textarea').css('min-height', mininpheight);
 
-            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter').outerHeight() - this.$('.js-modwarning').outerHeight() - 20 ;
+            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter').outerHeight() - this.$('.js-modwarning').outerHeight() - 20;
             // console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
             this.$('.js-leftpanel, .js-roster').height(newHeight);
 
             var width = self.$el.width();
 
-            if (self.model.get('chattype') == 'Group') {
+            if (self.model.get('chattype') == 'Mod2Mod') {
                 // Group chats have a roster.
                 var lpwidth = self.$('.js-leftpanel').width();
                 lpwidth = self.$el.width() - 60 < lpwidth ? (width - 60) : lpwidth;
@@ -959,7 +1017,7 @@ define([
             self.checkSmall(width);
         },
 
-        checkSmall: function(width) {
+        checkSmall: function (width) {
             if (width < 640) {
                 this.$el.addClass('chatsmall');
             } else {
@@ -967,7 +1025,7 @@ define([
             }
         },
 
-        setSize: function() {
+        setSize: function () {
             var self = this;
 
             try {
@@ -1002,32 +1060,33 @@ define([
                     // console.log("Restore chat width to", lpwidth);
                     self.$('.js-leftpanel').width(lpwidth);
                 }
-            } catch (e) {}
+            } catch (e) {
+            }
         },
 
-        large: function() {
+        large: function () {
             this.$el.width($(window).innerWidth());
             this.$el.height($(window).innerHeight());
 
             this.$('.js-large').hide();
             this.$('.js-small').show();
-            
+
             this.adjust();
             this.scrollBottom();
         },
 
-        small: function() {
+        small: function () {
             this.$el.width(Math.floor(0.3 * $(window).innerWidth()));
             this.$el.height(Math.floor(0.3 * $(window).innerHeight()));
 
             this.$('.js-large').show();
             this.$('.js-small').hide();
-            
+
             this.adjust();
             this.scrollBottom();
         },
 
-        restore: function(large) {
+        restore: function (large) {
             var self = this;
             self.minimised = false;
 
@@ -1039,7 +1098,8 @@ define([
                 try {
                     localStorage.setItem(this.lsID() + '-height', Math.floor(window.innerHeight * 2 / 3));
                     localStorage.setItem(this.lsID() + '-width', Math.floor(window.innerWidth * 2 / 3));
-                } catch (e) {}
+                } catch (e) {
+                }
             }
 
             // Restore the window first, so it feels zippier.
@@ -1047,7 +1107,7 @@ define([
             self.waitDOM(self, self.options.organise);
             self.options.updateCounts();
 
-            _.defer(function() {
+            _.defer(function () {
                 self.$el.css('visibility', 'visible');
                 self.$el.show();
                 self.adjust();
@@ -1065,7 +1125,7 @@ define([
                 label: 'chat restore'
             });
             v.render();
-            self.messages.fetch().then(function() {
+            self.messages.fetch().then(function () {
                 // We've just opened this chat - so we have had a decent chance to see any unread messages.
                 v.close();
                 self.messageFocus();
@@ -1073,15 +1133,17 @@ define([
                 self.trigger('restored');
             });
 
-            window.setTimeout(function() {
-                self.$('.js-modwarning').slideUp('slow');
-            }, 30000);
+            self.$('.js-modwarning').show();
+
+            window.setTimeout(_.bind(function () {
+                this.$('.js-modwarning').slideUp('slow');
+            }, self), 30000);
         },
 
         scrollTimer: null,
         scrollTo: 0,
-        
-        scrollBottom: function() {
+
+        scrollBottom: function () {
             // Tried using .animate(), but it seems to be too expensive for the browser, so leave that for now.
             var self = this;
             var msglist = self.$('.js-messages');
@@ -1105,7 +1167,7 @@ define([
                 if (!self.scrollTimer) {
                     // We don't already have a fallback scroll running.
                     self.scrollTo = height;
-                    self.scrollTimer = setTimeout(_.bind(function() {
+                    self.scrollTimer = setTimeout(_.bind(function () {
                         // console.log("Scroll later", this);
                         var msglist = this.$('.js-messages');
                         var height = msglist[0].scrollHeight;
@@ -1116,7 +1178,7 @@ define([
             }
         },
 
-        dragend: function(event, el, opt) {
+        dragend: function (event, el, opt) {
             var self = this;
 
             this.options.organise();
@@ -1128,10 +1190,11 @@ define([
             try {
                 localStorage.setItem(this.lsID() + '-height', self.$el.height());
                 localStorage.setItem(this.lsID() + '-width', self.$el.width());
-            } catch (e) {}
+            } catch (e) {
+            }
         },
 
-        drag: function(event, el, opt) {
+        drag: function (event, el, opt) {
             var now = (new Date()).getMilliseconds();
 
             // We don't want to allow the resize 
@@ -1145,29 +1208,31 @@ define([
 
         },
 
-        panelSize: function(event, el, opt) {
+        panelSize: function (event, el, opt) {
             var self = this;
 
             // Save the new left panel width to local storage so that we can restore it next time.
             try {
                 localStorage.setItem(this.lsID() + '-lp', self.$('.js-leftpanel').width());
-            } catch (e) {}
+            } catch (e) {
+            }
 
             self.adjust();
             self.scrollBottom();
         },
 
-        status: function() {
+        status: function () {
             // We can override appearing online to show something else.
             var status = this.$('.js-status').val();
             try {
                 localStorage.setItem('mystatus', status);
-            } catch (e) {}
+            } catch (e) {
+            }
 
             this.updateRoster(status, this.noop);
         },
 
-        updateRoster: function(status, callback, force) {
+        updateRoster: function (status, callback, force) {
             var self = this;
             // console.log("Update roster", self.model.get('id'), status, force);
 
@@ -1183,7 +1248,7 @@ define([
                     data: {
                         lastmsgseen: self.model.get('lastmsgseen'),
                         status: status
-                    }, success: function(ret) {
+                    }, success: function (ret) {
                         if (ret.ret === 0) {
                             self.lastRoster = ret.roster;
                         }
@@ -1192,7 +1257,7 @@ define([
                     }
                 });
             } else {
-               // console.log("Suppress update", self.lastRoster);
+                // console.log("Suppress update", self.lastRoster);
                 callback({
                     ret: 0,
                     status: 'Update delayed',
@@ -1201,20 +1266,21 @@ define([
             }
         },
 
-        statusWithOverride: function(status) {
+        statusWithOverride: function (status) {
             if (status == 'Online') {
                 // We are online, but may have overridden this to appear something else.
                 try {
                     var savestatus = localStorage.getItem('mystatus');
                     status = savestatus ? savestatus : status;
-                } catch (e) {}
+                } catch (e) {
+                }
             }
 
-            return(status);
+            return (status);
         },
 
-        openChat: function(chatid) {
-            Iznik.Session.chats.fetch().then(function() {
+        openChat: function (chatid) {
+            Iznik.Session.chats.fetch().then(function () {
                 var chatmodel = Iznik.Session.chats.get(chatid);
                 var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
                 chatView.restore();
@@ -1222,19 +1288,19 @@ define([
             });
         },
 
-        rosterUpdated: function(ret) {
+        rosterUpdated: function (ret) {
             var self = this;
 
             if (ret.ret === 0) {
                 self.$('.js-roster').empty();
-                _.each(ret.roster, function(rost) {
+                _.each(ret.roster, function (rost) {
                     var mod = new Iznik.Model(rost);
                     var v = new Iznik.Views.Chat.RosterEntry({
                         model: mod,
                         modtools: self.options.modtools
                     });
                     self.listenTo(v, 'openchat', self.openChat);
-                    v.render().then(function(v) {
+                    v.render().then(function (v) {
                         self.$('.js-roster').append(v.el);
                     })
                 });
@@ -1245,7 +1311,7 @@ define([
             _.delay(_.bind(self.roster, self), 30000);
         },
 
-        roster: function() {
+        roster: function () {
             // We update our presence and get the roster for the chat regularly if the chat is open.  If it's
             // minimised, we don't - the server will time us out as away.  We'll still; pick up any new messages on
             // minimised chats via the long poll, and the fallback.
@@ -1257,7 +1323,7 @@ define([
             }
         },
 
-        updateCount: function() {
+        updateCount: function () {
             var self = this;
             var unseen = self.model.get('unseen');
             // console.log("Update count", unseen);
@@ -1290,7 +1356,7 @@ define([
             });
 
             var p = Iznik.View.prototype.render.call(self);
-            p.then(function(self) {
+            p.then(function (self) {
                 // Input text autosize
                 autosize(self.$('textarea'));
 
@@ -1348,6 +1414,7 @@ define([
                     modelView: Iznik.Views.Chat.Message,
                     collection: self.messages,
                     chatView: self,
+                    comparator: 'id',
                     modelViewOptions: {
                         chatView: self,
                         chatModel: self.model
@@ -1356,8 +1423,8 @@ define([
 
                 // As new messages are added, we want to show them.  This also means when we first render, we'll
                 // scroll down to the latest messages.
-                self.listenTo(self.messageViews, 'add', function(modelView) {
-                    self.listenToOnce(modelView, 'rendered', function() {
+                self.listenTo(self.messageViews, 'add', function (modelView) {
+                    self.listenToOnce(modelView, 'rendered', function () {
                         self.scrollBottom();
                         // _.delay(_.bind(self.scrollBottom, self), 5000);
                     });
@@ -1390,7 +1457,7 @@ define([
                 self.roster();
             });
 
-            return(p);
+            return (p);
         }
     });
 
@@ -1399,14 +1466,14 @@ define([
             'click .js-viewchat': 'viewChat'
         },
 
-        viewChat: function() {
+        viewChat: function () {
             var self = this;
 
             var chat = new Iznik.Models.Chat.Room({
                 id: self.model.get('refchatid')
             });
 
-            chat.fetch().then(function() {
+            chat.fetch().then(function () {
                 var v = new Iznik.Views.Chat.Modal({
                     model: chat
                 });
@@ -1415,7 +1482,7 @@ define([
             });
         },
 
-        render: function() {
+        render: function () {
             var self = this;
             var p;
 
@@ -1424,7 +1491,7 @@ define([
                 if (message) {
                     // Remove duplicate newlines.
                     message = message.replace(/\n\s*\n\s*\n/g, '\n\n');
-                    
+
                     // Strip HTML tags
                     message = strip_tags(message, '<a>');
 
@@ -1468,25 +1535,37 @@ define([
                 var tpl;
 
                 switch (this.model.get('type')) {
-                    case 'ModMail': tpl = this.model.get('refmsg') ? 'chat_modmail' : 'chat_message'; break;
-                    case 'Interested': tpl = this.model.get('refmsg') ? 'chat_interested' : 'chat_message'; break;
-                    case 'Promised': tpl = this.model.get('refmsg') ? 'chat_promised' : 'chat_message'; break;
-                    case 'Reneged': tpl = this.model.get('refmsg') ? 'chat_reneged' : 'chat_message'; break;
-                    case 'ReportedUser': tpl = 'chat_reported'; break;
-                    default: tpl = 'chat_message'; break;
+                    case 'ModMail':
+                        tpl = this.model.get('refmsg') ? 'chat_modmail' : 'chat_message';
+                        break;
+                    case 'Interested':
+                        tpl = this.model.get('refmsg') ? 'chat_interested' : 'chat_message';
+                        break;
+                    case 'Promised':
+                        tpl = this.model.get('refmsg') ? 'chat_promised' : 'chat_message';
+                        break;
+                    case 'Reneged':
+                        tpl = this.model.get('refmsg') ? 'chat_reneged' : 'chat_message';
+                        break;
+                    case 'ReportedUser':
+                        tpl = 'chat_reported';
+                        break;
+                    default:
+                        tpl = 'chat_message';
+                        break;
                 }
 
                 this.template = tpl;
 
                 p = Iznik.View.prototype.render.call(this);
-                p.then(function(self) {
+                p.then(function (self) {
                     if (self.model.get('type') == 'ModMail' && self.model.get('refmsg')) {
                         // ModMails may related to a message which has been rejected.  If so, add a button to
                         // edit and resend.
                         var msg = self.model.get('refmsg');
                         var groups = msg.groups;
 
-                        _.each(groups, function(group) {
+                        _.each(groups, function (group) {
                             if (group.collection == 'Rejected') {
                                 self.$('.js-rejected').show();
                             }
@@ -1500,7 +1579,7 @@ define([
                 p = resolvedPromise(this);
             }
 
-            return(p);
+            return (p);
         }
     });
 
@@ -1510,12 +1589,12 @@ define([
 
     Iznik.Views.Chat.RosterEntry = Iznik.View.extend({
         template: 'chat_rosterentry',
-        
+
         events: {
             'click .js-click': 'dm'
         },
 
-        dm: function() {
+        dm: function () {
             var self = this;
 
             if (self.model.get('id') != Iznik.Session.get('me').id) {
@@ -1525,7 +1604,7 @@ define([
                     url: API + 'chat/rooms',
                     data: {
                         userid: self.model.get('userid')
-                    }, success: function(ret) {
+                    }, success: function (ret) {
                         if (ret.ret == 0) {
                             self.trigger('openchat', ret.id);
                         }
@@ -1542,7 +1621,7 @@ define([
             'click .js-report': 'report'
         },
 
-        report: function() {
+        report: function () {
             var self = this;
             var reason = self.$('.js-reason').val();
             var message = self.$('.js-message').val();
@@ -1554,7 +1633,7 @@ define([
             }
         },
 
-        render: function() {
+        render: function () {
             var self = this;
             var p = Iznik.Views.Modal.prototype.render.call(self);
             p.then(function () {
@@ -1569,7 +1648,7 @@ define([
                         id: 'reportGroupSelect'
                     });
 
-                    self.groupSelect.render().then(function() {
+                    self.groupSelect.render().then(function () {
                         self.$('.js-groupselect').html(self.groupSelect.el);
                     });
                 }
@@ -1610,7 +1689,7 @@ define([
         }
     });
 
-    return function(options) {
+    return function (options) {
         if (!instance) {
             instance = new Iznik.Views.Chat.Holder(options);
         }

@@ -1582,7 +1582,7 @@ define([
                 type: 'GET',
                 url: API + 'locations',
                 data: {
-                    typeahead: self.$('.js-postcode').val()
+                    typeahead: self.$('.js-postcode').val().trim()
                 }, success: function (ret) {
                     if (ret.ret == 0 && ret.locations.length > 0) {
                         $('.js-postcodegroup').html('Group ' + ret.locations[0].groupsnear[0].nameshort);

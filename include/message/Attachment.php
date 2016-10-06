@@ -144,17 +144,22 @@ class Attachment
     public function getData() {
         $ret = NULL;
 
+        # Use dbhm to bypass query cache as this data is too large to cache.
         $sql = "SELECT * FROM {$this->table} WHERE id = ?;";
-        $datas = $this->dbhr->preQuery($sql, [$this->id]);
+        $datas = $this->dbhm->preQuery($sql, [$this->id]);
         foreach ($datas as $data) {
             if ($data['archived']) {
                 # This attachment has been archived out of our database, to our archive host.  This happens to
                 # older attachments to save space in the DB.
                 #
-                # We fetch the data - not using SSL as we don't need to, and that host might not have a cert.
-                #
-                # This isn't very efficient - but these are rarely accessed messages, so it doesn't need to be.
+                # We fetch the data - not using SSL as we don't need to, and that host might not have a cert.  And
+                # we put it back in the DB, because we are probably going to fetch it again.
                 $ret = @file_get_contents('http://' . IMAGE_ARCHIVED_DOMAIN . "/img_{$this->id}.jpg");
+                $this->dbhm->preExec("UPDATE {$this->table} SET data = ?, archived = 0 WHERE id = ?;", [
+                    $ret,
+                    $this->id
+                ]);
+                error_log("Dearchived {$this->id}");
             } else {
                 $ret = $data['data'];
             }

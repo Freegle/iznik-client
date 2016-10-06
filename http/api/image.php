@@ -12,37 +12,55 @@ function image() {
 
     if ($newsletter) {
         $type = Attachment::TYPE_NEWSLETTER;
+        $shorttype = '_n';
     } else if ($group) {
         $type = Attachment::TYPE_GROUP;
+        $shorttype = '_g';
     } else {
         $type = Attachment::TYPE_MESSAGE;
+        $shorttype = '';
     }
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            $a = new Attachment($dbhr, $dbhm, $id, $type);
-            $data = $a->getData();
-            $i = new Image($data);
+            # We cache the data to files to avoid the DB queries where we can.
+            $fn = IZNIK_BASE . "/http/imgcache/img_{$shorttype}_{$id}_" . presdef('w', $_REQUEST, '') . "x" . presdef('h', $_REQUEST, '') . ".jpg";
 
-            $ret = [
-                'ret' => 1,
-                'status' => "Failed to create image $id of type $type"
-                ];
+            $data = @file_get_contents($fn);
 
-            if ($i->img) {
-                $w = intval(presdef('w', $_REQUEST, $i->width()));
-                $h = intval(presdef('h', $_REQUEST, $i->height()));
-
-                if (($w > 0) || ($h > 0)) {
-                    # Need to resize
-                    $i->scale($w, $h);
-                }
-
+            if ($data) {
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
-                    'img' => $i->getData()
+                    'img' => $data
                 ];
+            } else {
+                $a = new Attachment($dbhr, $dbhm, $id, $type);
+                $data = $a->getData();
+                $i = new Image($data);
+
+                $ret = [
+                    'ret' => 1,
+                    'status' => "Failed to create image $id of type $type"
+                ];
+
+                if ($i->img) {
+                    $w = intval(presdef('w', $_REQUEST, $i->width()));
+                    $h = intval(presdef('h', $_REQUEST, $i->height()));
+
+                    if (($w > 0) || ($h > 0)) {
+                        # Need to resize
+                        $i->scale($w, $h);
+                    }
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'img' => $i->getData()
+                    ];
+
+                    file_put_contents($fn, $ret['img']);
+                }
             }
 
             break;

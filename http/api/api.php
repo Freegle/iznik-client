@@ -15,6 +15,14 @@ if (array_key_exists('HTTP_X_HTTP_METHOD_OVERRIDE', $_SERVER)) {
 require_once('../../include/misc/apiheaders.php');
 require_once('../../include/config.php');
 
+# We might profile - only the occasional call as it generates a lot of data.
+$xhprof = XHPROF && (mt_rand(0, 1000000) < 1000);
+
+if ($xhprof) {
+    # We are profiling.
+    xhprof_enable(XHPROF_FLAGS_CPU);
+}
+
 if (file_exists(IZNIK_BASE . '/http/maintenance_on.html')) {
     // @codeCoverageIgnoreStart
     echo json_encode(array('ret' => 111, 'status' => 'Down for maintenance'));
@@ -120,9 +128,11 @@ if ($_REQUEST['type'] == 'OPTIONS') {
 
             # Some actions are ok, so we exclude those.
             if ($_SESSION) {
+                #error_log("POST req $req vs " . presdef('POSTLASTTIME', $_SESSION, NULL) . "," . presdef('POSTLASTDATA', $_SESSION, NULL));
                 if ( !in_array($call, [ 'session', 'correlate', 'chatrooms', 'events', 'upload'] ) &&
                     array_key_exists('POSTLASTTIME', $_SESSION)) {
                     $ago = time() - $_SESSION['POSTLASTTIME'];
+                    #error_log("Time ago $ago from {$_SESSION['POSTLASTTIME']}");
 
                     if (($ago < DUPLICATE_POST_PROTECTION) && ($req == $_SESSION['POSTLASTDATA'])) {
                         $ret = array('ret' => 999, 'text' => 'Duplicate request - rejected.', 'data' => $_REQUEST);
@@ -134,11 +144,12 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 $_SESSION['POSTLASTTIME'] = time();
                 $_SESSION['POSTLASTDATA'] = $req;
             }
-        } else {
-            # Not a POST call we're interested in - so reset our protection.
-            unset($_SESSION['POSTLASTTIME']);
-            unset($_SESSION['POSTLASTDATA']);
         }
+//        else {
+//            # Not a POST call we're interested in - so reset our protection.
+//            unset($_SESSION['POSTLASTTIME']);
+//            unset($_SESSION['POSTLASTDATA']);
+//        }
 
         try {
             # Each call is inside a file with a suitable name.
@@ -334,5 +345,48 @@ if ($_REQUEST['type'] == 'OPTIONS') {
     if ($_REQUEST['type'] != 'GET') {
         # This might have changed things.
         $_SESSION['modorowner'] = [];
+    }
+}
+
+if ($xhprof) {
+    # We collect the stats and aggregate the data into the DB
+    $stats = xhprof_disable();
+
+    foreach ($stats as $edge => $data) {
+        $p = strpos($edge, '==>');
+        if ($p !== FALSE) {
+            $caller = substr($edge, 0, $p);
+            $callee = substr($edge, $p + 3);
+            $data['caller'] = $caller;
+            $data['callee'] = $callee;
+
+            $atts = [ 'ct', 'wt', 'cpu', 'mu', 'pmu', 'alloc', 'free'];
+            $sql = "INSERT INTO logs_profile (caller, callee";
+
+            foreach ($atts as $att) {
+                if (pres($att, $data)) {
+                    $sql .= ", $att";
+                }
+            };
+
+            $sql .= ") VALUES (" . $dbhr->quote($caller) . ", " . $dbhr->quote($callee);
+
+            foreach ($atts as $att) {
+                if (pres($att, $data)) {
+                    $sql .= ", {$data[$att]}";
+                }
+            }
+
+            $sql .= ") ON DUPLICATE KEY UPDATE ";
+
+            foreach ($atts as $att) {
+                if (pres($att, $data)) {
+                    $sql .= "$att = $att + {$data[$att]}, ";
+                }
+            }
+
+            $sql = substr($sql, 0, strlen($sql) - 2) . ";";
+            $dbhm->background($sql);
+        }
     }
 }
