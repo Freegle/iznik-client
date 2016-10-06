@@ -753,8 +753,10 @@ define([
 
                 // Create another model with a fake id and add it to the collection.  This will populate our view
                 // views while we do the real save in the background.  Makes us look fast.
+                var prelast = self.messages.last();
+                var nextid = prelast ? (prelast.get('id') + 1) : 1;
                 var tempmod = new Iznik.Models.Chat.Message({
-                    id: self.messages.last().get('id') + 1,
+                    id: nextid,
                     chatid: self.model.get('id'),
                     message: message,
                     date: (new Date()).toISOString(),
@@ -945,7 +947,7 @@ define([
 
             var width = self.$el.width();
 
-            if (self.model.get('chattype') == 'Group') {
+            if (self.model.get('chattype') == 'Mod2Mod') {
                 // Group chats have a roster.
                 var lpwidth = self.$('.js-leftpanel').width();
                 lpwidth = self.$el.width() - 60 < lpwidth ? (width - 60) : lpwidth;

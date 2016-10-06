@@ -1,4 +1,7 @@
 <div>
+    <% if (obj.chattype == 'Mod2Mod') { %>
+    <span class="glyphicons glyphicons-crown" />
+    <% } %>
     <strong class="chat-min-username"><% if (obj.name && name.length > 1) {%>{{name}}<% } else { %><em>Unknown user</em><% } %></strong>
     <span class="js-count badge badge-unread" style="display: none;"></span>
     <span class="text-muted"><small><abbr class="timeago" title="{{lastdate}}" /></small></span>

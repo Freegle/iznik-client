@@ -1372,7 +1372,7 @@ body {
         background-color: white !important;
         overflow-y: scroll;
         top: 100px;
-        max-height: 90vh;
+        max-height: 80vh;
         position: fixed;
         -webkit-backface-visibility: hidden;
     }
