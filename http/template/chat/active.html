@@ -6,7 +6,9 @@
             <span class="glyphicon glyphicon-menu-down dropdown-toggle clickme" type="button" id="chat-dropdown-{{id}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" />
             <ul class="dropdown-menu" aria-labelledby="chat-dropdown-{{id}}">
                 <li title="Remove this conversation from your list."><a class="js-remove" href="#">Remove this chat</a></li>
+                <% if (!obj.group) { %>
                 <li title="Report this person to our volunteers."><a class="js-report" href="#">Report this person</a></li>
+                <% } %>
             </ul>
             <% } %>
             <div class="js-large clickme inline padleftlg padright hidden-xs hidden-sm" title="Make this window larger">
