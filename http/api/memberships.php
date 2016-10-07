@@ -310,6 +310,7 @@ function memberships() {
 
                         if ($members !== NULL) {
                             $synctime = presdef('synctime', $_REQUEST, ISODate("@" . time()));
+                            $mysqltime = date("Y-m-d H:i:s", strtotime($synctime));
 
                             if ($collection == MembershipCollection::APPROVED) {
                                 # Check when the last member sync was.  If it's within the last few minutes, don't
@@ -322,14 +323,14 @@ function memberships() {
                                 if ($time > 600) {
                                     # It's been a little while since we did this.  Queue it (the actual sync happens
                                     # in a background script).
-                                    $g->queueSetMembers($members, $synctime);
+                                    $g->queueSetMembers($members, $mysqltime);
                                 } else {
                                     $ret = [ 'ret' => 0, 'status' => 'Ignore member sync as happened recently'];
                                     error_log("Ignore member sync for " . $g->getPrivate('nameshort') . " as last sync at $last");
                                 }
                             } else {
                                 # For other collections, which aren't large, we do the work inline.
-                                $ret = $g->setMembers($members, $collection, $synctime);
+                                $ret = $g->setMembers($members, $collection, $mysqltime);
                             }
                         }
                     }

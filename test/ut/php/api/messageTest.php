@@ -1543,9 +1543,9 @@ class messageAPITest extends IznikAPITestCase
                 sleep(1);
             }
             $count++;
-        } while (!$stop && $count < 1200);
+        } while (!$stop && $count < 600);
 
-        assertLessThan(1200, $count);
+        assertLessThan(600, $count);
 
         # Now it's pending - approve it on the platform, before Yahoo has seen it.
         error_log("Approve");
@@ -1568,9 +1568,9 @@ class messageAPITest extends IznikAPITestCase
                 sleep(1);
             }
             $count++;
-        } while (!$stop && $count < 1200);
+        } while (!$stop && $count < 600);
 
-        assertLessThan(1200, $count);
+        assertLessThan(600, $count);
 
         error_log(__METHOD__ . " end");
     }

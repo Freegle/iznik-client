@@ -51,13 +51,18 @@ class Location extends Entity
     {
         try {
             # TODO osm_place is really just place.
-            $rc = $this->dbhm->preExec("INSERT INTO locations (osm_id, name, type, geometry, canon, osm_place) VALUES (?, ?, ?, GeomFromText(?), ?, ?)",
-                [$osm_id, $name, $type, $geometry, $this->canon($name), $place]);
+            $rc = $this->dbhm->preExec("INSERT INTO locations (osm_id, name, type, geometry, canon, osm_place, maxdimension) VALUES (?, ?, ?, GeomFromText(?), ?, ?, GetMaxDimension(GeomFromText(?)))",
+                [$osm_id, $name, $type, $geometry, $this->canon($name), $place, $geometry]);
             $id = $this->dbhm->lastInsertId();
+
+            $this->dbhm->preExec("INSERT INTO locations_spatial (locationid, geometry) VALUES (?, GeomFromText(?));", [
+                $id,
+                $geometry
+            ]);
             
             if ($rc) {
                 # Although this is something we can derive from the geometry, it speeds things up a lot to have it cached.
-                $rc = $this->dbhm->preExec("UPDATE locations SET lng = X(GetCenterPoint(geometry)), lat = Y(GetCenterPoint(geometry)) WHERE id = ?;",
+                $rc = $this->dbhm->preExec("UPDATE locations SET lng = X(ST_Centroid(geometry)), lat = Y(ST_Centroid(geometry)) WHERE id = ?;",
                     [ $id ]);
             }
 
@@ -66,7 +71,7 @@ class Location extends Entity
             $grids = $this->dbhr->preQuery($sql, [ $id ]);
             foreach ($grids as $grid) {
                 $gridid = $grid['gridid'];
-                $sql = "UPDATE locations SET gridid = ?, maxdimension = GetMaxDimension(geometry) WHERE id = ?;";
+                $sql = "UPDATE locations SET gridid = ? WHERE id = ?;";
                 $this->dbhm->preExec($sql, [ $grid['gridid'], $id ]);
             }
 
@@ -590,8 +595,14 @@ class Location extends Entity
     public function setGeometry($val) {
         $rc = $this->dbhm->preExec("UPDATE locations SET `type` = 'Polygon', `ourgeometry` = GeomFromText(?) WHERE id = {$this->id};", [$val]);
         if ($rc) {
+            # Put in the index table.
+            $this->dbhm->preExec("REPLACE INTO locations_spatial (locationid, geometry) VALUES (?, GeomFromText(?));", [
+                $this->id,
+                $val
+            ]);
+
             # The centre point and max dimensions will also have changed.
-            $rc = $this->dbhm->preExec("UPDATE locations SET maxdimension = GetMaxDimension(ourgeometry), lat = Y(GetCenterPoint(ourgeometry)), lng = X(GetCenterPoint(ourgeometry)) WHERE id = {$this->id};", [$val]);
+            $rc = $this->dbhm->preExec("UPDATE locations SET maxdimension = GetMaxDimension(ourgeometry), lat = Y(ST_Centroid(ourgeometry)), lng = X(ST_Centroid(ourgeometry)) WHERE id = {$this->id};", [$val]);
 
             if ($rc) {
                 $this->remapPostcodes($val, $this->loc['gridid']);
@@ -628,6 +639,11 @@ class Location extends Entity
             $this->dbhm->preExec("UPDATE locations SET ourgeometry = GeomFromText(?) WHERE id = ?;", [
                 $geom,
                 $areaid
+            ]);
+
+            $this->dbhm->preExec("REPLACE INTO locations_spatial (locationid, geometry) VALUES (?, GeomFromText(?));", [
+                $areaid,
+                $geom
             ]);
         }
 
