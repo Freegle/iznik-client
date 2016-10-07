@@ -110,6 +110,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         error_log(__METHOD__);
 
         # Logged out - no rooms
+        error_log("Logged out");
         $ret = $this->call('chatmessages', 'POST', [ 'roomid' => $this->cid, 'message' => 'Test' ]);
         assertEquals(1, $ret['ret']);
         assertFalse(pres('chatmessages', $ret));
@@ -118,12 +119,14 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertTrue($this->user->login('testpw'));
 
         # Now we're talking.  Make sure we're on the roster.
+        error_log("Logged in");
         $ret = $this->call('chatrooms', 'POST', [
             'id' => $this->cid,
             'lastmsgseen' => 1
         ]);
 
-        $ret = $this->call('chatmessages', 'POST', [ 'roomid' => $this->cid, 'message' => 'Test' ]);
+        error_log("Post test");
+        $ret = $this->call('chatmessages', 'POST', [ 'roomid' => $this->cid, 'message' => 'Test2' ]);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $mid = $ret['id'];

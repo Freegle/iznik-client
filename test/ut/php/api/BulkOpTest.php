@@ -44,7 +44,6 @@ class bulkOpAPITest extends IznikAPITestCase {
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         assertTrue($this->user->login('testpw'));
         @session_start();
-        error_log("Last post " . presdef('POSTLASTDATA', $_SESSION, 'None'));
         $ret = $this->call('modconfig', 'POST', [
             'name' => 'UTTest',
             'dup' => time() . rand()

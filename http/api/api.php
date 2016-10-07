@@ -124,32 +124,55 @@ if ($_REQUEST['type'] == 'OPTIONS') {
     do {
         # Duplicate POST protection
         if ((DUPLICATE_POST_PROTECTION > 0) && array_key_exists('REQUEST_METHOD', $_SERVER) && ($_REQUEST['type'] == 'POST')) {
+            # We want to make sure that we don't get duplicate POST requests within the same session.  We can't do this
+            # using information stored in the session because when Redis is used as the session handler, there is
+            # no session locking, and therefore two requests in quick succession could be allowed.  So instead
+            # we use Redis directly with a roll-your-own mutex.
+            #
+            # TODO uniqid() is not actually unique.  Nor is md5.
             $req = $_SERVER['REQUEST_URI'] . serialize($_REQUEST);
+            $lockkey = 'POST_LOCK_' . session_id();
+            $datakey = 'POST_DATA_' . session_id();
+            $uid = uniqid('', TRUE);
+            $predis = new Redis();
+            $predis->pconnect(REDIS_CONNECT);
 
-            # Some actions are ok, so we exclude those.
-            if ($_SESSION) {
-                #error_log("POST req $req vs " . presdef('POSTLASTTIME', $_SESSION, NULL) . "," . presdef('POSTLASTDATA', $_SESSION, NULL));
-                if ( !in_array($call, [ 'session', 'correlate', 'chatrooms', 'events', 'upload'] ) &&
-                    array_key_exists('POSTLASTTIME', $_SESSION)) {
-                    $ago = time() - $_SESSION['POSTLASTTIME'];
-                    #error_log("Time ago $ago from {$_SESSION['POSTLASTTIME']}");
+            # Get a lock.
+            $start = time();
+            do {
+                $rc = $predis->setNx($lockkey, $uid);
 
-                    if (($ago < DUPLICATE_POST_PROTECTION) && ($req == $_SESSION['POSTLASTDATA'])) {
+                if ($rc) {
+                    # We managed to set it.  Ideally we would set an expiry time to make sure that if we got
+                    # killed right now, this session wouldn't hang.  But that's an extra round trip on each
+                    # API call, and the worst case would be a single session hanging, which we can live with.
+
+                    # Sound out the last POST.
+                    $last = $predis->get($datakey);
+
+                    # Some actions are ok, so we exclude those.
+                    if (!in_array($call, [ 'session', 'correlate', 'chatrooms', 'events', 'upload']) &&
+                        $last === $req) {
+                        # The last POST request was the same.  So this is a duplicate.
+                        $predis->del($lockkey);
                         $ret = array('ret' => 999, 'text' => 'Duplicate request - rejected.', 'data' => $_REQUEST);
                         echo json_encode($ret);
-                        break;
+                        break 2;
                     }
-                }
 
-                $_SESSION['POSTLASTTIME'] = time();
-                $_SESSION['POSTLASTDATA'] = $req;
-            }
+                    # The last request wasn't the same.  Save this one.
+                    $predis->set($datakey, $req);
+                    $predis->expire($datakey, DUPLICATE_POST_PROTECTION);
+
+                    # We're good to go - release the lock.
+                    $predis->del($lockkey);
+                    break;
+                } else {
+                    # We didn't get the lock - another request for this session must have it.
+                    usleep(100000);
+                }
+            } while (time() < $start + 45);
         }
-//        else {
-//            # Not a POST call we're interested in - so reset our protection.
-//            unset($_SESSION['POSTLASTTIME']);
-//            unset($_SESSION['POSTLASTDATA']);
-//        }
 
         try {
             # Each call is inside a file with a suitable name.
@@ -333,7 +356,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             }
 
             # Make sure the duplicate POST detection doesn't throw us.
-            unset($_SESSION['POSTLASTTIME']);
+            $_REQUEST['retry'] = uniqid('', TRUE);
         }
     } while ($apicallretries < API_RETRIES);
 

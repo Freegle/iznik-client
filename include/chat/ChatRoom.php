@@ -334,7 +334,7 @@ class ChatRoom extends Entity
         return($counts[0]['count']);
     }
 
-    public function listForUser($userid, $chattypes, $search = NULL) {
+    public function listForUser($userid, $chattypes, $search = NULL, $all = FALSE) {
         $ret = [];
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $typeq = " AND chattype IN ('" . implode("','", $chattypes) . "') ";
@@ -404,7 +404,7 @@ class ChatRoom extends Entity
                         if ($cansee) {
                             # We also don't want to see non-empty chats where all the messages are held for review, because they are likely to
                             # be spam.
-                            $unheld = $this->dbhr->preQuery("SELECT DATEDIFF(NOW(), CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0) ORDER BY valid ASC;", [
+                            $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0) ORDER BY valid ASC;", [
                                 $room['id']
                             ]);
 
@@ -446,19 +446,18 @@ class ChatRoom extends Entity
                         }
                     }
 
-                    if ($room['chattype'] == ChatRoom::TYPE_MOD2MOD && $room['groupid']) {
+                    if ($show && $room['chattype'] == ChatRoom::TYPE_MOD2MOD && $room['groupid']) {
                         # See if the group allows chat.
                         $g = Group::get($this->dbhr, $this->dbhm, $room['groupid']);
                         $show = $g->getSetting('showchat', TRUE);
                     }
 
-                    if ($show) {
+                    if ($show && !$all) {
                         # Last check - do we have a recent enough message?
-                        $msgs = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE chatid = {$room['id']} AND date >= ? LIMIT 1;", [
-                            date ("Y-m-d", strtotime("Midnight 31 days ago"))
-                        ]);
+                        $msgs = $this->dbhr->preQuery("SELECT MAX(date) AS maxdate FROM chat_messages WHERE chatid = {$room['id']};");
 
-                        $show = count($msgs) > 0;
+                        # We pass this if we have had no messages, or if the last one was recent.
+                        $show = !$msgs[0]['maxdate'] || (strtotime($msgs[0]['maxdate']) > strtotime("Midnight 31 days ago"));
                     }
 
                     if ($show) {
@@ -477,7 +476,7 @@ class ChatRoom extends Entity
             $cansee = TRUE;
         } else {
             # It might be a group chat which we can see.
-            $rooms = $this->listForUser($userid, [ $this->chatroom['chattype'] ]);
+            $rooms = $this->listForUser($userid, [ $this->chatroom['chattype'] ], NULL, TRUE);
             #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
             $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
         }
