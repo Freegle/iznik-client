@@ -1264,7 +1264,7 @@ class messageAPITest extends IznikAPITestCase
                 $found = TRUE;
             }
             $count++;
-        } while ($count < 600 && !$found);
+        } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
 
         assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
 
@@ -1314,7 +1314,7 @@ class messageAPITest extends IznikAPITestCase
                 $m->delete('UT');
             }
             $count++;
-        } while ($count < 600 && !$found);
+        } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
 
         assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
 
@@ -1360,7 +1360,7 @@ class messageAPITest extends IznikAPITestCase
                 $m->delete('UT');
             }
             $count++;
-        } while ($count < 600 && !$found);
+        } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
 
         assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
 
@@ -1385,7 +1385,7 @@ class messageAPITest extends IznikAPITestCase
                 $m->delete('UT');
             }
             $count++;
-        } while ($count < 600 && !$found);
+        } while ($count < IznikTestCase::YAHOO_PATIENCE && !$found);
 
         assertTrue($found, "Yahoo slow?  Failed to reach pending messages");
 
@@ -1543,9 +1543,9 @@ class messageAPITest extends IznikAPITestCase
                 sleep(1);
             }
             $count++;
-        } while (!$stop && $count < 600);
+        } while (!$stop && $count < IznikTestCase::YAHOO_PATIENCE);
 
-        assertLessThan(600, $count);
+        assertLessThan(IznikTestCase::YAHOO_PATIENCE, $count);
 
         # Now it's pending - approve it on the platform, before Yahoo has seen it.
         error_log("Approve");
@@ -1568,9 +1568,9 @@ class messageAPITest extends IznikAPITestCase
                 sleep(1);
             }
             $count++;
-        } while (!$stop && $count < 600);
+        } while (!$stop && $count < IznikTestCase::YAHOO_PATIENCE);
 
-        assertLessThan(600, $count);
+        assertLessThan(IznikTestCase::YAHOO_PATIENCE, $count);
 
         error_log(__METHOD__ . " end");
     }

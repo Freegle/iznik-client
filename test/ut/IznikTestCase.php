@@ -11,7 +11,8 @@ require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/Assert
  * @backupStaticAttributes disabled
  */
 abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
-    const LOG_SLEEP=600;
+    const LOG_SLEEP = 600;
+    const YAHOO_PATIENCE = 10;
 
     private $dbhr, $dbhm;
 
