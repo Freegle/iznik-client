@@ -11,7 +11,8 @@ require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/Assert
  * @backupStaticAttributes disabled
  */
 abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
-    const LOG_SLEEP=600;
+    const LOG_SLEEP = 600;
+    const YAHOO_PATIENCE = 10;
 
     private $dbhr, $dbhm;
 
@@ -60,7 +61,13 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
 
         @session_destroy();
         @session_start();
-        $_SESSION['POSTLASTDATA'] = NULL;
+
+        # Clear duplicate protection.
+        $datakey = 'POST_DATA_' . session_id();
+        $predis = new Redis();
+        $predis->pconnect(REDIS_CONNECT);
+        $predis->del($datakey);
+
         User::clearCache();
 
         set_time_limit(600);

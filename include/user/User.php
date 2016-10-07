@@ -312,7 +312,11 @@ class User extends Entity
 
     public function getEmailsForYahooGroup($groupid, $oursonly = FALSE, $approvedonly) {
         $emailq = "";
-        $collq = $approvedonly ? " AND memberships.collection = 'Approved' " : '';
+
+        # We must check memberships_yahoo rather than memberships, because memberships can get set to Approved by
+        # someone approving the user on the platform, whereas memberships_yahoo only gets set when we really
+        # know that the member has been approved onto Yahoo.
+        $collq = $approvedonly ? " AND memberships_yahoo.collection = 'Approved' " : '';
 
         if ($oursonly) {
             # We are looking for a group email which we host.
