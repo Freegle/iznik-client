@@ -186,6 +186,7 @@ class locationsAPITest extends IznikAPITestCase
             'lat' => 53.856556299999994,
             'lng' => -2.6401651999999998
         ]);
+        error_log("testPostcode " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals('PR3 2NE', $ret['location']['name']);
 
