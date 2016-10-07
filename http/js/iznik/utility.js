@@ -378,9 +378,14 @@ function strip_tags (input, allowed) { // eslint-disable-line camelcase
 function nullFn() {}
 
 var mobileGlobalRoot = false;   // CC
+var oneOffPathname = false; // CC
 
 function mobile_pathname(){ // CC
     var pathname = window.location.pathname;
+    if (oneOffPathname) {
+        pathname = oneOffPathname;
+        oneOffPathname = false;
+    }
     var initialHome = "index.html"; // to remove
     if( pathname.substr(-initialHome.length)==initialHome){
         pathname = pathname.substr(0,pathname.length-initialHome.length);

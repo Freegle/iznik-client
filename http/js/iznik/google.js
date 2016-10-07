@@ -32,7 +32,7 @@ define([
                         $('.js-signin-msg').text(JSON.stringify(result));
                         $('.js-signin-msg').show();
                       } else {
-                        Router.userHome();
+                          Router.mobileReload();  // CC
                       }
                     }
                 });

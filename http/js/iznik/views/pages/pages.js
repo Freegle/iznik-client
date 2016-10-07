@@ -35,7 +35,7 @@ define([
                 }
 
                 // Force reload of window to clear any data.
-                Router.userHome(); // CC
+                Router.mobileReload('/'); // CC
             }
         })
     }
@@ -51,7 +51,7 @@ define([
             if (window.location.pathname == homeurl) {
                 // Reload - this is because clicking on this when we're already on it can mean that something's 
                 // broken and they're confused.
-                Router.userHome(); // CC
+                Router.mobileReload('/'); // CC
             } else {
                 Router.navigate(homeurl, true);
             }

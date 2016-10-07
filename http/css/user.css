@@ -602,3 +602,14 @@ fieldset[disabled] .twitter-typeahead .tt-input {
             rgba(255, 255, 255, 1) 100%
     );
 }
+
+.navbar-title{ /* // CC */
+    text-align:center;
+    color:#1d6607;
+    font-size:40px;
+    position: absolute;
+    height: 55px;
+    left: 0px;
+    top: 0px;
+    right: 0px;
+}

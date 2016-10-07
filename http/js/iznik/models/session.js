@@ -500,7 +500,7 @@ define([
                     console.log("Session login returned", response);
                     if (response.ret === 0) {
                         self.trigger('loggedIn', response);
-                        Router.userHome();  // CC
+                        Router.mobileReload('/');  // CC
                         tryingYahooLogin = false;
                     } else if (response.ret === 1) {  // CC
                       self.yahooAuth(response.redirect);
@@ -551,7 +551,7 @@ define([
                     console.log("Session login returned", response);
                     if (response.ret === 0) {
                       self.trigger('loggedIn', response);
-                      Router.userHome();  // CC
+                      Router.mobileReload('/');  // CC
                     } else {
                       $('.js-signin-msg').text("Yahoo log in failed " + response.ret);
                       $('.js-signin-msg').show();

@@ -198,6 +198,19 @@ define([
             });
         },
 
+        mobileReload: function (url) {
+            // CC   Shows the home page but doesn't update window.location.pathname so selected menu and links from here don't work
+            // CC   Various efforts to fix this have failed so far
+            oneOffPathname = '/';
+            Router.userHome();
+            //var reloader = $("#js-mobile-reload");
+            //if (!url) {
+            //    url = mobile_pathname();
+            //}
+            //reloader.attr('href', url);
+            //reloader.click();
+        },
+
         userHome: function (chatid) {
             var self = this;
 
@@ -388,7 +401,7 @@ define([
                         }
                         self.listenToOnce(v, 'modalCancelled modalClosed', function () {
                             // Reload to force session refresh.
-                            Router.userHome(); // CC
+                            Router.mobileReload(); // CC
                         });
 
                         v.render();

@@ -106,7 +106,7 @@ define([
         Iznik.Session.facebookLogin(response.authResponse.token);
 
         Iznik.Session.listenToOnce(Iznik.Session, 'facebookLoggedIn', function () {
-          setTimeout(Router.userHome(), 0);
+            setTimeout(Router.mobileReload(), 0);
         });
 
       } else {
