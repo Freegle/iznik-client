@@ -1093,6 +1093,12 @@ define([
             // Hide the chat list if it's open.
             $('#notifchatdropdown').hide();
 
+            // Input text autosize
+            if (!self.doneAutosize) {
+                self.doneAutosize = true;
+                autosize(self.$('textarea'));
+            }
+
             if (large) {
                 // We want a larger and more prominent chat.
                 try {
@@ -1357,9 +1363,6 @@ define([
 
             var p = Iznik.View.prototype.render.call(self);
             p.then(function (self) {
-                // Input text autosize
-                autosize(self.$('textarea'));
-
                 if (!self.options.modtools) {
                     self.$('.js-privacy').hide();
                 } else {
