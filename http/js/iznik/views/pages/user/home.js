@@ -135,7 +135,7 @@ define([
             // We might have now found out that something which was in our cache is taken/received and should
             // therefore no longer show.  Refresh.
             self.offersView.reapplyFilter('visibleModels');
-            self.wantedView.reapplyFilter('visibleModels');
+            self.wantedsView.reapplyFilter('visibleModels');
         },
 
         fetchedMessages: function () {
