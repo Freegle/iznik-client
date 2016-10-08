@@ -1008,7 +1008,7 @@ class Message
                 if (preg_match('/(.*)@yahoogroups\.co.*/', $t['address'], $matches) &&
                     strpos($t['address'], '-owner@') === FALSE) {
                     $groupname = $matches[1];
-                    error_log("Got $groupname from {$t['address']}");
+                    #error_log("Got $groupname from {$t['address']}");
                 }
             }
         }
@@ -1228,7 +1228,7 @@ class Message
                     /* @var DOMNodeList $imgs */
                     foreach ($imgs as $img) {
                         $src = $img->getAttribute('src');
-                        if (strpos($src, '/img/') !== FALSE) {
+                        if (strpos($src, '/img/') !== FALSE || strpos($src, '/tn-photos/')) {
                             $ctx = stream_context_create(array('http' =>
                                 array(
                                     'timeout' => 120
