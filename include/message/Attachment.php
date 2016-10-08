@@ -159,7 +159,6 @@ class Attachment
                     $ret,
                     $this->id
                 ]);
-                error_log("Dearchived {$this->id}");
             } else {
                 $ret = $data['data'];
             }
