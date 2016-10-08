@@ -2,7 +2,7 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function chat_notify_mod($domain, $logo, $fromname, $url, $htmlsummary ) {
+function chat_notify_mod($domain, $logo, $fromname, $url, $htmlsummary, $support ) {
     $siteurl = "https://$domain";
 
     $html = <<<EOT
@@ -94,7 +94,7 @@ EOT;
                                                                 </tr>
                                                                 <tr>
                                                                     <td width="100%" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:20px; line-height:26px; font-weight:bold;">
-                                                                        <p>If you need help dealing with this query, you can mail <a href="mailto:support@ilovefreegle.org">support@ilovefreegle.org</p>
+                                                                        <p>If you need help dealing with this query, you can mail <a href="mailto:$support">$support</p>
                                                                     </td>
                                                                 </tr>                                                                
                                                             </table>
