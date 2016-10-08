@@ -1099,6 +1099,12 @@ define([
                 autosize(self.$('textarea'));
             }
 
+            if (!self.options.modtools) {
+                self.$('.js-privacy').hide();
+            } else {
+                self.$('.js-promise').hide();
+            }
+
             if (large) {
                 // We want a larger and more prominent chat.
                 try {
@@ -1299,6 +1305,7 @@ define([
 
             if (ret.ret === 0) {
                 self.$('.js-roster').empty();
+                console.log("Roster", ret.roster);
                 _.each(ret.roster, function (rost) {
                     var mod = new Iznik.Model(rost);
                     var v = new Iznik.Views.Chat.RosterEntry({
@@ -1322,6 +1329,7 @@ define([
             // minimised, we don't - the server will time us out as away.  We'll still; pick up any new messages on
             // minimised chats via the long poll, and the fallback.
             var self = this;
+            console.log("roster fn");
 
             if (!self.removed && !self.minimised) {
                 self.updateRoster(self.statusWithOverride('Online'),
@@ -1329,21 +1337,27 @@ define([
             }
         },
 
+        countHidden: true,
+
         updateCount: function () {
             var self = this;
             var unseen = self.model.get('unseen');
             // console.log("Update count", unseen);
 
+            // For performance reasons we avoid doing show/hide unless we need to.
             if (unseen > 0) {
                 self.$('.js-count').html(unseen).show();
+                self.countHidden = false;
 
                 if (self.messages) {
                     self.messages.fetch({
                         remove: true
                     });
                 }
-            } else {
+            } else if (!self.countHidden) {
+                // When we call this from render, it's already hidden.
                 self.$('.js-count').html(unseen).hide();
+                self.countHidden = true;
             }
 
             self.trigger('countupdated', unseen);
@@ -1363,12 +1377,6 @@ define([
 
             var p = Iznik.View.prototype.render.call(self);
             p.then(function (self) {
-                if (!self.options.modtools) {
-                    self.$('.js-privacy').hide();
-                } else {
-                    self.$('.js-promise').hide();
-                }
-
                 try {
                     var status = localStorage.getItem('mystatus');
 
