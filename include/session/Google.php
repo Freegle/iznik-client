@@ -153,9 +153,11 @@ class Google
             $u->setPrivate('publishconsent', 1);
 
             # We might have syncd the membership without a good name.
-            $u->setPrivate('firstname', $firstname);
-            $u->setPrivate('lastname', $lastname);
-            $u->setPrivate('fullname', $fullname);
+            if (!$u->getPrivate('fullname')) {
+                $u->setPrivate('firstname', $firstname);
+                $u->setPrivate('lastname', $lastname);
+                $u->setPrivate('fullname', $fullname);
+            }
 
             if ($id) {
                 # We are logged in.
