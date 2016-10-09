@@ -10,7 +10,7 @@ require_once(IZNIK_BASE . '/include/misc/Location.php');
 # Use dbhm to bypass cache.
 $l = new Location($dbhm, $dbhm);
 
-$locs = $dbhm->query("SELECT id, name, gridid FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0 ORDER BY name DESC;");
+$locs = $dbhm->query("SELECT id, name, gridid FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0 ORDER BY name ASC;");
 
 $count = 0;
 

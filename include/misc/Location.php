@@ -176,26 +176,26 @@ class Location extends Entity
                     # overlap a location.
                     #
                     # TODO possibly we can completely remove grid stuff now.
-                    $swlat = round($loc['lat'], 2) - 0.01;
-                    $swlng = round($loc['lng'], 2) - 0.01;
-                    $nelat = round($loc['lat'], 2) + 0.01;
-                    $nelng = round($loc['lng'], 2) + 0.01;
+                    $swlat = round($loc['lat'], 2) - 0.1;
+                    $swlng = round($loc['lng'], 2) - 0.1;
+                    $nelat = round($loc['lat'], 2) + 0.1;
+                    $nelng = round($loc['lng'], 2) + 0.1;
 
                     $count = 0;
 
                     do {
                         $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
 
-                        $sql = "SELECT locations.name, locations.id, AsText(locations_spatial.geometry) AS geom, ST_Contains(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS within, ST_Distance(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS dist FROM locations_spatial INNER JOIN  `locations` ON locations.id = locations_spatial.locationid LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE MBRWithin(locations_spatial.geometry, GeomFromText('$poly')) AND osm_place = $osmonly AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL HAVING id != $id ORDER BY within DESC, dist ASC LIMIT 1;";
+                        $sql = "SELECT locations.name, locations.id, AsText(locations_spatial.geometry) AS geom, ST_Contains(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS within, ST_Distance(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS dist FROM locations_spatial INNER JOIN  `locations` ON locations.id = locations_spatial.locationid LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE MBRWithin(locations_spatial.geometry, GeomFromText('$poly')) AND osm_place = $osmonly AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL HAVING id != $id ORDER BY within DESC, dist ASC LIMIT 10;";
                         $nearbyes = $this->dbhr->preQuery($sql);
 
                         #error_log($sql . " gives " . var_export($nearbyes));
 
                         if (count($nearbyes) === 0) {
-                            $swlat -= 0.01;
-                            $swlng -= 0.01;
-                            $nelat += 0.01;
-                            $nelng += 0.01;
+                            $swlat -= 0.1;
+                            $swlng -= 0.1;
+                            $nelat += 0.1;
+                            $nelng += 0.1;
                             $count++;
                         }
                     } while (count($nearbyes) == 0 && $count < 100);
