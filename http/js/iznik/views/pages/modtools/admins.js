@@ -43,7 +43,7 @@ define([
                 self.groupSelect = new Iznik.Views.Group.Select({
                     systemWide: false,
                     all: false,
-                    mod: false,
+                    mod: true,
                     choose: true,
                     id: 'adminGroupSelect'
                 });
