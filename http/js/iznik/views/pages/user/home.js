@@ -373,13 +373,10 @@ define([
 
             if (selbutt.length > 0) {
                 if (selbutt.hasClass('js-happy')) {
-                    console.log("Happy");
                     happiness = 'Happy';
                 } else if (selbutt.hasClass('js-unhappy')) {
-                    console.log("Unhappy");
                     happiness = 'Unhappy';
                 } else {
-                    console.log("Fine");
                     happiness = 'Fine';
                 }
             }
@@ -395,8 +392,15 @@ define([
                     userid: userid
                 }, success: function (ret) {
                     if (ret.ret === 0) {
-                        self.trigger('outcame');
                         self.close();
+                        self.trigger('outcame');
+
+                        // If they were OK with us, ask them to support us
+                        if (happiness != 'Unhappy') {
+                            var v = new Iznik.Views.Modal();
+                            v.template = 'user_home_supportus';
+                            v.render();
+                        }
                     }
                 }
             })
