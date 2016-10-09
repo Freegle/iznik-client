@@ -51,6 +51,7 @@ EOT;
                                                                 </table>               
                                                             </td>    
                                                             <td>
+                                                                <p style="color: red">Please vote for Freegle to win &pound;2000 from eBay!  Go <a href="http://www.ebay.co.uk/egw/ebay-for-charity/charity-profile/Freegle/74430">here</a> and click <em>Save as favourite</em>.</p>
                                                                 <p>You've received this mail because you're a member of <a href="{{visit}}">$groupname</a>.</p>
                                                                 <table width="100%">
                                                                     <tr>
