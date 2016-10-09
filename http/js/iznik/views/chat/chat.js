@@ -1137,7 +1137,9 @@ define([
                 label: 'chat restore'
             });
             v.render();
-            self.messages.fetch().then(function () {
+            self.messages.fetch({
+                remove: true
+            }).then(function () {
                 // We've just opened this chat - so we have had a decent chance to see any unread messages.
                 v.close();
                 self.messageFocus();
@@ -1419,6 +1421,8 @@ define([
                     }
                 } catch (e) {
                 }
+
+                self.$('.js-messages').empty();
 
                 self.messageViews = new Backbone.CollectionView({
                     el: self.$('.js-messages'),
