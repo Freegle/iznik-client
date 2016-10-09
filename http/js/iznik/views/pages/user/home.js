@@ -369,7 +369,6 @@ define([
             var happiness = null;
             var selbutt = self.$('.btn.active');
             var userid = self.$('.js-user').val();
-            console.log("selbutt", selbutt);
 
             if (selbutt.length > 0) {
                 if (selbutt.hasClass('js-happy')) {
@@ -395,12 +394,9 @@ define([
                         self.close();
                         self.trigger('outcame');
 
-                        // If they were OK with us, ask them to support us
-                        if (happiness != 'Unhappy') {
-                            var v = new Iznik.Views.Modal();
-                            v.template = 'user_home_supportus';
-                            v.render();
-                        }
+                        var v = new Iznik.Views.Modal();
+                        v.template = 'user_home_supportus';
+                        v.render();
                     }
                 }
             })
