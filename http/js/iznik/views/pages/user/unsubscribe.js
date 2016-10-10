@@ -40,7 +40,7 @@ define([
                         email: self.email,
                         groupid: groupid
                     }, complete: function() {
-                        Backbone.history.loadUrl(); // CC
+                        Router.mobileReload();  // CC
                     }
                 })
             });

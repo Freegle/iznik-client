@@ -3,6 +3,7 @@ var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
 var isiOS = false; // CC
+var initialURL = false; // CC
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -55,9 +56,14 @@ window.onerror = function(message, file, line) {
 	});*/
 };
 
+// Called when app starts - and when it restarts when Router.mobileReload() called
+
 function mainOnAppStart() { // CC
 console.log("main boot");	// CC
 isiOS = (window.device.platform === 'iOS'); // CC
+if (!initialURL) {
+    initialURL = window.location.href;
+}
 
 require([
     'jquery',

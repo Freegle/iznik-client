@@ -401,7 +401,7 @@ define([
                                         localStorage.removeItem('session');
                                     } catch (e) {
                                     }
-                                    Backbone.history.loadUrl(); // CC
+                                    Router.mobileReload();  // CC
                                 } else {
                                     // We're not logged in.
                                     self.loggedIn = false;

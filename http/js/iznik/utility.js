@@ -301,7 +301,7 @@ var loadedTemplates = [];
 
 function templateFetch(tpl) {
     var promise = new Promise(function(resolve, reject) {
-        require([tplName(tpl)], function(html) {
+        require([tplName(tpl)], function (html) {
         	  //html = html.replace(/href=\"\//g, 'href="' + iznikroot);// ./	// CC Don't need to fix href as handled by Backbone router except with data-realurl
         	  html = html.replace(/src=\"\//g, 'src="' + iznikroot);	// CC
         	  html = html.replace(/src=\'\//g, "src='" + iznikroot);	// CC

@@ -164,7 +164,7 @@ define([
 
                                 // Force reload on click, which doesn't happen by default.
                                 $(this).click(function () {
-                                    Backbone.history.loadUrl(href);
+                                    Router.mobileReload();  // CC
                                 });
                             }
                         });
@@ -311,7 +311,7 @@ define([
 
                         // Force reload on click, which doesn't happen by default.
                         $(this).click(function () {
-                            Backbone.history.loadUrl(href);
+                            Router.mobileReload();  // CC
                         });
                     }
                 });

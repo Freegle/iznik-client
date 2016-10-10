@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE HTML>
 <html>
 <head>
-	<meta name="iznik_mobile_version" content="1.0.0, 7 October 2016">
+	<meta name="iznik_mobile_version" content="1.0.0b, 10 October 2016">
   <!-- Hi there.  We always need geek volunteers.  Why not mail geeks@ilovefreegle.org to get in touch, or -->
   <!-- help make the code better at https://github.com/Freegle/iznik ?  -->
   <meta name="msapplication-tap-highlight" content="no"/>
@@ -33,9 +33,7 @@
 	<script src="cordova.js"></script>          <!-- CC phantom library, needed for Cordova api calls, added during build -->	
   <script src="xdk/init-dev.js"></script>     <!-- CC normalizes device and document ready events, see README for details -->
 
-    
   <script type="text/javascript">
-		console.log("ROOT START A");
       // Start a timer to reload if we fail to get the page rendered.  Do this now as any JS errors might prevent
       // us doing it later.  This is a last resort so the timer can be long.
       window.setTimeout(function() {
@@ -46,83 +44,9 @@
               //window.location.reload();
           }
       }, 120000);
-
-      /*if ('serviceWorker' in navigator) {
-          // Before we do anything else, get our service worker up and running.  This will allow us to do better
-          // caching where the browser supports them.
-          //
-          // We see problems with Service Workers in Firefox, so stick to Chrome for now.
-          window.serviceWorker = null;
-          var inChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
-          console.log("Chrome?", inChrome);
-
-          if (inChrome) {
-              // Use our version so that we will add a new service worker when the code changes.
-              var lastversion = null;
-
-              try {
-                  lastversion = localStorage.getItem('version');
-              } catch (e) {
-              }
-              ;
-
-              var version = 1467804560;
-              console.log("Register service worker", version);
-              navigator.serviceWorker.register('/sw.js?version=' + version).then(function (reg) {
-                  console.log("Registered service worker");
-                  window.serviceWorker = reg;
-              }).catch(function (err) {
-                  console.log("Can't register service worker", err);
-              });
-
-              try {
-                  localStorage.setItem('version', version);
-              } catch (e) {};
-
-              console.log("Versions", lastversion, version);
-
-              if (lastversion != null && version != lastversion) {
-                  // The code has changed.  Reload to pick up the changes.
-                  console.log("Code changed, reload");
-                  window.setTimeout(function () {
-                      window.location.reload();
-                  }, 1000);
-              }
-          } else {
-              // Make sure no service workers running.
-              navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                  console.log("Got SW registrations", registrations);
-                  for (var registration in registrations) {
-                      console.log("Registration", registration);
-                      if (registration) {
-                          registration.unregister();
-                      }
-                  }
-              });
-          }
-      }*/
-      console.log("ROOT START B");
   </script>    
 
   <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/jekkhomlnoblcnangfcdohhaipmmaddc">
-  <link rel="shortcut icon" href="/images/favicon/user/favicon/user.ico" type="image/x-icon" />
-  <link rel="apple-touch-icon" sizes="57x57" href="/images/favicon/user/apple-touch-icon-57x57.png">
-  <link rel="apple-touch-icon" sizes="60x60" href="/images/favicon/user/apple-touch-icon-60x60.png">
-  <link rel="apple-touch-icon" sizes="72x72" href="/images/favicon/user/apple-touch-icon-72x72.png">
-  <link rel="apple-touch-icon" sizes="76x76" href="/images/favicon/user/apple-touch-icon-76x76.png">
-  <link rel="apple-touch-icon" sizes="114x114" href="/images/favicon/user/apple-touch-icon-114x114.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="/images/favicon/user/apple-touch-icon-120x120.png">
-  <link rel="apple-touch-icon" sizes="144x144" href="/images/favicon/user/apple-touch-icon-144x144.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="/images/favicon/user/apple-touch-icon-152x152.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/user/apple-touch-icon-180x180.png">
-  <link rel="icon" type="image/png" href="/images/favicon/user/favicon/user-16x16.png" sizes="16x16">
-  <link rel="icon" type="image/png" href="/images/favicon/user/favicon/user-32x32.png" sizes="32x32">
-  <link rel="icon" type="image/png" href="/images/favicon/user/favicon/user-96x96.png" sizes="96x96">
-  <link rel="icon" type="image/png" href="/images/favicon/user/android-chrome-192x192.png" sizes="192x192">
-  <meta name="msapplication-square70x70logo" content="images/favicon/user/smalltile.png" />
-  <meta name="msapplication-square150x150logo" content="images/favicon/user/mediumtile.png" />
-  <meta name="msapplication-wide310x150logo" content="images/favicon/user/widetile.png" />
-  <meta name="msapplication-square310x310logo" content="images/favicon/user/largetile.png" />
 
   <link rel="stylesheet" href="css/bootstrap.min.css">
   <link rel="stylesheet" href="css/bootstrap-theme.min.css">
@@ -153,12 +77,16 @@
 	<script>
 		document.addEventListener("app.Ready", mainOnAppStart, false);
 
-		// Override CSS background that has absolute url path
+		// Fix up CSS cases with absolute url path
 		var style = document.createElement('style');
 		style.type = 'text/css';
-		style.innerHTML = '.bodyback { background-image: url("' + iznikroot + 'images/wallpaper.png") !important; }';
+		var css = '.bodyback { background-image: url("' + iznikroot + 'images/wallpaper.png") !important; } \r';
+		css += '.dd .ddTitle{color:#000;background:#e2e2e4 url("' + iznikroot + 'images/msdropdown/skin1/title-bg.gif") repeat-x left top !important; } \r';
+		css += '.dd .ddArrow{width:16px;height:16px; margin-top:-8px; background:url("' + iznikroot + 'images/msdropdown/skin1/dd_arrow.gif") no-repeat !important;} \r';
+		css += '.splitter { background: url("' + iznikroot + 'images/vsizegrip.png") center center no-repeat !important; } \r';
+    style.innerHTML = css;
+    //console.log(css);
 		document.getElementsByTagName('head')[0].appendChild(style);
-		document.getElementById('someElementId').className = 'cssClass';
 	</script>
 
 

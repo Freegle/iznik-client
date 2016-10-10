@@ -198,17 +198,8 @@ define([
             });
         },
 
-        mobileReload: function (url) {
-            // CC   Shows the home page but doesn't update window.location.pathname so selected menu and links from here don't work
-            // CC   Various efforts to fix this have failed so far
-            oneOffPathname = '/';
-            Router.userHome();
-            //var reloader = $("#js-mobile-reload");
-            //if (!url) {
-            //    url = mobile_pathname();
-            //}
-            //reloader.attr('href', url);
-            //reloader.click();
+        mobileReload: function (url) {  // CC url not used - could be used to specify route to use
+            window.location.href = initialURL;  // Could add ?route=Xxx
         },
 
         userHome: function (chatid) {

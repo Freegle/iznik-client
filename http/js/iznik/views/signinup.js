@@ -72,7 +72,7 @@ define([
                     if (ret.ret == 0) {
                         // We're logged in.  Reload this page, and now that we are logged in the route
                         // should behave differently.
-                        Backbone.history.loadUrl(); // CC
+                        Router.mobileReload();  // CC
                     } else if (parseInt(ret.ret) == 2) {
                         self.$('.js-unknown').fadeIn('slow');
                     } else {
@@ -105,7 +105,7 @@ define([
                     if (parseInt(ret.ret) == 0) {
                         // We're logged in.  Reload this page, and now that we are logged in the route
                         // should behave differently.
-                        Backbone.history.loadUrl(); // CC
+                        Router.mobileReload();  // CC
                     } else {
                         self.$('.js-signuperror .js-errmsg').html(ret.status);
                         self.$('.js-signuperror').fadeIn('slow');

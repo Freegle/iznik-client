@@ -720,7 +720,8 @@ define([
                         // we don't have issues with not seeing/needing to scroll to the message of interest.
                         //
                         // We might already be on this page, so we can't call navigate as usual.
-                        Backbone.history.loadUrl('/message/' + self.model.get('id'));
+                        // CC Should we do Router.mobileReload();  // CC
+                        // CC Backbone.history.loadUrl('/message/' + self.model.get('id'));
                     }
                 });
 
@@ -841,7 +842,7 @@ define([
                         self.map = new google.maps.Map(map.get()[0], mapOptions);
 
                         var icon = {
-                            url: '/images/user_logo.png',
+                            url: iznikroot + 'images/user_logo.png',    // CC
                             scaledSize: new google.maps.Size(50, 50),
                             origin: new google.maps.Point(0,0),
                             anchor: new google.maps.Point(0, 0)
