@@ -290,7 +290,7 @@ class Digest
                             # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
                             $replacements[$email] = [
                                 '{{toname}}' => $u->getName(),
-                                '{{bounce}}' => "bounce-{$user['userid']}@" . USER_DOMAIN,
+                                '{{bounce}}' => "bounce-{$user['userid']}-" . time() . "@" . USER_DOMAIN,
                                 '{{unsubscribe}}' => 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email),
                                 '{{email}}' => $email,
                                 '{{frequency}}' => $this->freqText[$frequency],

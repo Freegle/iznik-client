@@ -614,7 +614,7 @@ class MailRouter
                     $ret = MailRouter::FAILURE;
                     $source = $this->msg->getSource();
 
-                    if ($source == Message::YAHOO_PENDING) {
+                    if ($source == Message::YAHOO_PENDING || ($notspam && $source == Message::PLATFORM)) {
                         if ($log) { error_log("Source header " . $this->msg->getSourceheader());}
 
                         if ($this->msg->getSourceheader() == Message::PLATFORM) {

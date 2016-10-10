@@ -131,6 +131,11 @@ define([
                     }
                 }).then(cb);
             }
+
+            // We might have now found out that something which was in our cache is taken/received and should
+            // therefore no longer show.  Refresh.
+            self.offersView.reapplyFilter('visibleModels');
+            self.wantedsView.reapplyFilter('visibleModels');
         },
 
         fetchedMessages: function () {
@@ -364,17 +369,13 @@ define([
             var happiness = null;
             var selbutt = self.$('.btn.active');
             var userid = self.$('.js-user').val();
-            console.log("selbutt", selbutt);
 
             if (selbutt.length > 0) {
                 if (selbutt.hasClass('js-happy')) {
-                    console.log("Happy");
                     happiness = 'Happy';
                 } else if (selbutt.hasClass('js-unhappy')) {
-                    console.log("Unhappy");
                     happiness = 'Unhappy';
                 } else {
-                    console.log("Fine");
                     happiness = 'Fine';
                 }
             }
@@ -390,8 +391,12 @@ define([
                     userid: userid
                 }, success: function (ret) {
                     if (ret.ret === 0) {
-                        self.trigger('outcame');
                         self.close();
+                        self.trigger('outcame');
+
+                        var v = new Iznik.Views.Modal();
+                        v.template = 'user_home_supportus';
+                        v.render();
                     }
                 }
             })

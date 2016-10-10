@@ -7,16 +7,21 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 
-$l = new Location($dbhr, $dbhm);
+# Use dbhm to bypass cache.
+$l = new Location($dbhm, $dbhm);
 
-$locs = $dbhm->preQuery("SELECT id, name, gridid FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0 AND name = 'NE28 8TQ' ORDER BY name ASC;");
+$locs = $dbhm->query("SELECT id, name, gridid FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0 ORDER BY name ASC;");
 
 $count = 0;
 
 foreach ($locs as $loc) {
     #echo "{$loc['id']} - {$loc['name']} => ";
-    $l->setParents($loc['id'], $loc['gridid']);
-    $count++;
+    try {
+        $l->setParents($loc['id'], $loc['gridid']);
+        $count++;
 
-    error_log("$count..." . count($locs));
+        if ($count % 1000 == 0) {
+            error_log("$count..." . count($locs));
+        }
+    } catch (Exception $e) {}
 }
