@@ -282,7 +282,7 @@ class ChatRoom extends Entity
                 break;
         }
 
-        $refmsgs = $this->dbhr->preQuery("SELECT DISTINCT refmsgid FROM chat_messages WHERE chatid = ?;", [ $this->id ]);
+        $refmsgs = $this->dbhr->preQuery("SELECT DISTINCT refmsgid FROM chat_messages INNER JOIN messages ON messages.id = refmsgid AND messages.type IN ('Offer', 'Wanted') WHERE chatid = ?;", [ $this->id ]);
         $ret['refmsgids'] = [];
         foreach ($refmsgs as $refmsg) {
             $ret['refmsgids'][] = $refmsg['refmsgid'];

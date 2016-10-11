@@ -900,7 +900,11 @@ define([
             }).then(function () {
                 if (self.offers.length > 0) {
                     // The message we want to suggest as the one to promise is any last message mentioned in this chat.
-                    var msgid = _.last(self.model.get('refmsgids'));
+                    var msgid = null;
+                    _.each(self.model.get('refmsgids'), function(m) {
+
+                        msgid = m;
+                    });
 
                     var msg = null;
                     self.offers.each(function (offer) {
@@ -953,13 +957,17 @@ define([
             this.updateCount();
         },
 
-        minimise: function () {
+        minimise: function (quick) {
             var self = this;
             _.defer(function () {
                 self.$el.hide();
             });
             this.minimised = true;
-            this.waitDOM(self, self.options.organise);
+
+            if (!quick) {
+                this.waitDOM(self, self.options.organise);
+            }
+
             this.options.updateCounts();
 
             self.updateRoster('Away', self.noop);
@@ -1331,7 +1339,6 @@ define([
             // minimised, we don't - the server will time us out as away.  We'll still; pick up any new messages on
             // minimised chats via the long poll, and the fallback.
             var self = this;
-            console.log("roster fn");
 
             if (!self.removed && !self.minimised) {
                 self.updateRoster(self.statusWithOverride('Online'),
@@ -1461,7 +1468,9 @@ define([
                     onDragEnd: _.bind(self.panelSize, self)
                 });
 
-                minimise ? self.minimise() : self.restore();
+                // During the render we don't need to reorganise - we do that when we have a chat open
+                // that we then minimise, to readjust the remaining windows.
+                minimise ? self.minimise(true) : self.restore();
 
                 // The minimised chat can signal to us that we should restore.
                 self.listenTo(self.model, 'restore', self.restore);
