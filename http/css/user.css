@@ -613,6 +613,6 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 }
 @media (min-width: 768px) {
     .navbar-title {
-        left: 500px;
+        left: 450px;
     }
 }

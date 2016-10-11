@@ -23,7 +23,7 @@ function panicReload() {
 
 requirejs.onError = function (err) {
     console.log("Require Error", err);
-    alert("Require Error " + err);
+    //alert("Require Error " + err);
     var mods = err.requireModules;
     var msg = err.message;
     if (msg && msg.indexOf('showFirst') !== -1) {
@@ -77,6 +77,22 @@ require([
         console.error("Backbone failed to fetch");
         panicReload();
     }
+
+	  var last = 0;
+	  setInterval(function () {
+	      var body = document.body, html = document.documentElement;
+
+	      var height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
+	      if (last != height) {
+	          $('.navbar-title').text(height);
+	          last = height;
+	      }
+	  }, 1000);
+
+	  $(window).scroll(function (e) {
+	      //console.log(e);
+	      $('.navbar-title').text("Scroll");
+	  });
 
     Backbone.emulateJSON = true;
     
