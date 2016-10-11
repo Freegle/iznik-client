@@ -16,7 +16,7 @@
        specific language governing permissions and limitations
        under the License.
 */
-package org.apache.cordova.file;
+package org.apache.cordova;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

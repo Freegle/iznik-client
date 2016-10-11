@@ -41,7 +41,7 @@
 
 - (void)hide:(CDVInvokedUrlCommand*)command
 {
-    [self setVisible:NO];
+    [self setVisible:NO andForce:YES];
 }
 
 - (void)pageDidLoad
@@ -120,6 +120,7 @@
     [parentView addObserver:self forKeyPath:@"bounds" options:0 context:nil];
 
     [self updateImage];
+    _destroyed = NO;
 }
 
 - (void)hideViews
@@ -130,6 +131,7 @@
 
 - (void)destroyViews
 {
+    _destroyed = YES;
     [(CDVViewController *)self.viewController setEnabledAutorotation:[(CDVViewController *)self.viewController shouldAutorotateDefaultValue]];
 
     [_imageView removeFromSuperview];
@@ -327,7 +329,7 @@
     CGRect imgBounds = (img) ? CGRectMake(0, 0, img.size.width, img.size.height) : CGRectZero;
 
     CGSize screenSize = [self.viewController.view convertRect:[UIScreen mainScreen].bounds fromView:nil].size;
-    UIInterfaceOrientation orientation = self.viewController.interfaceOrientation;
+    UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
     CGAffineTransform imgTransform = CGAffineTransformIdentity;
 
     /* If and only if an iPhone application is landscape-only as per
@@ -376,7 +378,12 @@
 
 - (void)setVisible:(BOOL)visible
 {
-    if (visible != _visible)
+    [self setVisible:visible andForce:NO];
+}
+
+- (void)setVisible:(BOOL)visible andForce:(BOOL)force
+{
+    if (visible != _visible || force)
     {
         _visible = visible;
 
@@ -433,26 +440,32 @@
             __weak __typeof(self) weakSelf = self;
             float effectiveSplashDuration;
 
-            if (!autoHideSplashScreen) {
+            // [CB-10562] AutoHideSplashScreen may be "true" but we should still be able to hide the splashscreen manually.
+            if (!autoHideSplashScreen || force) {
                 effectiveSplashDuration = (fadeDuration) / 1000;
             } else {
                 effectiveSplashDuration = (splashDuration - fadeDuration) / 1000;
             }
 
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (uint64_t) effectiveSplashDuration * NSEC_PER_SEC), dispatch_get_main_queue(), CFBridgingRelease(CFBridgingRetain(^(void) {
-                   [UIView transitionWithView:self.viewController.view
-                                   duration:(fadeDuration / 1000)
-                                   options:UIViewAnimationOptionTransitionNone
-                                   animations:^(void) {
-                                       [weakSelf hideViews];
-                                   }
-                                   completion:^(BOOL finished) {
-                                       if (finished) {
-                                           [weakSelf destroyViews];
-                                           // TODO: It might also be nice to have a js event happen here -jm
-                                       }
-                                     }
+                if (!_destroyed) {
+                    [UIView transitionWithView:self.viewController.view
+                                    duration:(fadeDuration / 1000)
+                                    options:UIViewAnimationOptionTransitionNone
+                                    animations:^(void) {
+                                        [weakSelf hideViews];
+                                    }
+                                    completion:^(BOOL finished) {
+                                        // Always destroy views, otherwise you could have an 
+                                        // invisible splashscreen that is overlayed over your active views
+                                        // which causes that no touch events are passed
+                                        if (!_destroyed) {
+                                            [weakSelf destroyViews];
+                                            // TODO: It might also be nice to have a js event happen here -jm
+                                        }
+                                    }
                     ];
+                }
             })));
         }
     }
