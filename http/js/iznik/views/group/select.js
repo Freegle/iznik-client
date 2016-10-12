@@ -10,8 +10,6 @@ define([
     Iznik.Views.Group.Select = Iznik.View.extend({
         template: 'group_select',
 
-        tagName: 'select',
-
         persist: false,
         dropdown: null,
 
@@ -89,17 +87,13 @@ define([
 
             if (self.dropdown) {
                 // Remove old values.
-                do {
-                    self.dropdown.remove(0);
-                } while (self.dropdown.options.length > 0);
-            } else {
-                // Create dropdown from scratch.
-                // console.log("Create dropdown", self.$el, self.el.outerHTML, $('#' + self.id).length);
-                self.dropdown = self.$el.msDropdown().data("dd");
+                self.dropdown.destroy();
             }
 
+            var json = [];
+
             if (self.options.all) {
-                self.dropdown.add({
+                json.push({
                     text: 'All my groups',
                     value: -1,
                     title: 'All my groups'
@@ -107,7 +101,7 @@ define([
             }
 
             if (self.options.choose) {
-                self.dropdown.add({
+                json.push({
                     text: 'Please choose a group...',
                     value: -1,
                     title: 'Please choose a group...'
@@ -116,7 +110,7 @@ define([
 
             if ((Iznik.Session.get('me').systemrole == 'Support' || Iznik.Session.get('me').systemrole == 'Admin') &&
                 (self.options.systemWide)) {
-                self.dropdown.add({
+                json.push({
                     text: 'Systemwide',
                     value: -2,
                     title: 'Systemwide'
@@ -134,7 +128,7 @@ define([
 
                 if ((!self.options.mod || role == 'Owner' || role ==  'Moderator') &&
                     (!self.options.grouptype || self.options.grouptype == group.get('type'))) {
-                    self.dropdown.add({
+                    json.push({
                         text: self.getName(group),
                         value: group.get('id'),
                         title: group.get('namedisplay'),
@@ -142,6 +136,15 @@ define([
                     });
                 }
             });
+
+            // Now create the dropdown.  We do this from a JSON array because otherwise the UI updates each time we
+            // add one, which performs atrociously for many items.
+            self.dropdown = self.$el.msDropdown({
+                byJson: {
+                    data: json,
+                    name: 'groupselect.' + self.id
+                }
+            }).data("dd");
 
             if (gotselected && self.options.hasOwnProperty('selected') && self.options.selected) {
                 self.dropdown.setIndexByValue(self.options.selected);
@@ -170,7 +173,7 @@ define([
 
             // We've built the dropdown so we can show it now.
             $('.dd').css('visibility', 'visible');
-            
+
             self.trigger('completed');
         },
 
@@ -186,7 +189,7 @@ define([
             }
 
             // We hide the raw select now otherwise it shows briefly.  We set visibility on the dropdown once it's built.
-            self.$el.css('visibility', 'hidden');
+            // self.$el.css('visibility', 'hidden');
 
             // The dropdown library needs it to be in the DOM.
             self.waitDOM(self, self.inDOM);

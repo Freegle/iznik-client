@@ -236,6 +236,9 @@ define([
             p.then(function(self) {
                 self.historyColl = new Iznik.Collections.ModTools.MessageHistory();
                 _.each(self.model.get('messagehistory'), function (message, index, list) {
+                    // Invent a unique ID which will show reposts of the same message, otherwise the collection
+                    // collapses them all to a single entry.
+                    message.id = message.id + '.' + message.arrival;
                     self.historyColl.add(new Iznik.Models.ModTools.User.MessageHistoryEntry(message));
                 });
 
@@ -363,7 +366,7 @@ define([
         render: function() {
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
-                var mom = new moment(self.model.get('date'));
+                var mom = new moment(self.model.get('arrival'));
                 self.$('.js-date').html(mom.format('llll'));
             });
             return(p);

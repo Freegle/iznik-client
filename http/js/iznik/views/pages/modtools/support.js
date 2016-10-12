@@ -791,7 +791,7 @@ define([
             var self = this;
             var p = Iznik.View.prototype.render.call(self);
             p.then(function() {
-                var mom = new moment(self.model.get('date'));
+                var mom = new moment(self.model.get('arrival'));
                 self.$('.js-date').html(mom.format('DD-MMM-YYYY hh:mm:a'));
             });
 

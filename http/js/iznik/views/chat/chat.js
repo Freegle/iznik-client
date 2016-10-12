@@ -345,6 +345,8 @@ define([
             // console.log("Organised", (new Date()).getMilliseconds() - start);
         },
 
+        unseenCount: -1,
+
         updateCounts: function () {
             var self = this;
             var unseen = 0;
@@ -360,17 +362,22 @@ define([
             var match = /\(.*\) (.*)/.exec(title);
             title = match ? match[1] : title;
 
-            if (unseen > 0) {
-                $('#dropdownmenu .js-totalcount').html(unseen).show();
-                $('#js-notifchat .js-totalcount').html(unseen).show();
-                document.title = '(' + unseen + ') ' + title;
-            } else {
-                $('#dropdownmenu .js-totalcount').html(unseen).hide();
-                $('#js-notifchat .js-totalcount').html(unseen).hide();
-                document.title = title;
-            }
+            // This if text improves browser performance by avoiding unnecessary show/hides.
+            if (self.unseenCount != unseen) {
+                self.unseenCount = unseen;
 
-            this.showMin();
+                if (unseen > 0) {
+                    $('#dropdownmenu').find('.js-totalcount').html(unseen).show();
+                    $('#js-notifchat').find('.js-totalcount').html(unseen).show();
+                    document.title = '(' + unseen + ') ' + title;
+                } else {
+                    $('#dropdownmenu').find('.js-totalcount').html(unseen).hide();
+                    $('#js-notifchat').find('.js-totalcount').html(unseen).hide();
+                    document.title = title;
+                }
+
+                this.showMin();
+            }
         },
 
         reportPerson: function (groupid, chatid, reason, message) {
@@ -495,7 +502,7 @@ define([
         searchKey: function () {
             var self = this;
 
-            self.filter = $('#notifchatdropdown .js-search').val();
+            self.filter = $('#notifchatdropdown').find('.js-search').val();
 
             // Apply the filter immediately - if we get matches on the name or snippet that will look zippy.
             Iznik.minimisedChats.reapplyFilter('visibleModels');
@@ -900,7 +907,11 @@ define([
             }).then(function () {
                 if (self.offers.length > 0) {
                     // The message we want to suggest as the one to promise is any last message mentioned in this chat.
-                    var msgid = _.last(self.model.get('refmsgids'));
+                    var msgid = null;
+                    _.each(self.model.get('refmsgids'), function(m) {
+
+                        msgid = m;
+                    });
 
                     var msg = null;
                     self.offers.each(function (offer) {
@@ -953,13 +964,17 @@ define([
             this.updateCount();
         },
 
-        minimise: function () {
+        minimise: function (quick) {
             var self = this;
             _.defer(function () {
                 self.$el.hide();
             });
             this.minimised = true;
-            this.waitDOM(self, self.options.organise);
+
+            if (!quick) {
+                this.waitDOM(self, self.options.organise);
+            }
+
             this.options.updateCounts();
 
             self.updateRoster('Away', self.noop);
@@ -1152,6 +1167,35 @@ define([
             window.setTimeout(_.bind(function () {
                 this.$('.js-modwarning').slideUp('slow');
             }, self), 30000);
+
+            if (!self.windowResizeListening) {
+                // If the window size changes, we will need to adapt.
+                self.windowResizeListening = true;
+                $(window).resize(function () {
+                    self.setSize();
+                    self.adjust();
+                    self.options.organise();
+                    self.scrollBottom();
+                });
+            }
+
+            if (!self.madeResizable) {
+                self.madeResizable = true;
+
+                self.$el.resizable({
+                    handleSelector: '#chat-' + self.model.get('id') + ' .js-grip',
+                    resizeWidthFrom: 'left',
+                    resizeHeightFrom: 'top',
+                    onDrag: _.bind(self.drag, self),
+                    onDragEnd: _.bind(self.dragend, self)
+                });
+
+                self.$(".js-leftpanel").resizable({
+                    handleSelector: ".splitter",
+                    resizeHeight: false,
+                    onDragEnd: _.bind(self.panelSize, self)
+                });
+            }
         },
 
         scrollTimer: null,
@@ -1331,7 +1375,6 @@ define([
             // minimised, we don't - the server will time us out as away.  We'll still; pick up any new messages on
             // minimised chats via the long poll, and the fallback.
             var self = this;
-            console.log("roster fn");
 
             if (!self.removed && !self.minimised) {
                 self.updateRoster(self.statusWithOverride('Online'),
@@ -1393,14 +1436,6 @@ define([
                 // If the unread message count changes, we want to update it.
                 self.listenTo(self.model, 'change:unseen', self.updateCount);
 
-                // If the window size changes, we will need to adapt.
-                $(window).resize(function () {
-                    self.setSize();
-                    self.adjust();
-                    self.options.organise();
-                    self.scrollBottom();
-                });
-
                 var narrow = isNarrow();
                 var minimise = true;
 
@@ -1447,21 +1482,9 @@ define([
 
                 self.messageViews.render();
 
-                self.$el.resizable({
-                    handleSelector: '#chat-' + self.model.get('id') + ' .js-grip',
-                    resizeWidthFrom: 'left',
-                    resizeHeightFrom: 'top',
-                    onDrag: _.bind(self.drag, self),
-                    onDragEnd: _.bind(self.dragend, self)
-                });
-
-                self.$(".js-leftpanel").resizable({
-                    handleSelector: ".splitter",
-                    resizeHeight: false,
-                    onDragEnd: _.bind(self.panelSize, self)
-                });
-
-                minimise ? self.minimise() : self.restore();
+                // During the render we don't need to reorganise - we do that when we have a chat open
+                // that we then minimise, to readjust the remaining windows.
+                minimise ? self.minimise(true) : self.restore();
 
                 // The minimised chat can signal to us that we should restore.
                 self.listenTo(self.model, 'restore', self.restore);

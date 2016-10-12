@@ -530,10 +530,10 @@ And something after it.', $stripped);
 //        error_log(__METHOD__ . " end");
 //    }
 
-    public function testType() {
-        $m = new Message($this->dbhr, $this->dbhm, 7435277);
-        error_log(Message::determineType($m->getSubject()));
-    }
+//    public function testType() {
+//        $m = new Message($this->dbhr, $this->dbhm, 8153598);
+//        error_log(Message::determineType($m->getSubject()));
+//    }
 
 }
 
