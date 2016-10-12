@@ -12,7 +12,7 @@ require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/Assert
  */
 abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
     const LOG_SLEEP = 600;
-    const YAHOO_PATIENCE = 10;
+    const YAHOO_PATIENCE = 600;
 
     private $dbhr, $dbhm;
 

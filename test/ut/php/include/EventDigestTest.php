@@ -67,6 +67,9 @@ class eventDigestTest extends IznikTestCase {
         $e->addGroup($gid);
         $e->addDate(ISODate('@' . strtotime('next wednesday 2pm')), ISODate('@' . strtotime('next wednesday 3pm')));
 
+        # Fake approve.
+        $e->setPrivate('pending', 0);
+
         # Now test.
 
         # Send fails

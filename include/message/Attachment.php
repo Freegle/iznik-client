@@ -141,6 +141,13 @@ class Attachment
         return($rc);
     }
 
+    public function setData($data) {
+        $this->dbhm->preExec("UPDATE messages_attachments SET archived = 0, data = ? WHERE id = ?;", [
+            $data,
+            $this->id
+        ]);
+    }
+
     public function getData() {
         $ret = NULL;
 

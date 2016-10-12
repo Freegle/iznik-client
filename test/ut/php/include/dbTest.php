@@ -389,10 +389,10 @@ class dbTest extends IznikTestCase {
         try {
             error_log("Commit first");
             $rc = $dbhm->commit();
-            assertFalse($rc);
+            assertTrue(FALSE);
         } catch (Exception $e) {
-            # Don't expect an exception
-            assertFalse(TRUE);
+            # We expect an exception
+            error_log("Got exception " . $e->getMessage());
         }
 
         $ids = $this->dbhr->query("SELECT * FROM test WHERE id = $id;");

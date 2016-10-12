@@ -29,6 +29,7 @@ function image() {
             $data = @file_get_contents($fn);
 
             if ($data) {
+                error_log("Got from cache $fn");
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
@@ -63,6 +64,8 @@ function image() {
                 }
             }
 
+            #file_put_contents('/tmp/a.jpg', $ret['img']);
+
             break;
         }
 
@@ -70,79 +73,102 @@ function image() {
             $ret = [ 'ret' => 1, 'status' => 'No photo provided' ];
 
             # This next line is to simplify UT.
-            $photo = presdef('photo', $_FILES, NULL) ? $_FILES['photo'] : $_REQUEST['photo'];
-            $imgtype = presdef('imgtype', $_REQUEST, Attachment::TYPE_MESSAGE);
-            $mimetype = presdef('type', $photo, NULL);
+            $rotate = pres('rotate', $_REQUEST) ? intval($_REQUEST['rotate']) : NULL;
 
-            # Make sure what we have looks plausible - the file upload plugin should ensure this is the case.
-            if ($photo &&
-                pres('tmp_name', $photo) &&
-                strpos($mimetype, 'image/') === 0) {
+            if ($rotate) {
+                # We want to rotate.  Do so.
+                $a = new Attachment($dbhr, $dbhm, $id, $type);
+                $data = $a->getData();
+                $i = new Image($data);
+                $i->rotate($rotate);
+                $newdata = $i->getData();
+                $a->setData($newdata);
 
-                # We may need to rotate.
-                $data = file_get_contents($photo['tmp_name']);
-                $image = imagecreatefromstring($data);
-                $exif = exif_read_data($photo['tmp_name']);
-
-                if($exif && !empty($exif['Orientation'])) {
-                    switch($exif['Orientation']) {
-                        case 8:
-                            $image = imagerotate($image,90,0);
-                            break;
-                        case 3:
-                            $image = imagerotate($image,180,0);
-                            break;
-                        case 6:
-                            $image = imagerotate($image,-90,0);
-                            break;
-                    }
-
-                    ob_start();
-                    imagejpeg($image, NULL, 100);
-                    $data = ob_get_contents();
-                    ob_end_clean();
+                # Now clear any cached image files.
+                error_log("Rotated by $rotate");
+                foreach (glob(IZNIK_BASE . "/http/imgcache/img_{$shorttype}_{$id}*") as $filename) {
+                    unlink($filename);
                 }
 
-                if ($data) {
-                    $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
-                    $id = $a->create($msgid, $photo['type'], $data);
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success'
+                ];
+            } else {
+                $photo = presdef('photo', $_FILES, NULL) ? $_FILES['photo'] : $_REQUEST['photo'];
+                $imgtype = presdef('imgtype', $_REQUEST, Attachment::TYPE_MESSAGE);
+                $mimetype = presdef('type', $photo, NULL);
 
-                    # Make sure it's not too large, to keep DB size down.  Ought to have been resized by
-                    # client, but you never know.
-                    $data = $a->getData();
-                    $i = new Image($data);
-                    $h = $i->height();
-                    $w = $i->width();
+                # Make sure what we have looks plausible - the file upload plugin should ensure this is the case.
+                if ($photo &&
+                    pres('tmp_name', $photo) &&
+                    strpos($mimetype, 'image/') === 0) {
 
-                    if ($w > 800) {
-                        $h = $h * 800 / $w;
-                        $w = 800;
-                        $i->scale($w, $h);
-                        $data = $i->getData(100);
-                        $a->setPrivate('data', $data);
+                    # We may need to rotate.
+                    $data = file_get_contents($photo['tmp_name']);
+                    $image = imagecreatefromstring($data);
+                    $exif = exif_read_data($photo['tmp_name']);
+
+                    if($exif && !empty($exif['Orientation'])) {
+                        switch($exif['Orientation']) {
+                            case 8:
+                                $image = imagerotate($image,90,0);
+                                break;
+                            case 3:
+                                $image = imagerotate($image,180,0);
+                                break;
+                            case 6:
+                                $image = imagerotate($image,-90,0);
+                                break;
+                        }
+
+                        ob_start();
+                        imagejpeg($image, NULL, 100);
+                        $data = ob_get_contents();
+                        ob_end_clean();
                     }
 
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success',
-                        'id' => $id,
-                        'path' => Attachment::getPath($id, $imgtype)
-                    ];
+                    if ($data) {
+                        $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
+                        $id = $a->create($msgid, $photo['type'], $data);
 
-                    # Return a new thumbnail (which might be a different orientation).
-                    $ret['initialPreview'] =  [
-                        '<img src="' . Attachment::getPath($id, $imgtype, TRUE) . '" class="file-preview-image" width="130px">',
-                    ];
+                        # Make sure it's not too large, to keep DB size down.  Ought to have been resized by
+                        # client, but you never know.
+                        $data = $a->getData();
+                        $i = new Image($data);
+                        $h = $i->height();
+                        $w = $i->width();
 
-                    if ($identify) {
-                        $a = new Attachment($dbhr, $dbhm, $id);
-                        $ret['items'] = $a->identify();
+                        if ($w > 800) {
+                            $h = $h * 800 / $w;
+                            $w = 800;
+                            $i->scale($w, $h);
+                            $data = $i->getData(100);
+                            $a->setPrivate('data', $data);
+                        }
+
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'id' => $id,
+                            'path' => Attachment::getPath($id, $imgtype)
+                        ];
+
+                        # Return a new thumbnail (which might be a different orientation).
+                        $ret['initialPreview'] =  [
+                            '<img src="' . Attachment::getPath($id, $imgtype, TRUE) . '" class="file-preview-image" width="130px">',
+                        ];
+
+                        if ($identify) {
+                            $a = new Attachment($dbhr, $dbhm, $id);
+                            $ret['items'] = $a->identify();
+                        }
                     }
                 }
+
+                # Uploader code requires this field.
+                $ret['error'] = $ret['ret'] == 0 ? NULL : $ret['status'];
             }
-
-            # Uploader code requires this field.
-            $ret['error'] = $ret['ret'] == 0 ? NULL : $ret['status'];
 
             break;
         }

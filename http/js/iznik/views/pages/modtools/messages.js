@@ -391,7 +391,21 @@ define([
         template: 'modtools_message_photo',
 
         events: {
-            'click .js-img': 'click'
+            'click .js-img': 'click',
+            'click .js-rotateright': 'rotateRight',
+            'click .js-rotateleft': 'rotateLeft'
+        },
+
+        rotateRight: function() {
+            this.rotate(90);
+        },
+
+        rotateLeft: function() {
+            this.rotate(270);
+        },
+
+        rotate: function(deg) {
+
         },
 
         click: function (e) {
