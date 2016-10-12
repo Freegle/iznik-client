@@ -3,7 +3,8 @@ var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
 var isiOS = false; // CC
-var initialURL = false; // CC
+var initialURL = false;
+var hammertime = false;
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -23,7 +24,7 @@ function panicReload() {
 
 requirejs.onError = function (err) {
     console.log("Require Error", err);
-    //alert("Require Error " + err);
+    alert("Require Error " + err);
     var mods = err.requireModules;
     var msg = err.message;
     if (msg && msg.indexOf('showFirst') !== -1) {
@@ -69,7 +70,8 @@ require([
     'jquery',
     'underscore',
     'backbone',
-    'iznik/router'
+    'iznik/router',
+    'hammer'   // CC http://hammerjs.github.io/getting-started/
 ], function($, _, Backbone) {
     console.log("starting Backbone");	// CC
 	  if (!Backbone) {
@@ -78,20 +80,15 @@ require([
         panicReload();
     }
 
-	  var last = 0;
-	  setInterval(function () {
-	      var body = document.body, html = document.documentElement;
-
-	      var height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
-	      if (last != height) {
-	          $('.navbar-title').text(height);
-	          last = height;
-	      }
-	  }, 1000);
-
-	  $(window).scroll(function (e) {
-	      //console.log(e);
-	      $('.navbar-title').text("Scroll");
+	  hammertime = new Hammer(window);
+	  /*hammertime.on('pan', function (ev) {
+	      console.log(ev);
+	      $('.navbar-title').text("Pan");
+	  });*/
+	  hammertime.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
+	  hammertime.on('swipe', function (ev) {
+	      console.log(ev);
+	      $('.navbar-title').text("Swipe " + ev.deltaY+" "+ev.direction);
 	  });
 
     Backbone.emulateJSON = true;

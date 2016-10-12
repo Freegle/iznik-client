@@ -59,6 +59,7 @@ requirejs.config({
     paths: {
 			  // CC.. remove /js/lib/ from on-absolute paths
         "bootstrap" :  "bootstrap.min",
+        "hammer": "hammer.min",   // CC
         "ga": "https://www.google-analytics.com/analytics",	// CC
         "waypoints": "jquery.waypoints",
         "jquery.ui.widget": "jquery-file-upload/vendor/jquery.ui.widget",
