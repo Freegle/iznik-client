@@ -139,14 +139,12 @@ define([
 
             // Now create the dropdown.  We do this from a JSON array because otherwise the UI updates each time we
             // add one, which performs atrociously for many items.
-            console.log("Create DD with json", json, self.$el);
             self.dropdown = self.$el.msDropdown({
                 byJson: {
                     data: json,
                     name: 'groupselect.' + self.id
                 }
             }).data("dd");
-            console.log("Created", self.dropdown);
 
             if (gotselected && self.options.hasOwnProperty('selected') && self.options.selected) {
                 self.dropdown.setIndexByValue(self.options.selected);
