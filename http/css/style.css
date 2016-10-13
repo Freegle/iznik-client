@@ -1423,3 +1423,18 @@ body {
 /* Large Devices, Wide Screens */
 @media only screen and (min-width : 1200px) {
 }
+
+#refresh {
+    margin-top: 8px;
+    margin-bottom: 8px;
+    padding: 9px 10px;
+    border-color: #dddddd;
+}
+
+.no-before{
+    vertical-align:top;
+}
+
+.no-before:before{
+    content:none;
+}

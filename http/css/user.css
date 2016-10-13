@@ -609,7 +609,7 @@ fieldset[disabled] .twitter-typeahead .tt-input {
     font-size:40px;
     position: absolute;
     height: 55px;
-    left: 100px;
+    left: 75px;
 }
 @media (min-width: 768px) {
     .navbar-title {

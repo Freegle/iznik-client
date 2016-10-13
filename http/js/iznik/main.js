@@ -57,6 +57,15 @@ window.onerror = function(message, file, line) {
 	});*/
 };
 
+function mobileRefresh() {
+    var repeat = $('#refresh span');
+    repeat.addClass("no-before");
+    var spinner = $("<img src='" + iznikroot+"images/pageloader.gif' style='height:14px;' />");
+    $(repeat).html(spinner);
+    Backbone.history.loadUrl();
+    return false;
+}
+
 // Called when app starts - and when it restarts when Router.mobileReload() called
 
 function mainOnAppStart() { // CC
@@ -89,8 +98,13 @@ require([
 	      hammertime.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
 	  }
 	  hammertime.on('swipedown', function (ev) {
-	      console.log(ev);
-	      $('.navbar-title').text("down " + ev.deltaY + " " + ev.direction);
+	      //console.log(ev);
+	      var posn = $(window).scrollTop();
+	      //console.log("posn=" + posn);
+	      //$('.navbar-title').text("D " + ev.deltaY + " " + posn);
+	      if (posn === 0) {
+	          mobileRefresh();
+	      }
 	  });
 	  hammertime.on('swipeleft swiperight', function (ev) {
 	      console.log(ev);
