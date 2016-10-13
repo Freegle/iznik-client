@@ -226,7 +226,7 @@ define([
 
                 var v = new Iznik.Views.User.Message.Photos({
                     collection: new Iznik.Collection(photos),
-                    subject: self.model.get('subject')
+                    message: self.model
                 });
                 v.render().then(function() {
                     self.$('.js-attlist').append(v.el);
@@ -309,10 +309,44 @@ define([
         tagName: 'li',
 
         events: {
-            'click': 'zoom'
+            'click img': 'zoom',
+            'click .js-rotateright': 'rotateRight',
+            'click .js-rotateleft': 'rotateLeft'
         },
         
         template: 'user_message_photo',
+
+        rotateRight: function() {
+            this.rotate(-90);
+        },
+
+        rotateLeft: function() {
+            this.rotate(90);
+        },
+
+        rotate: function(deg) {
+            var self = this;
+
+            $.ajax({
+                url: API + 'image',
+                type: 'POST',
+                data: {
+                    id: self.model.get('id'),
+                    rotate: deg
+                },
+                success: function(ret) {
+                    var t = (new Date()).getTime();
+
+                    if (ret.ret === 0) {
+                        // Force the image to reload.
+                        var url = self.$('img').attr('src');
+                        var p = url.indexOf('?');
+                        url =  p === -1 ? (url + '?t=' + t) : (url + '&t' + t + '=' + t);
+                        self.$('img').attr('src', url);
+                    }
+                }
+            })
+        },
 
         zoom: function (e) {
             e.preventDefault();
@@ -356,7 +390,8 @@ define([
             p.then(function() {
                 self.photos = [];
                 self.collection.each(function(att) {
-                    att.set('subject', self.options.subject);
+                    att.set('subject', self.options.message.get('subject'));
+                    att.set('mine', self.options.message.get('mine'));
 
                     var v = new Iznik.Views.User.Message.Photo({
                         model: att

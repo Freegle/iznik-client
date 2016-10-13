@@ -708,7 +708,9 @@ define([
                 self.messages = new Iznik.Collections.Chat.Messages({
                     roomid: self.model.get('id')
                 });
-                self.messages.fetch().then(function () {
+                self.messages.fetch({
+                    remove: true
+                }).then(function () {
                     if (self.messages.length > 0) {
                         var lastmsgseen = self.messages.at(self.messages.length - 1).get('id');
                         $.ajax({
@@ -1410,90 +1412,97 @@ define([
 
         render: function () {
             var self = this;
+            console.log("Render chat", self.model.get('id')); console.trace();
 
-            self.$el.attr('id', 'chat-' + self.model.get('id'));
-            self.$el.addClass('chat-' + self.model.get('name'));
+            if (!self.rendered) {
+                self.rendered = true;
+                self.$el.attr('id', 'chat-' + self.model.get('id'));
+                self.$el.addClass('chat-' + self.model.get('name'));
 
-            self.$el.css('visibility', 'hidden');
+                self.$el.css('visibility', 'hidden');
 
-            self.messages = new Iznik.Collections.Chat.Messages({
-                roomid: self.model.get('id')
-            });
+                self.messages = new Iznik.Collections.Chat.Messages({
+                    roomid: self.model.get('id')
+                });
 
-            var p = Iznik.View.prototype.render.call(self);
-            p.then(function (self) {
-                try {
-                    var status = localStorage.getItem('mystatus');
+                var p = Iznik.View.prototype.render.call(self);
+                p.then(function (self) {
+                    try {
+                        var status = localStorage.getItem('mystatus');
 
-                    if (status) {
-                        self.$('.js-status').val(status);
+                        if (status) {
+                            self.$('.js-status').val(status);
+                        }
+                    } catch (e) {
                     }
-                } catch (e) {
-                }
 
-                self.updateCount();
+                    self.updateCount();
 
-                // If the unread message count changes, we want to update it.
-                self.listenTo(self.model, 'change:unseen', self.updateCount);
+                    // If the unread message count changes, we want to update it.
+                    self.listenTo(self.model, 'change:unseen', self.updateCount);
 
-                var narrow = isNarrow();
-                var minimise = true;
+                    var narrow = isNarrow();
+                    var minimise = true;
 
-                try {
-                    // On mobile we start them all minimised as there's not much room, unless one has been forced open.
-                    //
-                    // Otherwise default to minimised, which is what we get if the key is missing and returns null.
-                    var open = localStorage.getItem(self.lsID() + '-open');
-                    open = (open === null) ? open : parseInt(open);
+                    try {
+                        // On mobile we start them all minimised as there's not much room, unless one has been forced open.
+                        //
+                        // Otherwise default to minimised, which is what we get if the key is missing and returns null.
+                        var open = localStorage.getItem(self.lsID() + '-open');
+                        open = (open === null) ? open : parseInt(open);
 
-                    if (!open || (open != 2 && narrow)) {
-                        minimise = true;
-                    } else {
-                        minimise = false;
+                        if (!open || (open != 2 && narrow)) {
+                            minimise = true;
+                        } else {
+                            minimise = false;
 
-                        // Make sure we don't force open.
-                        localStorage.setItem(self.lsID() + '-open', 1);
+                            // Make sure we don't force open.
+                            localStorage.setItem(self.lsID() + '-open', 1);
+                        }
+                    } catch (e) {
                     }
-                } catch (e) {
-                }
 
-                self.$('.js-messages').empty();
+                    self.$('.js-messages').empty();
 
-                self.messageViews = new Backbone.CollectionView({
-                    el: self.$('.js-messages'),
-                    modelView: Iznik.Views.Chat.Message,
-                    collection: self.messages,
-                    chatView: self,
-                    comparator: 'id',
-                    modelViewOptions: {
+                    self.messageViews = new Backbone.CollectionView({
+                        el: self.$('.js-messages'),
+                        modelView: Iznik.Views.Chat.Message,
+                        collection: self.messages,
                         chatView: self,
-                        chatModel: self.model
-                    }
-                });
-
-                // As new messages are added, we want to show them.  This also means when we first render, we'll
-                // scroll down to the latest messages.
-                self.listenTo(self.messageViews, 'add', function (modelView) {
-                    self.listenToOnce(modelView, 'rendered', function () {
-                        self.scrollBottom();
-                        // _.delay(_.bind(self.scrollBottom, self), 5000);
+                        comparator: 'id',
+                        modelViewOptions: {
+                            chatView: self,
+                            chatModel: self.model
+                        }
                     });
+
+                    // As new messages are added, we want to show them.  This also means when we first render, we'll
+                    // scroll down to the latest messages.
+                    self.listenTo(self.messageViews, 'add', function (modelView) {
+                        self.listenToOnce(modelView, 'rendered', function () {
+                            self.scrollBottom();
+                            // _.delay(_.bind(self.scrollBottom, self), 5000);
+                        });
+                    });
+
+                    self.messageViews.render();
+
+                    // During the render we don't need to reorganise - we do that when we have a chat open
+                    // that we then minimise, to readjust the remaining windows.
+                    minimise ? self.minimise(true) : self.restore();
+
+                    // The minimised chat can signal to us that we should restore.
+                    self.listenTo(self.model, 'restore', self.restore);
+
+                    self.trigger('rendered');
+
+                    // Get the roster to see who's there.
+                    self.roster();
                 });
-
-                self.messageViews.render();
-
-                // During the render we don't need to reorganise - we do that when we have a chat open
-                // that we then minimise, to readjust the remaining windows.
-                minimise ? self.minimise(true) : self.restore();
-
-                // The minimised chat can signal to us that we should restore.
-                self.listenTo(self.model, 'restore', self.restore);
-
-                self.trigger('rendered');
-
-                // Get the roster to see who's there.
-                self.roster();
-            });
+            } else {
+                console.log("Already rendered");
+                return(resolvedPromise(self));
+            }
 
             return (p);
         }

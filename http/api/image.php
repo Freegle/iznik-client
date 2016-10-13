@@ -64,8 +64,6 @@ function image() {
                 }
             }
 
-            #file_put_contents('/tmp/a.jpg', $ret['img']);
-
             break;
         }
 
@@ -81,18 +79,21 @@ function image() {
                 $data = $a->getData();
                 $i = new Image($data);
                 $i->rotate($rotate);
-                $newdata = $i->getData();
+                $newdata = $i->getData(100);
                 $a->setData($newdata);
 
+                file_put_contents("/tmp/orig.jpg", $data);
+                file_put_contents("/tmp/rotate.jpg", $newdata);
+
                 # Now clear any cached image files.
-                error_log("Rotated by $rotate");
                 foreach (glob(IZNIK_BASE . "/http/imgcache/img_{$shorttype}_{$id}*") as $filename) {
                     unlink($filename);
                 }
 
                 $ret = [
                     'ret' => 0,
-                    'status' => 'Success'
+                    'status' => 'Success',
+                    'rotatedsize' => strlen($newdata)
                 ];
             } else {
                 $photo = presdef('photo', $_FILES, NULL) ? $_FILES['photo'] : $_REQUEST['photo'];

@@ -397,15 +397,35 @@ define([
         },
 
         rotateRight: function() {
-            this.rotate(90);
+            this.rotate(-90);
         },
 
         rotateLeft: function() {
-            this.rotate(270);
+            this.rotate(90);
         },
 
         rotate: function(deg) {
+            var self = this;
 
+            $.ajax({
+                url: API + 'image',
+                type: 'POST',
+                data: {
+                    id: self.model.get('id'),
+                    rotate: deg
+                },
+                success: function(ret) {
+                    var t = (new Date()).getTime();
+
+                    if (ret.ret === 0) {
+                        // Force the image to reload.
+                        var url = self.$('img').attr('src');
+                        var p = url.indexOf('?');
+                        url =  p === -1 ? (url + '?t=' + t) : (url + '&t' + t + '=' + t);
+                        self.$('img').attr('src', url);
+                    }
+                }
+            })
         },
 
         click: function (e) {

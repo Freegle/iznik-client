@@ -26,7 +26,7 @@ class Image {
     }
 
     public function rotate($deg) {
-        imagerotate($this->img, $deg, 0);
+        $this->img = imagerotate($this->img, $deg, 0);
     }
 
     public function scale($width, $height) {
