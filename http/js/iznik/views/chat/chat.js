@@ -1412,7 +1412,6 @@ define([
 
         render: function () {
             var self = this;
-            console.log("Render chat", self.model.get('id')); console.trace();
 
             if (!self.rendered) {
                 self.rendered = true;
@@ -1500,7 +1499,6 @@ define([
                     self.roster();
                 });
             } else {
-                console.log("Already rendered");
                 return(resolvedPromise(self));
             }
 
