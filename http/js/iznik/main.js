@@ -71,7 +71,7 @@ require([
     'underscore',
     'backbone',
     'iznik/router',
-    'hammer'   // CC http://hammerjs.github.io/getting-started/
+    'hammer'   // CC
 ], function($, _, Backbone) {
     console.log("starting Backbone");	// CC
 	  if (!Backbone) {
@@ -80,15 +80,21 @@ require([
         panicReload();
     }
 
+      // http://hammerjs.github.io/getting-started/
 	  hammertime = new Hammer(window);
-	  /*hammertime.on('pan', function (ev) {
+
+	  if (isiOS) {  // vertical swipe on iOS stops scrolling
+	      hammertime.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
+	  } else {
+	      hammertime.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
+	  }
+	  hammertime.on('swipedown', function (ev) {
 	      console.log(ev);
-	      $('.navbar-title').text("Pan");
-	  });*/
-	  hammertime.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
-	  hammertime.on('swipe', function (ev) {
+	      $('.navbar-title').text("down " + ev.deltaY + " " + ev.direction);
+	  });
+	  hammertime.on('swipeleft swiperight', function (ev) {
 	      console.log(ev);
-	      $('.navbar-title').text("Swipe " + ev.deltaY+" "+ev.direction);
+	      $('.navbar-title').text("LR " + ev.deltaX + " " + ev.direction);
 	  });
 
     Backbone.emulateJSON = true;
