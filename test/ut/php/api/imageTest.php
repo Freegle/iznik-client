@@ -120,6 +120,38 @@ class imageAPITest extends IznikAPITestCase
         var_dump($ret);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
+        $id = $ret['id'];
+
+        # Now rotate.
+        $origdata = $this->call('image', 'GET', [
+            'id' => $id,
+            'w' => 100
+        ], FALSE);
+
+        $ret = $this->call('image', 'POST', [
+            'id' => $id,
+            'rotate' => 90
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        $newdata = $this->call('image', 'GET', [
+            'id' => $id,
+            'w' => 100
+        ], FALSE);
+
+        error_log("Lengths " . strlen($origdata) . " vs " . strlen($newdata));
+        assertNotEquals($origdata, $newdata);
+
+        $ret = $this->call('image', 'POST', [
+            'id' => $id,
+            'rotate' => -90
+        ]);
+
+        $newdata = $this->call('image', 'GET', [
+            'id' => $id,
+            'w' => 100
+        ], FALSE);
 
         error_log(__METHOD__ . " end");
     }

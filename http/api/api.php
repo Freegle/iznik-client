@@ -292,7 +292,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 # This is an image we want to output.  Can cache forever - if an image changes it would get a new id
                 @header('Content-Type: image/jpeg');
                 @header('Content-Length: ' . strlen($ret['img']));
-                @header('Cache-Control: max-age=315360000');
+                @header('Cache-Control: max-age=5360000');
                 print $ret['img'];
             } else {
                 # This is a normal API call.  Add profiling info.

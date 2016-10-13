@@ -25,6 +25,10 @@ class Image {
         return(imagesy($this->img));
     }
 
+    public function rotate($deg) {
+        $this->img = imagerotate($this->img, $deg, 0);
+    }
+
     public function scale($width, $height) {
         $sw = imagesx($this->img);
         $sh = imagesy($this->img);
