@@ -1181,6 +1181,7 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 html {
     position: relative;
     min-height: 100%;
+    -ms-overflow-style: scrollbar;
 }
 body {
     margin-bottom: 80px;
