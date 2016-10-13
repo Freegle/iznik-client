@@ -23,7 +23,11 @@ define([
         },
 
         getItem: function () {
-            return(this.$('.js-item').typeahead('val'));
+            var val = this.$('.js-item').typeahead('val');
+            if (!val) {
+                val = this.$('.js-item').val();
+            }
+            return(val);
         },
 
         checkNext: function () {
@@ -35,13 +39,16 @@ define([
 
                 // We accept either a photo or a description.
                 if (self.uploading || item.length == 0) {
+                    console.log("No item");
                     self.$('.js-item').addClass('error-border');
                     self.$('.js-next').fadeOut('slow');
                     self.$('.js-ok').fadeOut('slow');
                 } else if (self.$('.js-description').val().length > 0 || self.photos.length > 0) {
+                    console.log("Got description or photo");
                     self.$('.js-next').fadeIn('slow');
                     self.$('.js-ok').fadeIn('slow');
                 } else if (self.$('.js-description').val().length == 0) {
+                    console.log("No description");
                     self.$('.js-description').addClass('error-border');
                 }
 
