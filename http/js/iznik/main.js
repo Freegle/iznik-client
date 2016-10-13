@@ -93,10 +93,11 @@ require([
 	  hammertime = new Hammer(window);
 
 	  if (isiOS) {  // vertical swipe on iOS stops scrolling
-	      hammertime.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
+	      //hammertime.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
 	  } else {
-	      hammertime.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
-	  }
+	      //hammertime.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
+	      hammertime.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
+      }
 	  hammertime.on('swipedown', function (ev) {
 	      //console.log(ev);
 	      var posn = $(window).scrollTop();
@@ -106,9 +107,17 @@ require([
 	          mobileRefresh();
 	      }
 	  });
-	  hammertime.on('swipeleft swiperight', function (ev) {
+	  /*hammertime.on('swipeleft swiperight', function (ev) {
 	      console.log(ev);
 	      $('.navbar-title').text("LR " + ev.deltaX + " " + ev.direction);
+	  });*/
+
+      // Catch back button and clear chats
+	  window.addEventListener('popstate', function (e) {    // CC
+	      try {
+	          var ChatHolder = new Iznik.Views.Chat.Holder();
+	          ChatHolder.minimiseall();
+	      } catch (e) { }
 	  });
 
     Backbone.emulateJSON = true;

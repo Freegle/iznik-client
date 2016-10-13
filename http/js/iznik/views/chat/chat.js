@@ -560,6 +560,7 @@ define([
             Iznik.minimisedChats.render();
 
             $('#js-notifchat').click(function (e) {
+                Router.navigate("#chat"); // CC
                 var display = $('#notifchatdropdown').css('display');
 
                 if (display === 'none') {
