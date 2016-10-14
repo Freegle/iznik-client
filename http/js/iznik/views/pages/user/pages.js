@@ -339,6 +339,7 @@ define([
                 data: {
                     typeahead: query
                 }, success: function(ret) {
+                    if (ret == '') return;  // CC
                     var matches = [];
                     _.each(ret.locations, function(location) {
                         matches.push(location.name);

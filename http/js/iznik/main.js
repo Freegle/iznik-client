@@ -89,6 +89,15 @@ function mobileRefresh() {
     return false;
 }
 
+var isOnline = true;
+function showNetworkStatus() {
+    if (isOnline) {
+        $('#nonetwork').hide();
+    } else {
+        $('#nonetwork').show();
+    }
+}
+
 // Called when app starts - and when it restarts when Router.mobileReload() called
 
 function mainOnAppStart() { // CC
@@ -144,6 +153,9 @@ require([
 	          ChatHolder.minimiseall();
 	      } catch (e) { }
 	  });
+
+	  document.addEventListener("offline", function () { isOnline = false; showNetworkStatus() }, false);
+	  document.addEventListener("online", function () { isOnline = true; showNetworkStatus() }, false);
 
     Backbone.emulateJSON = true;
     

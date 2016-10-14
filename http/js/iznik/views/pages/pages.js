@@ -108,6 +108,7 @@ define([
                     $('.js-pageContent').html(self.$el);
 
                     if (isiOS) { $('#refreshbutton').show(); }  // CC
+                    showNetworkStatus(); // CC
 
                     ChatHolder().createMinimised();
 
