@@ -24,14 +24,17 @@
 <nav class="navbar navbar-custom navbar-fixed-top">
     <div class="nopad completefull container-fluid">
         <div class="nopad nomargin completefull navbar-header">
-            <button id="refresh" class="btn btn-default margright pull-right" type="button" onclick="return mobileRefresh();" >
-              <span class="glyphicon glyphicon-repeat" aria-hidden="true" />
-            </button>
             <button class="reallyHide btn btn-white js-signin js-loggedoutonly margtopsm margright pull-right">Sign in</button>
             <button id="dropdownmenu" class="js-menu reallyHide js-loggedinonly navbar-toggle collapsed btn btn-default" type="button" data-toggle="collapse" data-target="#navbar-collapse" aria-haspopup="true" role="button" aria-expanded="false">
               <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true" />
               <span class="js-totalcount badge badge-unread" style="display: none;" />
             </button>
+            <button id="refreshbutton" class="btn btn-default margright pull-right" type="button" onclick="return mobileRefresh();" >
+              <span class="glyphicon glyphicon-repeat" aria-hidden="true" />
+            </button>
+            <div id="refreshicon" class="margright pull-right">
+              <img src="/images/pageloader.gif" />
+            </div>
             <div class="notop js-home clickme padleft pull-left">
               <img src="/images/user_logo.png" class="padmd img-responsive img-morerounded inline" />
             </div>

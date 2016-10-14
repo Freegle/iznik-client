@@ -99,13 +99,15 @@ define([
 
             // Set the base page layout.
             var p = new Promise(function(resolve, reject) {
-                templateFetch(self.modtools ? 'modtools_layout_layout' : 'user_layout_layout').then(function(tpl) {
+                templateFetch(self.modtools ? 'modtools_layout_layout' : 'user_layout_layout').then(function (tpl) {
                     if (self.title) {
                         window.document.title = self.title;
                     }
 
                     $('#bodyContent').html(window.template(tpl));
                     $('.js-pageContent').html(self.$el);
+
+                    if (isiOS) { $('#refreshbutton').show(); }  // CC
 
                     ChatHolder().createMinimised();
 

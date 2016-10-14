@@ -14,7 +14,8 @@ define([
         template: "user_settings_main",
         
         getLocation: function() {
-            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this));
+            showHeaderWait();
+            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this), hideHeaderWait, { timeout: 30000 });
         },
 
         events: {

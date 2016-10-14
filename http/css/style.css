@@ -1424,11 +1424,12 @@ body {
 @media only screen and (min-width : 1200px) {
 }
 
-#refresh {
+#refreshbutton {
     margin-top: 8px;
     margin-bottom: 8px;
     padding: 9px 10px;
     border-color: #dddddd;
+    display: none;
 }
 
 .no-before{
@@ -1437,4 +1438,17 @@ body {
 
 .no-before:before{
     content:none;
+}
+
+#refreshicon{
+    margin: 11px 5px 5px 0;
+    display: none;
+}
+#refreshicon img{
+    height: 30px;
+}
+
+.js-loggedoutonly{
+    height: 41px;
+    margin-top: 7px;
 }

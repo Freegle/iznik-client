@@ -59,9 +59,18 @@ define([
                 var me = Iznik.Session.get('me');
                 var myid = me ? me.id : null;
 
+                function callwait() {   // CC
+                    self.wait.call(self);
+                }
+
+                if (navigator.connection.type === Connection.NONE) {    // CC
+                    _.delay(callwait, 5000);
+                    return;
+                }
+
                 if (!myid) {
                     // Not logged in, try later;
-                    _.delay(self.wait, 5000);
+                    _.delay(callwait, 5000);    // CC
                 } else {
                     var chathost = $('meta[name=iznikchat]').attr("content");
 

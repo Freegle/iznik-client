@@ -4,7 +4,7 @@ var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
 var isiOS = false; // CC
 var initialURL = false;
-var hammertime = false;
+var hammer = false;
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -24,7 +24,7 @@ function panicReload() {
 
 requirejs.onError = function (err) {
     console.log("Require Error", err);
-    alert("Require Error " + err);
+    //alert("Require Error " + err);
     var mods = err.requireModules;
     var msg = err.message;
     if (msg && msg.indexOf('showFirst') !== -1) {
@@ -57,11 +57,34 @@ window.onerror = function(message, file, line) {
 	});*/
 };
 
+function showHeaderWait() {
+    if (isiOS) {
+        var refreshbutton = $('#refreshbutton span');
+        refreshbutton.addClass("no-before");
+        var spinner = $("<img src='" + iznikroot + "images/pageloader.gif' style='height:14px;' />");
+        $(refreshbutton).html(spinner);
+    } else {
+        var refreshicon = $('#refreshicon');
+        refreshicon.show();
+    }
+}
+
+function hideHeaderWait(event) {
+    if (event) {    // If called as geolocationError
+        console.log(event);
+    }
+    if (isiOS) {
+        var refreshbutton = $('#refreshbutton span');
+        refreshbutton.removeClass("no-before");
+        $(refreshbutton).html('');
+    } else {
+        var refreshicon = $('#refreshicon');
+        refreshicon.hide();
+    }
+}
+
 function mobileRefresh() {
-    var repeat = $('#refresh span');
-    repeat.addClass("no-before");
-    var spinner = $("<img src='" + iznikroot+"images/pageloader.gif' style='height:14px;' />");
-    $(repeat).html(spinner);
+    showHeaderWait();
     Backbone.history.loadUrl();
     return false;
 }
@@ -90,27 +113,29 @@ require([
     }
 
       // http://hammerjs.github.io/getting-started/
-	  hammertime = new Hammer(window);
 
 	  if (isiOS) {  // vertical swipe on iOS stops scrolling
-	      //hammertime.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
+	      //hammer.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
 	  } else {
-	      //hammertime.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
-	      hammertime.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
-      }
-	  hammertime.on('swipedown', function (ev) {
-	      //console.log(ev);
-	      var posn = $(window).scrollTop();
-	      //console.log("posn=" + posn);
-	      //$('.navbar-title').text("D " + ev.deltaY + " " + posn);
-	      if (posn === 0) {
-	          mobileRefresh();
-	      }
-	  });
-	  /*hammertime.on('swipeleft swiperight', function (ev) {
-	      console.log(ev);
-	      $('.navbar-title').text("LR " + ev.deltaX + " " + ev.direction);
-	  });*/
+	      //hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
+	      hammer = new Hammer(window);
+	      hammer.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
+	  }
+	  if (hammer) {
+	      hammer.on('swipedown', function (ev) {
+	          //console.log(ev);
+	          var posn = $(window).scrollTop();
+	          //console.log("posn=" + posn);
+	          //$('.navbar-title').text("D " + ev.deltaY + " " + posn);
+	          if (posn === 0) {
+	              mobileRefresh();
+	          }
+	      });
+	      /*hammer.on('swipeleft swiperight', function (ev) {
+              console.log(ev);
+              $('.navbar-title').text("LR " + ev.deltaX + " " + ev.direction);
+          });*/
+	  }
 
       // Catch back button and clear chats
 	  window.addEventListener('popstate', function (e) {    // CC
@@ -125,13 +150,14 @@ require([
     // We have a busy indicator.
     $(document).ajaxStop(function () {
         $('#spinner').hide();
-
         // We might have added a class to indicate that we were waiting for an AJAX call to complete.
         $('.showclicked').removeClass('showclicked');
+        hideHeaderWait();
     });
 
     $(document).ajaxStart(function () {
         $('#spinner').show();
+        showHeaderWait();
     });
 
     // We want to retry AJAX requests automatically, because we might have a flaky network.  This also covers us for

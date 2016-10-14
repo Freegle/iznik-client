@@ -61,8 +61,9 @@ define([
             }, 2000);
         },
 
-        getLocation: function() {
-            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this));
+        getLocation: function () {
+            showHeaderWait();
+            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this), hideHeaderWait, { timeout: 30000 });
         },
 
         changeHomeGroup: function() {
@@ -134,7 +135,7 @@ define([
                             var width = self.$('.js-postcode').width();
                             map.css('width', width);
                             map.css('height', width);
-                            var mapicon = 'images/mapmarker.gif';	// CC
+                            var mapicon = 'https://www.ilovefreegle.org/images/mapmarker.gif';	// CC
                             map.html('<img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=' + width + 'x' + width + '&zoom=12&center=' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&maptype=roadmap&markers=icon:' + mapicon + '|' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&sensor=true" />');
                         }
                     }
@@ -302,6 +303,7 @@ define([
         },
 
         gotLocation: function(position) {
+            hideHeaderWait();
             var self = this;
 
             $.ajax({

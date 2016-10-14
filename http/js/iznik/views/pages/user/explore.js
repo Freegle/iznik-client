@@ -35,11 +35,19 @@ define([
             this.$('.js-location').trigger('geocode');
         },
 
-        getLocation: function() {
-            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this));
+        getLocation: function () {
+            function geoError(error) {
+                hideHeaderWait();
+                alert('code: ' + error.code + '\n' +
+                      'message: ' + error.message + '\n');
+            }
+
+            showHeaderWait();
+            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this), hideHeaderWait, { timeout: 30000 });
         },
 
-        gotLocation: function(position) {
+        gotLocation: function (position) {
+            hideHeaderWait();
             this.map.moveTo(position.coords.latitude, position.coords.longitude);
         },
 
