@@ -26,7 +26,21 @@ define([
             'keyup .js-email': 'emailChange',
             'click .js-saveemail': 'emailChange',
             'keyup .js-password': 'passwordChange',
-            'click .js-savepassword': 'passwordChange'
+            'click .js-savepassword': 'passwordChange',
+            'click .js-showpassword': 'showPassword',
+            'click .js-hidepassword': 'hidePassword'
+        },
+
+        showPassword: function() {
+            this.$('.js-password').attr('type', 'text');
+            this.$('.js-showpassword').hide();
+            this.$('.js-hidepassword').show();
+        },
+
+        hidePassword: function() {
+            this.$('.js-password').attr('type', 'password');
+            this.$('.js-hidepassword').hide();
+            this.$('.js-showpassword').show();
         },
 
         onholidaytill: function() {
