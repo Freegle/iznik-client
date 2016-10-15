@@ -3,6 +3,7 @@ var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
 var isiOS = false; // CC
+var useSwipeRefresh = false;
 var initialURL = false;
 var hammer = false;
 
@@ -58,14 +59,14 @@ window.onerror = function(message, file, line) {
 };
 
 function showHeaderWait() {
-    if (isiOS) {
+    if (useSwipeRefresh) {
+        var refreshicon = $('#refreshicon');
+        refreshicon.show();
+    } else {
         var refreshbutton = $('#refreshbutton span');
         refreshbutton.addClass("no-before");
         var spinner = $("<img src='" + iznikroot + "images/pageloader.gif' style='height:14px;' />");
         $(refreshbutton).html(spinner);
-    } else {
-        var refreshicon = $('#refreshicon');
-        refreshicon.show();
     }
 }
 
@@ -73,13 +74,13 @@ function hideHeaderWait(event) {
     if (event) {    // If called as geolocationError
         console.log(event);
     }
-    if (isiOS) {
+    if (useSwipeRefresh) {
+        var refreshicon = $('#refreshicon');
+        refreshicon.hide();
+    } else {
         var refreshbutton = $('#refreshbutton span');
         refreshbutton.removeClass("no-before");
         $(refreshbutton).html('');
-    } else {
-        var refreshicon = $('#refreshicon');
-        refreshicon.hide();
     }
 }
 
@@ -107,6 +108,9 @@ if (!initialURL) {
     initialURL = window.location.href;
 }
 
+useSwipeRefresh = !isiOS;   // vertical swipe on iOS stops scrolling
+useSwipeRefresh = false;    // switch off for non-Crosswalk
+
 require([
     'jquery',
     'underscore',
@@ -123,14 +127,10 @@ require([
 
       // http://hammerjs.github.io/getting-started/
 
-	  if (isiOS) {  // vertical swipe on iOS stops scrolling
-	      //hammer.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
-	  } else {
+	  if (useSwipeRefresh) {
 	      //hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
 	      hammer = new Hammer(window);
 	      hammer.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
-	  }
-	  if (hammer) {
 	      hammer.on('swipedown', function (ev) {
 	          //console.log(ev);
 	          var posn = $(window).scrollTop();
@@ -140,10 +140,10 @@ require([
 	              mobileRefresh();
 	          }
 	      });
-	      /*hammer.on('swipeleft swiperight', function (ev) {
-              console.log(ev);
-              $('.navbar-title').text("LR " + ev.deltaX + " " + ev.direction);
-          });*/
+	      //hammer.on('swipeleft swiperight', function (ev) {
+	      //    console.log(ev);
+	      //    $('.navbar-title').text("LR " + ev.deltaX + " " + ev.direction);
+	      //});
 	  }
 
       // Catch back button and clear chats
