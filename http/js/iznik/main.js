@@ -108,8 +108,12 @@ if (!initialURL) {
     initialURL = window.location.href;
 }
 
-useSwipeRefresh = !isiOS;   // vertical swipe on iOS stops scrolling
-useSwipeRefresh = false;    // switch off for non-Crosswalk
+if (!isiOS) {   // vertical swipe on iOS stops scrolling
+    var androidVersion = parseFloat(device.version);    // Not using Crosswalk so only enable swipe refresh for Android 4.4+
+    if (androidVersion >= 4.4) {
+        useSwipeRefresh = true;
+    }
+}
 
 require([
     'jquery',
