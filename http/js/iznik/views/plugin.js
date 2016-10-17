@@ -391,34 +391,11 @@ define([
                     }
                 });
             }
-    
-            var first = self.collection.at(0);
-            //console.log("checkPluginStatus, first", first);
-            if (first && first.get('running')) {
-                // We are in the middle of work.  Don't query Yahoo as we'll break our crumb.
-                //console.log("Running item - don't query");
-                window.setTimeout(_.bind(self.checkPluginStatus, self), 10000);
-            } else {
-                // Check if we are connected to Yahoo by issuing an API call.
-                //console.log("Not running item - query Yahoo");
-                new majax({
-                    type: 'GET',
-                    url: 'https://groups.yahoo.com/api/v1/user/groups/all',
-                    success: checkResponse(self),
-                    error: checkResponse(self),
-                    complete: function() {
-                        window.setTimeout(_.bind(self.checkPluginStatus, self), 10000);
-                    }
-                });
-            }
-    
-            // Get our session, both to keep it alive and update any counts.
-            Iznik.Session.testLoggedIn();
-    
+
             // Check if we have any plugin work to do from the server.
             var hoursago = 0;
             var now = new moment();
-    
+
             $.ajax({
                 type: 'GET',
                 url: API + 'plugin',
@@ -430,37 +407,37 @@ define([
                             var hours = duration.asHours();
                             hoursago = hoursago > hours ? hoursago : hours;
                             //console.log("Work ago", work.added, hours, hoursago, work);
-    
+
                             work.workid = work.id;
                             work = _.extend(work, jQuery.parseJSON(work.data));
-    
+
                             // This is work from the server, which we may already have
                             var got = (self.currentItem && work.id == self.currentItem.model.get('id'));
-    
+
                             _.each(self.work, function(item, index, list) {
                                 if (item.model.get('id') == work.id) {
                                     got = true;
                                 }
                             });
-    
+
                             if (got) {
                                 return;
                             }
-    
+
                             // Create a piece of work for us to do.  If we already have this one it'll be filtered
                             // out when we add it, because we put an id in it, and collections do that.
                             if (work.hasOwnProperty('groupid')) {
                                 // Find our group and add it in.
                                 work.group = Iznik.Session.getGroup(work.groupid);
-    
+
                                 if (!work.group) {
                                     // We don't know about this group yet.  Skip this item.
                                     return;
                                 }
-    
+
                                 work.group = work.group.toJSON2();
                             }
-    
+
                             switch (work.type) {
                                 case 'ApprovePendingMessage': {
                                     self.collection.add(new Iznik.Models.Plugin.Work({
@@ -471,7 +448,7 @@ define([
                                     }));
                                     break;
                                 }
-    
+
                                 case 'RejectPendingMessage': {
                                     self.collection.add(new Iznik.Models.Plugin.Work({
                                         id: work.id,
@@ -481,7 +458,7 @@ define([
                                     }));
                                     break;
                                 }
-    
+
                                 case 'DeleteApprovedMessage': {
                                     self.collection.add(new Iznik.Models.Plugin.Work({
                                         id: work.id,
@@ -492,7 +469,7 @@ define([
                                     }));
                                     break;
                                 }
-    
+
                                 case 'DeliveryType': {
                                     self.collection.add(new Iznik.Models.Plugin.Work({
                                         id: work.id,
@@ -502,7 +479,7 @@ define([
                                     }));
                                     break;
                                 }
-    
+
                                 case 'PostingStatus': {
                                     self.collection.add(new Iznik.Models.Plugin.Work({
                                         id: work.id,
@@ -512,7 +489,7 @@ define([
                                     }));
                                     break;
                                 }
-    
+
                                 case 'ApprovePendingMember': {
                                     self.collection.add(new Iznik.Models.Plugin.Work({
                                         id: work.id,
@@ -522,7 +499,7 @@ define([
                                     }));
                                     break;
                                 }
-    
+
                                 case 'RejectPendingMember': {
                                     self.collection.add(new Iznik.Models.Plugin.Work({
                                         id: work.id,
@@ -532,7 +509,7 @@ define([
                                     }));
                                     break;
                                 }
-    
+
                                 case 'RemoveApprovedMember': {
                                     self.collection.add(new Iznik.Models.Plugin.Work({
                                         id: work.id,
@@ -569,13 +546,13 @@ define([
                                 }
                             }
                         });
-    
+
                         // Now bulk ops due
                         _.each(ret.bulkops, function(bulkop) {
                             var mod = Iznik.Session.getGroup(bulkop.groupid);
                             if (mod) {
                                 var bmod = new Iznik.Models.ModConfig.BulkOp(bulkop);
-    
+
                                 // Record bulk op started on server.
                                 var started = (new moment()).format();
                                 bmod.set('runstarted', started);
@@ -584,7 +561,7 @@ define([
                                     groupid: bulkop.groupid,
                                     runstarted: started
                                 }, { patch: true });
-    
+
                                 // Set id so that the duplicate checking works.  There might be an overlap between this and
                                 // other ids above, but if so, we'll just not do a work item until that clash clears.
                                 switch (bulkop.action) {
@@ -598,7 +575,7 @@ define([
                                         }));
                                         break;
                                     }
-    
+
                                     case 'Remove': {
                                         mod.set('bouncingfor', bulkop.bouncingfor);
                                         self.collection.add(new Iznik.Models.Plugin.Work({
@@ -610,7 +587,7 @@ define([
                                         }));
                                         break;
                                     }
-    
+
                                     case 'ToSpecialNotices': {
                                         self.collection.add(new Iznik.Models.Plugin.Work({
                                             id: bulkop.id,
@@ -622,31 +599,31 @@ define([
                                         }));
                                         break;
                                     }
-    
+
                                     default: {
                                         console.log("Ignore bulkop");
                                     }
                                 }
                             }
                         });
-    
+
                         if (hoursago >= 4 && !self.connected) {
                             $('#js-pluginbuildup').fadeIn('slow');
                         } else {
                             $('#js-pluginbuildup').hide();
                         }
-    
+
                         // Now look for work which has been removed from the server because it isn't necessary any more.
                         self.collection.each(function(item) {
                             if (item.get('server')) {
                                 var got = false;
-    
+
                                 _.each(ret.plugin, function (work, index, list) {
                                     if (item.model.get('id') == work.id) {
                                         got = true;
                                     }
                                 });
-    
+
                                 if (!got) {
                                     // This item of work no longer needs doing by us, so remove it from the list.
                                     console.log("No longer needed", item);
@@ -654,9 +631,34 @@ define([
                                 }
                             }
                         });
-    
+
                         self.checkWork();
                     }
+
+                    // Get our session, both to keep it alive and update any counts.
+                    self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                        var first = self.collection.at(0);
+                        //console.log("checkPluginStatus, first", first);
+                        if (first && first.get('running')) {
+                            // We are in the middle of work.  Don't query Yahoo as we'll break our crumb.
+                            //console.log("Running item - don't query");
+                            window.setTimeout(_.bind(self.checkPluginStatus, self), 10000);
+                        } else {
+                            // Check if we are connected to Yahoo by issuing an API call.
+                            //console.log("Not running item - query Yahoo");
+                            new majax({
+                                type: 'GET',
+                                url: 'https://groups.yahoo.com/api/v1/user/groups/all',
+                                success: checkResponse(self),
+                                error: checkResponse(self),
+                                complete: function() {
+                                    window.setTimeout(_.bind(self.checkPluginStatus, self), 10000);
+                                }
+                            });
+                        }
+                    });
+
+                    Iznik.Session.testLoggedIn();
                 }
             })
         },

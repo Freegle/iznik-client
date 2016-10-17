@@ -331,6 +331,12 @@ class messageTest extends IznikTestCase {
 
         assertEquals('TAKEN: Test item (location)', $m->reverseSubject());
 
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $msg = str_replace('Basic test', 'Bexley Freegle OFFER: compost bin (Bexley DA5)', $msg);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertEquals('TAKEN: compost bin (Bexley DA5)', $m->reverseSubject());
+
         error_log(__METHOD__ . " end");
     }
 

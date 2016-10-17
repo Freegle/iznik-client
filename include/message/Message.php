@@ -2815,6 +2815,9 @@ class Message
             if (preg_match('/^' . preg_quote($keyword) . '\b(.*)/i', $subj, $matches)) {
                 $subj = $matches[1];
             }
+            if (preg_match('/ ' . preg_quote($keyword) . '\:(.*)/i', $subj, $matches)) {
+                $subj = $matches[1];
+            }
         }
 
         # Now we have to add in the corresponding keyword.  The message should be on at least one group; if the
@@ -2835,6 +2838,7 @@ class Message
             break;
         }
 
+        $subj = substr($subj, 0, 1) == ':' ? $subj : ":$subj";
         $subj = $key . $subj;
 
         return($subj);

@@ -27,7 +27,21 @@ define([
             'keyup .js-email': 'emailChange',
             'click .js-saveemail': 'emailChange',
             'keyup .js-password': 'passwordChange',
-            'click .js-savepassword': 'passwordChange'
+            'click .js-savepassword': 'passwordChange',
+            'click .js-showpassword': 'showPassword',
+            'click .js-hidepassword': 'hidePassword'
+        },
+
+        showPassword: function() {
+            this.$('.js-password').attr('type', 'text');
+            this.$('.js-showpassword').hide();
+            this.$('.js-hidepassword').show();
+        },
+
+        hidePassword: function() {
+            this.$('.js-password').attr('type', 'password');
+            this.$('.js-hidepassword').hide();
+            this.$('.js-showpassword').show();
         },
 
         onholidaytill: function() {
@@ -79,9 +93,9 @@ define([
             var self = this;
             self.$('.js-name').removeClass('error-border');
             if (e.type == 'click' || e.which === 13) {
-                self.startSave(self.$('.js-savename'));
                 var name = this.$('.js-name').val();
                 if (name.length > 0) {
+                    self.startSave(self.$('.js-savename'));
                     var me = Iznik.Session.get('me');
                     me.displayname = name;
                     Iznik.Session.set('me', me);
@@ -108,9 +122,9 @@ define([
             self.$('.js-email').removeClass('error-border');
             if (e.type == 'click' || e.which === 13) {
                 self.$('.js-verifyemail').hide();
-                self.startSave(self.$('.js-saveemail'));
                 var email= this.$('.js-email').val();
                 if (email.length > 0 && isValidEmailAddress(email)) {
+                    self.startSave(self.$('.js-saveemail'));
                     var me = Iznik.Session.get('me');
                     me.email = email;
                     Iznik.Session.set('me', me);
@@ -139,9 +153,9 @@ define([
             var self = this;
             self.$('.js-password').removeClass('error-border');
             if (e.type == 'click' || e.which === 13) {
-                self.startSave(self.$('.js-savepassword'));
                 var password = this.$('.js-password').val();
                 if (password.length > 0) {
+                    self.startSave(self.$('.js-savepassword'));
                     var me = Iznik.Session.get('me');
                     Iznik.Session.set('me', me);
                     Iznik.Session.save({

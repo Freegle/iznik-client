@@ -71,15 +71,18 @@ define([
                 if (!myid) {
                     // Not logged in, try later;
                     _.delay(callwait, 5000);    // CC
-                } else {
+                } else if (!self.waiting) {
+                    self.waiting = true;
+
                     var chathost = $('meta[name=iznikchat]').attr("content");
 
                     $.ajax({
                         url: 'https://' + chathost + '/subscribe/' + myid, // CC
                         global: false, // don't trigger ajaxStart
                         success: function (ret) {
-                            var waiting = false;
+                            self.waiting = false;
                             //console.log("Received notif", ret);
+
                             if (ret && ret.hasOwnProperty('text')) {
                                 var data = ret.text;
 
@@ -102,36 +105,32 @@ define([
                                             Iznik.Session.chats.trigger('newroom', data.newroom);
                                         });
                                     } else if (data.hasOwnProperty('roomid')) {
-                                        // Activity on this room.  If the chat is active, then we refetch the mesages
+                                        // Activity on this room.  If the chat is active, then we refetch the messages
                                         // within it so that they are displayed.  If it's not, then we don't want
                                         // to keep fetching messages - the notification count will get updated by
                                         // the roster poll.
-                                        Iznik.Session.chats.fetch().then(function () {
-                                            var chat = Iznik.Session.chats.get(data.roomid);
+                                        var chat = new Iznik.Models.Chat.Room({
+                                            id: data.roomid
+                                        });
 
-                                            // It's possible that we haven't yet fetched the model for this chat.
-                                            if (chat) {
-                                                var chatView = Iznik.activeChats.viewManager.findByModel(chat);
+                                        chat.fetch().then(function() {
+                                            // Make sure we have this chat in our collection - might not have picked
+                                            // it up yet.
+                                            Iznik.Session.chats.add(chat, { merge: true });
 
-                                                if (!chatView.minimised) {
-                                                    waiting = true;
-                                                    chatView.messages.fetch().then(function () {
-                                                        // Wait for the next one.  Slight timing window here but the fallback
-                                                        // protects us from losing messages forever.
-                                                        self.wait();
+                                            // View should now be present.
+                                            var chatView = Iznik.activeChats.viewManager.findByModel(chat);
 
-                                                        // Also fetch the chat, because the number of unread messages in it will
-                                                        // update counts in various places.
-                                                        chat.fetch();
-                                                    });
-                                                }
+                                            if (!chatView.minimised) {
+                                                self.waiting = true;
+                                                chatView.messages.fetch();
                                             }
                                         });
                                     }
                                 }
                             }
 
-                            if (!waiting) {
+                            if (!self.waiting) {
                                 self.wait();
                             }
                         }, error: _.bind(self.waitError, self)
@@ -641,9 +640,7 @@ define([
                         localStorage.removeItem(key);
                     }
                 }
-            } catch (e) {
-            }
-            ;
+            } catch (e) {};
 
             // We might already be rendered, as we're outside the body content that gets zapped when we move from
             // page to page.
@@ -1422,7 +1419,6 @@ define([
 
         render: function () {
             var self = this;
-            console.log("Render chat", self.model.get('id')); console.trace();
 
             if (!self.rendered) {
                 self.rendered = true;
@@ -1510,7 +1506,6 @@ define([
                     self.roster();
                 });
             } else {
-                console.log("Already rendered");
                 return(resolvedPromise(self));
             }
 
@@ -1546,7 +1541,8 @@ define([
             if (this.model.get('id')) {
                 var message = this.model.get('message');
                 if (message) {
-                    // Remove duplicate newlines.
+                    // Remove duplicate newlines.  Make sure we have a string - might not if the message was just a digit.
+                    message += '';
                     message = message.replace(/\n\s*\n\s*\n/g, '\n\n');
 
                     // Strip HTML tags
