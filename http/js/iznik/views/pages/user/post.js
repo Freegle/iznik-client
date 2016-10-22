@@ -35,20 +35,18 @@ define([
 
             if (this.$el.closest('body').length > 0) {
                 var item = this.getItem();
+                self.$('.js-item').removeClass('error-border');
                 self.$('.js-description').removeClass('error-border');
 
                 // We accept either a photo or a description.
                 if (self.uploading || item.length == 0) {
-                    console.log("No item");
                     self.$('.js-item').addClass('error-border');
                     self.$('.js-next').fadeOut('slow');
                     self.$('.js-ok').fadeOut('slow');
                 } else if (self.$('.js-description').val().length > 0 || self.photos.length > 0) {
-                    console.log("Got description or photo");
                     self.$('.js-next').fadeIn('slow');
                     self.$('.js-ok').fadeIn('slow');
                 } else if (self.$('.js-description').val().length == 0) {
-                    console.log("No description");
                     self.$('.js-description').addClass('error-border');
                 }
 
