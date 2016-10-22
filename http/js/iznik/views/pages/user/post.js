@@ -37,7 +37,7 @@ define([
 
             if (this.$el.closest('body').length > 0) {
                 var item = this.getItem();
-                self.$('.js-item').removeClass('error-border');  // CC
+                self.$('.js-item').removeClass('error-border');
                 self.$('.js-description').removeClass('error-border');
 
                 // We accept either a photo or a description.
