@@ -6,25 +6,22 @@
         </div>
         <% } %>
         <% if (obj.profile) { %>
-        <div class="col-xs-8">
-        <% } else { %>
         <div class="col-xs-10">
+        <% } else { %>
+        <div class="col-xs-12">
         <% } %>
                 <h1>
                     {{namedisplay}}
                 </h1>
                 <p class="text-larger">{{obj.tagline}}</p>
+                <div class="btn btn-white pull-right margright js-leave">
+                    <div class="glyphicon glyphicon-trash inline" /><span class="topspace">&nbsp;Leave&nbsp;Group</span>
+                </div>
                 <div class="text-muted">
                 <span class="js-founded">
                     Founded <span class="js-foundeddate" />.
                 </span>
                     <span class="js-membercount" /> current freeglers.
-                </div>
-            </div>
-            <div class="col-xs-2">
-                <br />
-                <div class="btn btn-white pull-right margright js-leave">
-                    <div class="glyphicon glyphicon-trash inline" /><span class="topspace">&nbsp;Leave&nbsp;Group</span>
                 </div>
             </div>
         </div>
