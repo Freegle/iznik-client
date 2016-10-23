@@ -2500,6 +2500,7 @@
                 return false;
             }
             if (width === maxWidth && height === maxHeight) {
+                self._raise('fileimageresized', [pid, ind]);
                 return true;
             }
             type = type || self.resizeDefaultImageType;
