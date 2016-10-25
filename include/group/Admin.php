@@ -42,7 +42,7 @@ class Admin extends Entity
 
         $visit = "https://" .  USER_SITE . "/mygroups";
 
-        $html = admin_tpl($groupname, $toname, $to, 'https://' . USER_SITE, USERLOGO, $subject, $text, $post, $unsubscribe, $visit);
+        $html = admin_tpl($groupname, $toname, $to, 'https://' . USER_SITE, USERLOGO, $subject, nl2br($text), $post, $unsubscribe, $visit);
         $message = Swift_Message::newInstance()
             ->setSubject("ADMIN: $subject")
             ->setFrom([$from => "$groupname Volunteers" ])
@@ -90,7 +90,7 @@ class Admin extends Entity
 
             if ($preferred && ($ouremail || !$onyahoo)) {
                 try {
-                    $msg = $this->constructMessage($groupname, $preferred, $u->getName(), $g->getModsEmail(), $this->admin['subject'], nl2br($this->admin['text']));
+                    $msg = $this->constructMessage($groupname, $preferred, $u->getName(), $g->getModsEmail(), $this->admin['subject'], $this->admin['text']);
                     $mailer->send($msg);
                     $done++;
                 } catch (Exception $e) {
