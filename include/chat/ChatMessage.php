@@ -89,7 +89,7 @@ class ChatMessage extends Entity
         # Check keywords
         foreach ($this->spamwords as $word) {
             if ($word['action'] == 'Review' &&
-                stripos($message, $word['word']) !== FALSE &&
+                preg_match('/\b' . preg_quote($word['word']) . '\b/', $message) &&
                 (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
                 $check = TRUE;
             }
@@ -104,7 +104,7 @@ class ChatMessage extends Entity
         # Check keywords
         foreach ($this->spamwords as $word) {
             if ($word['action'] == 'Spam' &&
-                stripos($message, $word['word']) !== FALSE &&
+                preg_match('/\b' . preg_quote($word['word']) . '\b/', $message) &&
                 (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
                 $spam = TRUE;
             }

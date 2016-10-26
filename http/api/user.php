@@ -118,7 +118,8 @@ function user() {
                         $rc = $u->addEmail($email);
 
                         if ($rc) {
-                            $u->welcome($email, $password);
+                            # Don't mail the password
+                            $u->welcome($email, NULL);
                             $rc = $u->addLogin(User::LOGIN_NATIVE, $id, $password);
 
                             if ($rc) {

@@ -75,7 +75,13 @@ if ($default) {
                 </p>
             </noscript>
             <div id="pageloader" style="position: relative; height: 100vh; width: 100%">
-                <img src="/images/pageloader.gif" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto;"/>
+                <?php
+                if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
+                    ?><img src="/images/modloader.gif" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto;"/><?php
+                } else {
+                    ?><img src="/images/userloader.gif" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto;"/><?php
+                }
+                ?>
             </div>
             <div id="fb-root"></div>
             <div id="bodyEnvelope">

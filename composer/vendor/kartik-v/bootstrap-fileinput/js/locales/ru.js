@@ -37,7 +37,7 @@
         msgInvalidFileType: 'Запрещенный тип файла для "{name}". Только "{types}" разрешены.',
         msgInvalidFileExtension: 'Запрещенное расширение для файла "{name}". Только "{extensions}" разрешены.',
         msgUploadAborted: 'Выгрузка файла прервана',
-        msgUploadThreshold: 'Processing...',
+        msgUploadThreshold: 'Обработка...',
         msgValidationError: 'Ошибка проверки',
         msgLoading: 'Загрузка файла {index} из {files} &hellip;',
         msgProgress: 'Загрузка файла {index} из {files} - {name} - {percent}% завершено.',
@@ -50,7 +50,7 @@
         msgImageResizeError: 'Не удалось получить размеры изображения, чтобы изменить размер.',
         msgImageResizeException: 'Ошибка при изменении размера изображения.<pre>{errors}</pre>',
         dropZoneTitle: 'Перетащите файлы сюда &hellip;',
-        dropZoneClickTitle: '<br>(or click to select {files})',
+        dropZoneClickTitle: '<br>(Или щёлкните, чтобы выбрать {files})',
         fileActionSettings: {
             removeTitle: 'Удалить файл',
             uploadTitle: 'Загрузить файл',

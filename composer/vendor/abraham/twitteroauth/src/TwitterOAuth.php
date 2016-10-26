@@ -244,7 +244,7 @@ class TwitterOAuth extends Config
      *
      * @return array|object
      */
-    private function uploadMediaNotChunked($path, $parameters)
+    private function uploadMediaNotChunked($path, array $parameters)
     {
         $file = file_get_contents($parameters['media']);
         $base = base64_encode($file);
@@ -260,7 +260,7 @@ class TwitterOAuth extends Config
      *
      * @return array|object
      */
-    private function uploadMediaChunked($path, $parameters)
+    private function uploadMediaChunked($path, array $parameters)
     {
         // Init
         $init = $this->http('POST', self::UPLOAD_HOST, $path, [
@@ -345,7 +345,7 @@ class TwitterOAuth extends Config
      * @return string
      * @throws TwitterOAuthException
      */
-    private function request($url, $method, $authorization, $postfields)
+    private function request($url, $method, $authorization, array $postfields)
     {
         /* Curl settings */
         $options = [
@@ -361,6 +361,11 @@ class TwitterOAuth extends Config
             CURLOPT_URL => $url,
             CURLOPT_USERAGENT => $this->userAgent,
         ];
+
+        /* Remove CACert file when in a PHAR file. */
+        if (!empty(\Phar::running(false))) {
+            unset($options[CURLOPT_CAINFO]);
+        }
 
         if($this->gzipEncoding) {
             $options[CURLOPT_ENCODING] = 'gzip';
@@ -441,11 +446,10 @@ class TwitterOAuth extends Config
      *
      * @return string
      */
-    private function encodeAppAuthorization($consumer)
+    private function encodeAppAuthorization(Consumer $consumer)
     {
-        // TODO: key and secret should be rfc 1738 encoded
-        $key = $consumer->key;
-        $secret = $consumer->secret;
+        $key = rawurlencode($consumer->key);
+        $secret = rawurlencode($consumer->secret);
         return base64_encode($key . ':' . $secret);
     }
 }

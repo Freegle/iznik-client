@@ -190,6 +190,7 @@ class Digest
                         # become per-user is in the template as a {{...}} substitution.
                         $msghtml = digest_message($msg, $msg['yahooapprovedid'], $fdgroupid);
                         $html = digest_single($msghtml,
+                            'https://' . USER_SITE,
                             USER_DOMAIN,
                             USERLOGO,
                             $gatts['namedisplay'],
@@ -248,6 +249,7 @@ class Digest
                     $html = digest_multiple($availablehtml,
                         $availablesumm,
                         $unavailablehtml,
+                        'https://' . USER_SITE,
                         USER_DOMAIN,
                         USERLOGO,
                         $gatts['namedisplay'],

@@ -1,12 +1,10 @@
 <?php
-# Rescale large images in message_attachments
-
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 
-$messages = $dbhr->preQuery("SELECT chat_messages.*, users.fullname FROM chat_messages INNER JOIN users ON users.id = chat_messages.userid");
+$messages = $dbhr->preQuery("SELECT chat_messages.*, users.fullname FROM chat_messages INNER JOIN users ON users.id = chat_messages.userid;");
 $total = count($messages);
 $count = 0;
 $spam = 0;

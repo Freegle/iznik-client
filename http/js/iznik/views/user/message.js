@@ -238,7 +238,10 @@ define([
                         if (replies.length > 0) {
                             self.$('.js-noreplies').hide();
                             self.$('.js-replies').empty();
-                            self.listenTo(self.model, 'change:replies', self.updateReplies);
+
+                            // If we get new replies, we want to re-render, as we want to show them, update the count
+                            // and so on.
+                            self.listenTo(self.model, 'change:replies', self.render);
                             self.updateReplies();
 
                             self.repliesView = new Backbone.CollectionView({

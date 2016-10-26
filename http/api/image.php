@@ -29,7 +29,6 @@ function image() {
             $data = @file_get_contents($fn);
 
             if ($data) {
-                error_log("Got from cache $fn");
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',

@@ -120,7 +120,6 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             // We see problems with Service Workers in Firefox, so stick to Chrome for now.
             window.serviceWorker = null;
             var inChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
-            console.log("Chrome?", inChrome);
 
             if (inChrome) {
                 // Use our version so that we will add a new service worker when the code changes.
