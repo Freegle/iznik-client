@@ -467,10 +467,17 @@ define([
                         }, success: function (ret) {
                             if (ret.ret == 0) {
                                 Iznik.Session.chats.fetch().then(function () {
-                                    // Defer to give the CollectionView time to respond.
-                                    _.defer(function () {
-                                        var chatmodel = Iznik.Session.chats.get(ret.id);
-                                        var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
+                                    var chat = new Iznik.Models.Chat.Room({
+                                        id: ret.id
+                                    });
+
+                                    chat.fetch().then(function() {
+                                        // Make sure we have this chat in our collection - might not have picked
+                                        // it up yet.
+                                        Iznik.Session.chats.add(chat, { merge: true });
+
+                                        // View should now be present.
+                                        var chatView = Iznik.activeChats.viewManager.findByModel(chat);
                                         v.close();
                                         chatView.restore();
                                     })
