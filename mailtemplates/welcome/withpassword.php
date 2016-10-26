@@ -52,7 +52,15 @@ EOT;
                                                             </td>    
                                                             <td>
                                                                 <h1>Thanks for joining Freegle!</h1>
+EOT;
+
+    if ($password) {
+        $html .= <<<EOT
                                                                 <p>Here's your password: <b>$password</b>.</p>
+EOT;
+    }
+
+    $html .= <<<EOT
                                                                 <p>Happy freegling!</p>
                                                                 <table width="100%">
                                                                     <tr>
