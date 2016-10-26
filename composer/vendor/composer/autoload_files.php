@@ -6,5 +6,7 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    '7e702cccdb9dd904f2ccf22e5f37abae' => $vendorDir . '/facebook/php-sdk-v4/src/Facebook/polyfills.php',
+    'cf150f72bd303a2ff07711c9a70f2d53' => $vendorDir . '/google/apiclient/src/Google/autoload.php',
     '2c102faa651ef8ea5874edb585946bce' => $vendorDir . '/swiftmailer/swiftmailer/lib/swift_required.php',
 );

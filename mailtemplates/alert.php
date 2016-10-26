@@ -4,7 +4,6 @@ require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
 function alert_tpl($groupname, $toname, $domain, $logo, $subject, $htmlsummary, $unsub, $click, $beacon)
 {
-    $siteurl = "https://$domain";
     $html = <<<EOT
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>

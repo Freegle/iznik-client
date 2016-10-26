@@ -1,6 +1,34 @@
 CHANGELOG
 =========
 
+2.4.4 (2016-10-11)
+------------------
+
+* `isset()` on `mostSpecificSubdivision` attribute now returns the
+  correct value. Reported by Juan Francisco Giordana. GitHub #81.
+
+2.4.3 (2016-10-11)
+------------------
+
+* `isset()` on `name` attribute now returns the correct value. Reported by
+  Juan Francisco Giordana. GitHub #79.
+
+2.4.2 (2016-08-17)
+------------------
+
+* Updated documentation to clarify what the accuracy radius refers to.
+* Upgraded `maxmind/web-service-common` to 0.3.0. This version uses
+  `composer/ca-bundle` rather than our own CA bundle. GitHub #75.
+* Improved PHP documentation generation.
+
+2.4.1 (2016-06-10)
+------------------
+
+* Corrected type annotations in documentation. GitHub #66.
+* Updated documentation to reflect that the accuracy radius is now included
+  in City.
+* Upgraded web service client, which supports setting a proxy. GitHub #59.
+
 2.4.0 (2016-04-15)
 ------------------
 
@@ -10,7 +38,7 @@ CHANGELOG
 ------------------
 
 * Corrected case on `JsonSerializable` interface. Reported by Axel Etcheverry.
-  Fixes #56.
+  GitHub #56.
 
 2.3.2 (2015-09-23)
 ------------------

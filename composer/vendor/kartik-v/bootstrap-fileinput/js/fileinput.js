@@ -1439,6 +1439,7 @@
         },
         _clearFileInput: function () {
             var self = this, $el = self.$element, $srcFrm, $tmpFrm, $tmpEl;
+            self.fileInputCleared = true;
             if (isEmpty($el.val())) {
                 return;
             }
@@ -1460,7 +1461,6 @@
             } else { // normal input clear behavior for other sane browsers
                 $el.val('');
             }
-            self.fileInputCleared = true;
         },
         _resetUpload: function () {
             var self = this;
@@ -2187,8 +2187,8 @@
                     return;
                 }
                 var node = ctr + i, previewId = previewInitId + "-" + node, isText, isImage, file = files[i],
-                    caption = self.slug(file.name), fileSize = (file.size || 0) / 1000, checkFile, fileExtExpr = '',
-                    previewData = objUrl.createObjectURL(file), fileCount = 0, j, msg, typ, chk,
+                    caption = file.name ? self.slug(file.name) : '', fileSize = (file.size || 0) / 1000, checkFile,
+                    fileExtExpr = '', previewData = objUrl.createObjectURL(file), fileCount = 0, j, msg, typ, chk,
                     fileTypes = self.allowedFileTypes, strTypes = isEmpty(fileTypes) ? '' : fileTypes.join(', '),
                     fileExt = self.allowedFileExtensions, strExt = isEmpty(fileExt) ? '' : fileExt.join(', ');
                 if (!isEmpty(fileExt)) {
