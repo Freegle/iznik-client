@@ -9,8 +9,10 @@
     <div class="col-xs-4">
         <% if (obj.external) { %>
         <a href="{{external}}">{{namedisplay}}</a><br>
-        <% } else { %>
+        <% } else if (obj.onhere) { %>
         <a href="/explore/{{nameshort}}">{{namedisplay}}</a><br>
+        <% } else if (obj.onyahoo) { %>
+        <a data-realurl="true" target="_blank" href="https://groups.yahoo.com/group/{{nameshort}}">{{namedisplay}}</a><br>
         <% } %>
         {{obj.tagline}}
     </div>
