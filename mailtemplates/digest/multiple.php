@@ -2,8 +2,7 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function digest_multiple($available, $availablesumm, $unavailable, $domain, $logo, $groupname, $subject, $fromname, $reply) {
-    $siteurl = "https://$domain";
+function digest_multiple($available, $availablesumm, $unavailable, $siteurl, $domain, $logo, $groupname, $subject, $fromname, $reply) {
     $html = <<<EOT
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
