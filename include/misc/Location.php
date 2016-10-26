@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 
 class Location extends Entity
 {
-    const NEARBY = 20; // In miles.
+    const NEARBY = 50; // In miles.
 
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'osm_id', 'name', 'type', 'popularity', 'gridid', 'postcodeid', 'areaid', 'lat', 'lng', 'maxdimension');
@@ -454,7 +454,7 @@ class Location extends Entity
     public function groupsNear($radius = Location::NEARBY, $expand = FALSE) {
         # We use the Haversine distance as a quick filter for the radius, but we order by the distance to the group
         # polygon, rather than to the centre, because that reflects which group you are genuinely closest to.
-        $sql = "SELECT id, nameshort, ST_distance(POINT(?, ?), GeomFromText(poly)) AS dist, haversine(lat, lng, ?, ?) AS hav FROM groups WHERE poly IS NOT NULL AND publish = 1 HAVING hav < ? AND dist IS NOT NULL ORDER BY dist ASC LIMIT 10;";
+        $sql = "SELECT id, nameshort, ST_distance(POINT(?, ?), GeomFromText(poly)) AS dist, haversine(lat, lng, ?, ?) AS hav FROM groups WHERE poly IS NOT NULL AND publish = 1 HAVING dist < ? AND dist IS NOT NULL ORDER BY dist ASC LIMIT 10;";
         $groups = $this->dbhr->preQuery($sql, [ $this->loc['lng'], $this->loc['lat'], $this->loc['lat'], $this->loc['lng'], $radius ]);
         #error_log("Find near $sql " . var_export([ $this->loc['lng'], $this->loc['lat'], $this->loc['lat'], $this->loc['lng'], $radius ], TRUE));
         $ret = [];
