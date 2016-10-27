@@ -429,24 +429,6 @@ define([
                         // Need to know whether it's our message when rendering the group info.
                         group.mine = message.mine;
 
-                        if (message.type == 'Offer' || message.type == 'Wanted') {
-                            // Work out when we can repost.
-                            group.autorepostallowed = false;
-                            var settings = groupdata.settings;
-
-                            if (settings.hasOwnProperty('reposts')) {
-                                var interval = message.type == 'Offer' ? settings.reposts.offer : settings.reposts.wanted;
-                                var max = settings.reposts.max;
-
-                                if (group.autoreposts < max) {
-                                    group.autorepostallowed = true;
-                                    var m = new moment(group.arrival);
-                                    m = m.add(interval, 'days');
-                                    group.autorepostat = m.format();
-                                }
-                            }
-                        }
-
                         groups.push(_.extend({}, groupdata, group));
                     });
 

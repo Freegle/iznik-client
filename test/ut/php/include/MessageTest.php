@@ -483,11 +483,23 @@ And something after it.', $stripped);
         assertEquals(0, $count);
         assertEquals(0, $warncount);
 
+        $m2 = new Message($this->dbhr, $this->dbhm, $id2);
+        $_SESSION['id'] = $m2->getFromuser();
+        $atts = $m2->getPublic();
+        self::assertEquals(FALSE, $atts['canrepost']);
+        self::assertEquals(TRUE, $atts['willautorepost']);
+
         # Make the message and warning look longer ago.  Then call - should cause a repost.
         error_log("Expect repost");
         $mysqltime = date("Y-m-d H:i:s", strtotime('49 hours ago'));
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id2 ]);
         $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = '2016-01-01' WHERE msgid = ?;", [ $id2 ]);
+
+        $m2 = new Message($this->dbhr, $this->dbhm, $id2);
+        $atts = $m2->getPublic();
+        error_log("Can repost {$atts['canrepost']} {$atts['canrepostat']}");
+        self::assertEquals(TRUE, $atts['canrepost']);
+
         list ($count, $warncount) = $m->autoRepost(Group::GROUP_FREEGLE, '2016-01-01', $gid);
         assertEquals(1, $count);
         assertEquals(0, $warncount);

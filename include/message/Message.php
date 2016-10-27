@@ -515,7 +515,7 @@ class Message
 
         # Add any groups that this message is on.
         $ret['groups'] = [];
-        $sql = "SELECT * FROM messages_groups WHERE msgid = ? AND deleted = 0;";
+        $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ? AND deleted = 0;";
         $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ] );
 
         foreach ($ret['groups'] as &$group) {
@@ -526,6 +526,21 @@ class Message
                 $u = User::get($this->dbhr, $this->dbhm, $group['approvedby']);
                 $ctx = NULL;
                 $group['approvedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
+            }
+
+            if ($ret['mine']) {
+                # Can we repost?
+                $ret['canrepost'] = FALSE;
+
+                $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+                $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10]);
+                $interval = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+                $arrival = strtotime($group['arrival']);
+                $ret['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
+
+                if ($group['hoursago'] > $interval * 24) {
+                    $ret['canrepost'] = TRUE;
+                }
             }
         }
 
@@ -562,6 +577,9 @@ class Message
                     $ret['replies'][] = $thisone;;
                 }
             }
+
+            # Whether or not we will auto-repost depends on whether there are replies.
+            $ret['willautorepost'] = count($ret['replies']) == 0;
 
             $ret['promisecount'] = 0;
 
@@ -2933,8 +2951,12 @@ class Message
             $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10]);
 
             # We want approved messages which haven't got a related message, i.e. aren't TAKEN/RECEIVED, which don't have
-            # some other outcome (e.g. withdrawn), aren't promised and which we originally sent.
-            $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, lastautopostwarning, messages.type FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid LEFT OUTER JOIN messages_related ON id1 = messages.id OR id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL;";
+            # some other outcome (e.g. withdrawn), aren't promised, don't have any replies and which we originally sent.
+            #
+            # The replies part is because we can't really rely on members to let us know what happens to a message,
+            # especially if they are not receiving emails reliably.  At least this way it avoids the case where a
+            # message gets resent repeatedly and people keep replying and not getting a response. 
+            $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, lastautopostwarning, messages.type FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid LEFT OUTER JOIN messages_related ON id1 = messages.id OR id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id LEFT OUTER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL AND chat_messages.refmsgid IS NULL;";
             #error_log("$sql, $mindate, {$group['id']}");
             $messages = $this->dbhr->preQuery($sql, [
                 $mindate,
@@ -2999,18 +3021,12 @@ class Message
                         # - incrementing the repost count
                         # - resetting the arrival time, which will mean the message shows up on the site as recent,
                         #   and goes out by mail from Digest.php.
-                        # - if on Yahoo, send it there again.
-                        error_log("Can repost");
+                        # 
+                        # Don't resend to Yahoo - the complexities of trying to keep the single message we have in sync
+                        # with multiple copies on Yahoo are just too horrible to be worth trying to do.
                         $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
                         error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
-                        $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), autoreposts = autoreposts + 1 WHERE msgid = ?;", [$message['msgid']]);
-
-                        if ($g->getPrivate('onyahoo')) {
-                            # Resend it to Yahoo.
-                            $u = User::get($this->dbhr, $this->dbhm, $m->getFromuser());
-                            $m->setPrivate('textbody', $m->stripGumf());
-                            $m->submit($u, $m->getFromaddr(), $message['groupid']);
-                        }
+                        $m->repost();
 
                         $count++;
                     }
@@ -3019,5 +3035,28 @@ class Message
         }
 
         return([$count, $warncount]);
+    }
+
+    public function canRepost() {
+        $ret = FALSE;
+        $groups = $this->dbhr->preQuery("SELECT groupid, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ?;", [ $this->id ]);
+
+        foreach ($groups as $group) {
+            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+            $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10]);
+            $interval = $this->message['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+
+            if ($group['hoursago'] > $interval * 24) {
+                $ret = TRUE;
+            }
+        }
+
+        return($ret);
+    }
+
+    public function repost() {
+        # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
+        # near the top, and get mailed out again.
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), autoreposts = autoreposts + 1 WHERE msgid = ?;", [ $this->id ]);
     }
 }

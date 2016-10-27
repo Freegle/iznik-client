@@ -237,7 +237,7 @@ define([
                     self.suggestions = [];
 
                     _.each(data.response.items, function (item) {
-                        self.suggestions.push(item);;
+                        self.suggestions.push(item);
                     });
 
                     self.uploading--;
@@ -269,6 +269,8 @@ define([
                                 msg.stripGumf('textbody');
                                 self.$('.js-description').val(msg.get('textbody'));
 
+                                // We need to add the thumbnail which is normally added by the file upload.
+                                self.$('.js-draftphotos').empty();
                                 _.each(msg.get('attachments'), function (att) {
                                     self.$('.js-addprompt').addClass('hidden');
                                     var mod = new Iznik.Models.Message.Attachment({
@@ -277,6 +279,9 @@ define([
                                     });
 
                                     self.photos.add(mod);
+
+                                    self.$('.js-draftphotos').append('<li><img class="img-thumbnail botspace" /></li>');
+                                    self.$('.js-draftphotos img:last').attr('src', att.paththumb);
                                 });
                             }
                         });
