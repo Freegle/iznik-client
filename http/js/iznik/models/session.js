@@ -397,7 +397,7 @@ define([
                                     // This will look slightly odd but means that the mainline case of still being logged
                                     // in is handled more quickly.
                                     try {
-                                        console.error("Not logged in after all");
+                                        console.error("Not logged in after all", self.get('persistent'), ret);
                                         localStorage.removeItem('session');
                                     } catch (e) {
                                     }

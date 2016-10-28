@@ -126,9 +126,9 @@ class Newsletter extends Entity
         # Now find the users that we want to send to:
         # - an override to a single user
         # - users on a group
-        # - all users on a group type.
+        # - all users on a group type where the group hasn't disabled central mails.
         $startfrom = presdef('uptouser', $this->newsletter, 0);
-        $sql = $uid ? "SELECT DISTINCT userid FROM memberships WHERE userid = $uid;" : ($groupid ? "SELECT DISTINCT userid FROM memberships INNER JOIN users ON users.id = memberships.userid WHERE groupid = $groupid AND newslettersallowed = 1 AND userid > $startfrom ORDER BY userid ASC;" : "SELECT DISTINCT userid FROM users INNER JOIN memberships ON memberships.userid = users.id INNER JOIN groups ON groups.id = memberships.groupid AND type = '$grouptype' WHERE newslettersallowed = 1 AND users.id > $startfrom ORDER BY users.id ASC;");
+        $sql = $uid ? "SELECT DISTINCT userid FROM memberships WHERE userid = $uid;" : ($groupid ? "SELECT DISTINCT userid FROM memberships INNER JOIN users ON users.id = memberships.userid WHERE groupid = $groupid AND newslettersallowed = 1 AND userid > $startfrom ORDER BY userid ASC;" : "SELECT DISTINCT userid FROM users INNER JOIN memberships ON memberships.userid = users.id INNER JOIN groups ON groups.id = memberships.groupid AND type = '$grouptype' WHERE LOCATE('\"centralmailsdisabled\":0', groups.settings) > 0 AND newslettersallowed = 1 AND users.id > $startfrom ORDER BY users.id ASC;");
         $replacements = [];
 
         error_log("Query for users");
@@ -181,10 +181,11 @@ class Newsletter extends Entity
             $_SERVER['SERVER_NAME'] = USER_DOMAIN;
 
             foreach ($replacements as $email => $rep) {
+                $bounce = "bounce-{$rep['{{id}}']}-" . time() . "@" . USER_DOMAIN;
                 $message = Swift_Message::newInstance()
                     ->setSubject($tosend['subject'])
                     ->setFrom([$tosend['from'] => $tosend['fromname']])
-                    ->setReturnPath('bounce@direct.ilovefreegle.org')
+                    ->setReturnPath($bounce)
                     ->setBody($tosend['text'])
                     ->addPart($tosend['html'], 'text/html');
 

@@ -148,40 +148,25 @@ class Session {
 
     public function create($userid) {
         # If we wanted to only allow login from a single device/browser, we'd destroy cookies at this point.  But
-        # we want to allow login on as many devices as the user wants.  So look for an existing cookie, and use that
-        # if present; otherwise create one.
-        $sessions = $this->dbhm->preQuery("SELECT * FROM sessions WHERE userid = ?;", [ $userid ]);
+        # we want to allow login on as many devices as the user wants.  We want to leave any existing sessions around
+        # so that if they are used later on by other clients, they'll still work.  This can happen if they're stored
+        # in local storage - we can get different sessions on different clients, and unless we allow them all, one
+        # device can effectively log another one out.  They get tidied up via a cron script.
+        # TODO SHA1 is no longer brilliantly secure.
+        $series = devurandom_rand();
+        $token  = devurandom_rand();
+        $thash  = sha1($token);
 
-        if (count($sessions) > 0) {
-            # We already have one.
-            foreach ($sessions as $session) {
-                $series = $session['series'];
-                $thash = $session['token'];
-                $this->id = $session['id'];
-            }
+        $sql = "INSERT INTO sessions (`userid`, `series`, `token`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);";
 
-            $id = $this->id;
-            #error_log("Already got a session $id");
-        } else {
-            # Generate a new series and token.
-            #
-            # TODO SHA1 is no longer brilliantly secure.
-            $series = devurandom_rand();
-            $token  = devurandom_rand();
-            $thash  = sha1($token);
+        $this->dbhm->preExec($sql, [
+            $userid,
+            $series,
+            $thash
+        ]);
 
-            $sql = "INSERT INTO sessions (`userid`, `series`, `token`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);";
-
-            $this->dbhm->preExec($sql, [
-                $userid,
-                $series,
-                $thash
-            ]);
-
-            $id = $this->dbhm->lastInsertId();
-            $this->id = $id;
-            #error_log("Created session $id");
-        }
+        $id = $this->dbhm->lastInsertId();
+        $this->id = $id;
 
         $_SESSION['id'] = $userid;
         $_SESSION['logged_in'] = TRUE;

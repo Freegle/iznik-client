@@ -361,8 +361,9 @@ function message() {
                         $ret['newpassword'] = $pw;
 
                         break;
+                    case 'BackToDraft':
                     case 'RejectToDraft':
-                        # This is a message which has been rejected, but which we are now going to edit.
+                        # This is a message which has been rejected or reposted, which we are now going to edit.
                         $ret = ['ret' => 3, 'status' => 'Message does not exist'];
                         $sql = "SELECT * FROM messages WHERE id = ?;";
                         $msgs = $dbhr->preQuery($sql, [ $id ]);

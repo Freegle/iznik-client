@@ -275,6 +275,13 @@ define([
 
                 self.updateUnread();
 
+                // Repost time.
+                var repost = self.model.get('canrepostat');
+
+                if (repost && self.$('.js-repostat').length > 0) {
+                    self.$('.js-repostat').html((moment(repost).fromNow()));
+                }
+
                 // We want to keep an eye on chat messages, because those which are in conversations referring to our
                 // message should affect the counts we display.
                 self.watchChatRooms();
@@ -290,22 +297,8 @@ define([
         }
     });
 
-    Iznik.Views.User.Message.Group = Iznik.View.extend({
+    Iznik.Views.User.Message.Group = Iznik.View.Timeago.extend({
         template: "user_message_group",
-
-        render: function() {
-            var self = this;
-            var p = Iznik.View.prototype.render.call(this);
-            p.then(function(self) {
-                self.$('.timeago').timeago();
-
-                if (self.model.get('autorepostallowed')) {
-                    // console.log("Repost at", self.model.get('autorepostat'), (moment(self.model.get('autorepostat')).fromNow()));
-                    self.$('.js-autodue').html((moment(self.model.get('autorepostat')).fromNow()));
-                }
-            });
-            return(p);
-        }
     });
 
     Iznik.Views.User.Message.Photo = Iznik.View.extend({

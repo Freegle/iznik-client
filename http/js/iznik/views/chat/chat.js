@@ -121,7 +121,7 @@ define([
                                             // View should now be present.
                                             var chatView = Iznik.activeChats.viewManager.findByModel(chat);
 
-                                            if (!chatView.minimised) {
+                                            if (chatView && !chatView.minimised) {
                                                 self.waiting = true;
                                                 chatView.messages.fetch();
                                             }

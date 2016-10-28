@@ -81,6 +81,24 @@
                     <div class="glyphicon glyphicon-trash"></div>
                     Withdraw
                 </button>
+                <% if (obj.canrepost) { %>
+                <a href="/edit/{{id}}">
+                    <button class="btn btn-white inline js-repost">
+                        <div class="glyphicon glyphicon-refresh"></div>
+                        Post again
+                    </button>
+                </a>
+                <% } else if (obj.willautorepost) { %>
+                <button class="btn btn-white inline js-repost disabled">
+                    <div class="glyphicon glyphicon-refresh"></div>
+                    Will auto-repost <span class="js-repostat" />
+                </button>
+                <% } else { %>
+                <button class="btn btn-white inline js-repost disabled">
+                    <div class="glyphicon glyphicon-refresh"></div>
+                    Can post again <span class="js-repostat" />
+                </button>
+                <% } %>
                 <div class="pull-right text-muted">#{{id}}</div>
             </div>
         </div>

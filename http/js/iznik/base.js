@@ -135,16 +135,16 @@ define([
 
                 try {
                     var cached = localStorage.getItem(key);
-                    console.log("Cache get returned", cached ? cached.length : null);
+                    // console.log("Cache get returned", cached ? cached.length : null);
                     var expires = localStorage.getItem(key + '.time');
-                    console.log("Expires", expires);
+                    // console.log("Expires", expires);
 
                     if (cached && expires) {
                         // We have some cached data.  Put it into the collection.
-                        console.log("Got cached data");
+                        // console.log("Got cached data");
                         var data = JSON.parse(cached);
                         self.set(data);
-                        console.log("Collection after set", self);
+                        // console.log("Collection after set", self);
 
                         // Now invoke our callback to show we've completed.
                         options.cached();
@@ -172,12 +172,12 @@ define([
                 self.promise = new Promise(function(resolve, reject) {
                     // We don't have a cached value.  Fetch it.
                     function issueFetch() {
-                        console.log("Issue fetch", options);
+                        // console.log("Issue fetch", options);
                         Backbone.Collection.prototype.fetch.call(self, options).then(function() {
                             // TODO Error handling?
                             if (options && options.cached) {
                                 // We have fetched it - save it in our cache (before the caller can mess with it).
-                                console.log("Fetched, save it", url);
+                                // console.log("Fetched, save it", url);
                                 try {
                                     var key = cacheKey(url, options.data);
                                     var data = JSON.stringify(self.toJSON());
@@ -191,7 +191,7 @@ define([
                                         // We can't cache this, as it's too big.  Remove any previously cached data
                                         // which might be below this limit, as otherwise it will persist forever and
                                         // become increasingly misleading.
-                                        console.log("Don't cache too long", data.length);
+                                        console.log("Don't cache too long", key, data.length);
                                         localStorage.removeItem(key);
                                         localStorage.removeItem(key + '.time');
                                     }
