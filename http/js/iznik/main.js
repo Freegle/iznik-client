@@ -65,7 +65,7 @@ function showHeaderWait() {
     } else {
         var refreshbutton = $('#refreshbutton span');
         refreshbutton.addClass("no-before");
-        var spinner = $("<img src='" + iznikroot + "images/pageloader.gif' style='height:14px;' />");
+        var spinner = $("<img src='" + iznikroot + "images/userloader.gif' style='height:14px;' />");
         $(refreshbutton).html(spinner);
     }
 }
