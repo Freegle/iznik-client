@@ -282,7 +282,7 @@ class chatRoomsTest extends IznikTestCase {
         # Notify mod
         $this->msgsSent = [];
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
-        assertEquals("Member message on testgroup from Test User 1 (test1@test.com)", $this->msgsSent[0]['subject']);
+        assertEquals("Member conversation on testgroup with Test User 1 (test1@test.com)", $this->msgsSent[0]['subject']);
 
         # Chase up mods after unreasonably short interval
         self::assertEquals(1, count($r->chaseupMods($id, 0)));
@@ -294,7 +294,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->msgsSent = [];
         assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
         assertEquals("You have a message from the testgroup volunteers", $this->msgsSent[0]['subject']);
-        assertEquals("Member message on testgroup from Test User 1 (test1@test.com)", $this->msgsSent[1]['subject']);
+        assertEquals("Member conversation on testgroup with Test User 1 (test1@test.com)", $this->msgsSent[1]['subject']);
 
         error_log(__METHOD__ . " end");
     }

@@ -938,7 +938,7 @@ class ChatRoom extends Entity
                                     $fromname = $g->getPublic()['namedisplay'];
                                     $site = USER_SITE;
                                 } else {
-                                    $subject = "Member message on " . $g->getPrivate('nameshort') . " from " . $otheru->getName() . " (" . $otheru->getEmailPreferred() . ")";
+                                    $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $otheru->getName() . " (" . $otheru->getEmailPreferred() . ")";
                                     $fromname = $otheru->getName();
                                     $site = MOD_SITE;
                                 }
@@ -1051,7 +1051,7 @@ class ChatRoom extends Entity
 
                                 # Construct a message.
                                 $url = 'https://' . MOD_SITE . '/chat/' . $chat['id'];
-                                $subject = "Member message on " . $g->getPrivate('nameshort') . " from " . $u->getName() . " (" . $u->getEmailPreferred() . ")";
+                                $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $u->getName() . " (" . $u->getEmailPreferred() . ")";
                                 $fromname = $u->getName();
 
                                 $textsummary = '';
