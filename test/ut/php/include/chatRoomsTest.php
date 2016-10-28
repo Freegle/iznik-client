@@ -290,10 +290,11 @@ class chatRoomsTest extends IznikTestCase {
         # Fake mod reply
         $cm2 = $m->create($id, $u2, "Here's some help", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
 
-        # Notify user
+        # Notify user; this will also copy the mod.
         $this->msgsSent = [];
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
         assertEquals("You have a message from the testgroup volunteers", $this->msgsSent[0]['subject']);
+        assertEquals("Member message on testgroup from Test User 1 (test1@test.com)", $this->msgsSent[1]['subject']);
 
         error_log(__METHOD__ . " end");
     }
