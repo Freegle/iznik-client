@@ -9,6 +9,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/session/Yahoo.php');
 require_once(IZNIK_BASE . '/include/session/Facebook.php');
+require_once(IZNIK_BASE . '/include/session/Google.php');
 require_once(IZNIK_BASE . '/include/session/Session.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . "/lib/JSMin.php");
@@ -26,7 +27,7 @@ if (pres('REQUEST_URI', $_SERVER) == 'yahoologin') {
     # No need to pay attention to the result - whether it worked or not will be determined by the
     # client later.
     $y->login(get_current_url());
-} else if (pres('code', $_REQUEST)) {
+} else if (pres('fblogin', $_REQUEST)) {
     # We are logging in using Facebook, but on the server because of a problem with Chrome on IOS - see
     # signinup.js
     $fbcode = presdef('code', $_REQUEST, NULL);
@@ -37,7 +38,22 @@ if (pres('REQUEST_URI', $_SERVER) == 'yahoologin') {
 
     # Now redirect so that the code doesn't appear in the URL to the user, which looks messy.
     $url = substr($url, 0, strpos($url, '?'));
-    error_log("Redirect to $url");
+    header("Location: " . $url);
+    exit(0);
+} else if (pres('googlelogin', $_REQUEST)) {
+    # We are logging in using Google, but on the server because of a problem with Chrome on IOS - see
+    # google.js
+    $code = presdef('code', $_REQUEST, NULL);
+    $g = new Google($dbhr, $dbhm, FALSE);
+    $url = get_current_url();
+    $url = substr($url, 0, strpos($url, '&code'));
+    $client = $g->getClient();
+    $client->setRedirectUri($url);
+
+    $g->login($code);
+
+    # Now redirect so that the code doesn't appear in the URL to the user, which looks messy.
+    $url = substr($url, 0, strpos($url, '?'));
     header("Location: " . $url);
     exit(0);
 } else if (pres('fb_locale', $_REQUEST) && pres('signed_request', $_REQUEST)) {

@@ -49,7 +49,7 @@ class Google
         return($this->plus);
     }
 
-    function login($code)
+    function login($code = NULL, $token = NULL)
     {
         $uid = NULL;
         $ret = 2;
@@ -59,8 +59,14 @@ class Google
         try {
             $client = $this->getClient();
             $plus = $this->getPlus();
-            $client->authenticate($code);
-            $this->access_token = $client->getAccessToken();
+
+            $this->access_token = $token;
+
+            if ($code) {
+                $client->authenticate($code);
+                $this->access_token = $client->getAccessToken();
+            }
+
             $this->tokens_decoded = json_decode($this->access_token);
             $me = $plus->people->get("me");
 
@@ -187,6 +193,7 @@ class Google
             $status = "Didn't manage to get a Google session: " . $e->getMessage();
         }
 
+        error_log("$ret = $status");
         return ([$s, [ 'ret' => $ret, 'status' => $status]]);
     }
 }

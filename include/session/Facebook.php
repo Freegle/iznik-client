@@ -65,7 +65,7 @@ class Facebook
                 'status' => "Didn't manage to get a Facebook session: " . $e->getMessage()
             ];
 
-            error_log("Failed " . var_export($ret, TRUE));
+            #error_log("Failed " . var_export($ret, TRUE));
         }
 
         return ([$s, $ret]);

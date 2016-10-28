@@ -64,17 +64,25 @@ define([
                         // Get client id
                         self.clientId = $('meta[name=google-signin-client_id]').attr("content");
 
-                        console.log("Log in");
-                        // Custom signin button
-                        var params = {
-                            'clientid': self.clientId,
-                            'cookiepolicy': 'single_host_origin',
-                            'callback': self.onSignInCallback,
-                            'immediate': false,
-                            'scope': self.scopes
-                        };
+                        if (navigator.userAgent.match('CriOS')) {
+                            // Chrome on IOS opens the normal google signin in a different tab, which is unable
+                            // to communicate with the main tab because Apple are a bunch of meanies.  So use a
+                            // server login in this case.
+                            var url = 'https://accounts.google.com/o/oauth2/v2/auth?scope=email%20profile&redirect_uri=' + encodeURIComponent(document.location.href + '?googlelogin=1') + '&response_type=code&client_id=' + self.clientId;
+                            console.log("Google login redirect " + url);
+                            document.location = url;
+                        } else {
+                            // Custom signin button
+                            var params = {
+                                'clientid': self.clientId,
+                                'cookiepolicy': 'single_host_origin',
+                                'callback': self.onSignInCallback,
+                                'immediate': false,
+                                'scope': self.scopes
+                            };
 
-                        gapi.auth.signIn(params);
+                            gapi.auth.signIn(params);
+                        }
                     });
                 }
             } catch (e) {

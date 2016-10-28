@@ -122,11 +122,10 @@ define([
         fblogin: function () {
             var self = this;
 
-            // Chrome on IOS doesn't work with FB.login; see http://stackoverflow.com/questions/16843116/facebook-oauth-unsupported-in-chrome-on-ios
             if (navigator.userAgent.match('CriOS')) {
-                // TODO Make configurable
+                // Chrome on IOS doesn't work with FB.login; see http://stackoverflow.com/questions/16843116/facebook-oauth-unsupported-in-chrome-on-ios
                 // Log in via a redirect.
-                var facebookAppId = 134980666550322;
+                var facebookAppId = $('meta[name=facebook-app-id]').attr("content");
                 document.location = 'https://www.facebook.com/dialog/oauth?client_id=' + facebookAppId + '&redirect_uri=' + encodeURIComponent(document.location.href + '?fblogin=1') + '&scope=email,public_profile';
             } else {
                 // Now, load the FB API.
