@@ -26,6 +26,20 @@ if (pres('REQUEST_URI', $_SERVER) == 'yahoologin') {
     # No need to pay attention to the result - whether it worked or not will be determined by the
     # client later.
     $y->login(get_current_url());
+} else if (pres('code', $_REQUEST)) {
+    # We are logging in using Facebook, but on the server because of a problem with Chrome on IOS - see
+    # signinup.js
+    $fbcode = presdef('code', $_REQUEST, NULL);
+    $f = new Facebook($dbhr, $dbhm);
+    $url = get_current_url();
+    $url = substr($url, 0, strpos($url, '&code'));
+    $f->login(NULL, $fbcode, $url);
+
+    # Now redirect so that the code doesn't appear in the URL to the user, which looks messy.
+    $url = substr($url, 0, strpos($url, '?'));
+    error_log("Redirect to $url");
+    header("Location: " . $url);
+    exit(0);
 } else if (pres('fb_locale', $_REQUEST) && pres('signed_request', $_REQUEST)) {
     # Looks like a load of the Facebook app.
     $f = new Facebook($dbhr, $dbhm);

@@ -146,28 +146,33 @@ define([
             // with things rapidly - in conjunction with use of the appcache it means that we don't need any server
             // interactions before we can start rendering the page.
             self.testing = true;
+            var sess = null;
+            var parsed = null;
+
+            try {
+                sess = localStorage.getItem('session');
+                if (sess) {
+                    parsed = JSON.parse(sess);
+                }
+            } catch (e) {
+                console.error("testLoggedIn exception", e.message);
+            }
+
             if (!forceserver) {
-                try {
-                    var sess = localStorage.getItem('session');
+                if (sess) {
+                    self.testing = false;
+                    self.set(parsed);
 
-                    if (sess) {
-                        self.testing = false;
-                        var parsed = JSON.parse(sess);
-                        self.set(parsed);
+                    // We get an array of groups back - we want it to be a collection.
+                    self.set('groups', new Iznik.Collection(parsed.groups));
 
-                        // We get an array of groups back - we want it to be a collection.
-                        self.set('groups', new Iznik.Collection(parsed.groups));
-
-                        // We may also get an array of modconfigs.
-                        if (parsed.configs) {
-                            self.set('configs', new Iznik.Collection(parsed.configs));
-                        }
-
-                        self.loggedIn = true;
-                        self.trigger('isLoggedIn', true);
+                    // We may also get an array of modconfigs.
+                    if (parsed.configs) {
+                        self.set('configs', new Iznik.Collection(parsed.configs));
                     }
-                } catch (e) {
-                    console.error("testLoggedIn exception", e.message);
+
+                    self.loggedIn = true;
+                    self.trigger('isLoggedIn', true);
                 }
             }
 
@@ -186,7 +191,7 @@ define([
                     url: API + 'session',
                     type: 'GET',
                     data: {
-                        persistent: self.get('persistent')
+                        persistent: sess ? parsed.persistent : null
                     },
                     success: function (ret) {
                         if (ret.ret == 111) {
@@ -387,7 +392,7 @@ define([
                                     // This will look slightly odd but means that the mainline case of still being logged
                                     // in is handled more quickly.
                                     try {
-                                        console.error("Not logged in after all", self.get('persistent'), ret);
+                                        console.error("Not logged in after all", sess, parsed, ret);
                                         localStorage.removeItem('session');
                                     } catch (e) {
                                     }

@@ -122,20 +122,28 @@ define([
         fblogin: function () {
             var self = this;
 
-            // Now, load the FB API.
-            FB.login(function(response) {
-                console.log("FBLogin returned", response);
-                if (response.authResponse) {
-                    // We're logged in on the client -
-                    Iznik.Session.facebookLogin();
+            // Chrome on IOS doesn't work with FB.login; see http://stackoverflow.com/questions/16843116/facebook-oauth-unsupported-in-chrome-on-ios
+            if (navigator.userAgent.match('CriOS')) {
+                // TODO Make configurable
+                // Log in via a redirect.
+                var facebookAppId = 134980666550322;
+                document.location = 'https://www.facebook.com/dialog/oauth?client_id=' + facebookAppId + '&redirect_uri=' + encodeURIComponent(document.location.href + '?fblogin=1') + '&scope=email,public_profile';
+            } else {
+                // Now, load the FB API.
+                FB.login(function (response) {
+                    console.log("FBLogin returned", response);
+                    if (response.authResponse) {
+                        // We're logged in on the client -
+                        Iznik.Session.facebookLogin();
 
-                    Iznik.Session.listenToOnce(Iznik.Session, 'facebookLoggedIn', function () {
-                        window.location.reload();
-                    });
-                }
-            }, {
-                scope: 'email'
-            });
+                        Iznik.Session.listenToOnce(Iznik.Session, 'facebookLoggedIn', function () {
+                            window.location.reload();
+                        });
+                    }
+                }, {
+                    scope: 'email'
+                });
+            }
         },
         
         yahoologin: function () {
