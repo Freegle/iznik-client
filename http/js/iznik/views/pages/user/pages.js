@@ -375,19 +375,41 @@ define([
                 });
 
                 try {
-                    // See if we know where we are from last time.
-                    var mylocation = localStorage.getItem('mylocation');
-                    
-                    if (!mylocation) {
-                        mylocation = Iznik.Session.getSetting('mylocation', null);
-                    }
-                    
-                    var postcode = JSON.parse(mylocation).name;
+                    var id = localStorage.getItem('draft');
+                    var q = null;
+                    var msg;
 
-                    if (mylocation) {
-                        self.$('.js-postcode').typeahead('val', postcode);
-                        self.locChange.call(self);
+                    if (id) {
+                        // We have a draft we were in the middle of.
+                        msg = new Iznik.Models.Message({
+                            id: id
+                        });
+
+                        q = msg.fetch()
+                    } else {
+                        q = resolvedPromise(self);
                     }
+
+                    q.then(function() {
+                        if (id) {
+                            // We want to use the location from the message we are in the middle of.
+                            localStorage.setItem('mylocation', JSON.stringify(msg.get('location')));
+                        }
+
+                        // See if we know where we are from last time.
+                        var mylocation = localStorage.getItem('mylocation');
+
+                        if (!mylocation) {
+                            mylocation = Iznik.Session.getSetting('mylocation', null);
+                        }
+
+                        var postcode = JSON.parse(mylocation).name;
+
+                        if (mylocation) {
+                            self.$('.js-postcode').typeahead('val', postcode);
+                            self.locChange.call(self);
+                        }
+                    });
                 } catch (e) {};
 
                 var groupoverride = $('meta[name=iznikusergroupoverride]').attr("content");
