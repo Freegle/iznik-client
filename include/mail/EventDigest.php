@@ -92,14 +92,16 @@ class EventDigest
                 $atts = $e->getPublic();
 
                 foreach ($atts['dates'] as $date) {
-                    $htmlsumm .= digest_event($atts, $date['start'], $date['end']);
+                    if (strtotime($date['start']) >= time())  {
+                        $htmlsumm .= digest_event($atts, $date['start'], $date['end']);
 
-                    # Get a string representation of the date in UK time.
-                    $datetime = new DateTime($date['start'], $tz1);
-                    $datetime->setTimezone($tz2);
-                    $datestr = $datetime->format('D, jS F g:ia');
+                        # Get a string representation of the date in UK time.
+                        $datetime = new DateTime($date['start'], $tz1);
+                        $datetime->setTimezone($tz2);
+                        $datestr = $datetime->format('D, jS F g:ia');
 
-                    $textsumm .= $atts['title'] . " starts $datestr at " . $atts['location'] . "\r\n";
+                        $textsumm .= $atts['title'] . " starts $datestr at " . $atts['location'] . "\r\n";
+                    }
                 }
             }
 
