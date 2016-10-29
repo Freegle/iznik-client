@@ -318,8 +318,8 @@ class ChatRoom extends Entity
         return (count($counts) > 0 ? $counts[0]['lastmsgseen'] : NULL);
     }
     
-    public function seenLastForUser($userid) {
-        $sql = "UPDATE chat_roster SET lastmsgseen = (SELECT MAX(id) FROM chat_messages WHERE chatid = ?) WHERE userid = ? AND chatid = ?;";
+    public function mailedLastForUser($userid) {
+        $sql = "UPDATE chat_roster SET lastmsgemailed = (SELECT MAX(id) FROM chat_messages WHERE chatid = ?) WHERE userid = ? AND chatid = ?;";
         $this->dbhm->preExec($sql, [
             $this->id,
             $userid,
