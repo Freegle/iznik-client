@@ -190,7 +190,7 @@ class Newsletter extends Entity
                     ->addPart($tosend['html'], 'text/html');
 
                 $headers = $message->getHeaders();
-                $headers->addTextHeader('List-Unsubscribe', '<mailto:' . $rep['{{newslettersoff}}'] . '>, <' . $rep['{{unsubscribe}}'] . '>');
+                $headers->addTextHeader('List-Unsubscribe', '<mailto:' . $rep['{{noemail}}'] . '>, <' . $rep['{{unsubscribe}}'] . '>');
 
                 try {
                     $message->addTo($email);

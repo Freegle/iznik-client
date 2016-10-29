@@ -155,7 +155,8 @@ class chatRoomsTest extends IznikTestCase {
         }));
 
         $this->msgsSent = [];
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+        # Notify - will email body.
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
         assertEquals('Re: OFFER: Test item (location)', $this->msgsSent[0]['subject']);
 
         # Now pretend we've seen the messages.  Should flag the message as seen by all.
@@ -279,10 +280,11 @@ class chatRoomsTest extends IznikTestCase {
             return($this->mailer($message));
         }));
 
-        # Notify mod
+        # Notify mod; will also notify user
         $this->msgsSent = [];
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
-        assertEquals("Member conversation on testgroup with Test User 1 (test1@test.com)", $this->msgsSent[0]['subject']);
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
+        assertEquals("Your conversation with the testgroup volunteers", $this->msgsSent[0]['subject']);
+        assertEquals("Member conversation on testgroup with Test User 1 (test1@test.com)", $this->msgsSent[1]['subject']);
 
         # Chase up mods after unreasonably short interval
         self::assertEquals(1, count($r->chaseupMods($id, 0)));
@@ -291,9 +293,10 @@ class chatRoomsTest extends IznikTestCase {
         $cm2 = $m->create($id, $u2, "Here's some help", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
 
         # Notify user; this will also copy the mod.
+        $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NULL WHERE userid = ?;", [ $u1 ]);
         $this->msgsSent = [];
         assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
-        assertEquals("You have a message from the testgroup volunteers", $this->msgsSent[0]['subject']);
+        assertEquals("Your conversation with the testgroup volunteers", $this->msgsSent[0]['subject']);
         assertEquals("Member conversation on testgroup with Test User 1 (test1@test.com)", $this->msgsSent[1]['subject']);
 
         error_log(__METHOD__ . " end");

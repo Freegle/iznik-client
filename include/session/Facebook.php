@@ -34,7 +34,7 @@ class Facebook
         return($fb);
     }
 
-    function login($accessToken = NULL, $code = NULL, $redirectURI)
+    function login($accessToken = NULL, $code = NULL, $redirectURI = NULL)
     {
         $uid = NULL;
         $ret = [

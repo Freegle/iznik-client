@@ -40,6 +40,7 @@ class ChatRoom extends Entity
             ->setSubject($subject)
             ->setFrom([$from => $fromname])
             ->setTo([$to => $toname])
+//            ->setBcc('log@ehibbert.org.uk')
             ->setBody($text);
 
         if ($html) {
@@ -783,14 +784,16 @@ class ChatRoom extends Entity
             # seen/been chased, and all the mods if none of them have seen/been chased.
             #
             # First the user.
-            $sql = "SELECT TIMESTAMPDIFF(SECOND, chat_roster.date, NOW()) AS secondsago, chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 1);";
-            #error_log("$sql, {$this->id}, $lastmessage");
+            $sql = "SELECT TIMESTAMPDIFF(SECOND, chat_roster.date, NOW()) AS secondsago, chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
+            #error_log("Check User2Mod $sql, {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [ $this->id, $lastmessage ]);
 
             foreach ($users as $user) {
                 $maxseen = presdef('lastmsgseen', $user, 0);
                 $maxmailed = presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
+
+                #error_log("User in User2Mod max $maxmailed vs $lastmessage");
 
                 if ($maxmailed < $lastmessage) {
                     # We've not seen any messages, or seen some but not this one.
@@ -875,7 +878,7 @@ class ChatRoom extends Entity
             $maxmailednow = 0;
             #error_log("Last seen by all $lastseen");
             $notmailed = $r->getMembersStatus($chatatts['lastmsg']);
-            #error_log("Members not seen " . var_export($notseenby, TRUE));
+            #error_log("Members not seen " . var_export($notmailed, TRUE));
 
             foreach ($notmailed as $member) {
                 # Now we have a member who has not been mailed of the messages in this chat.  Find the other one.
@@ -902,10 +905,13 @@ class ChatRoom extends Entity
 
                         if (pres('message', $unmailedmsg)) {
                             $thisone = $unmailedmsg['message'];
+                            $messageu = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
+                            $fromname = $messageu->getName();
                             $textsummary .= $thisone . "\r\n";
 
                             # Alternate colours.
-                            $htmlsummary .= $unmailedmsg['userid'] == $other ? '<span style="color: blue">' : '<span style="color: black">';
+                            #error_log("Message {$unmailedmsg['id']} from {$unmailedmsg['userid']} vs " . $thisu->getId());
+                            $htmlsummary .= $unmailedmsg['userid'] == $thisu->getId() ? '<h3>You wrote:</h3><span style="color: black">' : ('<h3>' . $fromname . ' wrote:</h3><span style="color: blue">');
                             $htmlsummary .= nl2br($thisone) . "<br>";
                             $htmlsummary .= '</span>';
 
@@ -925,19 +931,16 @@ class ChatRoom extends Entity
                         switch ($chattype) {
                             case ChatRoom::TYPE_USER2USER:
                                 $subject = count($subjs) == 0 ? "You have a new message" : "Re: {$subjs[0]['subject']}";
-                                $fromname = $otheru->getName();
                                 $site = USER_SITE;
                                 break;
                             case ChatRoom::TYPE_USER2MOD:
                                 # We might either be notifying a user, or the mods.
                                 $g = Group::get($this->dbhr, $this->dbhm, $chat['groupid']);
                                 if ($member['role'] == User::ROLE_MEMBER) {
-                                    $subject = "You have a message from the " . $g->getPublic()['namedisplay'] . " volunteers";
-                                    $fromname = $g->getPublic()['namedisplay'];
+                                    $subject = "Your conversation with the " . $g->getPublic()['namedisplay'] . " volunteers";
                                     $site = USER_SITE;
                                 } else {
                                     $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $otheru->getName() . " (" . $otheru->getEmailPreferred() . ")";
-                                    $fromname = $otheru->getName();
                                     $site = MOD_SITE;
                                 }
                                 break;
