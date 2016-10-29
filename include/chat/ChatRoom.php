@@ -742,11 +742,9 @@ class ChatRoom extends Entity
         return($ret);
     }
 
-    public function getMembersStatus($lastmessage, $age = 300) {
+    public function getMembersStatus($lastmessage) {
         # TODO We should chase for group chats too.
         # There are some general restrictions on when we email:
-        # - We don't mail before someone has been offline for five minutes, which saves people who are
-        #   using the site getting a bunch of emails for chats they've already seen.
         # - When we have a new message since our last email, we don't email more often than every 10 minutes, so that if
         #   someone keeps hammering away in chat we don't flood the recipient with emails.
         $ret = [];
@@ -757,18 +755,18 @@ class ChatRoom extends Entity
             # seen message was and decide who to chase.
             #
             # Used to remail - but that never stops if they don't visit the site.
-            $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster WHERE chatid = ? HAVING secondsago >= $age AND lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
-            #error_log("$sql {$this->id}, $lastmessage");
+            $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster WHERE chatid = ? HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
+            error_log("$sql {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [ $this->id, $lastmessage ]);
             foreach ($users as $user) {
-                #error_log("Last by all $lastseenbyall vs {$user['lastmsgseen']}, last message $lastmessage");
                 # What's the max message this user has either seen or been mailed?
+                #error_log("Last {$user['lastmsgemailed']}, last message $lastmessage");
                 $maxseen = presdef('lastmsgseen', $user, 0);
                 $maxmailed = presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
-                #error_log("Max seen $maxseen mailed $maxmailed max $max");
+                #error_log("Max seen $maxseen mailed $maxmailed max $max VS $lastmessage");
 
-                if ($max < $lastmessage) {
+                if ($maxmailed < $lastmessage) {
                     # This user hasn't seen or been mailed all the messages.
                     #error_log("Need to see this");
                     $ret[] = [
@@ -785,7 +783,7 @@ class ChatRoom extends Entity
             # seen/been chased, and all the mods if none of them have seen/been chased.
             #
             # First the user.
-            $sql = "SELECT TIMESTAMPDIFF(SECOND, chat_roster.date, NOW()) AS secondsago, chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 HAVING secondsago >= $age AND lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 1);";
+            $sql = "SELECT TIMESTAMPDIFF(SECOND, chat_roster.date, NOW()) AS secondsago, chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 1);";
             #error_log("$sql, {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [ $this->id, $lastmessage ]);
 
@@ -794,7 +792,7 @@ class ChatRoom extends Entity
                 $maxmailed = presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
 
-                if ($max < $lastmessage) {
+                if ($maxmailed < $lastmessage) {
                     # We've not seen any messages, or seen some but not this one.
                     $ret[] = [
                         'userid' => $user['userid'],
@@ -852,7 +850,7 @@ class ChatRoom extends Entity
         return($ret);
     }
 
-    public function notifyByEmail($chatid = NULL, $chattype, $age = 300) {
+    public function notifyByEmail($chatid = NULL, $chattype) {
         # We want to find chatrooms with messages which haven't been mailed to people.  We always email messages,
         # even if they are seen online.
         #
@@ -876,7 +874,7 @@ class ChatRoom extends Entity
             $lastmaxmailed = $r->lastMailedToAll();
             $maxmailednow = 0;
             #error_log("Last seen by all $lastseen");
-            $notmailed = $r->getMembersStatus($chatatts['lastmsg'], $age);
+            $notmailed = $r->getMembersStatus($chatatts['lastmsg']);
             #error_log("Members not seen " . var_export($notseenby, TRUE));
 
             foreach ($notmailed as $member) {

@@ -195,7 +195,6 @@ class Google
             $status = "Didn't manage to get a Google session: " . $e->getMessage();
         }
 
-        error_log("$ret = $status");
         return ([$s, [ 'ret' => $ret, 'status' => $status]]);
     }
 }
