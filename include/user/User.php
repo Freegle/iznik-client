@@ -2214,7 +2214,7 @@ class User extends Entity
             $yahooid = $this->getPrivate('yahooid');
 
             if ($yahooid && strpos($yahooid, '@') === FALSE) {
-                $email = $yahooid . '-' . $this->id . '@' . USER_DOMAIN;
+                $email = str_replace(' ', '', $yahooid) . '-' . $this->id . '@' . USER_DOMAIN;
             } else {
                 # Their own email might already be of that nature, which would be lovely.
                 $personal = [];
