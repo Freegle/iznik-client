@@ -101,5 +101,17 @@ class Admin extends Entity
 
         return($done);
     }
+
+    public function listForGroup($groupid) {
+        $admins = $this->dbhr->preQuery("SELECT id FROM admins WHERE groupid = ? ORDER BY created DESC;", [ $groupid ]);
+        $ret = [];
+
+        foreach ($admins as $admin) {
+            $a = new Admin($this->dbhr, $this->dbhm, $admin['id']);
+            $ret[] = $a->getPublic();
+        }
+
+        return($ret);
+    }
 }
 
