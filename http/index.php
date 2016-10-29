@@ -41,8 +41,8 @@ if (pres('REQUEST_URI', $_SERVER) == 'yahoologin') {
     header("Location: " . $url);
     exit(0);
 } else if (pres('googlelogin', $_REQUEST)) {
-    # We are logging in using Google, but on the server because of a problem with Chrome on IOS - see
-    # google.js
+    # We are logging in using Google.  We always do server logins for google due to issues with multiple accounts -
+    # see google.js for more details.
     $code = presdef('code', $_REQUEST, NULL);
     $g = new Google($dbhr, $dbhm, FALSE);
     $url = get_current_url();

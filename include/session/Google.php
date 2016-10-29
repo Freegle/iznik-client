@@ -74,6 +74,8 @@ class Google
             $emails = $me->getEmails();
             $googlemail = NULL;
 
+            #error_log("Google signin $code gives " . var_export($emails, TRUE));
+
             foreach ($emails as $anemail) {
                 if ($anemail->getType() == 'account') {
                     $googlemail = $anemail->getValue();
