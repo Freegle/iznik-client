@@ -89,7 +89,7 @@ class EventDigest
             if ($this->errorlog) { error_log("#$groupid " . $g->getPrivate('nameshort')); }
 
             # We want to send all events which start within the next month for this group.
-            $sql = "SELECT DISTINCT communityevents.id FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid = ? INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id WHERE start >= NOW() AND DATEDIFF(NOW(), start) <= 30 AND pending = 0 ORDER BY communityevents_dates.start ASC;";
+            $sql = "SELECT DISTINCT communityevents.id FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid = ? INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id WHERE start >= NOW() AND DATEDIFF(NOW(), start) <= 30 AND pending = 0 AND deleted = 0 ORDER BY communityevents_dates.start ASC;";
             #error_log("Look for groups to process $sql, $groupid");
             $events = $this->dbhr->preQuery($sql, [ $groupid ]);
 
