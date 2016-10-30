@@ -930,7 +930,7 @@ class ChatRoom extends Entity
 
                         switch ($chattype) {
                             case ChatRoom::TYPE_USER2USER:
-                                $subject = count($subjs) == 0 ? "You have a new message" : "Re: {$subjs[0]['subject']}";
+                                $subject = count($subjs) == 0 ? "You have a new message" : ("Re: " . str_replace('Re: ', '', $subjs[0]['subject']));
                                 $site = USER_SITE;
                                 break;
                             case ChatRoom::TYPE_USER2MOD:
