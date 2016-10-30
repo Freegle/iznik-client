@@ -253,25 +253,21 @@ class Facebook
     }
 
     public function notify($fbid, $message, $href) {
-        $notif = [
-            'template' => $message,
-            'href' => $href
-        ];
+        try {
+            $notif = [
+                'template' => $message,
+                'href' => $href
+            ];
 
-        $fb = new Facebook\Facebook([
-            'app_id' => FBAPP_ID,
-            'app_secret' => FBAPP_SECRET
-        ]);
+            $fb = new Facebook\Facebook([
+                'app_id' => FBAPP_ID,
+                'app_secret' => FBAPP_SECRET
+            ]);
 
-//        $token_url =    "https://graph.facebook.com/oauth/access_token?" .
-//            "client_id=" . FBAPP_ID .
-//            "&client_secret=" . FBAPP_SECRET .
-//            "&grant_type=client_credentials";
-//        $app_token = file_get_contents($token_url);
+            $fb->setDefaultAccessToken(FBAPP_ID . '|' . FBAPP_SECRET);
 
-        $fb->setDefaultAccessToken(FBAPP_ID . '|' . FBAPP_SECRET);
-
-        $result = $fb->post("/$fbid/notifications", $notif);
-        error_log("Notify returned " . var_export($result, TRUE));
+            $result = $fb->post("/$fbid/notifications", $notif);
+            #error_log("Notify returned " . var_export($result, TRUE));
+        } catch (Excception $e) {}
     }
 }

@@ -758,6 +758,10 @@ class MailRouter
                                     FALSE,
                                     $spamscore);
                                 if ($log) { error_log("Created chat message $mid"); }
+
+                                # The user sending this is up to date with this conversation.  This prevents us
+                                # notifying her about other messages
+                                $r->mailedLastForUser($this->msg->getFromuser());
                             }
                         }
                     }
