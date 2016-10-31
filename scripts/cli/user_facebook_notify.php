@@ -18,7 +18,7 @@ if (count($opts) < 2) {
 
     $f = new Facebook($dbhr, $dbhm);
 
-    $users = $dbhr->preQuery("SELECT * FROM users_logins WHERE type = 'Facebook' $userq ORDER BY lastaccess DESC;");
+    $users = $dbhr->preQuery("SELECT * FROM users_logins WHERE type = 'Facebook' $userq ORDER BY lastaccess DESC LIMIT 1000, 1000000;");
     $count = 0;
     foreach ($users as $user) {
         $f->notify($user['uid'], $message, $url);
