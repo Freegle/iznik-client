@@ -205,7 +205,7 @@ define([
         userHome: function (chatid) {
             var self = this;
 
-            if (document.URL.indexOf('modtools') !== -1) {
+            if (true) {  // MT
                 Router.navigate('/modtools', true);
             } else {
                 self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
