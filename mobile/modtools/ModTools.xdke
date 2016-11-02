@@ -11,6 +11,9 @@
   "build-tab": {
     "selectedTargets": [
       "CORDOVA_ANDROID"
+    ],
+    "emailListForShareBuild": [
+      "jchriscant@googlemail.com"
     ]
   }
 }
