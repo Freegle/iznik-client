@@ -175,4 +175,48 @@
             </div>
         </div>
     </div>
+    <div class="panel panel-default js-adminonly">
+        <div class="panel-heading" role="tab" id=groupaddhead">
+            <h4 class="panel-title">
+                <a role="button" data-toggle="collapse" data-parent="#support" href="#groupadd" aria-expanded="false" aria-controls="find">
+                    Add a Group
+                </a>
+            </h4>
+        </div>
+        <div id="groupadd" class="panel-collapse collapse" role="tabpanel" aria-labelledby="groupaddhead">
+            <div class="panel-body">
+                <p>This lets you add a new Freegle group.  This is hosted on the platform, without an accompanying Yahoo group.  This will be added with you as an Owner, and published immediately.</p>
+                <div class="alert alert-info">Before you do this, you might want to check the location settings for this area, to make sure they look ok.</div>
+                <div class="alert alert-warning">
+                    We don't check whether this overlaps with other existing groups, or do much verification on the
+                    inputs.  Be careful.
+                </div>
+                <form>
+                    <div class="form-group">
+                        <label class="control-label ">Short name:</label>
+                        <input type="text" class="form-control col-sm-8 js-addnameshort" placeholder="e.g. EdinburghFreegle.  No spaces.  Keep it short.">
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label ">Full name:</label>
+                        <input type="text" class="form-control col-sm-8 js-addnamefull" placeholder="e.g. Edinburgh Freegle.  Spaces ok.  Not too long.">
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label ">Centre of group</label>
+                        <input type="text" class="form-control js-addlat" placeholder="Latitude" />
+                        <input type="text" class="form-control js-addlng" placeholder="Longitude" />
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label ">Core area polygon</label>
+                        <textarea rows="5" class="form-control  js-addcore" placeholder="WKT format; draw with arthur-e.github.io/Wicket/sandbox-gmaps3.html" />
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label ">Catchment area polygon</label>
+                        <textarea rows="5" class="form-control  js-addcatchment" placeholder="WKT format; draw with arthur-e.github.io/Wicket/sandbox-gmaps3.html" />
+                    </div>
+                    
+                </form>
+                <div class="btn btn-success js-addgroup">Add Group</div>
+            </div>
+        </div>
+    </div>
 </div>

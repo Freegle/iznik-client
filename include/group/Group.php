@@ -161,7 +161,7 @@ class Group extends Entity
                 return(NULL);
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type) VALUES (?, ?)", [$shortname, $type]);
+            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type, founded) VALUES (?, ?, NOW())", [$shortname, $type]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
             $id = NULL;

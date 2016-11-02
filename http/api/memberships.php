@@ -157,9 +157,15 @@ function memberships() {
                 $u = User::get($dbhr, $dbhm, $userid);
 
                 if ($u && $me && $u->getId() && $me->getId()) {
+                    $g = Group::get($dbhr, $dbhm, $groupid);
+
                     if ($userid && $userid != $me->getId()) {
                         # If this isn't us, we can add them, but not as someone with higher permissions than us.
+                        $origrole = $role;
                         $role = $u->roleMin($role, $me->getRoleForGroup($groupid));
+
+                        # ...unless there are no mods at all, in which case this lucky person could become the owner.
+                        $role = ($origrole == User::ROLE_OWNER && $role == User::ROLE_MODERATOR && count($g->getMods()) == 0) ? User::ROLE_OWNER : $role;
                     }
 
                     if ($email) {
@@ -172,7 +178,6 @@ function memberships() {
 
                     $u->addMembership($groupid, $role, $emailid);
 
-                    $g = Group::get($dbhr, $dbhm, $groupid);
                     if ($g->onYahoo()) {
                         # This group is on Yahoo too, so we should trigger a membership application to there if we
                         # don't already have one of our emails on the group.

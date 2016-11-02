@@ -86,7 +86,7 @@ function group() {
                         'status' => 'Failed or permission denied'
                     ];
 
-                    if ($me->isModOrOwner($id)) {
+                    if ($me->isModOrOwner($id) || $me->isAdminOrSupport()) {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success'
@@ -114,10 +114,20 @@ function group() {
                         }
 
                         # Other settable attributes
-                        foreach (['tagline', 'showonyahoo'] as $att) {
+                        foreach (['tagline', 'showonyahoo', 'namefull'] as $att) {
                             $val = presdef($att, $_REQUEST, NULL);
                             if (array_key_exists($att, $_REQUEST)) {
                                 $g->setPrivate($att, $val);
+                            }
+                        }
+
+                        # Other support-settable attributes
+                        if ($me->isAdminOrSupport()) {
+                            foreach (['publish', 'onyahoo', 'onhere', 'showonyahoo', 'licenserequired', 'lat', 'lng', 'poly', 'polyofficial'] as $att) {
+                                $val = presdef($att, $_REQUEST, NULL);
+                                if (array_key_exists($att, $_REQUEST)) {
+                                    $g->setPrivate($att, $val);
+                                }
                             }
                         }
                     }
