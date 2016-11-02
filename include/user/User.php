@@ -1051,10 +1051,10 @@ class User extends Entity
                 if ($groupids && count($groupids) > 0) {
                     # On these groups
                     $groupq = implode(',', $groupids);
-                    $sql = "SELECT messages.id, messages.arrival, messages.date, messages_postings.date AS repostdate, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
+                    $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_postings.date AS repostdate, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
                 } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
                     # We can see all groups.
-                    $sql = "SELECT messages.id, messages.arrival, messages.date, messages_postings.date AS repostdate, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
+                    $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_postings.date AS repostdate, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
                 }
 
                 if ($sql) {
@@ -2214,7 +2214,7 @@ class User extends Entity
             $yahooid = $this->getPrivate('yahooid');
 
             if ($yahooid && strpos($yahooid, '@') === FALSE) {
-                $email = $yahooid . '-' . $this->id . '@' . USER_DOMAIN;
+                $email = str_replace(' ', '', $yahooid) . '-' . $this->id . '@' . USER_DOMAIN;
             } else {
                 # Their own email might already be of that nature, which would be lovely.
                 $personal = [];

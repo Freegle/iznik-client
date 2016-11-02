@@ -15,4 +15,14 @@ define([
             }
         }
     });
+
+    Iznik.Collections.Admin = Iznik.Collection.extend({
+        url: API + 'admin',
+
+        model: Iznik.Models.Admin,
+
+        parse: function (ret) {
+            return (ret.admins);
+        }
+    });
 });

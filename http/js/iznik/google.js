@@ -3,7 +3,7 @@ define([
     'underscore',
     'backbone',
     'iznik/base'
-], function($, _, Backbone, Iznik) {
+], function ($, _, Backbone, Iznik) {
 
     Iznik.Views.GoogleLoad = Iznik.View.extend({
         authResult: undefined,
@@ -20,20 +20,20 @@ define([
                 self.authResult = authResult;
                 $.ajax({
                     type: 'POST',
-                    url: API+'session',
+                    url: API + 'session',
                     data: {
                         'googleauthcode': self.authResult.code,
                         'googlelogin': true,
                         'mobile': true,
                     },
                     success: function (result) {
-                      console.log(result);
-                      if (result.ret != 0) {
-                        $('.js-signin-msg').text(JSON.stringify(result));
-                        $('.js-signin-msg').show();
-                      } else {
-                          Router.mobileReload();  // CC
-                      }
+                        console.log(result);
+                        if (result.ret != 0) {
+                            $('.js-signin-msg').text(JSON.stringify(result));
+                            $('.js-signin-msg').show();
+                        } else {
+                            Router.mobileReload();  // CC
+                        }
                     }
                 });
             }
@@ -88,21 +88,21 @@ define([
             }
         },
 
-        googleAuth: function(){ // CC
+        googleAuth: function () { // CC
             var self = this;
-            if( self.tryingGoogleLogin){ return; }
+            if (self.tryingGoogleLogin) { return; }
             self.tryingGoogleLogin = true;
             var googleScope = 'https://www.googleapis.com/auth/plus.me https://www.googleapis.com/auth/userinfo.email';
             self.clientId = $('meta[name=google-signin-client_id]').attr("content");
-            console.log("Google clientId: "+self.clientId);
+            console.log("Google clientId: " + self.clientId);
             // Build the OAuth2 consent page URL
             var authUrl = 'https://accounts.google.com/o/oauth2/auth?' + $.param({
-                    client_id: self.clientId,
-                    redirect_uri: 'http://localhost', // Must match that in Google console API credentials
-                    response_type: 'code',
-                    //response_type: 'token',
-                    scope: googleScope
-                });
+                client_id: self.clientId,
+                redirect_uri: 'http://localhost', // Must match that in Google console API credentials
+                response_type: 'code',
+                //response_type: 'token',
+                scope: googleScope
+            });
 
             var authGiven = false;
 
@@ -123,14 +123,14 @@ define([
                 }
 
                 if (code) {
-                    if( authGiven) return;
+                    if (authGiven) return;
                     authGiven = true;
 
                     code = code[1].split('&')[0]; // Remove any other returned parameters
                     console.log("code: " + code);
 
                     // Try logging in again at FD with given authcode
-                    var authResult = { code:code };
+                    var authResult = { code: code };
                     authResult['access_token'] = true;
                     self.onSignInCallback(authResult);
                 } else if (error) {
@@ -152,7 +152,7 @@ define([
 
         },
 
-        noop: function(authResult) {
+        noop: function (authResult) {
             console.log("Noop", authResult)
             $('#googleshim').hide();
         },

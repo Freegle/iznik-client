@@ -158,7 +158,27 @@ define([
         events: {
             'click .js-notspam': 'notSpam',
             'click .js-confirm': 'confirm',
-            'click .js-whitelist': 'whitelist'
+            'click .js-whitelist': 'whitelist',
+            'click .js-requestremove': 'requestRemove'
+        },
+
+        requestRemove: function() {
+            var self = this;
+
+            $.ajax({
+                url: API + 'spammers/' + self.model.get('id'),
+                data: {
+                    'collection': 'PendingRemove'
+                },
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
+                success: function (ret) {
+                    // Now over to someone else to review this report - so remove from our list.
+                    self.remove();
+                }
+            });
         },
 
         notSpam: function () {

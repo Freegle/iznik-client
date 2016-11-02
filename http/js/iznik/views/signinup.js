@@ -6,7 +6,7 @@ define([
     'iznik/facebook',
     'iznik/views/modal',
     'iznik/google'
-], function($, _, Backbone, Iznik, FBLoad) {
+], function ($, _, Backbone, Iznik, FBLoad) {
     Iznik.Views.SignInUp = Iznik.Views.Modal.extend({
         className: "signinup",
 
@@ -36,7 +36,7 @@ define([
             }
         },
 
-        register: function(e) {
+        register: function (e) {
             this.signInShown = false;
             this.$('.js-registerhide').hide();
             this.$('.js-signinerror').hide();
@@ -44,7 +44,7 @@ define([
             this.$('.js-firstname').focus();
         },
 
-        already: function(e) {
+        already: function (e) {
             this.signInShown = true;
             this.$('.js-registershow').hide();
             this.$('.js-signinerror').hide();
@@ -125,13 +125,13 @@ define([
             var FBLoad = new Iznik.Views.FBLoad();
             FBLoad.signin();
         },
-        
+
         yahoologin: function () {
             if (navigator.connection.type === Connection.NONE) {  // CC
-              console.log("No connection - please try again later.");
-              $('.js-signin-msg').text("No internet connection - please try again later");
-              $('.js-signin-msg').show();
-              return;
+                console.log("No connection - please try again later.");
+                $('.js-signin-msg').text("No internet connection - please try again later");
+                $('.js-signin-msg').show();
+                return;
             }
 
             Iznik.Session.yahooLogin();
@@ -161,7 +161,7 @@ define([
             var self = this;
             this.template = this.options.modtools ? "signinup_modtools" : "signinup_user";
             var p = this.open(this.template, null);
-            p.then(function() {
+            p.then(function () {
                 self.$('.js-native').hide();
 
                 // We do a trick with submitting to a hidden iframe to make browsers save the password.  If there was
@@ -182,7 +182,7 @@ define([
 
                 $('.js-privacy').hide();
                 $('.js-signin-msg').hide(); // CC
-                
+
                 self.$('.js-loginFB').removeClass('signindisabled');  // CC
 
                 // Load the Google API
@@ -190,7 +190,7 @@ define([
 
                 // We have a custom signin button which needs googleising.
                 GoogleLoad.signInButton('gConnect');
-                
+
             });
 
             return (p);
@@ -204,15 +204,15 @@ define([
     Iznik.Views.CookieError = Iznik.Views.Modal.extend({
         template: 'signinup_cookies'
     });
-    
+
     Iznik.Views.SignInUp.LostPassword = Iznik.Views.Modal.extend({
         template: 'signinup_lostpassword',
-        
+
         events: {
             'click .js-send': 'send'
         },
-        
-        send: function() {
+
+        send: function () {
             var self = this;
             var email = self.$('.js-email').val();
             if (email.length == 0) {
@@ -232,10 +232,10 @@ define([
             }
         },
 
-        render: function() {
+        render: function () {
             var self = this;
 
-            Iznik.Views.Modal.prototype.render.call(this).then(function() {
+            Iznik.Views.Modal.prototype.render.call(this).then(function () {
                 try {
                     var email = localStorage.getItem('myemail');
                     if (email) {

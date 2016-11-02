@@ -237,6 +237,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <meta name="google-signin-client_id" content="<?php echo GOOGLE_CLIENT_ID; ?>">
+    <meta name="facebook-app-id" content="<?php echo FBAPP_ID; ?>">
     <script>
         (function() {
             var po = document.createElement('script');

@@ -69,46 +69,30 @@ class EventDigest
         $gatts = $g->getPublic();
         $sent = 0;
 
-        # TODO until we migrate over, we need to link to the old site, so we need the old group id.
-        $fdgroupid = NULL;
-        global $dbconfig;
-        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port']};dbname=republisher;charset=utf8";
+        if ($this->errorlog) { error_log("#$groupid " . $g->getPrivate('nameshort')); }
 
-        $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_EMULATE_PREPARES => FALSE
-        ));
+        # We want to send all events which start within the next month for this group.
+        $sql = "SELECT DISTINCT communityevents.id FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid = ? INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id WHERE start >= NOW() AND DATEDIFF(NOW(), start) <= 30 AND pending = 0 AND deleted = 0 ORDER BY communityevents_dates.start ASC;";
+        #error_log("Look for groups to process $sql, $groupid");
+        $events = $this->dbhr->preQuery($sql, [ $groupid ]);
 
-        $sql = "SELECT groupid FROM groups WHERE groupname = " . $dbhold->quote($gatts['nameshort']) . ";";
-        $fdgroups = $dbhold->query($sql);
-        foreach ($fdgroups as $fdgroup) {
-            $fdgroupid = $fdgroup['groupid'];
-        }
+        if ($this->errorlog) { error_log("Consider " . count($events) . " events"); }
 
-        if ($fdgroupid) {
-            if ($this->errorlog) { error_log("#$groupid " . $g->getPrivate('nameshort')); }
+        $textsumm = '';
+        $htmlsumm = '';
 
-            # We want to send all events which start within the next month for this group.
-            $sql = "SELECT DISTINCT communityevents.id FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid = ? INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id WHERE start >= NOW() AND DATEDIFF(NOW(), start) <= 30 AND pending = 0 ORDER BY communityevents_dates.start ASC;";
-            #error_log("Look for groups to process $sql, $groupid");
-            $events = $this->dbhr->preQuery($sql, [ $groupid ]);
+        $tz1 = new DateTimeZone('UTC');
+        $tz2 = new DateTimeZone('Europe/London');
 
-            if ($this->errorlog) { error_log("Consider " . count($events) . " events"); }
+        if (count($events) > 0) {
+            foreach ($events as $event) {
+                if ($this->errorlog) { error_log("Start group $groupid"); }
 
-            $textsumm = '';
-            $htmlsumm = '';
+                $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id']);
+                $atts = $e->getPublic();
 
-            $tz1 = new DateTimeZone('UTC');
-            $tz2 = new DateTimeZone('Europe/London');
-
-            if (count($events) > 0) {
-                foreach ($events as $event) {
-                    if ($this->errorlog) { error_log("Start group $groupid"); }
-
-                    $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id']);
-                    $atts = $e->getPublic();
-
-                    foreach ($atts['dates'] as $date) {
+                foreach ($atts['dates'] as $date) {
+                    if (strtotime($date['start']) >= time())  {
                         $htmlsumm .= digest_event($atts, $date['start'], $date['end']);
 
                         # Get a string representation of the date in UK time.
@@ -119,95 +103,95 @@ class EventDigest
                         $textsumm .= $atts['title'] . " starts $datestr at " . $atts['location'] . "\r\n";
                     }
                 }
+            }
 
-                $html = digest_events($htmlsumm,
-                    USER_SITE,
-                    USERLOGO,
-                    $gatts['namedisplay']
-                );
+            $html = digest_events($htmlsumm,
+                USER_SITE,
+                USERLOGO,
+                $gatts['namedisplay']
+            );
 
-                $tosend = [
-                    'subject' => '[' . $gatts['namedisplay'] . "] Community Event Roundup",
-                    'from' => $g->getModsEmail(),
-                    'fromname' => $gatts['namedisplay'],
-                    'replyto' => $g->getModsEmail(),
-                    'replytoname' => $gatts['namedisplay'],
-                    'html' => $html,
-                    'text' => $textsumm
-                ];
+            $tosend = [
+                'subject' => '[' . $gatts['namedisplay'] . "] Community Event Roundup",
+                'from' => $g->getModsEmail(),
+                'fromname' => $gatts['namedisplay'],
+                'replyto' => $g->getModsEmail(),
+                'replytoname' => $gatts['namedisplay'],
+                'html' => $html,
+                'text' => $textsumm
+            ];
 
-                # Now find the users we want to send to on this group for this frequency.  We build up an array of
-                # the substitutions we need.
-                # TODO This isn't that well indexed in the table.
-                $replacements = [];
+            # Now find the users we want to send to on this group for this frequency.  We build up an array of
+            # the substitutions we need.
+            # TODO This isn't that well indexed in the table.
+            $replacements = [];
 
-                $sql = "SELECT userid FROM memberships WHERE groupid = ? AND eventsallowed = 1 ORDER BY userid ASC;";
-                $users = $this->dbhr->preQuery($sql, [ $groupid, ]);
+            $sql = "SELECT userid FROM memberships WHERE groupid = ? AND eventsallowed = 1 ORDER BY userid ASC;";
+            $users = $this->dbhr->preQuery($sql, [ $groupid, ]);
 
-                if ($this->errorlog) { error_log("Consider " . count($users) . " users "); }
-                foreach ($users as $user) {
-                    $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
-                    if ($this->errorlog) {
-                        error_log("Consider user {$user['userid']}");
-                    }
-
-                    # We are only interested in sending events to users for whom we have a preferred address -
-                    # otherwise where would we send them?
-                    $email = $u->getEmailPreferred();
-                    if ($this->errorlog) { error_log("Preferred $email, send " . $u->sendOurMails($g)); }
-
-                    if ($email && $u->sendOurMails($g)) {
-                        # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
-                        if ($this->errorlog) { error_log("Send to them"); }
-                        $replacements[$email] = [
-                            '{{toname}}' => $u->getName(),
-                            '{{unsubscribe}}' => 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email),
-                            '{{email}}' => $email,
-                            '{{noemail}}' => 'eventsoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
-                            '{{post}}' => "https://direct.ilovefreegle.org/login.php?action=post&groupid=$fdgroupid&digest=$fdgroupid",
-                            '{{visit}}' => "https://direct.ilovefreegle.org/login.php?action=mygroups&subaction=displaygroup&groupid=$fdgroupid&digest=$fdgroupid"
-                        ];
-                    }
+            if ($this->errorlog) { error_log("Consider " . count($users) . " users "); }
+            foreach ($users as $user) {
+                $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
+                if ($this->errorlog) {
+                    error_log("Consider user {$user['userid']}");
                 }
 
-                if (count($replacements) > 0) {
-                    error_log("#$groupid {$gatts['nameshort']} to " . count($replacements) . " users");
+                # We are only interested in sending events to users for whom we have a preferred address -
+                # otherwise where would we send them?
+                $email = $u->getEmailPreferred();
+                if ($this->errorlog) { error_log("Preferred $email, send " . $u->sendOurMails($g)); }
 
-                    # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
-                    # rather than lose it.
-                    list ($transport, $mailer) = getMailer();
+                if ($email && $u->sendOurMails($g)) {
+                    # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
+                    if ($this->errorlog) { error_log("Send to them"); }
+                    $replacements[$email] = [
+                        '{{toname}}' => $u->getName(),
+                        '{{unsubscribe}}' => 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email),
+                        '{{email}}' => $email,
+                        '{{noemail}}' => 'eventsoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
+                        '{{post}}' => "https://" . USER_SITE,
+                        '{{visit}}' => "https://" . USER_SITE . "/mygroups/$groupid"
+                    ];
+                }
+            }
 
-                    # We're decorating using the information we collected earlier.  However the decorator doesn't
-                    # cope with sending to multiple recipients properly (headers just get decorated with the first
-                    # recipient) so we create a message for each recipient.
-                    $decorator = new Swift_Plugins_DecoratorPlugin($replacements);
-                    $mailer->registerPlugin($decorator);
+            if (count($replacements) > 0) {
+                error_log("#$groupid {$gatts['nameshort']} to " . count($replacements) . " users");
 
-                    # We don't want to send too many mails before we reconnect.  This plugin breaks it up.
-                    $mailer->registerPlugin(new Swift_Plugins_AntiFloodPlugin(900));
+                # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
+                # rather than lose it.
+                list ($transport, $mailer) = getMailer();
 
-                    $_SERVER['SERVER_NAME'] = USER_DOMAIN;
+                # We're decorating using the information we collected earlier.  However the decorator doesn't
+                # cope with sending to multiple recipients properly (headers just get decorated with the first
+                # recipient) so we create a message for each recipient.
+                $decorator = new Swift_Plugins_DecoratorPlugin($replacements);
+                $mailer->registerPlugin($decorator);
 
-                    foreach ($replacements as $email => $rep) {
-                        $message = Swift_Message::newInstance()
-                            ->setSubject($tosend['subject'])
-                            ->setFrom([$tosend['from'] => $tosend['fromname']])
-                            ->setReturnPath('bounce@direct.ilovefreegle.org')
-                            ->setReplyTo($tosend['replyto'], $tosend['replytoname'])
-                            ->setBody($tosend['text'])
-                            ->addPart($tosend['html'], 'text/html');
+                # We don't want to send too many mails before we reconnect.  This plugin breaks it up.
+                $mailer->registerPlugin(new Swift_Plugins_AntiFloodPlugin(900));
 
-                        $headers = $message->getHeaders();
-                        $headers->addTextHeader('List-Unsubscribe', '<mailto:{{eventsoff}}>, <{{unsubscribe}}>');
+                $_SERVER['SERVER_NAME'] = USER_DOMAIN;
 
-                        try {
-                            $message->setTo([ $email => $rep['{{toname}}'] ]);
-                            #error_log("...$email");
-                            $this->sendOne($mailer, $message);
-                            $sent++;
-                        } catch (Exception $e) {
-                            error_log($email . " skipped with " . $e->getMessage());
-                        }
+                foreach ($replacements as $email => $rep) {
+                    $message = Swift_Message::newInstance()
+                        ->setSubject($tosend['subject'])
+                        ->setFrom([$tosend['from'] => $tosend['fromname']])
+                        ->setReturnPath('bounce@direct.ilovefreegle.org')
+                        ->setReplyTo($tosend['replyto'], $tosend['replytoname'])
+                        ->setBody($tosend['text'])
+                        ->addPart($tosend['html'], 'text/html');
+
+                    $headers = $message->getHeaders();
+                    $headers->addTextHeader('List-Unsubscribe', '<mailto:{{eventsoff}}>, <{{unsubscribe}}>');
+
+                    try {
+                        $message->setTo([ $email => $rep['{{toname}}'] ]);
+                        #error_log("...$email");
+                        $this->sendOne($mailer, $message);
+                        $sent++;
+                    } catch (Exception $e) {
+                        error_log($email . " skipped with " . $e->getMessage());
                     }
                 }
             }
