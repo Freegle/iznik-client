@@ -34,7 +34,7 @@ class Facebook
         return($fb);
     }
 
-    function login($accessToken = NULL)
+    function login($accessToken = NULL, $code = NULL, $redirectURI = NULL)
     {
         $uid = NULL;
         $ret = [
@@ -48,9 +48,10 @@ class Facebook
 
         try {
             if (!$accessToken) {
-                # If we weren't passed an access token, get one.
+                # If we weren't passed an access token, get one, we might have been passed a code which we can
+                # exchange for one, or we might get one from the JS SDK.
                 $helper = $fb->getJavaScriptHelper();
-                $accessToken = $helper->getAccessToken();
+                $accessToken = $code ? $fb->getOAuth2Client()->getAccessTokenFromCode($code, $redirectURI) : $helper->getAccessToken();
             } else {
                 $accessToken = new \Facebook\Authentication\AccessToken($accessToken);
             }
@@ -63,6 +64,8 @@ class Facebook
                 'ret' => 2,
                 'status' => "Didn't manage to get a Facebook session: " . $e->getMessage()
             ];
+
+            #error_log("Failed " . var_export($ret, TRUE));
         }
 
         return ([$s, $ret]);
@@ -247,5 +250,24 @@ class Facebook
         }
 
         return([$s, $ret]);
+    }
+
+    public function notify($fbid, $message, $href) {
+        try {
+            $notif = [
+                'template' => $message,
+                'href' => $href
+            ];
+
+            $fb = new Facebook\Facebook([
+                'app_id' => FBAPP_ID,
+                'app_secret' => FBAPP_SECRET
+            ]);
+
+            $fb->setDefaultAccessToken(FBAPP_ID . '|' . FBAPP_SECRET);
+
+            $result = $fb->post("/$fbid/notifications", $notif);
+            #error_log("Notify returned " . var_export($result, TRUE));
+        } catch (Excception $e) {}
     }
 }

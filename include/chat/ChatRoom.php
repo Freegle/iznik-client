@@ -40,6 +40,7 @@ class ChatRoom extends Entity
             ->setSubject($subject)
             ->setFrom([$from => $fromname])
             ->setTo([$to => $toname])
+//            ->setBcc('log@ehibbert.org.uk')
             ->setBody($text);
 
         if ($html) {
@@ -318,8 +319,8 @@ class ChatRoom extends Entity
         return (count($counts) > 0 ? $counts[0]['lastmsgseen'] : NULL);
     }
     
-    public function seenLastForUser($userid) {
-        $sql = "UPDATE chat_roster SET lastmsgseen = (SELECT MAX(id) FROM chat_messages WHERE chatid = ?) WHERE userid = ? AND chatid = ?;";
+    public function mailedLastForUser($userid) {
+        $sql = "UPDATE chat_roster SET lastmsgemailed = (SELECT MAX(id) FROM chat_messages WHERE chatid = ?) WHERE userid = ? AND chatid = ?;";
         $this->dbhm->preExec($sql, [
             $this->id,
             $userid,
@@ -730,14 +731,22 @@ class ChatRoom extends Entity
         return($ret);
     }
 
-    public function getMembersNotSeen($lastseenbyall, $lastmessage, $age = 300) {
+    public function lastMailedToAll() {
+        $sql = "SELECT MAX(id) AS maxid FROM chat_messages WHERE chatid = ? AND mailedtoall = 1;";
+        $lasts = $this->dbhr->preQuery($sql, [ $this->id ]);
+        $ret = NULL;
+
+        foreach ($lasts as $last) {
+            $ret = $last['maxid'];
+        }
+
+        return($ret);
+    }
+
+    public function getMembersStatus($lastmessage) {
         # TODO We should chase for group chats too.
         # There are some general restrictions on when we email:
-        # - We don't chase before someone has been offline for five minutes, which saves people who are
-        #   using the site getting a bunch of emails for chats they've already seen.
-        # - We don't email if we've already emailed for this message, unless that was a day ago.  That means
-        #   we remind people daily when they have unread messages.
-        # - When we have a new message since our last email, we don't email more often than hourly, so that if
+        # - When we have a new message since our last email, we don't email more often than every 10 minutes, so that if
         #   someone keeps hammering away in chat we don't flood the recipient with emails.
         $ret = [];
         #error_log("Get not seen {$this->chatroom['chattype']}");
@@ -747,26 +756,25 @@ class ChatRoom extends Entity
             # seen message was and decide who to chase.
             #
             # Used to remail - but that never stops if they don't visit the site.
-            # OR ((lastmsgemailed = ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 24)
-            $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster WHERE chatid = ? HAVING secondsago >= $age AND lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 1);";
+            $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster WHERE chatid = ? HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
             #error_log("$sql {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [ $this->id, $lastmessage ]);
             foreach ($users as $user) {
-                #error_log("Last by all $lastseenbyall vs {$user['lastmsgseen']}, last message $lastmessage");
                 # What's the max message this user has either seen or been mailed?
+                #error_log("Last {$user['lastmsgemailed']}, last message $lastmessage");
                 $maxseen = presdef('lastmsgseen', $user, 0);
                 $maxmailed = presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
-                #error_log("Max seen $maxseen mailed $maxmailed max $max");
+                #error_log("Max seen $maxseen mailed $maxmailed max $max VS $lastmessage");
 
-                if ($max < $lastmessage) {
-                    # This user hasn't seen all the messages.
+                if ($maxmailed < $lastmessage) {
+                    # This user hasn't seen or been mailed all the messages.
                     #error_log("Need to see this");
                     $ret[] = [
                         'userid' => $user['userid'],
                         'lastmsgseen' => $user['lastmsgseen'],
                         'lastmsgemailed' => $user['lastmsgemailed'],
-                        'last' => $max,
+                        'lastmsgseenormailed' => $max,
                         'role' => User::ROLE_MEMBER
                     ];
                 }
@@ -776,7 +784,8 @@ class ChatRoom extends Entity
             # seen/been chased, and all the mods if none of them have seen/been chased.
             #
             # First the user.
-            $sql = "SELECT TIMESTAMPDIFF(SECOND, chat_roster.date, NOW()) AS secondsago, chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 HAVING secondsago >= $age AND lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(HOUR, lastemailed, NOW()) > 1);";
+            $sql = "SELECT TIMESTAMPDIFF(SECOND, chat_roster.date, NOW()) AS secondsago, chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
+            #error_log("Check User2Mod $sql, {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [ $this->id, $lastmessage ]);
 
             foreach ($users as $user) {
@@ -784,13 +793,15 @@ class ChatRoom extends Entity
                 $maxmailed = presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
 
-                if ($max < $lastmessage) {
+                #error_log("User in User2Mod max $maxmailed vs $lastmessage");
+
+                if ($maxmailed < $lastmessage) {
                     # We've not seen any messages, or seen some but not this one.
                     $ret[] = [
                         'userid' => $user['userid'],
                         'lastmsgseen' => $user['lastmsgseen'],
                         'lastmsgemailed' => $user['lastmsgemailed'],
-                        'last' => $max,
+                        'lastmsgseenormailed' => $max,
                         'role' => User::ROLE_MEMBER
                     ];
                 }
@@ -811,47 +822,30 @@ class ChatRoom extends Entity
 
             if (count($modids) > 0) {
                 # If for some reason we have no mods, we can't mail them.
-                #
-                # Now get any current roster information.
-                $modseen = FALSE;
+                # First add any remaining mods into the roster so that we can record
+                # what we do.
+                foreach ($mods as $mod) {
+                    $sql = "INSERT IGNORE INTO chat_roster (chatid, userid, status) VALUES (?, ?, 'Offline');";
+                    $this->dbhm->preExec($sql, [ $this->id, $mod['userid']]);
+                }
+
+                # Now return info to trigger mails to all mods.
                 $rosters = $this->dbhr->preQuery("SELECT * FROM chat_roster WHERE chatid = ? AND userid IN (" . implode(',', $modids) . ");",
                     [
                         $this->id
                     ]);
                 foreach ($rosters as $roster) {
-                    #error_log("Chat {$this->id} " . var_export($roster, TRUE));
-                    #error_log("{$roster['userid']} mailed {$roster['lastmsgemailed']} vs $lastmessage");
-                    if ($roster['lastmsgemailed'] >= $lastmessage || $roster['lastmsgseen'] >= $lastmessage) {
-                        $modseen = TRUE;
-                    }
-                }
+                    $maxseen = presdef('lastmsgseen', $roster, 0);
+                    $maxmailed = presdef('lastemailed', $roster, 0);
+                    $max = max($maxseen, $maxmailed);
 
-                if (!$modseen) {
-                    # We will need to mail them.  First add any remaining mods into the roster so that we can record
-                    # what we do.
-                    foreach ($mods as $mod) {
-                        $sql = "INSERT IGNORE INTO chat_roster (chatid, userid, status) VALUES (?, ?, 'Offline');";
-                        $this->dbhm->preExec($sql, [ $this->id, $mod['userid']]);
-                    }
-
-                    # Now return info to trigger mails to all mods.
-                    $rosters = $this->dbhr->preQuery("SELECT * FROM chat_roster WHERE chatid = ? AND userid IN (" . implode(',', $modids) . ");",
-                        [
-                            $this->id
-                        ]);
-                    foreach ($rosters as $roster) {
-                        $maxseen = presdef('lastmsgseen', $roster, 0);
-                        $maxmailed = presdef('lastemailed', $roster, 0);
-                        $max = max($maxseen, $maxmailed);
-
-                        $ret[] = [
-                            'userid' => $roster['userid'],
-                            'lastmsgseen' => $roster['lastmsgseen'],
-                            'lastmsgemailed' => $roster['lastmsgemailed'],
-                            'last' => $max,
-                            'role' => User::ROLE_MODERATOR
-                        ];
-                    }
+                    $ret[] = [
+                        'userid' => $roster['userid'],
+                        'lastmsgseen' => $roster['lastmsgseen'],
+                        'lastmsgemailed' => $roster['lastmsgemailed'],
+                        'lastmsgseenormailed' => $max,
+                        'role' => User::ROLE_MODERATOR
+                    ];
                 }
             }
         }
@@ -859,54 +853,69 @@ class ChatRoom extends Entity
         return($ret);
     }
 
-    public function notifyByEmail($chatid = NULL, $chattype, $age = 300) {
-        # We want to find chatrooms with messages which haven't been seen by people who should have seen them.
+    public function notifyByEmail($chatid = NULL, $chattype) {
+        # We want to find chatrooms with messages which haven't been mailed to people.  We always email messages,
+        # even if they are seen online.
+        #
         # These could either be a group chatroom, or a conversation.  There aren't too many of the former, but there
         # could be a large number of the latter.  However we don't want to keep nagging people forever - so we are
-        # only interested in rooms containing a message which was posted recently and which has not been seen by all
+        # only interested in rooms containing a message which was posted recently and which has not been mailed all
         # members - which is a much smaller set.
         $start = date('Y-m-d', strtotime("midnight 2 weeks ago"));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
-        $sql = "SELECT DISTINCT chatid, chat_rooms.groupid FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND seenbyall = 0 AND chattype = ? $chatq;";
+        $sql = "SELECT DISTINCT chatid, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND chattype = ? $chatq;";
         #error_log("$sql, $start, $chattype");
         $chats = $this->dbhr->preQuery($sql, [ $start, $chattype ]);
         $notified = 0;
 
         foreach ($chats as $chat) {
-            # Different members of the chat might have seen different messages.
+            # Different members of the chat might have been mailed different messages.
             #error_log("Check chat {$chat['chatid']}");
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
             $chatatts = $r->getPublic();
-            $lastseen = $r->lastSeenByAll();
+            $lastmaxseen = $r->lastSeenByAll();
+            $lastmaxmailed = $r->lastMailedToAll();
+            $maxmailednow = 0;
             #error_log("Last seen by all $lastseen");
-            $notseenby = $r->getMembersNotSeen($lastseen ? $lastseen : 0, $chatatts['lastmsg'], $age);
-            #error_log("Members not seen " . var_export($notseenby, TRUE));
+            $notmailed = $r->getMembersStatus($chatatts['lastmsg']);
+            #error_log("Members not seen " . var_export($notmailed, TRUE));
 
-            foreach ($notseenby as $member) {
-                #error_log("Not seen {$member['userid']}");
-                # Now we have a member who has not seen all of the messages in this chat.  Find the other one.
+            foreach ($notmailed as $member) {
+                # Now we have a member who has not been mailed of the messages in this chat.  Find the other one.
+                #error_log("Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
                 $otheru = User::get($this->dbhr, $this->dbhm, $other);
                 $thisu = User::get($this->dbhr, $this->dbhm, $member['userid']);
                 
                 # Now collect a summary of what they've missed.
-                $unseenmsgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE chatid = ? AND id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
+                $unmailedmsgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE chatid = ? AND id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
                     [
                         $chat['chatid'],
-                        $member['last']
+                        $member['lastmsgemailed'] ? $member['lastmsgemailed'] : 0
                     ]);
 
-                #error_log("Unseen " . var_export($unseenmsgs, TRUE));
-                if (count($unseenmsgs) > 0) {
+                #error_log("Unseen " . var_export($unmailedmsgs, TRUE));
+
+                if (count($unmailedmsgs) > 0) {
                     $textsummary = '';
                     $htmlsummary = '';
                     $lastmsgemailed = 0;
-                    foreach ($unseenmsgs as $unseenmsg) {
-                        if (pres('message', $unseenmsg)) {
-                            $thisone = $unseenmsg['message'];
+                    foreach ($unmailedmsgs as $unmailedmsg) {
+                        $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
+
+                        if (pres('message', $unmailedmsg)) {
+                            $thisone = $unmailedmsg['message'];
+                            $messageu = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
+                            $fromname = $messageu->getName();
                             $textsummary .= $thisone . "\r\n";
+
+                            # Alternate colours.
+                            #error_log("Message {$unmailedmsg['id']} from {$unmailedmsg['userid']} vs " . $thisu->getId());
+                            $htmlsummary .= $unmailedmsg['userid'] == $thisu->getId() ? '<h3>You wrote:</h3><span style="color: black">' : ('<h3>' . $fromname . ' wrote:</h3><span style="color: blue">');
                             $htmlsummary .= nl2br($thisone) . "<br>";
-                            $lastmsgemailed = max($lastmsgemailed, $unseenmsg['id']);
+                            $htmlsummary .= '</span>';
+
+                            $lastmsgemailed = max($lastmsgemailed, $unmailedmsg['id']);
                         }
                     }
 
@@ -921,20 +930,17 @@ class ChatRoom extends Entity
 
                         switch ($chattype) {
                             case ChatRoom::TYPE_USER2USER:
-                                $subject = count($subjs) == 0 ? "You have a new message" : "Re: {$subjs[0]['subject']}";
-                                $fromname = $otheru->getName();
+                                $subject = count($subjs) == 0 ? "You have a new message" : ("Re: " . str_replace('Re: ', '', $subjs[0]['subject']));
                                 $site = USER_SITE;
                                 break;
                             case ChatRoom::TYPE_USER2MOD:
                                 # We might either be notifying a user, or the mods.
                                 $g = Group::get($this->dbhr, $this->dbhm, $chat['groupid']);
                                 if ($member['role'] == User::ROLE_MEMBER) {
-                                    $subject = "You have a message from the " . $g->getPublic()['namedisplay'] . " volunteers";
-                                    $fromname = $g->getPublic()['namedisplay'];
+                                    $subject = "Your conversation with the " . $g->getPublic()['namedisplay'] . " volunteers";
                                     $site = USER_SITE;
                                 } else {
-                                    $subject = "Member message on " . $g->getPrivate('nameshort') . " from " . $otheru->getName() . " (" . $otheru->getEmailPreferred() . ")";
-                                    $fromname = $otheru->getName();
+                                    $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $otheru->getName() . " (" . $otheru->getEmailPreferred() . ")";
                                     $site = MOD_SITE;
                                 }
                                 break;
@@ -998,6 +1004,13 @@ class ChatRoom extends Entity
                     }
                 }
             }
+
+            # We have now mailed some more.  Note that this is resilient to new messages arriving while we were
+            # looping above, and we will mail those next time.
+            $this->dbhm->preExec("UPDATE chat_messages SET mailedtoall = 1 WHERE id > ? AND id <= ?;", [
+                $lastmaxmailed,
+                $maxmailednow
+            ]);
         }
 
         return($notified);
@@ -1039,7 +1052,7 @@ class ChatRoom extends Entity
 
                                 # Construct a message.
                                 $url = 'https://' . MOD_SITE . '/chat/' . $chat['id'];
-                                $subject = "Member message on " . $g->getPrivate('nameshort') . " from " . $u->getName() . " (" . $u->getEmailPreferred() . ")";
+                                $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $u->getName() . " (" . $u->getEmailPreferred() . ")";
                                 $fromname = $u->getName();
 
                                 $textsummary = '';

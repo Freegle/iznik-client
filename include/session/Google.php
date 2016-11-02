@@ -49,7 +49,7 @@ class Google
         return($this->plus);
     }
 
-    function login($code)
+    function login($code = NULL, $token = NULL)
     {
         $uid = NULL;
         $ret = 2;
@@ -59,14 +59,22 @@ class Google
         try {
             $client = $this->getClient();
             $plus = $this->getPlus();
-            $client->authenticate($code);
-            $this->access_token = $client->getAccessToken();
+
+            $this->access_token = $token;
+
+            if ($code) {
+                $client->authenticate($code);
+                $this->access_token = $client->getAccessToken();
+            }
+
             $this->tokens_decoded = json_decode($this->access_token);
             $me = $plus->people->get("me");
 
             /** @var Google_Service_Plus_Person $emails */
             $emails = $me->getEmails();
             $googlemail = NULL;
+
+            #error_log("Google signin $code gives " . var_export($emails, TRUE));
 
             foreach ($emails as $anemail) {
                 if ($anemail->getType() == 'account') {

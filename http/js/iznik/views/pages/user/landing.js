@@ -55,6 +55,12 @@ define([
         noback: true
     });
 
+    Iznik.Views.User.Pages.Landing.eBay = Iznik.Views.Page.extend({
+        template: "user_landing_ebay",
+        footer: true,
+        noback: true
+    });
+
     Iznik.Views.User.Pages.Landing.Contact = Iznik.Views.Page.extend({
         template: "user_landing_contact",
         noback: true,

@@ -5,6 +5,7 @@ function admin() {
     $me = whoAmI($dbhr, $dbhm);
 
     $id = presdef('id', $_REQUEST, NULL);
+    $groupid = presdef('groupid', $_REQUEST, NULL);
     $id = $id ? intval($id) : NULL;
     $a = new Admin($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -18,7 +19,13 @@ function admin() {
                     'status' => 'Success',
                     'admin' => $a->getPublic()
                 ];
-
+            } else if ($groupid) {
+                # We want to list the admins for this group.
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'admins' => $a->listForGroup($groupid)
+                ];
             }
             break;
         }
@@ -28,7 +35,6 @@ function admin() {
 
             if ($me) {
                 $ret = ['ret' => 2, 'status' => "Can't create an admin on that group" ];
-                $groupid = presdef('groupid', $_REQUEST, NULL);
                 $subject = presdef('subject', $_REQUEST, NULL);
                 $text = presdef('text', $_REQUEST, NULL);
 

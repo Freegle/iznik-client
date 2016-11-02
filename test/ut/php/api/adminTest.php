@@ -90,6 +90,11 @@ class adminAPITest extends IznikAPITestCase
             }
         }
 
+        # And also get it via list.
+        $ret = $this->call('admin', 'GET', [ 'groupid' => $this->groupid ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['admins'][0]['id']);
+
         # Now send - none to find, as we don't have an email on our domain.
         $a = new Admin($this->dbhr, $this->dbhm);
         assertEquals(0, $a->process($id));
