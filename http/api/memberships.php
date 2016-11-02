@@ -30,6 +30,7 @@ function memberships() {
     $action = presdef('action', $_REQUEST, NULL);
     $yps = presdef('yahooPostingStatus', $_REQUEST, NULL);
     $ydt = presdef('yahooDeliveryType', $_REQUEST, NULL);
+    $ops = presdef('ourPostingStatus', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -98,7 +99,7 @@ function memberships() {
                                 'status' => 'Success'
                             ];
                         } else {
-                            $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt, $filter);
+                            $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt, $ops, $filter);
 
                             if ($userid) {
                                 $ret = [

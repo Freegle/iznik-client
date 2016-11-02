@@ -321,7 +321,7 @@ class Group extends Entity
         return(NULL);
     }
 
-    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection = MembershipCollection::APPROVED, $groupids = NULL, $yps = NULL, $ydt = NULL, $filter = Group::FILTER_NONE) {
+    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection = MembershipCollection::APPROVED, $groupids = NULL, $yps = NULL, $ydt = NULL, $ops = NULL, $filter = Group::FILTER_NONE) {
         $ret = [];
         $groupids = $groupids ? $groupids : ($this->id ? [ $this-> id ] : NULL);
 
@@ -335,6 +335,7 @@ class Group extends Entity
         $groupq = $groupids ? " memberships.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
         $ypsq = $yps ? (" AND memberships_yahoo.yahooPostingStatus = " . $this->dbhr->quote($yps)) : '';
         $ydtq = $ydt ? (" AND memberships_yahoo.yahooDeliveryType = " . $this->dbhr->quote($ydt)) : '';
+        $opsq = $ops ? (" AND memberships.ourPostingStatus = " . $this->dbhr->quote($ydt)) : '';
 
         switch ($filter) {
             case Group::FILTER_WITHCOMMENTS:
@@ -380,10 +381,10 @@ class Group extends Entity
                 (SELECT id FROM users WHERE yahooid LIKE $q) UNION
                 (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)
               ) t) AND 
-              $groupq $collectionq $addq $ypsq $ydtq";
+              $groupq $collectionq $addq $ypsq $ydtq $opsq";
         } else {
             $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : '';
-            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq";
+            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq $opsq";
         }
 
         $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
@@ -442,6 +443,7 @@ class Group extends Entity
             $thisone['role'] = $u->getRoleForGroup($member['groupid']);
             $thisone['joincomment'] = $member['joincomment'];
             $thisone['emailfrequency'] = $member['emailfrequency'];
+            $thisone['ourPostingStatus'] = $member['ourPostingStatus'];
 
             $thisone['heldby'] = $member['heldby'];
 

@@ -87,7 +87,8 @@ define([
                                 otheremails.join(', '),
                                 member.yahooDeliveryType,
                                 member.yahooPostingStatus,
-                                JSON.stringify(member.settings, null, 0)
+                                JSON.stringify(member.settings, null, 0),
+                                member.ourPostingStatus,
                             ]);
                         });
 

@@ -1248,6 +1248,7 @@ class User extends Entity
                         'emailid' => $group['emailid'],
                         'emailfrequency' => $group['emailfrequency'],
                         'eventsallowed' => $group['eventsallowed'],
+                        'ourPostingStatus' => $group['ourPostingStatus'],
                         'type' => $group['type']
                     ];
 

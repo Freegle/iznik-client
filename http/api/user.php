@@ -31,6 +31,7 @@ function user() {
 
     $yahooDeliveryType = presdef('yahooDeliveryType', $_REQUEST, NULL);
     $yahooPostingStatus = presdef('yahooPostingStatus', $_REQUEST, NULL);
+    $ourPostingStatus = presdef('ourPostingStatus', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -194,6 +195,19 @@ function user() {
                             'postingStatus' => $yahooPostingStatus
                         ]);
                     }
+                }
+
+                if ($ourPostingStatus) {
+                    $l->log([
+                        'type' => Log::TYPE_USER,
+                        'subtype' => Log::SUBTYPE_OUR_POSTING_STATUS,
+                        'groupid' => $groupid,
+                        'user' => $id,
+                        'byuser' => $me->getId(),
+                        'text' => $ourPostingStatus
+                    ]);
+
+                    $u->setMembershipAtt($groupid, 'ourPostingStatus', $ourPostingStatus);
                 }
 
                 $ret = [
