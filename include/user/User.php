@@ -502,6 +502,10 @@ class User extends Entity
     }
 
     public function postToCollection($groupid) {
+        # Which collection should we post to?  If this is a group on Yahoo then ourPostingStatus will be NULL.  We
+        # will post to Pending, and send the message to Yahoo; if the user is unmoderated on there it will come back
+        # to us and move to Approved.  If there is a value for ourPostingStatus, then this is a native group and
+        # we will use that.
         $ps = $this->getMembershipAtt($groupid, 'ourPostingStatus');
         $coll = (!$ps || $ps == Group::POSTING_MODERATED) ? MessageCollection::PENDING : MessageCollection::APPROVED;
         return($coll);

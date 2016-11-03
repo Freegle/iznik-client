@@ -360,7 +360,7 @@ function message() {
                                     $dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection,arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
                                         $draft['msgid'],
                                         $groupid,
-                                        MessageCollection::PENDING,
+                                        $u->postToCollection($groupid),
                                         $m->getType()
                                     ]);
 
