@@ -273,7 +273,7 @@ function message() {
                             // @codeCoverageIgnoreStart
                             if (defined('USER_GROUP_OVERRIDE') && !pres('ignoregroupoverride', $_REQUEST)) {
                                 # We're in testing mode
-                                $g = Group::get($dbhr, $dbhm);
+                                $g = new Group($dbhr, $dbhm);
                                 $nears = [ $g->findByShortName(USER_GROUP_OVERRIDE) ];
                             }
                             // @codeCoverageIgnoreEnd
@@ -313,45 +313,60 @@ function message() {
 
                                 if ($u->getId() && $eid) {
                                     # Now we have a user and an email.  We need to make sure they're a member of the
-                                    # group in question, with an email address we host (so that replies come back here).
-                                    list ($eidforgroup, $emailforgroup) = $u->getEmailForYahooGroup($groupid, TRUE, TRUE);
+                                    # group in question.
+                                    $g = Group::get($dbhr, $dbhm, $groupid);
 
-                                    $ret = ['ret' => 6, 'status' => 'Failed to join group'];
-                                    $rc = true;
+                                    if ($g->getPrivate('onyahoo')) {
+                                        # We need to make sure we're a member of the Yahoo group with an email address
+                                        # we host (so that replies come back here).
+                                        list ($eidforgroup, $emailforgroup) = $u->getEmailForYahooGroup($groupid, TRUE, TRUE);
 
-                                    if (!$eidforgroup || !$u->isApprovedMember($groupid)) {
-                                        # Not a member yet.  We need to sign them up to the Yahoo group before we
-                                        # can send it.  This may result in more applications to Yahoo - but dups are
-                                        # ok.
-                                        $m->constructSubject($groupid);
-                                        $ret = [
-                                            'ret' => 0,
-                                            'status' => 'Queued for group membership',
-                                            'appliedemail' => $m->queueForMembership($u, $groupid),
-                                            'groupid' => $groupid
-                                        ];
-                                    } else if ($rc) {
-                                        # Now we have a user who is a member of the appropriate group.
-                                        #
-                                        # We're good to go.  Make sure we submit with the email that is a group member
-                                        # rather than the one they supplied.
-                                        $ret = ['ret' => 7, 'status' => 'Failed to submit'];
-                                        $m->constructSubject($groupid);
+                                        $ret = ['ret' => 6, 'status' => 'Failed to join group'];
+                                        $rc = true;
 
-                                        $fromemail = $u->getEmailById($eidforgroup);
-
-                                        # Make sure it's attached to this group.
-                                        $dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection,arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
-                                            $draft['msgid'],
-                                            $groupid,
-                                            MessageCollection::PENDING,
-                                            $m->getType()
-                                        ]);
-
-                                        if ($m->submit($u, $fromemail, $groupid)) {
-                                            # We sent it.
-                                            $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid ];
+                                        if (!$eidforgroup || !$u->isApprovedMember($groupid)) {
+                                            # Not a member yet.  We need to sign them up to the Yahoo group before we
+                                            # can send it.  This may result in more applications to Yahoo - but dups are
+                                            # ok.
+                                            $m->constructSubject($groupid);
+                                            $ret = [
+                                                'ret' => 0,
+                                                'status' => 'Queued for group membership',
+                                                'appliedemail' => $m->queueForMembership($u, $groupid),
+                                                'groupid' => $groupid
+                                            ];
+                                        } else if ($rc) {
+                                            # Now we have a user who is a member of the appropriate group.
+                                            #
+                                            # We're good to go.  Make sure we submit with the email that is a group member
+                                            # rather than the one they supplied.
+                                            $fromemail = $u->getEmailById($eidforgroup);
                                         }
+                                    } else {
+                                        # This group is hosted here.  There's less to do in that case.
+                                        if (!$u->isApprovedMember($groupid)) {
+                                            # Join the group.
+                                            $u->addMembership($groupid);
+                                        }
+
+                                        $fromemail = $u->getEmailPreferred();
+                                    }
+
+                                    $ret = ['ret' => 7, 'status' => 'Failed to submit'];
+
+                                    $m->constructSubject($groupid);
+
+                                    # Make sure it's attached to this group.
+                                    $dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection,arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
+                                        $draft['msgid'],
+                                        $groupid,
+                                        MessageCollection::PENDING,
+                                        $m->getType()
+                                    ]);
+
+                                    if ($m->submit($u, $fromemail, $groupid)) {
+                                        # We sent it.
+                                        $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid ];
                                     }
                                 }
                             }

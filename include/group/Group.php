@@ -23,6 +23,11 @@ class Group extends Entity
     const GROUP_OTHER = 'Other';
     const GROUP_UT = 'UnitTest';
 
+    const POSTING_MODERATED = 'MODERATED';
+    const POSTING_PROHIBITED = 'PROHIBITED';
+    const POSTING_DEFAULT = 'DEFAULT';
+    const POSTING_UNMODERATED = 'UNMODERATED';
+
     const FILTER_NONE = 0;
     const FILTER_WITHCOMMENTS = 1;
 
@@ -198,7 +203,13 @@ class Group extends Entity
     }
 
     public function getGroupEmail() {
-        return($this->group['nameshort'] . "@yahoogroups.com");
+        if ($this->group['onyahoo']) {
+            $ret = $this->group['nameshort'] . "@yahoogroups.com";
+        } else {
+            $ret = $this->group['nameshort'] . GROUP_DOMAIN;
+        }
+
+        return($ret);
     }
 
     public function getGroupSubscribe() {

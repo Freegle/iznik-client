@@ -501,6 +501,12 @@ class User extends Entity
         }
     }
 
+    public function postToCollection($groupid) {
+        $ps = $this->getMembershipAtt($groupid, 'ourPostingStatus');
+        $coll = (!$ps || $ps == Group::POSTING_MODERATED) ? MessageCollection::PENDING : MessageCollection::APPROVED;
+        return($coll);
+    }
+
     public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
