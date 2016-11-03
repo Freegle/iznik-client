@@ -403,6 +403,8 @@ define([
                                     try {
                                         console.error("Not logged in after all", sess, parsed, ret);
                                         localStorage.removeItem('session');
+                                        localStorage.removeItem('yahoo.email');
+                                        localStorage.removeItem('yahoo.fullname');
                                     } catch (e) {
                                     }
                                     Router.mobileReload();  // CC
@@ -536,17 +538,20 @@ define([
             var url = e.originalEvent.url;
             console.log("yloadstart: " + url);
 
-            // Catch redirect after auth back to ilovefreegle
-            if (url.indexOf("https://www.ilovefreegle.org/") === 0) {
+            // Catch redirect after auth back to modtools
+            if (url.indexOf("https://modtools.org/") === 0) {
               authWindow.close();
               var urlParams = self.extractQueryStringParams(url);
               if (urlParams) {
                 authGiven = true;
                 urlParams.yahoologin = true;
                 console.log(urlParams);
+                var email = urlParams['openid.ax.value.email'];
+                var fullname = urlParams['openid.ax.value.fullname'];
+                localStorage.setItem('yahoo.email', email);
+                localStorage.setItem('yahoo.fullname', fullname);
 
                 // Try logging in again at FD
-                console.log("Got URL params", urlParams);
                 $.ajax({
                   url: API + 'session',
                   type: 'POST',

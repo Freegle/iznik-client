@@ -163,29 +163,17 @@ define([
                 var p = Iznik.Views.Page.prototype.render.call(this);
                 p.then(function(self) {
                     // Get Yahoo login info
-                    new majax({
-                        type: "GET",
-                        url: "https://groups.yahoo.com/neo",
-                        success: function (ret) {
-                            var re =/data-userid="(.*?)"/g;
-                            var matches = re.exec(ret);
+                    var email = localStorage.getItem('yahoo.email');
+                    var fullname = localStorage.getItem('yahoo.fullname');
 
-                            if (matches && matches.length > 0 && matches[0].length > 0) {
-                                var yid = matches[1];
-                                var p = yid.indexOf('@');
-                                yid = p == -1 ? yid : yid.substring(0, p);
-                                self.$('.js-yahooinfo').html("You're logged in to Yahoo as " + yid + ".");
-                                Iznik.Session.set('loggedintoyahooas', yid);
+                    if (email) {
+                        self.$('.js-yahooinfo').html("You're logged in to Yahoo as " + email + " / " + fullname +".");
+                        //Iznik.Session.set('loggedintoyahooas', yid);
+                    } else {
+                        self.$('.js-yahooinfo').html("You aren't logged in to Yahoo.");
+                        //Iznik.Session.unset('loggedintoyahooas');
+                    }
 
-                            } else {
-                                self.$('.js-yahooinfo').html("You aren't logged in to Yahoo.");
-                                Iznik.Session.unset('loggedintoyahooas');
-                            }
-                        }, error: function() {
-                            self.$('.js-yahooinfo').html("You don't have the browser plugin installed.");
-                            Iznik.Session.unset('loggedintoyahooas');
-                        }
-                    });
 
                     self.$('.js-grouptype').selectPersist();
                     self.$('.js-grouptype').change(function() {
