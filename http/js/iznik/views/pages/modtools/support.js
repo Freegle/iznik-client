@@ -259,8 +259,12 @@ define([
         render: function () {
             var p = Iznik.Views.Page.prototype.render.call(this);
 
-            // Group search uses a typehead.
             p.then(function(self) {
+                if (Iznik.Session.isAdmin()) {
+                    self.$('.js-adminonly').removeClass('hidden');
+                }
+
+                // Group search uses a typehead.
                 $.ajax({
                     type: 'GET',
                     url: API + 'groups',
