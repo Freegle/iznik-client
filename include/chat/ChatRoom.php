@@ -912,7 +912,7 @@ class ChatRoom extends Entity
                             # Alternate colours.
                             #error_log("Message {$unmailedmsg['id']} from {$unmailedmsg['userid']} vs " . $thisu->getId());
                             if ($unmailedmsg['userid'] == $thisu->getId()) {
-                                $htmlsummary .= '<h3>You wrote' . ($chat['chattype'] == ChatRoom::TYPE_USER2USER ? (' to ' . $thisu->getName()) : '') . '</h3><span style="color: black">';
+                                $htmlsummary .= '<h3>You wrote' . ($chat['chattype'] == ChatRoom::TYPE_USER2USER ? (' to ' . $otheru->getName()) : '') . '</h3><span style="color: black">';
                             } else {
                                 $htmlsummary .= '<h3>' . $fromname . ' wrote:</h3><span style="color: blue">';
                             }
