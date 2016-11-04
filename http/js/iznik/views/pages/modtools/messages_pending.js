@@ -141,6 +141,13 @@ define([
                         _.each(self.model.get('groups'), function (group) {
                             var mod = new Iznik.Model(group);
 
+                            // This only handles a message on one group.
+                            if (group.onyahoo) {
+                                self.$('.js-maybepluginonly').addClass('js-pluginonly');
+                            } else {
+                                self.$('.js-maybepluginonly').removeClass('js-pluginonly').show();
+                            }
+
                             // Add in the message, because we need some values from that
                             mod.set('message', self.model.toJSON());
 

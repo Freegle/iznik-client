@@ -315,6 +315,9 @@ function message() {
                                     # Now we have a user and an email.  We need to make sure they're a member of the
                                     # group in question.
                                     $g = Group::get($dbhr, $dbhm, $groupid);
+                                    $fromemail = NULL;
+
+                                    error_log("Group on Yahoo? " . $g->getPrivate('onyahoo'));
 
                                     if ($g->getPrivate('onyahoo')) {
                                         # We need to make sure we're a member of the Yahoo group with an email address
@@ -322,39 +325,39 @@ function message() {
                                         list ($eidforgroup, $emailforgroup) = $u->getEmailForYahooGroup($groupid, TRUE, TRUE);
 
                                         $ret = ['ret' => 6, 'status' => 'Failed to join group'];
-                                        $rc = true;
-
                                         if (!$eidforgroup || !$u->isApprovedMember($groupid)) {
                                             # Not a member yet.  We need to sign them up to the Yahoo group before we
                                             # can send it.  This may result in more applications to Yahoo - but dups are
                                             # ok.
-                                            $m->constructSubject($groupid);
+                                            error_log("Not a member yet");
                                             $ret = [
                                                 'ret' => 0,
                                                 'status' => 'Queued for group membership',
                                                 'appliedemail' => $m->queueForMembership($u, $groupid),
                                                 'groupid' => $groupid
                                             ];
-                                        } else if ($rc) {
+                                        } else {
                                             # Now we have a user who is a member of the appropriate group.
                                             #
                                             # We're good to go.  Make sure we submit with the email that is a group member
                                             # rather than the one they supplied.
                                             $fromemail = $u->getEmailById($eidforgroup);
+                                            error_log("We're a member using $fromemail");
                                         }
                                     } else {
                                         # This group is hosted here.  There's less to do in that case.
+                                        error_log("Not on Yahoo");
                                         if (!$u->isApprovedMember($groupid)) {
                                             # Join the group.
+                                            error_log("Not approved yet");
                                             $u->addMembership($groupid);
                                         }
 
                                         # We want the message to come from one of our emails rather than theirs, so
                                         # that replies come back to us and privacy is maintained.
                                         $fromemail = $u->inventEmail();
+                                        error_log("User our email $fromemail");
                                     }
-
-                                    $ret = ['ret' => 7, 'status' => 'Failed to submit'];
 
                                     $m->constructSubject($groupid);
 
@@ -366,9 +369,13 @@ function message() {
                                         $m->getType()
                                     ]);
 
-                                    if ($m->submit($u, $fromemail, $groupid)) {
-                                        # We sent it.
-                                        $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid ];
+                                    if ($fromemail) {
+                                        $ret = ['ret' => 7, 'status' => 'Failed to submit'];
+
+                                        if ($m->submit($u, $fromemail, $groupid)) {
+                                            # We sent it.
+                                            $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid ];
+                                        }
                                     }
                                 }
                             }

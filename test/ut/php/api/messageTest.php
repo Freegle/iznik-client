@@ -1190,6 +1190,7 @@ class messageAPITest extends IznikAPITestCase
         # - submit it
         $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
+        $this->group->setPrivate('onyahoo', 1);
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
         $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
@@ -1214,7 +1215,7 @@ class messageAPITest extends IznikAPITestCase
         assertNotNull($ret['id']);
         $attid = $ret['id'];
 
-        # Find a location
+        # Submit to the playground group explicitly.
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
@@ -1271,13 +1272,14 @@ class messageAPITest extends IznikAPITestCase
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->delete("UT delete");
 
-        # And again, now that the user exists, but without a preferred group.  Set an invalid from IP which will
+        # And again, now that the user exists.  Set an invalid from IP which will
         # fail to resolve.
         $_SERVER['REMOTE_ADDR'] = '1.1.1.1';
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
             'locationid' => $locid,
+            'groupid' => $gid,
             'messagetype' => 'Offer',
             'item' => 'a thing',
             'textbody' => 'Text body',
