@@ -149,7 +149,6 @@ define([
             "privacy": "userPrivacy",
             "disclaimer": "userDisclaimer",
             "donate": "userDonate",
-            "ebay": "userebay",
             "contact": "userContact",
             "help": "userContact",
             "plugins/events/:id": "communityEventsPlugin",
@@ -1156,15 +1155,6 @@ define([
 
             require(["iznik/views/pages/user/landing"], function() {
                 var page = new Iznik.Views.User.Pages.Landing.Donate();
-                self.loadRoute({page: page});
-            });
-        },
-
-        userebay: function() {
-            var self = this;
-
-            require(["iznik/views/pages/user/landing"], function() {
-                var page = new Iznik.Views.User.Pages.Landing.eBay();
                 self.loadRoute({page: page});
             });
         },

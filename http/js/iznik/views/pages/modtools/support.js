@@ -225,6 +225,7 @@ define([
                                     lng: self.$('.js-addlng').val(),
                                     onyahoo: 0,
                                     onhere: 1,
+                                    licenserequired: 0,
                                     showonyahoo: 0
                                 }, { patch: true }).then(function() {
                                     // Now add ourselves into it.  We will be able to become the owner because
