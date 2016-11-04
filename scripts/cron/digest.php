@@ -20,7 +20,7 @@ if (count($opts) < 1) {
     $total = 0;
 
     # We only send digests for Freegle groups.
-    $groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' AND onhere = 1 AND MOD(id, ?) = ? AND publish = 1 AND id = 348554 ORDER BY LOWER(nameshort) ASC;", [$mod, $val]);
+    $groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' AND onhere = 1 AND MOD(id, ?) = ? AND publish = 1 ORDER BY LOWER(nameshort) ASC;", [$mod, $val]);
     $d = new Digest($dbhr, $dbhm);
 
     foreach ($groups as $group) {
