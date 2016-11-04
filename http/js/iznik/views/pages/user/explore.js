@@ -325,7 +325,7 @@ define([
                         // Now force a refresh of the session.
                         self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                             self.model.set('role', 'Non-member');
-                            self.render();
+                            Router.navigate('/explore/' + self.model.get('id'), true);
                         });
 
                         Iznik.Session.testLoggedIn(true);
@@ -432,7 +432,11 @@ define([
                                 data: {
                                     groupid: self.model.get('id')
                                 }, complete: function () {
-                                    self.showHideJoin();
+                                    self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                                        self.showHideJoin();
+                                    });
+
+                                    Iznik.Session.testLoggedIn(true);
                                 }
                             });
                         }

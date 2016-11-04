@@ -830,10 +830,7 @@ define([
                             var replytext = localStorage.getItem('replytext');
                             var thisid = self.model.get('id');
 
-                            console.log("Are we trying to reply?", replyto, thisid);
-
                             if (replyto == thisid) {
-                                console.log("Yes, we are");
                                 self.continueReply.call(self, replytext);
                             }
                         } catch (e) {console.log("Failed", e)}
