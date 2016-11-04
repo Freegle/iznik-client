@@ -41,13 +41,6 @@ define([
             var self = this;
             this.$('.js-replytext').val(text);
 
-            // Remove local storage so that we don't get stuck sending the same message, for example if we reload the
-            // page.
-            try {
-                localStorage.removeItem('replyto');
-                localStorage.removeItem('replytext');
-            } catch (e) {}
-
             // We might get called back twice because of the html, body selector (which we need for browser compatibility)
             // so make sure we only actually click send once.
             self.readyToSend = true;
@@ -690,6 +683,13 @@ define([
                     console.log("Send; logged in?", loggedin);
                     if (loggedin) {
                         // We are logged in and can proceed.
+                        // Remove local storage so that we don't get stuck sending the same message, for example if we reload the
+                        // page.
+                        try {
+                            localStorage.removeItem('replyto');
+                            localStorage.removeItem('replytext');
+                        } catch (e) {}
+
                         //
                         // When we reply to a message on a group, we join the group if we're not already a member.
                         var memberofs = Iznik.Session.get('groups');
@@ -744,14 +744,24 @@ define([
                             localStorage.setItem('replyto', self.model.get('id'));
                             localStorage.setItem('replytext', replytext);
                             localStorage.setItem('replyreturn', Backbone.history.getFragment());
-                        } catch (e) {}
+                        } catch (e) {
+                            console.error("Failed to set up for reply", e.message);
+                        }
 
                         // Set the route to the individual message.  This will spot the local storage, force us to
                         // log in, and then send it.  This also means that when the page is reloaded because of a login,
                         // we don't have issues with not seeing/needing to scroll to the message of interest.
                         //
-                        // We might already be on this page, so we can't call navigate as usual.
-                        Backbone.history.loadUrl('/message/' + self.model.get('id'));
+                        // We might already be on this page, so we can't always call navigate as usual.
+                        var url = '/message/' + self.model.get('id');
+                        console.log("Compare url", url, Backbone.history.getFragment());
+                        if ('/' + Backbone.history.getFragment() == url) {
+                            Backbone.history.loadUrl(url);
+                        } else {
+                            Router.navigate(url, {
+                                trigger: true
+                            });
+                        }
                     }
                 });
 
@@ -820,7 +830,10 @@ define([
                             var replytext = localStorage.getItem('replytext');
                             var thisid = self.model.get('id');
 
+                            console.log("Are we trying to reply?", replyto, thisid);
+
                             if (replyto == thisid) {
+                                console.log("Yes, we are");
                                 self.continueReply.call(self, replytext);
                             }
                         } catch (e) {console.log("Failed", e)}
