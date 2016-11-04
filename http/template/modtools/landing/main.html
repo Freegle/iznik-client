@@ -8,6 +8,10 @@
 <% } else if (me.systemrole == 'Admin') { %>
 <p>You're a System Admin.  Here's your dashboard.</p>
 <% } %>
+<div class="row">
+  <div id="js-mobile-version" class="col-md-12">
+  </div>
+</div>
 <div class="js-missingprofile" />
 <div class="js-missingtwitter" />
 <div class="js-missingfacebook" />
@@ -24,10 +28,6 @@
             <option value="Other">Other groups</option>
         </select>
     </div>
-</div>
-<div class="row">
-  <div id="js-mobile-version" class="col-md-12">
-  </div>
 </div>
 <div class="js-modinfo" style="display: none;">
     <h3>Active Moderators</h3>
