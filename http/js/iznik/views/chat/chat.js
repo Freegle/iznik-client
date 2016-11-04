@@ -209,6 +209,8 @@ define([
                 });
 
                 if (updates.length > 0) {
+                    // We put the restart of the timer into success/error as complete can get called
+                    // multiple times in the event of retry, leading to timer explosion.
                     $.ajax({
                         url: API + 'chatrooms',
                         type: 'POST',
@@ -222,12 +224,18 @@ define([
                                     chat.lastRoster = roster;
                                 }
                             });
-                        }, complete: function () {
+
+                            _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
+                        }, error: function (a,b,c) {
                             _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
                         }
                     });
+                } else {
+                    // No statuses to update.
+                    _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
                 }
             } else {
+                // Tab not active - nothing to do.
                 _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
             }
         },
