@@ -199,7 +199,13 @@ class Group extends Entity
     }
 
     public function getModsEmail() {
-        return($this->group['nameshort'] . "-owner@yahoogroups.com");
+        if ($this->group['onyahoo']) {
+            $ret = $this->group['nameshort'] . "-owner@yahoogroups.com";
+        } else {
+            $ret = $this->group['nameshort'] . "-volunteers@" . GROUP_DOMAIN;
+        }
+
+        return($ret);
     }
 
     public function getGroupEmail() {
@@ -208,6 +214,7 @@ class Group extends Entity
         } else {
             $ret = $this->group['nameshort'] . GROUP_DOMAIN;
         }
+        error_log("Useing $ret");
 
         return($ret);
     }

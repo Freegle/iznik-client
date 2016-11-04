@@ -349,7 +349,9 @@ function message() {
                                             $u->addMembership($groupid);
                                         }
 
-                                        $fromemail = $u->getEmailPreferred();
+                                        # We want the message to come from one of our emails rather than theirs, so
+                                        # that replies come back to us and privacy is maintained.
+                                        $fromemail = $u->inventEmail();
                                     }
 
                                     $ret = ['ret' => 7, 'status' => 'Failed to submit'];

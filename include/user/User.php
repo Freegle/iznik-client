@@ -2385,7 +2385,8 @@ class User extends Entity
     }
 
     public function sendOurMails($g) {
-        $sendit = FALSE;
+        # We always want to send our mails for groups which we host.
+        $sendit = TRUE;
         $groupid = $g->getId();
 
         #error_log("On Yahoo? " . $g->getPrivate('onyahoo'));
@@ -2401,6 +2402,7 @@ class User extends Entity
             # So if we don't find anything in there, then we check whether this user has any
             # emails which we host.  That tells us whether they've joined any groups via our
             # platform, which tells us whether it's reasonable to send them emails.
+            $sendit = FALSE;
             $membershipmail = $this->getEmailForYahooGroup($groupid, TRUE, TRUE)[1];
             #error_log("Membership mail $membershipmail");
 
@@ -2437,10 +2439,10 @@ class User extends Entity
 
                 $sendit = time() > $till;
             }
-
-            #error_log("Sendit? $sendit");
-            return($sendit);
         }
+
+        #error_log("Sendit? $sendit");
+        return($sendit);
     }
 
     public function getMembershipHistory() {
