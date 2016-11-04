@@ -368,10 +368,6 @@ class MailRouter
                         } else {
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
                             $emailid = $u->getIdForEmail($email)['id'];
-
-                            if ($name && stripos('FBUser', $name) === FALSE) {
-                                $u->setPrivate('fullname', $name);
-                            }
                         }
 
                         $notify = FALSE;
