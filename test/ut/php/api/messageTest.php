@@ -1279,7 +1279,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
             'locationid' => $locid,
-            'groupid' => $gid,
+            'groupid' => $this->groupid,
             'messagetype' => 'Offer',
             'item' => 'a thing',
             'textbody' => 'Text body',
@@ -1652,7 +1652,7 @@ class messageAPITest extends IznikAPITestCase
             $count++;
         } while (!$stop && $count < IznikTestCase::YAHOO_PATIENCE);
 
-        assertLessThan(IznikTestCase::YAHOO_PATIENCE, $count);
+        assertLessThan(IznikTestCase::YAHOO_PATIENCE, $count, "Yahoo slow?");
 
         error_log(__METHOD__ . " end");
     }

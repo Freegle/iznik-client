@@ -214,7 +214,6 @@ class Group extends Entity
         } else {
             $ret = $this->group['nameshort'] . GROUP_DOMAIN;
         }
-        error_log("Useing $ret");
 
         return($ret);
     }
