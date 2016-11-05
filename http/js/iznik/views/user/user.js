@@ -862,6 +862,8 @@ define([
             var p = Iznik.View.prototype.render.call(this);
             p.then(function (self) {
                 self.$('.js-emailfrequency').val(self.model.get('emailfrequency'));
+                console.log("Set our posting", self.model);
+                self.$('.js-ourpostingstatus').val(self.model.get('ourpostingstatus'));
 
                 self.$('.datepicker').datepicker({
                     format: 'D, dd MM yyyy',

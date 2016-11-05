@@ -460,7 +460,9 @@ class Group extends Entity
             $thisone['role'] = $u->getRoleForGroup($member['groupid']);
             $thisone['joincomment'] = $member['joincomment'];
             $thisone['emailfrequency'] = $member['emailfrequency'];
-            $thisone['ourPostingStatus'] = $member['ourPostingStatus'];
+
+            # Our posting status only applies for groups we host.  In that case, the default is moderated.
+            $thisone['ourpostingstatus'] = presdef('ourPostingStatus', $member, Group::POSTING_MODERATED);
 
             $thisone['heldby'] = $member['heldby'];
 
