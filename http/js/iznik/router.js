@@ -3,11 +3,12 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'iznik/events',
     'iznik/models/session',
     'iznik/views/modal',
     'iznik/views/help',
     'iznik/views/signinup'
-], function($, _, Backbone, Iznik) {
+], function($, _, Backbone, Iznik, monitor) {
     Iznik.Session = new Iznik.Models.Session();
 
     Iznik.Session.askedPush = false;
@@ -52,8 +53,11 @@ define([
             // Make sure we have google analytics for Backbone routes.
             require(["ga"], function(ga) {
                 try {
+                    // TODO Make configurable
                     ga('create', 'UA-10627716-2');
                     ga('send', 'event', 'pageView', url);
+                    var timestamp = (new Date()).getTime();
+                    monitor.trackEvent('route', url, null, null, null, timestamp);
                 } catch (e) {
                     console.log("Google exception - privacy blocker?", e);
                 }

@@ -1000,7 +1000,6 @@ define([
             } catch (e) {
                 console.error(e.message)
             }
-            ;
 
             this.trigger('minimised');
         },
