@@ -878,6 +878,7 @@ class MailRouterTest extends IznikTestCase {
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 1);
 
         # Suppress emails
         $r = $this->getMockBuilder('MailRouter')
