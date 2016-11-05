@@ -97,6 +97,11 @@ define([
 
             return (json);
         }
+        // , fetch: function (options) {
+        //     var self = this;
+        //     console.log("Fetch model ", self.get('id')); console.trace();
+        //     return Backbone.Model.prototype.fetch.call(self);
+        // }
     });
 
     // We have the ability to cache in localStorage.  This is controlled by several optional parameters.

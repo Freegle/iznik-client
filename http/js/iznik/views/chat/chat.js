@@ -923,7 +923,6 @@ define([
                     // The message we want to suggest as the one to promise is any last message mentioned in this chat.
                     var msgid = null;
                     _.each(self.model.get('refmsgids'), function(m) {
-
                         msgid = m;
                     });
 
@@ -1323,6 +1322,7 @@ define([
                     }, success: function (ret) {
                         if (ret.ret === 0) {
                             self.lastRoster = ret.roster;
+                            self.lastUnseen = ret.lastunseen
                         }
 
                         callback(ret);
@@ -1333,7 +1333,8 @@ define([
                 callback({
                     ret: 0,
                     status: 'Update delayed',
-                    roster: self.lastRoster
+                    roster: self.lastRoster,
+                    unseen: self.lastUnseen
                 });
             }
         },
@@ -1364,21 +1365,26 @@ define([
             var self = this;
 
             if (ret.ret === 0) {
-                self.$('.js-roster').empty();
-                console.log("Roster", ret.roster);
-                _.each(ret.roster, function (rost) {
-                    var mod = new Iznik.Model(rost);
-                    var v = new Iznik.Views.Chat.RosterEntry({
-                        model: mod,
-                        modtools: self.options.modtools
+                if (!_.isUndefined(ret.roster)) {
+                    self.$('.js-roster').empty();
+                    console.log("Roster", ret.roster);
+                    _.each(ret.roster, function (rost) {
+                        var mod = new Iznik.Model(rost);
+                        var v = new Iznik.Views.Chat.RosterEntry({
+                            model: mod,
+                            modtools: self.options.modtools
+                        });
+                        self.listenTo(v, 'openchat', self.openChat);
+                        v.render().then(function (v) {
+                            self.$('.js-roster').append(v.el);
+                        })
                     });
-                    self.listenTo(v, 'openchat', self.openChat);
-                    v.render().then(function (v) {
-                        self.$('.js-roster').append(v.el);
-                    })
-                });
+                }
 
-                self.model.set('unseen', ret.unseen);
+                if (!_.isUndefined(ret.unseen)) {
+                    console.log("Set unseen from", self.model.get('unseen'), ret.unseen, ret);
+                    self.model.set('unseen', ret.unseen);
+                }
             }
 
             _.delay(_.bind(self.roster, self), 30000);
