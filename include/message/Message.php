@@ -2248,6 +2248,11 @@ class Message
         $p = strpos($textbody, '_____');
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
+        # Or this:
+        # _____
+        $p = strpos($textbody, '-----Original Message-----');
+        $textbody = $p ? substr($textbody, 0, $p) : $textbody;
+
         # Or Windows phones:
         #
         # ________________________________
