@@ -123,9 +123,9 @@ define([
 
             if (unread > 0) {
                 this.$('.js-unreadcount').html(unread);
-                this.$('.js-unreadcountholder').show();
+                this.$('.js-unreadcountholder').removeClass('reallyHide');
             } else {
-                this.$('.js-unreadcountholder').hide();
+                this.$('.js-unreadcountholder').addClass('reallyHide');
             }
         },
 
@@ -266,8 +266,6 @@ define([
                     }
                 }
 
-                self.updateUnread();
-
                 // Repost time.
                 var repost = self.model.get('canrepostat');
 
@@ -276,7 +274,7 @@ define([
                 }
 
                 // We want to keep an eye on chat messages, because those which are in conversations referring to our
-                // message should affect the counts we display.
+                // message should affect the counts we display.  This will call updateUnread.
                 self.watchChatRooms();
 
                 // If the number of promises changes, then we want to update what we display.
