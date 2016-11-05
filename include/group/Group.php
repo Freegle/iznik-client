@@ -378,12 +378,13 @@ class Group extends Entity
             }
         }
 
-        $sqlpref = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, memberships_yahoo.yahooAlias, 
+        $sqlpref = "SELECT DISTINCT memberships.*, groups.onyahoo, memberships_yahoo.emailid, memberships_yahoo.yahooAlias, 
               memberships_yahoo.yahooPostingStatus, memberships_yahoo.yahooDeliveryType, memberships_yahoo.yahooapprove, 
               memberships_yahoo.yahooreject, memberships_yahoo.joincomment FROM memberships 
               LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid 
               LEFT JOIN users_emails ON memberships.userid = users_emails.userid 
               INNER JOIN users ON users.id = memberships.userid 
+              INNER JOIN groups ON groups.id = memberships.groupid
               $filterq";
 
         if ($search) {
@@ -433,14 +434,27 @@ class Group extends Entity
             $emails = $u->getEmails();
             $email = NULL;
             $others = [];
-            foreach ($emails as $anemail) {
-                if ($anemail['id'] == $member['emailid']) {
-                    $email = $anemail['email'];
-                }
 
-                $others[] = $anemail;
+            if ($member['onyahoo']) {
+                # Yahoo memberships can have any of our emailids.
+                foreach ($emails as $anemail) {
+                    if ($anemail['id'] == $member['emailid']) {
+                        $email = $anemail['email'];
+                    }
+
+                    $others[] = $anemail;
+                }
+            } else {
+                # Groups we host only use a single email.
+                foreach ($emails as $anemail) {
+                    if (strpos($anemail['email'], USER_DOMAIN ) !== FALSE) {
+                        $email = $anemail['email'];
+                    }
+
+                    $others[] = $anemail;
+                }
             }
-            
+
             $thisone['joined'] = ISODate($member['added']);
 
             # Defaults match ones in User.php

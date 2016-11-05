@@ -858,6 +858,41 @@ define([
     Iznik.Views.ModTools.Member.Freegle = Iznik.View.extend({
         template: 'modtools_freegle_user',
 
+        events: {
+            'change .js-emailfrequency': 'changeFreq',
+            'change .js-ourpostingstatus': 'changeOurPostingStatus',
+        },
+
+        changeFreq: function() {
+            var self = this;
+            var data = {
+                userid: self.model.get('userid'),
+                groupid: self.model.get('groupid'),
+                emailfrequency: self.$('.js-emailfrequency').val()
+            };
+
+            $.ajax({
+                url: API + 'memberships',
+                type: 'PATCH',
+                data: data
+            });
+        },
+
+        changeOurPostingStatus: function() {
+            var self = this;
+            var data = {
+                userid: self.model.get('userid'),
+                groupid: self.model.get('groupid'),
+                ourpostingstatus: self.$('.js-ourpostingstatus').val()
+            };
+
+            $.ajax({
+                url: API + 'memberships',
+                type: 'PATCH',
+                data: data
+            });
+        },
+
         render: function () {
             var p = Iznik.View.prototype.render.call(this);
             p.then(function (self) {

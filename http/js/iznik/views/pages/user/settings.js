@@ -276,8 +276,6 @@ define([
                 emailfrequency: self.$('.js-frequency').val()
             };
 
-            console.log("Settings change data", data);
-
             $.ajax({
                 url: API + 'memberships',
                 type: 'PATCH',
