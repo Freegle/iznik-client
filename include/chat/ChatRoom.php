@@ -983,7 +983,7 @@ class ChatRoom extends Entity
                                     $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD  ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
                                         $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
                                 } else {
-                                    $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary, SUPPORT_ADDR);
+                                    $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary, SUPPORT_ADDR, $thisu->isModerator());
                                 }
                                 break;
                         }
