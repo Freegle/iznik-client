@@ -85,7 +85,6 @@ if ($cont) {
         $id = $r->received(Message::YAHOO_SYSTEM, $envfrom, $envto, $msg);
         $rc = $r->route();
     } else {
-        # Probably a reply to a member.
         error_log("Email");
         $id = $r->received(Message::EMAIL, $envfrom, $envto, $msg);
         $rc = $r->route();

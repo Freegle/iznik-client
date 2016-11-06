@@ -1190,6 +1190,7 @@ class messageAPITest extends IznikAPITestCase
         # - submit it
         $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
+        $this->group->setPrivate('onyahoo', 1);
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
         $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
@@ -1214,7 +1215,7 @@ class messageAPITest extends IznikAPITestCase
         assertNotNull($ret['id']);
         $attid = $ret['id'];
 
-        # Find a location
+        # Submit to the playground group explicitly.
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
@@ -1271,13 +1272,14 @@ class messageAPITest extends IznikAPITestCase
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->delete("UT delete");
 
-        # And again, now that the user exists, but without a preferred group.  Set an invalid from IP which will
+        # And again, now that the user exists.  Set an invalid from IP which will
         # fail to resolve.
         $_SERVER['REMOTE_ADDR'] = '1.1.1.1';
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
             'locationid' => $locid,
+            'groupid' => $this->groupid,
             'messagetype' => 'Offer',
             'item' => 'a thing',
             'textbody' => 'Text body',
@@ -1483,6 +1485,86 @@ class messageAPITest extends IznikAPITestCase
         error_log(__METHOD__ . " end");
     }
 
+    public function testSubmitNative()
+    {
+        error_log(__METHOD__);
+
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        # This is similar to the actions on the client
+        # - find a location close to a lat/lng
+        # - upload a picture
+        # - create a draft with a location
+        # - find the closest group to that location
+        # - submit it
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+
+        $this->group->setPrivate('onyahoo', 0);
+
+        error_log("Set private for {$this->groupid} to " . $this->group->getPrivate('onyahoo'));
+
+        $this->group->setPrivate('lat', 8.5);
+        $this->group->setPrivate('lng', 179.3);
+        $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $this->group->setPrivate('publish', 1);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        # Find a location
+        $g = Group::get($this->dbhr, $this->dbhm);
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->groupid,
+            'textbody' => 'Text body'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        error_log("Created draft $id");
+
+        # This will get sent as for native groups we can do so immediate.
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'JoinAndPost',
+            'email' => $email,
+            'ignoregroupoverride' => true
+        ]);
+
+        error_log("Message #$id should be pending " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals('Success', $ret['status']);
+
+        $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
+        $ctx = NULL;
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        error_log("Got pending messages " . var_export($msgs, TRUE));
+        assertEquals(1, count($msgs));
+        self::assertEquals($id, $msgs[0]['id']);
+
+        # Now approve the message and wait for it to reach the group.
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->approve($this->groupid, NULL, NULL, NULL);
+
+        $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
+        $ctx = NULL;
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        assertEquals(0, count($msgs));
+
+        $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::APPROVED);
+        $ctx = NULL;
+        list ($groups, $msgs) = $c->get($ctx, 10, [ $this->groupid ]);
+        assertEquals(1, count($msgs));
+        self::assertEquals($id, $msgs[0]['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testDoubleModeration() {
         error_log(__METHOD__);
 
@@ -1570,7 +1652,7 @@ class messageAPITest extends IznikAPITestCase
             $count++;
         } while (!$stop && $count < IznikTestCase::YAHOO_PATIENCE);
 
-        assertLessThan(IznikTestCase::YAHOO_PATIENCE, $count);
+        assertLessThan(IznikTestCase::YAHOO_PATIENCE, $count, "Yahoo slow?");
 
         error_log(__METHOD__ . " end");
     }

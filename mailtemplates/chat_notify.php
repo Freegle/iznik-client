@@ -65,7 +65,7 @@ EOT;
                                                                     <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
                                                                 </tr>
                                                                 <tr>
-                                                                    <td height="20" style="color: blue; font-size:12px; line-height:18px;">
+                                                                    <td height="20" style="color: darkgreen; font-size:12px; line-height:18px;">
                                                                         You can respond by just replying to this email - but it works 
                                                                         better if you reply on the site using this button:
                                                                     </td>

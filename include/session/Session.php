@@ -200,6 +200,16 @@ class Session {
             $userid = $session['userid'];
             $_SESSION['id'] = $userid;
             $_SESSION['logged_in'] = TRUE;
+
+            # Store this away in our PHP session, so that it gets returned the client, and will then work again
+            # next time.
+            $thash  = sha1($token);
+            $_SESSION['persistent'] = [
+                'id' => $id,
+                'series' => $series,
+                'token' => $thash
+            ];
+
             $this->dbhm->preExec("UPDATE sessions SET lastactive = NOW() WHERE  id = ? AND series = ? AND token = ?;", [
                 $id,
                 $series,

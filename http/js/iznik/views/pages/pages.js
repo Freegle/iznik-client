@@ -5,7 +5,7 @@ define([
     'iznik/base',
     'iznik/views/chat/chat',
     'iznik/events'
-], function($, _, Backbone, Iznik, ChatHolder, monitorDOM) {
+], function($, _, Backbone, Iznik, ChatHolder, monitor) {
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
 
@@ -72,8 +72,8 @@ define([
             var self = this;
 
             // Start event tracking.
-            if (monitorDOM) {
-                // CC monitorDOM.start();
+            if (monitor) {
+                // CC monitor.start();
             }
 
             if (currentPage) {

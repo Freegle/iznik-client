@@ -878,6 +878,7 @@ class MailRouterTest extends IznikTestCase {
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 1);
 
         # Suppress emails
         $r = $this->getMockBuilder('MailRouter')
@@ -1251,6 +1252,34 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull($id);
         $rc = $r->route();
         assertEquals($rc, MailRouter::TO_SYSTEM);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testVols() {
+        error_log(__METHOD__);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+
+        $msg = $this->unique(file_get_contents('msgs/tovols'));
+        $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-volunteers@' . GROUP_DOMAIN, $msg);
+        error_log("Created $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
+
+        # And again now we know them.
+        $msg = $this->unique(file_get_contents('msgs/tovols'));
+        $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-volunteers@' . GROUP_DOMAIN, $msg);
+        error_log("Created $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
 
         error_log(__METHOD__ . " end");
     }

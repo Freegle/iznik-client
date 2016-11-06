@@ -20,6 +20,7 @@ class Stats
     CONST POST_METHOD_BREAKDOWN = 'PostMethodBreakdown';
     CONST YAHOO_DELIVERY_BREAKDOWN = 'YahooDeliveryBreakdown';
     CONST YAHOO_POSTING_BREAKDOWN = 'YahooPostingBreakdown';
+    CONST OUR_POSTING_BREAKDOWN = 'OurPostingBreakdown';
     CONST SUPPORTQUERIES_COUNT = 'SupportQueries';
     CONST FEEDBACK_HAPPY = 'Happy';
     CONST FEEDBACK_FINE = 'Fine';
@@ -180,6 +181,19 @@ class Stats
         }
 
         $this->setBreakdown($date, Stats::YAHOO_POSTING_BREAKDOWN, json_encode($srcs));
+
+        $sql = "SELECT memberships.ourPostingStatus, COUNT(*) AS count FROM memberships WHERE groupid = ? GROUP BY memberships.ourPostingStatus;";
+        $sources = $this->dbhr->preQuery($sql,
+            [
+                $this->groupid
+            ]);
+
+        $srcs = [];
+        foreach ($sources as $src) {
+            $srcs[$src['ourPostingStatus']] = $src['count'];
+        }
+
+        $this->setBreakdown($date, Stats::OUR_POSTING_BREAKDOWN, json_encode($srcs));
     }
 
     public function get($date)

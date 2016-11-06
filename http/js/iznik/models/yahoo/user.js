@@ -239,7 +239,8 @@ define([
                 data: {
                     groupid: this.get('groupid'),
                     email: this.get('email'),
-                    yahooPostingStatus: val
+                    yahooPostingStatus: val,
+                    ourPostingStatus: val,
                 }, success: function(ret) {
                     IznikPlugin.checkPluginStatus();
                 }

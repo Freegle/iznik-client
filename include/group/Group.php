@@ -23,6 +23,11 @@ class Group extends Entity
     const GROUP_OTHER = 'Other';
     const GROUP_UT = 'UnitTest';
 
+    const POSTING_MODERATED = 'MODERATED';
+    const POSTING_PROHIBITED = 'PROHIBITED';
+    const POSTING_DEFAULT = 'DEFAULT';
+    const POSTING_UNMODERATED = 'UNMODERATED';
+
     const FILTER_NONE = 0;
     const FILTER_WITHCOMMENTS = 1;
 
@@ -161,7 +166,7 @@ class Group extends Entity
                 return(NULL);
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type) VALUES (?, ?)", [$shortname, $type]);
+            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type, founded) VALUES (?, ?, NOW())", [$shortname, $type]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
             $id = NULL;
@@ -194,11 +199,23 @@ class Group extends Entity
     }
 
     public function getModsEmail() {
-        return($this->group['nameshort'] . "-owner@yahoogroups.com");
+        if ($this->group['onyahoo']) {
+            $ret = $this->group['nameshort'] . "-owner@yahoogroups.com";
+        } else {
+            $ret = $this->group['nameshort'] . "-volunteers@" . GROUP_DOMAIN;
+        }
+
+        return($ret);
     }
 
     public function getGroupEmail() {
-        return($this->group['nameshort'] . "@yahoogroups.com");
+        if ($this->group['onyahoo']) {
+            $ret = $this->group['nameshort'] . "@yahoogroups.com";
+        } else {
+            $ret = $this->group['nameshort'] . GROUP_DOMAIN;
+        }
+
+        return($ret);
     }
 
     public function getGroupSubscribe() {
@@ -321,7 +338,7 @@ class Group extends Entity
         return(NULL);
     }
 
-    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection = MembershipCollection::APPROVED, $groupids = NULL, $yps = NULL, $ydt = NULL, $filter = Group::FILTER_NONE) {
+    public function getMembers($limit = 10, $search = NULL, &$ctx = NULL, $searchid = NULL, $collection = MembershipCollection::APPROVED, $groupids = NULL, $yps = NULL, $ydt = NULL, $ops = NULL, $filter = Group::FILTER_NONE) {
         $ret = [];
         $groupids = $groupids ? $groupids : ($this->id ? [ $this-> id ] : NULL);
 
@@ -335,6 +352,7 @@ class Group extends Entity
         $groupq = $groupids ? " memberships.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
         $ypsq = $yps ? (" AND memberships_yahoo.yahooPostingStatus = " . $this->dbhr->quote($yps)) : '';
         $ydtq = $ydt ? (" AND memberships_yahoo.yahooDeliveryType = " . $this->dbhr->quote($ydt)) : '';
+        $opsq = $ops ? (" AND memberships.ourPostingStatus = " . $this->dbhr->quote($ydt)) : '';
 
         switch ($filter) {
             case Group::FILTER_WITHCOMMENTS:
@@ -360,12 +378,13 @@ class Group extends Entity
             }
         }
 
-        $sqlpref = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, memberships_yahoo.yahooAlias, 
+        $sqlpref = "SELECT DISTINCT memberships.*, groups.onyahoo, memberships_yahoo.emailid, memberships_yahoo.yahooAlias, 
               memberships_yahoo.yahooPostingStatus, memberships_yahoo.yahooDeliveryType, memberships_yahoo.yahooapprove, 
               memberships_yahoo.yahooreject, memberships_yahoo.joincomment FROM memberships 
               LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid 
               LEFT JOIN users_emails ON memberships.userid = users_emails.userid 
               INNER JOIN users ON users.id = memberships.userid 
+              INNER JOIN groups ON groups.id = memberships.groupid
               $filterq";
 
         if ($search) {
@@ -380,10 +399,10 @@ class Group extends Entity
                 (SELECT id FROM users WHERE yahooid LIKE $q) UNION
                 (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)
               ) t) AND 
-              $groupq $collectionq $addq $ypsq $ydtq";
+              $groupq $collectionq $addq $ypsq $ydtq $opsq";
         } else {
             $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : '';
-            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq";
+            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq $opsq";
         }
 
         $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
@@ -415,14 +434,27 @@ class Group extends Entity
             $emails = $u->getEmails();
             $email = NULL;
             $others = [];
-            foreach ($emails as $anemail) {
-                if ($anemail['id'] == $member['emailid']) {
-                    $email = $anemail['email'];
-                }
 
-                $others[] = $anemail;
+            if ($member['onyahoo']) {
+                # Yahoo memberships can have any of our emailids.
+                foreach ($emails as $anemail) {
+                    if ($anemail['id'] == $member['emailid']) {
+                        $email = $anemail['email'];
+                    }
+
+                    $others[] = $anemail;
+                }
+            } else {
+                # Groups we host only use a single email.
+                foreach ($emails as $anemail) {
+                    if (strpos($anemail['email'], USER_DOMAIN ) !== FALSE) {
+                        $email = $anemail['email'];
+                    }
+
+                    $others[] = $anemail;
+                }
             }
-            
+
             $thisone['joined'] = ISODate($member['added']);
 
             # Defaults match ones in User.php
@@ -442,6 +474,9 @@ class Group extends Entity
             $thisone['role'] = $u->getRoleForGroup($member['groupid']);
             $thisone['joincomment'] = $member['joincomment'];
             $thisone['emailfrequency'] = $member['emailfrequency'];
+
+            # Our posting status only applies for groups we host.  In that case, the default is moderated.
+            $thisone['ourpostingstatus'] = presdef('ourPostingStatus', $member, Group::POSTING_MODERATED);
 
             $thisone['heldby'] = $member['heldby'];
 

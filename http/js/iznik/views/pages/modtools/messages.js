@@ -669,7 +669,8 @@ define([
                     data: {
                         groupid: group.groupid,
                         id: message.get('fromuser').id,
-                        yahooPostingStatus: ps
+                        yahooPostingStatus: ps,
+                        ourPostingStatus: ps
                     }, success: function (ret) {
                         IznikPlugin.checkPluginStatus();
                     }
