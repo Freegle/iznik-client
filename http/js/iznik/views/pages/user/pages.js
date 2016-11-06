@@ -135,7 +135,7 @@ define([
                             map.css('width', width);
                             map.css('height', width);
                             var mapicon = window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif';
-                            map.html('<img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=' + width + 'x' + width + '&zoom=12&center=' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&maptype=roadmap&markers=icon:' + mapicon + '|' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&sensor=true" />');
+                            map.html('<img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=' + width + 'x' + width + '&zoom=12&center=' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&maptype=roadmap&markers=icon:' + mapicon + '|' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&sensor=true&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg" />');
                         }
                     }
                 }
