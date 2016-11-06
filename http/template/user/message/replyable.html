@@ -21,11 +21,11 @@
             <div class="hidden-xs col-sm-2 js-mapzoom">
                 <% if (obj.location) { %>
                 <div class="mapimage margleft topspace pull-right location">
-                    <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&zoom={{mapzoom}}&center={{location.lat}},{{location.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{location.lat}},{{location.lng}}&sensor=false" />
+                    <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&zoom={{mapzoom}}&center={{location.lat}},{{location.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{location.lat}},{{location.lng}}&sensor=false&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg" />
                 </div>
                 <% } else if (obj.area) { %>
                 <div class="mapimage margleft topspace pull-right area">
-                    <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&zoom={{mapzoom}}&center={{area.lat}},{{area.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{area.lat}},{{area.lng}}&sensor=false" />
+                    <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&zoom={{mapzoom}}&center={{area.lat}},{{area.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{area.lat}},{{area.lng}}&sensor=false&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg" />
                 </div>
                 <% } %>
             </div>
