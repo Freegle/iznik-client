@@ -3,7 +3,7 @@ define([
     'underscore',
     'iznik/diff',
     'css-selector-generator'
-], function($, _, JsDiff, CssSelectorGenerator) {
+], function ($, _, JsDiff, CssSelectorGenerator) {
     // We track the mouse, keyboard and DOM activity on the client, and periodically upload it to the server.  This allows
     // us to replay sessions and see what happened, which is invaluable for diagnosing problems and helping users with
     // issues.
@@ -11,91 +11,93 @@ define([
     var eventQueue = [];
     var flushTimerRunning;
     var sessionCookie = null;
+    var detailed = false;
 
-    function trackEvent(target, event, posX, posY, data, timestamp) {
-        if (!timestamp) {
-            timestamp = (new Date()).getTime();
-        }
-
-        var data = {
-            timestamp: timestamp,
-            route: location.pathname + location.hash,
-            target: target,
-            event: event,
-            viewx: $(window).outerWidth(),
-            viewy: $(window).outerHeight(),
-            posX: posX,
-            posY: posY,
-            data: data,
-        };
-
-        eventQueue.push(data);
-    }
-
-    function flushEventQueue() {
-        flushTimerRunning = false;
-
-        if (eventQueue.length > 0) {
-            // If we fail, we'll lose events.  Oh well.
-            var currQueue = eventQueue;
-            eventQueue = [];
-
-            // If we have too much data, throw it away.
-            if (eventQueue.length < 20000) {
-
-                var eventhost = $('meta[name=iznikevent]').attr("content");
-
-                // We will typically be posting to another domain, to avoid delaying requests on the main
-                // domain because of event tracking (the per host connection limit).  This means that our
-                // session from the main domain won't be inherited unless we set it manually.  It's the same
-                // system under the covers, so the session is still valid.
-                if (!sessionCookie) {
-                    try {
-                        var sess = localStorage.getItem('session');
-                        if (sess) {
-                            sess = JSON.parse(sess);
-                            sessionCookie = sess.session;
-                            // console.log("Got session from local", sessionCookie);
-                        }
-                    } catch (e) {console.log(e.message)};
-                }
-
-                var me = Iznik.Session.get('me');
-                var myid = me ? me.id : null;
-
-                $.ajax({
-                    url: 'https://' + eventhost + 'event',	// CC
-                    type: 'POST',
-                    data: {
-                        api_key: sessionCookie,
-                        userid: myid,
-                        events: currQueue
-                    }, success: function(ret) {
-                        if (ret.ret === 0) {
-                            // Save the cookie
-                            sessionCookie = ret.session;
-
-                            if (!flushTimerRunning) {
-                                flushTimerRunning = true;
-                                window.setTimeout(flushEventQueue, 5000);
-                            }
-                        }
-                    }
-                });
-            }
-        } else if (!flushTimerRunning) {
-            flushTimerRunning = true;
-            window.setTimeout(flushEventQueue, 5000);
-        }
-    }
-
-    // Scan the DOM on a timer and detect changes.
-    var monitorDOM = (function () {
+    var monitor = (function () {
         return ({
             lastDOM: null,
             lastDOMtime: 0,
 
-            getWithValues: function() {
+            trackEvent: function (target, event, posX, posY, data, timestamp) {
+                if (!timestamp) {
+                    timestamp = (new Date()).getTime();
+                }
+
+                var data = {
+                    timestamp: timestamp,
+                    route: location.pathname + location.hash,
+                    target: target,
+                    event: event,
+                    viewx: $(window).outerWidth(),
+                    viewy: $(window).outerHeight(),
+                    posX: posX,
+                    posY: posY,
+                    data: data,
+                };
+
+                eventQueue.push(data);
+            },
+
+            flushEventQueue: function () {
+                var self = this;
+
+                flushTimerRunning = false;
+
+                if (eventQueue.length > 0) {
+                    // If we fail, we'll lose events.  Oh well.
+                    var currQueue = eventQueue;
+                    eventQueue = [];
+
+                    // If we have too much data, throw it away.
+                    if (eventQueue.length < 20000) {
+
+                        var eventhost = $('meta[name=iznikevent]').attr("content");
+
+                        // We will typically be posting to another domain, to avoid delaying requests on the main
+                        // domain because of event tracking (the per host connection limit).  This means that our
+                        // session from the main domain won't be inherited unless we set it manually.  It's the same
+                        // system under the covers, so the session is still valid.
+                        if (!sessionCookie) {
+                            try {
+                                var sess = localStorage.getItem('session');
+                                if (sess) {
+                                    sess = JSON.parse(sess);
+                                    sessionCookie = sess.session;
+                                    // console.log("Got session from local", sessionCookie);
+                                }
+                            } catch (e) { console.log(e.message) };
+                        }
+
+                        var me = Iznik.Session.get('me');
+                        var myid = me ? me.id : null;
+
+                        $.ajax({
+                            url: 'https://' + eventhost + 'event',    // CC
+                            type: 'POST',
+                            data: {
+                                api_key: sessionCookie,
+                                userid: myid,
+                                events: currQueue
+                            }, success: function (ret) {
+                                if (ret.ret === 0) {
+                                    // Save the cookie
+                                    sessionCookie = ret.session;
+
+                                    if (!flushTimerRunning) {
+                                        flushTimerRunning = true;
+                                        window.setTimeout(_.bind(self.flushEventQueue, self), 5000);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                } else if (!flushTimerRunning) {
+                    flushTimerRunning = true;
+                    window.setTimeout(_.bind(self.flushEventQueue, self), 5000);
+                }
+            },
+
+            getWithValues: function () {
                 // We're saving off the full DOM.  What we get from innerHTML doesn't have any values in it which
                 // were changed post initial insertion.  So we need to get the DOM with all the values.
                 //
@@ -113,14 +115,14 @@ define([
                 // where they will appear in the same order, setting them.
                 var clone = $('body').clone();
                 var vals = [];
-                $('input, select, textarea').each(function() {
+                $('input, select, textarea').each(function () {
                     vals.push($(this).val());
                 });
 
                 // console.log("Saved vals", vals);
 
                 // Now go through and set them in the copy.
-                clone.find('input, select, textarea').each(function() {
+                clone.find('input, select, textarea').each(function () {
                     var val = vals.shift();
                     var $this = $(this);
 
@@ -133,7 +135,7 @@ define([
                             }
                         } else {
                             if ($this.is("select")) {
-                                $this.find("option").each(function() {
+                                $this.find("option").each(function () {
                                     if ($(this).val() == val) {
                                         $(this).attr("selected", "selected");
                                     }
@@ -152,76 +154,78 @@ define([
                 //
                 // console.log("Restored vals", vals2);
 
-                return(clone.html());
+                return (clone.html());
             },
 
             checkDOM: function () {
                 var self = this;
 
-                // Use innerHTML as we don't put classes on body, and it allows us to restore the content within
-                // a div when replaying.
-                var dom = $('body')[0].innerHTML;
-                // console.log("DOM initially", dom.length);
-                var type;
-                var now = (new Date()).getTime();
+                if (detailed) {
+                    // Use innerHTML as we don't put classes on body, and it allows us to restore the content within
+                    // a div when replaying.
+                    var dom = $('body')[0].innerHTML;
+                    // console.log("DOM initially", dom.length);
+                    var type;
+                    var now = (new Date()).getTime();
 
-                if (!this.lastDOM) {
-                    // We've not captured the DOM yet
-                    type = 'f';
-                    strdiff = dom;
-                } else {
-                    if (dom.length == this.lastDOM.length) {
-                        // Very probably, this is exactly the same.  Save some CPU.
-                        return;
-                    } else if (now - this.lastDOMtime > 30000) {
-                        // We save it regularly to handle the case where it gets messed up and would otherwise never
-                        // recover.
-                        type = 'f';
-                        strdiff = dom;
-                    } else if (dom.length / this.lastDOM.length < 0.75 || dom.length / this.lastDOM.length > 1.25) {
-                        // The two must be pretty different.  Just track the whole thing.
-                        //console.log("Don't even bother with a diff", dom.length, this.lastDOM.length);
+                    if (!this.lastDOM) {
+                        // We've not captured the DOM yet
                         type = 'f';
                         strdiff = dom;
                     } else {
-                        var strdiff = JsDiff.createTwoFilesPatch('o', 'n', this.lastDOM, dom);
-
-                        if (strdiff.length > dom.length) {
-                            // Not worth tracking the diff, as the diff is bigger than the whole thing, or it's been
-                            // a while.  The second is to help us recover from weirdnesses by providing a periodic
-                            // reset, which also helps when playing forwards.
+                        if (dom.length == this.lastDOM.length) {
+                            // Very probably, this is exactly the same.  Save some CPU.
+                            return;
+                        } else if (now - this.lastDOMtime > 30000) {
+                            // We save it regularly to handle the case where it gets messed up and would otherwise never
+                            // recover.
+                            type = 'f';
+                            strdiff = dom;
+                        } else if (dom.length / this.lastDOM.length < 0.75 || dom.length / this.lastDOM.length > 1.25) {
+                            // The two must be pretty different.  Just track the whole thing.
+                            //console.log("Don't even bother with a diff", dom.length, this.lastDOM.length);
                             type = 'f';
                             strdiff = dom;
                         } else {
-                            type = 'd';
+                            var strdiff = JsDiff.createTwoFilesPatch('o', 'n', this.lastDOM, dom);
+
+                            if (strdiff.length > dom.length) {
+                                // Not worth tracking the diff, as the diff is bigger than the whole thing, or it's been
+                                // a while.  The second is to help us recover from weirdnesses by providing a periodic
+                                // reset, which also helps when playing forwards.
+                                type = 'f';
+                                strdiff = dom;
+                            } else {
+                                type = 'd';
+                            }
+                            //console.log("DOM diff", strdiff, strdiff.length);
                         }
-                        //console.log("DOM diff", strdiff, strdiff.length);
                     }
-                }
 
-                if (type == 'f') {
-                    this.lastDOMtime = now;
-                    strdiff = this.getWithValues();
-                    // console.log("Dom now", dom.length);
-                }
+                    if (type == 'f') {
+                        this.lastDOMtime = now;
+                        strdiff = this.getWithValues();
+                        // console.log("Dom now", dom.length);
+                    }
 
-                if (strdiff.length > 80) {
-                    // 80 is the "no differences" text.
-                    //
-                    // We log these with the same timestamp so that they are replayed seamlessly.
-                    var timestamp = (new Date()).getTime();
-                    trackEvent('window', 'DOM-' + type, null, null, strdiff, timestamp);
-                    this.lastDOM = dom;
+                    if (strdiff.length > 80) {
+                        // 80 is the "no differences" text.
+                        //
+                        // We log these with the same timestamp so that they are replayed seamlessly.
+                        var timestamp = (new Date()).getTime();
+                        self.trackEvent('window', 'DOM-' + type, null, null, strdiff, timestamp);
+                        this.lastDOM = dom;
 
-                    // Rewriting the DOM may lose input values which were set post-page-load (most of 'em).
-                    // $('input, select, textarea').each(function() {
-                    //     var val = $(this).val();
-                    //     if (val) {
-                    //         trackEvent(self.getPath($(this)), 'input', null, null, val, timestamp);
-                    //     }
-                    // });
+                        // Rewriting the DOM may lose input values which were set post-page-load (most of 'em).
+                        // $('input, select, textarea').each(function() {
+                        //     var val = $(this).val();
+                        //     if (val) {
+                        //         trackEvent(self.getPath($(this)), 'input', null, null, val, timestamp);
+                        //     }
+                        // });
+                    }
+                    //console.timeEnd('checkDOM');
                 }
-                //console.timeEnd('checkDOM');
             },
 
             // We have a background timer to spot DOM changes which are not driven by events such as clicks.
@@ -245,55 +249,58 @@ define([
                     });
                 }
 
-                return(this.selgen.getSelector(node.get(0)));
+                return (this.selgen.getSelector(node.get(0)));
             },
 
             start: function () {
                 var self = this;
 
-                // Capture scrolls on the window
-                $(window).scroll(function (e) {
-                    var scroll = $(window).scrollTop();
-                    trackEvent('window', 'scroll', null, null, scroll);
-                });
-
-                // Track mouse movements
-                (function () {
-                    var lastX = null;
-                    var lastY = null;
-                    var granularity = 10;
-
-                    $(document).mousemove(function (e) {
-                        if (Math.abs(lastX - e.pageX) > granularity || Math.abs(lastY - e.pageY) > granularity) {
-                            trackEvent('window', 'mousemove', e.pageX, e.pageY, null);
-
-                            lastX = e.pageX;
-                            lastY = e.pageY;
-                        }
+                if (detailed) {
+                    // Capture scrolls on the window
+                    $(window).scroll(function (e) {
+                        var scroll = $(window).scrollTop();
+                        self.trackEvent('window', 'scroll', null, null, scroll);
                     });
-                })();
 
-                // Track mouse clicks
-                $(window).click(function (e) {
-                    trackEvent('window', 'click', e.pageX, e.pageY, null);
-                });
+                    // Track mouse movements
+                    (function () {
+                        var lastX = null;
+                        var lastY = null;
+                        var granularity = 10;
 
-                $(window).on('keydown', _.bind(function(e) {
-                    if ($(e.target).is('input')) {
-                        var val = $(e.target).val();
-                        if (val) {
-                            trackEvent(self.getPath($(e.target)), 'input', e.pageX, e.pageY, val);
+                        $(document).mousemove(function (e) {
+                            if (Math.abs(lastX - e.pageX) > granularity || Math.abs(lastY - e.pageY) > granularity) {
+                                self.trackEvent('window', 'mousemove', e.pageX, e.pageY, null);
+
+                                lastX = e.pageX;
+                                lastY = e.pageY;
+                            }
+                        });
+                    })();
+
+                    // Track mouse clicks
+                    $(window).click(function (e) {
+                        self.trackEvent('window', 'click', e.pageX, e.pageY, null);
+                    });
+
+                    $(window).on('keydown', _.bind(function (e) {
+                        if ($(e.target).is('input')) {
+                            var val = $(e.target).val();
+                            if (val) {
+                                self.trackEvent(self.getPath($(e.target)), 'input', e.pageX, e.pageY, val);
+                            }
                         }
-                    }
-                }, self));
+                    }, self));
+                }
 
                 flushTimerRunning = true;
-                window.setTimeout(flushEventQueue, 5000);
+                window.setTimeout(_.bind(self.flushEventQueue, self), 5000);
 
                 this.startTimer();
             }
         });
     })();
 
-    return(monitorDOM);
+    return (monitor);
 });
+

@@ -159,14 +159,14 @@ define([
             waitCount++;
 
             self.options.label = self.options.label ? self.options.label : 'unknown caller';
-            console.log("Start wait", self.options.label, waitCount); console.trace();
+            // console.log("Start wait", self.options.label, waitCount); console.trace();
 
             this.timeout = setTimeout(function() {
                 self.timeout = null;
 
                 if (!waitOpen) {
                     // We don't have a modal open.  Open ours.
-                    console.log("Open wait", self.options.label);
+                    // console.log("Open wait", self.options.label);
                     waitOpen = self;
                     waitPromise = self.open(self.template);
 
@@ -185,7 +185,7 @@ define([
             var self = this;
 
             if (this.timeout) {
-                console.log("Close, still timer", self.options.label);
+                // console.log("Close, still timer", self.options.label);
                 clearTimeout(this.timeout);
             }
 
@@ -194,13 +194,13 @@ define([
             }
 
             waitCount--;
-            console.log("Waits open", self.options.label, waitCount); console.trace();
+            // console.log("Waits open", self.options.label, waitCount); console.trace();
 
             if (waitCount === 0 && waitOpen) {
                 // We don't need any more open.  But this one might not quite have rendered yet, so we need to wait.
-                console.log("Close open one", self.options.label, waitOpen);
+                // console.log("Close open one", self.options.label, waitOpen);
                 waitPromise.then(function() {
-                    console.log("Open rendered", self.options.label);
+                    // console.log("Open rendered", self.options.label);
                     Iznik.Views.Modal.prototype.close.call(waitOpen);
                     waitOpen = null;
                 });

@@ -33,6 +33,7 @@ class bulkOpAPITest extends IznikAPITestCase {
         # Create a moderator and log in as them
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 1);
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);

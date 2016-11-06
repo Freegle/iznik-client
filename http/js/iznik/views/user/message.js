@@ -41,13 +41,6 @@ define([
             var self = this;
             this.$('.js-replytext').val(text);
 
-            // Remove local storage so that we don't get stuck sending the same message, for example if we reload the
-            // page.
-            try {
-                localStorage.removeItem('replyto');
-                localStorage.removeItem('replytext');
-            } catch (e) {}
-
             // We might get called back twice because of the html, body selector (which we need for browser compatibility)
             // so make sure we only actually click send once.
             self.readyToSend = true;
@@ -130,9 +123,9 @@ define([
 
             if (unread > 0) {
                 this.$('.js-unreadcount').html(unread);
-                this.$('.js-unreadcountholder').show();
+                this.$('.js-unreadcountholder').removeClass('reallyHide');
             } else {
-                this.$('.js-unreadcountholder').hide();
+                this.$('.js-unreadcountholder').addClass('reallyHide');
             }
         },
 
@@ -273,8 +266,6 @@ define([
                     }
                 }
 
-                self.updateUnread();
-
                 // Repost time.
                 var repost = self.model.get('canrepostat');
 
@@ -283,7 +274,7 @@ define([
                 }
 
                 // We want to keep an eye on chat messages, because those which are in conversations referring to our
-                // message should affect the counts we display.
+                // message should affect the counts we display.  This will call updateUnread.
                 self.watchChatRooms();
 
                 // If the number of promises changes, then we want to update what we display.
@@ -690,6 +681,13 @@ define([
                     console.log("Send; logged in?", loggedin);
                     if (loggedin) {
                         // We are logged in and can proceed.
+                        // Remove local storage so that we don't get stuck sending the same message, for example if we reload the
+                        // page.
+                        try {
+                            localStorage.removeItem('replyto');
+                            localStorage.removeItem('replytext');
+                        } catch (e) {}
+
                         //
                         // When we reply to a message on a group, we join the group if we're not already a member.
                         var memberofs = Iznik.Session.get('groups');
@@ -744,7 +742,9 @@ define([
                             localStorage.setItem('replyto', self.model.get('id'));
                             localStorage.setItem('replytext', replytext);
                             localStorage.setItem('replyreturn', Backbone.history.getFragment());
-                        } catch (e) {}
+                        } catch (e) {
+                            console.error("Failed to set up for reply", e.message);
+                        }
 
                         // Set the route to the individual message.  This will spot the local storage, force us to
                         // log in, and then send it.  This also means that when the page is reloaded because of a login,

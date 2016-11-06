@@ -87,6 +87,8 @@ class groupAPITest extends IznikAPITestCase {
         error_log(__METHOD__);
 
         # Not logged in - shouldn't see members list
+        $this->group->setPrivate('onyahoo', 1);
+
         $ret = $this->call('group', 'GET', [
             'id' => $this->groupid,
             'members' => TRUE

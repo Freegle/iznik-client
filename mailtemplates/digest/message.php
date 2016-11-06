@@ -1,10 +1,10 @@
 <?php
 
-function digest_message($msg, $msgid, $fdgroupid) {
+function digest_message($msg, $msgid) {
     $text = htmlentities($msg['textbody']);
     $text = nl2br($text);
     $date = date("D, jS F g:ia", strtotime($msg['date']));
-    $replyweb = "https://direct.ilovefreegle.org/login.php?action=mygroups&subaction=displaypost&msgid=$msgid&groupid=$fdgroupid&digest=$fdgroupid";
+    $replyweb = "https:" . USER_SITE . "/message/$msgid";
     $replyemail = "mailto:{$msg['fromaddr']}?subject=" . rawurlencode("Re: " . $msg['subject']);
 
     $html = <<<EOT
@@ -12,7 +12,7 @@ function digest_message($msg, $msgid, $fdgroupid) {
         <tr>
             <td colspan="2">
                 <p>
-                    <a href="https://direct.ilovefreegle.org/login.php?action=mygroups&subaction=displaypost&msgid=$msgid&groupid=$fdgroupid&digest=$fdgroupid">{$msg['subject']}</a>
+                    <a href="$replyweb">{$msg['subject']}</a>
                 </p>                
             </td>
         </tr>    

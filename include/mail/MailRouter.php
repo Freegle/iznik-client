@@ -52,6 +52,7 @@ class MailRouter
     const TO_USER = "ToUser";
     const TO_SYSTEM ='ToSystem';
     const DROPPED ='Dropped';
+    const TO_VOLUNTEERS = "ToVolunteers";
 
     function __construct($dbhr, $dbhm, $id = NULL)
     {
@@ -151,6 +152,7 @@ class MailRouter
         #   - confirmation of Yahoo mod status
         #   - confirmation of Yahoo subscription requests
         # - to a group, either pending or approved
+        # - to group moderators
         # - to a user
         # - to a spam queue
         if ($msg) {
@@ -367,7 +369,7 @@ class MailRouter
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
                             $emailid = $u->getIdForEmail($email)['id'];
 
-                            if ($name && stripos('FBUser', $name) === FALSE) {
+                            if ($u->getName() == 'A freegler' && $name && stripos('FBUser', $name) === FALSE) {
                                 $u->setPrivate('fullname', $name);
                             }
                         }
@@ -514,6 +516,45 @@ class MailRouter
                 $d->off($uid);
 
                 $ret = MailRouter::TO_SYSTEM;
+            }
+        } else if (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to, $matches)) {
+            # Mail to our owner address.  First check if it's spam.
+            $rc = $this->spam->check($this->msg);
+
+            if (!$rc) {
+                $ret = MailRouter::FAILURE;
+
+                # It's not.  Find the group
+                $g = new Group($this->dbhr, $this->dbhm);
+                $gid = $g->findByShortName($matches[1]);
+
+                if ($gid) {
+                    # It's one of our groups.  Find the user this is from.
+                    $envfrom = $this->msg->getEnvelopeFrom();
+                    $u = new User($this->dbhr, $this->dbhm);
+                    $uid = $u->findByEmail($envfrom);
+
+                    # We should always find them as Message::parse should create them
+                    if ($uid) {
+                        $u = User::get($this->dbhr, $this->dbhm, $uid);
+
+                        # Create/get a change between the sender and the group mods.
+                        $r = new ChatRoom($this->dbhr, $this->dbhm);
+                        $chatid = $r->createUser2Mod($uid, $gid);
+
+                        # Now add this message into the chat
+                        $textbody = $this->msg->stripQuoted();
+
+                        $m = new ChatMessage($this->dbhr, $this->dbhm);
+                        $mid = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
+
+                        # The user sending this is up to date with this conversation.  This prevents us
+                        # notifying her about other messages
+                        $r->mailedLastForUser($uid);
+
+                        $ret = MailRouter::TO_VOLUNTEERS;
+                    }
+                }
             }
         } else {
             # We use SpamAssassin to weed out obvious spam.  We only do a content check if the message subject line is

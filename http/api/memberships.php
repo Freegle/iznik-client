@@ -14,6 +14,7 @@ function memberships() {
     $ctx = presdef('context', $_REQUEST, NULL);
     $settings = presdef('settings', $_REQUEST, NULL);
     $emailfrequency = array_key_exists('emailfrequency', $_REQUEST) ? intval($_REQUEST['emailfrequency']) : NULL;
+    $ourpostingstatus = array_key_exists('ourpostingstatus', $_REQUEST) ? $_REQUEST['ourpostingstatus'] : NULL;
     $filter = intval(presdef('filter', $_REQUEST, Group::FILTER_NONE));
 
     # TODO jQuery won't send an empty array, so we have a hack to ensure we can empty out the pending members.  What's
@@ -30,6 +31,7 @@ function memberships() {
     $action = presdef('action', $_REQUEST, NULL);
     $yps = presdef('yahooPostingStatus', $_REQUEST, NULL);
     $ydt = presdef('yahooDeliveryType', $_REQUEST, NULL);
+    $ops = presdef('ourPostingStatus', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -98,7 +100,7 @@ function memberships() {
                                 'status' => 'Success'
                             ];
                         } else {
-                            $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt, $filter);
+                            $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt, $ops, $filter);
 
                             if ($userid) {
                                 $ret = [
@@ -157,9 +159,15 @@ function memberships() {
                 $u = User::get($dbhr, $dbhm, $userid);
 
                 if ($u && $me && $u->getId() && $me->getId()) {
+                    $g = Group::get($dbhr, $dbhm, $groupid);
+
                     if ($userid && $userid != $me->getId()) {
                         # If this isn't us, we can add them, but not as someone with higher permissions than us.
+                        $origrole = $role;
                         $role = $u->roleMin($role, $me->getRoleForGroup($groupid));
+
+                        # ...unless there are no mods at all, in which case this lucky person could become the owner.
+                        $role = ($origrole == User::ROLE_OWNER && $role == User::ROLE_MODERATOR && count($g->getMods()) == 0) ? User::ROLE_OWNER : $role;
                     }
 
                     if ($email) {
@@ -172,7 +180,6 @@ function memberships() {
 
                     $u->addMembership($groupid, $role, $emailid);
 
-                    $g = Group::get($dbhr, $dbhm, $groupid);
                     if ($g->onYahoo()) {
                         # This group is on Yahoo too, so we should trigger a membership application to there if we
                         # don't already have one of our emails on the group.
@@ -345,6 +352,10 @@ function memberships() {
 
                         if ($emailfrequency !== NULL) {
                             $rc &= $u->setMembershipAtt($groupid, 'emailfrequency', intval($emailfrequency));
+                        }
+
+                        if ($ourpostingstatus !== NULL) {
+                            $rc &= $u->setMembershipAtt($groupid, 'ourPostingStatus', $ourpostingstatus);
                         }
 
                         $ret = $rc ? [ 'ret' => 0, 'status' => 'Success' ] : [ 'ret' => 2, 'status' => 'Set failed' ];

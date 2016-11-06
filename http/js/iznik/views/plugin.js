@@ -359,7 +359,7 @@ define([
             function checkResponse(self) {
                 return(function(ret) {
                     if (ret && ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
-                        $('.pluginonly').show();
+                        $('.js-pluginonly').show();
                         $('#js-loginbuildup').fadeOut('slow');
     
                         if (!self.connected) {
@@ -379,7 +379,7 @@ define([
                             $('#js-pluginbuildup').hide();
                         })
                     } else {
-                        $('.pluginonly').hide();
+                        $('.js-pluginonly').hide();
     
                         if (self.connected) {
                             self.pause();

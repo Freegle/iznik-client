@@ -94,9 +94,9 @@ class BulkOp extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
         $id = $me ? $me->getId() : NULL;
 
-        # Look for groups we moderate, find configs used on those groups, find bulk ops in those configs, add any
-        # info about
-        $sql = "SELECT mod_bulkops.*, memberships.groupid, mod_bulkops_run.runstarted, mod_bulkops_run.runfinished FROM mod_bulkops INNER JOIN mod_configs ON mod_bulkops.configid = mod_configs.id INNER JOIN memberships ON memberships.configid = mod_configs.id AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') LEFT JOIN mod_bulkops_run ON mod_bulkops.id = mod_bulkops_run.bulkopid AND memberships.groupid = mod_bulkops_run.groupid;";
+        # Look for groups we moderate, find configs used on those groups, find bulk ops in those configs.  Bulk ops
+        # only run on Yahoo.
+        $sql = "SELECT mod_bulkops.*, memberships.groupid, mod_bulkops_run.runstarted, mod_bulkops_run.runfinished FROM mod_bulkops INNER JOIN mod_configs ON mod_bulkops.configid = mod_configs.id INNER JOIN memberships ON memberships.configid = mod_configs.id AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator') LEFT JOIN mod_bulkops_run ON mod_bulkops.id = mod_bulkops_run.bulkopid AND memberships.groupid = mod_bulkops_run.groupid INNER JOIN groups ON groups.id = memberships.groupid AND groups.onyahoo = 1;";
         $bulkops = $this->dbhr->preQuery($sql, [
             $id
         ]);

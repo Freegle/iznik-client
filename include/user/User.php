@@ -501,6 +501,16 @@ class User extends Entity
         }
     }
 
+    public function postToCollection($groupid) {
+        # Which collection should we post to?  If this is a group on Yahoo then ourPostingStatus will be NULL.  We
+        # will post to Pending, and send the message to Yahoo; if the user is unmoderated on there it will come back
+        # to us and move to Approved.  If there is a value for ourPostingStatus, then this is a native group and
+        # we will use that.
+        $ps = $this->getMembershipAtt($groupid, 'ourPostingStatus');
+        $coll = (!$ps || $ps == Group::POSTING_MODERATED) ? MessageCollection::PENDING : MessageCollection::APPROVED;
+        return($coll);
+    }
+
     public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
@@ -696,7 +706,7 @@ class User extends Entity
         $ret = [];
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
-        $sql = "SELECT groupid, role, configid, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND groups.publish = 1 WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
+        $sql = "SELECT groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND groups.publish = 1 WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
         #error_log("getMemberships $sql {$this->id} " . var_export($groups, TRUE));
 
@@ -1248,6 +1258,7 @@ class User extends Entity
                         'emailid' => $group['emailid'],
                         'emailfrequency' => $group['emailfrequency'],
                         'eventsallowed' => $group['eventsallowed'],
+                        'ourPostingStatus' => $group['ourPostingStatus'],
                         'type' => $group['type']
                     ];
 
@@ -2374,7 +2385,8 @@ class User extends Entity
     }
 
     public function sendOurMails($g) {
-        $sendit = FALSE;
+        # We always want to send our mails for groups which we host.
+        $sendit = TRUE;
         $groupid = $g->getId();
 
         #error_log("On Yahoo? " . $g->getPrivate('onyahoo'));
@@ -2390,6 +2402,7 @@ class User extends Entity
             # So if we don't find anything in there, then we check whether this user has any
             # emails which we host.  That tells us whether they've joined any groups via our
             # platform, which tells us whether it's reasonable to send them emails.
+            $sendit = FALSE;
             $membershipmail = $this->getEmailForYahooGroup($groupid, TRUE, TRUE)[1];
             #error_log("Membership mail $membershipmail");
 
@@ -2426,10 +2439,10 @@ class User extends Entity
 
                 $sendit = time() > $till;
             }
-
-            #error_log("Sendit? $sendit");
-            return($sendit);
         }
+
+        #error_log("Sendit? $sendit");
+        return($sendit);
     }
 
     public function getMembershipHistory() {

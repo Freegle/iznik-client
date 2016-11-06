@@ -87,7 +87,8 @@ define([
                                 otheremails.join(', '),
                                 member.yahooDeliveryType,
                                 member.yahooPostingStatus,
-                                JSON.stringify(member.settings, null, 0)
+                                JSON.stringify(member.settings, null, 0),
+                                member.ourPostingStatus,
                             ]);
                         });
 
@@ -212,7 +213,6 @@ define([
                 self.listenTo(self.groupSelect, 'selected', function (selected) {
                     // Change the group selected.
                     self.selected = selected;
-                    console.log("Selected group", selected);
 
                     // We haven't fetched anything for this group yet.
                     self.lastFetched = null;
@@ -231,11 +231,19 @@ define([
 
                     self.collectionView.render();
 
+                    var group = Iznik.Session.get('groups').get(self.selected);
+
+                    if (group.get('onyahoo')) {
+                        self.$('.js-exportyahoo').show();
+                    } else {
+                        self.$('.js-exportyahoo').hide();
+                    }
+
                     // The type of collection we're using depends on whether we're searching.  It controls how we fetch.
                     if (self.options.search) {
                         self.collection = new Iznik.Collections.Members.Search(null, {
                             groupid: self.selected,
-                            group: Iznik.Session.get('groups').get(self.selected),
+                            group: group,
                             collection: 'Approved',
                             search: self.options.search
                         });
@@ -244,7 +252,7 @@ define([
                     } else {
                         self.collection = new Iznik.Collections.Members(null, {
                             groupid: self.selected,
-                            group: Iznik.Session.get('groups').get(self.selected),
+                            group: group,
                             collection: 'Approved'
                         });
                     }

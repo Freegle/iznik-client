@@ -40,7 +40,7 @@ class ChatRoom extends Entity
             ->setSubject($subject)
             ->setFrom([$from => $fromname])
             ->setTo([$to => $toname])
-//            ->setBcc('log@ehibbert.org.uk')
+#            ->setBcc('log@ehibbert.org.uk')
             ->setBody($text);
 
         if ($html) {
@@ -863,7 +863,7 @@ class ChatRoom extends Entity
         # members - which is a much smaller set.
         $start = date('Y-m-d', strtotime("midnight 2 weeks ago"));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
-        $sql = "SELECT DISTINCT chatid, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND chattype = ? $chatq;";
+        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND chattype = ? $chatq;";
         #error_log("$sql, $start, $chattype");
         $chats = $this->dbhr->preQuery($sql, [ $start, $chattype ]);
         $notified = 0;
@@ -900,6 +900,7 @@ class ChatRoom extends Entity
                     $textsummary = '';
                     $htmlsummary = '';
                     $lastmsgemailed = 0;
+                    $lastfrom = 0;
                     foreach ($unmailedmsgs as $unmailedmsg) {
                         $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
 
@@ -911,7 +912,16 @@ class ChatRoom extends Entity
 
                             # Alternate colours.
                             #error_log("Message {$unmailedmsg['id']} from {$unmailedmsg['userid']} vs " . $thisu->getId());
-                            $htmlsummary .= $unmailedmsg['userid'] == $thisu->getId() ? '<h3>You wrote:</h3><span style="color: black">' : ('<h3>' . $fromname . ' wrote:</h3><span style="color: blue">');
+                            if ($lastfrom != $unmailedmsg['userid']) {
+                                if ($unmailedmsg['userid'] == $thisu->getId()) {
+                                    $htmlsummary .= '<h3>You wrote' . ($chat['chattype'] == ChatRoom::TYPE_USER2USER ? (' to ' . $otheru->getName()) : '') . '</h3><span style="color: black">';
+                                } else  {
+                                    $htmlsummary .= '<h3>' . $fromname . ' wrote:</h3><span style="color: blue">';
+                                }
+                            }
+
+                            $lastfrom = $unmailedmsg['userid'];
+
                             $htmlsummary .= nl2br($thisone) . "<br>";
                             $htmlsummary .= '</span>';
 

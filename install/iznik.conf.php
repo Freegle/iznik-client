@@ -97,6 +97,9 @@ define('IMAGE_ARCHIVED_DOMAIN', 'zzz');
 # Domain for email addresses for our users
 define('USER_DOMAIN', 'zzzz');
 
+# Email submissions
+define('GROUP_DOMAIN', 'zzzz');
+
 # Contact emails
 define('SUPPORT_ADDR', 'support@zzz');
 define('INFO_ADDR', 'info@zzz');

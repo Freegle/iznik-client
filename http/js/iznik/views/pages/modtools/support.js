@@ -24,7 +24,8 @@ define([
             'click .js-searchgroup': 'searchGroup',
             'keyup .js-searchuserinp': 'keyup',
             'click .js-sendalert': 'sendAlert',
-            'click .js-getalerts': 'getAlerts'
+            'click .js-getalerts': 'getAlerts',
+            'click .js-addgroup': 'addGroup'
         },
 
         keyup: function (e) {
@@ -195,11 +196,75 @@ define([
             };
         },
 
+        addGroup: function() {
+            var self = this;
+            var name = self.$('.js-addnameshort').val();
+
+            // Minimal verification.
+            if (name.length > 0 && name.indexOf(' ') === -1) {
+                $.ajax({
+                    url: API + 'group',
+                    type: 'POST',
+                    data: {
+                        name: name,
+                        grouptype: 'Freegle',
+                        action: 'Create'
+                    }, success: function(ret) {
+                        if (ret.ret === 0) {
+                            var group = new Iznik.Models.Group({
+                                id: ret.id
+                            });
+
+                            group.fetch().then(function() {
+                                group.save({
+                                    namefull: self.$('.js-addnamefull').val(),
+                                    publish: 1,
+                                    polyofficial: self.$('.js-addcore').val(),
+                                    poly: self.$('.js-addcatchment').val(),
+                                    lat: self.$('.js-addlat').val(),
+                                    lng: self.$('.js-addlng').val(),
+                                    onyahoo: 0,
+                                    onhere: 1,
+                                    licenserequired: 0,
+                                    showonyahoo: 0
+                                }, { patch: true }).then(function() {
+                                    // Now add ourselves into it.  We will be able to become the owner because
+                                    // that's allowed if there are currently no mods.
+                                    $.ajax({
+                                        url: API + 'memberships',
+                                        type: 'PUT',
+                                        data: {
+                                            groupid: ret.id,
+                                            userid: Iznik.Session.get('me').id,
+                                            role: 'Owner'
+                                        }, success: function(ret) {
+                                            if (ret.ret === 0) {
+                                                (new Iznik.Views.ModTools.Pages.Support.GroupAdded({
+                                                    model: group
+                                                })).render();
+
+                                                // Pick up new groups.
+                                                Iznik.Session.testLoggedIn(true);
+                                            }
+                                        }
+                                    })
+                                });
+                            });
+                        }
+                    }
+                });
+            }
+        },
+
         render: function () {
             var p = Iznik.Views.Page.prototype.render.call(this);
 
-            // Group search uses a typehead.
             p.then(function(self) {
+                if (Iznik.Session.isAdmin()) {
+                    self.$('.js-adminonly').removeClass('hidden');
+                }
+
+                // Group search uses a typehead.
                 $.ajax({
                     type: 'GET',
                     url: API + 'groups',
@@ -766,7 +831,8 @@ define([
             var p = Iznik.View.prototype.render.call(self);
             p.then(function() {
                 var usersite = $('meta[name=iznikusersite]').attr("content");
-                self.$('.js-group').attr('href', 'https://' + usersite + '/explore/' + self.model.get('id'));
+                var group = self.model.get('onhere') ? ('https://' + usersite + '/explore/' + self.model.get('id')) : ('https://groups.yahoo.com/group/' + self.model.get('nameshort'));
+                self.$('.js-group').attr('href', group);
                 var m = new moment(self.model.get('added'));
                 self.$('.js-date').html(m.format('DD-MMM-YYYY'));
 
@@ -826,5 +892,9 @@ define([
             var height = width * window.innerHeight / window.innerWidth ;
             window.open('/modtools/replay/' + this.model.get('sessionid'), 'Session Replay', 'width=' + width + ', height=' + height + ', top=' + ((window.innerHeight - height) / 2) + ', left=' + ((window.innerWidth - width) / 2));
         }
+    });
+
+    Iznik.Views.ModTools.Pages.Support.GroupAdded = Iznik.Views.Modal.extend({
+        template: 'modtools_support_groupadded'
     });
 });

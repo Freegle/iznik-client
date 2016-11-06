@@ -121,7 +121,7 @@ function messages() {
 
                     $g = Group::get($dbhr, $dbhm);
                     $membctx = NULL;
-                    $members = $g->getMembers(1000, $search, $membctx, NULL, $collection, $groupids, NULL, NULL);
+                    $members = $g->getMembers(1000, $search, $membctx, NULL, $collection, $groupids, NULL, NULL, NULL);
                     $userids = [];
                     foreach ($members as $member) {
                         $userids[] = $member['userid'];

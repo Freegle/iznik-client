@@ -3,11 +3,12 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'iznik/events',
     'iznik/models/session',
     'iznik/views/modal',
     'iznik/views/help',
     'iznik/views/signinup'
-], function($, _, Backbone, Iznik) {
+], function($, _, Backbone, Iznik, monitor) {
     Iznik.Session = new Iznik.Models.Session();
 
     Iznik.Session.askedPush = false;
@@ -52,8 +53,11 @@ define([
             // Make sure we have google analytics for Backbone routes.
             require(["ga"], function(ga) {
                 try {
-                    ga('create', 'UA-10627716-9');
+                    // TODO Make configurable
+                    ga('create', 'UA-10627716-2');
                     ga('send', 'event', 'pageView', url);
+                    var timestamp = (new Date()).getTime();
+                    monitor.trackEvent('route', url, null, null, null, timestamp);
                 } catch (e) {
                     console.log("Google exception - privacy blocker?", e);
                 }
@@ -149,7 +153,6 @@ define([
             "privacy": "userPrivacy",
             "disclaimer": "userDisclaimer",
             "donate": "userDonate",
-            "ebay": "userebay",
             "contact": "userContact",
             "help": "userContact",
             "plugins/events/:id": "communityEventsPlugin",
@@ -1162,15 +1165,6 @@ define([
 
             require(["iznik/views/pages/user/landing"], function() {
                 var page = new Iznik.Views.User.Pages.Landing.Donate();
-                self.loadRoute({page: page});
-            });
-        },
-
-        userebay: function() {
-            var self = this;
-
-            require(["iznik/views/pages/user/landing"], function() {
-                var page = new Iznik.Views.User.Pages.Landing.eBay();
                 self.loadRoute({page: page});
             });
         },

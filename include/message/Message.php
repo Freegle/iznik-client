@@ -2243,6 +2243,16 @@ class Message
         $p = strpos($textbody, '-------- Original message --------');
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
+        # Or this:
+        # _____
+        $p = strpos($textbody, '_____');
+        $textbody = $p ? substr($textbody, 0, $p) : $textbody;
+
+        # Or this:
+        # _____
+        $p = strpos($textbody, '-----Original Message-----');
+        $textbody = $p ? substr($textbody, 0, $p) : $textbody;
+
         # Or Windows phones:
         #
         # ________________________________
@@ -2745,48 +2755,53 @@ class Message
                 $subject = trim($matches[1]);
             }
 
-            # Now construct the actual message to send.
-            try {
-                list ($transport, $mailer) = getMailer();
-                
-                $message = Swift_Message::newInstance()
-                    ->setSubject($subject)
-                    ->setFrom([$fromemail => $fromuser->getName()])
-                    ->setTo([$g->getGroupEmail()])
-                    ->setDate(time())
-                    ->setId($messageid)
-                    ->setBody($txtbody)
-                    ->addPart($htmlbody, 'text/html');
+            if ($g->getPrivate('onyahoo')) {
+                # This group is on Yahoo so we need to send the email there.  Now construct the actual message to send.
+                try {
+                    list ($transport, $mailer) = getMailer();
 
-                # We add some headers so that if we receive this back, we can identify it as a mod mail.
-                $headers = $message->getHeaders();
-                $headers->addTextHeader('X-Iznik-MsgId', $this->id);
-                $headers->addTextHeader('X-Iznik-From-User', $fromuser->getId());
+                    $message = Swift_Message::newInstance()
+                        ->setSubject($subject)
+                        ->setFrom([$fromemail => $fromuser->getName()])
+                        ->setTo([$g->getGroupEmail()])
+                        ->setDate(time())
+                        ->setId($messageid)
+                        ->setBody($txtbody)
+                        ->addPart($htmlbody, 'text/html');
 
-                # Store away the constructed message.
-                $this->setPrivate('message', $message->toString());
+                    # We add some headers so that if we receive this back, we can identify it as a mod mail.
+                    $headers = $message->getHeaders();
+                    $headers->addTextHeader('X-Iznik-MsgId', $this->id);
+                    $headers->addTextHeader('X-Iznik-From-User', $fromuser->getId());
 
-                # Reset the message id we have in the DB to be per-group.  This is so that we recognise it when
-                # it comes back - see save() code above.
-                $this->setPrivate('messageid', "$messageid-$groupid");
+                    # Store away the constructed message.
+                    $this->setPrivate('message', $message->toString());
 
-                $mailer->send($message);
+                    # Reset the message id we have in the DB to be per-group.  This is so that we recognise it when
+                    # it comes back - see save() code above.
+                    $this->setPrivate('messageid', "$messageid-$groupid");
 
-                # This message is now not a draft.
-                $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $this->id ]);
+                    $mailer->send($message);
 
-                # This message is now pending.  That means it will show up in ModTools; if it is approved before
-                # it reaches Yahoo and we get notified then we will handle that in submitYahooQueued.
-                $this->dbhm->preExec("UPDATE messages_groups SET senttoyahoo = 1, collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
+                    # This message is now pending.  That means it will show up in ModTools; if it is approved before
+                    # it reaches Yahoo and we get notified then we will handle that in submitYahooQueued.
+                    $this->dbhm->preExec("UPDATE messages_groups SET senttoyahoo = 1, collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
 
-                # Record the posting, which is also used in producing the messagehistory.
-                $this->dbhm->preExec("INSERT INTO messages_postings (msgid, groupid) VALUES (?,?);", [ $this->id, $groupid ]);
-
+                    $rc = TRUE;
+                } catch (Exception $e) {
+                    error_log("Send failed with " . $e->getMessage());
+                    $rc = FALSE;
+                }
+            } else {
+                # No need to submit by email.
                 $rc = TRUE;
-            } catch (Exception $e) {
-                error_log("Send failed with " . $e->getMessage());
-                $rc = FALSE;
             }
+
+            # This message is now not a draft.
+            $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $this->id ]);
+
+            # Record the posting, which is also used in producing the messagehistory.
+            $this->dbhm->preExec("INSERT INTO messages_postings (msgid, groupid) VALUES (?,?);", [ $this->id, $groupid ]);
         }
 
         return($rc);
