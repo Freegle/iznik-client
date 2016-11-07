@@ -115,7 +115,7 @@ EOT;
                                                                 <tr>
                                                                     <td height="20" style="font-size:10px; line-height:10px;"> </td>
                                                                 </tr>
-                                                            </table>
+                                                           </table>
                                                         </td>
                                                     </tr>
                                                 </table>
