@@ -578,16 +578,47 @@ define([
             }
         },
 
-        isModeratorOf: function(groupid) {
+        roleForGroup: function(groupid, overrides) {
+            var me = this.get('me');
+            var ret = 'Non-member';
+
+            if (me) {
+                if (overrides && me.systemrole == 'Admin') {
+                    ret = 'Owner';
+                } else if (overrides && me.systemrole == 'Support') {
+                    ret = 'Moderator'
+                } else {
+                    var group = this.getGroup(groupid);
+                    ret = group.role;
+                }
+            }
+
+            return(ret);
+        },
+
+        isModeratorOf: function(groupid, overrides) {
             // Support have moderator rights.
             var me = this.get('me');
             if (me) {
-                if (me.systemrole == 'Admin' || me.systemrole == 'Support') {
+                if (overrides && (me.systemrole == 'Admin' || me.systemrole == 'Support')) {
                     return(true);
                 }
 
                 var group = this.getGroup(groupid);
                 return(group && (group.role == 'Owner' || group.role == 'Moderator'));
+            }
+        },
+
+        isOwnerOf: function(groupid, overrides) {
+            // Support have moderator rights.
+            var me = this.get('me');
+            if (me) {
+                if (overrides && (me.systemrole == 'Admin' || me.systemrole == 'Support')) {
+                    return(true);
+                }
+
+                var group = this.getGroup(groupid);
+                return(group && (group.role == 'Owner'));
             }
         },
 

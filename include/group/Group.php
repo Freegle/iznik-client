@@ -471,7 +471,7 @@ class Group extends Entity
             $thisone['yahooDeliveryType'] = $member['yahooDeliveryType'];
             $thisone['yahooPostingStatus'] = $member['yahooPostingStatus'];
             $thisone['yahooAlias'] = $member['yahooAlias'];
-            $thisone['role'] = $u->getRoleForGroup($member['groupid']);
+            $thisone['role'] = $u->getRoleForGroup($member['groupid'], FALSE);
             $thisone['joincomment'] = $member['joincomment'];
             $thisone['emailfrequency'] = $member['emailfrequency'];
 

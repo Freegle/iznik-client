@@ -98,7 +98,6 @@ define([
                 options.cached = nullFn;
             }
 
-            console.log("Fetch chats with", options);
             return Iznik.Collection.prototype.fetch.call(this, options);
         },
 

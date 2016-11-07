@@ -650,7 +650,7 @@ define([
 
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
-                if (Iznik.Session.isModeratorOf(self.model.get('groupid'))) {
+                if (Iznik.Session.isModeratorOf(self.model.get('groupid')), true) {
                     self.$('.js-remove').removeClass('hidden');
                 }
                 
@@ -861,6 +861,7 @@ define([
         events: {
             'change .js-emailfrequency': 'changeFreq',
             'change .js-ourpostingstatus': 'changeOurPostingStatus',
+            'change .js-role': 'changeRole'
         },
 
         changeFreq: function() {
@@ -893,12 +894,27 @@ define([
             });
         },
 
+        changeRole: function() {
+            var self = this;
+            var data = {
+                userid: self.model.get('userid'),
+                groupid: self.model.get('groupid'),
+                role: self.$('.js-role').val()
+            };
+
+            $.ajax({
+                url: API + 'memberships',
+                type: 'PATCH',
+                data: data
+            });
+        },
+
         render: function () {
             var p = Iznik.View.prototype.render.call(this);
             p.then(function (self) {
                 self.$('.js-emailfrequency').val(self.model.get('emailfrequency'));
-                console.log("Set our posting", self.model);
                 self.$('.js-ourpostingstatus').val(self.model.get('ourpostingstatus'));
+                self.$('.js-role').val(self.model.get('role'));
 
                 self.$('.datepicker').datepicker({
                     format: 'D, dd MM yyyy',
