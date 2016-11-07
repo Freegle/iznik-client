@@ -154,7 +154,6 @@ define([
                         var html = '<li class="btn btn-white js-suggestion">' + suggestion.name + '</li>';
                         self.$('.js-suggestions').append(html);
                         self.$('.js-suggestion:last').on('click', function(e) {
-                            console.log("Clicked", e);
                             self.$('.js-item').typeahead('val', e.target.innerHTML);
                         })
                     })
@@ -172,7 +171,8 @@ define([
                 self.typeahead = self.$('.js-item').typeahead({
                     minLength: 2,
                     hint: false,
-                    highlight: true
+                    highlight: true,
+                    autoselect: false
                 }, {
                     name: 'items',
                     source: self.itemSource
