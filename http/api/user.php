@@ -32,6 +32,7 @@ function user() {
     $yahooDeliveryType = presdef('yahooDeliveryType', $_REQUEST, NULL);
     $yahooPostingStatus = presdef('yahooPostingStatus', $_REQUEST, NULL);
     $ourPostingStatus = presdef('ourPostingStatus', $_REQUEST, NULL);
+    $ourEmailFrequency = presdef('emailfrequency', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -208,6 +209,19 @@ function user() {
                     ]);
 
                     $u->setMembershipAtt($groupid, 'ourPostingStatus', $ourPostingStatus);
+                }
+
+                if ($ourEmailFrequency) {
+                    $l->log([
+                        'type' => Log::TYPE_USER,
+                        'subtype' => Log::SUBTYPE_OUR_EMAIL_FREQUENCY,
+                        'groupid' => $groupid,
+                        'user' => $id,
+                        'byuser' => $me->getId(),
+                        'text' => $ourEmailFrequency
+                    ]);
+
+                    $u->setMembershipAtt($groupid, 'emailfrequency', $ourEmailFrequency);
                 }
 
                 $ret = [

@@ -1188,7 +1188,7 @@ define([
                         },
                         {
                             name: 'newmodstatus',
-                            label: 'Change Yahoo Moderation Status?',
+                            label: 'Change Moderation Status?',
                             control: 'select',
                             options: [
                                 {label: 'Unchanged', value: 'UNCHANGED'},
@@ -1200,7 +1200,7 @@ define([
                         },
                         {
                             name: 'newdelstatus',
-                            label: 'Change Yahoo Delivery Settings?',
+                            label: 'Change Delivery Settings?',
                             control: 'select',
                             options: [
                                 {label: 'Unchanged', value: 'UNCHANGED'},

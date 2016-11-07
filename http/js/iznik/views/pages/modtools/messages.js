@@ -643,35 +643,56 @@ define([
             var ps = stdmsg.get('newmodstatus');
 
             if (dt != 'UNCHANGED') {
+                var data = {
+                    groupid: group.groupid,
+                    id: message.get('fromuser').id
+                };
+
+                if (group.onyahoo) {
+                    data.yahooDeliveryType = dt;
+                } else {
+                    // Map the values on Yahoo to those on the platform as best we can.
+                    switch (dt) {
+                        case 'DIGEST': data.emailfrequency = 24; break;
+                        case 'NONE': data.emailfrequency = 0; break;
+                        case 'SINGLE': data.emailfrequency = -1; break;
+                        case 'ANNOUNCEMENT': data.emailfrequency = 0; break;
+                    }
+                }
+
                 $.ajax({
                     type: 'POST',
                     headers: {
                         'X-HTTP-Method-Override': 'PATCH'
                     },
                     url: API + 'user',
-                    data: {
-                        groupid: group.groupid,
-                        id: message.get('fromuser').id,
-                        yahooDeliveryType: dt
-                    }, success: function (ret) {
+                    data: data,
+                    success: function (ret) {
                         IznikPlugin.checkPluginStatus();
                     }
                 });
             }
 
             if (ps != 'UNCHANGED') {
+                var data = {
+                    groupid: group.groupid,
+                    id: message.get('fromuser').id
+                };
+
+                if (group.onyahoo) {
+                    data.yahooPostingStatus = ps;
+                } else {
+                    data.ourPostingStatus = ps
+                }
+
                 $.ajax({
                     type: 'POST',
                     headers: {
                         'X-HTTP-Method-Override': 'PATCH'
                     },
                     url: API + 'user',
-                    data: {
-                        groupid: group.groupid,
-                        id: message.get('fromuser').id,
-                        yahooPostingStatus: ps,
-                        ourPostingStatus: ps
-                    }, success: function (ret) {
+                    data: data,
+                    success: function (ret) {
                         IznikPlugin.checkPluginStatus();
                     }
                 });
