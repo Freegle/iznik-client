@@ -546,7 +546,8 @@ define([
 
                 var groupids = [self.model.get('groupid')];
                 _.each(self.model.get('memberof'), function (group) {
-                    if (groupids.indexOf(group.id) == -1) {
+                    // if (groupids.indexOf(group.id) == -1)
+                    {
                         var mod = new Iznik.Model(group);
                         var v = new Iznik.Views.ModTools.Member.Of({
                             model: mod,

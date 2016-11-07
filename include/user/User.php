@@ -52,6 +52,8 @@ class User extends Entity
     private $log;
     var $user;
 
+    private $ouremailid = NULL;
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->log = new Log($dbhr, $dbhm);
@@ -272,12 +274,12 @@ class User extends Entity
         return($emails);
     }
 
-    public function getEmailPreferred() {
+    public function getEmailPreferred($emails = NULL) {
         # This gets the email address which we think the user actually uses.  So we pay attention to:
         # - the preferred flag, which gets set by end user action
         # - the date added, as most recently added emails are most likely to be right
         # - exclude our own invented mails
-        $emails = $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, added DESC;",  
+        $emails = $emails ? $emails : $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, added DESC;",
             [$this->id]);
         $ret = NULL;
 
@@ -1041,7 +1043,7 @@ class User extends Entity
         if ($me && $this->id == $me->getId()) {
             # Add in private attributes for our own entry.
             $atts['emails'] = $me->getEmails();
-            $atts['email'] = $me->getEmailPreferred();
+            $atts['email'] = $me->getEmailPreferred($atts['emails']);
         }
 
         if ($me && $me->isModerator()) {
@@ -1255,7 +1257,7 @@ class User extends Entity
                         'added' => ISODate($group['added']),
                         'collection' => $group['collection'],
                         'role' => $group['role'],
-                        'emailid' => $group['emailid'],
+                        'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
                         'eventsallowed' => $group['eventsallowed'],
                         'ourPostingStatus' => $group['ourPostingStatus'],
@@ -1298,7 +1300,7 @@ class User extends Entity
                         'added' => ISODate($group['added']),
                         'collection' => $group['collection'],
                         'role' => $group['role'],
-                        'emailid' => $group['emailid'],
+                        'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
                         'eventsallowed' => $group['eventsallowed'],
                         'type' => $group['type']
@@ -1365,6 +1367,21 @@ class User extends Entity
         }
 
         return($atts);
+    }
+
+    private function getOurEmailId() {
+        # For groups we host, we need to know our own email for this user so that we can return it as the
+        # email used on the group.
+        if (!$this->ouremailid) {
+            $emails = $this->getEmails();
+            foreach ($emails as $thisemail) {
+                if (strpos($thisemail['email'], USER_DOMAIN) !== FALSE) {
+                    $this->ouremailid = $thisemail['id'];
+                }
+            }
+        }
+
+        return($this->ouremailid);
     }
 
     public static function getSessions($dbhr, $dbhm, $id) {
