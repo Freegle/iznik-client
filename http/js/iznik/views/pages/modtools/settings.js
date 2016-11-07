@@ -19,6 +19,12 @@ define([
         modtools: true,
     
         template: "modtools_settings_main",
+
+        specialSettings: [
+            'onhere',
+            'onyahoo',
+            'welcomemail'
+        ],
     
         events: {
             'change .js-configselect': 'configSelect',
@@ -279,7 +285,9 @@ define([
                         self.groupModel = new Iznik.Model(self.group.get('settings'));
 
                         // Settings not inside the settings field.
-                        self.groupModel.set('onhere', self.group.get('onhere'));
+                        _.each(self.specialSettings, function(attr) {
+                            self.groupModel.set(attr, self.group.get(attr));
+                        });
 
                         if (!self.groupModel.get('map')) {
                             self.groupModel.set('map', {
@@ -432,11 +440,15 @@ define([
                                 'submit': function(e) {
                                     e.preventDefault();
                                     var newdata = self.groupModel.toJSON();
-                                    self.group.save({
-                                        'onyahoo': self.groupModel.get('onyahoo'),
-                                        'onhere': self.groupModel.get('onhere'),
+                                    var data = {
                                         'settings': newdata
-                                    }, {
+                                    };
+
+                                    _.each(self.specialSettings, function(attr) {
+                                        data[attr] = self.groupModel.get(attr);
+                                    });
+
+                                    self.group.save(data, {
                                         patch: true,
                                         success: _.bind(self.success, self),
                                         error: self.error
@@ -515,6 +527,12 @@ define([
                                     options: [{label: 'Show links to Yahoo group too', value: 1}, {label: 'Don\'t show links to Yahoo group', value:0 }]
                                 },
                                 {
+                                    name: 'welcomemail',
+                                    label: 'Welcome mail to send to new members',
+                                    control: 'textarea',
+                                    placeholder: 'This is text only - no rich text/HTML.'
+                                },
+                                {
                                     control: 'button',
                                     label: 'Save changes',
                                     type: 'submit',
@@ -524,10 +542,17 @@ define([
                             events: {
                                 'submit': function(e) {
                                     e.preventDefault();
-                                    self.group.save({
+
+                                    var data = {
                                         'tagline': self.group.get('tagline'),
                                         'showonyahoo': self.group.get('showonyahoo')
-                                    }, {
+                                    };
+
+                                    _.each(self.specialSettings, function(attr) {
+                                        data[attr] = self.group.get(attr);
+                                    });
+
+                                    self.group.save(data, {
                                         patch: true,
                                         success: _.bind(self.success, self),
                                         error: self.error

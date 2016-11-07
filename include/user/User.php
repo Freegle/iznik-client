@@ -13,6 +13,7 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/mailtemplates/modtools/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/withpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
+require_once(IZNIK_BASE . '/mailtemplates/welcome/group.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
 class User extends Entity
@@ -568,6 +569,25 @@ class User extends Entity
         $this->updateSystemRole($role);
 
         if ($rc) {
+            # The membership didn't already exist.
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+            $atts = $g->getPublic();
+
+            if ($atts['welcomemail']) {
+                # We need to send a per-group welcome mail.
+                $to = $this->getEmailPreferred();
+                $html = welcome_group(USER_SITE, $atts['profile'] ? $atts['profile'] : USERLOGO, $to, $atts['namedisplay'], $atts['welcomemail']);
+                list ($transport, $mailer) = getMailer();
+                $message = Swift_Message::newInstance()
+                    ->setSubject("Welcome to " . $atts['namedisplay'])
+                    ->setFrom([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
+                    ->setTo('edward@ehibbert.org.uk')
+                    ->setDate(time())
+                    ->setBody($atts['welcomemail'])
+                    ->addPart($html, 'text/html');
+                $mailer->send($message);
+            }
+
             $l = new Log($this->dbhr, $this->dbhm);
             $l->log([
                 'type' => Log::TYPE_GROUP,

@@ -74,8 +74,6 @@ function group() {
             case 'PATCH': {
                 $settings = presdef('settings', $_REQUEST, NULL);
                 $profile = intval(presdef('profile', $_REQUEST, NULL));
-                $onyahoo = intval(presdef('onyahoo', $_REQUEST, NULL));
-                $onhere = intval(presdef('onhere', $_REQUEST, NULL));
 
                 $ret = [
                     'ret' => 1,
@@ -116,7 +114,7 @@ function group() {
                         }
 
                         # Other settable attributes
-                        foreach (['tagline', 'showonyahoo', 'namefull'] as $att) {
+                        foreach (['tagline', 'showonyahoo', 'namefull', 'welcomemail'] as $att) {
                             $val = presdef($att, $_REQUEST, NULL);
                             if (array_key_exists($att, $_REQUEST)) {
                                 $g->setPrivate($att, $val);
