@@ -37,9 +37,8 @@ class Admin extends Entity
     }
 
     public function constructMessage($groupname, $to, $toname, $from, $subject, $text) {
-        $post = "https://direct.ilovefreegle.org/login.php?action=post";
-        $unsubscribe = 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($to);
-
+        $post = "https://" . USER_SITE;
+        $unsubscribe = "https://" . USER_SITE . "/unsubscribe";
         $visit = "https://" .  USER_SITE . "/mygroups";
 
         $html = admin_tpl($groupname, $toname, $to, 'https://' . USER_SITE, USERLOGO, $subject, nl2br($text), $post, $unsubscribe, $visit);
