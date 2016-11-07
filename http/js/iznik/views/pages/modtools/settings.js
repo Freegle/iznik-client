@@ -278,6 +278,9 @@ define([
                         // The global group settings.
                         self.groupModel = new Iznik.Model(self.group.get('settings'));
 
+                        // Settings not inside the settings field.
+                        self.groupModel.set('onhere', self.group.get('onhere'));
+
                         if (!self.groupModel.get('map')) {
                             self.groupModel.set('map', {
                                 'zoom' : 12
@@ -285,6 +288,20 @@ define([
                         }
 
                         self.groupFields = [
+                            {
+                                name: 'onhere',
+                                label: 'Enable Freegle Direct?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: '(Freegle only) Enable Freegle Direct.  Users will be able to join your group via Freegle Direct as well as on Yahoo or via TrashNothing.'
+                            },
+                            {
+                                name: 'onyahoo',
+                                label: 'Hosted on Yahoo?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: '(Freegle only) If Yes, this group exists on Yahoo Groups too.  If No, this group is only hosted here.'
+                            },
                             {
                                 name: 'communityevents',
                                 label: 'Allow community events?',
@@ -304,7 +321,7 @@ define([
                                 label: 'Auto-approve pending members?',
                                 control: 'radio',
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
-                                helpMessage: "Yahoo doesn't let you change from member approval to not approving them - use this to work around that"
+                                helpMessage: "Yahoo doesn't let you change from member approval to not approving them - use this to work around that."
                             },
                             {
                                 name: 'duplicates.check',
@@ -416,6 +433,8 @@ define([
                                     e.preventDefault();
                                     var newdata = self.groupModel.toJSON();
                                     self.group.save({
+                                        'onyahoo': self.groupModel.get('onyahoo'),
+                                        'onhere': self.groupModel.get('onhere'),
                                         'settings': newdata
                                     }, {
                                         patch: true,

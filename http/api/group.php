@@ -74,6 +74,8 @@ function group() {
             case 'PATCH': {
                 $settings = presdef('settings', $_REQUEST, NULL);
                 $profile = intval(presdef('profile', $_REQUEST, NULL));
+                $onyahoo = intval(presdef('onyahoo', $_REQUEST, NULL));
+                $onhere = intval(presdef('onhere', $_REQUEST, NULL));
 
                 $ret = [
                     'ret' => 1,
