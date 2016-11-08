@@ -101,6 +101,8 @@ function showNetworkStatus() {
 
 // Called when app starts - and when it restarts when Router.mobileReload() called
 
+var alllog = "";    // TODOCC
+
 function mainOnAppStart() { // CC
 console.log("main boot");	// CC
 isiOS = (window.device.platform === 'iOS'); // CC
@@ -129,9 +131,13 @@ require([
         panicReload();
 	  }
 
-	  var oldconsolelog = console.log;  // TODOCC
+	  var oldconsolelog = console.log;  // TODOCC http://stackoverflow.com/questions/1215392/how-to-quickly-and-conveniently-disable-all-console-log-statements-in-my-code
 	  console.log = function (msg) {
-	      $('#js-mobilelog').text(msg);
+	      if (typeof msg !== "string") {
+	          msg = JSON.stringify(msg);
+	      }
+	      alllog = msg + "<br/>" + alllog;
+	      $('#js-mobilelog').html(alllog);
 	      //oldconsolelog(msg);
 	  }
 

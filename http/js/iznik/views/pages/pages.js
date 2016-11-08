@@ -318,6 +318,7 @@ define([
                         });
                     }
                 });
+                $('#js-mobilelog').html(alllog);    // TODOCC
 
                 if (Iznik.Session.isAdminOrSupport()) {
                     self.$('.js-adminsupportonly').removeClass('hidden');
