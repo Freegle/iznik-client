@@ -583,23 +583,6 @@ define([
             }
           });
 
-          //authWindow.addEventListener('loadstop', function (e) { console.log('loadstop'); });
-          // Only happens for final load of modtools.org, provided we don't cancel it.
-          /*$(authWindow).on('loadstop', function (e) {   
-              var url = e.originalEvent.url;
-              console.log("yloadstop: " + url);
-              //if (url.indexOf("https://modtools.org/") === 0) {
-                  //console.log("loadstop mt");
-                  var esscript2 = "document.cookie;";
-                  function esCallback2(params) {
-                      console.log("esCallback2");
-                      console.log(params[0]);
-                      localStorage.setItem('yahoo.cookies', params[0]);
-                  }
-                  authWindow.executeScript({ code: esscript2 }, esCallback2);
-              //}
-          });*/
-
           $(authWindow).on('exit', function (e) {
             if (!authGiven) {
               console.log("Yahoo permission not given or failed");
@@ -618,7 +601,7 @@ define([
                 console.log("getYahooCookies: " + url);
                 var esscript3 = "document.cookie;";
                 function esCallback3(params) {
-                    console.log("esCallback3");
+                    console.log("getYahooCookies returned:");
                     console.log(params);
                     var yahooCookies = params[0];
                     localStorage.setItem('yahoo.cookies', yahooCookies);

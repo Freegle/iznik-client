@@ -65,7 +65,7 @@ function showHeaderWait() {
     } else {
         var refreshbutton = $('#refreshbutton span');
         refreshbutton.addClass("no-before");
-        var spinner = $("<img src='" + iznikroot + "images/userloader.gif' style='height:14px;' />");
+        var spinner = $("<img src='" + iznikroot + "images/loadermodal.gif' style='height:14px;' />");
         $(refreshbutton).html(spinner);
     }
 }
@@ -102,6 +102,7 @@ function showNetworkStatus() {
 // Called when app starts - and when it restarts when Router.mobileReload() called
 
 var alllog = "";    // TODOCC
+var logtog = false;
 
 function mainOnAppStart() { // CC
 console.log("main boot");	// CC
@@ -136,7 +137,14 @@ require([
 	      if (typeof msg !== "string") {
 	          msg = JSON.stringify(msg);
 	      }
-	      alllog = msg + "<br/>" + alllog;
+	      if (logtog) {
+	          msg = "<div style='background-color:#aaa;'>" + msg + "</div>";
+	      } else {
+	          msg = "<div>" + msg + "</div>";
+	      }
+	      logtog = !logtog;
+
+	      alllog = msg + alllog;
 	      $('#js-mobilelog').html(alllog);
 	      //oldconsolelog(msg);
 	  }

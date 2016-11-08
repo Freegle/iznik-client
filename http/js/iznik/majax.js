@@ -133,15 +133,50 @@ define([
 
         var dc = document.cookie;
         var yahooCookies = localStorage.getItem('yahoo.cookies');
-        if (yahooCookies && (yahooCookies.length > 0)) {
+        /*if (yahooCookies && (yahooCookies.length > 0)) {
             var cookies = yahooCookies.split('; ');
             for (var i = 0; i < cookies.length; i++) {
                 var cookie = cookies[i];
                 //cookie = cookie.substring(0, cookie.length - 1);
                 document.cookie = cookie;
             }
+
+            //copy.beforeSend = function (xhr) {
+            //    for (var i = 0; i < cookies.length; i++) {
+            //        var cookie = cookies[i];
+            //        //cookie = cookie.substring(0, cookie.length - 1);
+            //        console.log("adding cookie: " + cookie);
+            //        xhr.setRequestHeader('Cookie', cookie);
+            //    }
+            //};
+
         }
         dc = document.cookie;
+        console.log("document.cookie: " + dc);*/
+
+        // https://www.npmjs.com/package/cordova-cookie-master
+        // https://groups.yahoo.com/api/v1/user/groups/all
+
+        if (yahooCookies && (yahooCookies.length > 0)) {
+            var cookies = yahooCookies.split('; ');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i];
+                var eqpos = cookie.indexOf('=');
+                var cookieName = cookie.substring(0, eqpos);
+                var cookieValue = cookie.substring(eqpos+1);
+                console.log('Setting cookie ' + cookieName+' to '+cookieValue);
+
+                cookieMaster.setCookieValue('https://groups.yahoo.com', cookieName, cookieValue,  // http://<some host>:<some port>
+                    function () {
+                        console.log('A cookie has been set: ');
+                    },
+                    function (error) {
+                        console.log('Error setting cookie: ' + error);
+                    });
+            }
+        }
+
+
 
         copy.crossDomain = true;
         copy.xhrFields = { withCredentials: true };
