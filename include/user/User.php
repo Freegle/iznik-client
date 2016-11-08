@@ -581,7 +581,7 @@ class User extends Entity
                 $message = Swift_Message::newInstance()
                     ->setSubject("Welcome to " . $atts['namedisplay'])
                     ->setFrom([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
-                    ->setTo('edward@ehibbert.org.uk')
+                    ->setTo($to)
                     ->setDate(time())
                     ->setBody($atts['welcomemail'])
                     ->addPart($html, 'text/html');
