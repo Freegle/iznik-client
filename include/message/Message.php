@@ -349,8 +349,10 @@ class Message
         # Our role for a message is the highest role we have on any group that this message is on.  That means that
         # we have limited access to information on other groups of which we are not a moderator, but that is legitimate
         # if the message is on our group.
+        #
+        # We might also be a partner.
         $me = whoAmI($this->dbhr, $this->dbhm);
-        $role = User::ROLE_NONMEMBER;
+        $role = pres('partner', $_SESSION) ? User::ROLE_MEMBER : User::ROLE_NONMEMBER;
 
         if ($me) {
             $sql = "SELECT role, messages_groups.collection FROM memberships

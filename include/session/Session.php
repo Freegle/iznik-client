@@ -38,6 +38,12 @@ function prepareSession($dbhr, $dbhm) {
             session_start();
         }
 
+        # We might have a partner key which allows us access to the API when not logged in as a user.
+        $_SESSION['partner'] = FALSE;
+        if (pres('partner', $_REQUEST)) {
+            $_SESSION['partner'] = partner($dbhr, $_REQUEST['partner']);
+        }
+
         if (!pres('id', $_SESSION)) {
             $userid = NULL;
 
