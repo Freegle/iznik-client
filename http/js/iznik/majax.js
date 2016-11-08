@@ -131,6 +131,21 @@ define([
         // Set a timeout, otherwise we can get stuck with our per-host connection limit reached.
         copy.timeout = 30000;
 
+        var dc = document.cookie;
+        var yahooCookies = localStorage.getItem('yahoo.cookies');
+        if (yahooCookies && (yahooCookies.length > 0)) {
+            var cookies = yahooCookies.split('; ');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i];
+                //cookie = cookie.substring(0, cookie.length - 1);
+                document.cookie = cookie;
+            }
+        }
+        dc = document.cookie;
+
+        copy.crossDomain = true;
+        copy.xhrFields = { withCredentials: true };
+
         // Issue the request to kick the plugin
         $.ajax(copy);
     };

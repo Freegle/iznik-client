@@ -6,6 +6,7 @@ define([
 ], function($, Backbone, Iznik) {
 
     var tryingYahooLogin = false; // CC
+    var gotYahooCookies = false; // CC
 
     Iznik.Models.Session = Iznik.Model.extend({
         url: API + 'session',
@@ -217,6 +218,7 @@ define([
 
                                 if (ret.me.id != lastloggedinas) {
                                     // We have logged in as someone else.  Zap our fetch cache.
+                                    gotYahooCookies = false;
                                     for (var i = 0; i < localStorage.length; i++){
                                         var key = localStorage.key(i);
 
@@ -231,6 +233,11 @@ define([
                             } catch (e) {
                             }
                             self.set(ret);
+
+                            if (!gotYahooCookies) {
+                                self.getYahooCookies();
+                                gotYahooCookies = true;
+                            }
 
                             // We get an array of groups back - we want it to be a collection.
                             self.set('groups', new Iznik.Collection(ret.groups));
@@ -506,6 +513,7 @@ define([
                     console.log("Session login returned", response);
                     if (response.ret === 0) {
                         self.trigger('loggedIn', response);
+                        self.getYahooCookies();
                         Router.mobileReload('/');  // CC
                         tryingYahooLogin = false;
                     } else if (response.ret === 1) {  // CC
@@ -528,11 +536,11 @@ define([
         yahooAuth: function (yauthurl) {   // CC
           var self = this;
           console.log("Yahoo authenticate window open");
-          console.log("yahooAuth: " + yauthurl);
+          console.log(yauthurl);
 
           var authGiven = false;
 
-          var authWindow = window.open(yauthurl, '_blank', 'location=yes,menubar=yes');
+          var authWindow = cordova.InAppBrowser.open(yauthurl, '_blank', 'location=yes,menubar=yes');
 
           $(authWindow).on('loadstart', function (e) {
             var url = e.originalEvent.url;
@@ -560,7 +568,9 @@ define([
                     console.log("Session login returned", response);
                     if (response.ret === 0) {
                       self.trigger('loggedIn', response);
+                      self.getYahooCookies();
                       Router.mobileReload('/');  // CC
+                      //alert("got in");
                     } else {
                       $('.js-signin-msg').text("Yahoo log in failed " + response.ret);
                       $('.js-signin-msg').show();
@@ -569,8 +579,26 @@ define([
                   }
                 });
               }
+
             }
           });
+
+          //authWindow.addEventListener('loadstop', function (e) { console.log('loadstop'); });
+          // Only happens for final load of modtools.org, provided we don't cancel it.
+          /*$(authWindow).on('loadstop', function (e) {   
+              var url = e.originalEvent.url;
+              console.log("yloadstop: " + url);
+              //if (url.indexOf("https://modtools.org/") === 0) {
+                  //console.log("loadstop mt");
+                  var esscript2 = "document.cookie;";
+                  function esCallback2(params) {
+                      console.log("esCallback2");
+                      console.log(params[0]);
+                      localStorage.setItem('yahoo.cookies', params[0]);
+                  }
+                  authWindow.executeScript({ code: esscript2 }, esCallback2);
+              //}
+          });*/
 
           $(authWindow).on('exit', function (e) {
             if (!authGiven) {
@@ -580,6 +608,24 @@ define([
             }
             tryingYahooLogin = false;
           });
+        },
+
+        getYahooCookies: function(){    // CC
+            var urlGetGroups = "https://groups.yahoo.com/api/v1/user/groups/all";
+            var wGetGroups = cordova.InAppBrowser.open(urlGetGroups, '_blank', 'hidden=yes');
+            $(wGetGroups).on('loadstop', function (e) {
+                var url = e.originalEvent.url;
+                console.log("getYahooCookies: " + url);
+                var esscript3 = "document.cookie;";
+                function esCallback3(params) {
+                    console.log("esCallback3");
+                    console.log(params);
+                    var yahooCookies = params[0];
+                    localStorage.setItem('yahoo.cookies', yahooCookies);
+                    wGetGroups.close();
+                }
+                wGetGroups.executeScript({ code: esscript3 }, esCallback3);
+            });
         },
 
         extractQueryStringParams: function (url) {  // CC

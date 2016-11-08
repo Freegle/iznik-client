@@ -374,10 +374,13 @@ define([
                             self.everConnected = true;
                         }
     
-                        $('#js-plugindisconnected').fadeOut('slow', function() {
+                        $('#js-plugindisconnected').fadeOut('slow', function () {
                             $('#js-pluginconnected').fadeIn('slow');
                             $('#js-pluginbuildup').hide();
-                        })
+                        });
+                        $('#js-plugindisconnected2').fadeOut('slow', function () {
+                            $('#js-pluginconnected2').fadeIn('slow');
+                        });
                     } else {
                         $('.js-pluginonly').hide();
     
@@ -387,6 +390,9 @@ define([
     
                         $('#js-pluginconnected').fadeOut('slow', function() {
                             $('#js-plugindisconnected').fadeIn('slow');
+                        });
+                        $('#js-pluginconnected2').fadeOut('slow', function () {
+                            $('#js-plugindisconnected2').fadeIn('slow');
                         });
                     }
                 });
@@ -646,13 +652,14 @@ define([
                         } else {
                             // Check if we are connected to Yahoo by issuing an API call.
                             //console.log("Not running item - query Yahoo");
+
                             new majax({
                                 type: 'GET',
                                 url: 'https://groups.yahoo.com/api/v1/user/groups/all',
                                 success: checkResponse(self),
                                 error: checkResponse(self),
                                 complete: function() {
-                                    window.setTimeout(_.bind(self.checkPluginStatus, self), 10000);
+                                    window.setTimeout(_.bind(self.checkPluginStatus, self), 30000); // CC 10000
                                 }
                             });
                         }
