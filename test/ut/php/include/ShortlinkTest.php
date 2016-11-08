@@ -35,10 +35,14 @@ class shortlinkTest extends IznikTestCase {
 
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_FREEGLE);
+        $g->setPrivate('onhere', 1);
 
         $s = new Shortlink($this->dbhr, $this->dbhm);
         list($id, $url) = $s->resolve('testgroup');
         self::assertEquals('https://' . USER_SITE . '/explore/testgroup', $url);
+        $g->setPrivate('onhere', 0);
+        list($id, $url) = $s->resolve('testgroup');
+        self::assertEquals('https://groups.yahoo.com/testgroup', $url);
 
         $s = new Shortlink($this->dbhr, $this->dbhm, $id);
         $atts = $s->getPublic();
