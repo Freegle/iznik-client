@@ -25,6 +25,26 @@ define([
     });
     
     Iznik.Views.User.Pages.Give.WhatNext = Iznik.Views.User.Pages.WhatNext.extend({
-        template: "user_give_whatnext"
+        template: "user_give_whatnext",
+
+        events: {
+            'click .js-fop': 'fop'
+        },
+
+        fop: function() {
+            var self = this;
+            var fop = self.$('.js-fop').is(':checked');
+
+            try {
+                self.id = localStorage.getItem('lastpost');
+            } catch (e) {}
+
+            if (self.id) {
+                var message = new Iznik.Models.Message({ id: self.id });
+                message.fetch().then(function() {
+                    message.setFOP(fop);
+                });
+            }
+        }
     });
 });
