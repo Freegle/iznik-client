@@ -992,12 +992,20 @@ class ChatRoom extends Entity
                         $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
                         $to = $thisu->getEmailPreferred();
 
-                        # ModTools users should never get notified
-                        if ($to && strpos($to, '@' . MOD_SITE) === FALSE) {
+                        # ModTools users should never get notified.
+                        if ($to && strpos($to, MOD_SITE) === FALSE) {
                             error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject");
                             try {
                                 #$to = 'log@ehibbert.org.uk';
-                                $message = $this->constructMessage($thisu, $member['userid'], $thisu->getName(), $to, $fromname, $replyto, $subject, $textsummary, $html);
+                                $message = $this->constructMessage($thisu,
+                                    $member['userid'],
+                                    $thisu->getName(),
+                                    $to,
+                                    $fromname,
+                                    $replyto,
+                                    $subject,
+                                    $textsummary,
+                                    $html);
                                 $this->mailer($message);
 
                                 $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [

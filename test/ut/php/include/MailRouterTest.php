@@ -1284,6 +1284,46 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testSubUnsub() {
+        error_log(__METHOD__);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 0);
+
+        $msg = $this->unique(file_get_contents('msgs/tovols'));
+        $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-subscribe@' . GROUP_DOMAIN, $msg);
+        error_log("Created $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail('test@test.com');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $membs = $u->getMemberships();
+        assertEquals(1, count($membs));
+
+        $msg = $this->unique(file_get_contents('msgs/tovols'));
+        $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-unsubscribe@' . GROUP_DOMAIN, $msg);
+        error_log("Created $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::TO_SYSTEM, $rc);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail('test@test.com');
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $membs = $u->getMemberships();
+        assertEquals(0, count($membs));
+
+        error_log(__METHOD__ . " end");
+    }
+
 //    public function testSpecial() {
 //        error_log(__METHOD__);
 //

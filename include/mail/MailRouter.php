@@ -559,6 +559,52 @@ class MailRouter
                     }
                 }
             }
+        } else if (preg_match('/(.*)-subscribe@' . GROUP_DOMAIN . '/', $to, $matches)) {
+            $ret = MailRouter::FAILURE;
+
+            # Find the group
+            $g = new Group($this->dbhr, $this->dbhm);
+            $gid = $g->findByShortName($matches[1]);
+
+            if ($gid && !$g->getPrivate('onyahoo')) {
+                # It's one of our groups.  Find the user this is from.
+                $envfrom = $this->msg->getEnvelopeFrom();
+                $u = new User($this->dbhr, $this->dbhm);
+                $uid = $u->findByEmail($envfrom);
+
+                if (!$uid) {
+                    # We don't know them yet.
+                    $uid = $u->create(NULL, NULL, $this->msg->getFromname(), "Email subscription from $envfrom to " . $g->getPrivate('nameshort'));
+                    $u->addEmail($envfrom, 0);
+                }
+
+                $u = new User($this->dbhr, $this->dbhm, $uid);
+
+                # We should always find them as Message::parse should create them
+                if ($u->getId()) {
+                    $u->addMembership($gid);
+                    $ret = MailRouter::TO_SYSTEM;
+                }
+            }
+        } else if (preg_match('/(.*)-unsubscribe@' . GROUP_DOMAIN . '/', $to, $matches)) {
+            $ret = MailRouter::FAILURE;
+
+            # Find the group
+            $g = new Group($this->dbhr, $this->dbhm);
+            $gid = $g->findByShortName($matches[1]);
+
+            if ($gid && !$g->getPrivate('onyahoo')) {
+                # It's one of our groups.  Find the user this is from.
+                $envfrom = $this->msg->getEnvelopeFrom();
+                $u = new User($this->dbhr, $this->dbhm);
+                $uid = $u->findByEmail($envfrom);
+
+                if ($uid) {
+                    $u = new User($this->dbhr, $this->dbhm, $uid);
+                    $u->removeMembership($gid);
+                    $ret = MailRouter::TO_SYSTEM;
+                }
+            }
         } else {
             # We use SpamAssassin to weed out obvious spam.  We only do a content check if the message subject line is
             # not in the standard format.  Most generic spam isn't in that format, and some of our messages

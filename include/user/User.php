@@ -576,7 +576,7 @@ class User extends Entity
             if ($atts['welcomemail']) {
                 # We need to send a per-group welcome mail.
                 $to = $this->getEmailPreferred();
-                $html = welcome_group(USER_SITE, $atts['profile'] ? $atts['profile'] : USERLOGO, $to, $atts['namedisplay'], $atts['welcomemail']);
+                $html = welcome_group(USER_SITE, $atts['profile'] ? $atts['profile'] : USERLOGO, $to, $atts['namedisplay'], nl2br($atts['welcomemail']));
                 list ($transport, $mailer) = getMailer();
                 $message = Swift_Message::newInstance()
                     ->setSubject("Welcome to " . $atts['namedisplay'])
