@@ -576,6 +576,9 @@ class MailRouter
                     # We don't know them yet.
                     $uid = $u->create(NULL, NULL, $this->msg->getFromname(), "Email subscription from $envfrom to " . $g->getPrivate('nameshort'));
                     $u->addEmail($envfrom, 0);
+                    $pw = $u->inventPassword();
+                    $u->addLogin(User::LOGIN_NATIVE, $uid, $pw);
+                    $u->welcome($envfrom, $pw);
                 }
 
                 $u = new User($this->dbhr, $this->dbhm, $uid);
