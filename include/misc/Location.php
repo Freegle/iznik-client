@@ -9,6 +9,7 @@ require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 class Location extends Entity
 {
     const NEARBY = 50; // In miles.
+    const TOO_LARGE = 0.3;
 
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'osm_id', 'name', 'type', 'popularity', 'gridid', 'postcodeid', 'areaid', 'lat', 'lng', 'maxdimension');
@@ -157,14 +158,14 @@ class Location extends Entity
             if (!$areaid) {
                 if ($loc['areaid']) {
                     # See if the existing area is correct.
-                    $sql = "SELECT ST_Contains(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS within FROM locations LEFT OUTER JOIN locations_excluded ON locations.id = locations_excluded.locationid WHERE id = ? AND locations_excluded.locationid IS NULL;";
+                    $sql = "SELECT GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS max, ST_Contains(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS within FROM locations LEFT OUTER JOIN locations_excluded ON locations.id = locations_excluded.locationid WHERE id = ? AND locations_excluded.locationid IS NULL;";
                     $withins = $this->dbhr->preQuery($sql, [
                         $loc['geometry'],
                         $loc['areaid']
                     ]);
 
                     foreach ($withins as $within) {
-                        if ($within['within']) {
+                        if ($within['within'] && $within['max'] < Location::TOO_LARGE) {
                             $areaid = $loc['areaid'];
                         }
                     }
@@ -186,7 +187,8 @@ class Location extends Entity
                     do {
                         $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
 
-                        $sql = "SELECT locations.name, locations.id, AsText(locations_spatial.geometry) AS geom, ST_Contains(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS within, ST_Distance(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS dist FROM locations_spatial INNER JOIN  `locations` ON locations.id = locations_spatial.locationid LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE MBRWithin(locations_spatial.geometry, GeomFromText('$poly')) AND osm_place = $osmonly AND type != 'Postcode' AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL HAVING id != $id ORDER BY within DESC, dist ASC LIMIT 10;";
+                        # Exclude locations which are very large, e.g. Greater London.
+                        $sql = "SELECT locations.name, locations.geometry, locations.ourgeometry, locations.id, AsText(locations_spatial.geometry) AS geom, ST_Contains(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS within, ST_Distance(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS dist FROM locations_spatial INNER JOIN  `locations` ON locations.id = locations_spatial.locationid LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE MBRWithin(locations_spatial.geometry, GeomFromText('$poly')) AND osm_place = $osmonly AND type != 'Postcode' AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL HAVING id != $id AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) < " . Location::TOO_LARGE . " ORDER BY within DESC, dist ASC LIMIT 1;";
                         $nearbyes = $this->dbhr->preQuery($sql);
 
                         #error_log($sql . " gives " . var_export($nearbyes));
