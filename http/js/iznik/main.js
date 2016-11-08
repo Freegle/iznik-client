@@ -127,7 +127,13 @@ require([
         // Something has gone unpleasantly wrong.
         console.error("Backbone failed to fetch");
         panicReload();
-    }
+	  }
+
+	  var oldconsolelog = console.log;  // TODOCC
+	  console.log = function (msg) {
+	      $('#js-mobilelog').text(msg);
+	      //oldconsolelog(msg);
+	  }
 
       // http://hammerjs.github.io/getting-started/
 

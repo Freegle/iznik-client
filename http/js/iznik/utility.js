@@ -391,7 +391,7 @@ function mobile_pathname(){ // CC
         pathname = pathname.substr(0,pathname.length-initialHome.length);
     }
     if( !mobileGlobalRoot){
-        mobileGlobalRoot = pathname.substr(0,pathname.length-1);
+        mobileGlobalRoot = pathname.substr(0,pathname.length-9);    // Remove /modtools
     }
     pathname = pathname.substr(mobileGlobalRoot.length);
     if( pathname==""){
