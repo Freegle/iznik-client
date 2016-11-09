@@ -15,6 +15,7 @@ function user() {
     $suspectreason = presdef('suspectreason', $_REQUEST, NULL);
     $settings = presdef('settings', $_REQUEST, NULL);
     $search = presdef('search', $_REQUEST, NULL);
+    $password = array_key_exists('password', $_REQUEST) ? $_REQUEST['password'] : NULL;
 
     if (!$id && $yahooUserId) {
         # We don't know our unique ID, but we do know the Yahoo one. Find it.
@@ -222,6 +223,12 @@ function user() {
                     ]);
 
                     $u->setMembershipAtt($groupid, 'emailfrequency', $ourEmailFrequency);
+                }
+
+                if ($password && $u->getPrivate('systemrole') == User::SYSTEMROLE_USER) {
+                    # Can only set the password of users, to prevent us using that to gain access to
+                    # accounts with admin rights.
+                    $u->addLogin(User::LOGIN_NATIVE, $u->getId(), $password);
                 }
 
                 $ret = [

@@ -874,7 +874,29 @@ define([
     });
 
     Iznik.Views.ModTools.Member.SupportSearch.Login = Iznik.View.Timeago.extend({
-        template: 'modtools_support_login'
+        template: 'modtools_support_login',
+
+        events: {
+            'click .js-resetpw': 'reset'
+        },
+
+        reset: function() {
+            var self = this;
+            var pw = self.$('.js-pw').val();
+            $.ajax({
+                url: API + 'user',
+                type: 'PATCH',
+                data: {
+                    id: self.model.get('id'),
+                    password: pw
+                }, success: function(ret) {
+                    if (ret.ret == 0) {
+                        self.$('.js-text').hide();
+                        self.$('.js-ok').show();
+                    }
+                }
+            })
+        }
     });
 
     Iznik.Views.ModTools.Message.SupportSearchResult = Iznik.Views.ModTools.Message.Approved.extend({
