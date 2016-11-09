@@ -182,6 +182,13 @@ define([
                     self.$('.js-item').typeahead('val', self.options.item);
                 }
 
+                // Close the suggestions after 30 seconds in case people are confused.
+                self.$('.js-item').bind('typeahead:open', function() {
+                    _.delay(function() {
+                        self.$('.js-item').typeahead('close');
+                    }, 30000);
+                });
+
                 // File upload
                 self.$('#fileupload').fileinput({
                     uploadExtraData: {
