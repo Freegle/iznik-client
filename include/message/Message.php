@@ -290,7 +290,7 @@ class Message
                 $this->id = $id;
 
                 # FOP defaults on for our messages.
-                if ($msg['source'] == Message::PLATFORM && !array_key_exists('FOP', $msg)) {
+                if ($msg['source'] == Message::PLATFORM && $msg['FOP'] === NULL) {
                     $msg['FOP'] = 1;
                 }
 
