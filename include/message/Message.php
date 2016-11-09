@@ -3005,62 +3005,65 @@ class Message
 
                     #error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} interval $interval lastwarning $lastwarnago");
 
-                    if ($message['hoursago'] <= $interval * 24  &&
-                        $message['hoursago'] > ($interval - 1) * 24 &&
-                        ($lastwarnago === NULL || $lastwarnago > 24)) {
-                        # We will be reposting within 24 hours, and we've either not sent a warning, or the last one was
-                        # an old one (probably from the previous repost).
-                        if (!$message['lastautopostwarning'] || ($lastwarnago > 24 * 60 * 60)) {
-                            # And we haven't sent a warning yet.
-                            $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = NOW() WHERE msgid = ?;", [$message['msgid']]);
-                            $warncount++;
+                    # Reposts might be turned off.
+                    if ($interval > 0) {
+                        if ($message['hoursago'] <= $interval * 24  &&
+                            $message['hoursago'] > ($interval - 1) * 24 &&
+                            ($lastwarnago === NULL || $lastwarnago > 24)) {
+                            # We will be reposting within 24 hours, and we've either not sent a warning, or the last one was
+                            # an old one (probably from the previous repost).
+                            if (!$message['lastautopostwarning'] || ($lastwarnago > 24 * 60 * 60)) {
+                                # And we haven't sent a warning yet.
+                                $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = NOW() WHERE msgid = ?;", [$message['msgid']]);
+                                $warncount++;
 
-                            $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-                            $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
-                            $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
-                            $gatts = $g->getPublic();
+                                $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                                $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+                                $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
+                                $gatts = $g->getPublic();
 
-                            if ($u->getId()) {
-                                $to = $u->getEmailPreferred();
-                                $subj = $m->getSubject();
+                                if ($u->getId()) {
+                                    $to = $u->getEmailPreferred();
+                                    $subj = $m->getSubject();
 
-                                # Remove any group tag.
-                                $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
+                                    # Remove any group tag.
+                                    $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
 
-                                $url = 'https://' . USER_SITE. "/mypost/{$message['msgid']}";
-                                $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $url to let us know.";
-                                $html = autorepost_warning(USER_DOMAIN,
-                                    USERLOGO,
-                                    $subj,
-                                    $u->getName(),
-                                    $to,
-                                    $url
-                                );
+                                    $url = 'https://' . USER_SITE. "/mypost/{$message['msgid']}";
+                                    $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $url to let us know.";
+                                    $html = autorepost_warning(USER_DOMAIN,
+                                        USERLOGO,
+                                        $subj,
+                                        $u->getName(),
+                                        $to,
+                                        $url
+                                    );
 
-                                list ($transport, $mailer) = getMailer();
+                                    list ($transport, $mailer) = getMailer();
 
-                                $message = Swift_Message::newInstance()
-                                    ->setSubject("Re: " . $subj)
-                                    ->setFrom([ $g->getModsEmail() => $gatts['namedisplay'] ])
-                                    ->setTo($to)
-                                    ->setBody($text)
-                                    ->addPart($html, 'text/html');
-                                $mailer->send($message);
+                                    $message = Swift_Message::newInstance()
+                                        ->setSubject("Re: " . $subj)
+                                        ->setFrom([ $g->getModsEmail() => $gatts['namedisplay'] ])
+                                        ->setTo($to)
+                                        ->setBody($text)
+                                        ->addPart($html, 'text/html');
+                                    $mailer->send($message);
+                                }
                             }
-                        }
-                    } else if ($message['hoursago'] > $interval * 24) {
-                        # We can repost this one.  That consists of:
-                        # - incrementing the repost count
-                        # - resetting the arrival time, which will mean the message shows up on the site as recent,
-                        #   and goes out by mail from Digest.php.
-                        # 
-                        # Don't resend to Yahoo - the complexities of trying to keep the single message we have in sync
-                        # with multiple copies on Yahoo are just too horrible to be worth trying to do.
-                        $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-                        error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
-                        $m->repost();
+                        } else if ($message['hoursago'] > $interval * 24) {
+                            # We can repost this one.  That consists of:
+                            # - incrementing the repost count
+                            # - resetting the arrival time, which will mean the message shows up on the site as recent,
+                            #   and goes out by mail from Digest.php.
+                            #
+                            # Don't resend to Yahoo - the complexities of trying to keep the single message we have in sync
+                            # with multiple copies on Yahoo are just too horrible to be worth trying to do.
+                            $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                            error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
+                            $m->repost();
 
-                        $count++;
+                            $count++;
+                        }
                     }
                 }
             }
