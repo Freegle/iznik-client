@@ -89,13 +89,13 @@ EOT;
 EOT;
 
     if ($ismod) {
-        $html .= '
+        $html .= <<<EOT
                                                                 <tr>
                                                                     <td width="100%" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:20px; line-height:26px; font-weight:bold;">
                                                                         <p>This message is sent to all volunteers on the group.  If you need help dealing with this query, you can mail <a href="mailto:$support">$support</p>
                                                                     </td>
                                                                 </tr>
-';
+EOT;
     }
     
     $html .= <<<EOT
