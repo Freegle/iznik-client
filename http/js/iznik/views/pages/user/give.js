@@ -43,8 +43,28 @@ define([
                 var message = new Iznik.Models.Message({ id: self.id });
                 message.fetch().then(function() {
                     message.setFOP(fop);
+
+                    try {
+                        localStorage.setItem('FOP', fop ? 1 : 0);
+                    } catch (e) {}
                 });
             }
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.Views.User.Pages.WhatNext.prototype.render.call(this);
+            p.then(function() {
+                try {
+                    var fop = localStorage.getItem('FOP');
+                    if (fop !== null) {
+                        self.$('.js-fop').prop('checked', parseInt(fop) ? true : false);
+                    }
+                } catch (e) {}
+            });
+
+            return(p);
         }
     });
 });
