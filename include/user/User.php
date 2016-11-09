@@ -672,24 +672,27 @@ class User extends Entity
             # It would be odd for them to be on Yahoo with no email but handle it anyway.
             if ($email['email']) {
                 $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-                $p = new Plugin($this->dbhr, $this->dbhm);
-                $p->add($groupid, [
-                    'type' => $type,
-                    'email' => $email['email']
-                ]);
-                
-                if (ourDomain($email['email'])) {
-                    # This is an email address we host, so we can email an unsubscribe request.  We do both this and
-                    # the plugin work because Yahoo is as flaky as all get out.
-                    for ($i = 0; $i < 10; $i++) {
-                        list ($transport, $mailer) = getMailer();
-                        $message = Swift_Message::newInstance()
-                            ->setSubject('Please release me')
-                            ->setFrom([$email['email']])
-                            ->setTo($g->getGroupUnsubscribe())
-                            ->setDate(time())
-                            ->setBody('Let me go');
-                        $mailer->send($message);
+
+                if ($g->getPrivate('onyahoo')) {
+                    $p = new Plugin($this->dbhr, $this->dbhm);
+                    $p->add($groupid, [
+                        'type' => $type,
+                        'email' => $email['email']
+                    ]);
+
+                    if (ourDomain($email['email'])) {
+                        # This is an email address we host, so we can email an unsubscribe request.  We do both this and
+                        # the plugin work because Yahoo is as flaky as all get out.
+                        for ($i = 0; $i < 10; $i++) {
+                            list ($transport, $mailer) = getMailer();
+                            $message = Swift_Message::newInstance()
+                                ->setSubject('Please release me')
+                                ->setFrom([$email['email']])
+                                ->setTo($g->getGroupUnsubscribe())
+                                ->setDate(time())
+                                ->setBody('Let me go');
+                            $mailer->send($message);
+                        }
                     }
                 }
             }
