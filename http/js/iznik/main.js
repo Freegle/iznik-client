@@ -133,9 +133,14 @@ require([
 	  }
 
 	  var oldconsolelog = console.log;  // TODOCC http://stackoverflow.com/questions/1215392/how-to-quickly-and-conveniently-disable-all-console-log-statements-in-my-code
-	  console.log = function (msg) {
-	      if (typeof msg !== "string") {
-	          msg = JSON.stringify(msg);
+	  console.log = function () {
+	      var msg = '';
+	      for (var i = 0; i < arguments.length; i++) {
+	          var arg = arguments[i];
+	          if (typeof arg !== "string") {
+	              arg = JSON.stringify(arg);
+	          }
+	          msg += arg+' ';
 	      }
 	      if (logtog) {
 	          msg = "<div style='background-color:#aaa;'>" + msg + "</div>";
@@ -143,7 +148,6 @@ require([
 	          msg = "<div>" + msg + "</div>";
 	      }
 	      logtog = !logtog;
-
 	      alllog = msg + alllog;
 	      $('#js-mobilelog').html(alllog);
 	      //oldconsolelog(msg);

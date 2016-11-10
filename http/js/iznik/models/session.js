@@ -236,7 +236,6 @@ define([
 
                             if (!gotYahooCookies) {
                                 self.getYahooCookies();
-                                gotYahooCookies = true;
                             }
 
                             // We get an array of groups back - we want it to be a collection.
@@ -493,6 +492,35 @@ define([
             });
         },
 
+        ///////////////////////////////////////
+        // For ModTools we need cookies direct from Yahoo so 'plugin' code can talk direct to Yahoo
+        // and the CORS headers need to be right - which doesn't seem to be an issue here.
+        //
+        // Flow is:
+        //  - we may have persistent session so try logging in at MT
+        //  - if not, log in options are shown
+        //  - if Yahoo chosen then come back to yahooLogin() here
+        //  - this tries MT session log in again
+        //  - if ret==1 then we have redirect info to pass to yahooAuth() here
+        //  - yahooAuth shows InAppBrowser to show Yahoo login to user
+        //  - this catches redirect back to modtools.org and stores authenticated info that is in URL and extracts user email and fullname
+        //  - authenticated info is passed to MT session and we will be able to log in.
+
+
+        //  - in iOS the InAppBrowser cookies are shared with the WebView so no problem
+        //  - in Android it is harder to get the cookies in the right place
+
+        // Using https://github.com/apache/cordova-plugin-inappbrowser executeScript
+
+        // Setting document.cookie doesn't work
+        // Using com.cordova.plugins.cookiemaster doesn't work
+        // Amending InAppBrowser to add getCookies() call does work - https://github.com/apache/cordova-plugin-inappbrowser/pull/122
+        // https://github.com/wymsee/cordova-HTTP not tried
+        // https://forums.meteor.com/t/meteor-1-3-beta-11-setting-cookies-from-cordova-on-android/18637 not tried
+        // http://stackoverflow.com/questions/28107313/set-cookies-programatically-in-crosswalk-webview-on-android not tried
+        // http://stackoverflow.com/questions/17228785/yahoo-authentication-by-oauth-without-any-redirectionclient-side-is-it-possib
+        //  - looked at: OpenID solution uses window.open https://gist.github.com/erikeldridge/619947
+
         yahooLogin: function () {
             console.log("Login with Yahoo");
             var self = this;
@@ -570,7 +598,6 @@ define([
                       self.trigger('loggedIn', response);
                       self.getYahooCookies();
                       Router.mobileReload('/');  // CC
-                      //alert("got in");
                     } else {
                       $('.js-signin-msg').text("Yahoo log in failed " + response.ret);
                       $('.js-signin-msg').show();
@@ -593,21 +620,44 @@ define([
           });
         },
 
-        getYahooCookies: function(){    // CC
+        getYahooCookies: function () {    // CC
             var urlGetGroups = "https://groups.yahoo.com/api/v1/user/groups/all";
-            var wGetGroups = cordova.InAppBrowser.open(urlGetGroups, '_blank', 'hidden=yes');
+            //var wGetGroups = cordova.InAppBrowser.open(urlGetGroups, '_blank', 'hidden=yes');
+            var wGetGroups = cordova.InAppBrowser.open(urlGetGroups, '_blank', 'location=yes,menubar=yes');
             $(wGetGroups).on('loadstop', function (e) {
                 var url = e.originalEvent.url;
                 console.log("getYahooCookies: " + url);
-                var esscript3 = "document.cookie;";
-                function esCallback3(params) {
-                    console.log("getYahooCookies returned:");
-                    console.log(params);
-                    var yahooCookies = params[0];
-                    localStorage.setItem('yahoo.cookies', yahooCookies);
-                    wGetGroups.close();
+
+                function getBodyAndClose() {
+                    console.log("getBodyAndClose start");
+                    var jsReturnContent = "document.body.innerHTML";
+                    function cbReturnContent(params) {
+                        console.log("Android ReturnContent returned:");
+                        console.log(params[0]);
+                        //$('#js-mobiledebug').html(JSON.stringify(params[0]));
+                        wGetGroups.close();
+                    }
+                    wGetGroups.executeScript({ code: jsReturnContent }, cbReturnContent);
                 }
-                wGetGroups.executeScript({ code: esscript3 }, esCallback3);
+
+                if (isiOS) {
+                    var jsReturnCookies = "document.cookie;";
+                    function cbReturnCookies(params) {
+                        console.log("iOS getYahooCookies returned:");
+                        console.log(params);
+                        var yahooCookies = params[0];
+                        localStorage.setItem('yahoo.cookies', yahooCookies);
+                        getBodyAndClose();
+                    }
+                    wGetGroups.executeScript({ code: jsReturnCookies }, cbReturnCookies);
+                } else {
+
+                    wGetGroups.getCookies({ url: 'https://groups.yahoo.com' }, function (count) {
+                        console.log("Android getCookies returned: " + count);
+                        getBodyAndClose();
+                    });
+                }
+                gotYahooCookies = true;
             });
         },
 
