@@ -91,6 +91,8 @@ function session() {
 
                 $c = new ChatMessage($dbhr, $dbhm);
                 $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
+
+                $ret['logins'] = $me->getLogins(FALSE);
             } else {
                 $ret = array('ret' => 1, 'status' => 'Not logged in');
             }

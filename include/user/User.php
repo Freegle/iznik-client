@@ -49,6 +49,10 @@ class User extends Entity
     const LOGIN_NATIVE = 'Native';
     const LOGIN_LINK = 'Link';
 
+    const NOTIFS_EMAIL = 'email';
+    const NOTIFS_PUSH = 'push';
+    const NOTIFS_FACEBOOK = 'facebook';
+
     /** @var  $log Log */
     private $log;
     var $user;
@@ -2591,5 +2595,16 @@ class User extends Entity
         User::clearCache($this->id);
         parent::setPrivate($att, $val);
         #error_log("set $att = $val");
+    }
+
+    public function notifsOn($type) {
+        $settings = pres('settings', $this->user) ? json_decode($this->user['settings'], TRUE) : [];
+        $notifs = presdef('notifications', $settings, [
+            'email' => TRUE,
+            'push' => TRUE,
+            'facebook' => TRUE
+        ]);
+
+        return($notifs[$type]);
     }
 }
