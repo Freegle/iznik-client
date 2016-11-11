@@ -423,6 +423,36 @@ And something after it.', $stripped);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertTrue($m->isAutoreply());
 
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Hey.', 'I aim to respond within', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        assertTrue($m->isAutoreply());
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testBounce() {
+        error_log(__METHOD__);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        assertFalse($m->isBounce());;
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: Mail delivery failed', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        assertTrue($m->isBounce());
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Hey.', '550 No such user', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        assertTrue($m->isBounce());
+
+
         error_log(__METHOD__ . " end");
     }
 

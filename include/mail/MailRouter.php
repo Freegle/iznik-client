@@ -772,35 +772,37 @@ class MailRouter
 
                     if (preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {
                         # It's a reply to an email notification.
-                        $chatid = intval($matches[1]);
-                        $userid = intval($matches[2]);
-                        $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
-                        $u = User::get($this->dbhr, $this->dbhm, $userid);
+                        if (!$this->msg->isBounce()) {
+                            $chatid = intval($matches[1]);
+                            $userid = intval($matches[2]);
+                            $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+                            $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-                        if ($r->getId()) {
-                            # It's a valid chat.
-                            if ($r->getPrivate('user1') == $userid || $r->getPrivate('user2') == $userid || $u->isModerator()) {
-                                # ...and the user we're replying to is part of it or a mod.
-                                #
-                                # The email address that we replied from might not currently be attached to the
-                                # other user, for example if someone has email forwarding set up.  So make sure we
-                                # have it.
-                                $other = $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') :
-                                    $r->getPrivate('user1');
-                                $otheru = User::get($this->dbhr, $this->dbhm, $other);
-                                $otheru->addEmail($this->msg->getEnvelopefrom(), 0, FALSE);
+                            if ($r->getId()) {
+                                # It's a valid chat.
+                                if ($r->getPrivate('user1') == $userid || $r->getPrivate('user2') == $userid || $u->isModerator()) {
+                                    # ...and the user we're replying to is part of it or a mod.
+                                    #
+                                    # The email address that we replied from might not currently be attached to the
+                                    # other user, for example if someone has email forwarding set up.  So make sure we
+                                    # have it.
+                                    $other = $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') :
+                                        $r->getPrivate('user1');
+                                    $otheru = User::get($this->dbhr, $this->dbhm, $other);
+                                    $otheru->addEmail($this->msg->getEnvelopefrom(), 0, FALSE);
 
-                                # Now add this into the conversation as a message.  This will notify them.
-                                $textbody = $this->msg->stripQuoted();
+                                    # Now add this into the conversation as a message.  This will notify them.
+                                    $textbody = $this->msg->stripQuoted();
 
-                                $m = new ChatMessage($this->dbhr, $this->dbhm);
-                                $mid = $m->create($chatid, $userid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
+                                    $m = new ChatMessage($this->dbhr, $this->dbhm);
+                                    $mid = $m->create($chatid, $userid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
 
-                                # The user sending this is up to date with this conversation.  This prevents us
-                                # notifying her about other messages
-                                $r->mailedLastForUser($userid);
+                                    # The user sending this is up to date with this conversation.  This prevents us
+                                    # notifying her about other messages
+                                    $r->mailedLastForUser($userid);
 
-                                $ret = MailRouter::TO_USER;
+                                    $ret = MailRouter::TO_USER;
+                                }
                             }
                         }
                     } else if (preg_match('/notify@yahoogroups.co.*/', $from)) {

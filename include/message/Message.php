@@ -30,6 +30,80 @@ class Message
     const OUTCOME_RECEIVED = 'Received';
     const OUTCOME_WITHDRAWN = 'Withdrawn';
 
+    // Bounce checks.
+    private $bounce_subjects = [
+        "Mail delivery failed",
+        "Delivery Status Notification",
+        "Undelivered Mail Returned to Sender",
+        "Local delivery error",
+        "Returned mail",
+        "delivery failure",
+        "Delivery has failed",
+        "Please redirect your e-mail",
+        "Email delivery failure",
+        "Undeliverable",
+        "Auto-response",
+        "Inactive account",
+        "Change of email",
+        "Unable to process your message",
+        "Has decided to leave the company",
+        "No longer a valid",
+        "does not exist",
+        "new email address",
+        "Malformed recipient",
+        "spamarrest.com",
+        "(Automatic Response)",
+        "Automatic reply",
+        "email address closure",
+        "invalid address",
+        "User unknown",
+        'Retiring this e-mail address',
+        "Could not send message",
+        "Unknown user"
+    ];
+    
+    private $bounce_bodies = [
+        "I'm afraid I wasn't able to deliver your message to the following addresses.",
+        "Delivery to the following recipients failed.",
+        "was not delivered to",
+        "550 No such user",
+        "update your records",
+        "has now left",
+        "please note his new address",
+        "Sorry, we were unable to deliver your message"
+    ];
+    
+    // Autoreply checks.
+    private $autoreply_subjects = [
+        "Auto Response",
+        "Autoresponder",
+        "If your enquiry is urgent",
+        "Thankyou for your enquiry",
+        "Thanks for your email",
+        "Thanks for contacting",
+        "Thank you for your enquiry",
+        "Many thanks for your",
+        "Automatic reply",
+        "Mail Receipt",
+        "Automated reply",
+        "Auto-Reply",
+        "Out of Office",
+        "vacation reply"
+    ];
+
+    private $autoreply_bodies = [
+        "I aim to respond within",
+        "reply as soon as possible",
+        'with clients right now',
+        "Automated response",
+        "Please note his new address",
+        "THIS IS AN AUTO-RESPONSE MESSAGE",
+        "out of the office",
+        "Thank you so much for your email enquiry",
+        "I am away",
+        "I am currently away"
+    ];
+    
     static public function checkType($type) {
         switch($type) {
             case Message::TYPE_OFFER:
@@ -79,39 +153,6 @@ class Message
     public function getYahooapprove()
     {
         return $this->yahooapprove;
-    }
-
-    public function isAutoreply() {
-        # There is no foolproof way of doing this, sadly.
-        $subjs = [
-            "Auto Response",
-            "Autoresponder",
-            "If your enquiry is urgent",
-            "Thankyou for your enquiry",
-            "Thanks for your email",
-            "Thanks for contacting",
-            "Thank you for your enquiry",
-            "Many thanks for your",
-            "Could not send message",
-            "Automatic reply",
-            "Mail Receipt",
-            "Automated reply",
-            "Auto-Reply",
-            "Out of Office",
-            "out of the office",
-            "holiday",
-            "vacation reply"
-        ];
-
-        $oof = FALSE;
-
-        foreach ($subjs as $s) {
-            if (stripos($this->subject, $s) !== FALSE) {
-                $oof = TRUE;
-            }
-        }
-
-        return($oof);
     }
 
     public function setYahooPendingId($groupid, $id) {
@@ -3096,5 +3137,47 @@ class Message
         # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
         # near the top, and get mailed out again.
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), autoreposts = autoreposts + 1 WHERE msgid = ?;", [ $this->id ]);
+    }
+
+    public function isBounce()
+    {
+        $bounce = FALSE;
+
+        foreach ($this->bounce_subjects as $subj) {
+            if (stripos($this->subject, $subj) !== FALSE) {
+                $bounce = TRUE;
+            }
+        }
+
+        if (!$bounce) {
+            foreach ($this->bounce_bodies as $body) {
+                if (stripos($this->message, $body) !== FALSE) {
+                    $bounce = TRUE;
+                }
+            }
+        }
+
+        return ($bounce);
+    }
+    
+    public function isAutoreply()
+    {
+        $autoreply = FALSE;
+
+        foreach ($this->autoreply_subjects as $subj) {
+            if (stripos($this->subject, $subj) !== FALSE) {
+                $autoreply = TRUE;
+            }
+        }
+
+        if (!$autoreply) {
+            foreach ($this->autoreply_bodies as $body) {
+                if (stripos($this->message, $body) !== FALSE) {
+                    $autoreply = TRUE;
+                }
+            }
+        }
+
+        return ($autoreply);
     }
 }
