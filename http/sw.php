@@ -277,14 +277,18 @@ self.addEventListener('push', function(event) {
                                             }
                                         }
 
-                                        return self.registration.showNotification("Freegle", {
-                                            body: aggregate > 1 ? (aggregate + ' messages') : simple,
-                                            icon: '/images/favicon/user/favicon-96x96.png',
-                                            tag: 'work',
-                                            data: {
-                                                'url': url
-                                            }
-                                        });
+                                        if (aggregate > 0) {
+                                            return self.registration.showNotification("Freegle", {
+                                                body: aggregate > 1 ? (aggregate + ' messages') : simple,
+                                                icon: '/images/favicon/user/favicon-96x96.png',
+                                                tag: 'work',
+                                                data: {
+                                                    'url': url
+                                                }
+                                            });
+                                        } else {
+                                            setTimeout(closeAll, 2000);
+                                        }
                                     } else {
                                         setTimeout(closeAll, 2000);
                                     }
