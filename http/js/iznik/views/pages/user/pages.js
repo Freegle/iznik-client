@@ -77,22 +77,37 @@ define([
                 val = self.$('.js-homegroup select').val();
                 console.log("Get from dropdown", self.groupsnear.length);
 
-                var first = null;
+                // We want to check if the group we have selected is on this platform - if not, then we want to choose the
+                // first (closest) group.
+                //
+                // The selected group might either be one we are a member of, or one of the nearby suggested ones.
+                var member = Iznik.Session.getGroup(val);
                 var onhere = false;
-                _.each(self.groupsnear, function(groupnear) {
-                    console.log("Consider", groupnear);
-                    if (!first && groupnear.onhere) {
-                        console.log("First is", groupnear);
-                        first = groupnear;
-                    }
 
-                    if (groupnear.id == val) {
-                        onhere = groupnear.onhere;
-                        console.log("Found ", val, onhere);
-                    }
-                });
+                if (member) {
+                    onhere = member.get('onhere');
+                    console.log("Already member", onhere);
+                }  else {
+                    // Check nearby.
+                    _.each(self.groupsnear, function(groupnear) {
+                        if (groupnear.id == val) {
+                            onhere = groupnear.onhere;
+                            console.log("Found nearby", val, onhere);
+                        }
+                    });
+                }
 
                 if (!onhere) {
+                    // We need to use the first nearby group which is on here.
+                    var first = null;
+
+                    _.each(self.groupsnear, function(groupnear) {
+                        if (!first && groupnear.onhere) {
+                            console.log("First is", groupnear);
+                            first = groupnear;
+                        }
+                    });
+
                     val = first.id;
                     console.log("Selected not on here, use first", val);
                 }
