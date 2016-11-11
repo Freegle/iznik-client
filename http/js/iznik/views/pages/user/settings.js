@@ -14,8 +14,15 @@ define([
         template: "user_settings_main",
         
         getLocation: function() {
+            var self = this;
             showHeaderWait();
-            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this), hideHeaderWait, { timeout: 30000 });
+            self.$('.js-getloc').tooltip('destroy');
+            self.$('.js-getloc').tooltip({
+                'placement': 'bottom',
+                'title': "Finding location..."
+            });
+            self.$('.js-getloc').tooltip('show');
+            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this), _.bind(this.errorLocation, this), { timeout: 10000 });
         },
 
         events: {
