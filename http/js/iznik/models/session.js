@@ -304,7 +304,7 @@ define([
                                         fi: 'chatreviewother',
                                         el: '.js-repliescountother',
                                         ev: 'repliescountsotherchanged',
-                                        window: false,
+                                        window: true,
                                         sound: false
                                     },
                                     {
@@ -375,6 +375,12 @@ define([
                                 })
 
                                 document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
+
+                                if (total) {
+                                    $('.js-totalcount').html(total).show();
+                                } else {
+                                    $('.js-totalcount').empty().hide();
+                                }
 
                                 if (countschanged) {
                                     Iznik.Session.trigger('countschanged');
