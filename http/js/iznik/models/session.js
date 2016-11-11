@@ -297,14 +297,14 @@ define([
                                         fi: 'chatreview',
                                         el: '.js-repliescount',
                                         ev: 'repliescountschanged',
-                                        window: false,
+                                        window: true,
                                         sound: false
                                     },
                                     {
                                         fi: 'chatreviewother',
                                         el: '.js-repliescountother',
                                         ev: 'repliescountsotherchanged',
-                                        window: true,
+                                        window: false,
                                         sound: false
                                     },
                                     {
@@ -377,9 +377,9 @@ define([
                                 document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
 
                                 if (total) {
-                                    $('.js-totalcount').html(total).show();
+                                    $('#menu-toggle .js-totalcount').html(total).show();
                                 } else {
-                                    $('.js-totalcount').empty().hide();
+                                    $('#menu-toggle .js-totalcount').empty().hide();
                                 }
 
                                 if (countschanged) {
