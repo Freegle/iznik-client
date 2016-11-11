@@ -249,6 +249,8 @@ self.addEventListener('push', function(event) {
                     } catch (e) {
                         workstr = "Exception " + e.message;
                     }
+                } else {
+                    workstr = "Server returned error " + ret.ret + " " + ret.status;
                 }
 
                 // Show a notification.  Don't vibrate - that would be too annoying.
@@ -318,7 +320,9 @@ function addToCache(cacheKey, request, response) {
         caches.open(cacheKey).then(function (cache) {
             try {
                 cache.put(request, copy);
-            } catch (e) {}
+            } catch (e) {
+                console.error("SW cache error", e.message);
+            }
         });
     }
     return response;
