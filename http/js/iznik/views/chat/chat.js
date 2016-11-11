@@ -104,7 +104,9 @@ define([
                                             id: data.roomid
                                         });
 
-                                        chat.fetch().then(function() {
+                                        chat.fetch({
+                                            remove: true
+                                        }).then(function() {
                                             // Make sure we have this chat in our collection - might not have picked
                                             // it up yet.
                                             Iznik.Session.chats.add(chat, { merge: true });
@@ -760,7 +762,10 @@ define([
                 self.updateCount();
 
                 // If the unread message count changes, we want to update it.
-                self.listenTo(self.model, 'change:unseen', self.updateCount);
+                if (!self.unseenListen) {
+                    self.listenTo(self.model, 'change:unseen', self.updateCount);
+                }
+                self.listenTo(self.model, 'change:snippet', self.render);
             });
 
             return (p);
