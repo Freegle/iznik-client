@@ -149,7 +149,15 @@ class Message
         return($this->$att);
     }
 
-    public function edit($subject, $textbody, $htmlbody) {
+    public function edit($subject, $textbody, $htmlbody, $fop = NULL) {
+        if ($fop !== NULL) {
+            $this->dbhm->preExec("INSERT INTO messages_deadlines (msgid, fop) VALUES (?,?) ON DUPLICATE KEY UPDATE fop = ?;", [
+                $this->id,
+                $fop ? 1 : 0,
+                $fop ? 1 : 0
+            ]);
+        }
+
         if ($htmlbody && !$textbody) {
             # In the interests of accessibility, let's create a text version of the HTML
             $html = new \Html2Text\Html2Text($htmlbody);
@@ -213,7 +221,7 @@ class Message
         $replyto, $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
         $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL,
-        $s, $editedby, $editedat, $modmail, $senttoyahoo;
+        $s, $editedby, $editedat, $modmail, $senttoyahoo, $FOP;
 
     /**
      * @return mixed
@@ -251,7 +259,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo'
+        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo', 'FOP'
     ];
 
     public $memberAtts = [
@@ -277,9 +285,14 @@ class Message
         $this->notif = new Notifications($this->dbhr, $this->dbhm);
 
         if ($id) {
-            $msgs = $dbhr->preQuery("SELECT * FROM messages WHERE id = ?;", [$id]);
+            $msgs = $dbhr->preQuery("SELECT messages.*, messages_deadlines.FOP FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id WHERE id = ?;", [$id]);
             foreach ($msgs as $msg) {
                 $this->id = $id;
+
+                # FOP defaults on for our messages.
+                if ($msg['source'] == Message::PLATFORM && $msg['type'] == Message::TYPE_OFFER && $msg['FOP'] === NULL) {
+                    $msg['FOP'] = 1;
+                }
 
                 foreach (array_merge($this->nonMemberAtts, $this->memberAtts, $this->moderatorAtts, $this->ownerAtts) as $attr) {
                     if (pres($attr, $msg)) {
@@ -349,8 +362,10 @@ class Message
         # Our role for a message is the highest role we have on any group that this message is on.  That means that
         # we have limited access to information on other groups of which we are not a moderator, but that is legitimate
         # if the message is on our group.
+        #
+        # We might also be a partner.
         $me = whoAmI($this->dbhr, $this->dbhm);
-        $role = User::ROLE_NONMEMBER;
+        $role = pres('partner', $_SESSION) ? User::ROLE_MEMBER : User::ROLE_NONMEMBER;
 
         if ($me) {
             $sql = "SELECT role, messages_groups.collection FROM memberships
@@ -614,8 +629,10 @@ class Message
         $ret['arrival'] = ISODate($ret['arrival']);
         $ret['date'] = ISODate($ret['date']);
         $ret['daysago'] = floor((time() - strtotime($ret['date'])) / 86400);
-        $ret['FOP'] = pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE) ? 1 : 0;
         $ret['snippet'] = pres('textbody', $ret) ? substr($ret['textbody'], 0, 60) : null;
+
+        # We have a flag for FOP - but legacy posting methods might put it in the body.
+        $ret['FOP'] = (pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE) || $ret['FOP']) ? 1 : 0;
 
         if (pres('fromcountry', $ret)) {
             $ret['fromcountry'] = code_to_country($ret['fromcountry']);
@@ -2988,62 +3005,65 @@ class Message
 
                     #error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} interval $interval lastwarning $lastwarnago");
 
-                    if ($message['hoursago'] <= $interval * 24  &&
-                        $message['hoursago'] > ($interval - 1) * 24 &&
-                        ($lastwarnago === NULL || $lastwarnago > 24)) {
-                        # We will be reposting within 24 hours, and we've either not sent a warning, or the last one was
-                        # an old one (probably from the previous repost).
-                        if (!$message['lastautopostwarning'] || ($lastwarnago > 24 * 60 * 60)) {
-                            # And we haven't sent a warning yet.
-                            $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = NOW() WHERE msgid = ?;", [$message['msgid']]);
-                            $warncount++;
+                    # Reposts might be turned off.
+                    if ($interval > 0) {
+                        if ($message['hoursago'] <= $interval * 24  &&
+                            $message['hoursago'] > ($interval - 1) * 24 &&
+                            ($lastwarnago === NULL || $lastwarnago > 24)) {
+                            # We will be reposting within 24 hours, and we've either not sent a warning, or the last one was
+                            # an old one (probably from the previous repost).
+                            if (!$message['lastautopostwarning'] || ($lastwarnago > 24 * 60 * 60)) {
+                                # And we haven't sent a warning yet.
+                                $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = NOW() WHERE msgid = ?;", [$message['msgid']]);
+                                $warncount++;
 
-                            $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-                            $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
-                            $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
-                            $gatts = $g->getPublic();
+                                $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                                $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+                                $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
+                                $gatts = $g->getPublic();
 
-                            if ($u->getId()) {
-                                $to = $u->getEmailPreferred();
-                                $subj = $m->getSubject();
+                                if ($u->getId()) {
+                                    $to = $u->getEmailPreferred();
+                                    $subj = $m->getSubject();
 
-                                # Remove any group tag.
-                                $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
+                                    # Remove any group tag.
+                                    $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
 
-                                $url = 'https://' . USER_SITE. "/mypost/{$message['msgid']}";
-                                $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $url to let us know.";
-                                $html = autorepost_warning(USER_DOMAIN,
-                                    USERLOGO,
-                                    $subj,
-                                    $u->getName(),
-                                    $to,
-                                    $url
-                                );
+                                    $url = 'https://' . USER_SITE. "/mypost/{$message['msgid']}";
+                                    $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $url to let us know.";
+                                    $html = autorepost_warning(USER_DOMAIN,
+                                        USERLOGO,
+                                        $subj,
+                                        $u->getName(),
+                                        $to,
+                                        $url
+                                    );
 
-                                list ($transport, $mailer) = getMailer();
+                                    list ($transport, $mailer) = getMailer();
 
-                                $message = Swift_Message::newInstance()
-                                    ->setSubject("Re: " . $subj)
-                                    ->setFrom([ $g->getModsEmail() => $gatts['namedisplay'] ])
-                                    ->setTo($to)
-                                    ->setBody($text)
-                                    ->addPart($html, 'text/html');
-                                $mailer->send($message);
+                                    $message = Swift_Message::newInstance()
+                                        ->setSubject("Re: " . $subj)
+                                        ->setFrom([ $g->getModsEmail() => $gatts['namedisplay'] ])
+                                        ->setTo($to)
+                                        ->setBody($text)
+                                        ->addPart($html, 'text/html');
+                                    $mailer->send($message);
+                                }
                             }
-                        }
-                    } else if ($message['hoursago'] > $interval * 24) {
-                        # We can repost this one.  That consists of:
-                        # - incrementing the repost count
-                        # - resetting the arrival time, which will mean the message shows up on the site as recent,
-                        #   and goes out by mail from Digest.php.
-                        # 
-                        # Don't resend to Yahoo - the complexities of trying to keep the single message we have in sync
-                        # with multiple copies on Yahoo are just too horrible to be worth trying to do.
-                        $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-                        error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
-                        $m->repost();
+                        } else if ($message['hoursago'] > $interval * 24) {
+                            # We can repost this one.  That consists of:
+                            # - incrementing the repost count
+                            # - resetting the arrival time, which will mean the message shows up on the site as recent,
+                            #   and goes out by mail from Digest.php.
+                            #
+                            # Don't resend to Yahoo - the complexities of trying to keep the single message we have in sync
+                            # with multiple copies on Yahoo are just too horrible to be worth trying to do.
+                            $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                            error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
+                            $m->repost();
 
-                        $count++;
+                            $count++;
+                        }
                     }
                 }
             }

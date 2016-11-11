@@ -984,7 +984,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(MailRouter::PENDING, $rc);
 
         # Shouldn't be able to edit logged out
-        $ret = $this->call('message', 'PUT', [
+        $ret = $this->call('message', 'PATCH', [
             'id' => $id,
             'groupid' => $group1,
             'subject' => 'Test edit'
@@ -1001,7 +1001,7 @@ class messageAPITest extends IznikAPITestCase
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        $ret = $this->call('message', 'PUT', [
+        $ret = $this->call('message', 'PATCH', [
             'id' => $id,
             'groupid' => $group1,
             'subject' => 'Test edit'
@@ -1011,7 +1011,7 @@ class messageAPITest extends IznikAPITestCase
         # Promote to owner - should be able to edit it.
         $u->setRole(User::ROLE_OWNER, $group1);
 
-        $ret = $this->call('message', 'PUT', [
+        $ret = $this->call('message', 'PATCH', [
             'id' => $id,
             'groupid' => $group1,
             'subject' => 'Test edit'
@@ -1024,7 +1024,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('Test edit', $ret['message']['subject']);
         assertEquals('Test edit', $ret['message']['suggestedsubject']);
 
-        $ret = $this->call('message', 'PUT', [
+        $ret = $this->call('message', 'PATCH', [
             'id' => $id,
             'groupid' => $group1,
             'textbody' => 'Test edit'
@@ -1037,10 +1037,11 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('Test edit', $ret['message']['textbody']);
         error_log("After text edit " . var_export($ret, TRUE));
 
-        $ret = $this->call('message', 'PUT', [
+        $ret = $this->call('message', 'PATCH', [
             'id' => $id,
             'groupid' => $group1,
-            'htmlbody' => 'Test edit'
+            'htmlbody' => 'Test edit',
+            'FOP' => 0
         ]);
         assertEquals(0, $ret['ret']);
         error_log("After HTML edit " . var_export($ret, TRUE));
@@ -1049,6 +1050,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id
         ]);
         assertEquals('Test edit', $ret['message']['htmlbody']);
+        self::assertEquals(0, $ret['message']['FOP']);
 
         error_log(__METHOD__ . " end");
     }

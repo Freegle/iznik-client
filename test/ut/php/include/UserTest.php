@@ -204,7 +204,9 @@ class userTest extends IznikTestCase {
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 1);
         $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 1);
 
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');

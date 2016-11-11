@@ -13,6 +13,7 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/mailtemplates/modtools/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/withpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
+require_once(IZNIK_BASE . '/mailtemplates/welcome/group.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
 class User extends Entity
@@ -51,6 +52,8 @@ class User extends Entity
     /** @var  $log Log */
     private $log;
     var $user;
+
+    private $ouremailid = NULL;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -272,12 +275,12 @@ class User extends Entity
         return($emails);
     }
 
-    public function getEmailPreferred() {
+    public function getEmailPreferred($emails = NULL) {
         # This gets the email address which we think the user actually uses.  So we pay attention to:
         # - the preferred flag, which gets set by end user action
         # - the date added, as most recently added emails are most likely to be right
         # - exclude our own invented mails
-        $emails = $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, added DESC;",  
+        $emails = $emails ? $emails : $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, added DESC;",
             [$this->id]);
         $ret = NULL;
 
@@ -566,6 +569,25 @@ class User extends Entity
         $this->updateSystemRole($role);
 
         if ($rc) {
+            # The membership didn't already exist.
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+            $atts = $g->getPublic();
+
+            if ($atts['welcomemail']) {
+                # We need to send a per-group welcome mail.
+                $to = $this->getEmailPreferred();
+                $html = welcome_group(USER_SITE, $atts['profile'] ? $atts['profile'] : USERLOGO, $to, $atts['namedisplay'], nl2br($atts['welcomemail']));
+                list ($transport, $mailer) = getMailer();
+                $message = Swift_Message::newInstance()
+                    ->setSubject("Welcome to " . $atts['namedisplay'])
+                    ->setFrom([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
+                    ->setTo($to)
+                    ->setDate(time())
+                    ->setBody($atts['welcomemail'])
+                    ->addPart($html, 'text/html');
+                $mailer->send($message);
+            }
+
             $l = new Log($this->dbhr, $this->dbhm);
             $l->log([
                 'type' => Log::TYPE_GROUP,
@@ -650,24 +672,27 @@ class User extends Entity
             # It would be odd for them to be on Yahoo with no email but handle it anyway.
             if ($email['email']) {
                 $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-                $p = new Plugin($this->dbhr, $this->dbhm);
-                $p->add($groupid, [
-                    'type' => $type,
-                    'email' => $email['email']
-                ]);
-                
-                if (ourDomain($email['email'])) {
-                    # This is an email address we host, so we can email an unsubscribe request.  We do both this and
-                    # the plugin work because Yahoo is as flaky as all get out.
-                    for ($i = 0; $i < 10; $i++) {
-                        list ($transport, $mailer) = getMailer();
-                        $message = Swift_Message::newInstance()
-                            ->setSubject('Please release me')
-                            ->setFrom([$email['email']])
-                            ->setTo($g->getGroupUnsubscribe())
-                            ->setDate(time())
-                            ->setBody('Let me go');
-                        $mailer->send($message);
+
+                if ($g->getPrivate('onyahoo')) {
+                    $p = new Plugin($this->dbhr, $this->dbhm);
+                    $p->add($groupid, [
+                        'type' => $type,
+                        'email' => $email['email']
+                    ]);
+
+                    if (ourDomain($email['email'])) {
+                        # This is an email address we host, so we can email an unsubscribe request.  We do both this and
+                        # the plugin work because Yahoo is as flaky as all get out.
+                        for ($i = 0; $i < 10; $i++) {
+                            list ($transport, $mailer) = getMailer();
+                            $message = Swift_Message::newInstance()
+                                ->setSubject('Please release me')
+                                ->setFrom([$email['email']])
+                                ->setTo($g->getGroupUnsubscribe())
+                                ->setDate(time())
+                                ->setBody('Let me go');
+                            $mailer->send($message);
+                        }
                     }
                 }
             }
@@ -1041,7 +1066,7 @@ class User extends Entity
         if ($me && $this->id == $me->getId()) {
             # Add in private attributes for our own entry.
             $atts['emails'] = $me->getEmails();
-            $atts['email'] = $me->getEmailPreferred();
+            $atts['email'] = $me->getEmailPreferred($atts['emails']);
         }
 
         if ($me && $me->isModerator()) {
@@ -1255,7 +1280,7 @@ class User extends Entity
                         'added' => ISODate($group['added']),
                         'collection' => $group['collection'],
                         'role' => $group['role'],
-                        'emailid' => $group['emailid'],
+                        'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
                         'eventsallowed' => $group['eventsallowed'],
                         'ourPostingStatus' => $group['ourPostingStatus'],
@@ -1298,7 +1323,7 @@ class User extends Entity
                         'added' => ISODate($group['added']),
                         'collection' => $group['collection'],
                         'role' => $group['role'],
-                        'emailid' => $group['emailid'],
+                        'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
                         'eventsallowed' => $group['eventsallowed'],
                         'type' => $group['type']
@@ -1365,6 +1390,21 @@ class User extends Entity
         }
 
         return($atts);
+    }
+
+    private function getOurEmailId() {
+        # For groups we host, we need to know our own email for this user so that we can return it as the
+        # email used on the group.
+        if (!$this->ouremailid) {
+            $emails = $this->getEmails();
+            foreach ($emails as $thisemail) {
+                if (strpos($thisemail['email'], USER_DOMAIN) !== FALSE) {
+                    $this->ouremailid = $thisemail['id'];
+                }
+            }
+        }
+
+        return($this->ouremailid);
     }
 
     public static function getSessions($dbhr, $dbhm, $id) {

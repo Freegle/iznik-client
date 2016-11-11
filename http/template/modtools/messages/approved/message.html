@@ -38,6 +38,9 @@
             <div class="row-fluid">
                 <div class="col-sm-7">
                     <div class="msgbody botspace"><% if (obj.textbody && obj.textbody.length > 0) { %>{{obj.textbody}}<% } else { %><span class="text-muted"><em>No message body</em></span><% } %></div>
+                    <% if (obj.FOP) { %>
+                    <em class="topspace"><b>Fair Offer Policy</b></em>
+                    <% } %>
                     <div class="row">
                         <ul class="list-unstyled js-attlist"></ul>
                     </div>

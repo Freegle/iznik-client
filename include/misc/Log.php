@@ -43,6 +43,7 @@ class Log
     const SUBTYPE_YAHOO_DELIVERY_TYPE = 'YahooDeliveryType';
     const SUBTYPE_YAHOO_POSTING_STATUS = 'YahooPostingStatus';
     const SUBTYPE_OUR_POSTING_STATUS = 'OurPostingStatus';
+    const SUBTYPE_OUR_EMAIL_FREQUENCY = 'OurEmailFrequency';
     const SUBTYPE_ROLE_CHANGE = 'RoleChange';
     const SUBTYPE_MERGED = 'Merged';
     const SUBTYPE_SPLIT = 'Split';

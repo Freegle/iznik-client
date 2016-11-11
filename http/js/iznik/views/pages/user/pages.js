@@ -62,8 +62,15 @@ define([
         },
 
         getLocation: function () {
+            var self = this;
             showHeaderWait();
-            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this), hideHeaderWait, { timeout: 30000 });
+            self.$('.js-getloc').tooltip('destroy');
+            self.$('.js-getloc').tooltip({
+                'placement': 'bottom',
+                'title': "Finding location..."
+            });
+            self.$('.js-getloc').tooltip('show');
+            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this), _.bind(this.errorLocation, this), { timeout: 10000 });
         },
 
         changeHomeGroup: function() {
@@ -301,10 +308,29 @@ define([
                 }
             }
         },
-
-        gotLocation: function(position) {
+        
+        errorLocation: function (position) { // CC
+            console.log("errorLocation");
             hideHeaderWait();
             var self = this;
+            self.$('.js-getloc').tooltip('destroy');
+            _.delay(function () {
+                self.$('.js-getloc').tooltip({
+                    'placement': 'bottom',
+                    'title': "No location available. Check your Settings for Location access/services."
+                });
+                self.$('.js-getloc').tooltip('show');
+                _.delay(function () {
+                    self.$('.js-getloc').tooltip('destroy');
+                }, 20000);
+            }, 500);
+        },
+
+        gotLocation: function(position) {
+            console.log("gotLocation");
+            hideHeaderWait();
+            var self = this;
+            self.$('.js-getloc').tooltip('destroy');
 
             $.ajax({
                 type: 'GET',
@@ -380,7 +406,7 @@ define([
                 try {
                     var id = localStorage.getItem('draft');
                     var q = null;
-                    var msg;
+                    var msg = null;
 
                     if (id) {
                         // We have a draft we were in the middle of.
@@ -388,13 +414,13 @@ define([
                             id: id
                         });
 
-                        q = msg.fetch()
+                        q = msg.fetch();
                     } else {
                         q = resolvedPromise(self);
                     }
 
                     q.then(function() {
-                        if (id) {
+                        if (id && msg.get('id') == id && !_.isUndefined(msg.get('location'))) {
                             // We want to use the location from the message we are in the middle of.
                             localStorage.setItem('mylocation', JSON.stringify(msg.get('location')));
                         }

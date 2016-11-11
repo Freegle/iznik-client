@@ -536,17 +536,20 @@ class MailRouter
 
                     # We should always find them as Message::parse should create them
                     if ($uid) {
+                        if ($this->log) { error_log("From user $uid to group $gid"); }
                         $u = User::get($this->dbhr, $this->dbhm, $uid);
 
                         # Create/get a change between the sender and the group mods.
                         $r = new ChatRoom($this->dbhr, $this->dbhm);
                         $chatid = $r->createUser2Mod($uid, $gid);
+                        if ($this->log) { error_log("Chatid is $chatid"); }
 
                         # Now add this message into the chat
                         $textbody = $this->msg->stripQuoted();
 
                         $m = new ChatMessage($this->dbhr, $this->dbhm);
-                        $mid = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
+                        $mid = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, NULL, FALSE);
+                        if ($this->log) { error_log("Created message $mid"); }
 
                         # The user sending this is up to date with this conversation.  This prevents us
                         # notifying her about other messages
@@ -554,6 +557,55 @@ class MailRouter
 
                         $ret = MailRouter::TO_VOLUNTEERS;
                     }
+                }
+            }
+        } else if (preg_match('/(.*)-subscribe@' . GROUP_DOMAIN . '/', $to, $matches)) {
+            $ret = MailRouter::FAILURE;
+
+            # Find the group
+            $g = new Group($this->dbhr, $this->dbhm);
+            $gid = $g->findByShortName($matches[1]);
+
+            if ($gid && !$g->getPrivate('onyahoo')) {
+                # It's one of our groups.  Find the user this is from.
+                $envfrom = $this->msg->getEnvelopeFrom();
+                $u = new User($this->dbhr, $this->dbhm);
+                $uid = $u->findByEmail($envfrom);
+
+                if (!$uid) {
+                    # We don't know them yet.
+                    $uid = $u->create(NULL, NULL, $this->msg->getFromname(), "Email subscription from $envfrom to " . $g->getPrivate('nameshort'));
+                    $u->addEmail($envfrom, 0);
+                    $pw = $u->inventPassword();
+                    $u->addLogin(User::LOGIN_NATIVE, $uid, $pw);
+                    $u->welcome($envfrom, $pw);
+                }
+
+                $u = new User($this->dbhr, $this->dbhm, $uid);
+
+                # We should always find them as Message::parse should create them
+                if ($u->getId()) {
+                    $u->addMembership($gid);
+                    $ret = MailRouter::TO_SYSTEM;
+                }
+            }
+        } else if (preg_match('/(.*)-unsubscribe@' . GROUP_DOMAIN . '/', $to, $matches)) {
+            $ret = MailRouter::FAILURE;
+
+            # Find the group
+            $g = new Group($this->dbhr, $this->dbhm);
+            $gid = $g->findByShortName($matches[1]);
+
+            if ($gid && !$g->getPrivate('onyahoo')) {
+                # It's one of our groups.  Find the user this is from.
+                $envfrom = $this->msg->getEnvelopeFrom();
+                $u = new User($this->dbhr, $this->dbhm);
+                $uid = $u->findByEmail($envfrom);
+
+                if ($uid) {
+                    $u = new User($this->dbhr, $this->dbhm, $uid);
+                    $u->removeMembership($gid);
+                    $ret = MailRouter::TO_SYSTEM;
                 }
             }
         } else {

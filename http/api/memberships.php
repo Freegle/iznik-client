@@ -126,6 +126,7 @@ function memberships() {
                                             $member['sessions'] = $u->getSessions($dbhr, $dbhm, $member['userid']);
                                         }
                                     }
+
                                 }
 
                                 # Get some/all.
@@ -137,10 +138,10 @@ function memberships() {
                                     'status' => 'Success'
                                 ];
 
-                                foreach ($members as $member) {
-                                    if (!pres($member['groupid'], $ret['groups'])) {
-                                        $g = Group::get($dbhr, $dbhm, $member['groupid']);
-                                        $ret['groups'][$member['groupid']] = $g->getPublic();
+                                foreach ($members as $m) {
+                                    if (!pres($m['groupid'], $ret['groups'])) {
+                                        $g = Group::get($dbhr, $dbhm, $m['groupid']);
+                                        $ret['groups'][$m['groupid']] = $g->getPublic();
                                     }
                                 }
                             }

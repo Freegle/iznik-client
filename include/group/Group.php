@@ -4,6 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
+require_once(IZNIK_BASE . '/include/misc/Shortlink.php');
 
 class Group extends Entity
 {
@@ -16,7 +17,7 @@ class Group extends Entity
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'logo',
         'onyahoo', 'onhere', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'lat', 'lng',
-        'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'showonyahoo', 'external');
+        'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'showonyahoo', 'external', 'welcomemail');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
@@ -168,6 +169,15 @@ class Group extends Entity
 
             $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type, founded) VALUES (?, ?, NOW())", [$shortname, $type]);
             $id = $this->dbhm->lastInsertId();
+
+            if ($type == Group::GROUP_FREEGLE) {
+                # Also create a shortlink.
+                $linkname = str_ireplace('Freegle', '', $shortname);
+                $linkname = str_replace('-', '', $linkname);
+                $linkname = str_replace('_', '', $linkname);
+                $s = new Shortlink($this->dbhr, $this->dbhm);
+                $sid = $s->create($linkname, Shortlink::TYPE_GROUP, $id);
+            }
         } catch (Exception $e) {
             $id = NULL;
             $rc = 0;
@@ -471,7 +481,7 @@ class Group extends Entity
             $thisone['yahooDeliveryType'] = $member['yahooDeliveryType'];
             $thisone['yahooPostingStatus'] = $member['yahooPostingStatus'];
             $thisone['yahooAlias'] = $member['yahooAlias'];
-            $thisone['role'] = $u->getRoleForGroup($member['groupid']);
+            $thisone['role'] = $u->getRoleForGroup($member['groupid'], FALSE);
             $thisone['joincomment'] = $member['joincomment'];
             $thisone['emailfrequency'] = $member['emailfrequency'];
 

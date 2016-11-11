@@ -941,7 +941,7 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     position:fixed;
     bottom:0;
     right:0;
-    z-index: 1100;
+    z-index: 900;
 }
 
 #js-notifchat {
@@ -966,6 +966,7 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     overflow-x: hidden;
     text-shadow: 0 0 0 rgba(0, 0, 0, 0.59);
     -webkit-font-smoothing: antialiased;
+    z-index: 1100;
 }
 
 .chat-min-username {
