@@ -316,7 +316,9 @@ function addToCache(cacheKey, request, response) {
     if (response.ok) {
         var copy = response.clone();
         caches.open(cacheKey).then(function (cache) {
-            cache.put(request, copy);
+            try {
+                cache.put(request, copy);
+            } catch (e) {}
         });
     }
     return response;
