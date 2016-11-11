@@ -497,6 +497,9 @@ class Message
             }
         }
 
+        # URL people can follow to get to the message on our site.
+        $ret['url'] = 'https://' . USER_SITE . '/message/' . $this->id;
+
         # Location. We can always see any area and top-level postcode.  If we're a mod or this is our message
         # we can see the precise location.
         if ($this->locationid) {
