@@ -666,19 +666,30 @@ class ChatRoom extends Entity
 
         foreach ($userids as $userid) {
             #error_log("Poke {$rost['userid']} for {$this->id}");
-            $u = new User($this->dbhr, $this->dbhm, $userid);
+            $u = User::get($this->dbhr, $this->dbhm, $userid);
 
             if ($u->notifsOn(User::NOTIFS_FACEBOOK)) {
                 $logins = $u->getLogins();
 
                 foreach ($logins as $login) {
-                    if ($login['type'] == User::LOGIN_FACEBOOK) {
+                    if ($login['type'] == User::LOGIN_FACEBOOK && is_numeric($login['uid'])) {
+                        error_log("Notify FB {$login['uid']}");
                         $f->notify($login['uid'], $text, $url);
                     }
                 }
             }
 
             $count++;
+        }
+
+        # Now Push.  No payload.
+        $n = new Notifications($this->dbhr, $this->dbhm);
+        foreach ($userids as $userid) {
+            $u = User::get($this->dbhr, $this->dbhm, $userid);
+
+            if ($u->notifsOn(User::NOTIFS_PUSH)) {
+                $n->notify($userid);
+            }
         }
 
         return ($count);

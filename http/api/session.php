@@ -40,44 +40,46 @@ function session() {
 
                 # Get groups including work when we're on ModTools; don't need that on the user site.
                 $ret['groups'] = $me->getMemberships(FALSE, NULL, MODTOOLS);
-                $ret['work'] = [];
 
-                foreach ($ret['groups'] as &$group) {
-                    if (pres('work', $group)) {
-                        foreach ($group['work'] as $key => $work) {
-                            if (pres($key, $ret['work'])) {
-                                $ret['work'][$key] += $work;
-                            } else {
-                                $ret['work'][$key] = $work;
+                if (MODTOOLS) {
+                    # Tell them what mod work there is.
+                    $ret['work'] = [];
+
+                    foreach ($ret['groups'] as &$group) {
+                        if (pres('work', $group)) {
+                            foreach ($group['work'] as $key => $work) {
+                                if (pres($key, $ret['work'])) {
+                                    $ret['work'][$key] += $work;
+                                } else {
+                                    $ret['work'][$key] = $work;
+                                }
                             }
+                        }
+
+                        $ammod = $me->isModerator();
+
+                        if ($ammod) {
+                            # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
+                            # in here - but it's of no interest to members so there's no point delaying them by
+                            # fetching it.
+                            #
+                            # Similar code in group.php.
+                            $t = new Twitter($dbhr, $dbhm, $group['id']);
+                            $atts = $t->getPublic();
+                            unset($atts['token']);
+                            unset($atts['secret']);
+                            $atts['authdate'] = ISODate($atts['authdate']);
+                            $group['twitter'] =  $atts;
+
+                            # Ditto Facebook.
+                            $f = new GroupFacebook($dbhr, $dbhm, $group['id']);
+                            $atts = $f->getPublic();
+                            unset($atts['token']);
+                            $atts['authdate'] = ISODate($atts['authdate']);
+                            $group['facebook'] =  $atts;
                         }
                     }
 
-                    $ammod = $me->isModerator();
-
-                    if (MODTOOLS && $ammod) {
-                        # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
-                        # in here - but it's of no interest to members so there's no point delaying them by
-                        # fetching it.
-                        #
-                        # Similar code in group.php.
-                        $t = new Twitter($dbhr, $dbhm, $group['id']);
-                        $atts = $t->getPublic();
-                        unset($atts['token']);
-                        unset($atts['secret']);
-                        $atts['authdate'] = ISODate($atts['authdate']);
-                        $group['twitter'] =  $atts;
-
-                        # Ditto Facebook.
-                        $f = new GroupFacebook($dbhr, $dbhm, $group['id']);
-                        $atts = $f->getPublic();
-                        unset($atts['token']);
-                        $atts['authdate'] = ISODate($atts['authdate']);
-                        $group['facebook'] =  $atts;
-                    }
-                }
-
-                if (MODTOOLS) {
                     $s = new Spam($dbhr, $dbhm);
                     $ret['work']['spammerpendingadd'] = $s->collectionCount(Spam::TYPE_PENDING_ADD);
                     $ret['work']['spammerpendingremove'] = $s->collectionCount(Spam::TYPE_PENDING_REMOVE);
@@ -87,10 +89,10 @@ function session() {
                     $starttime = date("Y-m-d H:i:s", strtotime("midnight 4 days ago"));
                     $f = new GroupFacebook($dbhr, $dbhm);
                     $ret['work']['socialactions'] = count($f->listSocialActions($ctx, $starttime));
-                }
 
-                $c = new ChatMessage($dbhr, $dbhm);
-                $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
+                    $c = new ChatMessage($dbhr, $dbhm);
+                    $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
+                }
 
                 $ret['logins'] = $me->getLogins(FALSE);
             } else {
