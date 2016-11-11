@@ -673,7 +673,6 @@ class ChatRoom extends Entity
 
                 foreach ($logins as $login) {
                     if ($login['type'] == User::LOGIN_FACEBOOK && is_numeric($login['uid'])) {
-                        error_log("Notify FB {$login['uid']}");
                         $f->notify($login['uid'], $text, $url);
                     }
                 }

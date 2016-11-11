@@ -243,6 +243,7 @@ self.addEventListener('push', function(event) {
                                 notifstr = notifstr == '' ? "No tasks outstanding" : notifstr;
                             } else {
                                 notifstr = "No tasks outstanding";
+                                setTimeout(closeAll, 2000);
                             }
 
                             return self.registration.showNotification("ModTools", {
@@ -263,6 +264,7 @@ self.addEventListener('push', function(event) {
                             }).then(function(response) {
                                 return response.json().then(function(ret) {
                                     console.log("SW got chats", ret);
+                                    var notifstr = 'No messages';
 
                                     if (ret.ret == 0) {
                                         var simple = null;
@@ -278,20 +280,22 @@ self.addEventListener('push', function(event) {
                                         }
 
                                         if (aggregate > 0) {
-                                            return self.registration.showNotification("Freegle", {
-                                                body: aggregate > 1 ? (aggregate + ' messages') : simple,
-                                                icon: '/images/favicon/user/favicon-96x96.png',
-                                                tag: 'work',
-                                                data: {
-                                                    'url': url
-                                                }
-                                            });
+                                            notifstr = (aggregate > 1) ? (aggregate + ' messages') : simple;
                                         } else {
                                             setTimeout(closeAll, 2000);
                                         }
                                     } else {
                                         setTimeout(closeAll, 2000);
                                     }
+
+                                    return self.registration.showNotification("Freegle", {
+                                        body: notifstr,
+                                        icon: '/images/favicon/user/favicon-96x96.png',
+                                        tag: 'work',
+                                        data: {
+                                            'url': url
+                                        }
+                                    });
                                 });
                             });
                         }
